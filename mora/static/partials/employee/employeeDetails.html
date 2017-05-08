@@ -1,0 +1,56 @@
+<div class="panel panel-default"> 
+   <div class="panel-heading"> 
+    <div class="row"> 
+     <div class="col-md-12 sec-title"> 
+      <i class="common heading-user"></i> 
+      <span>{{i18n['page_heading_emp']}}</span> 
+     </div> 
+    </div> 
+   </div> 
+   <div class="panel-body"> 
+    <div class="row mrgnltrt15" ng-show="!flag.empFound &amp;&amp; flag.empInfoLoaded"> 
+     <div class="col-md-12"> 
+      <div class="alert alert-danger" id="empMsgNotFound">
+       {{i18n['employee_not_found_label']}}
+      </div> 
+     </div> 
+    </div> 
+    <div ng-show="flag.empFound"> 
+     <div class="row emp-detail pdbt25"> 
+      <div class="col-md-3 col-sm-3 col-xs-12"> 
+       <span class="light-blue">{{i18n['navn_label']}}</span> 
+       <span class="black_10" ng-bind="employee.name"></span> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12"> 
+       <span class="light-blue">{{i18n['cpr_label']}}</span> 
+       <span class="black_10" ng-bind="employee['user-key']"></span> 
+      </div> 
+      <div class="col-md-3 col-sm-2 col-xs-12"> 
+       <span class="light-blue" ng-show="odknet_name">{{i18n['brugernavn_label']}}</span> 
+       <span class="black_10" ng-bind="odknet_name"></span>
+      </div> 
+      <div class="col-md-3 col-sm-4 col-xs-12 action-btn"> 
+       <span acl="e|write" class="form-group" ng-show="flag.empEngagementsFound"> <button id="elEmpEditBtn" class="btn btn-primary btn-md" data-toggle="modal" data-target="#selectedEmployeePopupModal" ng-click="$parent.empEdit('open')"> <i class="common edit"></i> </button> </span> 
+       <span class="form-group" ng-show="flag.empEngagementsFound"> <button id="elEmpViewBtn" class="btn btn-primary btn-md" data-toggle="modal" data-target="#selectedEmployeePopupModal" ng-click="$parent.empView('open')"> <i class="common view"></i> </button> </span> 
+       <span class="form-group" ng-show="flag.empEngagementsFound"> <button id="emEmpHistoryBtn" class="btn btn-primary btn-md" data-toggle="modal" ng-click="historyLog('open', 'e/history/'+employee.uuid, 'History for '+employee.name+', '+employee['user-key'])"> <i class="common book"></i> </button> </span> 
+      </div> 
+     </div> 
+     <!-- Tabs --> 
+     <div ng-if="flag.empEngagementsFound" id="employeeViewEdit"> 
+      <tabset id="employeeViewTabs"> 
+       <tab ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'" active="role.active" ng-show="role.visible &amp;&amp; (role.present || role.future)" ng-click="setOrgUnit(role, tables[role.key].tr)"> 
+        <tab-heading id="{{role.key}EmpDetailTab">
+         {{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}
+        </tab-heading> 
+        <ng-include src="'partials/employee/view/'+role.key+'.html?t='+role.timeStamp+''" ng-if="role.visible &amp;&amp; (role.present || role.future)" ng-init="linking = true" /> 
+       </tab> 
+      </tabset> 
+     </div> 
+     <!-- Loading --> 
+     <div class="row" ng-show="!flag.empEngagementsFound"> 
+      <div class="col-md-12 spinner"> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+  </div>

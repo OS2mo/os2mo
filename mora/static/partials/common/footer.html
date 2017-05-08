@@ -1,0 +1,117 @@
+<footer ng-controller="moFooter"> 
+   <!-- <div class="container-fluid"> 
+    <div class="row"> 
+     <div class="col-md-12" id="moNotificationArea"> 
+      <div ng-controller="moNotification"> 
+       <tabset> 
+        <tab heading="Arbejdslog"> 
+         <ul class="notification"> 
+          <li ng-repeat="event in eventList" class="{{event.type}}">{{event.message}}</li> 
+         </ul> 
+        </tab> 
+        <tab heading="Begivenheder"> 
+         <p>{{i18n['footer_begivenheder_content_label']}}</p> 
+        </tab> 
+        <tab heading="FejI"> 
+         <p>{{i18n['footer_feji_content_label']}}</p> 
+        </tab> 
+       </tabset> 
+      </div> 
+     </div> 
+    </div> 
+    <div class="row"> 
+     <div class="col-md-12"> 
+      <hr> 
+     </div> 
+    </div> 
+    <div class="row"> 
+     <div class="col-md-12 text-right"> 
+      <p><small>{{i18n.footer_copyright_label}} &copy; 2014 &nbsp;&nbsp;</small><select style="display:none" class="fomr-control" id="sys-lang" ng-model="language" ng-change="updLang()" ng-options="lng.code as lng.name for lng in langList"><option value="" disabled>{{i18n['language_label']}}</option></select></p> 
+     </div> 
+    </div>
+   </div>  -->
+  </footer>
+  <!-- Error log modal --> 
+  <div ng-controller="moErrorLog" ng-if="loggerMsg.show"> 
+   <script type="text/ng-template" id="errorLog.html">
+		<div id="moErrorRow">
+		  <div class="modal-header">
+		    <button id="errorLogModalClose" type="button" class="close" ng-click="cancel()">&times;</button>
+		      <h3>{{loggerMsg.title}}</h3>
+		  </div>
+	      <div class="modal-body">
+			<p>{{loggerMsg.content}}</p>
+			<div class="traceMsg" ng-if="loggerMsg.trace">
+			{{loggerMsg.trace}}
+			</div>
+	      </div>
+		</div>
+	</script> 
+  </div> 
+  <!-- History log modal --> 
+  <div ng-controller="moHistoryLog" ng-if="historyLog.show"> 
+   <script type="text/ng-template" id="historyLog.html">
+    <div id="moHistoryLogRow">
+      <div class="modal-header">
+        <button id="historyModalClose" type="button" class="close" ng-click="historyLog('close')">&times;</button>
+          <h3 ng-bind="response.title"></h3>
+      </div>
+      <div class="modal-body">
+        <div class="historyLogMsg">
+          <table class="table table-striped table-hover table-condensed ng-scope">
+            <thead>
+              <tr>
+                <th>{{i18n['history_tbl_header_date']}}</th>
+                <th>{{i18n['history_tbl_header_section']}}</th>
+                <th>{{i18n['history_tbl_header_action']}}</th>
+                <th>{{i18n['history_tbl_header_object']}}</th>
+                <th>{{i18n['history_tbl_header_change_active_from']}}</th>
+                <th>{{i18n['history_tbl_header_performed_by']}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="data in response.data">
+                <td>{{data.date}}</td>
+                <td>{{data.section}}</td>
+                <td>{{data.action}}</td>
+                <td>{{data.object}}</td>
+                <td>
+                  {{data.from | date:"dd-MM-yyyy 'at' h:mma"}} to
+                  {{data.to | date:"dd-MM-yyyy 'at' h:mma"}}
+                </td>
+                <td>{{data.changedBy}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </script> 
+  </div> 
+  <!-- / Error log modal --> 
+  <!-- Org tree selector template --> 
+  <script type="text/ng-template" id="orgUnitTreeSelector.html">
+	<div class="tree">
+		<ul class="orgTreeSelectorList first">
+			<li><label ng-click="$emit('orgUnitRowSelect', match.model);"><input type="checkbox" name="" value="{{match.label}}" placeholder=""> <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span></label>
+				<ul ng-tree="match.model.children">
+					<li><label ng-click="$emit('orgUnitRowSelect', item);"><input type="checkbox" name="" value="{{item.uuid}}" placeholder=""> <span bind-html-unsafe="item.name | typeaheadHighlight:query"></span></label></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</script> 
+  <!-- / Org tree selector template --> 
+  <!-- Org tree selector Field template --> 
+  <script type="text/ng-template" id="orgUnitTreeSelectorField.html">
+	<div class="tree">
+		<ul class="orgTreeSelectorList first">
+			<li><label ng-click="$emit('orgUnitRowSelectField', match.model);"><input type="checkbox" name="" value="{{match.label}}" placeholder=""> <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span></label>
+				<ul ng-tree="match.model.children">
+					<li><label ng-click="$emit('orgUnitRowSelectField', item);"><input type="checkbox" name="" value="{{item.uuid}}" placeholder=""> <span bind-html-unsafe="item.name | typeaheadHighlight:query"></span></label></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</script> 
+  <!-- / Org tree selector Field template -->

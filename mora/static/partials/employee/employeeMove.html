@@ -1,0 +1,132 @@
+<div id="employeeMove" class="modal-popup workflow move"> 
+   <header> 
+    <div class="container-fluid"> 
+     <div class="row head-section"> 
+      <div class="col-md-1 col-sm-2 col-xs-12 logo"> 
+       <img src="./images/knud_small.png" /> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12 title"> 
+       <nav> 
+        <ul class="nav navbar-nav"> 
+         <li class="sub-text common user-img"></li> 
+         <li class="sub-text selected"><a href="#">FLYT ENGAGEMENT</a></li> 
+        </ul> 
+       </nav> 
+      </div> 
+      <div class="col-md-5 col-sm-5 col-xs-12"> 
+       <div class="search-bar"> 
+        <form name="empCPRSearchForm" class="navbar-form" role="search" action="" method="GET" ng-submit="empCPRSearch()" novalidate=""> 
+         <div class="input-group"> 
+          <div class="input-group-btn"> 
+           <button data-toggle="dropdown" class="btn btn-default search" type="submit"><i class="fa fa-search"></i></button> 
+           <input type="text" class="form-control" name="empCPR" ng-model="empCPR" required="" /> 
+          </div> 
+         </div> 
+        </form> 
+       </div> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12"> 
+       <ul class="user-helper pull-right"> 
+        <li><a href="javascript:;" id="elModalHelp" class="common help"></a></li> 
+        <li><a href="javascript:;" id="elEmpEditCancel" class="common cross" ng-click="empMoveModal('close')"></a></li> 
+       </ul> 
+      </div> 
+     </div> 
+    </div> 
+   </header> 
+   <div class="row"> 
+    <div class="col-md-10 col-md-offset-1"> 
+     <div class="alert alert-danger" ng-show="workFlowMoveFlag.invalid" id="elMsgEmpCPRInvalid">
+        {{i18n['please_enter_employee_cpr_label']}}
+     </div> 
+     <div class="alert alert-danger" ng-show="workFlowMoveFlag.notFound" id="elMsgEmpCPRNotFound">
+     {{i18n['employee_not_found_label']}}
+     </div> 
+    </div> 
+   </div> 
+   <div class="panel panel-default" ng-show="workFlowMoveFlag.found"> 
+    <div class="modal-body panel-body"> 
+     <div class="modal-content-wrap"> 
+      <div class="row" ng-show="workFlowMoveFlag.found"> 
+
+       <div class="col-md-6 col-sm-6 emp-detail"> 
+        <div class="row content"> 
+         <div class="col-md-4 col-sm-4 col-xs-12"> 
+          <span class="light-blue">Navn:</span> 
+          <span class="black_10">{{employee['name']}}</span> 
+         </div> 
+         <div class="col-md-5 col-sm-5 col-xs-12 pdltrt0"> 
+          <span class="light-blue">Cpr:</span> 
+          <span class="black_10">{{employee['user-key']}}</span> 
+         </div> 
+         <div class="col-md-3 col-sm-3 col-xs-12"> 
+          <span class="light-blue">Brugernavn:</span> 
+          <span class="black_10">{{employee['nick-name']}}</span> 
+         </div> 
+        </div>
+
+        <div class="row" ng-show="workFlowMoveFlag.found"> 
+          <div class="col-md-12 col-sm-12">Flyt medarbejder: </div> 
+        </div> 
+
+       </div> 
+       <div class="col-md-6 col-sm-6 emp-detail emp-search"> 
+        <div class="row content"> 
+          <div class="col-md-6 col-sm-6"> 
+            <form name="empMoveDateForm" novalidate=""> 
+          <div class="form-group"> 
+          <label for="moveDate" class="col-sm-7 control-label input-sm text-right">{{i18n['flytte_dato_label']}}</label> 
+          <div class="col-sm-5 input-group inline-cal"> 
+          <input type="text" class="form-control input-sm" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="empMoveDate" name="empMoveDate" close-text="Close" show-weeks="false" is-open="opened" ng-blur="dateSelect('empMoveDate')" ng-focus="dateSelect('empMoveDate')" ui-keydown="{'enter':'dateSelect(\'empMoveDate\')'}" id="empMoveDate" placeholder="{{sysService.dateFormat.placeholder}}"/>
+          <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm" ng-click="open($event, 'opened')"><i class="glyphicon glyphicon-calendar"></i></button> </span>
+          </div> 
+          </div> 
+            </form> 
+          </div> 
+          <div class="col-md-6 col-sm-6 edit">
+            <div class="posRel">
+              <input type="text" ng-click="onClickEnhead()" ng-model="valueEnhead" ng-change="onChangeOccured(valueEnhead, 'enhead')" class="type-ahead-tree input-sm form-control unit" placeholder="{{i18n['typeaheadtreeplaceholder']}}"/>
+              <span class="input-group-btn" placeholder="{{i18n['typeaheadtreeplaceholder']}}">    
+                  <button type="button" class="btn btn-default search" id="orgUnitSearchBtn" />      
+                   <i ng-hide="enHeadUnits" class="fa fa-search"></i>       
+                   <i ng-show="enHeadUnits" class="refresh ng-hide"></i> 
+                  </button> 
+              </span>
+              <div  ng-if="isEnhead && !selectedEnhead" class="posAbs">
+                <orgtypeaheadtree inputtreetype="enhead" datetype="{{empMoveDate}}"></orgtypeaheadtree>
+              </div>
+            </div>
+          </div> 
+        </div> 
+       </div> 
+
+      </div> <!-- end row -->
+      <div ng-show="workFlowMoveFlag.details && !workFlowMoveFlag.rolesFound">
+        <div ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'"> 
+         <ng-include src="'partials/employee/move/'+role.key+'.html'" /> 
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="alert alert-danger" ng-show="workFlowMoveFlag.rolesFound" id="elMsgEmpNoEngagementFound">
+          {{i18n['no_roles_found_label']}}
+          </div> 
+        </div>
+      </div>
+
+     </div> 
+    </div> 
+   </div>
+   <div class="row action"> 
+    <div class="col-md-11"> 
+     <div class="alert alert-danger" ng-show="workFlowMoveFlag.fail" opipid="elMsgempCPRInvalid">
+      {{i18n['error_occured_in_moving_employee_label']}}
+     </div> 
+    </div> 
+    <div class="col-md-1 text-right"> 
+     <button ng-disabled="(engagements['engagement'].data['present'].length < 1 && engagements['engagement'].data['future'].length < 1)" class="btn btn-sm btn-default" id="elEmpMoveOk" ng-click="empMoveConfirm()"><i class="common tick"></i></button> 
+     <button id="elEmpMoveCancel" type="button" class="btn btn-sm btn-danger" data-dismiss="modal" aria-hidden="true" ng-click="empMoveModal('close')"><i class="common cross"></i></button> 
+    </div> 
+   </div> 
+  </div>

@@ -1,0 +1,18 @@
+<div class="apollo" ng-contoller="moLogin"> 
+   <div class="apollo-container clearfix"> 
+    <div class="apollo-login"> 
+     <div class="alert alert-danger" ng-show="loginFailed" id="elMsgLoginFail">
+      {{i18n.login_invalid_label}}
+     </div> 
+     <form class="form-signin" id="elLoginForm" ng-submit="moLoginProcess()"> 
+      <div class="control-group"> 
+       <input type="text" value="" class="input-block-level form-control" id="elLoginUser" placeholder="{{i18n.login_username_label}}" ng-model="username" required="" auto-fill-sync="" /> 
+      </div> 
+      <div class="control-group"> 
+       <input type="password" value="" class="input-block-level form-control" id="elLoginPass" placeholder="{{i18n.login_password_label}}" ng-model="password" required="" auto-fill-sync="" /> 
+      </div> 
+      <button class="btn btn-lg btn-primary btn-block" type="submit" id="elLoginSubmit">{{i18n.login_submit_label}}</button> 
+     </form> 
+    </div> 
+   </div> 
+  </div>

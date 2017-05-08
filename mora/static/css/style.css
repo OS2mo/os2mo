@@ -1,0 +1,29 @@
+.bigLogin{
+    height: 40px!important;
+}
+
+.login-form{
+    margin-top: 80px;
+}
+.landing-form{
+    padding-top: 60px;
+    padding-bottom: 40px;
+}
+.footer{
+    margin-top: 165px;
+}
+.bachGround-color{
+     background-color:#252bee
+}
+.padding{
+    padding-right: 4px
+}
+.padding-left{
+    padding:8px
+}
+.date_element{
+    width: 80px!important;
+}
+.container_div {
+    margin-top: 60px
+}

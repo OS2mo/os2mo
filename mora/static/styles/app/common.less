@@ -1,0 +1,330 @@
+html, body{height: 100%;}
+body{background: #B0D8F0;font-family: @font-family-Helvetica; font-size: @font-size-base;
+  background-image: url("@{images}/knud_front.png");background-repeat: no-repeat;background-position: bottom right; background-attachment: fixed;}
+h1, h2, h3, h4, h5, h6{font-family: @font-family-Helvetica!important;}
+/*header login page css starts*/
+header{background-color: @dark-blue;height: 120px;padding-top: 20px; margin-bottom: 30px;}
+header .heading{text-align: center;}
+/*span.glyphicon{padding-right: 10px;}*/
+header .heading span{display: block;color: @white;font-size:36px; font-family: Oswald;}
+header .heading span.sub-text{font-size: 18px;color: @light-blue-txt;}
+.logo img{max-width: 55%;}
+.home .logo img{ max-width: 100%;}
+.center{text-align: center;}
+button{padding: 10px; color: @white; font-size: 14px;}
+button.close{color: #000!important;}
+.orgTreeInputOuterWrap button{border:1px solid transparent!important; background-color: #ccc;}
+.table.table-responsive .glyphicon{color: @white;}
+.btn-m{background-color: @light-blue-btn; margin-top: 100px; border: none;padding: 10px 25px; border-radius: 5px !important; font-size: 18px; color: @white}
+.btn-o{background-color: @green; margin-top: 10px; border: none;padding: 10px 25px; border-radius: 5px !important; font-size: 18px; color: @white;}
+.btn-o:hover, .btn-o:focus{background-color: @light-green-hm!important; color: @white!important; }
+.btn-m:hover, .btn-m:focus, #elLoginSubmit:hover{background-color: @dark-blue!important; color: @white!important;}
+.head-section ul li{list-style-type: none; display: inline;}
+.head-section ul li.sep{font-size: 14px; vertical-align: top; color:@light-blue-txt; line-height: 14px; padding: 0 8px;}
+/*header login page css ends*/
+.common{background-image: url("@{sprite-image}"); background-repeat: no-repeat;height: 28px; width: 28px; display: block;  background-color: @dark-blue;}
+
+/*header inner page css starts*/
+body, .employee, .dashboard, .home, .organisation{background:@light-blue-bg;font-family: @font-family-Helvetica;font-size: @font-size-base;
+background-image: url("@{images}/knud_back.png");background-repeat: no-repeat;background-position: bottom right; height: 100%}
+.home{background:#b0d8f0;}
+.employee header, .dashboard header, .organisation header{height: 36px; background-color:transparent; padding-top: 0px;}
+.employee header #user, .dashboard header #user,  .organisation #user{padding-top: 12px;}
+.employee header .head-section, .dashboard header .head-section, .organisation header .head-section{background-color: @light-blue-btn;}
+.employee .title a, .dashboard .title a, .organisation .title a{font-family: @font-family-Oswald; color: @light-blue-txt; font-size: 14px; text-transform: uppercase;
+padding: 0 0 6px 0;}
+.employee.detail .col-md-8 .panel > .panel-body, .organisation.detail .col-md-8 .panel > .panel-body{padding: 10px 0;}
+.employee.detail .col-md-8 .panel .panel-body #employeeViewEdit ul,
+.employee.detail .col-md-8 .panel .panel-body #organisationViewEdit ul, .organisation.detail .col-md-8 .panel > .panel-body ul{padding-left: 15px;}
+.employee .user, .dasboard .user, .organisation .user{padding-left: 0; line-height: 32px;}
+.employee .title ul, .dashboard .title ul{padding: 0; margin: 0;}
+.employee .title, .dashboard .title, .organisation .title{padding-top: 12px;}
+.employee .title .selected a, .dashboard .title .selected a,  .home .title .selected a,
+.employee .title a:hover, .dashboard .title a:hover, 
+.organisation .title .selected a, .organisation .title a:hover {background:none!important; border-bottom: 3px solid #CDA000!important; color:#c7d4db;}
+.search-bar .input-group .input-group-btn .btn.btn-default.search{background-color: #002E5E!important; padding:4px 5px 6px 8px!important;}
+.head-section .user ul li a{color: @white;}
+.head-section .user ul li a#user-nav{ background:transparent;}
+.head-section .user ul li a.logout:hover{background:none;}
+.user span.glyphicon{padding-right: 5px;}
+.user .small_white{font-size: 12px;}
+.navbar-nav > li > a{line-height: 15px; padding: 10px;}
+button{border:none!important; border-radius: 0!important;}
+.head-section button:hover, .head-section button:focus{background: @dark-blue!important;}
+ul.user-helper{float: right;}
+ul.user-helper li{float: left; margin-right: 10px;}
+a.common.time{background-position: -16px -229px;}
+a.common.help{background-position: -17px -384px;}
+.common.edit{ background-position: -20px -341px;height: 25px !important;width: 28px !important;}
+.common.close{background-position: -270px -200px; opacity:1; }
+a.common.user-small, a.common.user-small:hover{width: 100%; background-color: transparent;background-position: -278px -11px; padding-left: 18px;}
+.common.heading-user, .common.heading-folder{background-color: transparent;background-position: -24px -482px; float: left;height: 17px; width: 24px;}
+.common.heading-folder{background-position: -12px -462px; width: 33px;}
+.search-bar{margin-top: 0px;}
+.search-bar i.fa{color: @white;}
+.search-bar form{margin-bottom: 0; padding-top:0px; margin-top: 3px;}
+.employee header .action, .dashboard header .action, .organisation header .action{margin-top: 2px;}
+.employee .input-group-btn input[type="text"], .dashboard .input-group-btn input[type="text"], .organisation .input-group-btn input[type="text"]{height: 28px; border-radius: 0; border:0; float: none; padding-bottom: 5px}
+.employee header .logo, .dashboard header .logo, .organisation header .logo{min-height: 36px; background-color: @dark-blue;padding:3px 5px 0 5px; text-align: center;}
+ul.user-helper{margin: 3px 0 0;}
+.btn-default:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open > .dropdown-toggle.btn-default{background-color: #e6e6e6;
+    border-color: #adadad;color: #333;}
+/*header inner page css ends*/
+.left-section .panel .panel-heading i.fa{color: @section-head-color;}
+i.fa{padding-right: 5px; font-size: 16px;}
+
+/*.organisation div[data-tree-model] li.selected > span, .organisation treecontrol.tree-classic li.tree-selected{background-color: #9cd5b1; color: #fff;}
+*/
+
+
+/*tabs css starts*/
+ul.nav-tabs li a{padding: 5px; background: @light-blue-btn; border-radius: @border-radius-none; color: @light-blue-txt; font-size: 11px;}
+ul.nav-tabs li.active a, ul.nav-tabs li.active a:hover, ul.nav-tabs li.active a:focus{ border-top: 3px solid @light-blue-btn;background: @white;border-right-color: #d0dce2;border-left-color: #d0dce2}
+.tab-content{background: @white; border: 1px solid @border-tab; padding: 10px; border-top: 0;}
+.structure .tab-content{padding:0;}
+.structure .tab-content .tab-pane{ width: 90%; height: 86%; overflow: scroll; position: absolute; }
+.section-heading{background:@section-heading-bg;}
+.section-heading h4{padding: 0 5px; font-size: 12px;}
+.employee .panel-default > .panel-heading, .employee .panel-default > .panel-heading{background-color: #fff;}
+.panel-heading span{color: @light-blue-txt; font-size: 12px;}
+.panel-body .emp-detail, .panel-body .emp-detail button{font-size: 11px; margin-bottom: 10px;}
+.panel-body .emp-detail, .panel-body .org-detail{padding: 0 0 0 15px;}
+.btn-primary{background: @light-blue-btn; border-radius: @border-radius-none; border: 0;}
+.action-btn{text-align: right;}
+.action-btn button, .action-btn button:hover{background: transparent; padding:  0 5px!important; }
+.action-btn button i{background-color:@light-blue-btn;}
+.action-btn button i.common.book{height: 25px;}
+/*.glyphicon.glyphicon-eye-open, .glyphicon.glyphicon-edit{font-size: 18px;}*/
+.light-blue{color: @light-blue-txt;}
+.nav-tabs > li > a:hover{background-color: @tab-hover-bg; color:@tab-hover-color;}
+.nav-tabs{border-bottom-color:#d0dce2;}
+.nav-tabs li a.redBg, .nav-tabs > li > a.redBg:hover, .organisation .nav-tabs li a.redBg{background-color: @red-bg; color: #e9cacf; border-color:@border-tab; border-width: 1px;}
+/*tabs css ends*/
+/*Content section css starts*/
+.content .jumbotron{background-color: @white;}
+.employee .emp-list .panel-heading{padding-left: 25px;}
+.employee .panel-heading .sec-title span{color: @light-blue-txt;}
+.left-section .panel .panel-heading span{color: @light-blue-txt;}
+/*Content section ends starts*/
+/* table css starts*/
+.table{font-size: 11px;}
+.table tr th{background: @table-head-bg;}
+.table > thead > tr > th, .table > tbody > tr > td{padding: 5px;}
+/*table css ends*/
+.panel-default{border-color: @border-tab;}
+.search-bar .navbar-form .input-group .input-group-btn, .search-bar .navbar-form .input-group, .search-bar .navbar-form .input-group 
+.form-control{width: 90%;}
+.header-search .dropdown-menu{width: auto;}
+.btn-default[disabled]{background-color: #ccc!important; color: #000!important;}
+.common.emp{ vertical-align: bottom; background-color: transparent;background-position: -264px -248px;display: inline-block;width: 45px;}
+.common.org{ vertical-align: sub; background-color: transparent;background-position: -264px -299px;display: inline-block;width: 45px;}
+/** pagination **/
+.ng-table-counts{ display: none; }
+
+/*workflow popup header css starts*/
+/*.workflow header .title{padding-left: 60px;}*/
+.common.user-img {background-color: transparent;background-position: -270px -47px; height: 20px; position: relative; top: -6px; right: 5px;}
+.common.arrow-right {background-color: transparent;background-position: -270px -84px;display: inline-block;height: 12px;}
+.common.arrow-down {background-color: transparent;background-position: -269px -105px;display: inline-block;height: 12px;}
+.common.view{background-position: -16px -409px; height: 25px;}
+.common.book{background-position: -17px -200px;}
+.workflow .panel-body .emp-detail{margin-bottom: 25px;}
+.workflow .tab-content{padding: 10px 0 0 0; border-left: 0; border-right: 0; border-bottom: 0;}
+.workflow .sec-heading{margin-top: 8px; background-color: @light-blue-btn; color: @white; border:1px solid @border-tab; border-right: 0; border-left: 0;}
+.workflow .sec-heading p{margin-bottom: 0; padding: 3px; font-size: 11px;}
+.workflow .sec-heading p i#square{background: none repeat scroll 0 0 #fff;display: inline-block;height: 8px; margin-right: 7px; width: 8px;}
+.common.calender {background-position: -274px -131px;height: 21px;margin-left: -13px;margin-top: -3px;width: 20px;}
+.workflow-form{padding: 25px 20px 0 20px; font-size: 10px;}
+.workflow-form label{padding:0 20px 0 0; }
+.workflow-form input[type="text"]{padding: 3px;}
+.workflow-form select{width: 100%; padding: 3px}
+.workflow-form .col-md-10{padding-left: 0;}
+.pdtp20{padding-top:@padding-x-large-vertical}
+.workflow-form .col-md-6 label{padding-left: 5px; vertical-align: middle;}
+.workflow-form button, .workflow .action button {background-color: transparent; padding: 0}
+.workflow-form .common{width: 23px; height: 23px; border: 1px solid #929caf; background-color: @light-blue-btn}
+.workflow-form .common.tick, .workflow .common.tick {background-position: -274px -164px }
+.workflow-form .common.cross, .workflow .common.cross{background-position: -273px -202px }
+.workflow-form .common.plus{background-position: -21px -435px; margin-left: 25px;}
+.workflow-form input.fullWidth{width: 100%;}
+.workflow .action button .common{background-color: @dark-blue; height: 23px; width: 23px;}
+.emp-section{border: 1px solid @border-tab; overflow: hidden;} 
+.emp-section .nav-tabs{padding-left: 10px;}
+.emp-section .heading{border-bottom:1px solid @border-tab; padding: 10px 0px;}
+.emp-section .emp-detail{padding: 10px 30px;}
+
+/*workflow popup header css ends*/
+/*Edit screen css Starts*/
+.edit .emp-name,
+.edit .org-name{color: #c7d4db;font-size: 11px; padding-left:0; padding-right: 0; }
+.edit .emp-name span,
+.edit .org-name span{color: #ffffff;display: inline-block;padding-top: 10px; padding-right: 15px; padding-right: 8px;}
+.edit .table-responsive{padding-top: 15px; margin-left: -15px; margin-right: -15px;}
+/*.common.arrow-down-white{background-position: -267px -345px;  background-color: transparent; display: inline-block; height: 12px;}*/
+.edit .sec-heading{padding-left: 0;}
+.edit button, .edit button:hover{background: none;}
+.edit .common.add-user{background-position: -17px -106px;}
+.edit .workflow-form{padding-bottom: 20px;}
+.edit .common.add-form{background-position: -15px -307px; background-color: transparent;}
+.edit .fa.fa-search, .employeeMove .orgTreeInputSelector .fa.fa-search{border: 1px solid #e3e9ef;color: #000;margin-left: -3px;padding-bottom: 6px;padding-left: 2px;padding-top: 2px;}
+.edit input[type="text"].search-in{padding: 5px; width: 80%;}
+.edit input[type="text"].fullWidth{padding: 5px; width: 100%;}
+.edit .workflow-form .srch{padding-left: 0;}
+.redBack{background-color: @red-bg!important;}
+.panel{border-radius: 0;}
+.accordian-wrap .panel-body{padding: 0;}
+#employeeViewEdit .tab-content,
+#organisationDetails .tab-content{padding: 10px 0; border-right:0; border-left: 0; border-bottom: 0;}
+#employeeViewEdit .tab-content .sec-heading,
+#organisationDetails .tab-content .sec-heading{display: none;}
+/*Edit screen css Ends*/
+
+/* Modal */
+
+.pdlt0{padding-left: 0!important;}
+/*Employee list page css starts*/
+.action-row button#elEmpViewBtn, .action-row button#elEmpEditBtn{background: transparent; padding: 0 3px;}
+#employeeList thead tr th, .org-list thead tr th{text-align: left;}
+#employeeList tbody tr td:first-child {padding-left: 25px;}
+.modal-popup .alert{padding: 5px; border-radius: 0;}
+/*Employee list page css ends*/
+
+/*End Employment css starts*/
+
+
+#employeeEnd .emp-det, .organisationEnd .emp-det{padding: 15px 0 10px 25px; font-size: 11px;}
+#employeeEnd .emp-det label, .organisationEnd .emp-det label{padding-left: 0; font-size: 11px; text-align: left;}
+.pdbt25{padding-bottom: 25px!important;}
+.pdtp10{padding-top: 10px;}
+#employeeEnd .sec-heading p, #employeeEnd .sec-heading{padding-left: 0px;}
+/*End Employment css ends*/
+
+/*Employee Absence css starts*/
+
+/*Employee Absence css ends*/
+
+#loading-bar-spinner .spinner-icon{z-index: 999999!important;}
+#loading-bar, #loading-bar .bar{height: 4px;}
+.orgTreeSelectorList.first label input[type="checkbox"]{float: left; margin-right: 3px; height: 12px;}
+.orgTreeSelectorList.first .ng-tree-node.ng-scope span{padding-top:3px;}
+.orgTreeSelectorList label:hover{ color: @trHeading; display: inline-block;}
+.orgTreeInputSelector.input-group .input-group-btn .btn.btn-default.search{background: @white!important; margin-left: -5px; padding-top: 0!important; border: 1px solid #d7e3e8!important; padding: 0 2px 0 8px!important; border-left: 0; width: 30px; height: 23px;}
+.orgTreeInputSelector.input-group .input-group-btn .btn.btn-default.search i.fa-search{padding: 4px 4px 3px 3px!important; border:0; color: #000 !important; font-size: 14px !important;}
+.pdtp15{padding-top: 15px;}
+
+/*Move Engagement css starts*/
+
+i.refresh{ background-image: url("@{images}/loading.gif");background-repeat: no-repeat;background-position: center center; width: 16px; height: 21px; display: block;}
+.mrgntop0{margin-top: 0!important;}
+.mrgnltrt{margin-left: -20px; margin-right: -20px;}
+.noBorder{border: 0!important;}
+a.common.move{position: absolute;right: 38%; margin-top: 20px;}
+.pdtp0{padding-top: 0!important;}
+.brdr{border-top:1px solid @border-tab;}
+.pdltrt0{padding-left: 0; padding-right: 0;}
+
+/*Move Engagement css ends*/
+
+/*Notification area css starts*/
+ul.notification{padding-left: 10px; max-height: 150px; overflow: auto;}
+ul.notification li{list-style-type: none; padding: 5px; margin-bottom: 3px;}
+ul.notification li.success{background: #e9ffd9; border: 1px solid #a6ca8a;}
+ul.notification li.error{ background: #ffecec; border: 1px solid #f5aca6;}
+ul.notification li.debug{background: #fff8c4; border: 1px solid #f2c779;}
+/*Notification area css ends*/
+/*New Employee css starts*/
+
+.mrgnltrt0{margin-left:0!important; margin-right: 0!important; }
+
+.pdlt10{padding-left: 10px;}
+
+/*New Employee css ends*/
+
+/* for 768 width screens*/
+@media(min-width: @screen-tablet) and (max-width: @screen-desktop){
+	.employee header .title ul li a{font-size: 13px;}
+	.structure{margin-bottom: 30px;}
+	.action-btn{margin-right: 20px;}
+	.action-btn button, .action-btn-re button{width: 150px;}  
+	.glyphicon.glyphicon-eye-open, .glyphicon.glyphicon-edit{font-size: 12px;}
+	.head-section ul li.sep{font-size: 12px;}
+	#user .small_white{font-size: 9px;}
+	.employee .title{padding-top: 12px;}
+	.container-fluid{clear: both;}
+	#employeeViewEdit .title, 
+	#organisationViewEdit .title{padding-top:17px;}
+	.logo img{max-width: 100%;}
+	.modal-dialog{width: 100%!important;}
+	
+}     /* or @screen-sm */
+
+@media(max-width: @screen-desktop1024){
+	.organisation.timemachine .logo img{max-width: 50%;}
+	.organisation.timemachine .engagement-list .panel-collapse .panel-body{border-top: 0!important;} 	
+	.organisation.timemachine .engagement-list .panel-collapse .panel-body table{border-top:1px solid #d0dce2!important;} 	
+}
+
+/*organisation page css ends*/
+
+.spinner {background-image: url("@{images}/bar.gif");background-repeat: no-repeat; background-position: center center; height: 16px; width: 160px; margin-left: 30px;}
+.spinner-mrgn{margin-left: 400px!important;}
+.orgTreeInputSelector .dropdown-menu{font-size: 11px!important;} 
+.engagementWrapper, .associationWrapper, .leaderWrapper, .itWrapper, .contactWrapper{padding-bottom: 20px;}
+.mrgnltrt15{margin-left: 15px!important; margin-right: 15px!important;}
+.head-section .user-helper a.cross{padding: 14px; background-position: -271px -200px;}
+
+
+#moHistoryLogRow .modal-header .close{margin-top: -10px;}
+.tree-classic > ul {padding: 0;}
+.help .content p {font-size: 14px;}
+.apollo span.rem{vertical-align: text-bottom; padding-left: 6px;}
+.employeeNew .btn-create{margin-top:3px!important;}
+
+.posRel{position: relative;}
+.posAbs{position: absolute; width: 100%;}
+#employeeViewEdit div.type-ahead-tree, .organisationMove div.type-ahead-tree, .organisationNew div.type-ahead-tree,
+.employeeNew div.type-ahead-tree, .employeeMove div.type-ahead-tree, .employeeMoveMany div.type-ahead-tree
+{margin-top: 0px!important; border-radius: 0!important; box-shadow: 0!important; width: 88%; left:0!important; overflow: scroll; max-height: 400px!important}
+.organisationMove .btn.btn-default.search, .organisationNew .btn.btn-default.search, .employeeNew .btn.btn-default.search,
+.employeeMove .btn.btn-default.search, #employeeViewEdit .btn.btn-default.search, .employeeMoveMany .btn.btn-default.search
+{padding-top:0px!important; padding-left:0!important; margin-bottom: 0!important;}
+.organisationMove .btn.btn-default.search i.fa.fa-search, .organisationNew .btn.btn-default.search i.fa.fa-search, .employeeNew .btn.btn-default.search i.fa.fa-search, 
+#employeeViewEdit .btn.btn-default.search i.fa.fa-search, .employeeMove .btn.btn-default.search i.fa.fa-search, .employeeMoveMany .btn.btn-default.search i.fa.fa-search
+{padding-bottom:3px;padding-left:3px!important; margin-left:0!important;}
+.organisationMove .btn.btn-default.search i.refresh, .organisationNew .btn.btn-default.search i.refresh, .employeeNew .btn.btn-default.search i.refresh,
+#employeeViewEdit .btn.btn-default.search i.refresh, .employeeMove .btn.btn-default.search i.refresh, .employeeMoveMany .btn.btn-default.search i.refresh
+{border:1px solid #e3e9ef; padding:10px 10px 11px!important; margin-left:0!important;}
+.organisationMove input.unit, .organisationNew input.unit, .employeeNew input.unit, .employeeMoveMany  input.unit,
+#employeeViewEdit input.unit, .employeeMove input.unit{width:88%!important; float:left!important;}
+.organisationMove input.unit, .organisationNew input.unit, .organisationNew div.type-ahead-tree{width: 59%!important;}
+.organisationNew div.type-ahead-tree{left: 131px!important;}
+.organisationMove div.type-ahead-tree{left: 135px!important;}
+
+table#employeeList tr td:last-child,
+table#organisationList tr td:last-child{ width: 150px;}
+table#employeeList tr td button,
+table#organisationList tr td button{ display:none;}
+table#employeeList tr:hover td button,
+table#organisationList tr:hover td button{ display:inline-block;}
+
+.geoLocationLocal{ font-weight: normal !important;}
+.geoLocationLocal input{margin: -2px 5px 0 0; padding: 0 !important; vertical-align: middle !important;}
+.left-section .moOrgTree div.type-ahead-tree{border: 0!important; box-shadow: none !important; position: static!important;}
+.engagement-list h4 a span{text-transform: capitalize;}
+
+.pdlt25{padding-left: 25px!important;}
+.table > thead > tr > th{vertical-align: top!important;}
+#employeeViewEdit ul.nav.nav-tabs, #organisationViewTabs ul.nav.nav-tabs, .left-section ul.nav.nav-tabs{padding-left:20px; margin: 0 -15px;}
+#employeeViewEdit .tab-content, #organisationViewTabs .tab-content, .left-section .tab-content{margin: 0 -15px;}
+.accordian-wrap  accordion .panel-body{overflow: auto;}
+.popover-content .orgTreeSelectorList > li > div{padding-left: 10px;}
+.home .center-container{position: static;}
+.organisation .head-section button:hover, 
+.organisation .head-section button:focus, 
+.organisation .head-section button, 
+.organisation .common, 
+.organisationMove .date .inline-cal button.cal,
+.organisation.timemachine .date .inline-cal button.cal, 
+.organisationNew .inline-cal button.cal, 
+.organisationViewEdit .inline-cal button.cal, 
+.organisationRename .inline-cal button.cal, .organisation .head-section .user-helper a.cross{background-color: @dark-green-bg!important;}

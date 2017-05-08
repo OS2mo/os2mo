@@ -1,0 +1,154 @@
+<div id="employeeEnd" class="modal-popup workflow in"> 
+   <header> 
+    <div class="container-fluid"> 
+     <div class="row head-section"> 
+      <div class="col-md-1 col-sm-2 col-xs-12 logo"> 
+       <img src="./images/knud_small.png" /> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12 title"> 
+       <nav> 
+        <ul class="nav navbar-nav"> 
+         <li class="sub-text common user-img"></li> 
+         <li class="sub-text selected"><a href="#">MELD ORLOV</a></li> 
+        </ul> 
+       </nav> 
+      </div> 
+      <div class="col-md-5 col-sm-5 col-xs-12"> 
+       <div class="search-bar"> 
+        <form name="empCPRSearchForm" class="navbar-form" role="search" action="" method="GET" ng-submit="empCPRSearch()" novalidate=""> 
+         <div class="input-group"> 
+          <div class="input-group-btn"> 
+           <button data-toggle="dropdown" class="btn btn-default search" type="submit"><i class="fa fa-search"></i></button>
+           <input type="text" class="form-control" name="empCPR" ng-model="empCPR" required="" /> 
+          </div> 
+         </div> 
+        </form> 
+       </div> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12"> 
+       <ul class="user-helper pull-right"> 
+        <li><a href="javascript:;" id="elModalHelp" class="common help"></a></li> 
+        <li><a href="javascript:;" id="elEmpEditCancel" class="common cross" ng-click="empAbsenceModal('close')"></a></li> 
+       </ul> 
+      </div> 
+     </div> 
+    </div> 
+   </header> 
+   <div class="row"> 
+    <div class="col-md-11 mrgnltrt15"> 
+     <div class="alert alert-danger" ng-show="workFlowAbsenceFlag.invalid" id="elMsgempCPRInvalid">
+      {{i18n['please_enter_employee_cpr_label']}}
+     </div> 
+     <div class="alert alert-danger" ng-show="workFlowAbsenceFlag.notFound" id="elMsgempCPRNotFound">
+       {{i18n['employee_not_found_label']}}
+     </div> 
+    </div> 
+   </div> 
+   <div class="panel panel-default" ng-show="workFlowAbsenceFlag.found"> 
+    <div class="modal-body panel-body"> 
+     <div class="modal-content-wrap"> 
+      <div class="container-fluid end-emp report"> 
+       <div class="row content"> 
+        <div class="col-md-12 col-sm-12"> 
+          <br/>
+          <div class="row srch pdbt25">
+            <div class="col-md-3 col-sm-3 pdlt25">
+                <i>Navn: </i> {{employee['name']}}
+            </div>
+            <div class="col-md-5 col-sm-5">
+                <i>cpr: </i> {{employee['user-key']}}
+            </div>
+            <div class="col-md-4 col-sm-4">
+                <i>Brugernavn: </i> {{employee['nick-name']}}
+            </div>
+          </div>
+
+          <div class="row srch" ng-show="workFlowAbsenceFlag.found"> 
+            <form name="empAbsenceDateForm" novalidate=""> 
+             <div class="form-group"> 
+              <div class="col-md-4 col-sm-4"> 
+               <label for="startDate" class="col-sm-4 control-label input-sm">{{i18n['employeeAbsence_orlov_start_label']}}</label> 
+               <div class="col-sm-5 input-group inline-cal">
+                <input type="text" class="form-control input-sm" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="empAbsenceDate" name="empAbsenceDate" close-text="Close" show-weeks="false" is-open="openedStart" ng-blur="dateSelect('empAbsenceDate')" ng-focus="dateSelect('empAbsenceDate')" ui-keydown="{'enter':'dateSelect(\'empAbsenceDate\')'}" id="empAbsenceDate" placeholder="{{sysService.dateFormat.placeholder}}"/>
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'openedStart')"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+               </div> 
+              </div> 
+              <div class="col-md-4 col-sm-4"> 
+               <label for="endDate" class="col-sm-4 control-label input-sm"> {{i18n['employeeAbsence_orlov_slut_label']}}</label> 
+               <div class="col-sm-5 input-group inline-cal"> 
+                <input type="text" class="form-control input-sm pull-left" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="empAbsenceEndDate" name="empAbsenceEndDate" close-text="Close" show-weeks="false" is-open="openedEnd" ng-blur="dateSelect('empAbsenceEndDate')" ng-focus="dateSelect('empAbsenceEndDate')" ui-keydown="{'enter':'dateSelect(\'empAbsenceEndDate\')'}" id="empAbsenceEndDate" placeholder="{{sysService.dateFormat.placeholder}}"/>
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'openedEnd')"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+               </div> 
+              </div> 
+              <div class="col-md-3 col-sm-3"> 
+               <select class="form-control" ng-model="absenceType" ng-change="setAbsenceType(this)" ng-options="value.uuid as value.name for value in absenceTypes"><option value="" disabled="disabled">{{i18n['employeeAbsence_absence_type__select_label']}}</option></select> 
+              </div> 
+             </div> 
+            </form> 
+          </div> 
+          <div class="row" ng-show="workFlowAbsenceFlag.details"> 
+            <div class="col-md-12 col-sm-12 emp-data"> 
+              <div ng-repeat="(key, role) in empRoles  | toArray | orderBy:'$index'" ng-if="role.visible"> 
+
+                <div class="row"> 
+                  <div class="col-md-12 col-sm-12 sec-heading" ng-click="role.toggle = !role.toggle"> 
+                    <p><i class="common" ng-class="(!role.toggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n['employeeAbsence_engagementer_label']}}</p>
+                  </div> 
+                </div>
+
+                <div class="row" ng-show="!role.toggle"> 
+                  <div class="col-md-12 col-sm-12 pdltrt0">
+                    <table id="elEmp{{role.key}}Tbl" class="table table-striped table-hover table-condensed"> 
+                      <thead> 
+                        <tr>
+                          <td class="pdlt25"><input type="checkbox" ng-click="selectAllRoles()" id="SelectAll"/>  <strong>V&aelig;lg</strong></td> 
+                          <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}"> {{headerRow.headerName}} </th> 
+                        </tr> 
+                      </thead>
+                      <tbody> 
+                        <tr ng-repeat="dataRow in role.data"> 
+                          <td><input type="checkbox" ng-model="dataRow['selected']" ng-change="dataRow['selected'];countCheckedAbsence();" id="SelectEngagement"/></td> 
+                          <td>{{dataRow['org-unit'].name}}</td> 
+                          <td>{{dataRow['job-title'].name}}</td> 
+                          <td>{{dataRow['type'].name}}</td> 
+                          <td>{{dataRow['valid-from']}}</td> 
+                          <td>{{dataRow['valid-to']}}</td> 
+                        </tr> 
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <p>&nbsp;</p>
+              </div>
+            </div> 
+          </div> <!-- details end -->
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="alert alert-danger" ng-show="workFlowAbsenceFlag.rolesNotFound" id="elMsgEmpNoEngagementFound">
+             {{i18n['no_roles_found_label']}}
+              </div> 
+            </div>
+          </div>
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+   <div class="row action"> 
+    <div class="col-md-11"> 
+     <div class="alert alert-danger" ng-show="workFlowAbsenceFlag.FAIL" id="elMsgempFail">      
+      {{i18n['employeeAbsence_error_occured_in_updating_employee_absence_label']}}
+     </div> 
+    </div> 
+    <div class="col-md-1 text-right"> 
+     <button class="btn btn-sm btn-default" id="elEmpAbsenceOk" ng-click="empAbsenceConfirm()" ng-disabled="isApplyBtnDisabled()"><i class="common tick"></i></button> 
+     <button id="elEmpEditCancel" type="button" class="btn btn-sm btn-danger" data-dismiss="modal" aria-hidden="true" ng-click="empAbsenceModal('close')"><i class="common cross"></i></button> 
+    </div> 
+   </div> 
+  </div>

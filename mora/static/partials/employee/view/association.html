@@ -1,0 +1,139 @@
+<div id="elEmp{{role.key}}" class="engagementWrapper" ng-show="role.visible || flag.empEdit"> 
+    <div class="row"> 
+      <div class="col-md-12 col-sm-12 sec-heading" ng-click="role.toggle = !role.toggle" id="{{role.key}}AccordianHeading"> 
+        <p><i class="common" ng-class="(!role.toggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}</p>
+      </div> 
+    </div>     
+    <div class="row" ng-show="flag.empEdit"> 
+      <div class="col-md-12"> 
+        <div class="alert alert-danger empCreateErrorMsgTbl" ng-show="role.errorCreate" id="elMsgEmpEditErrorCreate{{role.key}}">
+          <ul ng-repeat="messages in role.errorCreateMessage"> 
+           <li ng-repeat="(key, val) in messages">{{val}}</li> 
+          </ul> 
+        </div>
+      </div>
+      <div class="col-md-12"> 
+        <div class="alert alert-danger empCreateErrorMsgTbl" ng-show="role.errorUpdate" id="elMsgEmpEditErrorUpdate{{role.key}}">
+          <ul ng-repeat="messages in role.errorUpdateMessage"> 
+           <li ng-repeat="(key, val) in messages">{{val}}</li> 
+          </ul> 
+        </div>
+      </div> 
+    </div> 
+    <div class="accordian-wrap engagement-list" ng-show="!role.toggle">
+      <accordion ng-show="role.visible" close-others="true"> 
+        <accordion-group id="elEmp{{role.key}}Tab" ng-show="role[state]" heading="state" ng-init="isOpen=(role.defaultTab === state)?true:false" is-open="isOpen" ng-repeat="state in validity track by state">
+        <accordion-heading><i class="pull-left common" ng-class="{'arrow-up-blue': (isOpen), 'arrow-down-blue': (!isOpen)}"></i> {{i18n[state+"_label"]}}</accordion-heading> 
+          <table id="elEmp{{role.key}}Tbl" class="table table-striped table-hover table-condensed"> 
+            <thead> 
+              <tr> 
+                <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}"> {{i18n[sysService.state.data.page.key+"_tblHeader_"+headerRow.headerKey]}} </th> 
+              </tr> 
+            </thead>
+            <tbody> 
+              <tr ng-repeat="dataRow in tables[role.key].tr[state]"> 
+                <td>
+                  <a ng-href="#/organisation/{{dataRow['org-unit'].uuid}}" title="" ng-class="{'linkingDisable': !linking}">{{dataRow['org-unit'].name}}</a>
+                </td>
+                <td> <span ng-if="!flag.empEdit">{{dataRow['association-job-title'].name}}</span> 
+                     <span ng-if="flag.empEdit">
+                      <a href="#" editable-select="dataRow['association-job-title'].uuid" onshow="editEmployeeFunc.associationTitle()" e-ng-options="data.uuid as data.name for data in editEmployeeFunc.associationTitles" onbeforesave="editEmployeeFunc.updRowBeforeSave(dataRow, 'association-job-title')" onaftersave="editEmployeeFunc.updRow(role.key, $index, state)">{{ editEmployeeFunc.associationTitle(dataRow['association-job-title'], role.key)}}</a>
+                     </span></td>
+                <td> <span ng-if="!flag.empEdit">{{dataRow['associated-adress'].name}}</span> 
+                     <span ng-if="flag.empEdit">
+                      <a href="#" editable-select="dataRow['associated-adress'].uuid" onshow="editEmployeeFunc.loadAddress(dataRow['org-unit'].uuid, dataRow['valid-from'], $index)" e-ng-options="data.uuid as data.name for data in editEmployeeFunc.assocAddress[$index]" onbeforesave="editEmployeeFunc.updRowBeforeSave(dataRow, 'associated-adress')" onaftersave="editEmployeeFunc.updRow(role.key, $index, state)">{{ editEmployeeFunc.showAssocAddress(dataRow['associated-adress'], role.key, $index)}}</a>
+                     </span></td>  
+                <td> <span ng-if="!flag.empEdit">{{dataRow['associated-role'].name}}</span> 
+                     <span ng-if="flag.empEdit">
+                      <a href="#" editable-select="dataRow['associated-role'].uuid" onshow="editEmployeeFunc.assocRole()" e-ng-options="data.uuid as data.name for data in editEmployeeFunc.assocRoles" onbeforesave="editEmployeeFunc.updRowBeforeSave(dataRow, 'associated-role')" onaftersave="editEmployeeFunc.updRow(role.key, $index, state)">{{ editEmployeeFunc.assocRole(dataRow['associated-role'], role.key) || "---"}}</a>
+                     </span></td>        
+                <td> <span ng-if="!flag.empEdit">{{dataRow['related-engagement'].name}}</span> 
+                     <span ng-if="flag.empEdit">
+                      <a href="#" editable-select="dataRow['related-engagement'].uuid" onshow="editEmployeeFunc.relatedEngagement()" e-ng-options="data.uuid as data.name for data in editEmployeeFunc.relatedEngagements" onbeforesave="editEmployeeFunc.updRowBeforeSave(dataRow, 'related-engagement')" onaftersave="editEmployeeFunc.updRow(role.key, $index, state)">{{ editEmployeeFunc.relatedEngagement(dataRow['related-engagement'], role.key)}}</a>
+                     </span></td> 
+
+                <td class="inline-cal"> <span ng-if="!flag.empEdit">{{dataRow['valid-from']}}</span> <span ng-if="flag.empEdit"> <a href="#" editable-bsdate="dataRow['valid-from']" e-datepicker-popup="{{sysService.dateFormat.editFormat}}" onaftersave="editEmployeeFunc.updRow(role.key, $index, state)" ng-click="openInlineDatePicker($event, 'from')" onhide="closeInlineDatePicker()" e-is-open="inlineDatePicker.from" onbeforesave="editEmployeeFunc.updRowBeforeSave(dataRow, 'valid-from', $data)"> {{ editEmployeeFunc.formatDate(dataRow['valid-from']) || '__/__/____' }} </a> </span></td>
+
+                <td class="inline-cal"> <span ng-if="!flag.empEdit">{{dataRow['valid-to']}}</span> <span ng-if="flag.empEdit"> <a href="#" editable-bsdate="dataRow['valid-to']" e-datepicker-popup="{{sysService.dateFormat.editFormat}}" onaftersave="editEmployeeFunc.updRow(role.key, $index, state)" ng-click="openInlineDatePicker($event, 'to')" onhide="closeInlineDatePicker()" e-is-open="inlineDatePicker.to" onbeforesave="editEmployeeFunc.updRowBeforeSave(dataRow, 'valid-to', $data)"> {{ editEmployeeFunc.formatDate(dataRow['valid-to']) || '__/__/____' }} </a> </span></td> 
+
+              </tr> 
+            </tbody> 
+          </table> 
+        </accordion-group>
+      </accordion>
+  </div>
+
+<!-- Create --> 
+  <div ng-show="flag.empCreate" ng-controller="employeeCreateEngagement"> 
+    <div class="row" ng-hide="createEngagement"> 
+      <div class="col-md-12 col-sm-12"> 
+        <button class="pull-right btn-create" id="elEmpNewBtn_{{role.key}}" ng-click="createEngagement = true; engagementCreate(role.key);"> <i class="common add-form"></i> </button> 
+      </div> 
+    </div> 
+    <fieldset ng-show="createEngagement" class="empCreateBlock"> 
+      <div class="alert alert-danger" ng-if="validationErrorMsg.error" id="empCreateErrorMsg"> 
+        <ul ng-repeat="messages in validationErrorMsg.response"> 
+          <li ng-repeat="(key, val) in messages">{{val}}</li> 
+        </ul> 
+      </div>
+      <form class="form-horizontal" role="form" ng-submit="saveEmployee(role.key, $parent.empUUID)" name="empCreateForm" novalidate=""> 
+        <div class="row"> 
+         <div class="col-md-4"> 
+          <div class="form-group"> 
+           <label for="startDate" class="col-sm-3 control-label input-sm">{{i18n['start_date_label']}}</label> 
+           <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-from']}"> 
+            <input type="text" class="form-control input-sm" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="empObj.valid_from" name="valid-from" max-date="empObj.valid_to" show-weeks="false" is-open="datePickers.from" readlonly="readonly" required> 
+            <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'from')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+           </div> 
+          </div> 
+         </div> 
+         <div class="col-md-4"> 
+          <div class="form-group"> 
+           <label for="endDate" class="col-sm-3 control-label input-sm">{{i18n['end_date_label']}}</label> 
+           <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-to']}"> 
+            <input type="text" class="form-control input-sm" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="empObj.valid_to" name="valid-to" min-date="empObj.valid_from" close-text="Close" show-weeks="false" is-open="datePickers.to" readlonly="readonly"> 
+            <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'to')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+           </div> 
+          </div> 
+         </div> 
+        </div> 
+        <div class="row"> 
+          <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['related-engagement']}"> 
+            <select class="form-control input-sm" name="related-engagement" ng-model="empObj.related_engagement.uuid" ng-options="s.uuid as s.name for s in createEmployeeFunc.relatedEngagements" required=""><option value="">{{i18n['related_engagement_label']}}</option></select> 
+          </div> 
+          <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['associated-role']}"> 
+            <select class="form-control input-sm" name="associated-role" ng-model="empObj.associated_role.uuid" ng-options="s.uuid as s.name for s in createEmployeeFunc.assocRoles" required=""><option value="">{{i18n['organisation_tblHeader_type']}}</option></select> 
+          </div>
+          <div class="col-md-5" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['empObj.org_unit.uuid']}">
+            <div class="posRel">
+                <input type="text" ng-click="onClickEnhead()" ng-model="valueEnhead" ng-change="onChangeOccured(valueEnhead, 'enhead')" ng-disabled="empObj.valid_from == undefined" class="type-ahead-tree input-sm form-control unit" placeholder="{{i18n['typeaheadtreeplaceholder']}}"/>
+                <span class="input-group-btn">    
+                    <button type="button" class="btn btn-default search" id="orgUnitSearchBtn" />      
+                     <i ng-hide="enHeadUnits" class="fa fa-search"></i>       
+                     <i ng-show="enHeadUnits" class="refresh ng-hide"></i> 
+                    </button> 
+                </span>
+                <div  ng-if="isEnhead && !selectedEnhead" class="posAbs">
+                    <orgtypeaheadtree inputtreetype="enhead" datetype="{{empObj.valid_from | date:sysService.dateFormat.format}}"></orgtypeaheadtree>
+                </div>
+            </div>
+          </div> 
+          
+        </div> 
+        <div class="row pdtp10">
+          <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['associated-adress']}"> 
+            <select class="form-control input-sm" name="associated-adress" ng-model="empObj.associated_adress.uuid" ng-options="s.uuid as s.name for s in createEmployeeFunc.assocAddress" required="" ng-disabled="!createEmployeeFunc.addressEnable"><option value=""> {{i18n['organisation_tblHeader_address-leader']}} </option></select> 
+          </div>
+          <div class="col-md-4" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['association-job-title']}"> 
+            <select class="form-control input-sm" name="association-job-title" ng-model="empObj.association_job_title.uuid" ng-options="s.uuid as s.name for s in createEmployeeFunc.associationTitles"><option value="">{{i18n['job_title_label']}}</option></select> 
+          </div>
+          <div class="col-md-4 pdrt0 text-right"> 
+            <button type="submit" class="btn-create-tick" id="elEmpCreateBtn_assocation" ng-class="{loading:dataAdding, disabled:dataAdding}" ng-disabled="dataAdding"> <i class="common tick"></i> </button> 
+            <button type="button" ng-click="cancelForm()" class="btn-create-cross" id="elEmpCreateBtnc_assocation" ng-disabled="dataAdding"> <i class="common cross"></i> </button> 
+          </div> 
+        </div> 
+      </form> 
+    </fieldset> 
+  </div> 
+  <!-- / Create --> 
+</div>

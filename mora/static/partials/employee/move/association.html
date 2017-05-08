@@ -1,0 +1,85 @@
+<div id="elEmp{{role.key}}" class="row bg" ng-show="role.visible"> 
+  <div class="col-md-6 col-sm-6 move-container brdr"> 
+      <div class="row"> 
+        <div class="col-md-12 col-sm-12 sec-heading mrgntop0" ng-click="role.toggle = !role.toggle" id="{{role.key}}AccordianHeading"> 
+          <p><i class="common" ng-class="(!role.toggle)?'arrow-up-white':'arrow-down-white'"></i>V&aelig;lg tilknytninger der skal flyttes:</p>
+        </div> 
+      </div> 
+      <div class="row">
+        <div class="col-md-12 col-sm-12 pdltrt0">
+          <div class="accordian-wrap engagement-list" ng-show="!role.toggle">
+            <accordion ng-show="role.visible" close-others="true"> 
+              <accordion-group id="elEmp{{role.key}}Tab" ng-show="role[state]" heading="state" ng-init="isOpen=(role.defaultTab === state)?true:false" is-open="isOpen" ng-repeat="state in validity track by state">
+              <accordion-heading><i class="pull-left common" ng-class="{'arrow-up-blue': (isOpen), 'arrow-down-blue': (!isOpen)}"></i> {{i18n[state+"_label"]}}</accordion-heading> 
+                <table id="elEmp{{role.key}}Tbl" class="table table-striped table-hover table-condensed"> 
+                  <thead> 
+                    <tr> 
+                      <th>V&aelig;lg</th> 
+                      <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}"> {{i18n[sysService.state.data.page.key+"_tblHeader_"+headerRow.headerKey]}} </th> 
+                    </tr> 
+                  </thead>
+                  <tbody> 
+                    <tr ng-repeat="dataRow in tables[role.key].tr[state] track by $index" ng-init="dataRow['selected'] = checked">
+                      <td><input type="checkbox" ng-model="dataRow['selected']" ng-disabled="rEngagement.indexOf(dataRow['related-engagement'].uuid) < 0" ng-checked="checked" ng-change="dataRow['selected']" /></td> 
+                      <td> <span>{{dataRow['org-unit'].name}}</span> </td> 
+                      <td> <span>{{dataRow['association-job-title'].name}}</span> </td> 
+                      <td> <span>{{dataRow['associated-adress'].name}}</span> </td> 
+                      <td> <span>{{dataRow['associated-role'].name}}</span> </td> 
+                      <td> <span>{{dataRow['related-engagement'].name}}</span> </td> 
+
+                      <td class="inline-cal"> <span>{{dataRow['valid-from']}}</span></td> 
+                      <td class="inline-cal"> <span>{{dataRow['valid-to'] || 'infinity'}}</span></td> 
+                    </tr> 
+                  </tbody> 
+                </table> 
+              </accordion-group>
+            </accordion>
+          </div>
+        </div>
+      </div>
+  </div>
+  <div class="col-md-1 col-sm-1 move-container brdr"> 
+    <a class="common move" href="" ng-click="empMoveRow(role.key)"></a> 
+  </div> 
+   <div class="col-md-5 col-sm-5 right-section pdtp0"> 
+    <div class="row"> 
+      <div class="col-md-12 col-sm-12 sec-heading mrgntop0" ng-click="roleFuture.toggle = !roleFuture.toggle"> 
+        <p><i class="common" ng-class="(!roleFuture.toggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n['flyttes_til_label']}}:</p> 
+      </div> 
+    </div>  
+    <div class="row mrgnltrt0"> 
+     <div class="col-md-12 col-sm-12 pdltrt0"> 
+      <div class="row">
+        <div class="col-md-12 col-sm-12 pdltrt0">
+          <div class="accordian-wrap engagement-list" ng-show="!roleFuture.toggle">
+            <accordion ng-show="role.visible" close-others="true"> 
+              <accordion-group id="elEmp{{role.key}}Tab" ng-show="engagements[role.key].data[state].length" heading="state" ng-init="isOpen=(role.defaultTab === state)?true:false" is-open="isOpen" ng-repeat="state in validity track by state">
+              <accordion-heading><i class="pull-left common" ng-class="{'arrow-up-blue': (isOpen), 'arrow-down-blue': (!isOpen)}"></i> {{i18n[state+"_label"]}}</accordion-heading> 
+                <table id="elEmp{{role.key}}Tbl" class="table table-striped table-hover table-condensed"> 
+                  <thead> 
+                    <tr> 
+                      <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}"> {{i18n[sysService.state.data.page.key+"_tblHeader_"+headerRow.headerKey]}} </th> 
+                    </tr> 
+                  </thead>
+                  <tbody> 
+                    <tr ng-repeat="dataRow in engagements[role.key].data[state] track by $index">  
+                      <td> <span>{{dataRow['org-unit'].name}}</span> </td> 
+                      <td> <span>{{dataRow['association-job-title'].name}}</span> </td> 
+                      <td> <span>{{dataRow['associated-adress'].name}}</span> </td> 
+                      <td> <span>{{dataRow['associated-role'].name}}</span> </td> 
+                      <td> <span>{{dataRow['related-engagement'].name}}</span> </td> 
+                      <td class="inline-cal"> <span>{{dataRow['valid-from']}}</span></td> 
+                      <td class="inline-cal"> <span>{{dataRow['valid-to']}}</span></td> 
+                    </tr> 
+                  </tbody> 
+                </table> 
+              </accordion-group>
+            </accordion>
+          </div>
+        </div>
+      </div>
+      
+     </div> 
+    </div> 
+   </div> 
+  </div>

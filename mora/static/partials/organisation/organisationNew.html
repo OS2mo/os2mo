@@ -1,0 +1,203 @@
+<div class="employee workflow  modal-popup edit"> 
+   <header> 
+    <div class="container-fluid"> 
+     <div class="row head-section"> 
+      <div class="col-md-1 col-sm-2 col-xs-12 logo"> 
+       <img src="./images/knud_small.png"> 
+      </div> 
+      <div class="col-md-8 col-sm-4 col-xs-12 title"> 
+       <nav> 
+        <ul class="nav navbar-nav"> 
+         <li class="sub-text common org"></li> 
+         <li class="sub-text selected"><a href="#">{{i18n['organisationNew_opret_ny_enhed_label']}}</a></li> 
+        </ul> 
+       </nav> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12"> 
+       <ul class="user-helper"> 
+        <li><a class="common help" id="sys-help" href="javascript:;"></a></li> 
+        <li><a class="common cross" id="elOrgEditCancel" href="javascript:;" ng-click="orgNewModal('close')"></a></li> 
+       </ul> 
+      </div> 
+     </div> 
+    </div> 
+   </header> 
+   <div class="container-fluid"> 
+    <div class="row ny-enhed"> 
+     <div class="col-md-12 col-sm-12"> 
+      <div class="panel panel-default"> 
+       <div class="panel-body"> 
+        <form class="form-horizontal" ng-submit="createNewOrgUnit()" name="newOrgForm" novalidate> 
+         <div class="row"> 
+          <div class="col-md-12 col-sm-12 sec-heading"> 
+           <p>{{i18n['ny_enhed_label']}}</p> 
+          </div> 
+         </div> 
+         <div class="row"> 
+          <div class="col-md-12"> 
+           <div class="alert alert-danger" ng-if="mainValidationErrorMsg.error" id="orgCreateErrorMsg"> 
+            <ul ng-repeat="messages in mainValidationErrorMsg.response"> 
+             <li ng-repeat="(key, val) in messages">{{val}}</li> 
+            </ul> 
+           </div> 
+          </div> 
+         </div> 
+         <div class="row"> 
+          <div class="col-md-12 col-sm-12"> 
+           <fieldset class="workflow-form"> 
+            <div class="row pdtp20"> 
+             <div class="col-md-5 col-sm-4"> 
+              <div class="form-group"> 
+               <label for="orgStartDate" class="col-sm-3 control-label input-sm">{{i18n['startdato_label']}}</label> 
+               <div class="col-sm-4 input-group inline-cal" ng-class="{'has-error': mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['orgStartDate']}"> 
+                <input type="text" class="form-control input-sm" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="orgStartDate" name="orgStartDate" close-text="Close" max-date="orgEndDate" show-weeks="false" is-open="openedFrom" ng-blur="dateSelect('orgStartDate')" ng-focus="dateSelect('orgStartDate')" ui-keydown="{'enter':'dateSelect(\'orgStartDate\')'}" id="orgStartDate" placeholder="{{sysService.dateFormat.placeholder}}" required> 
+                <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'openedFrom')"><i class="glyphicon glyphicon-calendar"></i></button> </span>
+               </div> 
+              </div> 
+             </div> 
+             <div class="col-md-5 col-sm-5"> 
+              <div class="form-group"> 
+               <label for="orgEndDate" class="col-sm-3 control-label input-sm">{{i18n['stop_dato_label']}}</label> 
+               <div class="col-sm-4 input-group inline-cal"> 
+                <input type="text" class="form-control input-sm" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="orgEndDate" name="orgEndDate" close-text="Close" min-date="orgStartDate" show-weeks="false" is-open="openedTo" ng-blur="dateSelect('orgEndDate')" ng-focus="dateSelect('orgEndDate')" ui-keydown="{'enter':'dateSelect(\'orgEndDate\')'}" id="orgEndDate" placeholder="{{sysService.dateFormat.placeholder}}"> 
+                <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'openedTo')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+               </div> 
+              </div> 
+             </div> 
+            </div> 
+            <div class="row pdtp20"> 
+             <div class="col-md-5 col-sm-5 first pdlt0" ng-class="{'has-error': mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['orgUnitName']}"> 
+              <label class=" col-sm-6 input-sm">{{i18n['navn_label']}}</label> 
+              <input type="text" ng-model="orgUnitName" name="orgUnitName" class="form-control input-sm sm" required> 
+             </div> 
+             <div class="col-md-7 col-sm-7" ng-class="{'has-error': mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['orgUnitType']}"> 
+              <label class="col-sm-6 input-sm">{{i18n['organisationNew_enhedtype_label']}}</label> 
+              <select class="form-control input-sm" name="orgUnitType" ng-model="orgUnitType" ng-options="s.name for s in orgUnitTypes" required><option value="" disabled>{{i18n['organisationNew_vaelg_enhedstype_label']}}</option></select> 
+             </div> 
+            </div> 
+            <div class="row pdtp20 org pdlt0">               
+              <div class="col-md-9 col-sm-9 first pdlt0" ng-class="{'has-error': mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['org-unit']}"> 
+                <label class="col-sm-6 input-sm">{{i18n['organisationNew_angiv_overenhed_label']}}</label> 
+                <div class="posRel">
+                    <input type="text" ng-click="onClickEnhead()" ng-model="valueEnhead" ng-change="onChangeOccured(valueEnhead, 'enhead')" class="type-ahead-tree input-sm form-control unit" placeholder="{{i18n['typeaheadtreeplaceholder']}}"/>
+                    <span class="input-group-btn">    
+                        <button type="button" class="btn btn-default search" id="orgUnitSearchBtn" />      
+                         <i ng-hide="enHeadUnits" class="fa fa-search"></i>       
+                         <i ng-show="enHeadUnits" class="refresh ng-hide"></i> 
+                        </button> 
+                    </span>
+                    <div  ng-if="isEnhead && !selectedEnhead" class="posAbs">
+                      <orgtypeaheadtree inputtreetype="enhead" datetype="{{orgStartDateTree}}"></orgtypeaheadtree>
+                    </div>
+                </div>
+              </div> 
+             <div class="col-md-3 col-sm-3"> 
+             </div> 
+            </div> 
+           </fieldset> 
+          </div> 
+         </div> 
+         <!-- Location --> 
+         <div class="row"> 
+          <div class="col-md-12 col-sm-12 sec-heading" ng-click="locationToggle = !locationToggle"> 
+           <p><i class="common arrow-up-white" ng-class="(!locationToggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n['organisationNew_lokation_label']}}</p> 
+          </div> 
+         </div> 
+         <fieldset class="workflow-form"> 
+          <div class="row pdtp10" ng-show="!locationToggle"> 
+           <div class="col-md-3 col-sm-3 search-bar" id="search-address" ng-class="{'has-error': mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['query']}"> 
+            <div class="mrgntop0 pdtp0"> 
+             <div class="input-group orgTreeInputSelector"> 
+              <input bindonce="" type="text" name="query" ng-model="orgObj.location" placeholder="Adresse Sog" typeahead="address as address.vejnavn for address in getAddressList($viewValue) | filter:$viewValue | limitTo:10" typeahead-loading="loadingAddressList" typeahead-min-length="3" class="form-control" autocomplete="off" typeahead-wait-ms="1000" typeahead-template-url="searchTemplateAddress.html" required> 
+              <span class="input-group-btn"> <button type="submit" class="btn btn-default search orgUnitSearchBtn" id="sys-search"> <i ng-hide="loadingAddressList" class="fa fa-search"></i> <i ng-show="loadingAddressList" class="refresh"></i> </button> </span>
+             </div> 
+            </div> 
+           </div> 
+           <div class="col-md-3 col-sm-3"><label class="geoLocationLocal"><input type="checkbox" name="geoLocal" value="1" ng-model="geoLocal" ng-true-value="0" ng-false-value="1"> {{i18n['geolocation_local_text']}}</label></div>
+           <div class="co3-md-3 col-sm-3" ng-class="{'has-error': mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['name']}"> 
+            <input type="text" class="form-control input-sm" ng-model="orgObj.name" name="name" show-weeks="false" required placeholder="Lokationsnavn"> 
+           </div> 
+          </div> 
+         </fieldset> 
+        <script type="text/ng-template" id="searchTemplateAddress.html">
+          <a><span bind-html-unsafe="match.label | typeaheadHighlight:query"></span></a>
+        </script> 
+        </form> 
+        <!-- Contact Channel --> 
+        <div ng-init="section='contact-channel'"> 
+         <div class="row"> 
+          <div class="col-md-12 col-sm-12 sec-heading" ng-click="contactToggle = !contactToggle"> 
+           <p><i class="common arrow-up-white" ng-class="(!contactToggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n['kontaktkanaler_label']}}</p> 
+          </div> 
+         </div> 
+         <div class="row pdtp10" ng-show="!contactToggle"> 
+          <div class="row" ng-show="orgSections[section].data.length"> 
+           <table id="elOrgNewContact" class="table table-striped table-hover table-condensed mrgnbt15"> 
+            <thead> 
+             <tr> 
+              <th>{{i18n['organisationNew_contact_channel_type_label']}}</th> 
+              <th>{{i18n['organisationNew_contact_channel_info_label']}}</th> 
+              <th>{{i18n['organisationNew_contact_channel_visibility_label']}}</th> 
+             </tr> 
+            </thead> 
+            <tbody> 
+             <tr ng-repeat="dataRow in orgSections[section].data"> 
+              <td><span>{{dataRow['type'].name}}</span></td> 
+              <td><span>{{dataRow['contact-info']}}</span></td> 
+              <td><span>{{dataRow['visibility'].name}}</span></td> 
+             </tr> 
+            </tbody> 
+           </table> 
+          </div> 
+          <fieldset class="workflow-form" ng-show="createSection"> 
+           <div class="alert alert-danger" ng-if="validationErrorMsg.error" id="orgContactCreateErrorMsg"> 
+            <ul ng-repeat="messages in validationErrorMsg.response"> 
+             <li ng-repeat="(key, val) in messages">{{val}}</li> 
+            </ul> 
+           </div> 
+           <form class="form-horizontal" ng-submit="addSection(section, this)" name="contactChannelForm" novalidate> 
+            <div class="row pdtp10"> 
+             <div class="col-md-4 col-sm-4 first" ng-class="{'has-error': (validationErrorMsg.error &amp;&amp; validationErrorMsg.response['type']) ||(mainValidationErrorMsg.error &amp;&amp; mainValidationErrorMsg.response['type']) }" ng-init="contactChanneldropDown()"> 
+              <select class="form-control input-sm" required name="type" ng-model="type" ng-options="s.name for s in contactTypes" ng-disabled="!contactTypeFirst"><option value="">{{i18n['organisationNew_select_channel_type_label']}}</option></select> 
+             </div> 
+             <div class="col-md-4 col-sm-4 first" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['contact-info']}"> 
+              <input type="text" class="form-control input-sm" required ng-model="channel.contact_info" name="contact-info" show-weeks="false" placeholder="Skriv tlf. nr på enheden"> 
+             </div> 
+             <div class="col-md-3 col-sm-3 first" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['visibility']}"> 
+              <select class="form-control input-sm" name="visibility" required ng-model="channel.visibility" ng-options="s.name for s in contactVisibilityOptions" placeholder="Choose Visibility"><option value="">{{i18n['organisationNew_select_visibility_label']}}</option></select> 
+             </div> 
+             <div class="col-md-1 col-sm-1 srch text-right"> 
+              <button type="submit" class="btn-create-tick" id="elOrgCreateBtn_contact" ng-class="{loading:dataAdding, disabled:dataAdding}" ng-disabled="dataAdding"> <i class="common tick"></i> </button> 
+              <button type="button" ng-click="cancelForm()" class="btn-create-cross" id="elOrgCreateBtnc_contact" ng-disabled="dataAdding"> <i class="common cross"></i> </button> 
+             </div> 
+            </div> 
+           </form> 
+          </fieldset> 
+          <div class="row pdbt25" ng-hide="createSection"> 
+           <div class="col-md-12 col-sm-12"> 
+            <button type="button" ng-click="showForm()" class="btn-create pull-right" id="elOrgNewBtn_contact"> <i class="common add-form"></i> </button> 
+           </div> 
+          </div> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+   <div class="row action"> 
+    <div class="col-md-11"> 
+      <div class="alert alert-danger" ng-show="workFlowNewOrgFlag.fail" id="elMsgFail">
+        <ul> 
+          <li ng-repeat="messages in workFlowNewOrgFlag.failMessage">
+              <div ng-repeat="(key, val) in messages">{{val}}</div>
+          </li>
+        </ul> 
+      </div>
+    </div> 
+    <div class="col-md-1 text-right"> 
+     <button class="btn btn-sm btn-default" id="elOrgCreateOk" ng-click="createNewOrgUnit()"><i class="common tick"></i></button> 
+     <button ng-click="orgNewModal('close')" class="btn btn-sm btn-default"><i class="common cross"></i></button> 
+    </div> 
+   </div> 
+  </div>

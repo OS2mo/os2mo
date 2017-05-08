@@ -1,0 +1,110 @@
+<div> 
+   <div class="row"> 
+    <div class="col-md-6 col-sm-6" ng-controller="moTimemachineBlock"> 
+     <div class="panel panel-default"> 
+      <div class="modal-body panel-body"> 
+       <div class="modal-content-wrap"> 
+        <!-- Date selector --> 
+        <div class="row"> 
+         <div class="col-md-6 col-sm-12"> 
+          <div class="form-group date"> 
+           <label for="endDate" class="col-sm-3 control-label input-sm text-right">{{i18n['dato_label']}}</label> 
+           <div class="col-sm-4 input-group inline-cal"> 
+            <input type="text" class="form-control pull-left" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="date" name="date" close-text="Close" show-weeks="false" is-open="opened" ng-blur="dateSelect('date')" ui-keydown="{'enter':'dateSelect(\'date\')'}" id="date" placeholder="{{sysService.dateFormat.placeholder}}" tabindex="1"> 
+            <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'opened')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+           </div> 
+          </div> 
+         </div> 
+        </div> 
+        <!-- Tree Selector  ng-if="effectiveDate"--> 
+        <div class="left-section">
+          <div class="moOrgTree structure"> 
+            <tabset> 
+              <tab heading="{{org.name}}" ng-repeat="org in organizations"> 
+                <orgtypeaheadtree inputtreetype="" datetype="" treeorigin="mainlist" orgid= "{{org.uuid}}"></orgtypeaheadtree>
+              </tab> 
+            </tabset> 
+          </div>
+
+
+        </div>
+        <!-- Org Info --> 
+        <div class="row pdtp15" ng-show="organisation.name"> 
+         <div class="col-md-12"> 
+          <span class="txt-green">{{i18n['navn_label']}}</span> {{organisation.name}} 
+         </div> 
+        </div> 
+        <!-- Detail tabs --> 
+        <div ng-show="organisation.name"> 
+         <div class="row pdtp15"> 
+          <div class="col-md-12"> 
+           <tabset id="organisationViewTabs"> 
+            <tab ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'" active="role.active" disabled="!role.visible" ng-hide="!role.visible"> 
+             <tab-heading>
+              {{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}
+             </tab-heading> 
+             <ng-include src="'partials/organisation/view/'+role.key+'.html'" ng-if="role.visible" /> 
+            </tab> 
+           </tabset> 
+          </div> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+    <div class="col-md-6 col-sm-6" ng-controller="moTimemachineBlock"> 
+     <div class="panel panel-default"> 
+      <div class="modal-body panel-body"> 
+       <div class="modal-content-wrap"> 
+        <!-- Date selector --> 
+        <div class="row"> 
+         <div class="col-md-6 col-sm-12"> 
+          <div class="form-group date"> 
+           <label for="endDate" class="col-sm-3 control-label input-sm text-right">{{i18n['dato_label']}}</label> 
+           <div class="col-sm-4 input-group inline-cal"> 
+            <input type="text" class="form-control pull-left" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="date" name="date" close-text="Close" show-weeks="false" is-open="opened" ng-blur="dateSelect('date')" ui-keydown="{'enter':'dateSelect(\'date\')'}" id="date" placeholder="{{sysService.dateFormat.placeholder}}" tabindex="1"> 
+            <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'opened')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+           </div> 
+          </div> 
+         </div> 
+        </div> 
+        <!-- Tree Selector --> 
+        <div class="left-section">
+          <div  class="moOrgTree structure"> 
+            <tabset> 
+              <tab heading="{{org.name}}" ng-repeat="org in organizations"> 
+                <orgtypeaheadtree inputtreetype="" datetype="" treeorigin="mainlist" orgid= "{{org.uuid}}"></orgtypeaheadtree>
+              </tab> 
+            </tabset> 
+          </div>
+        </div>
+        <!-- Org Info --> 
+        <div class="row pdtp15" ng-show="organisation.name"> 
+         <div class="col-md-12"> 
+          <span class="txt-green">{{i18n['navn_label']}}</span> {{organisation.name}} 
+         </div> 
+        </div> 
+        <!-- Detail tabs --> 
+        <div ng-show="organisation.name"> 
+         <div class="row pdtp15"> 
+          <div class="col-md-12"> 
+           <tabset id="organisationViewTabs"> 
+            <tab ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'" active="role.active" disabled="!role.visible" ng-hide="!role.visible"> 
+             <tab-heading>
+              {{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}
+             </tab-heading> 
+             <ng-include src="'partials/organisation/view/'+role.key+'.html'" ng-if="role.visible" /> 
+            </tab> 
+           </tabset> 
+          </div> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+  </div> 
+  <footer ng-controller="moFooter"> 
+  </footer>

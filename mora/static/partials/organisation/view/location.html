@@ -1,0 +1,129 @@
+<div id="" class="engagementWrapper" ng-show="role.visible || flag.orgEdit"> 
+   <div class="row"> 
+    <div class="col-md-12 col-sm-12 sec-heading" ng-click="role.toggle = !role.toggle"> 
+     <p><i class="common" ng-class="(!role.toggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}</p> 
+    </div> 
+   </div> 
+   
+    <div class="row" ng-show="flag.orgEdit"> 
+    <div class="col-md-12"> 
+      <div class="alert alert-danger orgCreateErrorMsgTbl" ng-show="role.errorCreate" id="elMsgOrgEditErrorCreate{{role.key}}">
+        <ul ng-repeat="messages in role.errorCreateMessage"> 
+         <li ng-repeat="(key, val) in messages">{{val}}</li> 
+        </ul> 
+      </div>
+    </div>
+    <div class="col-md-12"> 
+      <div class="alert alert-danger orgCreateErrorMsgTbl" ng-show="role.errorUpdate" id="elMsgOrgEditErrorUpdate{{role.key}}">
+        <ul ng-repeat="messages in role.errorUpdateMessage"> 
+         <li ng-repeat="(key, val) in messages">{{val}}</li> 
+        </ul> 
+      </div>
+    </div> 
+    </div> 
+
+   <div class="accordian-wrap engagement-list" ng-show="!role.toggle"> 
+    <accordion ng-show="role.visible" close-others="true"> 
+     <accordion-group id="elOrg{{role.key}}Tab" ng-show="role[state]" heading="state" ng-init="isOpen=(role.defaultTab === state)?true:false" is-open="isOpen" ng-repeat="state in validity track by state"> 
+      <accordion-heading>
+       <i class="pull-left common" ng-class="{'arrow-up-blue': (isOpen), 'arrow-down-blue': (!isOpen)}"></i> {{i18n[state+"_label"]}}
+      </accordion-heading> 
+      <table id="elOrg{{role.key}}Tbl" class="table table-striped table-hover table-condensed"> 
+       <thead> 
+        <tr> 
+         <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}">  {{i18n[sysService.state.data.page.key+"_tblHeader_"+headerRow.headerKey]}} </th> 
+        </tr> 
+       </thead> 
+       <tbody> 
+        <tr ng-repeat="dataRow in tables[role.key].tr[state]"> 
+         <td> <span ng-if="!flag.orgEdit">{{dataRow['location'].vejnavn}}</span> <span ng-if="flag.orgEdit"> <a href="#" editable-text="dataRow['location']" e-placeholder="Adresse Sog" e-typeahead="address as address.vejnavn for address in editOrganisationFunc.loacationAddress($viewValue) | filter:$viewValue | limitTo:10" e-typeahead-min-length="3" e-autocomplete="off" e-typeahead-wait-ms="1000" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'location')" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)" blur="ignore">{{ dataRow['location'].vejnavn || '---' }}</a> 
+          <label class="geoLocationLocal viewEdit"><input type="checkbox" name="geoLocalEdit" ng-model="geoLocalEdit" ng-true-value="0" ng-false-value="1" ng-change="editOrganisationFunc.setGeoLocal(this)"> {{i18n['geolocation_local_text']}}</label>
+         </span> </td> 
+         
+         <td> <span ng-if="!flag.orgEdit">{{dataRow['name']}}</span> <span ng-if="flag.orgEdit"> <a href="#" class="ng-scope ng-binding editable ng-cloak" editable-text="dataRow['name']" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'name')" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)"> {{dataRow['name']}}</a> </span> </td> 
+
+         <td> <span ng-if="!flag.orgEdit">{{(dataRow['primaer'])?i18n["modalEmployeeMovePopup_yes_label"]:i18n
+          ["modalEmployeeMovePopup_no_label"]}}</span> <span ng-if="flag.orgEdit"> <a href="#" editable-checkbox="dataRow['primaer']" e-title="Is Primary" ng-model="dataRow['primaer']" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'primaer', this)" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)" blur="ignore"> {{(dataRow['primaer'])?i18n["modalEmployeeMovePopup_yes_label"]:i18n
+          ["modalEmployeeMovePopup_no_label"]}} </a> </span> 
+        </td> 
+         
+         <td class="inline-cal"> <span ng-if="!flag.orgEdit">{{dataRow['valid-from']}}</span> <span ng-if="flag.orgEdit"> <a href="#" editable-bsdate="dataRow['valid-from']" e-datepicker-popup="{{sysService.dateFormat.editFormat}}" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'valid-from', $data)" ng-click="openInlineDatePicker($event, 'from')" onhide="closeInlineDatePicker()" e-is-open="inlineDatePicker.from"> {{ editOrganisationFunc.formatDate(dataRow['valid-from']) || '__/__/____' }} </a> </span></td>
+
+          <td class="inline-cal"> <span ng-if="!flag.orgEdit">{{dataRow['valid-to']}}</span> <span ng-if="flag.orgEdit"> <a href="#" editable-bsdate="dataRow['valid-to']" e-datepicker-popup="{{sysService.dateFormat.editFormat}}" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'valid-to', $data)" ng-click="openInlineDatePicker($event, 'to')" onhide="closeInlineDatePicker()" e-is-open="inlineDatePicker.to"> {{ editOrganisationFunc.formatDate(dataRow['valid-to']) || '__/__/____' }} </a> </span></td> 
+        </tr> 
+       </tbody> 
+      </table> 
+     </accordion-group> 
+    </accordion> 
+   </div> 
+   <!-- Create --> 
+   <div ng-show="flag.orgCreate" ng-controller="organisationCreateEngagement" id="{{role.key}}CreateBlock"> 
+    <div class="row" ng-hide="createEngagement"> 
+     <div class="col-md-12 col-sm-12"> 
+      <button class="pull-right btn-create" id="elOrgNewBtn_{{role.key}}" ng-click="createEngagement = true; engagementCreate();"> <i class="common add-form"></i> </button> 
+     </div> 
+    </div> 
+    <fieldset ng-show="createEngagement" class="orgCreateBlock" id="{{role.key}}CreateFormBlock"> 
+     <div class="alert alert-danger" ng-if="validationErrorMsg.error" id="orgCreateErrorMsg"> 
+      <ul ng-repeat="messages in validationErrorMsg.response"> 
+       <li ng-repeat="(key, val) in messages">{{val}}</li> 
+      </ul> 
+     </div> 
+     <form class="form-horizontal" role="form" ng-submit="saveOrganisation(role.key, $parent.orgUUID, this)" name="orgCreateForm" novalidate> 
+      <div class="row"> 
+       <div class="col-md-4"> 
+        <div class="form-group"> 
+         <label for="startDate" class="col-sm-3 control-label input-sm">{{i18n['start_date_label']}}</label> 
+         <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-from']}"> 
+          <input type="text" class="form-control input-sm" datepicker-popup="dd-MM-yyyy" ng-model="orgObj.valid_from" name="valid-from" show-weeks="false" max-date="orgObj.valid_to" is-open="datePickers.from" required> 
+          <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'from')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+         </div> 
+        </div> 
+       </div> 
+       <div class="col-md-4"> 
+        <div class="form-group"> 
+         <label for="endDate" class="col-sm-3 control-label input-sm">{{i18n['end_date_label']}}</label> 
+         <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-to']}"> 
+          <input type="text" class="form-control input-sm" datepicker-popup="dd-MM-yyyy" ng-model="orgObj.valid_to" name="valid-to" min-date="orgObj.valid_from"  close-text="Close" show-weeks="false" is-open="datePickers.to"> 
+          <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'to')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+      <div class="row"> 
+       <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['address']}"> 
+         <div class="input-group orgTreeInputSelector"> 
+          <input bindonce="" type="text" name="address" ng-model="orgObj.location" placeholder="Adresse Sog" typeahead="address as address.vejnavn for address in createOrganisationFunc.loacationAddress($viewValue) | filter:$viewValue | limitTo:10" typeahead-loading="loadingAddressList" typeahead-min-length="3" class="form-control" autocomplete="off" typeahead-wait-ms="1000" typeahead-template-url="searchTemplateAddress.html" required> 
+          <span class="input-group-btn"> <button type="submit" class="btn btn-default search orgUnitSearchBtn" id="sys-search"> <i ng-hide="loadingAddressList" class="fa fa-search"></i> <i ng-show="loadingAddressList" class="refresh"></i> </button> </span> 
+         </div> 
+       </div> 
+       <div class="col-md-3"><label class="geoLocationLocal"><input type="checkbox" name="geoLocal" ng-model="geoLocal" ng-true-value="0" ng-false-value="1"> {{i18n['geolocation_local_text']}}</label></div>
+
+       <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['vejnavn']}"> 
+        <input type="text" class="form-control input-sm" ng-model="orgObj.name" name="vejnavn" required placeholder="Lokationsnavn"> 
+       </div> 
+       <div class="col-md-2"> 
+        <div class="checkbox"> 
+         <input type="checkbox" name="primaer" value="1" ng-model="orgObj.primaer" class="mrgntop0" ng-change="createOrganisationFunc.updLocation(this)"> 
+         <label style="vertical-align:middle;">{{i18n['location_primary_label']}}</label> 
+        </div> 
+       </div>
+      </div> 
+
+      
+       <div class="row pdtp10">
+         <div class="col-md-12 text-right"> 
+          <button type="submit" class="btn-create-tick" id="elOrgCreateBtn_{{role.key}}" ng-disabled="dataAdding"> <i class="common tick"></i> </button> 
+          <button type="button" ng-click="cancelForm()" class="btn-create-cross" id="elOrgCreateBtnc_{{role.key}}" ng-disabled="dataAdding"> <i class="common cross"></i> </button> 
+         </div> 
+      </div> 
+     </form> 
+    </fieldset> 
+   </div> 
+   <script type="text/ng-template" id="searchTemplateAddress.html">
+  <a>
+    <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
+  </a>
+  </script> 
+   <!-- / Create --> 
+  </div>

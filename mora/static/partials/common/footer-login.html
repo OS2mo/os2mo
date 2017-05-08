@@ -1,0 +1,20 @@
+<footer ng-controller="moFooter"> 
+</footer> 
+  <!-- Error log modal --> 
+  <div ng-controller="moErrorLog" ng-if="loggerMsg.show"> 
+   <script type="text/ng-template" id="errorLog.html">
+		<div id="moErrorRow">
+		  <div class="modal-header">
+		    <button id="moErrorRowClose" type="button" class="close" ng-click="cancel()">&times;</button>
+		      <h3>{{loggerMsg.title}}</h3>
+		  </div>
+	      <div class="modal-body">
+			<p>{{loggerMsg.content}}</p>
+			<div class="traceMsg" ng-if="loggerMsg.trace">
+			{{loggerMsg.trace}}
+			</div>
+	      </div>
+		</div>
+	</script> 
+  </div> 
+  <!-- / Error log modal -->

@@ -1,0 +1,27 @@
+<div id="" class="engagementWrapper" ng-show="role.visible"> 
+   <div class="row"> 
+    <div class="col-md-12 col-sm-12 sec-heading" ng-click="role.toggle = !role.toggle"> 
+     <p><i class="common" ng-class="(!role.toggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}</p> 
+    </div> 
+   </div> 
+   <div ng-show="!role.toggle"> 
+    <table id="elOrg{{role.key}}Tbl" class="table table-striped table-hover table-condensed"> 
+     <thead> 
+      <tr> 
+       <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}">  {{i18n[sysService.state.data.page.key+"_tblHeader_"+headerRow.headerKey]}} </th> 
+      </tr> 
+     </thead> 
+     <tbody> 
+      <tr ng-repeat="dataRow in role.data"> 
+       <td> <span>{{dataRow['person-name']}}</span> </td> 
+       <td> <span>{{dataRow['association-job-title'].name}}</span> </td> 
+       <td> <span>{{dataRow['associated-adress'].name || '--'}}</span> </td> 
+       <td> <span>{{dataRow['associated-role'].name}}</span> </td>
+       <td> <span>{{dataRow['org-unit'].name}}</span> </td> 
+       <td> <span>{{dataRow['valid-from']}}</span> </td> 
+       <td> <span>{{dataRow['valid-to']}}</span> </td> 
+      </tr> 
+     </tbody> 
+    </table> 
+   </div> 
+  </div>

@@ -1,0 +1,124 @@
+<div id="employeeEnd" class="modal-popup workflow in">
+    <header>
+        <div class="container-fluid">
+            <div class="row head-section">
+                <div class="col-md-1 col-sm-2 col-xs-12 logo">
+                    <img src="./images/knud_small.png" />
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-12 title">
+                    <nav>
+                        <ul class="nav navbar-nav">
+                            <li class="sub-text common user-img"></li>
+                            <li class="sub-text selected"><a href="#">AFSLUT MEDARBEJDER</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-md-5 col-sm-5 col-xs-12">
+                    <div class="search-bar">
+                        <form name="empCPRSearchForm" class="navbar-form" role="search" action="" method="GET" ng-submit="empCPRSearch()" novalidate="">
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <button data-toggle="dropdown" class="btn btn-default search" type="submit"><i class="fa fa-search"></i>
+                                    </button>
+                                    <input type="text" class="form-control" name="empCPR" ng-model="empCPR" required="" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-12">
+                    <ul class="user-helper pull-right">
+                        <li>
+                            <a href="javascript:;" id="elModalHelp" class="common help"></a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" id="elEmpEditCancel" class="common cross" ng-click="empEndModal('close')"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <div class="alert alert-danger" ng-show="workFlowEndFlag.invalid" id="elMsgempCPRInvalid">
+                {{i18n['please_enter_employee_cpr_label']}}
+            </div>
+            <div class="alert alert-danger" ng-show="workFlowEndFlag.notFound" id="elMsgempCPRNotFound">
+                {{i18n['employee_not_found_label']}}
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default" ng-show="workFlowEndFlag.found">
+        <div class="modal-body panel-body">
+            <div class="modal-content-wrap">
+                <div ng-show="workFlowEndFlag.found">
+                    <!-- display end date -->
+                    <div class="row emp-det">
+                        <div class="col-md-12">
+                            <div class="row srch pdbt25">
+                                <div class="col-md-3 col-sm-3">
+                                    <i>{{i18n['name_label']}}: </i> {{employee['name']}}
+                                </div>
+                                <div class="col-md-5 col-sm-5">
+                                    <i>{{i18n['cpr_label']}}: </i> {{employee['user-key']}}
+                                </div>
+                                <div class="col-md-4 col-sm-4">
+                                    <i>{{i18n['brugernavn_label']}}: </i> {{employee['nick-name']}}
+                                </div>
+                            </div>
+
+                            <div class="row srch">
+                                <div class="col-md-5">
+                                    <form name="empEndDateForm" novalidate="">
+                                        <div class="form-group">
+                                            <label for="endDate" class="col-sm-3 control-label input-sm text-right">{{i18n['organisation_tblHeader_end-date']}}</label>
+                                            <div class="col-sm-4 input-group inline-cal">
+                                                <input type="text" class="form-control pull-left" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="empEndDate" name="empEndDate" close-text="Close" show-weeks="false" is-open="opened" ng-blur="dateSelect('empEndDate')" ng-focus="dateSelect('empEndDate')" ui-keydown="{'enter':'dateSelect(\'empEndDate\')'}" id="empEndDate" placeholder="{{sysService.dateFormat.placeholder}}"/>
+                                                <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm" ng-click="open($event, 'opened')"><i class="glyphicon glyphicon-calendar"></i></button> </span>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="row srch"  ng-show="engagements.engagement.data.length">
+                                <div class="col-md-12 col-sm-12">
+                                    F&Atilde;&cedil;lgende vil blive afsluttet for medarbejderen:
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ng-show="rowDataVisible" -->
+                <div  class="row mrgnltrt0">
+                    <div ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'"> 
+                        <ng-include src="'partials/employee/afslut/'+role.key+'.html'" /> 
+                    </div>
+                    <div class="col-md-12" ng-show="workFlowEndFlag.rolesNotFound && !workFlowEndFlag.details">
+                        <div class="alert alert-danger" id="elMsgempRoleNotFound">{{i18n['no_roles_found_label']}}</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="row action">
+        <div class="col-md-11">
+            <div class="alert alert-danger" ng-show="workFlowEndFlag.fail" id="elMsgFail">
+              <ul> 
+                <li ng-repeat="messages in workFlowEndFlag.failMessage">
+                    <div ng-repeat="(key, val) in messages">{{val}}</div>
+                </li>
+              </ul> 
+            </div>
+        </div>
+        <div class="col-md-1 text-right">
+            <button ng-disabled="!workFlowEndFlag.details" class="btn btn-sm btn-default" id="elEmpEndOk" ng-click="empEndConfirm()"><i class="common tick"></i>
+            </button>
+            <button id="elEmpEditCancel" type="button" class="btn btn-sm btn-danger" data-dismiss="modal" aria-hidden="true" ng-click="empEndModal('close')"><i class="common cross"></i>
+            </button>
+        </div>
+    </div>
+</div>

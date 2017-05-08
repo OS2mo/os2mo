@@ -1,0 +1,59 @@
+<div id="employeeViewEdit" class="modal-popup workflow edit"> 
+   <header> 
+    <div class="container-fluid"> 
+     <div class="row head-section"> 
+      <div class="col-md-1 col-sm-2 col-xs-12 logo"> 
+       <img src="./images/knud_small.png" /> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12 title"> 
+       <nav> 
+        <ul class="nav navbar-nav"> 
+         <li class="sub-text common user-img"></li> 
+         <li class="sub-text selected"><a href="javascript:;" id="myModalLabel"> <span ng-if="!flag.empEdit">VIEW MEDARBEJDER</span> <span ng-if="flag.empEdit">REDIGER MEDARBEJDER</span> </a></li> 
+        </ul> 
+       </nav> 
+      </div> 
+      <div class="col-md-6 col-sm-6 col-xs-12 emp-name"> 
+       <div class="emp-name"> 
+        <span id="elEmpViewNameInput">{{employee.name}}</span> 
+        <span id="elEmpViewCprInput" ng-bind="'Cpr: '+ employee['user-key']"></span> 
+       </div> 
+      </div> 
+      <div class="col-md-2 col-sm-2 col-xs-12"> 
+       <ul class="user-helper"> 
+        <li><a href="javascript:;" id="elEmpModalBook" class="common book" ng-click="historyLog('open', 'e/history/'+employee.uuid, 'History for '+employee.name+', '+employee['user-key'])"></a></li> 
+        <li><a href="javascript:;" id="elModalHelp" class="common help"></a></li>
+        <li><a href="javascript:;" id="elEmpEditCancel" class="common cross" ng-click="$parent.empView('close')"></a></li> 
+       </ul> 
+      </div> 
+     </div> 
+    </div> 
+   </header> 
+
+   <div class="panel panel-default"> 
+    <div class="modal-body panel-body"> 
+     <div class="modal-content-wrap"> 
+      <div class="row pdtp10" ng-show="!flag.empEngagementsFound"> 
+        <div class="col-md-12 spinner spinner-mrgn">           
+        </div> 
+      </div> 
+      <div ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'"> 
+       <ng-include src="'partials/employee/view/'+role.key+'.html?t='+role.timeStamp+''" /> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+   <div class="row action"> 
+    <div class="col-md-12 text-right"> 
+     <!-- Buttons set for edit emp --> 
+     <div ng-if="flag.empEdit"> 
+      <button class="btn btn-sm btn-default" ng-class="{'btn-success':(flag.dataUpdated)}" ng-disabled="!flag.dataUpdated" id="elEmpEditOk" ng-click="editEmployeeFunc.saveRows()"><i class="common tick"></i></button> 
+      <button id="elEmpEditCancel" type="button" class="btn btn-sm btn-danger" data-dismiss="modal" aria-hidden="true" ng-click="empEdit('close')"><i class="common cross"></i></button> 
+     </div> 
+     <!-- Buttons set for view emp --> 
+     <div ng-if="!flag.empEdit"> 
+      <button id="elEmpViewCancel" type="button" class="btn btn-sm btn-danger" data-dismiss="modal" aria-hidden="true" ng-click="empView('close')"> <i class="common cross"></i> </button> 
+     </div> 
+    </div> 
+   </div> 
+  </div>

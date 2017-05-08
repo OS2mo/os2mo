@@ -1,0 +1,90 @@
+<div class="row mrgnltrt0"> 
+   <div class="col-md-12 col-sm-12 sec-heading pdltrt0" ng-click="role.toggle = !role.toggle" id="{{role.key}}AccordianHeading"> 
+    <p><i class="common" ng-class="(!role.toggle)?'arrow-up-white':'arrow-down-white'"></i>{{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}</p> 
+   </div> 
+  </div> 
+  <div class="accordian-wrap engagement-list" ng-show="!role.toggle" id="{{role.key}}AccordianContent"> 
+   <div class="alert alert-danger empCreateErrorMsgTbl" ng-show="role.error" id="elMsgEmpEditError{{role.key}}"> 
+    <ul ng-repeat="messages in role.error"> 
+     <li ng-repeat="(key, val) in messages">{{val}}</li> 
+    </ul> 
+   </div> 
+   <div class="alert alert-success empCreateErrorMsgTbl" ng-show="role.success" id="elMsgEmpEditSuccess{{role.key}}"> 
+    <div>
+     {{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}} created successfully
+    </div> 
+   </div> 
+   <table id="elEmp{{role.key}}Tbl" class="table table-striped table-hover table-condensed" ng-show="role.data.length"> 
+    <thead> 
+     <tr> 
+      <th ng-repeat="headerRow in tables[role.key].th" id="{{headerRow.headerKey}}"> {{i18n[sysService.state.data.page.key+"_tblHeader_"+headerRow.headerKey]}} </th> 
+      <th>&nbsp;</th> 
+     </tr> 
+    </thead> 
+    <tbody> 
+     <tr ng-repeat="dataRow in role.data"> 
+      <td> <span>{{dataRow['phone-type'].name}}</span></td> 
+      <td> <span>{{dataRow['contact-info']}}</span> </td> 
+      <td> <span>{{dataRow['properties'].name}}</span> </td> 
+      <td class="inline-cal"> <span>{{dataRow['valid-from']}}</span></td> 
+      <td class="inline-cal"> <span>{{dataRow['valid-to'] || 'infinity'}}</span></td> 
+      <td> <a href="javascript:;" ng-click="$parent.remove(role.key, dataRow)">[{{i18n['[x]_label']}}]</a> </td> 
+     </tr> 
+    </tbody> 
+   </table> 
+   <!-- Create --> 
+   <div ng-controller="employeeCreateEngagement" id="{{role.key}}CreateForm"> 
+    <div class="row mrgnltrt0" ng-hide="createEngagement"> 
+     <div class="col-md-12 col-sm-12"> 
+      <button class="pull-right btn-create" id="elEmpNewBtn_{{role.key}}" ng-click="createEngagement = true; engagementCreate(role.key);role.success=false;"> <i class="common add-form"></i> </button> 
+     </div> 
+    </div> 
+    <div class="alert alert-danger empCreateErrorMsgTbl" ng-if="validationErrorMsg.error" id="empCreateErrorMsg"> 
+     <ul ng-repeat="messages in validationErrorMsg.response"> 
+      <li ng-repeat="(key, val) in messages">{{val}}</li> 
+     </ul> 
+    </div> 
+    <fieldset ng-show="createEngagement" class="empCreateBlock"> 
+     <form class="form-horizontal" role="form" ng-submit="saveEmployee(role.key, $parent.empUUID, {'name': 'new', 'data': this}, this)" name="empCreateForm" novalidate> 
+      <div class="row pdtp10"> 
+        <div class="col-md-4"> 
+          <div class="form-group"> 
+            <label for="startDate" class="col-sm-3 control-label input-sm">{{i18n['start_date_label']}}</label> 
+            <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-from']}"> 
+              <input type="text" class="form-control input-sm" datepicker-popup="dd-MM-yyyy" ng-model="empObj.valid_from" name="valid-from" show-weeks="false" is-open="datePickers.from" max-date="empObj.valid_to" readlonly="readonly" required ng-blur="dateSelect('empObj.valid_from')" ui-keydown="{'enter':'dateSelect(\'empObj.valid_from\')'}"> 
+              <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'from')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+            </div> 
+          </div> 
+        </div> 
+
+        <div class="col-md-4"> 
+          <div class="form-group"> 
+            <label for="endDate" class="col-sm-3 control-label input-sm">{{i18n['end_date_label']}}</label> 
+            <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-to']}"> 
+              <input type="text" class="form-control input-sm" datepicker-popup="dd-MM-yyyy" ng-model="empObj.valid_to" name="valid-to" show-weeks="false" is-open="datePickers.to" min-date="empObj.valid_from" readlonly="readonly" ng-blur="dateSelect('empObj.valid_to')" ui-keydown="{'enter':'dateSelect(\'empObj.valid_to\')'}"> 
+              <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'to')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+            </div> 
+          </div> 
+        </div> 
+      </div>
+       
+      <div class="row mrgnltrt0"> 
+       <div class="col-md-3 pdlt0" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['type']}"> 
+        <select class="form-control input-sm" name="type" ng-model="empObj.phone_type" ng-options="s.name for s in createEmployeeFunc.contactTypes" required><option value="">{{i18n['contact_contact_type_label']}}</option></select> 
+       </div> 
+       <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['contact-info']}"> 
+        <input type="text" class="form-control input-sm" ng-model="empObj.contact_info" name="contact-info" show-weeks="false" required placeholder="{{i18n['organisation_tblHeader_contactinfo']}}"> 
+       </div> 
+       <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['properties']}"> 
+        <select class="form-control input-sm" name="properties" ng-model="empObj.properties" ng-options="s.name for s in createEmployeeFunc.contactProperties" required><option value="">{{i18n['contact_contact_properties_label']}}</option></select> 
+       </div> 
+       <div class="col-md-3 text-right pdrt0">
+        <button type="submit" class="btn-create-tick" id="elEmpCreateBtn_contact" ng-class="{loading:dataAdding, disabled:dataAdding}" ng-disabled="dataAdding"> <i class="common tick"></i> </button> 
+        <button type="button" ng-click="cancelForm()" class="btn-create-cross" id="elEmpCreateBtnc_contact" ng-disabled="dataAdding"> <i class="common cross"></i> </button> 
+       </div> 
+      </div> 
+     </form> 
+    </fieldset> 
+   </div> 
+   <!-- / Create --> 
+  </div>

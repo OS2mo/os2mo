@@ -1,0 +1,193 @@
+<div id="employeeNew" class="modal-popup workflow in"> 
+   <header> 
+    <div class="container-fluid"> 
+     <div class="row head-section"> 
+      <div class="col-md-1 col-sm-2 col-xs-12 logo"> 
+       <img src="./images/knud_small.png"> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12 title"> 
+       <nav> 
+        <ul class="nav navbar-nav"> 
+         <li class="sub-text common user-img"></li> 
+         <li class="sub-text selected"><a href="#">{{i18n['employeeNew_ny_medarbejder_label']}}</a></li> 
+        </ul> 
+       </nav> 
+      </div> 
+      <div class="col-md-5 col-sm-5 col-xs-12"> 
+       <div class="search-bar"> 
+        <form name="empCPRSearchForm" class="navbar-form" role="search" action="" method="GET" ng-submit="empCPRSearch()" novalidate> 
+         <div class="input-group"> 
+          <div class="input-group-btn"> 
+           <button data-toggle="dropdown" class="btn btn-default search" type="submit"><i class="fa fa-search"></i></button> 
+           <input type="text" class="form-control" name="empCPR" ng-model="empCPR" required> 
+          </div> 
+         </div> 
+        </form> 
+       </div> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12"> 
+       <ul class="user-helper pull-right"> 
+        <li><a href="javascript:;" id="elModalHelp" class="common help"></a></li> 
+        <li><a href="javascript:;" id="elEmpEditCancel" class="common cross" ng-click="empNewModal('close')"></a></li> 
+       </ul> 
+      </div> 
+     </div> 
+    </div> 
+   </header> 
+   <div class="row"> 
+    <div class="col-md-10 col-md-offset-1"> 
+      <div class="alert alert-danger" ng-show="workFlowNewFlag.invalid" id="elMsgempCPRInvalid">
+        {{i18n['please_enter_employee_cpr_label']}}
+      </div>
+      <div class="alert alert-danger" ng-show="workFlowNewFlag.notFound" id="elMsgempCPRNotFound">
+        <ul>
+            <li ng-repeat="messages in workFlowNewFlag.notFoundMessage">
+                <div ng-repeat="(key, val) in messages">{{val}}</div>
+            </li>
+        </ul> 
+      </div>
+
+    </div> 
+   </div> 
+   <div class="container-fluid edit"> 
+    <div class="row" ng-show="workFlowNewFlag.found"> 
+     <div class="col-md-12 col-sm-12"> 
+      <div class="panel panel-default"> 
+       <div class="panel-body"> 
+        <div class="emp-section"> 
+         <div class="row heading"> 
+          <div class="col-md-12"> 
+           <i class="common heading-user"></i> 
+           <span class="light-blue">{{i18n['employeeNew_medarbejder_label']}}</span> 
+          </div> 
+         </div> 
+         <div class="row emp-detail"> 
+          <div class="col-md-4 col-sm-4 col-xs-12"> 
+           <span class="light-blue">{{i18n['navn_label']}}</span> 
+           <span class="black_10">{{employee['name']}} </span> 
+          </div> 
+          <div class="col-md-4 col-sm-4 col-xs-12"> 
+           <span class="light-blue">{{i18n['cpr_label']}}</span> 
+           <span class="black_10">{{employee['user-key']}} </span> 
+          </div> 
+          <div class="col-md-4 col-sm-4 col-xs-12"> 
+           <span class="light-blue">{{i18n['brugernavn_label']}}</span> 
+           <span class="black_10">{{employee['nick-name']}} </span> 
+          </div> 
+         </div> 
+         <!-- Tabs --> 
+         <div ng-if="workFlowNewFlag.empEngagementsFound" id="employeeViewEdit"> 
+          <tabset id="employeeViewTabs"> 
+           <tab ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'" active="role.active" disabled="!role.visible" ng-hide="!role.visible"> 
+            <tab-heading>
+             {{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}
+            </tab-heading> 
+            <ng-include src="'partials/employee/view/'+role.key+'.html'" ng-if="role.visible" /> 
+           </tab> 
+          </tabset> 
+         </div> 
+         <!-- Loading --> 
+         <div class="row" ng-show="!workFlowNewFlag.empEngagementsFound"> 
+          <div class="col-md-12 spinner"> 
+          </div> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+    <div class="panel panel-default" ng-show="workFlowNewFlag.found"> 
+     <div class="modal-body panel-body"> 
+      <div class="modal-content-wrap"> 
+       <!-- engagement --> 
+       <div class="row mrgnltrt0"> 
+        <div class="col-md-12 col-sm-12 sec-heading pdltrt0" ng-click="engagements['engagement'].toggle = !engagements['engagement'].toggle"> 
+         <p><i class="common" ng-class="(!engagements['engagement'].toggle)?'arrow-up-white':'arrow-down-white'"></i> {{i18n[sysService.state.data.page.key+"_tblMainHeader_engagement"]}}</p>
+        </div> 
+       </div> 
+       <div class="accordian-wrap engagement-list" ng-show="!engagements['engagement'].toggle"> 
+        <div class="alert alert-danger empCreateErrorMsgTbl" ng-show="engagements['engagement'].error" id="elMsgEmpEditError{{engagements['engagement'].key}}"> 
+         <ul ng-repeat="messages in engagements['engagement'].error"> 
+          <li ng-repeat="(key, val) in messages">{{val}}</li> 
+         </ul> 
+        </div> 
+        <!-- Create --> 
+        <fieldset class="empCreateBlock"> 
+         <div class="alert alert-danger" ng-if="validationErrorMsgEngagement.error" id="empCreateErrorMsg"> 
+          <ul ng-repeat="messages in validationErrorMsgEngagement.response"> 
+           <li ng-repeat="(key, val) in messages">{{val}}</li> 
+          </ul> 
+         </div> 
+         <form class="form-horizontal" role="form" name="empCreateForm" novalidate> 
+          <div class="row pdtp15"> 
+            <div class="col-md-4"> 
+              <div class="form-group"> 
+                <label for="startDate" class="col-sm-3 control-label input-sm">{{i18n['start_date_label']}}</label> 
+                <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-from']}"> 
+                  <input type="text" class="form-control input-sm" datepicker-popup="dd-MM-yyyy" ng-model="$parent.newEmpObj.valid_from" name="valid-from" show-weeks="false" max-date="$parent.newEmpObj.valid_to" is-open="datePickers.from" readlonly="readonly" required ng-blur="dateSelect('valid_from')" ui-keydown="{'enter':'dateSelect(\'valid_from\')'}"> 
+                  <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'from')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+                </div> 
+              </div> 
+            </div> 
+
+            <div class="col-md-4"> 
+              <div class="form-group"> 
+                <label for="endDate" class="col-sm-3 control-label input-sm">{{i18n['end_date_label']}}</label> 
+                <div class="col-sm-5 input-group inline-cal" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['valid-to']}"> 
+                  <input type="text" class="form-control input-sm" datepicker-popup="dd-MM-yyyy" ng-model="$parent.newEmpObj.valid_to" name="valid-to" min-date="$parent.newEmpObj.valid_from" close-text="Close" show-weeks="false" is-open="datePickers.to" readlonly="readonly" ng-blur="dateSelect('valid_to')" ui-keydown="{'enter':'dateSelect(\'valid_to\')'}"> 
+                  <span class="input-group-btn"> <button type="button" class="btn btn-default btn-sm cal" ng-click="openDatePicker($event, 'to')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+                </div> 
+              </div> 
+            </div> 
+          </div> 
+
+          <div class="row"> 
+           <div class="col-md-6" ng-class="{'has-error': validationErrorMsgEngagement.error &amp;&amp; validationErrorMsgEngagement.response['org-unit']}"> 
+            <div class="posRel"> 
+             <input type="text" ng-click="onClickEnhead()" ng-model="enhead" ng-change="onChangeOccured(enhead, 'enhead')" name="org-unit" ng-disabled="$parent.newEmpObj.valid_from == undefined" class="type-ahead-tree input-sm form-control unit" required placeholder="{{i18n['typeaheadtreeplaceholder']}}"> 
+             <span class="input-group-btn"> <button type="button" class="btn btn-default search" id="orgUnitSearchBtn"> <i ng-hide="enHeadUnits" class="fa fa-search"></i> <i ng-show="enHeadUnits" class="refresh ng-hide"></i> </button> </span>
+             <div ng-if="isEnhead &amp;&amp; !selectedEnhead" class="posAbs"> 
+              <orgtypeaheadtree inputtreetype="enhead" datetype="{{newEmpObj.valid_from | date:sysService.dateFormat.format}}"></orgtypeaheadtree>
+             </div> 
+            </div> 
+           </div> 
+           <div class="col-md-3" ng-class="{'has-error': validationErrorMsgEngagement.error &amp;&amp; validationErrorMsgEngagement.response['job-title']}"> 
+            <select class="form-control input-sm" name="job-title" ng-model="$parent.newEmpObj.job_title" ng-options="s.name for s in createEmployeeEngagementFunc.jobTitles" required><option value="">{{i18n['job_title_label']}}</option></select> 
+           </div> 
+           <div class="col-md-3" ng-class="{'has-error': validationErrorMsgEngagement.error &amp;&amp; validationErrorMsgEngagement.response['type']}"> 
+            <select class="form-control input-sm" name="type" ng-model="$parent.newEmpObj.type" ng-options="s.name for s in createEmployeeEngagementFunc.empTypes" required><option value="">{{i18n['engagement_engagement_type_label']}}</option></select> 
+           </div> 
+          </div> 
+          <div class="row">
+            <div class="col-md-3">
+              <div class="checkbox">
+                <label>
+                <input ng-model="transferDate" ng-change="transferDateFunc(this)" ng-true-value="1" ng-false-value="0" type="checkbox"> {{i18n['employeeNew_medarbejder_transfer_label']}}
+                </label>
+              </div>
+            </div>
+          </div>
+         </form> 
+        </fieldset> 
+        <!-- / Create --> 
+       </div> 
+       <!-- / engagement --> 
+       <div ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'"> 
+        <ng-include src="'partials/employee/new/'+role.key+'.html'" /> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+    <div class="row action"> 
+     <div class="col-md-10"> 
+      <div class="alert alert-danger" ng-show="empNotCreated">
+       {{i18n['employeeNew_error_in_creating_employee._label']}}
+      </div> 
+     </div> 
+     <div class="col-md-2 text-right  pdrt0"> 
+      <button class="btn btn-sm btn-default" id="elEmpNewOk" ng-click="saveEmployeeNewRoles()"><i class="common tick"></i></button> 
+      <button id="elEmpNewCancel" type="button" class="btn btn-sm btn-danger" data-dismiss="modal" aria-hidden="true" ng-click="empNewModal('close')"><i class="common cross"></i></button> 
+     </div> 
+    </div> 
+   </div> 
+  </div>

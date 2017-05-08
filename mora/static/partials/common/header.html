@@ -1,0 +1,75 @@
+<div class="navbar navbar-default navbar-fixed-top">
+<header ng-controller="moHeader as head" id="header"> 
+   <div class="container-fluid"> 
+    <div class="row head-section"> 
+     <!-- <div class="col-md-1 col-sm-1"><a class="navbar-brand" href="#/">MO</a></div> --> 
+     <div class="col-md-1 col-sm-1 col-xs-12 logo"> 
+      <a href="#/"><img src="./images/knud_small.png"></a> 
+     </div> 
+     <div class="col-md-2 col-sm-3 title" id="nav"> 
+      <!-- Nav start --> 
+      <nav> 
+       <ul class="nav navbar-nav"> 
+        <!-- <li><a ng-href="#/home" ng-bind="i18n.header_nav_home_label"></a></li> --> 
+        <li acl="e|read" class="sub-text" ng-class="{'selected':(head.sysService.state.data.page.key == 'employee')}"><a id="nav-employee" ng-href="#/medarbejder" ng-bind="i18n.header_nav_emp_label"></a></li> 
+        <li class="sep" acl="o|read">|</li> 
+        <li acl="o|read" class="sub-text" ng-class="{'selected':(head.sysService.state.data.page.key == 'organisation')}"><a id="nav-organisation" ng-href="#/organisation" ng-bind="i18n.header_nav_org_label"></a></li> 
+       </ul> 
+      </nav> 
+     </div> 
+     <div class="col-md-4 col-sm-4"> 
+      <!-- Search start --> 
+      <script type="text/ng-template" id="searchTemplateEmp.html">
+			  <a>
+			  	<span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>, 
+			  	<span bind-html-unsafe="match.model['user-key'] | typeaheadHighlight:query"></span>,
+			  	<span bind-html-unsafe="match.model['nick-name'] | typeaheadHighlight:query"></span>
+			  </a>
+			</script> 
+      <script type="text/ng-template" id="searchTemplateOrg.html">
+			  <a>
+			  	<span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>, 
+			  	<span bind-html-unsafe="match.model['org'] | typeaheadHighlight:query"></span>,
+			  </a>
+			</script> 
+      <div class="search-bar" id="search" ng-if="head.sysService.state.data.page.key == 'employee'"> 
+       <form method="GET" action="" role="search" class="navbar-form" ng-submit="head.employeeSearch.perform(this);" name="headSearch"> 
+        <div class="input-group header-search"> 
+         <div class="input-group-btn"> 
+          <button type="submit" class="btn btn-default search" id="sys-search"> <i ng-hide="loadingSearchList" class="fa fa-search"></i> <i ng-show="loadingSearchList" class="fa fa-refresh"></i> </button> 
+          <input bindonce="" type="text" name="query" ng-model="query" placeholder="{{i18n.header_nav_search_label}}" typeahead="search.name for search in head.employeeSearch.getSearchList($viewValue) | filter:$viewValue | limitTo:10" typeahead-loading="loadingSearchList" typeahead-min-length="3" typeahead-on-select="head.employeeSearch.searchSelect($item, $model, $lable)" class="form-control" autocomplete="off" typeahead-wait-ms="1000" typeahead-template-url="searchTemplateEmp.html"> 
+         </div> 
+        </div> 
+       </form> 
+      </div> 
+      <div class="search-bar" id="search-org" ng-if="head.sysService.state.data.page.key == 'organisation'"> 
+       <form method="GET" action="" role="search" class="navbar-form" ng-submit="head.orgSearch.perform(this);" name="headSearch"> 
+        <div class="input-group header-search"> 
+         <div class="input-group-btn"> 
+          <button type="submit" class="btn btn-default search" id="sys-search"> <i ng-hide="loadingSearchList" class="fa fa-search"></i> <i ng-show="loadingSearchList" class="fa fa-refresh"></i> </button> 
+          <input bindonce="" type="text" name="query" ng-model="query" placeholder="{{i18n.header_nav_search_label}}" typeahead="search.name for search in head.orgSearch.getSearchList($viewValue) | filter:$viewValue | limitTo:10" typeahead-loading="loadingSearchList" typeahead-min-length="3" typeahead-on-select="head.orgSearch.searchSelect($item, $model, $lable)" class="form-control" autocomplete="off" typeahead-wait-ms="1000" typeahead-template-url="searchTemplateOrg.html"> 
+         </div> 
+        </div> 
+       </form> 
+      </div> 
+     </div> 
+     <!-- Search end --> 
+     <div class="col-md-2 col-sm-2 action"> 
+      <ul class="user-helper"> 
+       <li><a href="javascript:;" ng-click="head.timeMachine()" class="common time"></a></li> 
+       <li><a href="javascript:;" ng-click="head.appHelp()" id="sys-help" class="common help"></a></li> 
+      </ul> 
+     </div> 
+     <div class="col-md-3 col-sm-2 user"> 
+      <nav> 
+       <ul class="nav navbar-nav"> 
+        <li ng-if="head.isLoggedIn"><a href="javascript:;" id="user-greeting" class="common user-small hidden-sm">{{i18n.dashboard_welcome_label}} {{head.authUserData.authUser}}!, {{head.authUserData.authRole}}</a></li> 
+        <li><a href="#/logout" id="user-nav" ng-if="head.isLoggedIn" class="logout" ng-click="head.logOut()">{{i18n['header_nav_logout_label']}}</a></li> 
+       </ul> 
+      </nav> 
+     </div> 
+    </div> 
+   </div> 
+  </header> 
+  <!-- /header -->
+  </div>

@@ -1,0 +1,9 @@
+<div class="modal-body">
+   {{i18n['employee_already_moved_label']}}<br>
+    <!-- There are future {{message}} present, do you wish to overwrite? -->
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="ok('yes')" id="btnYes">{{i18n['yes_label']}}</button>
+    <button class="btn btn-warning" ng-click="ok('no')" id="btnNo">{{i18n['no_label']}}</button>
+    <button class="btn btn-danger" ng-click="cancel()" id="btnCancel">{{i18n['cancel_label']}}</button>
+</div>

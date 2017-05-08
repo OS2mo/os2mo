@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="moApp">
+  <head>
+    <meta charset="ISO-8859-1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title ng-bind="i18n['title_'+page.key+''+page.subKey] + ' - MO'">MO</title>
+    <link href="styles/core.min.css" rel="stylesheet">
+    <!-- <link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700' rel='stylesheet' type='text/css'> -->
+    <link href="styles/custom.min.css" rel="stylesheet">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 10]>
+    <link href="styles/app/ie9.css" rel="stylesheet">
+    <![endif]-->     
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!--[if IE]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+  </head>
+  <body ng-controller="moInitialize as moInit" class="{{page.key}} {{page.subKey}}" >
+    <div clickhandler>
+      <div class="wrap">
+        <div ui-view="header"></div>
+        <div ui-view="main" ng-controller="moMain" class="center-container"></div><!-- /main -->
+      </div>
+      <div ui-view="footer"></div>
+    </div>
+    
+
+    <script src="scripts/core.js"></script>
+    <script src="scripts/app.js"></script>
+    <script src="scripts/app/services.js"></script>
+    
+    <script src="scripts/app/controllers.js"></script>
+
+    <script src="scripts/app/controllers/login.js"></script>
+
+    <script src="scripts/app/controllers/employee/employee.js"></script>
+    <script src="scripts/app/controllers/employee/employee.create.js"></script>
+    <script src="scripts/app/controllers/employee/employee.workflow.end.js"></script>
+  	<script src="scripts/app/controllers/employee/employee.workflow.absence.js"></script>
+  	<script src="scripts/app/controllers/employee/employee.workflow.new.js"></script>
+  	<script src="scripts/app/controllers/employee/employee.workflow.move.js"></script>
+  	<script src="scripts/app/controllers/employee/employee.workflow.move.many.js"></script>
+
+    <script src="scripts/app/controllers/organisation/organisation.js"></script>
+
+    <script src="scripts/app/controllers/organizationtree.js"></script>
+    <script src="scripts/app/controllers/organisation/organisation.workflow.new.js"></script>
+    <script src="scripts/app/controllers/organisation/organisation.workflow.rename.js"></script>
+    <script src="scripts/app/controllers/organisation/organisation.workflow.end.js"></script>
+    <script src="scripts/app/controllers/organisation/timemachine.js"></script>
+
+    <script src="scripts/app/controllers/organisation/organisation.workflow.association.js"></script>
+    <script src="scripts/app/controllers/organisation/organisation.workflow.move.js"></script>
+
+    <script src="scripts/app/filters.js"></script>
+    <script src="scripts/app/directives.js"></script>
+    <script src="scripts/app/directives/organizationtree.js"></script>    
+    <script src="scripts/app/factory.js"></script>
+  </body>
+</html>

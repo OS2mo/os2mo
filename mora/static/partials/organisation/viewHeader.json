@@ -1,0 +1,255 @@
+{
+    "org-unit": {
+        "th": [
+            {
+            	"headerKey": "unit",
+                "headerName": "Unit"
+            },
+            {
+            	"headerKey": "unit-type",
+                "headerName": "Unit Type"
+            },
+            {
+                "headerKey": "parent",
+                "headerName": "Overenhed"
+            },
+            {
+            	"headerKey": "start-date",
+                "headerName": "Startdato"
+            },
+            {
+            	"headerKey": "end-date",
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "location": {
+        "th": [
+            {
+				"headerKey": "address-location",	            
+                "headerName": "Adresse"
+            },
+            {
+				"headerKey": "location-name",	 
+                "headerName": "Location Name"
+            },
+            {
+                "headerKey": "primary-location",   
+                "headerName": "Primær Adresse"
+            },
+            {
+				"headerKey": "start-date",	 
+                "headerName": "Startdato"
+            },
+            {
+				"headerKey": "end-date",	 
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "contact-channel": {
+        "th": [
+            {
+                "headerKey": "contact-channel",     
+                "headerName": "contact-channel"
+            },
+            {
+				"headerKey": "detail",	 
+                "headerName": "detail"
+            },
+            {
+				"headerKey": "properties",	 
+                "headerName": "properties"
+            },
+            {
+                "headerKey": "linked-location",   
+                "headerName": "linked-location"
+            },
+            {
+				"headerKey": "start-date",	 
+                "headerName": "Startdato"
+            },
+            {
+				"headerKey": "end-date",	 
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "leader": {
+        "th": [
+            {
+                "headerKey": "name",     
+                "headerName": "Name"
+            },
+            {
+                "headerKey": "title",    
+                "headerName": "Title"
+            },
+            {
+                "headerKey": "leader-function",    
+                "headerName": "Lederfunktion"
+            },
+            {
+                "headerKey": "leader-rank",    
+                "headerName": "Lederniveau"
+            },
+
+            {
+				"headerKey": "leader-responsibility",	 
+                "headerName": "Lederansvar"
+            },
+            {
+                "headerKey": "address-leader",     
+                "headerName": "Adresse"
+            },
+            {
+				"headerKey": "related-engagement",	 
+                "headerName": "Relaterede engagement"
+            },
+            {
+				"headerKey": "start-date",	 
+                "headerName": "Startdato"
+            },
+            {
+                "headerKey": "end-date",   
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "engagement": {
+        "th": [
+            {
+				"headerKey": "name",	 
+                "headerName": "Name"
+            },
+            {
+                "headerKey": "title",   
+                "headerName": "Title"
+            },
+            {
+                "headerKey": "engagement-type",   
+                "headerName": "Engagementstype"
+            },
+            {
+				"headerKey": "start-date",	 
+                "headerName": "Startdato"
+            },
+            {
+				"headerKey": "end-date",	 
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "association": {
+        "th": [
+            {
+				"headerKey": "name",	 
+                "headerName": "Name"
+            },
+            {
+				"headerKey": "title",	 
+                "headerName": "Title"
+            },
+            {
+                "headerKey": "address-leader",    
+                "headerName": "Adresse"
+            },
+            {
+                "headerKey": "type",    
+                "headerName": "Type"
+            },
+            {
+                "headerKey": "related-engagement",    
+                "headerName": "Relaterede engagement"
+            },            
+            {
+				"headerKey": "start-date",	 
+                "headerName": "Startdato"
+            },
+            {
+				"headerKey": "end-date",	 
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "job-function": {
+        "th": [
+            {
+                "headerKey": "job-function",     
+                "headerName": "Type"
+            },
+            {
+				"headerKey": "name",	 
+                "headerName": "Navn"
+            },           
+            {
+				"headerKey": "start-date",	 
+                "headerName": "Startdato"
+            },
+            {
+				"headerKey": "end-date",	 
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    },
+    "tilnyttede-enheder": {
+        "th": [
+            {
+                "headerKey": "unit",
+                "headerName": "Unit"
+            },
+            {
+                "headerKey": "unit-type",
+                "headerName": "Unit Type"
+            },
+            {
+                "headerKey": "start-date",
+                "headerName": "Startdato"
+            },
+            {
+                "headerKey": "end-date",
+                "headerName": "Stopdato"
+            }
+        ],
+        "tr": {
+            "present": [],
+            "past": [],
+            "future": []
+        }
+    }
+}

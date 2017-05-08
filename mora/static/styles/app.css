@@ -1,0 +1,265 @@
+/* Custom CSS File */
+.wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto 0px;
+}
+.navbar-default{
+  background-color: transparent;
+  border-width: 0px !important;
+}
+.navbar-default .navbar-nav > li > a,
+.navbar-default .navbar-nav > li > a:hover
+.navbar-default .navbar-nav > li,
+.navbar-default .navbar-nav > li:hover,
+.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus{
+  color: #E5E0DE;
+}
+
+.center-container {
+  padding: 60px 0 20px 0;
+  margin:0;
+  height:100% !important;
+  display: table;
+  width:100%;
+  margin:0;
+  position: absolute;
+}
+
+.timemachine .center-container{
+  padding: 0;
+  margin:0;
+  height:100% !important;
+  display: block;
+  width:100%;
+  margin:0;
+  position: static;
+}
+
+.center-row {
+  height:100%;
+  width:100%;
+  display: table-row;
+}
+  
+.center-row > div {
+  height:100%;
+  display: table-cell;
+}
+
+/*.main-content > .main > .panel*/
+.left-section > div,
+.left-section > div > .panel,
+.main-content .main .panel{
+  height: 100%;
+  display: table;
+  margin: auto;
+  width: 100%;
+}
+.main-content .main .panel{ height: 93%; }
+.structure .tab-content{ border: 0px !important;}
+.structure .tab-content .tab-pane{ height: 100%;}
+.timemachine .structure .tab-content .tab-pane{ position: static;}
+
+.main-content .main, 
+.notification{ padding-right: 70px;
+  display: table;
+  width: 100%;
+  height: 20%;
+}
+.notification .tab-content{
+  max-height: 121px;
+  overflow-x: auto;
+}
+.main-content .main{
+  height: 80%;
+}
+.employee-list, .organisation-list{ position: relative; display: table; width: 97%; height: 86%;}
+.wrap-content{ overflow-x: auto; position: absolute; height: 100%; width: 100%;}
+.engagementWrapper{ width: 100%; }
+#employeeViewEdit .engagement-list,
+#organisationDetails .engagement-list{ max-height: 285px; overflow-x: hidden; overflow-y: scroll;}
+
+ul.user-helper{ padding: 0px; margin: 8px 0px 0px;}
+ul.user-helper li{ list-style: none; float: left; margin-right: 5px;}
+ul.user-helper li:last-child{margin-right: 0px;}
+ul.user-helper li a i{font-size: 28px; color: #999;}
+ul.user-helper li ul{ min-width: 100%;}
+/*.nav > li > a{ padding: 15px 10px; }*/
+.modal-header h3{font-size: 22px; margin: 0 0 0 5px;}
+.modal-backdrop.in{background: none repeat scroll 0 0 #000; height: 100%; opacity: 0.5; width: 100%;}
+.inline-cal .dropdown-menu{
+  padding: 5px !important;
+}
+.inline-cal .dropdown-menu th,
+.inline-cal .dropdown-menu td{
+  padding: 2px !important;
+}
+.traceMsg{background-color:#ECECEC; font-size: 11px; height: 150px; overflow: scroll; padding: 10px;}
+.historyLogMsg{max-height: 550px; overflow: scroll; padding: 0px 10px;}
+.employeeViewEdit .modal-dialog, .employee .modal-dialog{
+  width: 940px;
+}
+.modal-fixed-header{border-bottom: 1px solid #CCCCCC; padding-bottom: 10px; margin-bottom: 10px;}
+.modal-fixed-header > div.col-md-9{ padding-left: 0px;}
+.modal-fixed-header .btn{margin-top: 2px;}
+.accordion-toggle, .nav-tabs a{ cursor: pointer;}
+.accordion-toggle:hover{ text-decoration
+  : none;}
+.tab-content{padding: 15px 0px;}
+.tab-content legend{padding: 0px 0px 15px;}
+.engagementWrapper legend{display: none;}
+.modal-body .engagementWrapper legend{display: block;}
+
+/** Emp create **/
+.empCreateBlock, .empCreateBtn{ display: none; margin-bottom: 20px; margin-top: -37px;}
+.modal-body .empCreateBlock,
+.modal-body .empCreateBtn{ display: block;}
+.editable-click, a.editable-click{ border: 0px; color: #333;}
+.modal-body .editable-click, .modal-body a.editable-click{ color: #428BCA; border-bottom: 1px dotted #428BCA;}
+
+/*.empCreateBlock .inline-cal .dropdown-menu{ width: 140%;}*/
+.empCreateBlock{margin: -5px 0 15px; padding: 10px;}
+.empCreateBlock div.alert{font-size: 90%; padding: 9px;}
+.form-horizontal .has-feedback .form-control-feedback{ top: -2px;}
+.header-search .dropdown-menu{ width: auto; }
+.header-search .dropdown-menu li{ border-bottom: solid 1px #ECECEC; font-size: 12px;}
+.header-search .dropdown-menu li a{ cursor: pointer;}
+
+.nav-tabs > li > a{ padding: 7px 7px; }
+.toolbar button{ width: 100%;}
+.toolbar button.disabled{ opacity: 0.5;}
+
+table#employeeList tr td:last-child{ width: 150px;}
+table#employeeList tr td button{ display:none;}
+table#employeeList tr:hover td button{ display:inline-block;}
+
+.orgTreeInputWrap .dropdown-menu{ width: 100%; }
+.type-ahead-tree .tree-classic > ul{ padding-left: 0px;}
+#loading-bar-spinner{ top: 40px;}
+.modal-body .progress-striped{ margin: 15px auto; }
+/** Loading button **/
+.btn.loading{}
+.btn.loading:before { content: url("../images/btn-loading.gif");}
+.btn.loading span{ display: none;}
+/** Login form *****/
+.apollo {
+  margin: 0px auto 10px;
+  max-width: 362px;
+  border-radius: 5px;
+  position: relative; 
+}
+.apollo .control-group {
+  margin-bottom: 0;
+}
+.apollo .popover {
+  width: 300px;
+}
+.apollo .apollo-register-account {
+  text-align: center;
+  margin: 25px 0 0;
+}
+.apollo .apollo-change-account,
+.apollo .apollo-back {
+  display: none;
+  font-size: 12px;
+  margin: 25px 0 0 0;
+  text-align: center;
+}
+
+.apollo-container {
+  padding: 10px;
+  margin: 0 auto;
+  background-color: #fff;
+}
+.apollo-container .apollo-logging-in,
+.apollo-container .apollo-registering {
+  text-align: center;
+  display: none;
+}
+.apollo-container .apollo-image {
+  -webkit-box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 150px;
+  margin: 0 auto 40px auto;
+  width: 110px;
+  height: 110px;
+  display: block;
+  background: url(https://s3.amazonaws.com/uifaces/faces/twitter/kolage/128.jpg) top center;
+  background-size: cover;
+}
+
+.apollo-container form {
+  padding: 0;
+  margin: 0;
+}
+.apollo-container form input[type="text"],
+.apollo-container form input[type="password"] {
+  font-size: 16px;
+  height: auto;
+  margin-bottom: 15px;
+  padding: 7px 9px;
+}
+.checkbox label{ line-height: 20px !important;}
+input[type=checkbox]{ height: auto !important;}
+/***** Tree view *******/
+
+div[data-angular-treeview] {
+  /* prevent user selection */
+  -moz-user-select: -moz-none;ty
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/** pagination **/
+.ng-table-counts{ margin-top: 21px;}
+.ng-table-counts button{
+  padding: 6px 10px !important; font-size: 12px !important;
+}
+
+.selectedNodeDisplay {
+  margin: 8px 0 8px 0;
+  width: 500px;  
+}
+
+.treeContainer {
+  border: 1px solid gray;
+  height: 400px;
+  overflow: auto;
+  width: 500px;
+}
+
+.empCreateErrorMsgTbl{ margin: 10px 2px;}
+.linkingDisable{
+  color: #333;
+  text-decoration: none;
+  pointer-events: none;
+  cursor: default;
+}
+.geoLocationLocal.viewEdit{display: none;}
+.form-inline.editable-wrap + .geoLocationLocal.viewEdit{ display: block;}
+.table-striped th{ white-space: nowrap;}
+
+
+@media all and (-ms-high-contrast: none) {
+.center-container { 
+  display: block; 
+  position: fixed;
+}
+
+.center-row {
+  display: block;
+}
+  
+.center-row > div {
+  display: block;
+}
+.left-section > div, .left-section > div > .panel, .main-content .main .panel{
+  display: block;
+}
+.main-content .main, .notification{display: block;}
+
+}

@@ -1,0 +1,61 @@
+<div class="panel panel-default"> 
+   <div class="panel-heading"> 
+    <div class="row"> 
+     <div class="col-md-12 sec-title"> 
+      <i class="common heading-user"></i> 
+      <span ng-bind="i18n.page_heading_org"></span> 
+     </div> 
+    </div> 
+   </div> 
+   <div class="panel-body"> 
+    <div class="row" ng-show="!flag.orgFound &amp;&amp; flag.orgInfoLoaded"> 
+     <div class="col-md-12"> 
+      <div class="alert alert-danger" id="orgMsgNotFound">
+       {{i18n['organisationDetails_organisation_not_found_label']}}
+      </div> 
+     </div> 
+    </div> 
+
+    <div class="row" ng-show="flag.orgFound && allEngagementsLoaded"> 
+     <div class="col-md-12"> 
+      <div class="alert alert-warning" id="contactChannelHasTelNo" ng-show="!contactChannelHasTelNo || !engagements['contact-channel'].visible">
+        {{i18n['organisationDetails_organisation_no_phone_number']}}
+      </div> 
+     </div> 
+    </div> 
+
+    <div ng-show="flag.orgFound"> 
+     <div class="row org-detail pdbt25"> 
+      <div class="col-md-4 col-sm-4 col-xs-12"> 
+       <span class="txt-green">{{i18n['organisationDetails_enhead_label']}}</span> 
+       <span class="black_10" ng-bind="organisation.activeName"></span> 
+      </div> 
+      <div class="col-md-5 col-sm-5 col-xs-12"> 
+       <span class="txt-green">{{i18n['organisationDetails_enhead_nr_label']}}</span> 
+       <span class="black_10" ng-bind="organisation['user-key']"></span> 
+      </div> 
+      <div class="col-md-3 col-sm-3 col-xs-12 action-btn"> 
+       <span acl="o|write" class="form-group" ng-show="flag.orgEngagementsFound"> <button id="elOrgEditBtn" class="btn btn-primary btn-md" data-toggle="modal" data-target="#selectedOrganisationPopupModal" ng-click="$parent.orgEdit('open')"> <i class="common edit"></i> </button> </span> 
+       <span class="form-group" ng-show="flag.orgEngagementsFound"> <button id="elOrgViewBtn" class="btn btn-primary btn-md" data-toggle="modal" data-target="#selectedOrganisationPopupModal" ng-click="$parent.orgView('open')"> <i class="common view"></i> </button> </span> 
+       <span class="form-group" ng-show="flag.orgEngagementsFound"> <button  id="elOrgHistoryBtn" class="btn btn-primary btn-md" data-toggle="modal" ng-click="historyLog('open', 'o/'+organisation.org+'/org-unit/'+organisation.uuid+'/history/', 'History for '+organisation.name+', '+organisation['user-key'])"> <i class="common book"></i> </button> </span>
+      </div> 
+     </div> 
+     <!-- Tabs --> 
+     <div ng-if="flag.orgEngagementsFound" id="organisationDetails"> 
+      <tabset id="organisationViewTabs"> 
+       <tab ng-repeat="(key, role) in engagements  | toArray | orderBy:'$index'" active="role.active" ng-show="(role.visible && (role.present || role.future) || (role.visible && (role.key == 'org-unit')))"> 
+        <tab-heading id="{{role.key}OrgDetailTab">
+         {{i18n[sysService.state.data.page.key+"_tblMainHeader_"+role.key]}}
+        </tab-heading> 
+        <ng-include src="'partials/organisation/view/'+role.key+'.html?t='+role.timeStamp+''" ng-if="(role.visible && (role.present || role.future) || (role.visible && (role.key == 'org-unit')))" ng-init="linking = true"/> 
+       </tab> 
+      </tabset> 
+     </div> 
+     <!-- Loading --> 
+     <div class="row" ng-show="!flag.orgEngagementsFound"> 
+      <div class="col-md-12 spinner"> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+  </div>
