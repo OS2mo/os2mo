@@ -1,17 +1,17 @@
 #!/bin/sh
 
+DIR=$(cd $(dirname $0); pwd)
+VENV=$DIR/venv
+
+if ! test -d $VENV
+then
+    python3.5 -m venv $VENV
+fi
+
+$VENV/bin/pip -q install -r requirements.txt
+
+export PYTHONPATH="$DIR"
 export FLASK_APP=mora.app
 export FLASK_DEBUG=1
 
-DIR=$(cd $(dirname $0); pwd)
-
-if ! test -d $DIR/env
-then
-    python3.5 -m venv $DIR/env
-fi
-
-export PYTHONPATH="$DIR"
-
-$DIR/env/bin/pip -q install -r requirements.txt
-
-exec $DIR/env/bin/flask "$@"
+exec $VENV/bin/flask "$@"
