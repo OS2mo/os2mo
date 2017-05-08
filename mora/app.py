@@ -11,12 +11,12 @@ app = flask.Flask(__name__, static_url_path='')
 
 @app.route('/')
 def root():
-    return flask.send_from_directory(os.path.join(staticdir), 'index.html')
+    return flask.send_from_directory(staticdir, 'index.html')
 
 
 @app.route('/scripts/<path:path>')
 def send_scripts(path):
-    return flask.send_from_directory('scripts', os.path.join('scripts', path))
+    return flask.send_from_directory(staticdir, os.path.join('scripts', path))
 
 
 @app.route('/styles/<path:path>')
