@@ -96,3 +96,6 @@ ENV/
 /mora/static/styles/core.min.css
 /mora/static/styles/custom.css
 /mora/static/styles/custom.min.css
+
+# IDE config files
+.idea/
