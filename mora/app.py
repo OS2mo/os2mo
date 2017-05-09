@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import collections
+import datetime
 import itertools
 import os
 
@@ -201,3 +202,66 @@ def full_hierarchy(orgid):
         "user-key": "auth",
         "uuid": "1001"
     })
+
+
+@app.route('/o/<uuid:orgid>/org-unit/')
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
+def get_orgunit(orgid, unitid=None):
+    params = {
+        'tilhoerer': orgid,
+        'uuid': unitid or flask.request.args.get('query', []),
+    }
+
+    validity = flask.request.args.get('validity', 'current')
+    if validity == 'current':
+        params['virkningfra'] = str(datetime.date.today())
+        params['virkningtil'] = str(datetime.date.today() +
+                                    datetime.timedelta(days=1))
+    elif validity == 'past':
+        # FIXME: this includes 'current' unless created today
+        params['virkningfra'] = '-infinity'
+        params['virkningtil'] = str(datetime.datetime.now())
+    elif validity == 'future':
+        # FIXME: this includes 'current' unless it expires today
+        params['virkningfra'] = str(datetime.date.today() +
+                                    datetime.timedelta(days=1))
+        params['virkningtil'] = 'infinity'
+
+    orgunitids = set(lora.organisationenhed(**params))
+
+    def convert(unitid):
+        orgunit = lora.organisationenhed(uuid=unitid)[0]
+        reg = orgunit['registreringer'][-1]
+        attrs = reg['attributter']['organisationenhedegenskaber'][0]
+        rels = reg['relationer']
+
+        childids = lora.organisationenhed(overordnet=unitid)
+
+        parentid = rels['overordnet'][0].get('uuid', None)
+
+        return {
+            "activeName": attrs['enhedsnavn'],
+            "hasChildren": bool(childids),
+            "name": attrs['enhedsnavn'],
+            "org": str(orgid),
+            "parent": rels['overordnet'][0].get('uuid', ''),
+            "parent-object": convert(parentid) if parentid else None,
+            "user-key": attrs['brugervendtnoegle'],
+            "uuid": unitid,
+            'valid-from': attrs['virkning']['from'],
+            'valid-to': attrs['virkning']['to'],
+        }
+
+    return flask.jsonify([
+        convert(orgunitid) for orgunitid in orgunitids
+    ])
+
+
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/')
+def list_roles(orgid, unitid):
+    return flask.jsonify([])
+
+
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
+def get_role(orgid, unitid, role):
+    return flask.jsonify([])
