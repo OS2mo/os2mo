@@ -3,11 +3,13 @@ import sys
 import unittest
 import tempfile
 import mora.app as mora
+import requests
+import requests_mock
+# from unittest.mock import patch
 
-print(sys.path)
+from mora import lora
 
 class MoraTestCase(unittest.TestCase):
-
     def setUp(self):
         # self.db_fd, flaskr.app.config['DATABASE'] = tempfile.mkstemp()
         mora.app.config['TESTING'] = True
@@ -22,13 +24,17 @@ class MoraTestCase(unittest.TestCase):
         pass
 
     def test_acl(self):
-        rv = self.app.get('/acl')
+        rv = self.app.get('/acl/')
         assert b'[]\n' == rv.data
 
     def test_root(self):
         pass
 
-    def test_list_organisations(self):
+    @requests_mock.mock()
+    def test_list_organisations(self, m):
+        m.get(lora.LORA_URL + 'organisation/organisation?bvn=%25', json={'results': []})
+        self.assertEquals(self.app.get('/o').text, 'data',
+                        'you fool')
         pass
 
 if __name__ == '__main__':
