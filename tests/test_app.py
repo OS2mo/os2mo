@@ -37,7 +37,7 @@ class MoraTestCase(unittest.TestCase):
         mock.get(lora.LORA_URL + 'organisation/organisation?uuid=f58a99a5-a34f-4c6a-8fb2-118a2e25eacb', json=lora_response)
 
         expected_response = self._json_to_dict('tests/resources/mo_response_list_organisations.json')
-        actual_response = json.loads(self.app.get('/o').data.decode())
+        actual_response = json.loads(self.app.get('/o/').data.decode())
 
         self.assertEquals(actual_response, expected_response, 'JSON does not match for list_organisations')
 
