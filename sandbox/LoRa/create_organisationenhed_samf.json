@@ -1,0 +1,55 @@
+{
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "samf",
+        "enhedsnavn": "Samfundsvidenskabelige fakultet",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "tilhoerer": [
+      {
+        "uuid": "dummy",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "dummy",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "39303879-0753-4362-ad26-f03a53064eea",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+ 
+      }
+    ]
+  }
+}

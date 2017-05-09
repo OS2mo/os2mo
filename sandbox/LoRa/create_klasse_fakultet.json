@@ -1,0 +1,22 @@
+{
+    "attributter": {
+	"klasseegenskaber": [{
+		"brugervendtnoegle": "fak",
+		"titel": "Fakultet",
+		"beskrivelse": "Dette er et fakultet",
+		"virkning": {
+		    "from": "2017-01-01 12:00:00",
+		    "to": "infinity"
+		}
+	}]
+    },
+    "tilstande": {
+	"klassepubliceret": [{
+	    "publiceret": "Publiceret",
+	    "virkning": {
+		"from": "2017-01-01 12:00:00",
+		"to": "infinity"
+	    }
+	}]
+    }
+}

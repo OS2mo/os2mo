@@ -1,0 +1,54 @@
+{
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "root",
+        "enhedsnavn": "Overordnet Enhed",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "overordnet": [
+      {
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "tilhoerer": [
+      {
+        "uuid": "dummy",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "39303879-0753-4362-ad26-f03a53064eea",
+        "virkning": {
+          "from": "2017-01-01 12:00:00",
+          "to": "infinity"
+        }
+ 
+      }
+    ]
+  }
+}

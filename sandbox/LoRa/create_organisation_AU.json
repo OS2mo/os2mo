@@ -1,0 +1,22 @@
+{
+    "attributter": {
+	"organisationegenskaber": [{
+		"brugervendtnoegle": "AU",
+		"organisationsnavn": "Aarhus Universitet",
+		"virkning": {
+		    "from": "2017-01-01 12:00:00",
+		    "to": "infinity"
+		}
+	}]
+    },
+    "tilstande": {
+	"organisationgyldighed": [{
+	    "gyldighed": "Aktiv",
+	    "virkning": {
+		"from": "2017-01-01 12:00:00",
+		"to": "infinity"
+	    }
+	}]
+    },
+    "relationer": {    }
+}
