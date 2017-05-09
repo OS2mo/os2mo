@@ -13,7 +13,7 @@ then
     python3.5 -m venv $VENV
 fi
 
-$VENV/bin/pip -q install -r requirements.txt
+$VENV/bin/pip -q install -r $DIR/requirements.txt
 
 export PYTHONPATH="$DIR"
 export FLASK_APP=mora.app
