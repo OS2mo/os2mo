@@ -47,7 +47,7 @@ def acl():
     return flask.jsonify([])
 
 
-@app.route('/o')
+@app.route('/o/')
 def list_organisations():
     orgs = lora.organisation(uuid=lora.organisation(bvn='%'))
 
@@ -70,7 +70,7 @@ def full_hierarchy(orgid):
     print(flask.request.args)
     # if not flask.request.args.get('treeType', False):
     #     return flask.jsonify([])
-    # if not flask.request.args.get('treeType', False):
+    # if not flask.request.args.get('orgUnitId', False):
     #     return flask.jsonify([])
 
     org = lora.organisation(uuid=orgid)[0]
