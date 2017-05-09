@@ -1,1 +1,0 @@
-from .mora import app

@@ -11,7 +11,7 @@ fi
 $VENV/bin/pip -q install -r requirements.txt
 
 export PYTHONPATH="$DIR"
-export FLASK_APP=mora
+export FLASK_APP=mora.app
 export FLASK_DEBUG=1
 
 exec $VENV/bin/flask "$@"
