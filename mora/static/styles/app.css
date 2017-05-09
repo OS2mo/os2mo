@@ -207,7 +207,7 @@ input[type=checkbox]{ height: auto !important;}
 
 div[data-angular-treeview] {
   /* prevent user selection */
-  -moz-user-select: -moz-none;ty
+  -moz-user-select: -moz-none;
   -khtml-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;

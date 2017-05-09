@@ -92,6 +92,7 @@ ENV/
 /node_modules
 /bower_components
 /mora/static/scripts/core.js
+/mora/static/scripts/core.js.map
 /mora/static/styles/core.css
 /mora/static/styles/core.min.css
 /mora/static/styles/custom.css
