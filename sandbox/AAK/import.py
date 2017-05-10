@@ -130,7 +130,7 @@ def _read_sheet(sheet):
                 'attributter': {
                     'organisationenhedegenskaber': [
                         {
-                            'organisationenhedsnavn': obj['enhedsnavn'],
+                            'enhedsnavn': obj['enhedsnavn'],
                             'brugervendtnoegle': obj['brugervendtnoegle'],
                             'virkning': virkning,
                         },
