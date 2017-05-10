@@ -39,7 +39,7 @@ class MoraTestCase(unittest.TestCase):
         expected_response = self._json_to_dict('tests/resources/mo_response_list_organisations.json')
         actual_response = json.loads(self.app.get('/o/').data.decode())
 
-        self.assertEquals(actual_response, expected_response, 'JSON does not match for list_organisations')
+        self.assertEqual(actual_response, expected_response, 'JSON does not match for list_organisations')
 
 
 if __name__ == '__main__':
