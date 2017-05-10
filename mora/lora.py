@@ -18,5 +18,21 @@ def fetch(path, **params):
     return r.json()['results'][0]
 
 
+def login(username, password):
+    print(username, password)
+    if username == 'admin' and password == 'secret':
+        return {
+            "user": 'Administrator',
+            "token": 'kaflaflibob',
+            "role": ['AdminRole'],
+        }
+    else:
+        return None
+
+
+def logout(user, token):
+    return token == 'kaflaflibob'
+
+
 organisation = functools.partial(fetch, 'organisation/organisation')
 organisationenhed = functools.partial(fetch, 'organisation/organisationenhed')

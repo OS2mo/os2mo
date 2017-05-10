@@ -32,15 +32,21 @@ def send_styles(path):
     return flask.send_from_directory(staticdir, os.path.join('styles', path))
 
 
-@app.route('/service/user/<user>/login', methods=['POST', 'GET'])
+@app.route('/service/user/<user>/login', methods=['POST'])
 def login(user):
-    return flask.jsonify({
-        "user": user,
-        "token": "kaflaflibob",
-        "role": [
-            "o-admin"
-        ]
-    })
+    r = lora.login(user, flask.request.get_json()['password'])
+
+    if r:
+        return flask.jsonify(r)
+    else:
+        return '', 401
+
+
+@app.route('/service/user/<user>/logout', methods=['POST'])
+def logout(user):
+    return flask.jsonify(
+        lora.logout(user, flask.request.headers['X-AUTH-TOKEN'])
+    )
 
 
 @app.route('/acl/', methods=['POST', 'GET'])
