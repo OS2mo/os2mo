@@ -68,7 +68,10 @@ def list_organisations():
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
 def full_hierarchy(orgid):
-    print(flask.request.args)
+    args = flask.request.args
+    treeType = args.get('treeType', None)
+
+    # if not flask.request.args['treeType'], flask.request.args['treeType']
     # if not flask.request.args.get('treeType', False):
     #     return flask.jsonify([])
     # if not flask.request.args.get('orgUnitId', False):
@@ -76,7 +79,12 @@ def full_hierarchy(orgid):
 
     org = lora.organisation(uuid=orgid)[0]
 
-    orgunitids = lora.organisationenhed(tilhoerer=orgid)
+    if treeType == 'specific':
+        orgunitids = lora.organisationenhed(tilhoerer=orgid,
+                                            overordnet=args['orgUnitId'])
+    else:
+        orgunitids = lora.organisationenhed(tilhoerer=orgid)
+
     orgunits = {
         orgunit['id']: orgunit['registreringer']
         for orgunit in itertools.chain.from_iterable(
@@ -86,9 +94,14 @@ def full_hierarchy(orgid):
     }
 
     children = collections.defaultdict(set)
+    roots = set()
 
     for orgunitid, orgunit in orgunits.items():
-        assert orgunit[-1]['relationer'].get('overordnet', []), orgunitid
+        assert orgunit[-1]['relationer'].get('overordnet', []), \
+            'missing superior unit for ' + orgunitid
+        assert len(orgunit[-1]['relationer']['overordnet']) == 1, \
+            'too many superior units for ' + orgunitid
+
         for parent in orgunit[-1]['relationer']['overordnet']:
             if 'uuid' in parent:
                 children[parent['uuid']].add(orgunitid)
@@ -96,12 +109,21 @@ def full_hierarchy(orgid):
                 continue
             else:
                 # empty, so root unit
-                children[str(orgid)].add(orgunitid)
+                roots.add(orgunitid)
 
     def convert(unitid):
-        reg = orgunits[unitid][-1]
+        try:
+            reg = orgunits[unitid][-1]
+        except:
+            print(unitid, orgunits.keys())
+            raise
         attrs = reg['attributter']['organisationenhedegenskaber'][0]
         rels = reg['relationer']
+
+        has_children = bool(
+            children[unitid] or
+            lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
+        )
 
         return {
             'name': attrs['enhedsnavn'],
@@ -109,99 +131,33 @@ def full_hierarchy(orgid):
             'uuid': unitid,
             'valid-from': attrs['virkning']['from'],
             'valid-to': attrs['virkning']['to'],
-            'hasChildren': bool(children[unitid]),
+            'hasChildren': has_children,
             'children': [
                 convert(childid) for childid in children[unitid]
-            ],
+            ] if not treeType else [],
             'org': str(orgid),
-            'parent': rels['overordnet']
+            'parent': rels['overordnet'][0].get('uuid', ''),
         }
 
-    assert children[str(orgid)] and len(children[str(orgid)]) == 1, \
-        'too many roots!'
-
-    rootid = children[str(orgid)].pop()
-
-    orgattrs = \
-        org['registreringer'][-1]['attributter']['organisationegenskaber'][0]
-
-    return flask.jsonify({
-        'hierarchy': convert(rootid),
-        'name': orgattrs['organisationsnavn'],
-        'user-key': orgattrs['brugervendtnoegle'],
-        'uuid': org['id'],
-        'valid-from': orgattrs['virkning']['from'],
-        'valid-to': orgattrs['virkning']['to'],
-    })
-
-    # treeType=specific
-    return flask.jsonify({
-        "hierarchy": {
-            "children": [],
-            "hasChildren": True,
-            "name": "Borgmesterforvaltningen",
-            "org": "1001",
-            "parent": "",
-            "user-key": "ean12345",
-            "uuid": "1101",
-            "valid-from": "-infinity",
-            "valid-to": "infinity"
-        },
-        "name": "Administrativ Organisation",
-        "user-key": "auth",
-        "uuid": "1001"
-    })
-
-    # no treetype
-    return flask.jsonify({
-        "hierarchy": {
-            "children": [
-                {
-                    "hasChildren": False,
-                    "name": "Digitaliseringskontoret",
-                    "org": "1001",
-                    "parent": "1101",
-                    "user-key": "ean123456",
-                    "uuid": "1102",
-                    "valid-from": "-infinity",
-                    "valid-to": "infinity"
-                },
-                {
-                    "children": [
-                        {
-                            "hasChildren": False,
-                            "name": "Vicev\u00e6rtkontoret",
-                            "org": "1001",
-                            "parent": "1105",
-                            "user-key": "ean12345678",
-                            "uuid": "1106",
-                            "valid-from": "-infinity",
-                            "valid-to": "infinity"
-                        }
-                    ],
-                    "hasChildren": False,
-                    "name": "Ejendomsservice",
-                    "org": "1001",
-                    "parent": "1101",
-                    "user-key": "ean1234567",
-                    "uuid": "1105",
-                    "valid-from": "-infinity",
-                    "valid-to": "infinity"
-                }
-            ],
-            "hasChildren": False,
-            "name": "Borgmesterforvaltningen",
-            "org": "1001",
-            "parent": "",
-            "user-key": "ean12345",
-            "uuid": "1101",
-            "valid-from": "-infinity",
-            "valid-to": "infinity"
-        },
-        "name": "Administrativ Organisation",
-        "user-key": "auth",
-        "uuid": "1001"
-    })
+    if treeType == 'specific':
+        return flask.jsonify(list(map(convert, orgunitids)))
+    elif len(roots) == 1:
+        root = convert(roots.pop())
+        if root['parent']:
+            return flask.jsonify(root)
+        else:
+            orgattrs = \
+                org['registreringer'][-1]['attributter']['organisationegenskaber'][0]
+            return flask.jsonify({
+                'hierarchy': root,
+                'name': orgattrs['organisationsnavn'],
+                'user-key': orgattrs['brugervendtnoegle'],
+                'uuid': org['id'],
+                'valid-from': orgattrs['virkning']['from'],
+                'valid-to': orgattrs['virkning']['to'],
+            })
+    else:
+        return flask.jsonify(list(map(convert, roots)))
 
 
 @app.route('/o/<uuid:orgid>/org-unit/')
@@ -235,7 +191,7 @@ def get_orgunit(orgid, unitid=None):
         attrs = reg['attributter']['organisationenhedegenskaber'][0]
         rels = reg['relationer']
 
-        childids = lora.organisationenhed(overordnet=unitid)
+        childids = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
 
         parentid = rels['overordnet'][0].get('uuid', None)
 
