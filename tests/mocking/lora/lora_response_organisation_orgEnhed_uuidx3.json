@@ -1,0 +1,239 @@
+{
+  "results": [
+    [
+      {
+        "id": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+        "registreringer": [
+          {
+            "attributter": {
+              "organisationenhedegenskaber": [
+                {
+                  "brugervendtnoegle": "root",
+                  "enhedsnavn": "Overordnet Enhed",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-05-10T08:41:19.564831+00:00"
+            },
+            "livscykluskode": "Opstaaet",
+            "relationer": {
+              "enhedstype": [
+                {
+                  "uuid": "eb3dc9d3-297d-4c3d-9056-435d7696a8e9",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "overordnet": [
+                {
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "tilhoerer": [
+                {
+                  "uuid": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "organisationenhedgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      },
+      {
+        "id": "43b5dfc7-4d8c-494f-a954-d63379ffa1f3",
+        "registreringer": [
+          {
+            "attributter": {
+              "organisationenhedegenskaber": [
+                {
+                  "brugervendtnoegle": "samf",
+                  "enhedsnavn": "Samfundsvidenskabelige fakultet",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-05-10T08:41:19.691982+00:00"
+            },
+            "livscykluskode": "Opstaaet",
+            "relationer": {
+              "enhedstype": [
+                {
+                  "uuid": "14cf4675-e8c9-410f-aef4-abe3e4c1a9b7",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "overordnet": [
+                {
+                  "uuid": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "tilhoerer": [
+                {
+                  "uuid": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "organisationenhedgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      },
+      {
+        "id": "da9491aa-123f-4218-9551-ff1fcefe4ddb",
+        "registreringer": [
+          {
+            "attributter": {
+              "organisationenhedegenskaber": [
+                {
+                  "brugervendtnoegle": "hum",
+                  "enhedsnavn": "Humanistisk fakultet",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-05-10T08:41:19.628531+00:00"
+            },
+            "livscykluskode": "Opstaaet",
+            "relationer": {
+              "enhedstype": [
+                {
+                  "uuid": "14cf4675-e8c9-410f-aef4-abe3e4c1a9b7",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "overordnet": [
+                {
+                  "uuid": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "tilhoerer": [
+                {
+                  "uuid": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "organisationenhedgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

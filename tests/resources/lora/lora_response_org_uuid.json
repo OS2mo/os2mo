@@ -1,0 +1,49 @@
+{
+  "results": [
+    [
+      {
+        "id": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+        "registreringer": [
+          {
+            "attributter": {
+              "organisationegenskaber": [
+                {
+                  "brugervendtnoegle": "AU",
+                  "organisationsnavn": "Aarhus Universitet",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-05-10T08:41:19.497343+00:00"
+            },
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+              "organisationgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

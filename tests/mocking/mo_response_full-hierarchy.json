@@ -1,0 +1,41 @@
+{
+  "hierarchy": {
+    "children": [
+      {
+        "children": [],
+        "hasChildren": false,
+        "name": "Samfundsvidenskabelige fakultet",
+        "org": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+        "parent": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+        "user-key": "samf",
+        "uuid": "43b5dfc7-4d8c-494f-a954-d63379ffa1f3",
+        "valid-from": "2017-01-01 12:00:00+00",
+        "valid-to": "infinity"
+      },
+      {
+        "children": [],
+        "hasChildren": false,
+        "name": "Humanistisk fakultet",
+        "org": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+        "parent": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+        "user-key": "hum",
+        "uuid": "da9491aa-123f-4218-9551-ff1fcefe4ddb",
+        "valid-from": "2017-01-01 12:00:00+00",
+        "valid-to": "infinity"
+      }
+    ],
+    "hasChildren": true,
+    "name": "Overordnet Enhed",
+    "org": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+    "parent": "",
+    "user-key": "root",
+    "uuid": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+    "valid-from": "2017-01-01 12:00:00+00",
+    "valid-to": "infinity"
+  },
+  "name": "Aarhus Universitet",
+  "user-key": "AU",
+  "uuid": "722a3b7b-adb1-4f58-88cd-ecbdefd5014b",
+  "valid-from": "2017-01-01 12:00:00+00",
+  "valid-to": "infinity"
+}
