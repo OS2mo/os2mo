@@ -8,8 +8,10 @@
 #
 
 import argparse
-import requests
 import json
+import os
+
+import requests
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -24,10 +26,11 @@ args = parser.parse_args()
 
 headers = {'Content-type': 'application/json'}
 client = requests.session()
+basedir = os.path.dirname(__file__)
 
 
 def _get_json(filename):
-    with open(filename, 'r') as f:
+    with open(os.path.join(basedir, filename), 'r') as f:
         l = f.readlines()
     json_str = ''.join(l)
     return json.loads(json_str)
