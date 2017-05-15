@@ -12,7 +12,7 @@ VENV=$DIR/venv
 
 if ! test -d $VENV
 then
-    python3.5 -m venv $VENV
+    ${PYTHON:-python3.5} -m venv $VENV
 fi
 
 $VENV/bin/pip -q install -r $DIR/requirements.txt
