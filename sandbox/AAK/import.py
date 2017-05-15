@@ -195,7 +195,12 @@ def import_file(url, fp, verbose=False):
         for method, path, obj in sheetlines
     )
 
-    for r in grequests.imap(responses, size=6):
+    def fail(r, exc):
+        if verbose:
+            print(r.url)
+        print(*exc.args)
+
+    for r in grequests.imap(responses, size=6, exception_handler=fail):
         if verbose:
             print(r.url)
 
