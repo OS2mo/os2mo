@@ -189,7 +189,7 @@ def import_file(url, fp, verbose=False):
     responses = (
         grequests.request(
             method, url + path, session=session,
-            # reload the objekt to break duplicate entries
+            # reload the object to break duplicate entries
             json=json.loads(json.dumps(obj, check_circular=False)),
         )
         for method, path, obj in sheetlines
