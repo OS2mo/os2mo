@@ -81,12 +81,6 @@ def full_hierarchy(orgid):
     args = flask.request.args
     treeType = args.get('treeType', None)
 
-    # if not flask.request.args['treeType'], flask.request.args['treeType']
-    # if not flask.request.args.get('treeType', False):
-    #     return flask.jsonify([])
-    # if not flask.request.args.get('orgUnitId', False):
-    #     return flask.jsonify([])
-
     org = lora.organisation(uuid=orgid)[0]
 
     if treeType == 'specific':
