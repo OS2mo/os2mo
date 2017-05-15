@@ -150,8 +150,8 @@ def full_hierarchy(orgid):
         if root['parent']:
             return flask.jsonify(root)
         else:
-            orgattrs = \
-                org['registreringer'][-1]['attributter']['organisationegenskaber'][0]
+            orgreg = org['registreringer'][-1]
+            orgattrs = orgreg['attributter']['organisationegenskaber'][0]
             return flask.jsonify({
                 'hierarchy': root,
                 'name': orgattrs['organisationsnavn'],
