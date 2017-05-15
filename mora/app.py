@@ -1,6 +1,10 @@
+#
+# Copyright (c) 2017, Magenta ApS
+#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
 
 import collections
 import datetime
@@ -77,12 +81,6 @@ def full_hierarchy(orgid):
     args = flask.request.args
     treeType = args.get('treeType', None)
 
-    # if not flask.request.args['treeType'], flask.request.args['treeType']
-    # if not flask.request.args.get('treeType', False):
-    #     return flask.jsonify([])
-    # if not flask.request.args.get('orgUnitId', False):
-    #     return flask.jsonify([])
-
     org = lora.organisation(uuid=orgid)[0]
 
     if treeType == 'specific':
@@ -140,7 +138,7 @@ def full_hierarchy(orgid):
             'hasChildren': has_children,
             'children': [
                 convert(childid) for childid in sorted(children[unitid])
-            ] if not treeType else [],
+            ] if has_children and not treeType else [],
             'org': str(orgid),
             'parent': rels['overordnet'][0].get('uuid', ''),
         }
@@ -152,8 +150,8 @@ def full_hierarchy(orgid):
         if root['parent']:
             return flask.jsonify(root)
         else:
-            orgattrs = \
-                org['registreringer'][-1]['attributter']['organisationegenskaber'][0]
+            orgreg = org['registreringer'][-1]
+            orgattrs = orgreg['attributter']['organisationegenskaber'][0]
             return flask.jsonify({
                 'hierarchy': root,
                 'name': orgattrs['organisationsnavn'],
