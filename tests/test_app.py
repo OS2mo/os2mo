@@ -27,7 +27,7 @@ class MoraTestCase(unittest.TestCase):
         json_str = ''.join(lines)
         return json.loads(json_str)
 
-    def _request_to_dict(self, url):
+    def _request(self, url):
         """
         Make request to the app, get a JSON response and convert this to a Python dictionary
         :param url: url to request in the app
@@ -41,15 +41,14 @@ class MoraTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_list_organisations(self, mock):
-        lora_response = self._jsonfile_to_dict('tests/mocking/lora/lora_response_get_organisation_from_uuid.json')
+        lora_response = self._jsonfile_to_dict('tests/mocking/lora/organisation/organisation/get_org_from_uuid.json')
         mock.get(lora.LORA_URL + 'organisation/organisation?bvn=%',
                  json={'results': [['f58a99a5-a34f-4c6a-8fb2-118a2e25eacb']]})
         mock.get(lora.LORA_URL + 'organisation/organisation?uuid=f58a99a5-a34f-4c6a-8fb2-118a2e25eacb',
                  json=lora_response)
 
         expected_response = self._jsonfile_to_dict('tests/mocking/mo_response_list_organisations.json')
-        actual_response = json.loads(self.app.get('/o/').data.decode())
-        # actual_response = self._request_to_dict('/o/')  # Not working ?!
+        actual_response = self._request('/o/')
 
         self.assertEqual(actual_response, expected_response, 'JSON does not match for list_organisations')
 
@@ -72,7 +71,7 @@ class MoraTestCase(unittest.TestCase):
                  json={'results': [[]]})
 
         expected_response = self._jsonfile_to_dict('tests/mocking/mo_response_full-hierarchy.json')
-        actual_response = json.loads(self.app.get('/o/722a3b7b-adb1-4f58-88cd-ecbdefd5014b/full-hierarchy?effective-date=&query=').data.decode())
+        actual_response = self._request('/o/722a3b7b-adb1-4f58-88cd-ecbdefd5014b/full-hierarchy?effective-date=&query=')
 
         self.assertEqual(actual_response, expected_response, 'JSON does not match for full_hierarchy (no treetype)')
 
