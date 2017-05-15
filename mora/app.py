@@ -139,7 +139,7 @@ def full_hierarchy(orgid):
             'valid-to': attrs['virkning']['to'],
             'hasChildren': has_children,
             'children': [
-                convert(childid) for childid in children[unitid]
+                convert(childid) for childid in sorted(children[unitid])
             ] if not treeType else [],
             'org': str(orgid),
             'parent': rels['overordnet'][0].get('uuid', ''),
