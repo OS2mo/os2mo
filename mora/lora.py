@@ -23,7 +23,6 @@ def fetch(path, **params):
 
 
 def login(username, password):
-    print(username, password)
     if username == 'admin' and password == 'secret':
         return {
             "user": 'Administrator',
