@@ -1,0 +1,18 @@
+{
+  "hierarchy": {
+    "children": [],
+    "hasChildren": true,
+    "name": "Overordnet Enhed",
+    "org": "f58a99a5-a34f-4c6a-8fb2-118a2e25eacb",
+    "parent": "",
+    "user-key": "root",
+    "uuid": "1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd",
+    "valid-from": "2017-01-01 12:00:00+00",
+    "valid-to": "infinity"
+  },
+  "name": "Aarhus Universitet",
+  "user-key": "AU",
+  "uuid": "f58a99a5-a34f-4c6a-8fb2-118a2e25eacb",
+  "valid-from": "2017-01-01 12:00:00+00",
+  "valid-to": "infinity"
+}
