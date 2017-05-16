@@ -225,3 +225,23 @@ def list_roles(orgid, unitid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
     return flask.jsonify([])
+
+
+### Classification stuff - should be moved to own file ###
+
+# This one is used when creating new "Enheder"
+@app.route('/org-unit/type')
+def get_class_types():
+    clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
+
+    # TODO: Refactor this convert function (and the one used for orgs) into a module and make it generic
+    def convert(clazz):
+        reg = clazz['registreringer'][-1]
+        attrs = reg['attributter']['klasseegenskaber'][0]
+        return {
+            'uuid': clazz['id'],
+            'name': attrs['titel'],
+            'userKey': attrs['brugervendtnoegle']
+        }
+
+    return flask.jsonify(list(map(convert, clazzes)))

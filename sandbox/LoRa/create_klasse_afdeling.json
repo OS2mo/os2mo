@@ -2,7 +2,7 @@
     "attributter": {
 	"klasseegenskaber": [{
 		"brugervendtnoegle": "afd",
-		"titel": "Fakultet",
+		"titel": "Afdeling",
 		"beskrivelse": "Dette er en afdeling",
 		"virkning": {
 		    "from": "2017-01-01 12:00:00",

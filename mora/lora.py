@@ -7,16 +7,23 @@
 #
 
 import functools
-
 import requests
 
+# The commented out lines below are a bit messy (used during development) - will be removed later...
+
+# from requests.packages.urllib3.exceptions import InsecureRequestWarning
+# requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 LORA_URL = 'http://mox/'
+# LORA_URL = 'https://mox/'
 
 session = requests.Session()
 
 
 def fetch(path, **params):
     r = session.get(LORA_URL + path, params=params)
+    # r = session.get(LORA_URL + path, params=params, verify=False)
+    # print('url = ', r.url)
     r.raise_for_status()
 
     return r.json()['results'][0]
@@ -39,3 +46,5 @@ def logout(user, token):
 
 organisation = functools.partial(fetch, 'organisation/organisation')
 organisationenhed = functools.partial(fetch, 'organisation/organisationenhed')
+
+klasse = functools.partial(fetch, 'klassifikation/klasse')
