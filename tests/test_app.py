@@ -109,6 +109,25 @@ class MoraTestCase(unittest.TestCase):
         expected_response = self._jsonfile_to_dict('tests/mocking/mo/full-hierarchy_treetype_specific.json')
         actual_response = self._request('/o/f58a99a5-a34f-4c6a-8fb2-118a2e25eacb/full-hierarchy?effective-date=&query=&treeType=specific&orgUnitId=1ae72c47-b8f3-41ba-9c54-ed5c496c5bdd')
 
+        self.assertEqual(actual_response, expected_response, 'JSON do not match for full_hierarchy (treetype=specific)')
+
+    @requests_mock.mock()
+    def test_list_classes(self, mock):
+        lora_klasse_response = self._jsonfile_to_dict('tests/mocking/lora/klassifikation/klasse/get_klasse_from_uuidx2.json')
+        mock.get(self._get_lora_url('klassifikation_klasse_bvn'), json={
+          'results': [
+                [
+                    'eb3dc9d3-297d-4c3d-9056-435d7696a8e9',
+                    '14cf4675-e8c9-410f-aef4-abe3e4c1a9b7'
+                ]
+              ]
+          }
+        )
+        mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'), json=lora_klasse_response)
+
+        expected_response = self._jsonfile_to_dict('tests/mocking/mo/list_classes.json')
+        actual_response = self._request('/org-unit/type')
+
         self.assertEqual(actual_response, expected_response, 'Hurra')
 
 if __name__ == '__main__':

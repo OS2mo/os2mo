@@ -231,7 +231,7 @@ def get_role(orgid, unitid, role):
 
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
-def get_class_types():
+def list_classes():
     clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
 
     # TODO: Refactor this convert function (and the one used for orgs) into a module and make it generic

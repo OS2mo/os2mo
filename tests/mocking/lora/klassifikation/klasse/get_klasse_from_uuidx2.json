@@ -1,0 +1,94 @@
+{
+  "results": [
+    [
+      {
+        "id": "14cf4675-e8c9-410f-aef4-abe3e4c1a9b7",
+        "registreringer": [
+          {
+            "attributter": {
+              "klasseegenskaber": [
+                {
+                  "beskrivelse": "Dette er et fakultet",
+                  "brugervendtnoegle": "fak",
+                  "titel": "Fakultet",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-05-10T08:41:19.362464+00:00"
+            },
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+              "klassepubliceret": [
+                {
+                  "publiceret": "Publiceret",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      },
+      {
+        "id": "eb3dc9d3-297d-4c3d-9056-435d7696a8e9",
+        "registreringer": [
+          {
+            "attributter": {
+              "klasseegenskaber": [
+                {
+                  "beskrivelse": "Dette er en afdeling",
+                  "brugervendtnoegle": "afd",
+                  "titel": "Fakultet",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-05-10T08:41:19.430188+00:00"
+            },
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+              "klassepubliceret": [
+                {
+                  "publiceret": "Publiceret",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}
