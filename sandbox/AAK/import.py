@@ -216,10 +216,18 @@ def _read_sheet(sheet):
                     ],
                     'overordnet': [
                         {
-                            'uuid': cache[obj['overordnet']]['objektid'],
+                            # stash the ORG ID in 'overordnet' --
+                            # technically, this violates the
+                            # standards, but enables simple queries
+                            # for root org units
+                            'uuid': (
+                                cache[obj['overordnet']]['objektid']
+                                if obj['overordnet']
+                                else obj['tilhoerer']
+                            ),
                             'virkning': virkning,
                         }
-                    ] if obj['overordnet'] else nullrelation,
+                    ],
                 }
             }
         else:

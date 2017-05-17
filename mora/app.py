@@ -6,9 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import collections
 import datetime
-import itertools
 import os
 import traceback
 
@@ -86,50 +84,22 @@ def full_hierarchy(orgid):
     org = lora.organisation(uuid=orgid)[0]
 
     if treeType == 'specific':
-        orgunitids = lora.organisationenhed(tilhoerer=orgid,
-                                            overordnet=args['orgUnitId'])
+        overordnet = args['orgUnitId']
+    elif not treeType:
+        return flask.jsonify([]), 404
     else:
-        orgunitids = lora.organisationenhed(tilhoerer=orgid)
+        overordnet = str(orgid)
 
-    orgunits = {
-        orgunit['id']: orgunit['registreringer']
-        for orgunit in itertools.chain.from_iterable(
-                lora.organisationenhed(uuid=orgunitids[i:i+100])
-                for i in range(0, len(orgunitids), 100)
-        )
-    }
-
-    children = collections.defaultdict(set)
-    roots = set()
-
-    for orgunitid, orgunit in orgunits.items():
-        assert orgunit[-1]['relationer'].get('overordnet', []), \
-            'missing superior unit for ' + orgunitid
-        assert len(orgunit[-1]['relationer']['overordnet']) == 1, \
-            'too many superior units for ' + orgunitid
-
-        for parent in orgunit[-1]['relationer']['overordnet']:
-            if 'uuid' in parent:
-                children[parent['uuid']].add(orgunitid)
-            elif 'urn' in parent:
-                continue
-            else:
-                # empty, so root unit
-                roots.add(orgunitid)
+    roots = lora.organisationenhed(tilhoerer=orgid, overordnet=overordnet)
 
     def convert(unitid):
-        try:
-            reg = orgunits[unitid][-1]
-        except:
-            print(unitid, orgunits.keys())
-            raise
+        orgunit = lora.organisationenhed(uuid=unitid)[0]
+        reg = orgunit['registreringer'][-1]
         attrs = reg['attributter']['organisationenhedegenskaber'][0]
         rels = reg['relationer']
 
-        has_children = bool(
-            children[unitid] or
-            lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
-        )
+        children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
+        is_root = rels['overordnet'][0]['uuid'] == str(orgid)
 
         return {
             'name': attrs['enhedsnavn'],
@@ -137,16 +107,16 @@ def full_hierarchy(orgid):
             'uuid': unitid,
             'valid-from': attrs['virkning']['from'],
             'valid-to': attrs['virkning']['to'],
-            'hasChildren': has_children,
+            'hasChildren': bool(children),
             'children': [
-                convert(childid) for childid in sorted(children[unitid])
-            ] if has_children and not treeType else [],
+                convert(childid) for childid in children
+            ] if children and not treeType else [],
             'org': str(orgid),
-            'parent': rels['overordnet'][0].get('uuid', ''),
+            'parent': rels['overordnet'][0]['uuid'] if not is_root else None,
         }
 
     if treeType == 'specific':
-        return flask.jsonify(list(map(convert, orgunitids)))
+        return flask.jsonify(list(map(convert, roots)))
     elif len(roots) == 1:
         root = convert(roots.pop())
         if root['parent']:
@@ -174,20 +144,17 @@ def get_orgunit(orgid, unitid=None):
         'uuid': unitid or flask.request.args.get('query', []),
     }
 
-    validity = flask.request.args.get('validity', 'current')
-    if validity == 'current':
+    validity = flask.request.args.get('validity', 'present')
+    if validity == 'present':
         params['virkningfra'] = str(datetime.date.today())
         params['virkningtil'] = str(datetime.date.today() +
                                     datetime.timedelta(days=1))
     elif validity == 'past':
-        # FIXME: this includes 'current' unless created today
-        params['virkningfra'] = '-infinity'
-        params['virkningtil'] = str(datetime.datetime.now())
+        return flask.jsonify([]), 404
     elif validity == 'future':
-        # FIXME: this includes 'current' unless it expires today
-        params['virkningfra'] = str(datetime.date.today() +
-                                    datetime.timedelta(days=1))
-        params['virkningtil'] = 'infinity'
+        return flask.jsonify([]), 404
+    else:
+        return flask.jsonify([]), 400
 
     orgunitids = set(lora.organisationenhed(**params))
 
@@ -199,15 +166,18 @@ def get_orgunit(orgid, unitid=None):
 
         childids = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
 
-        parentid = rels['overordnet'][0].get('uuid', None)
+        parentid = rels['overordnet'][0]['uuid']
+
+        if parentid == str(orgid):
+            parentid = None
 
         return {
             "activeName": attrs['enhedsnavn'],
             "hasChildren": bool(childids),
             "name": attrs['enhedsnavn'],
             "org": str(orgid),
-            "parent": rels['overordnet'][0].get('uuid', ''),
-            "parent-object": convert(parentid) if parentid else None,
+            "parent": parentid,
+            "parent-object": parentid and convert(parentid),
             "user-key": attrs['brugervendtnoegle'],
             "uuid": unitid,
             'valid-from': attrs['virkning']['from'],

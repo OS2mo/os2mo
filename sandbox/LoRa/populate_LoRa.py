@@ -63,6 +63,7 @@ uuid_org_AU = create('organisation', 'organisation', data_dict)
 ### Create root OrgEnhed ###
 data_dict = _get_json('create_organisationenhed_root.json')
 data_dict['relationer']['tilhoerer'][0]['uuid'] = uuid_org_AU
+data_dict['relationer']['overordnet'][0]['uuid'] = uuid_org_AU
 data_dict['relationer']['enhedstype'][0]['uuid'] = uuid_klasse_afdeling
 uuid_orgEnhed_root = create('organisation', 'organisationenhed', data_dict)
 
