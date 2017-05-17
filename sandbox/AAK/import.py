@@ -170,11 +170,13 @@ def _read_sheet(sheet):
                 k = '{}, {} {}'.format(
                     obj['adresse'], obj['postnummer'], obj['postdistrikt']
                 )
+                if k == 'Rådhuset, 8000 Aarhus C':
+                    k = 'Rådhuspladsen 2, 8000 Aarhus C'
 
                 with AddrCache() as addrcache:
                     addrinfo = addrcache[k]
 
-                if addrinfo['kategori'] == 'A' and len(addrinfo['resultater']) == 1:
+                if len(addrinfo['resultater']) == 1:
                     addresses.append({
                         'uuid': addrinfo['resultater'][0]['adresse']['id'],
                         'gyldighed': obj['gyldighed'],
