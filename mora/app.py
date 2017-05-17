@@ -10,8 +10,10 @@ import collections
 import datetime
 import itertools
 import os
+import traceback
 
 import flask
+import requests
 
 from . import lora
 
@@ -217,14 +219,73 @@ def get_orgunit(orgid, unitid=None):
     ])
 
 
-@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/')
-def list_roles(orgid, unitid):
-    return flask.jsonify([])
-
-
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
-    return flask.jsonify([])
+    try:
+        orgunit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][0]
+    except KeyError:
+        traceback.print_exc()
+        return '', 404
+
+    # TODO: past & future...
+    if flask.request.args.get('validity', 'present') != 'present':
+        return flask.jsonify([]), 404
+
+    elif role == 'contact-channel':
+        PHONE_PREFIX = 'urn:magenta.dk:telefon:'
+        return flask.jsonify([
+            {
+                "contact-info": addr['urn'][len(PHONE_PREFIX):],
+                # "name": "telefon 12345678",
+                "type": {
+                    "name": "Telefonnummer",
+                    "user-key": "Telephone_number",
+                },
+                "valid-from": addr['virkning']['from'],
+                "valid-to": addr['virkning']['to'],
+            }
+            for addr in orgunit['relationer']['adresser']
+            if addr.get('urn', '').startswith(PHONE_PREFIX)
+        ])
+    elif role == 'location':
+        def convert_addr(addr):
+            addrinfo = requests.get(
+                'http://dawa.aws.dk/adresser/' + addr['uuid']
+            ).json()
+
+            return {
+                "location": {
+                    "name": addrinfo['adressebetegnelse'],
+                    "user-key": addrinfo['kvhx'],
+                    "uuid": addrinfo['id'],
+                    "valid-from": "-infinity",
+                    "valid-to": "infinity"
+                },
+                "name": addrinfo['adressebetegnelse'],
+                "org-unit": unitid,
+                "primaer": True,  # TODO: really?
+                "role-type": "location",
+                "uuid": addrinfo['id'],
+                "valid-from": addr['virkning']['from'],
+                "valid-to": addr['virkning']['to'],
+            }
+
+        return flask.jsonify([
+            convert_addr(addr)
+            for addr in orgunit['relationer']['adresser']
+            if addr.get('uuid', '')
+        ])
+    elif role == 'association':
+        return flask.jsonify([]), 404
+    elif role == 'leader':
+        return flask.jsonify([]), 404
+    elif role == 'engagement':
+        return flask.jsonify([]), 404
+    elif role == 'job-function':
+        return flask.jsonify([]), 404
+    else:
+        print(role, flask.request.args)
+        return flask.jsonify([]), 400
 
 
 ### Classification stuff - should be moved to own file ###

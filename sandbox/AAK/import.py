@@ -11,11 +11,14 @@ import argparse
 import datetime
 import itertools
 import json
+import os
+import shelve
 import sys
 import uuid
 
 import grequests
 import openpyxl
+import requests
 import tzlocal
 
 def _dt2str(dt):
@@ -37,6 +40,21 @@ def _dt2str(dt):
 
         return dt.isoformat()
 
+ADDR_CACHE_FILE = os.path.join(os.path.dirname(__file__), 'addr.db')
+
+class AddrCache(shelve.DbfilenameShelf):
+    def __init__(self):
+        super().__init__(ADDR_CACHE_FILE, 'c', 4)
+
+    def __getitem__(self, k):
+        try:
+            return super().__getitem__(k)
+        except KeyError:
+            r = requests.get('http://dawa.aws.dk/datavask/adresser',
+                             params={'betegnelse': k})
+            r.raise_for_status()
+            d = self[k] = r.json()
+            return d
 
 def _read_sheet(sheet):
     now = datetime.datetime.now(tzlocal.get_localzone())
@@ -132,6 +150,37 @@ def _read_sheet(sheet):
             }
 
         elif sheet.title == 'organisationenhed':
+            addresses = []
+            telefon = obj['telefon']
+            if obj['postnummer']:
+                pass
+
+            if isinstance(telefon, str):
+                telefon = telefon.strip()
+
+            if telefon:
+                urn = 'urn:magenta.dk:telefon:+45{:08d}'.format(telefon)
+                addresses.append({
+                    'urn': urn,
+                    'gyldighed': obj['gyldighed'],
+                    'virkning': virkning,
+                })
+
+            if obj['postnummer']:
+                k = '{}, {} {}'.format(
+                    obj['adresse'], obj['postnummer'], obj['postdistrikt']
+                )
+
+                with AddrCache() as addrcache:
+                    addrinfo = addrcache[k]
+
+                if addrinfo['kategori'] == 'A' and len(addrinfo['resultater']) == 1:
+                    addresses.append({
+                        'uuid': addrinfo['resultater'][0]['adresse']['id'],
+                        'gyldighed': obj['gyldighed'],
+                        'virkning': virkning,
+                    })
+
             yield 'PUT', '/organisation/organisationenhed/' + obj['objektid'], {
                 'note': obj['note'],
                 'attributter': {
@@ -152,6 +201,7 @@ def _read_sheet(sheet):
                     ],
                 },
                 'relationer': {
+                    'adresser': addresses or nullrelation,
                     'tilhoerer': [
                         {
                             'uuid': obj['tilhoerer'],
@@ -186,7 +236,7 @@ def import_file(url, fp, verbose=False):
         return
 
     session = grequests.Session()
-    responses = (
+    requests = (
         grequests.request(
             method, url + path, session=session,
             # reload the object to break duplicate entries
@@ -200,7 +250,7 @@ def import_file(url, fp, verbose=False):
             print(r.url)
         print(*exc.args)
 
-    for r in grequests.imap(responses, size=6, exception_handler=fail):
+    for r in grequests.imap(requests, size=6, exception_handler=fail):
         if verbose:
             print(r.url)
 
@@ -210,7 +260,6 @@ def import_file(url, fp, verbose=False):
             except ValueError:
                 print(r.status_code, r.text)
         r.raise_for_status()
-
 
 def main(argv):
     parser = argparse.ArgumentParser(
