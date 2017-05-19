@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
-import operator
 import os
 import traceback
 
@@ -431,8 +429,9 @@ def get_role(orgid, unitid, role):
             if addr.get('uuid', '')
         ])
 
-
-### Classification stuff - should be moved to own file ###
+#
+# Classification stuff - should be moved to own file
+#
 
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')

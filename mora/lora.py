@@ -12,13 +12,7 @@ import requests
 
 from . import util
 
-# The commented out lines below are a bit messy (used during development) - will be removed later...
-
-# from requests.packages.urllib3.exceptions import InsecureRequestWarning
-# requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
 LORA_URL = 'http://mox/'
-# LORA_URL = 'https://mox/'
 
 session = requests.Session()
 
@@ -73,8 +67,6 @@ def get(path, uuid, validity=None):
 
 def fetch(path, **params):
     r = session.get(LORA_URL + path, params=params)
-    # r = session.get(LORA_URL + path, params=params, verify=False)
-    # print('url = ', r.url)
     r.raise_for_status()
 
     objs = r.json()['results'][0]
