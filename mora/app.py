@@ -81,8 +81,8 @@ def create_organisation_unit(orgid):
     req = flask.request.get_json()
 
     virkning = {
-        'from': str(util.parsedate(req.get('valid-from'), '-infinity')),
-        'to': str(util.parsedate(req.get('valid-to'), 'infinity')),
+        'from': util.reparsedate(req.get('valid-from'), '-infinity'),
+        'to': util.reparsedate(req.get('valid-to'), 'infinity'),
     }
 
     nullrelation = [{
@@ -216,8 +216,8 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
                         'uuid': (req['location'].get('UUID_EnhedsAdresse') or
                                  req['location']['uuid']),
                         'virkning': {
-                            'from': str(util.parsedate(req['valid-from'])),
-                            'to': str(util.parsedate(req['valid-to'])),
+                            'from': util.reparsedate(req['valid-from']),
+                            'to': util.reparsedate(req['valid-to']),
                         },
                     }
                     for addr in unitobj['relationer']['adresser']
@@ -236,8 +236,12 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
         addresses.append({
             'uuid': req['location']['UUID_EnhedsAdresse'],
             'virkning': {
-                'from': req['location']['valid-from'],
-                'to': req['location']['valid-to'],
+                'from': util.reparsedate(
+                    req['location'].get('valid-from') or req['valid-from']
+                ),
+                'to': util.reparsedate(
+                    req['location'].get('valid-to') or req['valid-to']
+                ),
             },
         })
 

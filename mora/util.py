@@ -48,6 +48,11 @@ def parsedate(s, default=None):
 
     return dt
 
+def reparsedate(s):
+    if s == 'infinity' or s == '-infinity':
+        return s
+    else:
+        return parsedate(s).isoformat()
 
 def now():
     return datetime.datetime.now(pytz.UTC)
