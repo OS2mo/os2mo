@@ -21,6 +21,7 @@ import openpyxl
 import requests
 import tzlocal
 
+
 def _dt2str(dt):
     '''Convert a datetime to string
 
@@ -40,7 +41,9 @@ def _dt2str(dt):
 
         return dt.isoformat()
 
+
 ADDR_CACHE_FILE = os.path.join(os.path.dirname(__file__), 'addr.db')
+
 
 class AddrCache(shelve.DbfilenameShelf):
     def __init__(self):
@@ -55,6 +58,7 @@ class AddrCache(shelve.DbfilenameShelf):
             r.raise_for_status()
             d = self[k] = r.json()
             return d
+
 
 def _read_sheet(sheet):
     now = datetime.datetime.now(tzlocal.get_localzone())
@@ -83,33 +87,34 @@ def _read_sheet(sheet):
     for clsid in classes:
         yield 'PUT', '/klassifikation/klasse/' + clsid, {
             "attributter": {
-	        "klasseegenskaber": [
+                "klasseegenskaber": [
                     {
-		        "brugervendtnoegle": "Afdeling",
-		        "titel": "Afdeling",
-		        "beskrivelse": "Dette er en afdeling",
-		        "virkning": {
+                        "brugervendtnoegle": "Afdeling",
+                        "titel": "Afdeling",
+                        "beskrivelse": "Dette er en afdeling",
+                        "virkning": {
                             "from": _dt2str(now),
                             "to": "infinity",
                         },
-	            }
+                    }
                 ]
             },
             "tilstande": {
-	        "klassepubliceret": [
+                "klassepubliceret": [
                     {
-	                "publiceret": "Publiceret",
-		        "virkning": {
+                        "publiceret": "Publiceret",
+                        "virkning": {
                             "from": _dt2str(now),
                             "to": "infinity",
                         },
-	            }
+                    }
                 ]
             }
         }
 
     for i, obj in enumerate(cache.values()):
-        if i % 50 == 0: print(i)
+        if i % 50 == 0:
+            print(i)
 
         virkning = {
             'from': _dt2str(obj['fra']),
@@ -183,7 +188,7 @@ def _read_sheet(sheet):
                         'virkning': virkning,
                     })
 
-            yield 'PUT', '/organisation/organisationenhed/' + obj['objektid'], {
+            r = {
                 'note': obj['note'],
                 'attributter': {
                     'organisationenhedegenskaber': [
@@ -232,8 +237,12 @@ def _read_sheet(sheet):
                     ],
                 }
             }
+
+            yield ('PUT', '/organisation/organisationenhed/' + obj['objektid'],
+                   r)
         else:
             raise ValueError(sheet.title)
+
 
 def import_file(url, fp, verbose=False):
     wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
@@ -271,6 +280,7 @@ def import_file(url, fp, verbose=False):
                 print(r.status_code, r.text)
         r.raise_for_status()
 
+
 def main(argv):
     parser = argparse.ArgumentParser(
         description='Import an Excel spreadsheet into LoRa',
@@ -288,6 +298,7 @@ def main(argv):
     import_file(args.server, args.spreadsheet, args.verbose)
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))

@@ -269,7 +269,8 @@ def get_role(orgid, unitid, role):
 def list_classes():
     clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
 
-    # TODO: Refactor this convert function (and the one used for orgs) into a module and make it generic
+    # TODO: Refactor this convert function (and the one used for orgs)
+    # into a module and make it generic
     def convert(clazz):
         reg = clazz['registreringer'][-1]
         attrs = reg['attributter']['klasseegenskaber'][0]
@@ -280,6 +281,7 @@ def list_classes():
         }
 
     return flask.jsonify(list(map(convert, clazzes)))
+
 
 @app.route('/addressws/geographical-location')
 def get_geographical_addresses():
