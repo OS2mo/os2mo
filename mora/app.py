@@ -86,7 +86,7 @@ def full_hierarchy(orgid):
     if treeType == 'specific':
         overordnet = args['orgUnitId']
     elif not treeType:
-        return flask.jsonify([]), 404
+        return flask.jsonify([]), 400
     else:
         overordnet = str(orgid)
 
@@ -150,9 +150,9 @@ def get_orgunit(orgid, unitid=None):
         params['virkningtil'] = str(datetime.date.today() +
                                     datetime.timedelta(days=1))
     elif validity == 'past':
-        return flask.jsonify([]), 404
+        return flask.jsonify([]), 400
     elif validity == 'future':
-        return flask.jsonify([]), 404
+        return flask.jsonify([]), 400
     else:
         return flask.jsonify([]), 400
 
