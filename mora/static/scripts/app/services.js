@@ -41,13 +41,10 @@ angular.module('moApp.services', ['ngCookies','ngRoute']).
             mask: "99-99-9999",
             placeholder: "DD-MM-YYYY",
             validateInput : function(date){
-                console.log("Input", date);
                 //if(/^([0-9]{2})-([0-9]{2})-([0-9]{4})$/.test(date)){
                 if(date instanceof Date){
-                    console.log("True", date);
                     return true;
                 }else{
-                    console.log("False", date);
                     return false;
                 }
             }
@@ -96,10 +93,8 @@ angular.module('moApp.services', ['ngCookies','ngRoute']).
             fetch: function(date, treeType, timestamp){
                 var promOrgUnit = [];
                 var treeData = [];
-                console.log('fetching org units', date, treeType, timestamp);
                 if(angular.isDefined(treeType)){
                     angular.forEach(_this.orgList.data, function(value, key){
-                        console.log('treetyping the org', value)
                         promOrgUnit.push(orgFactory.orgListSpecificTreeType(value.uuid, date, "", treeType, timestamp).then(function(units) {
                             treeData[value.uuid] = [units.hierarchy];
                         },function(error){
@@ -107,9 +102,7 @@ angular.module('moApp.services', ['ngCookies','ngRoute']).
                     });
                 }else{
                     angular.forEach(_this.orgList.data, function(value, key){
-                        console.log('not treetyping the org', value)
                         promOrgUnit.push(orgFactory.orgList(value.uuid, date, '', timestamp).then(function(units) {
-                            console.log()
                             treeData[value.uuid] = [units.hierarchy];
                         },function(error){
                         }));

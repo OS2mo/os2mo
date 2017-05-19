@@ -12,9 +12,6 @@ angular.module('moApp.controllers').
 		if(angular.isDefined(stateParams) && angular.isDefined(stateParams.query) && stateParams.query !== null){  $scope.queryString = stateParams.query; }
 		$scope.organisationsFound;
 		$scope.organisationsLoaded = false;
-		console.warn('oi!');
-          window.xxx_flaf = $scope;
-          console.log('is $scope.queryString defined?', angular.isDefined($scope.queryString), $scope.queryString);
 		if(angular.isDefined($scope.queryString)){
 			$scope.organisations = new ngTableParams({
 		        page: 1,    // show first page
@@ -39,7 +36,6 @@ angular.module('moApp.controllers').
 	            			},500);
 	            		},
 	                	function(error){
-	            			console.log('Hurra');
 	                		$scope.organisationsFound = false; 
 	                		$scope.organisationsLoaded = true;
 	                		return $q.reject(error); }

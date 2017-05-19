@@ -39,7 +39,6 @@ angular.module('moApp.directives', [])
                 var acl = attrs.acl;
                 acl = acl.split('|');
                 var permissions = sysService.setupACL.get()
-				console.log('permissions:', permissions);
                 permissions = permissions['/' + acl[0] + '/**'];
 
                 if (permissions) {
@@ -120,10 +119,8 @@ angular.module('moApp.directives', [])
             // Load Orgs and OrgUnits
 			sysService.orgList.fetch('treeType').then(function(response){
 				scope.organizations = response;
-				console.warn('GOT ORGANISATIONS', response)
 				var date = (angular.isDefined(attrs.datetype) && attrs.datetype != "")?$filter('date')(attrs.datetype, "dd-MM-yyyy"):"";
 				sysService.loadOrgData.getUnits(date,'treeType').then(function(response) {
-					console.warn('GOT UNITS', response);
 		            scope.orgUnits = response;
 		            _createTree();
 		        });
@@ -146,13 +143,10 @@ angular.module('moApp.directives', [])
 				    }
 				};
 				var orgId = scope.attributes.orgid ? scope.attributes.orgid : scope.organizations[0].uuid;
-				console.log('orgId', orgId)
-                console.log('orgUnits', orgId)
 				scope.treeModel = scope.orgUnits[orgId];
 				scope.isTypeAhead = false;
 
 				if(scope.attributes.treeorigin){
-					console.log('adding node', scope.treeModel[0])
 					scope.addNode(scope.treeModel[0], true);
 					scope.expandedNodes = [scope.treeModel[0]];	
 				}
@@ -244,12 +238,10 @@ angular.module('moApp.directives', [])
   	    			node.children.length = 1;
   	    		}else{
 	  	    		var orguuid = scope.organizations[0].uuid;
-                    console.log('organisation', orguuid, scope.organizations[0])
 	  	    		var date = (angular.isDefined(attrs.datetype) && attrs.datetype != "")?$filter('date')(attrs.datetype, "dd-MM-yyyy"):"";
 	  	    		if(angular.isDefined(effectiveDate) && effectiveDate != ""){
 	  	    			date = effectiveDate;
 	  	    		}
-                    console.log('node', node);
 					sysService.orgTreeListSpecificType(orguuid,date, '', '', node.uuid, timestamp, function(newChildrens){
 						addChild(node, newChildrens);	
 					});	
