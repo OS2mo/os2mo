@@ -34,7 +34,7 @@ def login(username, password):
         return {
             "user": 'Administrator',
             "token": 'kaflaflibob',
-            "role": ['o-admin'],
+            "role": [],
         }
     else:
         return None
