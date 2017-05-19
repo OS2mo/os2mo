@@ -7,6 +7,7 @@
 #
 
 import datetime
+import operator
 import os
 import traceback
 
@@ -267,6 +268,9 @@ def full_hierarchy(orgid):
 
     roots = lora.organisationenhed(tilhoerer=orgid, overordnet=overordnet)
 
+    def convert_list(unitids):
+        return sorted(map(convert, unitids), key=lambda r: r['name'].lower())
+
     def convert(unitid):
         orgunit = lora.organisationenhed(uuid=unitid)[0]
         reg = orgunit['registreringer'][-1]
@@ -283,17 +287,21 @@ def full_hierarchy(orgid):
             'valid-from': attrs['virkning']['from'],
             'valid-to': attrs['virkning']['to'],
             'hasChildren': bool(children),
-            'children': [
-                convert(childid) for childid in children
-            ] if children and not treeType else [],
+            'children': (
+                convert_list(children)
+                if children and not treeType
+                else []
+            ),
             'org': str(orgid),
             'parent': rels['overordnet'][0]['uuid'] if not is_root else None,
         }
 
     if treeType == 'specific':
-        return flask.jsonify(list(map(convert, roots)))
+        return flask.jsonify(convert_list(roots))
+
     elif len(roots) == 1:
         root = convert(roots.pop())
+
         if root['parent']:
             return flask.jsonify(root)
         else:
@@ -307,8 +315,9 @@ def full_hierarchy(orgid):
                 'valid-from': orgattrs['virkning']['from'],
                 'valid-to': orgattrs['virkning']['to'],
             })
+
     else:
-        return flask.jsonify(list(map(convert, roots)))
+        return flask.jsonify(convert_list(roots))
 
 
 @app.route('/o/<uuid:orgid>/org-unit/')
