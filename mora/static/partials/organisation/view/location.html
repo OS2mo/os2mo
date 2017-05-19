@@ -36,7 +36,7 @@
        </thead> 
        <tbody> 
         <tr ng-repeat="dataRow in tables[role.key].tr[state]"> 
-         <td> <span ng-if="!flag.orgEdit">{{dataRow['location'].vejnavn}}</span> <span ng-if="flag.orgEdit"> <a href="#" editable-text="dataRow['location']" e-placeholder="Adresse Sog" e-typeahead="address as address.vejnavn for address in editOrganisationFunc.loacationAddress($viewValue) | filter:$viewValue | limitTo:10" e-typeahead-min-length="3" e-autocomplete="off" e-typeahead-wait-ms="1000" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'location')" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)" blur="ignore">{{ dataRow['location'].vejnavn || '---' }}</a> 
+         <td> <span ng-if="!flag.orgEdit">{{dataRow['location'].vejnavn}}</span> <span ng-if="flag.orgEdit"> <a href="#" editable-text="dataRow['location']" e-placeholder="Adresse S&oslash;g" e-typeahead="address as address.vejnavn for address in editOrganisationFunc.loacationAddress($viewValue) | filter:$viewValue | limitTo:10" e-typeahead-min-length="3" e-autocomplete="off" e-typeahead-wait-ms="1000" onbeforesave="editOrganisationFunc.updRowBeforeSave(dataRow, 'location')" onaftersave="editOrganisationFunc.updRow(role.key, $index, state)" blur="ignore">{{ dataRow['location'].vejnavn || '---' }}</a> 
           <label class="geoLocationLocal viewEdit"><input type="checkbox" name="geoLocalEdit" ng-model="geoLocalEdit" ng-true-value="0" ng-false-value="1" ng-change="editOrganisationFunc.setGeoLocal(this)"> {{i18n['geolocation_local_text']}}</label>
          </span> </td> 
          
@@ -93,7 +93,7 @@
       <div class="row"> 
        <div class="col-md-3" ng-class="{'has-error': validationErrorMsg.error &amp;&amp; validationErrorMsg.response['address']}"> 
          <div class="input-group orgTreeInputSelector"> 
-          <input bindonce="" type="text" name="address" ng-model="orgObj.location" placeholder="Adresse Sog" typeahead="address as address.vejnavn for address in createOrganisationFunc.loacationAddress($viewValue) | filter:$viewValue | limitTo:10" typeahead-loading="loadingAddressList" typeahead-min-length="3" class="form-control" autocomplete="off" typeahead-wait-ms="1000" typeahead-template-url="searchTemplateAddress.html" required> 
+          <input bindonce="" type="text" name="address" ng-model="orgObj.location" placeholder="Adresse S&oslash;g" typeahead="address as address.vejnavn for address in createOrganisationFunc.loacationAddress($viewValue) | filter:$viewValue | limitTo:10" typeahead-loading="loadingAddressList" typeahead-min-length="3" class="form-control" autocomplete="off" typeahead-wait-ms="1000" typeahead-template-url="searchTemplateAddress.html" required> 
           <span class="input-group-btn"> <button type="submit" class="btn btn-default search orgUnitSearchBtn" id="sys-search"> <i ng-hide="loadingAddressList" class="fa fa-search"></i> <i ng-show="loadingAddressList" class="refresh"></i> </button> </span> 
          </div> 
        </div> 
