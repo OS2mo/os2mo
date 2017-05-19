@@ -413,7 +413,7 @@ def get_role(orgid, unitid, role):
                     "name": addrinfo['adressebetegnelse'],
                     "user-key": addrinfo['kvhx'],
                     "uuid": addrinfo['id'],
-                    "valid-from": "-infinity",
+                    "valid-from": addrinfo['historik']['oprettet'],
                     "valid-to": "infinity"
                 },
                 "name": addrinfo['adressebetegnelse'],
