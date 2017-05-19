@@ -147,10 +147,22 @@ def _read_sheet(sheet):
                 'relationer': {
                     'virksomhed': [
                         {
-                            'urn': 'urn:dk:cvr:' + str(obj['virksomhed']),
+                            'urn': 'urn:dk:cvr:{}'.format(obj['virksomhed']),
                             'virkning': virkning,
                         }
                     ] if obj['virksomhed'] else nullrelation,
+                    'myndighed': [
+                        {
+                            'urn': 'urn:dk:kommune:{}'.format(obj['myndighed']),
+                            'virkning': virkning,
+                        }
+                    ] if obj['myndighed'] else nullrelation,
+                    'myndighedstype': [
+                        {
+                            'urn': 'urn:oio:objekttype:' + obj['myndighedstype'],
+                            'virkning': virkning,
+                        }
+                    ] if obj['myndighedstype'] else nullrelation,
                 }
             }
 
@@ -218,6 +230,12 @@ def _read_sheet(sheet):
                     'tilknyttedeenheder': [
                         {
                             'urn': obj['tilknyttedeenheder'],
+                            'virkning': virkning,
+                        }
+                    ],
+                    'enhedstype': [
+                        {
+                            'uuid': obj['enhedstype'],
                             'virkning': virkning,
                         }
                     ],
