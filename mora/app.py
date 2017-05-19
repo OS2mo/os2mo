@@ -156,15 +156,6 @@ def create_organisation_unit(orgid):
     return lora.create('organisation/organisationenhed', obj), 201
 
 
-# @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
-# def update_organisation_unit(orgid, unitid):
-#     req = flask.request.get_json()
-
-#     import pprint
-#     pprint.pprint(req)
-
-#     return flask.jsonify(req), 500
-
 @app.route(
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
     methods=['POST'],
@@ -178,10 +169,6 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
     roletype = req.get('role-type')
 
     unitobj = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
-
-    import json
-    print(json.dumps(req, indent=2))
-    print(json.dumps(unitobj, indent=2))
 
     if roletype == 'contact-channel':
         # TODO: the UI assigns the objects to a location, but since we map
