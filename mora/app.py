@@ -280,3 +280,48 @@ def list_classes():
         }
 
     return flask.jsonify(list(map(convert, clazzes)))
+
+@app.route('/addressws/geographical-location')
+def get_geographical_addresses():
+    # example output from runWithMocks:
+    # [{
+    #     "UUID_AdgangsAdresse": "0A3F507B-67A6-32B8-E044-0003BA298018",
+    #     "UUID_EnhedsAdresse": "0A3F50A2-FA9D-32B8-E044-0003BA298018",
+    #     "kommunenavn": "Ballerup",
+    #     "kommunenr": "151",
+    #     "koorNord": "6180286.02",
+    #     "koorOest": "710570.98",
+    #     "latitude": "55.7223788579",
+    #     "longitude": "12.3529929726",
+    #     "postdistrikt": "Ballerup",
+    #     "postnr": "2750",
+    #     "valid-from": "05-02-2000",
+    #     "valid-to": "31-12-9999",
+    #     "vejnavn": "Flakhaven 4"
+    # }]
+
+    local = bool(int(flask.request.args.get('local', '0')))
+    query = flask.request.args.get('vejnavn')
+
+    if not query:
+        return flask.jsonify([{
+            'message': 'missing "vejnavn" parameter',
+        }]), 400
+
+    return flask.jsonify([
+        {
+            "UUID_EnhedsAdresse": addrinfo['adresse']['id'],
+            "postdistrikt": addrinfo['adresse']['postnrnavn'],
+            "postnr": addrinfo['adresse']['postnr'],
+            "vejnavn": addrinfo['tekst'],
+        }
+        for addrinfo in requests.get(
+                'http://dawa.aws.dk/adresser/autocomplete',
+                params={
+                    'noformat': '1',
+                    # TODO: don't hardcode the ID of Aarhus Kommune
+                    'kommunekode': '0751' if local else None,
+                    'q': query,
+                },
+        ).json()
+    ])
