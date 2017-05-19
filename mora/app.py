@@ -14,6 +14,7 @@ import flask
 import requests
 
 from . import lora
+from . import util
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -74,6 +75,180 @@ def list_organisations():
         }
 
     return flask.jsonify(list(map(convert, orgs)))
+
+
+@app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
+def create_organisation_unit(orgid):
+    req = flask.request.get_json()
+
+    virkning = {
+        'from': str(util.parsedate(req.get('valid-from'), '-infinity')),
+        'to': str(util.parsedate(req.get('valid-to'), 'infinity')),
+    }
+
+    nullrelation = [{
+        'virkning': virkning,
+    }]
+
+    assert req['org'] == str(orgid)
+
+    obj = {
+        'attributter': {
+            'organisationenhedegenskaber': [
+                {
+                    'enhedsnavn': req['name'],
+                    'brugervendtnoegle': req['user-key'],
+                    'virkning': virkning.copy(),
+                },
+            ],
+        },
+        'tilstande': {
+            'organisationenhedgyldighed': [
+                {
+                    'gyldighed': 'Aktiv',
+                    'virkning': virkning.copy(),
+                },
+            ],
+        },
+        'relationer': {
+            'adresser': [
+                {
+                    'uuid': location['location']['UUID_EnhedsAdresse'],
+                    'virkning': virkning.copy(),
+                }
+                for location in req.get('locations', [])
+            ] + [
+                {
+                    'urn': 'urn:magenta.dk:telefon:{}'.format(
+                        channel['contact-info'],
+                    ),
+                    'virkning': virkning.copy(),
+                }
+                for location in req.get('locations', [])
+                for channel in location.get('contact-channels', [])
+            ] or nullrelation,
+            'tilhoerer': [
+                {
+                    'uuid': req['org'],
+                    'virkning': virkning.copy(),
+                }
+            ],
+            # 'tilknyttedeenheder': [
+            #     {
+            #         'urn': req['tilknyttedeenheder'],
+            #         'virkning': virkning.copy(),
+            #     }
+            # ],
+            'enhedstype': [
+                {
+                    'uuid': req['type']['uuid'],
+                    'virkning': virkning.copy(),
+                }
+            ],
+            'overordnet': [
+                {
+                    'uuid': req['parent'],
+                    'virkning': virkning.copy(),
+                }
+            ],
+        }
+    }
+
+    return lora.create('organisation/organisationenhed', obj), 201
+
+
+# @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
+# def update_organisation_unit(orgid, unitid):
+#     req = flask.request.get_json()
+
+#     import pprint
+#     pprint.pprint(req)
+
+#     return flask.jsonify(req), 500
+
+@app.route(
+    '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
+    methods=['POST'],
+)
+@app.route(
+    '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:roleid>',
+    methods=['POST'],
+)
+def update_organisation_unit_location(orgid, unitid, roleid=None):
+    req = flask.request.get_json()
+    roletype = req.get('role-type')
+
+    unitobj = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+
+    import json
+    print(json.dumps(req, indent=2))
+    print(json.dumps(unitobj, indent=2))
+
+    if roletype == 'contact-channel':
+        # TODO: the UI assigns the objects to a location, but since we map
+        # locations to address UUIDs, we cannot do that; instead, we just
+        # stash everything on the unit
+        addresses = unitobj['relationer']['adresser']
+
+        # TODO: handle empty relation
+        addresses.extend([
+            {
+                'urn': info['type']['prefix'] + info['contact-info'],
+                'virkning': {
+                    'from': info['valid-from'],
+                    'to': info['valid-to'],
+                }
+            }
+            for info in req['contact-channels']
+        ])
+
+        lora.update('organisation/organisationenhed/{}'.format(unitid), {
+            'relationer': {
+                'adresser': addresses
+            }
+        })
+    elif roletype == 'location':
+        assert req['changed'], 'not changed?'
+
+        lora.update('organisation/organisationenhed/{}'.format(unitid), {
+            'relationer': {
+                'adresser': [
+                    addr if addr.get('uuid') != req['uuid'] else {
+                        'uuid': (req['location'].get('UUID_EnhedsAdresse') or
+                                 req['location']['uuid']),
+                        'virkning': {
+                            'from': str(util.parsedate(req['valid-from'])),
+                            'to': str(util.parsedate(req['valid-to'])),
+                        },
+                    }
+                    for addr in unitobj['relationer']['adresser']
+                ]
+            }
+        })
+
+    elif roletype:
+        raise NotImplementedError(roletype)
+    else:
+        # direct creation of a location
+
+        addresses = unitobj['relationer']['adresser']
+
+        # TODO: handle empty relation
+        addresses.append({
+            'uuid': req['location']['UUID_EnhedsAdresse'],
+            'virkning': {
+                'from': req['location']['valid-from'],
+                'to': req['location']['valid-to'],
+            },
+        })
+
+        lora.update('organisation/organisationenhed/{}'.format(unitid), {
+            'relationer': {
+                'adresser': addresses
+            }
+        })
+
+    return flask.jsonify(unitid), 201
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
@@ -326,4 +501,29 @@ def get_geographical_addresses():
                     'q': query,
                 },
         ).json()
+    ])
+
+
+@app.route('/role-types/contact/facets/properties/classes/')
+def get_contact_facet_properties_classes():
+    return flask.jsonify([
+        {
+            "name": "N/A",
+            "user-key": "N/A",
+            "uuid": "00000000-0000-0000-0000-000000000000"
+        },
+    ])
+
+
+@app.route('/role-types/contact/facets/type/classes/')
+def get_contact_facet_types_classes():
+    key = flask.request.args.get('facetKey')
+    assert key == 'Contact_channel_location', 'unknown key: ' + key
+
+    return flask.jsonify([
+        {
+            "name": "Phone Number",
+            "prefix": "urn:magenta.dk:telefon:",
+            "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+        },
     ])

@@ -7,6 +7,7 @@
 #
 
 import functools
+
 import requests
 
 # The commented out lines below are a bit messy (used during development) - will be removed later...
@@ -26,7 +27,21 @@ def fetch(path, **params):
     # print('url = ', r.url)
     r.raise_for_status()
 
-    return r.json()['results'][0]
+    objs = r.json()['results'][0]
+
+    return objs
+
+
+def create(path, obj):
+    r = session.post(LORA_URL + path, json=obj)
+    r.raise_for_status()
+    return r.json()['uuid']
+
+
+def update(path, obj):
+    r = session.put(LORA_URL + path, json=obj)
+    r.raise_for_status()
+    return r.json()['uuid']
 
 
 def login(username, password):
