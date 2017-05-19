@@ -10,6 +10,8 @@ import functools
 
 import requests
 
+from . import util
+
 # The commented out lines below are a bit messy (used during development) - will be removed later...
 
 # from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -19,6 +21,54 @@ LORA_URL = 'http://mox/'
 # LORA_URL = 'https://mox/'
 
 session = requests.Session()
+
+
+def get(path, uuid, validity=None):
+    uuid = str(uuid)
+
+    if validity and validity != 'present':
+        now = util.now()
+
+        if validity == 'future':
+            def should_include(o):
+                s = o['virkning']['from']
+                return s != '-infinity' and util.parsedate(s) > now
+
+            params = {
+                'virkningfra': str(now),
+                'virkningtil': 'infinity',
+            }
+
+        elif validity == 'past':
+            def should_include(o):
+                s = o['virkning']['to']
+                return s != 'infinity' and util.parsedate(s) < now
+
+            params = {
+                'virkningfra': '-infinity',
+                'virkningtil': str(now),
+            }
+        else:
+            raise ValueError('invalid validity {!r}'.format(validity))
+    else:
+        should_include = None
+        params = {}
+
+    r = session.get('{}{}/{}'.format(LORA_URL, path, uuid), params=params)
+    r.raise_for_status()
+
+    assert (len(r.json()) == 1 and
+            len(r.json()[uuid]) == 1 and
+            len(r.json()[uuid][0]['registreringer']) == 1)
+
+    obj = r.json()[uuid][0]['registreringer'].pop()
+
+    if should_include:
+        for key in 'relationer', 'attributter', 'tilstande':
+            for relvals in obj.get(key, {}).values():
+                relvals[:] = [val for val in relvals if should_include(val)]
+
+    return obj
 
 
 def fetch(path, **params):
@@ -60,6 +110,11 @@ def logout(user, token):
 
 
 organisation = functools.partial(fetch, 'organisation/organisation')
+organisation.get = functools.partial(get, 'organisation/organisation')
+
 organisationenhed = functools.partial(fetch, 'organisation/organisationenhed')
+organisationenhed.get = \
+    functools.partial(get, 'organisation/organisationenhed')
 
 klasse = functools.partial(fetch, 'klassifikation/klasse')
+klasse.get = functools.partial(get, 'klassifikation/klasse')

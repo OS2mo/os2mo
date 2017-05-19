@@ -320,24 +320,17 @@ def get_orgunit(orgid, unitid=None):
     }
 
     validity = flask.request.args.get('validity', 'present')
-    if validity == 'present':
-        params['virkningfra'] = str(datetime.date.today())
-        params['virkningtil'] = str(datetime.date.today() +
-                                    datetime.timedelta(days=1))
-    elif validity == 'past':
-        return flask.jsonify([]), 400
-    elif validity == 'future':
-        return flask.jsonify([]), 400
-    else:
-        return flask.jsonify([]), 400
 
     orgunitids = set(lora.organisationenhed(**params))
 
     def convert(unitid):
-        orgunit = lora.organisationenhed(uuid=unitid)[0]
-        reg = orgunit['registreringer'][-1]
-        attrs = reg['attributter']['organisationenhedegenskaber'][0]
-        rels = reg['relationer']
+        orgunit = lora.organisationenhed.get(unitid, validity)
+        try:
+            attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
+        except IndexError:
+            return None
+
+        rels = orgunit['relationer']
 
         childids = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
 
@@ -359,24 +352,28 @@ def get_orgunit(orgid, unitid=None):
             'valid-to': attrs['virkning']['to'],
         }
 
-    return flask.jsonify([
-        convert(orgunitid) for orgunitid in orgunitids
-    ])
+    return flask.jsonify(
+        # for validity, filter out empty entries
+        list(filter(None, [
+            convert(orgunitid) for orgunitid in orgunitids
+        ]))
+    )
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
+    if role not in ['contact-channel', 'location']:
+        return flask.jsonify([]), 400
+
+    validity = flask.request.args.get('validity')
+
     try:
-        orgunit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][0]
-    except KeyError:
+        orgunit = lora.organisationenhed.get(unitid, validity)
+    except ValueError:
         traceback.print_exc()
         return '', 404
 
-    # TODO: past & future...
-    if flask.request.args.get('validity', 'present') != 'present':
-        return flask.jsonify([]), 404
-
-    elif role == 'contact-channel':
+    if role == 'contact-channel':
         PHONE_PREFIX = 'urn:magenta.dk:telefon:'
         return flask.jsonify([
             {
@@ -424,17 +421,6 @@ def get_role(orgid, unitid, role):
             for addr in orgunit['relationer']['adresser']
             if addr.get('uuid', '')
         ])
-    elif role == 'association':
-        return flask.jsonify([]), 404
-    elif role == 'leader':
-        return flask.jsonify([]), 404
-    elif role == 'engagement':
-        return flask.jsonify([]), 404
-    elif role == 'job-function':
-        return flask.jsonify([]), 404
-    else:
-        print(role, flask.request.args)
-        return flask.jsonify([]), 400
 
 
 ### Classification stuff - should be moved to own file ###

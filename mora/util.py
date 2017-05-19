@@ -47,3 +47,7 @@ def parsedate(s, default=None):
         raise ValueError('unparsable date {!r}'.format(s))
 
     return dt
+
+
+def now():
+    return datetime.datetime.now(pytz.UTC)
