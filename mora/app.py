@@ -219,8 +219,12 @@ def get_role(orgid, unitid, role):
         ])
     elif role == 'location':
         def convert_addr(addr):
+            # TODO: can we live with struktur=mini?
             addrinfo = requests.get(
-                'http://dawa.aws.dk/adresser/' + addr['uuid']
+                'http://dawa.aws.dk/adresser/' + addr['uuid'],
+                params={
+                    'noformat': '1',
+                },
             ).json()
 
             return {
