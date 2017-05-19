@@ -445,7 +445,8 @@ def list_classes():
 
 
 @app.route('/addressws/geographical-location')
-def get_geographical_addresses():
+@app.route('/addressws/geographical-location/<uuid:orgid>')
+def get_geographical_addresses(orgid=None):
     # example output from runWithMocks:
     # [{
     #     "UUID_AdgangsAdresse": "0A3F507B-67A6-32B8-E044-0003BA298018",
@@ -463,8 +464,20 @@ def get_geographical_addresses():
     #     "vejnavn": "Flakhaven 4"
     # }]
 
-    local = bool(int(flask.request.args.get('local', '0')))
     query = flask.request.args.get('vejnavn')
+    local = flask.request.args.get('local')
+
+    if local:
+        org = lora.organisation.get(local)
+        codeprefix = 'urn:dk:kommune:'
+        for myndighed in org['relationer']['myndighed']:
+            if myndighed.get('urn', '').startswith(codeprefix):
+                code = int(myndighed['urn'][len(codeprefix):])
+                break
+        else:
+            return 'No local municipality found!', 400
+    else:
+        code = None
 
     if not query:
         return flask.jsonify([{
@@ -482,8 +495,7 @@ def get_geographical_addresses():
                 'http://dawa.aws.dk/adresser/autocomplete',
                 params={
                     'noformat': '1',
-                    # TODO: don't hardcode the ID of Aarhus Kommune
-                    'kommunekode': '0751' if local else None,
+                    'kommunekode': code,
                     'q': query,
                 },
         ).json()

@@ -108,8 +108,14 @@ angular.module('moApp.controllers')
 			var canceler = $q.defer();
 			//canceler.resolve();
 			return $http.get('addressws/geographical-location', 
-				{ params: { vejnavn: val, local: $scope.geoLocal},
-				timeout: canceler.promise }
+				             {
+                                 params: {
+                                     vejnavn: val,
+                                     local: ($scope.geoLocal &&
+                                             $scope.$parent.organisation.org),
+                                 },
+				                 timeout: canceler.promise
+                             }
 			).then(function(response){
 				var resData = response.data;
 				if($scope.geoLocal == 1){

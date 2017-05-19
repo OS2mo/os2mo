@@ -311,7 +311,7 @@
         "vælg_label": "Vælg",
         "vælg_organisation_label": "Vælg organisation",
         "validation_error_in_creating_employee_role._label": "Valideringsfejl i processen med at tilføje nye oplysninger på medarbejderen.",
-        "geolocation_local_text":"Søg adresse udenfor Odense",
+        "geolocation_local_text":"Søg i hele landet",
 
 
         "organisation_tblHeader_unit": "Enhedsnavn",
