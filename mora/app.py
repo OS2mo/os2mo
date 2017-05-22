@@ -68,9 +68,23 @@ def list_organisations():
     orgs = lora.organisation(uuid=lora.organisation(bvn='%'))
 
     def convert(org):
+        rootid = lora.organisationenhed(overordnet=org['id'])[0]
+        orgunit = lora.organisationenhed.get(rootid)
+        unitattrs = orgunit['attributter']['organisationenhedegenskaber'][0]
+
         reg = org['registreringer'][-1]
         attrs = reg['attributter']['organisationegenskaber'][0]
         return {
+            "hierarchy": {
+                'name': unitattrs['enhedsnavn'],
+                'user-key': unitattrs['brugervendtnoegle'],
+                'uuid': rootid,
+                'valid-from': unitattrs['virkning']['from'],
+                'valid-to': unitattrs['virkning']['to'],
+                'hasChildren': True,
+                'children': [],
+                'org': org['id'],
+            },
             'name': attrs['organisationsnavn'],
             'user-key': attrs['brugervendtnoegle'],
             'uuid': org['id'],
@@ -256,10 +270,10 @@ def full_hierarchy(orgid):
 
     org = lora.organisation(uuid=orgid)[0]
 
+    assert 'validity' not in args
+
     if treeType == 'specific':
         overordnet = args['orgUnitId']
-    elif not treeType:
-        return flask.jsonify([]), 400
     else:
         overordnet = str(orgid)
 
@@ -269,10 +283,9 @@ def full_hierarchy(orgid):
         return sorted(map(convert, unitids), key=lambda r: r['name'].lower())
 
     def convert(unitid):
-        orgunit = lora.organisationenhed(uuid=unitid)[0]
-        reg = orgunit['registreringer'][-1]
-        attrs = reg['attributter']['organisationenhedegenskaber'][0]
-        rels = reg['relationer']
+        orgunit = lora.organisationenhed.get(unitid)
+        attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
+        rels = orgunit['relationer']
 
         children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
         is_root = rels['overordnet'][0]['uuid'] == str(orgid)
@@ -286,7 +299,7 @@ def full_hierarchy(orgid):
             'hasChildren': bool(children),
             'children': (
                 convert_list(children)
-                if children and not treeType
+                if children and is_root
                 else []
             ),
             'org': str(orgid),
