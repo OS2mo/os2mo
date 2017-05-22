@@ -86,6 +86,21 @@ def update(path, obj):
     return r.json()['uuid']
 
 
+def login(username, password):
+    if username == 'admin' and password == 'secret':
+        return {
+            "user": 'Administrator',
+            "token": 'kaflaflibob',
+            "role": [],
+        }
+    else:
+        return None
+
+
+def logout(user, token):
+    return token == 'kaflaflibob'
+
+
 organisation = functools.partial(fetch, 'organisation/organisation')
 organisation.get = functools.partial(get, 'organisation/organisation')
 

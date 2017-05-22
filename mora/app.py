@@ -12,7 +12,6 @@ import traceback
 import flask
 import requests
 
-from . import auth
 from . import lora
 from . import util
 
@@ -39,12 +38,10 @@ def send_styles(path):
 
 @app.route('/service/user/<user>/login', methods=['POST'])
 def login(user):
-    r = auth.login(user, flask.request.get_json()['password'])
+    r = lora.login(user, flask.request.get_json()['password'])
 
     if r:
-        return flask.jsonify(r), 200, {
-            "cache-control": "no-cache",
-        }
+        return flask.jsonify(r)
     else:
         return '', 401
 
@@ -52,18 +49,16 @@ def login(user):
 @app.route('/service/user/<user>/logout', methods=['POST'])
 def logout(user):
     return flask.jsonify(
-        auth.logout(user, flask.request.headers['X-AUTH-TOKEN'])
+        lora.logout(user, flask.request.headers['X-AUTH-TOKEN'])
     )
 
 
 @app.route('/acl/', methods=['POST', 'GET'])
-@auth.requires_auth
 def acl():
     return flask.jsonify([])
 
 
 @app.route('/o/')
-@auth.requires_auth
 def list_organisations():
     orgs = lora.organisation(uuid=lora.organisation(bvn='%'))
 
@@ -96,7 +91,6 @@ def list_organisations():
 
 
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
-@auth.requires_auth
 def create_organisation_unit(orgid):
     req = flask.request.get_json()
 
@@ -184,7 +178,6 @@ def create_organisation_unit(orgid):
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:roleid>',
     methods=['POST'],
 )
-@auth.requires_auth
 def update_organisation_unit_location(orgid, unitid, roleid=None):
     req = flask.request.get_json()
     roletype = req.get('role-type')
@@ -263,7 +256,6 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
-@auth.requires_auth
 def full_hierarchy(orgid):
     args = flask.request.args
     treeType = args.get('treeType', None)
@@ -332,7 +324,6 @@ def full_hierarchy(orgid):
 
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
-@auth.requires_auth
 def get_orgunit(orgid, unitid=None):
     params = {
         'tilhoerer': orgid,
@@ -381,7 +372,6 @@ def get_orgunit(orgid, unitid=None):
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
-@auth.requires_auth
 def get_role(orgid, unitid, role):
     if role not in ['contact-channel', 'location']:
         return flask.jsonify([]), 400
@@ -450,7 +440,6 @@ def get_role(orgid, unitid, role):
 
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
-@auth.requires_auth
 def list_classes():
     clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
 
@@ -470,7 +459,6 @@ def list_classes():
 
 @app.route('/addressws/geographical-location')
 @app.route('/addressws/geographical-location/<uuid:orgid>')
-@auth.requires_auth
 def get_geographical_addresses(orgid=None):
     # example output from runWithMocks:
     # [{
@@ -528,7 +516,6 @@ def get_geographical_addresses(orgid=None):
 
 
 @app.route('/role-types/contact/facets/properties/classes/')
-@auth.requires_auth
 def get_contact_facet_properties_classes():
     return flask.jsonify([
         {
@@ -540,7 +527,6 @@ def get_contact_facet_properties_classes():
 
 
 @app.route('/role-types/contact/facets/type/classes/')
-@auth.requires_auth
 def get_contact_facet_types_classes():
     key = flask.request.args.get('facetKey')
     assert key == 'Contact_channel_location', 'unknown key: ' + key
