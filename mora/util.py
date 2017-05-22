@@ -12,47 +12,38 @@ import pytz
 import tzlocal
 
 
+DATE_PARSERS = (
+    # DD/MM/YY w/o time -- sent by the frontend
+    lambda s: tzlocal.get_localzone().localize(
+        datetime.datetime.strptime(s, '%d-%m-%Y')
+    ),
+    lambda s: datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S%z'),
+    # handle PG two-digit offsets
+    lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
+    # ISO 8601
+    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z'),
+)
+
+
 def parsedate(s, default=None):
     if default is not None and not s:
         return default
 
-    try:
-        dt = tzlocal.get_localzone().localize(
-            datetime.datetime.strptime(s, '%d-%m-%Y')
-        )
-    except ValueError:
-        dt = None
-
-    if dt is None:
+    for parser in DATE_PARSERS:
         try:
-            dt = datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S%z')
+            return parser(s)
         except ValueError:
             pass
 
-    if dt is None:
-        try:
-            # handle PG two-digit offsets
-            dt = datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z')
-        except ValueError:
-            pass
+    raise ValueError('unparsable date {!r}'.format(s))
 
-    if dt is None:
-        try:
-            # ISO 8601
-            dt = datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z')
-        except ValueError:
-            pass
-
-    if dt is None:
-        raise ValueError('unparsable date {!r}'.format(s))
-
-    return dt
 
 def reparsedate(s):
     if s == 'infinity' or s == '-infinity':
         return s
     else:
         return parsedate(s).isoformat()
+
 
 def now():
     return datetime.datetime.now(pytz.UTC)
