@@ -184,14 +184,22 @@ def _read_sheet(sheet):
                 })
 
             if obj['postnummer']:
-                k = '{}, {} {}'.format(
-                    obj['adresse'], obj['postnummer'], obj['postdistrikt']
-                )
-                if k == 'Rådhuset, 8000 Aarhus C':
-                    k = 'Rådhuspladsen 2, 8000 Aarhus C'
+                if str(obj['postnummer']) == '8100':
+                    postalcode = 8000
+                else:
+                    postalcode = obj['postnummer']
+
+                if obj['adresse'] == 'Rådhuset':
+                    address = 'Rådhuspladsen 2'
+                else:
+                    address = obj['adresse']
 
                 with AddrCache() as addrcache:
-                    addrinfo = addrcache[k]
+                    addrinfo = addrcache[
+                        '{}, {} {}'.format(
+                            address, postalcode, obj['postdistrikt']
+                        )
+                    ]
 
                 if len(addrinfo['resultater']) == 1:
                     addresses.append({
