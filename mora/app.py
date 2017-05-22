@@ -447,6 +447,7 @@ def get_role(orgid, unitid, role):
 # Classification stuff - should be moved to own file
 #
 
+
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
 @auth.requires_auth
