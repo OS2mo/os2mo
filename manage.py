@@ -13,7 +13,7 @@ Customised to create and configure a virtual environment.
 
 '''
 
-from __future__ import print_function, absolute_import, unicode_literals, division
+from __future__ import print_function, absolute_import, unicode_literals
 
 import base64
 import os
@@ -24,21 +24,7 @@ import sys
 REQUIRED_PYTHON = (3, 5)
 CURRENT_PYTHON = sys.version_info[:2]
 
-if __name__ != "__main__":
-    # rejigger the path a bit so that this file -- flask.py -- doesn't
-    # shadow the flask package
-    assert not __package__
-
-    origpath = sys.path[:]
-    sys.path.remove(os.path.dirname(__file__))
-    del sys.modules[__name__]
-
-    import importlib
-    importlib.import_module(__name__, __package__)
-
-    sys.path = origpath
-
-else:
+if __name__ == "__main__":
     basedir = os.path.abspath(os.path.dirname(__file__))
 
     # allow testing on different platforms and VMs
