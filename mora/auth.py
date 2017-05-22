@@ -17,7 +17,7 @@ import flask
 
 USER_TOKENS = dict()
 
-# Yes, this is insecure, but it'll do for a demo
+# FIXME: Yes, this is insecure, but it'll do for a demo
 USER_PASSWORDS = {
     'admin': 'hnBZvxr7tToR',
 }
