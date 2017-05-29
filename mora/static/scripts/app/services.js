@@ -289,11 +289,11 @@ angular.module('moApp.services', ['ngCookies','ngRoute']).
             /*if(!$cookieStore.get("moUserAuth")){
                 $cookieStore.put("moUserAuth", {"authToken": data.token, "authUser": data.user, "authRole": data.role[0], 'acl': acl});
                 _this.userIsAuthenticated = true;
-            }*/
-            if(!localStorageService.get('moUserAuth')){
-                localStorageService.set("moUserAuth", {"authToken": data.token, "authUser": data.user, "authRole": data.role[0], 'acl': acl, 'rememberMe': rememberMe});
-                _this.userIsAuthenticated = true;
-            }
+                }*/
+
+            this.unSetUserAuthentication();
+            localStorageService.set("moUserAuth", {"authToken": data.token, "authUser": data.user, "authRole": data.role[0], 'acl': acl, 'rememberMe': rememberMe});
+            _this.userIsAuthenticated = true;
         };
         this.unSetUserAuthentication = function(data) {
             /*$cookieStore.remove("moUserAuth");
