@@ -6,10 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import unittest
+import freezegun
 import mora.util as util
-
-from freezegun import freeze_time
+import unittest
 
 
 class TestUtils(unittest.TestCase):
@@ -20,7 +19,7 @@ class TestUtils(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @freeze_time('2017-12-31 00:00:00', tz_offset=+1)
+    @freezegun.freeze_time('2017-12-31 00:00:00', tz_offset=+1)
     def test_should_reparse_31_12_2017_to_correct_date(self):
         self.assertEqual(util.reparsedate('31-12-2017'), '2017-12-31T00:00:00+01:00', 'Error in parsing date')
 
