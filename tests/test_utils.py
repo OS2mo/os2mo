@@ -9,6 +9,8 @@
 import unittest
 import mora.util as util
 
+from freezegun import freeze_time
+
 
 class TestUtils(unittest.TestCase):
 
@@ -18,8 +20,8 @@ class TestUtils(unittest.TestCase):
     def tearDown(self):
         pass
 
+    @freeze_time('2017-12-31 00:00:00', tz_offset=+1)
     def test_should_reparse_31_12_2017_to_correct_date(self):
-        # TODO: we should mock the timezone here...
         self.assertEqual(util.reparsedate('31-12-2017'), '2017-12-31T00:00:00+01:00', 'Error in parsing date')
 
     def test_should_reparse_date_infinity_correctly(self):
