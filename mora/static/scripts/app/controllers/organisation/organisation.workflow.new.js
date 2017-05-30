@@ -107,12 +107,24 @@ angular.module('moApp.controllers')
 		$scope.getAddressList = function(val) {
 			var canceler = $q.defer();
 			//canceler.resolve();
+
+            var local;
+
+            if ($scope.geoLocal) {
+                if ($scope.org_unit) {
+                    local = $scope.org_unit.org;
+                } else {
+                    local = $scope.sysService.orgList.data[0].uuid;
+                }
+            } else {
+                local = 0;
+            }
+
 			return $http.get('addressws/geographical-location', 
 				             {
                                  params: {
                                      vejnavn: val,
-                                     local: ($scope.geoLocal &&
-                                             $scope.$parent.organisation.org),
+                                     local: local,
                                  },
 				                 timeout: canceler.promise
                              }
