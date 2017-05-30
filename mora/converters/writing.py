@@ -10,6 +10,12 @@ import mora.util as util
 
 
 def _add_virkning_to_lora_object(lora_obj: dict, virkning: dict) -> dict:
+    """
+    Adds virkning to the "leafs" of the given LoRa JSON (tree) object
+    :param lora_obj: a LoRa object without virkning
+    :param virkning: the virkning to add to the LoRa object
+    :return: the LoRa object with virkning
+    """
     for k, v in lora_obj.items():
         if isinstance(v, dict):
             _add_virkning_to_lora_object(v, virkning)
@@ -29,76 +35,64 @@ def create_org_unit(req: dict) -> dict:
 
     # Create virkning
     virkning = {
-        'from': util.reparsedate(req.get('valid-from'), '-infinity'),
-        'to': util.reparsedate(req.get('valid-to'), 'infinity'),
+        'from': util.reparsedate(req.get('valid-from')),
+        'to': util.reparsedate(req.get('valid-to')),
     }
 
     nullrelation = [{
         'virkning': virkning,
     }]
 
-#     org_unit = {
-#         'attributter': {
-#             'organisationenhedegenskaber': [
-#                 {
-#                     'enhedsnavn': req['name'],
-#                     'brugervendtnoegle': req['user-key'],
-# #                    'virkning': virkning.copy(),
-#                 },
-#             ],
-#         },
-#         'tilstande': {
-#             'organisationenhedgyldighed': [
-#                 {
-#                     'gyldighed': 'Aktiv',
-# #                   'virkning': virkning.copy(),
-#                 },
-#             ],
-#         },
-#         'relationer': {
-#             'adresser': [
-#                 {
-#                     'uuid': location['location']['UUID_EnhedsAdresse'],
-# #                   'virkning': virkning.copy(),
-#                 }
-#                 for location in req.get('locations', [])
-#             ] + [
-#                 {
-#                     'urn': 'urn:magenta.dk:telefon:{}'.format(
-#                         channel['contact-info'],
-#                     ),
-#  #                  'virkning': virkning.copy(),
-#                 }
-#                 for location in req.get('locations', [])
-#                 for channel in location.get('contact-channels', [])
-#             ] or nullrelation,
-#             'tilhoerer': [
-#                 {
-#                     'uuid': req['org'],
-# #                   'virkning': virkning.copy(),
-#                 }
-#             ],
-#             # 'tilknyttedeenheder': [
-#             #     {
-#             #         'urn': req['tilknyttedeenheder'],
-#             #         'virkning': virkning.copy(),
-#             #     }
-#             # ],
-#             'enhedstype': [
-#                 {
-#                     'uuid': req['type']['uuid'],
-# #                   'virkning': virkning.copy(),
-#                 }
-#             ],
-#             'overordnet': [
-#                 {
-#                     'uuid': req['parent'],
-# #                    'virkning': virkning.copy(),
-#                 }
-#             ],
-#         }
-#     }
-#
-#
-#     return virkning
-    return {}
+    # Create the organisation unit object
+    org_unit = {
+        'attributter': {
+            'organisationenhedegenskaber': [
+                {
+                    'enhedsnavn': req['name'],
+                    'brugervendtnoegle': req['user-key'],  # TODO: this is set to NULL by the frontend
+                },
+            ],
+        },
+        'tilstande': {
+            'organisationenhedgyldighed': [
+                {
+                    'gyldighed': 'Aktiv',
+                },
+            ],
+        },
+        'relationer': {
+            'adresser': [
+                            {
+                                'uuid': location['location']['UUID_EnhedsAdresse'],
+                            }
+                            # TODO: will we ever have more than one location? (multiple locations not tested)
+                            # TODO: (however, multible contact channels are tested)
+                            for location in req.get('locations', [])
+                        ] + [
+                            {
+                                'urn': 'urn:magenta.dk:telefon:{}'.format(
+                                    channel['contact-info'],
+                                ),
+                            }
+                            for location in req.get('locations', [])
+                            for channel in location.get('contact-channels', [])
+                        ] or nullrelation,  # TODO: will "... or nullrelation" ever happen? (no test for this yet...)
+            'tilhoerer': [
+                {
+                    'uuid': req['org'],
+                }
+            ],
+            'enhedstype': [
+                {
+                    'uuid': req['type']['uuid'],
+                }
+            ],
+            'overordnet': [
+                {
+                    'uuid': req['parent'],
+                }
+            ],
+        }
+    }
+
+    return _add_virkning_to_lora_object(org_unit, virkning)
