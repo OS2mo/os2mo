@@ -6,11 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from mora.converters.writing import _add_virkning_to_lora_object, create_org_unit
+from mora.converters import writing
 import unittest
 
 
-class TestConvertersWrinting(unittest.TestCase):
+class TestConvertersWriting(unittest.TestCase):
     maxDiff = None
 
     def setUp(self):
@@ -47,7 +47,7 @@ class TestConvertersWrinting(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(_add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly attributter')
 
     def test_should_add_virkning2_correctly_to_org_unit_props_leafs_in_attributter(self):
@@ -75,7 +75,7 @@ class TestConvertersWrinting(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(_add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly for attributter')
 
     def test_should_add_virkning_correctly_to_org_unit_props_leafs_in_tilstande(self):
@@ -121,7 +121,7 @@ class TestConvertersWrinting(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(_add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly for tilstande')
 
     def test_should_add_virkning_correctly_to_org_unit_props_leafs_in_enhedstype(self):
@@ -181,7 +181,7 @@ class TestConvertersWrinting(unittest.TestCase):
                 }
             ]
         }
-        self.assertEqual(_add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly for enhedstype')
 
     def test_should_add_virkning_correctly_to_full_org_unit_obj(self):
@@ -309,7 +309,7 @@ class TestConvertersWrinting(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(_add_virkning_to_lora_object(input_org_unit, self.virkning), output_org_unit,
+        self.assertEqual(writing._add_virkning_to_lora_object(input_org_unit, self.virkning), output_org_unit,
                          'Virkning not added correctly for full org unit')
 
     def test_should_create_org_unit_with_one_contact_channel_correctly(self):
@@ -425,7 +425,7 @@ class TestConvertersWrinting(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(create_org_unit(frontend_req), output_org_unit, 'Org unit not created correctly from FE req')
+        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit, 'Org unit not created correctly from FE req')
 
     def test_should_create_org_unit_with_two_contact_channels_correctly(self):
         frontend_req = {
@@ -562,4 +562,4 @@ class TestConvertersWrinting(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(create_org_unit(frontend_req), output_org_unit, 'Org unit not created correctly from FE req')
+        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit, 'Org unit not created correctly from FE req')
