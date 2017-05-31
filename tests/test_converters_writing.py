@@ -47,7 +47,7 @@ class TestConvertersWriting(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly attributter')
 
     def test_should_add_virkning2_correctly_to_org_unit_props_leafs_in_attributter(self):
@@ -75,7 +75,7 @@ class TestConvertersWriting(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly for attributter')
 
     def test_should_add_virkning_correctly_to_org_unit_props_leafs_in_tilstande(self):
@@ -121,7 +121,7 @@ class TestConvertersWriting(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly for tilstande')
 
     def test_should_add_virkning_correctly_to_org_unit_props_leafs_in_enhedstype(self):
@@ -181,7 +181,7 @@ class TestConvertersWriting(unittest.TestCase):
                 }
             ]
         }
-        self.assertEqual(writing._add_virkning_to_lora_object(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._add_virkning(input_obj, self.virkning), output_obj,
                          'Virkning not added correctly for enhedstype')
 
     def test_should_add_virkning_correctly_to_full_org_unit_obj(self):
@@ -309,7 +309,7 @@ class TestConvertersWriting(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(writing._add_virkning_to_lora_object(input_org_unit, self.virkning), output_org_unit,
+        self.assertEqual(writing._add_virkning(input_org_unit, self.virkning), output_org_unit,
                          'Virkning not added correctly for full org unit')
 
     def test_should_create_org_unit_with_one_contact_channel_correctly(self):
@@ -358,7 +358,7 @@ class TestConvertersWriting(unittest.TestCase):
                 'organisationenhedegenskaber': [
                     {
                         'enhedsnavn': 'New Unit',
-                        'brugervendtnoegle': 'NULL',
+                        'brugervendtnoegle': 'NewUnit',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'to': '2018-11-30T00:00:00+01:00'
@@ -487,7 +487,7 @@ class TestConvertersWriting(unittest.TestCase):
                 'organisationenhedegenskaber': [
                     {
                         'enhedsnavn': 'New Unit',
-                        'brugervendtnoegle': 'NULL',
+                        'brugervendtnoegle': 'NewUnit',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'to': '2018-11-30T00:00:00+01:00'

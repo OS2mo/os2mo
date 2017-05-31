@@ -9,7 +9,7 @@
 import mora.util as util
 
 
-def _add_virkning_to_lora_object(lora_obj: dict, virkning: dict) -> dict:
+def _add_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object
     :param lora_obj: a LoRa object without virkning
@@ -18,7 +18,7 @@ def _add_virkning_to_lora_object(lora_obj: dict, virkning: dict) -> dict:
     """
     for k, v in lora_obj.items():
         if isinstance(v, dict):
-            _add_virkning_to_lora_object(v, virkning)
+            _add_virkning(v, virkning)
         else:
             assert isinstance(v, list)
             for d in v:
@@ -49,7 +49,7 @@ def create_org_unit(req: dict) -> dict:
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': req['name'],
-                    'brugervendtnoegle': req['user-key'],  # TODO: this is set to NULL by the frontend
+                    'brugervendtnoegle': req['name'].replace(' ', ''),  # TODO: make a proper function to set the bvn
                 },
             ],
         },
@@ -95,4 +95,4 @@ def create_org_unit(req: dict) -> dict:
         }
     }
 
-    return _add_virkning_to_lora_object(org_unit, virkning)
+    return _add_virkning(org_unit, virkning)
