@@ -6,11 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import os
-import traceback
-
 import flask
+import mora.converters.writing as converters_writing
+import os
 import requests
+import traceback
 
 from . import lora
 from . import util
@@ -93,81 +93,8 @@ def list_organisations():
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
 def create_organisation_unit(orgid):
     req = flask.request.get_json()
-
-    virkning = {
-        'from': util.reparsedate(req.get('valid-from'), '-infinity'),
-        'to': util.reparsedate(req.get('valid-to'), 'infinity'),
-    }
-
-    nullrelation = [{
-        'virkning': virkning,
-    }]
-
-    assert req['org'] == str(orgid)
-
-    obj = {
-        'attributter': {
-            'organisationenhedegenskaber': [
-                {
-                    'enhedsnavn': req['name'],
-                    'brugervendtnoegle': req['user-key'],
-                    'virkning': virkning.copy(),
-                },
-            ],
-        },
-        'tilstande': {
-            'organisationenhedgyldighed': [
-                {
-                    'gyldighed': 'Aktiv',
-                    'virkning': virkning.copy(),
-                },
-            ],
-        },
-        'relationer': {
-            'adresser': [
-                {
-                    'uuid': location['location']['UUID_EnhedsAdresse'],
-                    'virkning': virkning.copy(),
-                }
-                for location in req.get('locations', [])
-            ] + [
-                {
-                    'urn': 'urn:magenta.dk:telefon:{}'.format(
-                        channel['contact-info'],
-                    ),
-                    'virkning': virkning.copy(),
-                }
-                for location in req.get('locations', [])
-                for channel in location.get('contact-channels', [])
-            ] or nullrelation,
-            'tilhoerer': [
-                {
-                    'uuid': req['org'],
-                    'virkning': virkning.copy(),
-                }
-            ],
-            # 'tilknyttedeenheder': [
-            #     {
-            #         'urn': req['tilknyttedeenheder'],
-            #         'virkning': virkning.copy(),
-            #     }
-            # ],
-            'enhedstype': [
-                {
-                    'uuid': req['type']['uuid'],
-                    'virkning': virkning.copy(),
-                }
-            ],
-            'overordnet': [
-                {
-                    'uuid': req['parent'],
-                    'virkning': virkning.copy(),
-                }
-            ],
-        }
-    }
-
-    return lora.create('organisation/organisationenhed', obj), 201
+    org_unit = converters_writing.create_org_unit(req)
+    return lora.create('organisation/organisationenhed', org_unit), 201
 
 
 @app.route(
@@ -538,3 +465,4 @@ def get_contact_facet_types_classes():
             "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
         },
     ])
+
