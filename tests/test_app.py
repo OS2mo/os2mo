@@ -22,11 +22,8 @@ class MoraTestCase(unittest.TestCase):
         :param path: path to json resource 
         :return: dictionary corresponding to the resource JSON
         """
-        # TODO: refactor this...
         with open(path) as f:
-            lines = f.readlines()
-        json_str = ''.join(lines)
-        return json.loads(json_str)
+            return json.load(f)
 
     def _request(self, url):
         """

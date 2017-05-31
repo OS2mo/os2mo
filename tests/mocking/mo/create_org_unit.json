@@ -1,0 +1,40 @@
+{
+  "user-key": "NULL",
+  "name": "NyEnhed",
+  "valid-from": "08-05-2017",
+  "valid-to": "31-12-2018",
+  "org": "59141156-ed0b-457c-9535-884447c5220b",
+  "parent": "b2ec5a54-0713-43f8-91f2-e4fd8b9376bc",
+  "type": {
+    "name": "Afdeling",
+    "userKey": "Afdeling",
+    "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+  },
+  "locations": [
+    {
+      "name": "lnavn",
+      "primaer": true,
+      "location": {
+        "UUID_EnhedsAdresse": "98001816-a7cc-4115-a9e6-2c5c06c79e5d",
+        "postdistrikt": "Risskov",
+        "postnr": "8240",
+        "vejnavn": "Pilevej 2, 8240 Risskov"
+      },
+      "contact-channels": [
+        {
+          "contact-info": "12345678",
+          "visibility": {
+            "name": "N/A",
+            "user-key": "N/A",
+            "uuid": "00000000-0000-0000-0000-000000000000"
+          },
+          "type": {
+            "name": "Phone Number",
+            "prefix": "urn:magenta.dk:telefon:",
+            "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+          }
+        }
+      ]
+    }
+  ]
+}
