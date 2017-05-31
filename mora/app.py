@@ -94,7 +94,8 @@ def list_organisations():
 def create_organisation_unit(orgid):
     req = flask.request.get_json()
     org_unit = converters_writing.create_org_unit(req)
-    return lora.create('organisation/organisationenhed', org_unit), 201
+    uuid = lora.create('organisation/organisationenhed', org_unit)
+    return flask.jsonify({'uuid': uuid}), 201
 
 
 @app.route(

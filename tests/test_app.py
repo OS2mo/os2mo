@@ -141,14 +141,15 @@ class MoraTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_create_organisation_unit(self, mock):
+        expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
         frontend_req = self._jsonfile_to_dict('tests/mocking/mo/create_org_unit.json')
         mock.post(lora.LORA_URL + 'organisation/organisationenhed',
-                  json={'uuid': '00000000-0000-0000-0000-000000000000'})
+                  json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
                           data=json.dumps(frontend_req),
                           content_type='application/json')
-        # TODO: check this - should response really be a string and not JSON?
-        self.assertEqual(r.data.decode(), '00000000-0000-0000-0000-000000000000', 'Error in creating org unit')
+        actual_response = json.loads(r.data.decode())
+        self.assertEqual(actual_response, expected_response, 'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
 
