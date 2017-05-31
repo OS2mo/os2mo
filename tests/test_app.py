@@ -43,7 +43,7 @@ class MoraTestCase(unittest.TestCase):
 
     def test_acl(self):
         rv = self.app.get('/acl/')
-        assert b'[]\n' == rv.data
+        self.assertEqual(b'[]\n', rv.data, 'Acl route should return empty list')
 
     def _standard_mock_setup(self, mock):
         lora_org_response = self._jsonfile_to_dict(
