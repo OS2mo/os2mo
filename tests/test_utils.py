@@ -28,3 +28,6 @@ class TestUtils(unittest.TestCase):
 
     def test_should_reparse_date_minus_infinity_correctly(self):
         self.assertEqual(util.reparsedate('-infinity'), '-infinity', 'Error in parsing date')
+
+    def test_should_reparse_None_to_infinity(self):
+        self.assertEqual(util.reparsedate(None), 'infinity', 'Error when pasring empty date')

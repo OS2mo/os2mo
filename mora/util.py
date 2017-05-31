@@ -41,6 +41,9 @@ def parsedate(s, default=None):
 def reparsedate(s):
     if s == 'infinity' or s == '-infinity':
         return s
+    elif not s:
+        # In the case that the end-date is not specified in the frontend
+        return 'infinity'
     else:
         return parsedate(s).isoformat()
 
