@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import mora.lora as lora
 import mora.util as util
 
 
@@ -33,7 +34,7 @@ def _create_virkning(req: dict) -> dict:
     }
 
 
-def extend_current_virkning(lora_registrering_obj: dict, virkning: dict) -> dict:
+def _extend_current_virkning(lora_registrering_obj: dict, virkning: dict) -> dict:
     """
     Extend the elements in a given LoRa "registrering" object to also apply during the new "virkning" 
     :param lora_registrering_obj: a LoRa "registrering" object (pre-condition: must only contain data for present date)
@@ -47,7 +48,7 @@ def extend_current_virkning(lora_registrering_obj: dict, virkning: dict) -> dict
 
     for k, v in lora_registrering_obj.items():
         if isinstance(v, dict):
-            extend_current_virkning(v, virkning)
+            _extend_current_virkning(v, virkning)
         elif isinstance(v, list):
             new_objs = []
             for d in v:
@@ -127,3 +128,24 @@ def create_org_unit(req: dict) -> dict:
     }
 
     return _add_virkning(org_unit, virkning)
+
+
+def rename_org_unit(req: dict) -> dict:
+    """
+    Rename org unit
+    :param req: 
+    :return: 
+    """
+
+    virkning = _create_virkning(req)
+
+    # Get the current org unit and update this
+    org_unit = lora.organisationenhed(uuid=req['uuid'])[0]['registreringer'][-1]
+
+    # TODO: we are not handling overlapping virknings
+    # Assumption for now: 'valid-from' is greater than or equal to the latest 'valid-to'
+
+    _extend_current_virkning(org_unit, virkning)
+    org_unit['attributter']['organisationenhedegenskaber'][-1]['enhedsnavn'] = req['name']
+
+    return org_unit

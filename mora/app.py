@@ -113,20 +113,7 @@ def rename_org_unit(orgid, unitid):
 
     req = flask.request.get_json()
 
-    virkning = {
-        'from': util.reparsedate(req['valid-from']),
-        'to': util.reparsedate(req['valid-to'])
-    }
-
-    # Get the current org unit and update this
-    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
-
-    # TODO: we are not handling overlapping virknings
-    # Assumption for now: 'valid-from' is greater than or equal to the latest 'valid-to'
-    
-    converters_writing.extend_current_virkning(org_unit, virkning)
-    org_unit['attributter']['organisationenhedegenskaber'][-1]['enhedsnavn'] = req['name']
-
+    org_unit = converters_writing.rename_org_unit(req)
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
 
     return flask.jsonify(unitid), 200
