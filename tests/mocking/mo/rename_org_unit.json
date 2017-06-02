@@ -1,0 +1,34 @@
+{
+  "activeName": "A6",
+  "hasChildren": false,
+  "name": "A6om",
+  "org": "59141156-ed0b-457c-9535-884447c5220b",
+  "parent": "b2ec5a54-0713-43f8-91f2-e4fd8b9376bc",
+  "parent-object": {
+    "activeName": "Øvrige Enheder",
+    "hasChildren": true,
+    "name": "Øvrige Enheder",
+    "org": "59141156-ed0b-457c-9535-884447c5220b",
+    "parent": "7454a573-5dab-4c2f-baf2-89f273286dec",
+    "parent-object": {
+      "activeName": "Aarhus Kommune",
+      "hasChildren": true,
+      "name": "Aarhus Kommune",
+      "org": "59141156-ed0b-457c-9535-884447c5220b",
+      "parent": null,
+      "parent-object": null,
+      "user-key": "ÅRHUS",
+      "uuid": "7454a573-5dab-4c2f-baf2-89f273286dec",
+      "valid-from": "2015-12-31 23:00:00+00",
+      "valid-to": "infinity"
+    },
+    "user-key": "ØVRIGE",
+    "uuid": "b2ec5a54-0713-43f8-91f2-e4fd8b9376bc",
+    "valid-from": "2015-12-31 23:00:00+00",
+    "valid-to": "infinity"
+  },
+  "user-key": "A6",
+  "uuid": "65db58f8-a8b9-48e3-b1e3-b0b73636aaa5",
+  "valid-from": "25-07-2017",
+  "valid-to": "27-07-2019"
+}

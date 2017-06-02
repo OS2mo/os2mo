@@ -425,7 +425,8 @@ class TestConvertersWriting(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit, 'Org unit not created correctly from FE req')
+        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit,
+                         'Org unit not created correctly from FE req')
 
     def test_should_create_org_unit_with_two_contact_channels_correctly(self):
         frontend_req = {
@@ -562,4 +563,113 @@ class TestConvertersWriting(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit, 'Org unit not created correctly from FE req')
+        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit,
+                         'Org unit not created correctly from FE req')
+
+    def test_should_extend_attributes_correctly(self):
+        input_obj = {
+            'attributter': {
+                'organisationenhedegenskaber': [
+                    {'brugervendtnoegle': 'A1',
+                     'enhedsnavn': 'Digitaliseringskontoretg',
+                     'virkning': {
+                         'to_included': False,
+                         'from': '2017-05-14 22:00:00+00',
+                         'from_included': True,
+                         'to': '2017-06-14 22:00:00+00'}
+                     }
+                ]
+            }
+        }
+        output_obj = {
+            'attributter': {
+                'organisationenhedegenskaber': [
+                    {
+                        'brugervendtnoegle': 'A1',
+                        'enhedsnavn': 'Digitaliseringskontoretg',
+                        'virkning': {
+                            'to_included': False,
+                            'from': '2017-05-14 22:00:00+00',
+                            'from_included': True,
+                            'to': '2017-06-14 22:00:00+00'
+                        }
+                    },
+                    {
+                        'brugervendtnoegle': 'A1',
+                        'enhedsnavn': 'Digitaliseringskontoretg',
+                        'virkning': {
+                            'from': '2017-11-30T00:00:00+01:00',
+                            'to': '2018-11-30T00:00:00+01:00'
+                        }
+                    }
+                ]
+            }
+        }
+        self.assertEqual(writing.extend_current_virkning(input_obj, self.virkning),
+                         output_obj,
+                         'New org unit props not added correctly')
+
+
+class TestCreateVirkning(unittest.TestCase):
+    # TODO: freeze timezone
+
+    def setUp(self):
+        self.req1 = {
+            'valid-from': '31-12-2017',
+            'valid-to': '31-12-2018'
+        }
+        self.req2 = {
+            'valid-from': '30-12-2017',
+            'valid-to': '31-12-2018'
+        }
+
+
+    def tearDown(self):
+        pass
+
+    def test_should_set_from_to_2017_12_31(self):
+        self.assertEqual('2017-12-31T00:00:00+01:00',
+                         writing._create_virkning(self.req1)['from'],
+                         'From should be 2017-12-31T00:00:00+01:00')
+
+    def test_should_set_from_to_2017_12_30(self):
+        self.assertEqual('2017-12-30T00:00:00+01:00',
+                         writing._create_virkning(self.req2)['from'],
+                         'From should be 2017-12-30T00:00:00+01:00')
+
+    def test_should_set_to_to_2018_12_31(self):
+        self.assertEqual('2018-12-31T00:00:00+01:00',
+                         writing._create_virkning(self.req2)['to'],
+                         'To should be 2018-12-31T00:00:00+01:00')
+
+    def test_should_set_to_to_2019_12_31(self):
+        req = {
+            'valid-from': '30-12-2017',
+            'valid-to': '31-12-2019'
+        }
+        self.assertEqual('2019-12-31T00:00:00+01:00',
+                         writing._create_virkning(req)['to'],
+                         'To should be 2019-12-31T00:00:00+01:00')
+
+    def test_should_set_from_to_minus_infinity(self):
+        req = {
+            'valid-from': '-infinity',
+            'valid-to': '31-12-2019',
+
+        }
+        self.assertEqual('-infinity',
+                         writing._create_virkning(req)['from'],
+                         'From should be -infinity')
+
+    def test_should_set_to_to_infinity(self):
+        req = {
+            'valid-from': '31-12-2019',
+            'valid-to': 'infinity',
+
+        }
+        self.assertEqual('infinity',
+                         writing._create_virkning(req)['to'],
+                         'To should be infinity')
+
+    # TODO: Should throw exception if to <= from
+    # TODO: should we set from_included and to_included?

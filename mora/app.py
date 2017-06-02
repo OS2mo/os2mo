@@ -7,13 +7,16 @@
 #
 
 import flask
+import json
 import mora.converters.writing as converters_writing
 import os
 import requests
 import traceback
+import uuid
 
 from . import lora
 from . import util
+from pprint import pprint
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -98,6 +101,38 @@ def create_organisation_unit(orgid):
     return flask.jsonify({'uuid': uuid}), 201
 
 
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
+def rename_org_unit(orgid, unitid):
+
+    # TODO: refactor into the converters.writing module
+
+    rename = flask.request.args.get('rename', None)
+    # Make sure the rename param is present and set to true
+    assert rename
+    assert rename == 'true'
+
+    req = flask.request.get_json()
+
+    virkning = {
+        'from': util.reparsedate(req['valid-from']),
+        'to': util.reparsedate(req['valid-to'])
+    }
+
+    # Get the current org unit and update this
+    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+
+    # TODO: we are not handling overlapping virknings
+    # Assumption for now: 'valid-from' is greater than or equal to the latest 'valid-to'
+    
+    converters_writing.extend_current_virkning(org_unit, virkning)
+    org_unit['attributter']['organisationenhedegenskaber'][-1]['enhedsnavn'] = req['name']
+
+    lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
+
+    return flask.jsonify(unitid), 200
+
+
+@app.route('/o')
 @app.route(
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
     methods=['POST'],
@@ -253,10 +288,25 @@ def full_hierarchy(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 def get_orgunit(orgid, unitid=None):
-    params = {
-        'tilhoerer': orgid,
-        'uuid': unitid or flask.request.args.get('query', []),
-    }
+    query = flask.request.args.get('query', None)
+    if query:
+        try:
+            # Check if the query is an UUID
+            uuid.UUID(query)  # Throws an exception if this is not the case
+            params = {
+                'tilhoerer': orgid,
+                'uuid': query,
+            }
+        except ValueError:
+            # If the query is not an UUID, search for an org unit name instead
+            params = {
+                'enhedsnavn': query,
+            }
+    else:
+        params = {
+            'tilhoerer': orgid,
+            'uuid': unitid,
+        }
 
     validity = flask.request.args.get('validity', 'present')
 
@@ -361,6 +411,7 @@ def get_role(orgid, unitid, role):
             if addr.get('uuid', '')
         ])
 
+
 #
 # Classification stuff - should be moved to own file
 #
@@ -433,12 +484,12 @@ def get_geographical_addresses(orgid=None):
             "vejnavn": addrinfo['tekst'],
         }
         for addrinfo in requests.get(
-                'http://dawa.aws.dk/adresser/autocomplete',
-                params={
-                    'noformat': '1',
-                    'kommunekode': code,
-                    'q': query,
-                },
+            'http://dawa.aws.dk/adresser/autocomplete',
+            params={
+                'noformat': '1',
+                'kommunekode': code,
+                'q': query,
+            },
         ).json()
     ])
 
@@ -466,4 +517,3 @@ def get_contact_facet_types_classes():
             "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
         },
     ])
-

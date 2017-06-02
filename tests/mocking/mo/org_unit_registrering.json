@@ -1,0 +1,93 @@
+{
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "A1",
+        "enhedsnavn": "Digitaliseringskontoretg",
+        "virkning": {
+          "from": "2017-05-14 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-14 22:00:00+00",
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+  "fratidspunkt": {
+    "graenseindikator": true,
+    "tidsstempeldatotid": "2017-05-31T15:51:45.765973+00:00"
+  },
+  "livscykluskode": "Rettet",
+  "relationer": {
+    "adresser": [
+      {
+        "uuid": "98001816-a7cc-4115-a9e6-2c5c06c79e5d",
+        "virkning": {
+          "from": "2017-04-30 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-07 22:00:00+00",
+          "to_included": false
+        }
+      },
+      {
+        "urn": "urn:magenta.dk:telefon:12345678",
+        "virkning": {
+          "from": "2017-04-30 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-07 22:00:00+00",
+          "to_included": false
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
+        "virkning": {
+          "from": "2017-04-30 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-07 22:00:00+00",
+          "to_included": false
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "b2ec5a54-0713-43f8-91f2-e4fd8b9376bc",
+        "virkning": {
+          "from": "2017-04-30 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-07 22:00:00+00",
+          "to_included": false
+        }
+      }
+    ],
+    "tilhoerer": [
+      {
+        "uuid": "59141156-ed0b-457c-9535-884447c5220b",
+        "virkning": {
+          "from": "2017-04-30 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-07 22:00:00+00",
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2017-04-30 22:00:00+00",
+          "from_included": true,
+          "to": "2017-06-07 22:00:00+00",
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "tiltidspunkt": {
+    "tidsstempeldatotid": "infinity"
+  }
+}

@@ -1,0 +1,55 @@
+[
+  {
+    "uuid": "1102",
+    "user-key": "ean123456",
+    "name": "Digitaliseringskontoret",
+    "valid-from": "-infinity",
+    "valid-to": "infinity",
+    "org": "1001",
+    "parent": "1101",
+    "hasChildren": false,
+    "parent-object": {
+      "uuid": "1101",
+      "user-key": "ean12345",
+      "name": "Borgmesterforvaltningen",
+      "valid-from": "-infinity",
+      "valid-to": "infinity",
+      "org": "1001",
+      "parent": "",
+      "hasChildren": false
+    },
+    "activeName": "Digitaliseringskontoret"
+  },
+  {
+    "uuid": "1105",
+    "user-key": "ean1234567",
+    "name": "Ejendomsservice",
+    "valid-from": "-infinity",
+    "valid-to": "infinity",
+    "org": "1001",
+    "parent": "1101",
+    "hasChildren": false,
+    "parent-object": {
+      "uuid": "1101",
+      "user-key": "ean12345",
+      "name": "Borgmesterforvaltningen",
+      "valid-from": "-infinity",
+      "valid-to": "infinity",
+      "org": "1001",
+      "parent": "",
+      "hasChildren": false
+    },
+    "activeName": "Ejendomsservice"
+  },
+  {
+    "uuid": "1108",
+    "user-key": "abc",
+    "name": "Lokaludvalg for MenignsmålingAAA",
+    "valid-from": "01-01-2012",
+    "valid-to": "01-01-2022",
+    "org": "1001",
+    "parent": "",
+    "hasChildren": false,
+    "activeName": "Lokaludvalg for MenignsmålingAAA"
+  }
+]
