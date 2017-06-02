@@ -104,8 +104,6 @@ def create_organisation_unit(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
 def rename_org_unit(orgid, unitid):
 
-    # TODO: refactor into the converters.writing module
-
     rename = flask.request.args.get('rename', None)
     # Make sure the rename param is present and set to true
     assert rename
