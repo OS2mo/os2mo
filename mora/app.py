@@ -6,16 +6,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import flask
 import json
 import os
 import requests
 import traceback
 import uuid
 
+import flask
 from . import lora
 from . import util
-from pprint import pprint
 from .converters import writing
 
 basedir = os.path.dirname(__file__)
