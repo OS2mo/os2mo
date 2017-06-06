@@ -13,6 +13,20 @@ import unittest
 
 import pycodestyle
 
+# upstream files; do not modify
+UPSTREAM_FILES = {
+    'mora/compat/secrets.py',
+}
+
+# TODO: re-enable style checks for these files as needed
+SKIP_LIST = {
+    'mora/converters/writing.py',
+    'sandbox/LoRa/populate_LoRa.py',
+    'tests/test_app.py',
+    'tests/test_converters_writing.py',
+    'tests/test_utils.py',
+}
+
 
 class CodeStyleTests(unittest.TestCase):
 
@@ -27,14 +41,17 @@ class CodeStyleTests(unittest.TestCase):
         for dirpath, dirs, fns in os.walk(self.rootdir):
             dirs[:] = [
                 dn for dn in dirs
-                if not dn.startswith('venv-')
+                if not dn.startswith('venv-') and dn != 'node_modules'
             ]
 
             for fn in fns:
-                if fn[0] != '.' and fn.endswith('.py'):
-                    yield os.path.relpath(os.path.join(dirpath, fn))
+                fp = os.path.join(dirpath, fn)
+                if fp in UPSTREAM_FILES or fn[0] == '.':
+                    # skip these
+                    continue
+                elif fn.endswith('.py'):
+                    yield os.path.relpath(fp)
 
-    @unittest.expectedFailure
     def test_style(self):
         'Test that all Python source files pass the style check'
         style = pycodestyle.StyleGuide()
@@ -44,6 +61,9 @@ class CodeStyleTests(unittest.TestCase):
             # a subtest ensure we report each invalid file
             # independently, yet report all files in each run
             with self.subTest(fn):
+                if fn in SKIP_LIST:
+                    self.skipTest(fn)
+
                 buf = io.StringIO()
 
                 with contextlib.redirect_stdout(buf):
