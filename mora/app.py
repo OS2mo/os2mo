@@ -114,7 +114,7 @@ def rename_org_unit(orgid, unitid):
     org_unit = converters_writing.rename_org_unit(req)
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
 
-    return flask.jsonify(unitid), 200
+    return flask.jsonify({'uuid': unitid}), 200
 
 
 @app.route('/o')

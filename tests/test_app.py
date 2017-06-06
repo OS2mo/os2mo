@@ -153,5 +153,152 @@ class MoraTestCase(unittest.TestCase):
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
 
+class TestRenameOrgUnit(unittest.TestCase):
+    # TODO: move JSON requests/responses into tests/mocking (JSON below also used in test_converters_writing.py)
+
+    def setUp(self):
+        mora.app.config['TESTING'] = True
+        self.app = mora.app.test_client()
+
+    @requests_mock.mock()
+    def test_should_rename_org_unit_correctly(self, mock):
+        frontend_req = {
+            'name': 'A6om',
+            'user-key': 'A6',
+            'parent-object': {
+                'name': 'Øvrige Enheder',
+                'user-key': 'ØVRIGE',
+                'parent-object': {
+                    'name': 'Aarhus Kommune',
+                    'user-key': 'ÅRHUS',
+                    'parent-object': None,
+                    'valid-to': 'infinity',
+                    'activeName': 'Aarhus Kommune',
+                    'valid-from': '2015-12-31 23:00:00+00',
+                    'uuid': '7454a573-5dab-4c2f-baf2-89f273286dec',
+                    'hasChildren': True,
+                    'org': '59141156-ed0b-457c-9535-884447c5220b',
+                    'parent': None},
+                'valid-to': 'infinity',
+                'activeName': 'Øvrige Enheder',
+                'valid-from': '2015-12-31 23:00:00+00',
+                'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
+                'hasChildren': True,
+                'org': '59141156-ed0b-457c-9535-884447c5220b',
+                'parent': '7454a573-5dab-4c2f-baf2-89f273286dec'},
+            'valid-to': '27-07-2026',
+            'activeName': 'A6',
+            'valid-from': '25-07-2025',
+            'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+            'hasChildren': False,
+            'org': '59141156-ed0b-457c-9535-884447c5220b',
+            'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc'
+        }
+        lora_response = {
+            'results': [
+                [
+                    {
+                        'registreringer': [
+                            {
+                                'tilstande': {
+                                    'organisationenhedgyldighed': [
+                                        {
+                                            'virkning': {
+                                                'from_included': True, 'from': '2017-05-07 22:00:00+00',
+                                                'to': '2017-07-30 22:00:00+00',
+                                                'to_included': False
+                                            },
+                                            'gyldighed': 'Aktiv'
+                                        }
+                                    ]
+                                },
+                                'fratidspunkt': {
+                                    'graenseindikator': True,
+                                    'tidsstempeldatotid': '2017-06-02T12:57:21.367559+00:00'
+                                },
+                                'brugerref': '42c432e8-9c4a-11e6-9f62-873cf34a735f',
+                                'attributter': {
+                                    'organisationenhedegenskaber': [
+                                        {
+                                            'virkning': {
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
+                                                'to': '2017-07-30 22:00:00+00',
+                                                'to_included': False
+                                            },
+                                            'brugervendtnoegle': 'A6',
+                                            'enhedsnavn': 'A6'
+                                        }
+                                    ]
+                                },
+                                'livscykluskode': 'Rettet',
+                                'tiltidspunkt': {
+                                    'tidsstempeldatotid': 'infinity'
+                                },
+                                'relationer': {
+                                    'tilhoerer': [
+                                        {
+                                            'uuid': '59141156-ed0b-457c-9535-884447c5220b',
+                                            'virkning': {
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
+                                                'to': '2017-07-30 22:00:00+00',
+                                                'to_included': False
+                                            }
+                                        }
+                                    ],
+                                    'adresser': [
+                                        {
+                                            'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                                            'virkning': {
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
+                                                'to': '2017-07-30 22:00:00+00',
+                                                'to_included': False
+                                            }
+                                        },
+                                    ],
+                                    'enhedstype': [
+                                        {
+                                            'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
+                                            'virkning': {
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
+                                                'to': '2017-07-30 22:00:00+00',
+                                                'to_included': False
+                                            }
+                                        }
+                                    ],
+                                    'overordnet': [
+                                        {
+                                            'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
+                                            'virkning': {
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
+                                                'to': '2017-07-30 22:00:00+00',
+                                                'to_included': False
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        'id': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'
+                    }
+                ]
+            ]
+        }
+        mock.get('http://mox/organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+                 json=lora_response)
+        mock.put('http://mox/organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+                 json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
+        r = self.app.post('/o/' + frontend_req['org'] + '/org-unit/' + frontend_req['uuid'] + '?rename=true',
+                          data=json.dumps(frontend_req),
+                          content_type='application/json')
+        actual_response = json.loads(r.data.decode())
+        self.assertEqual(actual_response, {'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'}, 'Error in renaming org unit')
+        self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
+
+
 if __name__ == '__main__':
     unittest.main()
