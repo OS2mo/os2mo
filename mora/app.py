@@ -8,7 +8,6 @@
 
 import flask
 import json
-import mora.converters.writing as converters_writing
 import os
 import requests
 import traceback
@@ -17,6 +16,7 @@ import uuid
 from . import lora
 from . import util
 from pprint import pprint
+from .converters import writing
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -96,7 +96,7 @@ def list_organisations():
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
 def create_organisation_unit(orgid):
     req = flask.request.get_json()
-    org_unit = converters_writing.create_org_unit(req)
+    org_unit = writing.create_org_unit(req)
     uuid = lora.create('organisation/organisationenhed', org_unit)
     return flask.jsonify({'uuid': uuid}), 201
 
@@ -111,7 +111,7 @@ def rename_org_unit(orgid, unitid):
 
     req = flask.request.get_json()
 
-    org_unit = converters_writing.rename_org_unit(req)
+    org_unit = writing.rename_org_unit(req)
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
 
     return flask.jsonify(unitid), 200
