@@ -1,4 +1,5 @@
 flask
 freezegun
 requests
+requests_mock
 tzlocal

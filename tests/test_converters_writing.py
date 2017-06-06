@@ -605,7 +605,7 @@ class TestConvertersWriting(unittest.TestCase):
                 ]
             }
         }
-        self.assertEqual(writing.extend_current_virkning(input_obj, self.virkning),
+        self.assertEqual(writing._extend_current_virkning(input_obj, self.virkning),
                          output_obj,
                          'New org unit props not added correctly')
 
