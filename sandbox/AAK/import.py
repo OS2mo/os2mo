@@ -153,13 +153,17 @@ def _read_sheet(sheet):
                     ] if obj['virksomhed'] else nullrelation,
                     'myndighed': [
                         {
-                            'urn': 'urn:dk:kommune:{}'.format(obj['myndighed']),
+                            'urn': 'urn:dk:kommune:{}'.format(
+                                obj['myndighed'],
+                            ),
                             'virkning': virkning,
                         }
                     ] if obj['myndighed'] else nullrelation,
                     'myndighedstype': [
                         {
-                            'urn': 'urn:oio:objekttype:' + obj['myndighedstype'],
+                            'urn': 'urn:oio:objekttype:{}'.format(
+                                obj['myndighedstype'],
+                            ),
                             'virkning': virkning,
                         }
                     ] if obj['myndighedstype'] else nullrelation,

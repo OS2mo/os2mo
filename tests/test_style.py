@@ -13,6 +13,7 @@ import unittest
 
 import pycodestyle
 
+
 class CodeStyleTests(unittest.TestCase):
 
     @property
