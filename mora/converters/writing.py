@@ -27,7 +27,7 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     return lora_obj
 
 
-def _create_virkning(req: dict, from_included=True, to_included=False) -> dict:
+def _create_virkning(From: str, to: str, from_included=True, to_included=False) -> dict:
     """
     Create virkning from frontend request
     :param req: the JSON request object provided by the frontend
@@ -36,8 +36,8 @@ def _create_virkning(req: dict, from_included=True, to_included=False) -> dict:
     :return: the virkning object
     """
     return {
-        'from': util.reparsedate(req.get('valid-from')),
-        'to': util.reparsedate(req.get('valid-to')),
+        'from': util.reparsedate(From),
+        'to': util.reparsedate(to),
         'from_included': from_included,
         'to_included': to_included
     }
@@ -78,7 +78,7 @@ def create_org_unit(req: dict) -> dict:
     """
 
     # Create virkning
-    virkning = _create_virkning(req)
+    virkning = _create_virkning(req['valid-from'], req['valid-to'])
 
     nullrelation = [{
         'virkning': virkning,
@@ -148,7 +148,7 @@ def rename_org_unit(req: dict) -> dict:
 
     assert util.now() <= util.parsedate(req['valid-from'])
 
-    virkning = _create_virkning(req)
+    virkning = _create_virkning(req['valid-from'], req['valid-to'])
 
     # Get the current org unit and update this
     org_unit = lora.organisationenhed(uuid=req['uuid'])[0]['registreringer'][-1]
