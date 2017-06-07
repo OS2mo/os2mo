@@ -10,16 +10,16 @@ import mora.lora as lora
 import mora.util as util
 
 
-def _add_virkning(lora_obj: dict, virkning: dict) -> dict:
+def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object
-    :param lora_obj: a LoRa object without virkning
-    :param virkning: the virkning to add to the LoRa object
-    :return: the LoRa object with virkning
+    :param lora_obj: a LoRa object with or without virkning. All virknings that are already set will be changed
+    :param virkning: the virkning to set in the LoRa object
+    :return: the LoRa object with the new virkning
     """
     for k, v in lora_obj.items():
         if isinstance(v, dict):
-            _add_virkning(v, virkning)
+            _set_virkning(v, virkning)
         else:
             assert isinstance(v, list)
             for d in v:
@@ -68,10 +68,6 @@ def _extend_current_virkning(lora_registrering_obj: dict, virkning: dict) -> dic
         else:
             pass
     return lora_registrering_obj
-
-
-def _set_virkning_enddate(lora_registrering_obj: dict, req: dict) -> dict:
-    pass
 
 
 def create_org_unit(req: dict) -> dict:
@@ -140,7 +136,7 @@ def create_org_unit(req: dict) -> dict:
         }
     }
 
-    return _add_virkning(org_unit, virkning)
+    return _set_virkning(org_unit, virkning)
 
 
 def rename_org_unit(req: dict) -> dict:
@@ -149,6 +145,8 @@ def rename_org_unit(req: dict) -> dict:
     :param req: 
     :return: 
     """
+
+    assert util.now() <= util.parsedate(req['valid-from'])
 
     virkning = _create_virkning(req)
 
