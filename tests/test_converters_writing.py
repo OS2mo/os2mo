@@ -7,6 +7,7 @@
 #
 
 from mora.converters import writing
+import freezegun
 import requests_mock
 import unittest
 
@@ -362,7 +363,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'brugervendtnoegle': 'NewUnit',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
 
                     },
@@ -374,7 +377,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'gyldighed': 'Aktiv',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     },
                 ],
@@ -385,7 +390,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
 
                     },
@@ -393,7 +400,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'urn': 'urn:magenta.dk:telefon:12345678',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     },
                 ],
@@ -402,7 +411,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': '59141156-ed0b-457c-9535-884447c5220b',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     }
                 ],
@@ -411,7 +422,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     }
                 ],
@@ -420,7 +433,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     }
                 ],
@@ -492,7 +507,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'brugervendtnoegle': 'NewUnit',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
 
                     },
@@ -504,7 +521,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'gyldighed': 'Aktiv',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     },
                 ],
@@ -515,7 +534,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
 
                     },
@@ -523,14 +544,18 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'urn': 'urn:magenta.dk:telefon:12345678',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     },
                     {
                         'urn': 'urn:magenta.dk:telefon:87654321',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     },
 
@@ -540,7 +565,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': '59141156-ed0b-457c-9535-884447c5220b',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     }
                 ],
@@ -549,7 +576,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     }
                 ],
@@ -558,7 +587,9 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
-                            'to': '2018-11-30T00:00:00+01:00'
+                            'from_included': True,
+                            'to': '2018-11-30T00:00:00+01:00',
+                            'to_included': False,
                         },
                     }
                 ],
@@ -612,7 +643,6 @@ class TestCreateOrgUnit(unittest.TestCase):
 
 
 class TestCreateVirkning(unittest.TestCase):
-    # TODO: freeze timezone
 
     def setUp(self):
         self.req1 = {
@@ -624,24 +654,25 @@ class TestCreateVirkning(unittest.TestCase):
             'valid-to': '31-12-2018'
         }
 
-    def tearDown(self):
-        pass
-
+    @freezegun.freeze_time(tz_offset=+1)
     def test_should_set_from_to_2017_12_31(self):
         self.assertEqual('2017-12-31T00:00:00+01:00',
                          writing._create_virkning(self.req1)['from'],
                          'From should be 2017-12-31T00:00:00+01:00')
 
+    @freezegun.freeze_time(tz_offset=+1)
     def test_should_set_from_to_2017_12_30(self):
         self.assertEqual('2017-12-30T00:00:00+01:00',
                          writing._create_virkning(self.req2)['from'],
                          'From should be 2017-12-30T00:00:00+01:00')
 
+    @freezegun.freeze_time(tz_offset=+1)
     def test_should_set_to_to_2018_12_31(self):
         self.assertEqual('2018-12-31T00:00:00+01:00',
                          writing._create_virkning(self.req2)['to'],
                          'To should be 2018-12-31T00:00:00+01:00')
 
+    @freezegun.freeze_time(tz_offset=+1)
     def test_should_set_to_to_2019_12_31(self):
         req = {
             'valid-from': '30-12-2017',
@@ -651,6 +682,7 @@ class TestCreateVirkning(unittest.TestCase):
                          writing._create_virkning(req)['to'],
                          'To should be 2019-12-31T00:00:00+01:00')
 
+    @freezegun.freeze_time(tz_offset=+1)
     def test_should_set_from_to_minus_infinity(self):
         req = {
             'valid-from': '-infinity',
@@ -661,6 +693,7 @@ class TestCreateVirkning(unittest.TestCase):
                          writing._create_virkning(req)['from'],
                          'From should be -infinity')
 
+    @freezegun.freeze_time(tz_offset=+1)
     def test_should_set_to_to_infinity(self):
         req = {
             'valid-from': '31-12-2019',
@@ -671,8 +704,43 @@ class TestCreateVirkning(unittest.TestCase):
                          writing._create_virkning(req)['to'],
                          'To should be infinity')
 
-        # TODO: Should throw exception if to <= from
-        # TODO: should we set from_included and to_included?
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_set_from_included_to_true(self):
+        self.assertEqual(True,
+                         writing._create_virkning(self.req1, from_included=True)['from_included'],
+                         'from_included should be true')
+
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_set_from_included_to_true_by_default(self):
+        self.assertEqual(True,
+                         writing._create_virkning(self.req1)['from_included'],
+                         'from_included should be true')
+
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_set_from_included_to_false(self):
+        self.assertEqual(False,
+                         writing._create_virkning(self.req1, from_included=False)['from_included'],
+                         'from_included should be false')
+
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_set_to_included_to_false(self):
+        self.assertEqual(False,
+                         writing._create_virkning(self.req1, to_included=False)['to_included'],
+                         'to_included should be false')
+
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_set_to_included_to_false_by_default(self):
+        self.assertEqual(False,
+                         writing._create_virkning(self.req1)['to_included'],
+                         'to_included should be false')
+
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_set_to_included_to_true(self):
+        self.assertEqual(True,
+                         writing._create_virkning(self.req1, to_included=True)['to_included'],
+                         'to_included should be true')
+
+    # TODO: Should throw exception if to <= from
 
 
 class TestRenameOrgUnit(unittest.TestCase):
@@ -824,7 +892,8 @@ class TestRenameOrgUnit(unittest.TestCase):
                                     'organisationenhedgyldighed': [
                                         {
                                             'virkning': {
-                                                'from_included': True, 'from': '2017-05-07 22:00:00+00',
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
                                                 'to': '2017-07-30 22:00:00+00',
                                                 'to_included': False
                                             },
@@ -833,7 +902,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                         {
                                             'virkning': {
                                                 'from': '2025-07-25T00:00:00+02:00',
+                                                'from_included': True,
                                                 'to': '2026-07-27T00:00:00+02:00',
+                                                'to_included': False,
                                             },
                                             'gyldighed': 'Aktiv'
                                         }
@@ -859,7 +930,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                         {
                                             'virkning': {
                                                 'from': '2025-07-25T00:00:00+02:00',
+                                                'from_included': True,
                                                 'to': '2026-07-27T00:00:00+02:00',
+                                                'to_included': False,
                                             },
                                             'brugervendtnoegle': 'A6',
                                             'enhedsnavn': 'A6om'
@@ -885,7 +958,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'uuid': '59141156-ed0b-457c-9535-884447c5220b',
                                             'virkning': {
                                                 'from': '2025-07-25T00:00:00+02:00',
+                                                'from_included': True,
                                                 'to': '2026-07-27T00:00:00+02:00',
+                                                'to_included': False,
                                             }
                                         }
                                     ],
@@ -903,7 +978,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                                             'virkning': {
                                                 'from': '2025-07-25T00:00:00+02:00',
+                                                'from_included': True,
                                                 'to': '2026-07-27T00:00:00+02:00',
+                                                'to_included': False,
                                             }
                                         },
                                     ], 'enhedstype': [
@@ -920,7 +997,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
                                             'virkning': {
                                                 'from': '2025-07-25T00:00:00+02:00',
+                                                'from_included': True,
                                                 'to': '2026-07-27T00:00:00+02:00',
+                                                'to_included': False,
                                             }
                                         }
 
@@ -939,7 +1018,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
                                             'virkning': {
                                                 'from': '2025-07-25T00:00:00+02:00',
+                                                'from_included': True,
                                                 'to': '2026-07-27T00:00:00+02:00',
+                                                'to_included': False,
                                             }
                                         }
                                     ]
@@ -954,3 +1035,4 @@ class TestRenameOrgUnit(unittest.TestCase):
         self.assertEqual(writing.rename_org_unit(frontend_req),
                          expected_output['results'][0][0]['registreringer'][-1],
                          'Unexpected output for create org unit')
+

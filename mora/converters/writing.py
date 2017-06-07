@@ -27,10 +27,19 @@ def _add_virkning(lora_obj: dict, virkning: dict) -> dict:
     return lora_obj
 
 
-def _create_virkning(req: dict) -> dict:
+def _create_virkning(req: dict, from_included=True, to_included=False) -> dict:
+    """
+    Create virkning from frontend request
+    :param req: the JSON request object provided by the frontend
+    :param from_included: specify if the from-date should be included or not
+    :param to_included: specify if the to-date should be included or not
+    :return: the virkning object
+    """
     return {
         'from': util.reparsedate(req.get('valid-from')),
         'to': util.reparsedate(req.get('valid-to')),
+        'from_included': from_included,
+        'to_included': to_included
     }
 
 
@@ -59,6 +68,10 @@ def _extend_current_virkning(lora_registrering_obj: dict, virkning: dict) -> dic
         else:
             pass
     return lora_registrering_obj
+
+
+def _set_virkning_enddate(lora_registrering_obj: dict, req: dict) -> dict:
+    pass
 
 
 def create_org_unit(req: dict) -> dict:
