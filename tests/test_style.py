@@ -23,8 +23,11 @@ SKIP_LIST = {
     'mora/converters/writing.py',
     'sandbox/LoRa/populate_LoRa.py',
     'tests/test_app.py',
-    'tests/test_converters_writing.py',
-    'tests/test_utils.py',
+    'tests/converters/writing/test_create_org_unit.py',
+    'tests/converters/writing/test_create_virkning.py',
+    'tests/converters/writing/test_rename_org_unit.py',
+    'tests/converters/writing/test_set_virkning.py',
+    'tests/utils/test_utils.py',
 }
 
 

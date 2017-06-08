@@ -154,7 +154,7 @@ class MoraTestCase(unittest.TestCase):
 
 
 class TestRenameOrgUnit(unittest.TestCase):
-    # TODO: move JSON requests/responses into tests/mocking (JSON below also used in test_converters_writing.py)
+    # TODO: move JSON requests/responses into tests/mocking (JSON below also used in test_create_org_unit.py)
 
     def setUp(self):
         mora.app.config['TESTING'] = True
