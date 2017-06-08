@@ -8,7 +8,6 @@
 
 import flask
 import json
-import mora.converters.writing as converters_writing
 import os
 import requests
 import traceback
@@ -17,6 +16,7 @@ import uuid
 from . import lora
 from . import util
 from pprint import pprint
+from .converters import writing
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -96,7 +96,7 @@ def list_organisations():
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
 def create_organisation_unit(orgid):
     req = flask.request.get_json()
-    org_unit = converters_writing.create_org_unit(req)
+    org_unit = writing.create_org_unit(req)
     uuid = lora.create('organisation/organisationenhed', org_unit)
     return flask.jsonify({'uuid': uuid}), 201
 
@@ -112,7 +112,7 @@ def rename_org_unit(orgid, unitid):
 
     req = flask.request.get_json()
 
-    org_unit = converters_writing.rename_org_unit(req)
+    org_unit = writing.rename_org_unit(req)
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
 
     return flask.jsonify({'uuid': unitid}), 200
@@ -406,6 +406,9 @@ def get_role(orgid, unitid, role):
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
 def list_classes():
+    # TODO: we need to somehow restrict the available classes to
+    # sensible options; a classification hierarchy, perhaps, or only
+    # those related to or listed in our organisation?
     clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
 
     # TODO: Refactor this convert function (and the one used for orgs)
@@ -482,6 +485,9 @@ def get_geographical_addresses(orgid=None):
 
 @app.route('/role-types/contact/facets/properties/classes/')
 def get_contact_facet_properties_classes():
+    # This yields three options in the original Mock test:
+    # internal-only, external and unlisted. (In Danish: “Må vises
+    # internt”, “Må vises eksternt” and “Hemmligt”.)
     return flask.jsonify([
         {
             "name": "N/A",
