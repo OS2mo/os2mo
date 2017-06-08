@@ -31,10 +31,10 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
 
 def _create_virkning(From: str, to: str, from_included=True,
                      to_included=False) -> dict:
-    # TODO: fix doc string
     """
     Create virkning from frontend request
-    :param req: the JSON request object provided by the frontend
+    :param From: the "from" date
+    :param to: the "to" date
     :param from_included: specify if the from-date should be included or not
     :param to_included: specify if the to-date should be included or not
     :return: the virkning object
@@ -150,8 +150,16 @@ def create_org_unit(req: dict) -> dict:
 
 
 def move_org_unit(req: dict, unitid: str) -> dict:
+    """
+    Move an org unit to a new parent unit
+    :param req: the JSON reqeust from the frontend
+    :param unitid: the UUID of the org unit to move
+    :return: the updated org unit with a new parent unit given in the req 
+    """
 
     # TODO: refactor common behavior from this function and the one below
+    # but there is no need to do this yet (before the final feature
+    # specification is stable)
 
     assert util.now() <= util.parsedate(req['moveDate'])
 
