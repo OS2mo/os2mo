@@ -80,7 +80,8 @@ def create_org_unit(req: dict) -> dict:
     """
 
     # Create virkning
-    virkning = _create_virkning(req['valid-from'], req['valid-to'])
+    virkning = _create_virkning(req.get('valid-from', '-infinity'),
+                                req.get('valid-to', 'infinity'))
 
     nullrelation = [{
         'virkning': virkning,
