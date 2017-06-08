@@ -10,6 +10,7 @@ import mora.lora as lora
 import mora.util as util
 from pprint import pprint
 
+
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object
@@ -28,7 +29,8 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     return lora_obj
 
 
-def _create_virkning(From: str, to: str, from_included=True, to_included=False) -> dict:
+def _create_virkning(From: str, to: str, from_included=True,
+                     to_included=False) -> dict:
     # TODO: fix doc string
     """
     Create virkning from frontend request
@@ -45,7 +47,8 @@ def _create_virkning(From: str, to: str, from_included=True, to_included=False) 
     }
 
 
-def _extend_current_virkning(lora_registrering_obj: dict, virkning: dict) -> dict:
+def _extend_current_virkning(lora_registrering_obj: dict,
+                             virkning: dict) -> dict:
     """
     Extend the elements in a given LoRa "registrering" object to also apply during the new "virkning" 
     :param lora_registrering_obj: a LoRa "registrering" object (pre-condition: must only contain data for present date)
@@ -82,6 +85,7 @@ def create_org_unit(req: dict) -> dict:
     # Create virkning
     virkning = _create_virkning(req.get('valid-from', '-infinity'),
                                 req.get('valid-to', 'infinity'))
+    # TODO: need test to catch the +/-infinity case in TestCreateOrgUnit class
 
     nullrelation = [{
         'virkning': virkning,
@@ -93,7 +97,8 @@ def create_org_unit(req: dict) -> dict:
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': req['name'],
-                    'brugervendtnoegle': req['name'].replace(' ', ''),  # TODO: make a proper function to set the bvn
+                    'brugervendtnoegle': req['name'].replace(' ', ''),
+                    # TODO: make a proper function to set the bvn
                 },
             ],
         },
@@ -107,7 +112,8 @@ def create_org_unit(req: dict) -> dict:
         'relationer': {
             'adresser': [
                             {
-                                'uuid': location['location']['UUID_EnhedsAdresse'],
+                                'uuid': location['location'][
+                                    'UUID_EnhedsAdresse'],
                             }
                             # TODO: will we ever have more than one location? (multiple locations not tested)
                             # TODO: (however, multible contact channels are tested)
@@ -120,7 +126,8 @@ def create_org_unit(req: dict) -> dict:
                             }
                             for location in req.get('locations', [])
                             for channel in location.get('contact-channels', [])
-                        ] or nullrelation,  # TODO: will "... or nullrelation" ever happen? (no test for this yet...)
+                        ] or nullrelation,
+        # TODO: will "... or nullrelation" ever happen? (no test for this yet...)
             'tilhoerer': [
                 {
                     'uuid': req['org'],
@@ -142,6 +149,37 @@ def create_org_unit(req: dict) -> dict:
     return _set_virkning(org_unit, virkning)
 
 
+def move_org_unit(req: dict, unitid: str) -> dict:
+
+    # TODO: refactor common behavior from this function and the one below
+
+    assert util.now() <= util.parsedate(req['moveDate'])
+
+    # Get the current org unit and update this
+    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+
+    overordnet = org_unit['relationer']['overordnet']
+    assert len(overordnet) == 1
+
+    # Create current end new virkning: [----- name1 -----)[----- name2 ----->
+    # Time: |----------------------------now-------------------------------->
+
+    current_virkning = _create_virkning(overordnet[0]['virkning']['from'],
+                                        req['moveDate'])
+    new_virkning = _create_virkning(req['moveDate'], 'infinity')
+
+    # Modify the old virkning
+    overordnet[0]['virkning'] = current_virkning
+
+    # Set the new overordnet and the new virkning
+    new_overordnet = overordnet[0].copy()
+    new_overordnet['uuid'] = req['newParentOrgUnitUUID']
+    new_overordnet['virkning'] = new_virkning
+    overordnet.append(new_overordnet)
+
+    return org_unit
+
+
 def rename_org_unit(req: dict) -> dict:
     """
     Rename an org unit.
@@ -157,13 +195,14 @@ def rename_org_unit(req: dict) -> dict:
     # Get the current org unit and update this
     org_unit = lora.organisationenhed(uuid=req['uuid'])[0]['registreringer'][-1]
 
-    assert len(org_unit['attributter']['organisationenhedegenskaber']) == 1
     organisationsegenskaber = org_unit['attributter']['organisationenhedegenskaber']
+    assert len(organisationsegenskaber) == 1
 
     # Create current end new virkning: [----- name1 -----)[----- name2 ----->
     # Time: |----------------------------now-------------------------------->
 
-    current_virkning = _create_virkning(organisationsegenskaber[0]['virkning']['from'], req['valid-from'])
+    current_virkning = _create_virkning(
+        organisationsegenskaber[0]['virkning']['from'], req['valid-from'])
     new_virkning = _create_virkning(req['valid-from'], 'infinity')
 
     # Modify the old virkning

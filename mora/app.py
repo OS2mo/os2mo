@@ -101,14 +101,30 @@ def create_organisation_unit(orgid):
     return flask.jsonify({'uuid': uuid}), 201
 
 
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/actions/move',
+           methods=['POST'])
+def move_org_unit(orgid, unitid):
+    # Check that there are no "surprise" URL parameters
+    assert len(flask.request.args) == 0
+
+    # TODO: refactor common behavior from this route and the one below
+
+    req = flask.request.get_json()
+    org_unit = writing.move_org_unit(req, unitid)
+
+    lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
+
+    return flask.jsonify({'uuid': unitid}), 200
+
+
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
 def rename_org_unit(orgid, unitid):
-
     rename = flask.request.args.get('rename', None)
+
     # Make sure the rename param is present and set to true
     assert rename
     assert rename == 'true'
-    # TODO: check that there are no other URL parameters in the request
+    assert len(flask.request.args) == 1
 
     req = flask.request.get_json()
 
