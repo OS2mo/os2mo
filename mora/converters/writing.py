@@ -8,7 +8,7 @@
 
 import mora.lora as lora
 import mora.util as util
-
+from pprint import pprint
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
@@ -20,14 +20,16 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     for k, v in lora_obj.items():
         if isinstance(v, dict):
             _set_virkning(v, virkning)
-        else:
-            assert isinstance(v, list)
+        elif isinstance(v, list):
             for d in v:
                 d['virkning'] = virkning
+        else:
+            pass
     return lora_obj
 
 
 def _create_virkning(From: str, to: str, from_included=True, to_included=False) -> dict:
+    # TODO: fix doc string
     """
     Create virkning from frontend request
     :param req: the JSON request object provided by the frontend
@@ -141,22 +143,35 @@ def create_org_unit(req: dict) -> dict:
 
 def rename_org_unit(req: dict) -> dict:
     """
-    Rename org unit
-    :param req: 
-    :return: 
+    Rename an org unit.
+    Pre-condition: all virknings in the given org unit must have 'to' set to infinity
+    Pre-condition: the current time must be small than or equal to the date, where the renaming should take effect
+    :param req: the JSON request sent from the frontend
+    :return: the updated org unit with a new org unit name from the (in the req) given date
     """
 
     assert util.now() <= util.parsedate(req['valid-from'])
-
-    virkning = _create_virkning(req['valid-from'], req['valid-to'])
+    # TODO: add more asserts (see pre-conditions above)
 
     # Get the current org unit and update this
     org_unit = lora.organisationenhed(uuid=req['uuid'])[0]['registreringer'][-1]
 
-    # TODO: we are not handling overlapping virknings
-    # Assumption for now: 'valid-from' is greater than or equal to the latest 'valid-to'
+    assert len(org_unit['attributter']['organisationenhedegenskaber']) == 1
+    organisationsegenskaber = org_unit['attributter']['organisationenhedegenskaber']
 
-    _extend_current_virkning(org_unit, virkning)
-    org_unit['attributter']['organisationenhedegenskaber'][-1]['enhedsnavn'] = req['name']
+    # Create current end new virkning: [----- name1 -----)[----- name2 ----->
+    # Time: |----------------------------now-------------------------------->
+
+    current_virkning = _create_virkning(organisationsegenskaber[0]['virkning']['from'], req['valid-from'])
+    new_virkning = _create_virkning(req['valid-from'], 'infinity')
+
+    # Modify the old virkning
+    organisationsegenskaber[0]['virkning'] = current_virkning
+
+    # Set the new org unit name and the new virkning
+    new_organisationsegenskab = organisationsegenskaber[0].copy()
+    new_organisationsegenskab['enhedsnavn'] = req['name']
+    new_organisationsegenskab['virkning'] = new_virkning
+    organisationsegenskaber.append(new_organisationsegenskab)
 
     return org_unit

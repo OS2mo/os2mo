@@ -10,7 +10,7 @@ from mora.converters import writing
 import freezegun
 import requests_mock
 import unittest
-
+from pprint import pprint
 
 class TestCreateOrgUnit(unittest.TestCase):
     maxDiff = None
@@ -748,6 +748,7 @@ class TestRenameOrgUnit(unittest.TestCase):
     def tearDown(self):
         pass
 
+    @freezegun.freeze_time('2017-05-15 12:00:00', tz_offset=+1)
     @requests_mock.mock()
     def test_should_rename_org_unit_correctly(self, mock):
         frontend_req = {
@@ -774,9 +775,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                 'hasChildren': True,
                 'org': '59141156-ed0b-457c-9535-884447c5220b',
                 'parent': '7454a573-5dab-4c2f-baf2-89f273286dec'},
-            'valid-to': '27-07-2026',
+            'valid-to': 'infinity',
             'activeName': 'A6',
-            'valid-from': '25-07-2025',
+            'valid-from': '20-05-2017',
             'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
             'hasChildren': False,
             'org': '59141156-ed0b-457c-9535-884447c5220b',
@@ -792,8 +793,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                     'organisationenhedgyldighed': [
                                         {
                                             'virkning': {
-                                                'from_included': True, 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             },
                                             'gyldighed': 'Aktiv'
@@ -811,7 +813,7 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             },
                                             'brugervendtnoegle': 'A6',
@@ -830,7 +832,7 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         }
@@ -841,7 +843,7 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         },
@@ -852,7 +854,7 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         }
@@ -863,7 +865,7 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         }
@@ -890,20 +892,11 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             },
                                             'gyldighed': 'Aktiv'
                                         },
-                                        {
-                                            'virkning': {
-                                                'from': '2025-07-25T00:00:00+02:00',
-                                                'from_included': True,
-                                                'to': '2026-07-27T00:00:00+02:00',
-                                                'to_included': False,
-                                            },
-                                            'gyldighed': 'Aktiv'
-                                        }
                                     ]
                                 },
                                 'fratidspunkt': {
@@ -916,8 +909,8 @@ class TestRenameOrgUnit(unittest.TestCase):
                                         {
                                             'virkning': {
                                                 'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'from': '2017-05-07T22:00:00+00:00',
+                                                'to': '2017-05-20T00:00:00+02:00',
                                                 'to_included': False
                                             },
                                             'brugervendtnoegle': 'A6',
@@ -925,9 +918,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                                         },
                                         {
                                             'virkning': {
-                                                'from': '2025-07-25T00:00:00+02:00',
+                                                'from': '2017-05-20T00:00:00+02:00',
                                                 'from_included': True,
-                                                'to': '2026-07-27T00:00:00+02:00',
+                                                'to': 'infinity',
                                                 'to_included': False,
                                             },
                                             'brugervendtnoegle': 'A6',
@@ -946,19 +939,10 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         },
-                                        {
-                                            'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                            'virkning': {
-                                                'from': '2025-07-25T00:00:00+02:00',
-                                                'from_included': True,
-                                                'to': '2026-07-27T00:00:00+02:00',
-                                                'to_included': False,
-                                            }
-                                        }
                                     ],
                                     'adresser': [
                                         {
@@ -966,17 +950,8 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
-                                            }
-                                        },
-                                        {
-                                            'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
-                                            'virkning': {
-                                                'from': '2025-07-25T00:00:00+02:00',
-                                                'from_included': True,
-                                                'to': '2026-07-27T00:00:00+02:00',
-                                                'to_included': False,
                                             }
                                         },
                                     ], 'enhedstype': [
@@ -985,20 +960,10 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         },
-                                        {
-                                            'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                                            'virkning': {
-                                                'from': '2025-07-25T00:00:00+02:00',
-                                                'from_included': True,
-                                                'to': '2026-07-27T00:00:00+02:00',
-                                                'to_included': False,
-                                            }
-                                        }
-
                                     ],
                                     'overordnet': [
                                         {
@@ -1006,19 +971,10 @@ class TestRenameOrgUnit(unittest.TestCase):
                                             'virkning': {
                                                 'from_included': True,
                                                 'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
+                                                'to': 'infinity',
                                                 'to_included': False
                                             }
                                         },
-                                        {
-                                            'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
-                                            'virkning': {
-                                                'from': '2025-07-25T00:00:00+02:00',
-                                                'from_included': True,
-                                                'to': '2026-07-27T00:00:00+02:00',
-                                                'to_included': False,
-                                            }
-                                        }
                                     ]
                                 }
                             }
@@ -1028,7 +984,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                 ]
             ]
         }
-        self.assertEqual(writing.rename_org_unit(frontend_req),
-                         expected_output['results'][0][0]['registreringer'][-1],
-                         'Unexpected output for create org unit')
+
+        actual_output = writing.rename_org_unit(frontend_req)
+        expected_output = expected_output['results'][0][0]['registreringer'][-1]
+
+        self.assertEqual(actual_output, expected_output, 'Unexpected output for rename org unit')
 

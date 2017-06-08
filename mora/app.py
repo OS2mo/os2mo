@@ -108,6 +108,7 @@ def rename_org_unit(orgid, unitid):
     # Make sure the rename param is present and set to true
     assert rename
     assert rename == 'true'
+    # TODO: check that there are no other URL parameters in the request
 
     req = flask.request.get_json()
 
