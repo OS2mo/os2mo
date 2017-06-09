@@ -1,0 +1,6 @@
+-r requirements.txt
+flask_testing
+freezegun
+requests
+requests_mock
+pycodestyle

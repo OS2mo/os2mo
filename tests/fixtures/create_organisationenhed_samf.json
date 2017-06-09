@@ -2,8 +2,8 @@
   "attributter": {
     "organisationenhedegenskaber": [
       {
-        "brugervendtnoegle": "hum",
-        "enhedsnavn": "Humanistisk fakultet",
+        "brugervendtnoegle": "samf",
+        "enhedsnavn": "Samfundsvidenskabelige fakultet",
         "virkning": {
           "from": "2017-01-01 12:00:00",
           "to": "infinity"
@@ -25,7 +25,7 @@
   "relationer": {
     "tilhoerer": [
       {
-        "uuid": "dummy",
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
         "virkning": {
           "from": "2017-01-01 12:00:00",
           "to": "infinity"
@@ -34,7 +34,7 @@
     ],
     "overordnet": [
       {
-        "uuid": "dummy",
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
         "virkning": {
           "from": "2017-01-01 12:00:00",
           "to": "infinity"
@@ -43,12 +43,21 @@
     ],
     "enhedstype": [
       {
-        "uuid": "39303879-0753-4362-ad26-f03a53064eea",
+        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
         "virkning": {
           "from": "2017-01-01 12:00:00",
           "to": "infinity"
         }
  
+      }
+    ],
+    "adresser": [
+      {
+        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+        "virkning": {
+		  "from": "2017-01-01 12:00:00",
+		  "to": "infinity"
+        }
       }
     ]
   }

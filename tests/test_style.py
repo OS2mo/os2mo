@@ -13,6 +13,8 @@ import unittest
 
 import pycodestyle
 
+from . import util
+
 # upstream files; do not modify
 UPSTREAM_FILES = {
     'mora/compat/secrets.py',
@@ -21,7 +23,6 @@ UPSTREAM_FILES = {
 # TODO: re-enable style checks for these files as needed
 SKIP_LIST = {
     'mora/converters/writing.py',
-    'sandbox/LoRa/populate_LoRa.py',
     'tests/test_app.py',
     'tests/converters/writing/test_create_org_unit.py',
     'tests/converters/writing/test_create_virkning.py',
@@ -65,7 +66,7 @@ class CodeStyleTests(unittest.TestCase):
             # a subtest ensure we report each invalid file
             # independently, yet report all files in each run
             with self.subTest(fn):
-                if fn in SKIP_LIST:
+                if os.path.relpath(fn, util.BASE_DIR) in SKIP_LIST:
                     self.skipTest(fn)
 
                 buf = io.StringIO()

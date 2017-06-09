@@ -1,8 +1,9 @@
 {
     "attributter": {
-	"organisationegenskaber": [{
-		"brugervendtnoegle": "AU",
-		"organisationsnavn": "Aarhus Universitet",
+	"klasseegenskaber": [{
+		"brugervendtnoegle": "inst",
+		"titel": "Institut",
+		"beskrivelse": "Dette er et institut",
 		"virkning": {
 		    "from": "2017-01-01 12:00:00",
 		    "to": "infinity"
@@ -10,13 +11,12 @@
 	}]
     },
     "tilstande": {
-	"organisationgyldighed": [{
-	    "gyldighed": "Aktiv",
+	"klassepubliceret": [{
+	    "publiceret": "Publiceret",
 	    "virkning": {
 		"from": "2017-01-01 12:00:00",
 		"to": "infinity"
 	    }
 	}]
-    },
-    "relationer": {    }
+    }
 }

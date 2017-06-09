@@ -6,21 +6,27 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import json
+import functools
+import operator
 import os
 import requests
 import traceback
 import uuid
 
 import flask
+
+from . import cli
 from . import lora
 from . import util
 from .converters import writing
+
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
 
 app = flask.Flask(__name__, static_url_path='')
+
+cli.load_cli(app)
 
 
 @app.route('/')
@@ -417,7 +423,6 @@ def get_role(orgid, unitid, role):
 # Classification stuff - should be moved to own file
 #
 
-
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
 def list_classes():
@@ -437,7 +442,8 @@ def list_classes():
             'userKey': attrs['brugervendtnoegle']
         }
 
-    return flask.jsonify(list(map(convert, clazzes)))
+    return flask.jsonify(sorted(map(convert, clazzes),
+                                key=operator.itemgetter('name')))
 
 
 @app.route('/addressws/geographical-location')

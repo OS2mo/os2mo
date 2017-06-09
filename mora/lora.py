@@ -69,15 +69,28 @@ def fetch(path, **params):
     r = session.get(LORA_URL + path, params=params)
     r.raise_for_status()
 
-    objs = r.json()['results'][0]
+    try:
+        objs = r.json()['results'][0]
+    except IndexError:
+        return []
 
     return objs
 
 
-def create(path, obj):
-    r = session.post(LORA_URL + path, json=obj)
+def create(path, obj, uuid=None):
+    if uuid:
+        r = session.put('{}{}/{}'.format(LORA_URL, path, uuid), json=obj)
+        r.raise_for_status()
+        return uuid
+    else:
+        r = session.post(LORA_URL + path, json=obj)
+        r.raise_for_status()
+        return r.json()['uuid']
+
+
+def delete(path, uuid):
+    r = session.delete('{}{}/{}'.format(LORA_URL, path, uuid))
     r.raise_for_status()
-    return r.json()['uuid']
 
 
 def update(path, obj):
@@ -103,10 +116,14 @@ def logout(user, token):
 
 organisation = functools.partial(fetch, 'organisation/organisation')
 organisation.get = functools.partial(get, 'organisation/organisation')
+organisation.delete = functools.partial(delete, 'organisation/organisation')
 
 organisationenhed = functools.partial(fetch, 'organisation/organisationenhed')
 organisationenhed.get = \
     functools.partial(get, 'organisation/organisationenhed')
+organisationenhed.delete = \
+    functools.partial(delete, 'organisation/organisationenhed')
 
 klasse = functools.partial(fetch, 'klassifikation/klasse')
 klasse.get = functools.partial(get, 'klassifikation/klasse')
+klasse.delete = functools.partial(delete, 'klassifikation/klasse')

@@ -1,0 +1,22 @@
+{
+    "attributter": {
+	"klasseegenskaber": [{
+		"brugervendtnoegle": "{{bvn}}",
+		"titel": "{{titel}}",
+		"beskrivelse": "{{beskrivelse}}",
+		"virkning": {
+		    "from": "2017-01-01 12:00:00",
+		    "to": "infinity"
+		}
+	}]
+    },
+    "tilstande": {
+	"klassepubliceret": [{
+	    "publiceret": "Publiceret",
+	    "virkning": {
+		"from": "2017-01-01 12:00:00",
+		"to": "infinity"
+	    }
+	}]
+    }
+}
