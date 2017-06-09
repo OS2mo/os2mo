@@ -69,7 +69,7 @@ if __name__ == "__main__":
                              else 'requirements.txt')
 
         subprocess.check_call([
-            venv_executable, '-m', 'pip', 'install', '-r',
+            venv_executable, '-m', 'pip', 'install', '-qr',
             os.path.join(basedir, requirements_file),
         ])
 
