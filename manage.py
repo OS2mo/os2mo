@@ -64,8 +64,13 @@ if __name__ == "__main__":
                     shutil.rmtree(venvdir)
                     raise
 
+        requirements_file = ('requirements-test.txt'
+                             if 'test' in sys.argv
+                             else 'requirements.txt')
+
         subprocess.check_call([
-            venv_executable, '-m', 'pip', 'install', '-qr', 'requirements.txt',
+            venv_executable, '-m', 'pip', 'install', '-r',
+            os.path.join(basedir, requirements_file),
         ])
 
         if platform.system() == 'Windows':
