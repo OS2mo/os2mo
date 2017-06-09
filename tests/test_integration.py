@@ -14,11 +14,6 @@ import requests
 from . import util
 from mora import lora
 
-try:
-    import selenium
-except ImportError:
-    selenium = None
-
 
 class IntegrationTests(util.LoRATestCase):
     def test_sanity(self):
