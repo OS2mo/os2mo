@@ -32,6 +32,11 @@ SKIP_LIST = {
     'tests/utils/test_utils.py',
 }
 
+SKIP_DIRS = {
+    'node_modules',
+    'bower_components',
+}
+
 
 class CodeStyleTests(unittest.TestCase):
 
@@ -44,9 +49,13 @@ class CodeStyleTests(unittest.TestCase):
         """Generator that yields Python sources to test"""
 
         for dirpath, dirs, fns in os.walk(self.rootdir):
+            if 'pip-selfcheck.json' in fns:
+                dirs[:] = []
+                continue
+
             dirs[:] = [
                 dn for dn in dirs
-                if not dn.startswith('venv-') and dn != 'node_modules'
+                if dn not in SKIP_DIRS
             ]
 
             for fn in fns:
