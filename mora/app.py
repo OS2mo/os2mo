@@ -97,6 +97,8 @@ def list_organisations():
 
     return flask.jsonify(list(map(convert, orgs)))
 
+# --- Writing to LoRa --- #
+
 
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
 def create_organisation_unit(orgid):
@@ -104,6 +106,19 @@ def create_organisation_unit(orgid):
     org_unit = writing.create_org_unit(req)
     uuid = lora.create('organisation/organisationenhed', org_unit)
     return flask.jsonify({'uuid': uuid}), 201
+
+
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
+def inactivate_org_unit(orgid, unitid):
+    # Make sure that there is exactly one URL parameter called endDate
+    assert len(flask.request.args) == 1
+    assert flask.request.args.get('endDate')
+
+    org_unit = writing.inactivate_org_unit(unitid,
+                                           flask.request.args.get('endDate'))
+    lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
+
+    return flask.jsonify({'uuid': unitid}), 200
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/actions/move',

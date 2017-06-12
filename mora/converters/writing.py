@@ -149,6 +149,16 @@ def create_org_unit(req: dict) -> dict:
     return _set_virkning(org_unit, virkning)
 
 
+def inactivate_org_unit(unitid: str, date: str) -> dict:
+
+    # TODO: add doc string
+
+    obj_path = ['tilstande', 'organisationenhedgyldighed']
+    props = {'gyldighed': 'Inaktiv'}
+
+    return _update_object(unitid, date, obj_path, props)
+
+
 def move_org_unit(req: dict, unitid: str) -> dict:
     """
     Move an org unit to a new parent unit
@@ -157,35 +167,13 @@ def move_org_unit(req: dict, unitid: str) -> dict:
     :return: the updated org unit with a new parent unit given in the req 
     """
 
-    # TODO: refactor common behavior from this function and the one below
-    # but there is no need to do this yet (before the final feature
-    # specification is stable)
+    # TODO: add more asserts
 
-    assert util.now() <= util.parsedate(req['moveDate'])
+    date = req['moveDate']
+    obj_path = ['relationer', 'overordnet']
+    props = {'uuid': req['newParentOrgUnitUUID']}
 
-    # Get the current org unit and update this
-    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
-
-    overordnet = org_unit['relationer']['overordnet']
-    assert len(overordnet) == 1
-
-    # Create current end new virkning: [----- name1 -----)[----- name2 ----->
-    # Time: |----------------------------now-------------------------------->
-
-    current_virkning = _create_virkning(overordnet[0]['virkning']['from'],
-                                        req['moveDate'])
-    new_virkning = _create_virkning(req['moveDate'], 'infinity')
-
-    # Modify the old virkning
-    overordnet[0]['virkning'] = current_virkning
-
-    # Set the new overordnet and the new virkning
-    new_overordnet = overordnet[0].copy()
-    new_overordnet['uuid'] = req['newParentOrgUnitUUID']
-    new_overordnet['virkning'] = new_virkning
-    overordnet.append(new_overordnet)
-
-    return org_unit
+    return _update_object(unitid, date, obj_path, props)
 
 
 def rename_org_unit(req: dict) -> dict:
@@ -197,29 +185,44 @@ def rename_org_unit(req: dict) -> dict:
     :return: the updated org unit with a new org unit name from the (in the req) given date
     """
 
-    assert util.now() <= util.parsedate(req['valid-from'])
     # TODO: add more asserts (see pre-conditions above)
 
-    # Get the current org unit and update this
-    org_unit = lora.organisationenhed(uuid=req['uuid'])[0]['registreringer'][-1]
+    unitid = req['uuid']
+    date = req['valid-from']
+    obj_path = ['attributter', 'organisationenhedegenskaber']
+    props = {'enhedsnavn': req['name']}
 
-    organisationsegenskaber = org_unit['attributter']['organisationenhedegenskaber']
-    assert len(organisationsegenskaber) == 1
+    return _update_object(unitid, date, obj_path, props)
+
+
+def _update_object(unitid: str, date: str, obj_path: list, props: dict) -> dict:
+
+    assert util.now() <= util.parsedate(date)
+
+    # Get the current org unit and update this
+    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+
+    obj = org_unit
+    while obj_path:
+        obj = obj[obj_path.pop(0)]
+
+    assert len(obj) == 1
 
     # Create current end new virkning: [----- name1 -----)[----- name2 ----->
     # Time: |----------------------------now-------------------------------->
 
-    current_virkning = _create_virkning(
-        organisationsegenskaber[0]['virkning']['from'], req['valid-from'])
-    new_virkning = _create_virkning(req['valid-from'], 'infinity')
+    current_virkning = _create_virkning(obj[0]['virkning']['from'], date)
+    new_virkning = _create_virkning(date, 'infinity')
 
     # Modify the old virkning
-    organisationsegenskaber[0]['virkning'] = current_virkning
+    obj[0]['virkning'] = current_virkning
 
-    # Set the new org unit name and the new virkning
-    new_organisationsegenskab = organisationsegenskaber[0].copy()
-    new_organisationsegenskab['enhedsnavn'] = req['name']
-    new_organisationsegenskab['virkning'] = new_virkning
-    organisationsegenskaber.append(new_organisationsegenskab)
+    # Set the new properties and the new virkning
+    new_obj = obj[0].copy()
+    for key, value in props.items():
+        new_obj[key] = value
+    new_obj['virkning'] = new_virkning
+    obj.append(new_obj)
 
     return org_unit
+
