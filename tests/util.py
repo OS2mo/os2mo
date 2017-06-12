@@ -130,11 +130,12 @@ class LoRATestCase(flask_testing.TestCase):
         while select.select((self.minimox.stdout,), (), (), 0)[0]:
             print(self.minimox.stdout.readline(), end='')
 
-    def assertRequestResponse(self, path, expected):
+    def assertRequestResponse(self, path, expected, message=None):
         r = self.client.get(path)
 
-        self.assertEqual(r.status_code, 200)
-        self.assertEqual(expected, r.json)
+        self.assertLess(r.status_code, 300, message)
+        self.assertGreaterEqual(r.status_code, 200, message)
+        self.assertEqual(expected, r.json, message)
 
 
 if __name__ == '__main__':
