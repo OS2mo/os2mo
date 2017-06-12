@@ -34,12 +34,16 @@ def load_cli(app):
     @click.option('--failfast/--no-failfast', '-f', default=False)
     @click.option('--buffer/--no-buffer', '-b/-B', default=True)
     @click.option('--minimox-dir')
+    @click.option('--browser')
     @click.argument('tests', nargs=-1)
-    def test(tests, quiet, verbose, failfast, buffer, minimox_dir):
+    def test(tests, quiet, verbose, failfast, buffer, minimox_dir, browser):
         verbosity = 0 if quiet else verbose + 1
 
         if minimox_dir:
             os.environ['MINIMOX_DIR'] = minimox_dir
+
+        if browser:
+            os.environ['BROWSER'] = browser
 
         loader = unittest.TestLoader()
 
