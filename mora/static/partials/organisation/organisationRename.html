@@ -101,8 +101,8 @@
              <div class="col-md-4 col-sm-4"> 
               <div class="inline-cal"> 
                <label class="control-label input-sm pull-left">{{i18n['stop-dato_label']}}</label> 
-               <input type="text" class="form-control input-sm pull-left" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="orgStopRenameDate" name="orgStopRenameDate" close-text="Close" show-weeks="false" is-open="openedEnd" ng-blur="dateSelect('orgStopRenameDate')" ng-focus="dateSelect('orgStopRenameDate')" ui-keydown="{'enter':'dateSelect(\'orgStopRenameDate\')'}" id="orgStopRenameDate" placeholder="{{sysService.dateFormat.placeholder}}" tabindex="2"> 
-               <span class="input-group-btn pull-left"> <button type="button" class="btn btn-default btn-sm cal" ng-click="open($event, 'openedEnd')"><i class="glyphicon glyphicon-calendar"></i></button> </span> 
+               <input type="text" class="form-control input-sm pull-left" ng-disabled="true" datepicker-popup="{{sysService.dateFormat.format}}" ng-model="orgStopRenameDate" name="orgStopRenameDate" close-text="Close" show-weeks="false" is-open="openedEnd" ng-blur="dateSelect('orgStopRenameDate')" ng-focus="dateSelect('orgStopRenameDate')" ui-keydown="{'enter':'dateSelect(\'orgStopRenameDate\')'}" id="orgStopRenameDate" placeholder="{{sysService.dateFormat.placeholder}}" tabindex="2">
+               <span class="input-group-btn pull-left"> <button type="button" class="btn btn-default btn-sm cal" ng-disabled="true" ng-click="open($event, 'openedEnd')"><i class="glyphicon glyphicon-calendar"></i></button> </span>
               </div> 
              </div> 
              <div class="col-md-4 col-sm-4"></div> 
