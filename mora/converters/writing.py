@@ -82,9 +82,9 @@ def create_org_unit(req: dict) -> dict:
     """
 
     # Create virkning
-    virkning = _create_virkning(req.get('valid-from', '-infinity'),
-                                req.get('valid-to', 'infinity'))
-    # TODO: need test to catch the +/-infinity case in TestCreateOrgUnit class
+    # NOTE: 'to' date is always infinity here but if the 'valid-to' is set in
+    # the frontend request, the org unit will be inactivated below
+    virkning = _create_virkning(req.get('valid-from', '-infinity'), 'infinity')
 
     nullrelation = [{
         'virkning': virkning,

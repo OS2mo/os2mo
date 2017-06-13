@@ -6,8 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from mora.converters import writing
 import unittest
+from mora.converters import writing
 
 
 class TestCreateOrgUnit(unittest.TestCase):
@@ -56,7 +56,6 @@ class TestCreateOrgUnit(unittest.TestCase):
                 'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9'
             },
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
-            'valid-to': '30-11-2018',
             'user-key': 'NULL'
         }
 
@@ -69,7 +68,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
 
@@ -83,7 +82,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     },
@@ -96,7 +95,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
 
@@ -106,7 +105,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     },
@@ -117,7 +116,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     }
@@ -128,7 +127,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     }
@@ -139,7 +138,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     }
@@ -200,7 +199,6 @@ class TestCreateOrgUnit(unittest.TestCase):
                 'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9'
             },
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
-            'valid-to': '30-11-2018',
             'user-key': 'NULL'
         }
 
@@ -213,7 +211,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
 
@@ -227,7 +225,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     },
@@ -240,7 +238,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
 
@@ -250,7 +248,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     },
@@ -259,7 +257,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     },
@@ -271,7 +269,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     }
@@ -282,7 +280,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     }
@@ -293,7 +291,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'to': '2018-11-30T00:00:00+01:00',
+                            'to': 'infinity',
                             'to_included': False,
                         },
                     }
@@ -342,8 +340,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                 ]
             }
         }
-        self.assertEqual(writing._extend_current_virkning(input_obj, self.virkning),
-                         output_obj,
-                         'New org unit props not added correctly')
-
-
+        self.assertEqual(
+            writing._extend_current_virkning(input_obj, self.virkning),
+            output_obj,
+            'New org unit props not added correctly')

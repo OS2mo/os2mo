@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import functools
 import operator
 import os
 import requests
@@ -19,7 +18,6 @@ from . import cli
 from . import lora
 from . import util
 from .converters import writing
-
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -105,6 +103,13 @@ def create_organisation_unit(orgid):
     req = flask.request.get_json()
     org_unit = writing.create_org_unit(req)
     uuid = lora.create('organisation/organisationenhed', org_unit)
+
+    # If an end date is set for the org unit, inactivate it automatically
+    # from this date
+    if 'valid-to' in req:
+        org_unit = writing.inactivate_org_unit(uuid, req['valid-to'])
+        lora.update('organisation/organisationenhed/%s' % uuid, org_unit)
+
     return flask.jsonify({'uuid': uuid}), 201
 
 

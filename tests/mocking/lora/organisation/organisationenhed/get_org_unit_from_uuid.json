@@ -1,0 +1,95 @@
+{
+  "results": [
+    [
+      {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "registreringer": [
+          {
+            "tilstande": {
+              "organisationenhedgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  }
+                }
+              ]
+            },
+            "relationer": {
+              "tilhoerer": [
+                {
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  },
+                  "uuid": "59141156-ed0b-457c-9535-884447c5220b"
+                }
+              ],
+              "enhedstype": [
+                {
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  },
+                  "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+                }
+              ],
+              "adresser": [
+                {
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  },
+                  "uuid": "98001816-a7cc-4115-a9e6-2c5c06c79e5d"
+                },
+                {
+                  "urn": "urn:magenta.dk:telefon:12345678",
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  }
+                }
+              ],
+              "overordnet": [
+                {
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  },
+                  "uuid": "b2ec5a54-0713-43f8-91f2-e4fd8b9376bc"
+                }
+              ]
+            },
+            "attributter": {
+              "organisationenhedegenskaber": [
+                {
+                  "virkning": {
+                    "from": "2017-05-08T00:00:00+0200",
+                    "to": "infinity",
+                    "to_included": false,
+                    "from_included": true
+                  },
+                  "brugervendtnoegle": "NyEnhed",
+                  "enhedsnavn": "NyEnhed"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}
