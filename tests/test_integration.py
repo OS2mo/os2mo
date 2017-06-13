@@ -182,30 +182,7 @@ class IntegrationTests(util.LoRATestCase):
             'treeType=specific&orgUnitId=2874e1dc-85e6-4269-823a-e1125484dfd3',
             [
                 {
-                    'children': [
-                        {
-                            'children': [],
-                            'hasChildren': False,
-                            'name': 'Filosofisk Institut',
-                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'user-key': 'fil',
-                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                            'valid-from': '2017-01-01 12:00:00+01',
-                            'valid-to': 'infinity',
-                        },
-                        {
-                            'children': [],
-                            'hasChildren': True,
-                            'name': 'Historisk Institut',
-                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'user-key': 'hist',
-                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                            'valid-from': '2017-01-01 12:00:00+01',
-                            'valid-to': 'infinity',
-                        }
-                    ],
+                    'children': [],
                     'hasChildren': True,
                     'name': 'Humanistisk fakultet',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
@@ -228,8 +205,10 @@ class IntegrationTests(util.LoRATestCase):
                 }
             ]
         )
-        print(self.client.get('/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
-            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/').json)
+
+    def test_org_units(self):
+        self.load_sample_structures()
+
         self.assertRequestResponse(
             '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
@@ -241,11 +220,12 @@ class IntegrationTests(util.LoRATestCase):
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'parent-object': {
-                        'children': [],
+                        'activeName': 'Overordnet Enhed',
                         'hasChildren': True,
                         'name': 'Overordnet Enhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': None,
+                        'parent-object': None,
                         'user-key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                         'valid-from': '2017-01-01 12:00:00+01',
@@ -257,4 +237,59 @@ class IntegrationTests(util.LoRATestCase):
                     'valid-to': 'infinity',
                 }
             ]
+        )
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '04c78fc2-72d2-4d02-b55f-807af19eac48/',
+            [
+                {
+                    'activeName': 'Afdeling for Fremtidshistorik',
+                    'hasChildren': False,
+                    'name': 'Afdeling for Fremtidshistorik',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'parent-object': {
+                        'activeName': 'Historisk Institut',
+                        'hasChildren': True,
+                        'name': 'Historisk Institut',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'parent-object': {
+                            'activeName': 'Humanistisk fakultet',
+                            'hasChildren': True,
+                            'name': 'Humanistisk fakultet',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'parent-object': {
+                                'activeName': 'Overordnet '
+                                'Enhed',
+                                'hasChildren': True,
+                                'name': 'Overordnet '
+                                'Enhed',
+                                'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                                'parent': None,
+                                'parent-object': None,
+                                'user-key': 'root',
+                                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                                'valid-from': '2017-01-01 '
+                                '12:00:00+01',
+                                'valid-to': 'infinity',
+                            },
+                            'user-key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'valid-from': '2017-01-01 12:00:00+01',
+                            'valid-to': 'infinity',
+                        },
+                        'user-key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-to': 'infinity',
+                    },
+                    'user-key': 'frem',
+                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-to': 'infinity',
+                },
+            ],
         )
