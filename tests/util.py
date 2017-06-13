@@ -66,6 +66,7 @@ def load_sample_structures():
         'root': '2874e1dc-85e6-4269-823a-e1125484dfd3',
         'fil': '85715fc7-925d-401b-822d-467eb4b163b6',
         'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+        'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
     }.items():
         load_fixture(
             'organisation/organisationenhed',
@@ -131,6 +132,8 @@ class LoRATestCase(flask_testing.TestCase):
             print(self.minimox.stdout.readline(), end='')
 
     def assertRequestResponse(self, path, expected, message=None):
+        message = message or 'request {!r} failed'.format(path)
+
         r = self.client.get(path)
 
         self.assertLess(r.status_code, 300, message)
