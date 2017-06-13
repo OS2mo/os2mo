@@ -6,9 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import mora.lora as lora
-import mora.util as util
-from pprint import pprint
+from .. import lora
+from .. import util
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
