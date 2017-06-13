@@ -33,6 +33,7 @@ SKIP_LIST = {
 }
 
 SKIP_DIRS = {
+    'sandbox',
     'node_modules',
     'bower_components',
 }
