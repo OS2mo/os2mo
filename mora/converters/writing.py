@@ -9,6 +9,8 @@
 from .. import lora
 from .. import util
 
+import json
+from pprint import pprint
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
@@ -225,3 +227,25 @@ def _update_object(unitid: str, date: str, obj_path: list, props: dict) -> dict:
 
     return org_unit
 
+
+# ---- Handling of role types ---- #
+
+# Role type contact channel
+
+def _extend_contact_channel_adresses(org_unit: dict,
+                                     contact_channels: list) -> dict:
+
+    addresses = org_unit['relationer']['adresser']
+
+    # TODO: handle empty relation
+    # TODO: not handled if the user add an already existing channel
+    
+    addresses.extend([
+        {
+            'urn': info['type']['prefix'] + info['contact-info'],
+            'virkning': _create_virkning(info['valid-from'], info['valid-to']),
+        }
+        for info in contact_channels
+    ])
+
+    return addresses
