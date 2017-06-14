@@ -141,8 +141,6 @@ class LoRATestCase(flask_testing.TestCase):
         # wait for the process to launch and print out its 'Listening...' line
         cls.minimox.stdout.readline()
 
-        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
-
     @classmethod
     def tearDownClass(cls):
         # first, we're cleaning up now, so clear the exit handler
@@ -155,6 +153,11 @@ class LoRATestCase(flask_testing.TestCase):
         print(cls.minimox.stdout.read())
 
         lora.LORA_URL = cls._orig_lora
+
+    def setUp(self):
+        super().setUp()
+
+        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
 
     def tearDown(self):
         # delete all objects in the test instance; this does 'leak'
