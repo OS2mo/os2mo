@@ -29,14 +29,25 @@ def load_cli(app):
                    ([command] if command else []), cwd=base_dir)
 
     @app.cli.command(with_appcontext=False)
-    @click.option('--verbose', '-v', count=True)
-    @click.option('--quiet', '-q', is_flag=True)
-    @click.option('--failfast/--no-failfast', '-f', default=False)
-    @click.option('--buffer/--no-buffer', '-b/-B', default=True)
-    @click.option('--minimox-dir')
-    @click.option('--browser')
+    @click.option('--verbose', '-v', count=True,
+                  help='Show more output.')
+    @click.option('--quiet', '-q', is_flag=True,
+                  help='Suppress all output.')
+    @click.option('--failfast/--no-failfast', '-f',
+                  default=False, show_default=True,
+                  help='Stop at first failure.')
+    @click.option('--buffer/--no-buffer', '-b/-B',
+                  default=True, show_default=True,
+                  help='Toggle buffering of standard output during runs.')
+    @click.option('--minimox-dir', help='Location for a checkout of the '
+                  'minimox branch of LoRA.')
+    @click.option('--browser', help='Specify browser for Selenium tests, '
+                  'e.g. "Safari", "Firefox" or "Chrome".')
+    @click.option('--list', '-l', is_flag=True,
+                  help='List all available tests')
     @click.argument('tests', nargs=-1)
-    def test(tests, quiet, verbose, failfast, buffer, minimox_dir, browser):
+    def test(tests, quiet, verbose, failfast, buffer, minimox_dir, browser,
+             list):
         verbosity = 0 if quiet else verbose + 1
 
         if minimox_dir:
@@ -54,6 +65,22 @@ def load_cli(app):
                 start_dir=os.path.join(basedir, '..', 'tests'),
                 top_level_dir=os.path.join(basedir, '..'),
             )
+
+        if list:
+            def expand_suite(suite):
+                for member in suite:
+                    if isinstance(member, unittest.TestSuite):
+                        yield from expand_suite(member)
+                    else:
+                        yield member
+
+            for case in expand_suite(suite):
+                if verbose:
+                    print(case)
+                elif not quiet:
+                    print(case.id())
+
+            return
 
         runner = unittest.TextTestRunner(verbosity=verbosity, buffer=buffer)
         runner.run(suite)
