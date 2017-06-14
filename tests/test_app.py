@@ -5,23 +5,13 @@ import requests_mock
 
 import mora.app as mora
 from mora import lora
-
-
-def _jsonfile_to_dict(path):
-    """
-    Reads JSON from resources folder and converts to Python dictionary
-    :param path: path to json resource 
-    :return: dictionary corresponding to the resource JSON
-    """
-    with open(path) as f:
-        return json.load(f)
-
+from tests.util import jsonfile_to_dict
 
 class MoraTestCase(unittest.TestCase):
     def setUp(self):
         mora.app.config['TESTING'] = True
         self.app = mora.app.test_client()
-        self.lora_urls = _jsonfile_to_dict('tests/mocking/lora/url_map.json')
+        self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
 
     def _request(self, url):
         """
@@ -119,7 +109,7 @@ class MoraTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_list_classes(self, mock):
-        lora_klasse_response = _jsonfile_to_dict(
+        lora_klasse_response = jsonfile_to_dict(
             'tests/mocking/lora/klassifikation/klasse/get_klasse_from_uuidx2.json')
         mock.get(self._get_lora_url('klassifikation_klasse_bvn'), json={
             'results': [
@@ -132,7 +122,7 @@ class MoraTestCase(unittest.TestCase):
                  )
         mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'), json=lora_klasse_response)
 
-        expected_response = _jsonfile_to_dict('tests/mocking/mo/list_classes.json')
+        expected_response = jsonfile_to_dict('tests/mocking/mo/list_classes.json')
         actual_response = self._request('/org-unit/type')
 
         self.assertEqual(actual_response, expected_response, 'Hurra')
@@ -143,12 +133,12 @@ class TestCreateOrgUnit(unittest.TestCase):
     def setUp(self):
         mora.app.config['TESTING'] = True
         self.app = mora.app.test_client()
-        self.lora_urls = _jsonfile_to_dict('tests/mocking/lora/url_map.json')
+        self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
 
     @requests_mock.mock()
     def test_create_organisation_unit_with_end_date_infinity(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
-        frontend_req = _jsonfile_to_dict('tests/mocking/mo/create_org_unit.json')
+        frontend_req = jsonfile_to_dict('tests/mocking/mo/create_org_unit.json')
         mock.post(lora.LORA_URL + 'organisation/organisationenhed',
                   json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
@@ -161,12 +151,12 @@ class TestCreateOrgUnit(unittest.TestCase):
     @requests_mock.mock()
     def test_create_organisation_unit_with_specific_end_date(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
-        frontend_req = _jsonfile_to_dict(
+        frontend_req = jsonfile_to_dict(
             'tests/mocking/mo/create_org_unit_specific_enddate.json')
         mock.post(lora.LORA_URL + 'organisation/organisationenhed',
                   json=expected_response)
         mock.get('http://mox/organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
-                 json=_jsonfile_to_dict('tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
+                 json=jsonfile_to_dict('tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
         mock.put('http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
                  json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
