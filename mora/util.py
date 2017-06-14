@@ -7,7 +7,9 @@
 #
 
 import datetime
+import functools
 
+import flask
 import pytz
 import tzlocal
 
@@ -50,3 +52,35 @@ def reparsedate(s):
 
 def now():
     return datetime.datetime.now(pytz.UTC)
+
+
+def restrictargs(*values):
+    argset = frozenset(values)
+
+    def wrap(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            invalidargs = {
+                k for k, v in flask.request.args.items()
+                if v and k not in argset
+            }
+
+            if invalidargs:
+                msg = (
+                    'Unsupported request arguments: {}\n'
+                    'Allowed: {}\n'
+                    'Given: {}'.format(
+                        ', '.join(sorted(invalidargs)),
+                        ', '.join(sorted(argset)),
+                        ', '.join(sorted(flask.request.args)),
+                    )
+
+                flask.current_app.logger.error(msg)
+
+                return msg, 501
+
+            return f(*args, **kwargs)
+
+        return wrapper
+
+    return wrap
