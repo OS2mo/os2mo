@@ -6,9 +6,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import freezegun
-import mora.util as util
 import unittest
+
+import flask
+import freezegun
+
+from mora import util
 
 
 class TestUtils(unittest.TestCase):
@@ -31,3 +34,28 @@ class TestUtils(unittest.TestCase):
 
     def test_should_reparse_None_to_infinity(self):
         self.assertEqual(util.reparsedate(None), 'infinity', 'Error when pasring empty date')
+
+class TestAppUtils(unittest.TestCase):
+    def test_restrictargs(self):
+        app = flask.Flask(__name__)
+
+        @app.route('/')
+        @util.restrictargs('hest')
+        def root():
+            return 'Hest!'
+
+        client = app.test_client()
+
+        with app.app_context():
+            self.assertEquals(client.get('/').status,
+                              '200 OK')
+            self.assertEquals(client.get('/?hest=').status,
+                              '200 OK')
+            self.assertEquals(client.get('/?hest=42').status,
+                              '200 OK')
+            self.assertEquals(client.get('/?HeSt=42').status,
+                              '200 OK')
+            self.assertEquals(client.get('/?fest=').status,
+                              '200 OK')
+            self.assertEquals(client.get('/?fest=42').status,
+                              '501 NOT IMPLEMENTED')
