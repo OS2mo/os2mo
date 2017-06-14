@@ -54,7 +54,13 @@ def now():
     return datetime.datetime.now(pytz.UTC)
 
 
-def restrictargs(*values):
+def restrictargs(*values: typing.List[str]):
+    '''Function decorator for checking and verifying Flask request arguments
+
+    If any argument other than those listed is set and has a value,
+    the function logs an error and return HTTP 501.
+
+    '''
     argset = frozenset(values)
 
     def wrap(f):
@@ -62,7 +68,7 @@ def restrictargs(*values):
         def wrapper(*args, **kwargs):
             invalidargs = {
                 k for k, v in flask.request.args.items()
-                if v and k not in argset
+                if v and k.lower() not in argset
             }
 
             if invalidargs:
