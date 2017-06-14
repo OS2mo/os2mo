@@ -27,7 +27,7 @@ FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
 def jsonfile_to_dict(path):
     """
     Reads JSON from resources folder and converts to Python dictionary
-    :param path: path to json resource 
+    :param path: path to json resource
     :return: dictionary corresponding to the resource JSON
     """
     with open(path) as f:

@@ -239,7 +239,7 @@ def _extend_contact_channel_adresses(org_unit: dict,
 
     # TODO: handle empty relation
     # TODO: not handled if the user add an already existing channel
-    
+
     addresses.extend([
         {
             'urn': info['type']['prefix'] + info['contact-info'],

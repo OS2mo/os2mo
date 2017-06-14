@@ -13,7 +13,6 @@ import flask
 import pytz
 import tzlocal
 
-
 DATE_PARSERS = (
     # DD/MM/YY w/o time -- sent by the frontend
     lambda s: tzlocal.get_localzone().localize(

@@ -14,10 +14,11 @@ class TestExtendContactChannels(unittest.TestCase):
             'tests/mocking/mo/org_unit_registrering_virkning_infinity.json')
 
     def test_should_add_zero_contact_channels_correctly(self):
-        self.assertEqual(self.org_unit['relationer']['adresser'].copy(),
-                         writing._extend_contact_channel_adresses(self.org_unit,
-                                                                  []),
-                         'Extending incorrectly with an empty list of channels')
+        self.assertEqual(
+            self.org_unit['relationer']['adresser'].copy(),
+            writing._extend_contact_channel_adresses(self.org_unit,
+                                                     []),
+            'Extending incorrectly with an empty list of channels')
 
     def test_should_add_two_contact_channels_correctly(self):
         contact_channels = [
