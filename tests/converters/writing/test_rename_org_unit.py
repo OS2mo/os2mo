@@ -10,8 +10,9 @@ import freezegun
 import requests_mock
 import unittest
 
-from mora.converters import writing
+from mora import lora
 
+from mora.converters import writing
 
 class TestRenameOrgUnit(unittest.TestCase):
     maxDiff = None
@@ -152,7 +153,7 @@ class TestRenameOrgUnit(unittest.TestCase):
                 ]
             ]
         }
-        mock.get('http://mox/organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+        mock.get(lora.LORA_URL + 'organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
                  json=lora_response)
         expected_output = {
             'results': [
