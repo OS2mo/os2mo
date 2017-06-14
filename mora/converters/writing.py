@@ -12,6 +12,7 @@ from .. import util
 import json
 from pprint import pprint
 
+
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object
@@ -128,7 +129,7 @@ def create_org_unit(req: dict) -> dict:
                             for location in req.get('locations', [])
                             for channel in location.get('contact-channels', [])
                         ] or nullrelation,
-        # TODO: will "... or nullrelation" ever happen? (no test for this yet...)
+            # TODO: will "... or nullrelation" ever happen? (no test for this yet...)
             'tilhoerer': [
                 {
                     'uuid': req['org'],
@@ -151,7 +152,6 @@ def create_org_unit(req: dict) -> dict:
 
 
 def inactivate_org_unit(unitid: str, date: str) -> dict:
-
     # TODO: add doc string
 
     obj_path = ['tilstande', 'organisationenhedgyldighed']
@@ -197,7 +197,6 @@ def rename_org_unit(req: dict) -> dict:
 
 
 def _update_object(unitid: str, date: str, obj_path: list, props: dict) -> dict:
-
     assert util.now() <= util.parsedate(date)
 
     # Get the current org unit and update this
@@ -231,10 +230,8 @@ def _update_object(unitid: str, date: str, obj_path: list, props: dict) -> dict:
 # ---- Handling of role types ---- #
 
 # Role type contact channel
-
-def _extend_contact_channel_adresses(org_unit: dict,
-                                     contact_channels: list) -> dict:
-
+def _extend_addresses_with_contact_channels(org_unit: dict,
+                                            contact_channels: list) -> dict:
     addresses = org_unit['relationer']['adresser']
 
     # TODO: handle empty relation
@@ -247,5 +244,38 @@ def _extend_contact_channel_adresses(org_unit: dict,
         }
         for info in contact_channels
     ])
+
+    return addresses
+
+
+# Role type location
+def _update_existing_address(org_unit: dict,
+                             unitid: str,
+                             location: dict,
+                             From: str,
+                             to: str) -> dict:
+    """
+    Used to update an already existing address
+    :param org_unit: the org unit to update
+    :param unitid: the address UUID to update
+    :param location: location JSON given by the frontend 
+    :param From: the start date
+    :param to: the end date
+    :return: the updated list of addresses
+    """
+
+    # Note: the frontend makes a call for each location it wants to update
+
+    assert location
+
+    pprint(org_unit['relationer']['adresser'])
+
+    addresses = [
+        addr if addr.get('uuid') != unitid else {
+            'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
+            'virkning': _create_virkning(From, to),
+        }
+        for addr in org_unit['relationer']['adresser']
+    ]
 
     return addresses

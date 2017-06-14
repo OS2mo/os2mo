@@ -7,6 +7,7 @@ import mora.app as mora
 from mora import lora
 from tests.util import jsonfile_to_dict
 
+
 class MoraTestCase(unittest.TestCase):
     def setUp(self):
         mora.app.config['TESTING'] = True
