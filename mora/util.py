@@ -74,6 +74,7 @@ def restrictargs(*values):
                         ', '.join(sorted(argset)),
                         ', '.join(sorted(flask.request.args)),
                     )
+                )
 
                 flask.current_app.logger.error(msg)
 
