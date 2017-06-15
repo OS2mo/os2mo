@@ -10,9 +10,6 @@ from .. import lora
 from .. import util
 from .. import exceptions
 
-import json
-from pprint import pprint
-
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """Adds virkning to the "leafs" of the given LoRa JSON (tree) object
