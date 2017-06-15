@@ -3,15 +3,15 @@ import unittest
 
 import requests_mock
 
-import mora.app as mora
+from mora import app
 from mora import lora
 from tests.util import jsonfile_to_dict
 
 
 class MoraTestCase(unittest.TestCase):
     def setUp(self):
-        mora.app.config['TESTING'] = True
-        self.app = mora.app.test_client()
+        app.app.config['TESTING'] = True
+        self.app = app.app.test_client()
         self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
 
     def _request(self, url):
@@ -132,8 +132,8 @@ class MoraTestCase(unittest.TestCase):
 class TestCreateOrgUnit(unittest.TestCase):
 
     def setUp(self):
-        mora.app.config['TESTING'] = True
-        self.app = mora.app.test_client()
+        app.app.config['TESTING'] = True
+        self.app = app.app.test_client()
         self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
 
     @requests_mock.mock()
@@ -156,9 +156,9 @@ class TestCreateOrgUnit(unittest.TestCase):
             'tests/mocking/mo/create_org_unit_specific_enddate.json')
         mock.post(lora.LORA_URL + 'organisation/organisationenhed',
                   json=expected_response)
-        mock.get('http://mox/organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
+        mock.get(lora.LORA_URL + 'organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
                  json=jsonfile_to_dict('tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
-        mock.put('http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+        mock.put(lora.LORA_URL + 'organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
                  json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
                           data=json.dumps(frontend_req),
@@ -172,8 +172,8 @@ class TestRenameOrgUnit(unittest.TestCase):
     # TODO: move JSON requests/responses into tests/mocking (JSON below also used in test_create_org_unit.py)
 
     def setUp(self):
-        mora.app.config['TESTING'] = True
-        self.app = mora.app.test_client()
+        app.app.config['TESTING'] = True
+        self.app = app.app.test_client()
 
     @requests_mock.mock()
     def test_should_rename_org_unit_correctly(self, mock):
@@ -303,9 +303,9 @@ class TestRenameOrgUnit(unittest.TestCase):
                 ]
             ]
         }
-        mock.get('http://mox/organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+        mock.get(lora.LORA_URL + 'organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
                  json=lora_response)
-        mock.put('http://mox/organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+        mock.put(lora.LORA_URL + 'organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
                  json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit/' + frontend_req['uuid'] + '?rename=true',
                           data=json.dumps(frontend_req),

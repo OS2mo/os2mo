@@ -141,8 +141,6 @@ class LoRATestCase(flask_testing.TestCase):
         # wait for the process to launch and print out its 'Listening...' line
         cls.minimox.stdout.readline()
 
-        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
-
     @classmethod
     def tearDownClass(cls):
         # first, we're cleaning up now, so clear the exit handler
@@ -156,7 +154,18 @@ class LoRATestCase(flask_testing.TestCase):
 
         lora.LORA_URL = cls._orig_lora
 
+    def setUp(self):
+        super().setUp()
+
+        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
+
     def tearDown(self):
+        # our test-runner enforces buffering of stdout, so we can
+        # safely print out the process output; this ensures any
+        # exceptions, etc. get reported to the user/test-runner
+        while select.select((self.minimox.stdout,), (), (), 0)[0]:
+            print(self.minimox.stdout.readline(), end='')
+
         # delete all objects in the test instance; this does 'leak'
         # information in that they continue to exist as registrations,
         # but it's faster than recreating the database fully
@@ -164,11 +173,10 @@ class LoRATestCase(flask_testing.TestCase):
             for objid in t(bvn='%'):
                 t.delete(objid)
 
-        # our test-runner enforces buffering of stdout, so we can
-        # safely print out the process output; this ensures any
-        # exceptions, etc. get reported to the user/test-runner
         while select.select((self.minimox.stdout,), (), (), 0)[0]:
-            print(self.minimox.stdout.readline(), end='')
+            self.minimox.stdout.readline()
+
+        super().tearDown()
 
     def assertRequestResponse(self, path, expected, message=None):
         '''Issue a request and assert that it succeeds (and does not

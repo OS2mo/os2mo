@@ -14,11 +14,13 @@ from pprint import pprint
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
-    """
-    Adds virkning to the "leafs" of the given LoRa JSON (tree) object
-    :param lora_obj: a LoRa object with or without virkning. All virknings that are already set will be changed
+    """Adds virkning to the "leafs" of the given LoRa JSON (tree) object
+
+    :param lora_obj: a LoRa object with or without virkning. All
+                     virknings that are already set will be changed
     :param virkning: the virkning to set in the LoRa object
     :return: the LoRa object with the new virkning
+
     """
     for k, v in lora_obj.items():
         if isinstance(v, dict):
@@ -51,16 +53,20 @@ def _create_virkning(From: str, to: str, from_included=True,
 
 def _extend_current_virkning(lora_registrering_obj: dict,
                              virkning: dict) -> dict:
-    """
-    Extend the elements in a given LoRa "registrering" object to also apply during the new "virkning" 
-    :param lora_registrering_obj: a LoRa "registrering" object (pre-condition: must only contain data for present date)
+    """Extend the elements in a given LoRa "registrering" object to also
+    apply during the new "virkning"
+
+    :param lora_registrering_obj: a LoRa "registrering" object
+                                  (pre-condition: must only contain data for
+                                  present date)
     :param virkning: the new "virkning" to apply
     :return: a LoRa "registrering" object extended with the given "virkning"
+
     """
 
-    # TODO: Quick and dirty to make things work...
-    # TODO: refactor common functionality in this function and _add_virkning into separate function (or make class)
-    # TODO: add (more) test cases!!!
+    # TODO: Quick and dirty to make things work... refactor
+    # common functionality in this function and _add_virkning into
+    # separate function (or make class) and add (more) test cases!!!
 
     for k, v in lora_registrering_obj.items():
         if isinstance(v, dict):
@@ -78,10 +84,12 @@ def _extend_current_virkning(lora_registrering_obj: dict,
 
 
 def create_org_unit(req: dict) -> dict:
-    """
-    Create org unit data to send to LoRa
-    :param : Dictionary representation of JSON request from the frontend 
-    :return: Dictionary representation of the org unit JSON object to send to LoRa
+    """Create org unit data to send to LoRa
+
+    :param : Dictionary representation of JSON request from the frontend
+    :return: Dictionary representation of the org unit JSON object to send to
+             LoRa
+
     """
 
     # Create virkning
@@ -117,8 +125,11 @@ def create_org_unit(req: dict) -> dict:
                                 'uuid': location['location'][
                                     'UUID_EnhedsAdresse'],
                             }
-                            # TODO: will we ever have more than one location? (multiple locations not tested)
-                            # TODO: (however, multible contact channels are tested)
+
+                            # TODO: will we ever have more than one location?
+                            # (multiple locations not tested) (however,
+                            # multiple contact channels are tested)
+
                             for location in req.get('locations', [])
                         ] + [
                             {
@@ -129,7 +140,8 @@ def create_org_unit(req: dict) -> dict:
                             for location in req.get('locations', [])
                             for channel in location.get('contact-channels', [])
                         ] or nullrelation,
-            # TODO: will "... or nullrelation" ever happen? (no test for this yet...)
+            # TODO: will "... or nullrelation" ever happen?
+            # (no test for this yet...)
             'tilhoerer': [
                 {
                     'uuid': req['org'],
@@ -165,7 +177,7 @@ def move_org_unit(req: dict, unitid: str) -> dict:
     Move an org unit to a new parent unit
     :param req: the JSON reqeust from the frontend
     :param unitid: the UUID of the org unit to move
-    :return: the updated org unit with a new parent unit given in the req 
+    :return: the updated org unit with a new parent unit given in the req
     """
 
     # TODO: add more asserts
@@ -178,12 +190,18 @@ def move_org_unit(req: dict, unitid: str) -> dict:
 
 
 def rename_org_unit(req: dict) -> dict:
-    """
-    Rename an org unit.
-    Pre-condition: all virknings in the given org unit must have 'to' set to infinity
-    Pre-condition: the current time must be small than or equal to the date, where the renaming should take effect
+    """Rename an org unit.
+
+    Pre-condition: all virknings in the given org unit must have 'to'
+    set to infinity.
+
+    Pre-condition: the current time must be small than or equal to the
+    date, where the renaming should take effect.
+
     :param req: the JSON request sent from the frontend
-    :return: the updated org unit with a new org unit name from the (in the req) given date
+    :return: the updated org unit with a new org unit name from the
+             (in the req) given date
+
     """
 
     # TODO: add more asserts (see pre-conditions above)
@@ -196,7 +214,9 @@ def rename_org_unit(req: dict) -> dict:
     return _update_object(unitid, date, obj_path, props)
 
 
-def _update_object(unitid: str, date: str, obj_path: list, props: dict) -> dict:
+def _update_object(unitid: str, date: str, obj_path: list,
+                   props: dict) -> dict:
+
     assert util.now() <= util.parsedate(date)
 
     # Get the current org unit and update this
@@ -258,7 +278,7 @@ def _update_existing_address(org_unit: dict,
     Used to update an already existing address
     :param org_unit: the org unit to update
     :param unitid: the address UUID to update
-    :param location: location JSON given by the frontend 
+    :param location: location JSON given by the frontend
     :param From: the start date
     :param to: the end date
     :return: the updated list of addresses
