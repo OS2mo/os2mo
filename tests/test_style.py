@@ -8,6 +8,7 @@
 
 import contextlib
 import io
+import itertools
 import os
 import unittest
 
@@ -66,17 +67,37 @@ class CodeStyleTests(unittest.TestCase):
                 elif fn.endswith('.py'):
                     yield os.path.relpath(fp)
 
+    def test_license_headers(self):
+        'Test that all Python source files begin with our license header'
+
+        with open(__file__) as fp:
+            header = ''.join(itertools.takewhile((lambda l: l.startswith('#')),
+                                                 fp))
+
+        missing = []
+
+        for fn in self.source_files:
+            with open(fn) as fp:
+                text = fp.read()
+
+                # no need to assert our rights to empty files...
+                if text and header not in text:
+                    missing.append(fn)
+
+        self.assertEqual(missing, [], 'files missing license header!')
+
     def test_style(self):
         'Test that all Python source files pass the style check'
         style = pycodestyle.StyleGuide()
         style.init_report(pycodestyle.StandardReport)
 
         for fn in self.source_files:
+            if os.path.relpath(fn, util.BASE_DIR) in SKIP_LIST:
+                continue
+
             # a subtest ensure we report each invalid file
             # independently, yet report all files in each run
             with self.subTest(fn):
-                if os.path.relpath(fn, util.BASE_DIR) in SKIP_LIST:
-                    self.skipTest(fn)
 
                 buf = io.StringIO()
 
