@@ -17,8 +17,8 @@ class TestExtendAddressesWithContactChannels(unittest.TestCase):
     def test_should_add_zero_contact_channels_correctly(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._extend_addresses_with_contact_channels(self.org_unit,
-                                                            []),
+            writing._add_contact_channels(self.org_unit,
+                                          []),
             'Extending incorrectly with an empty list of channels')
 
     @freezegun.freeze_time(tz_offset=2)
@@ -77,12 +77,12 @@ class TestExtendAddressesWithContactChannels(unittest.TestCase):
                                    'to_included': False}}]
         self.assertEqual(
             addresses,
-            writing._extend_addresses_with_contact_channels(self.org_unit,
-                                                            contact_channels),
+            writing._add_contact_channels(self.org_unit,
+                                          contact_channels),
             'Extending incorrectly with two contact channels')
 
 
-class TestExtendAddressesWithLocations(unittest.TestCase):
+class TestUpdateExistingAddressesForLocations(unittest.TestCase):
     maxDiff = None
 
     def setUp(self):
@@ -131,3 +131,42 @@ class TestExtendAddressesWithLocations(unittest.TestCase):
 
         self.assertEqual(expected_addresses, actual_addresses,
                          'Should change addr UUID correctly')
+
+
+class TestAddNewLocations(unittest.TestCase):
+    maxDiff = None
+
+    # TODO: refactor
+    def setUp(self):
+        self.org_unit = jsonfile_to_dict(
+            'tests/mocking/mo/org_unit_registrering_virkning_infinity.json')
+        self.location = {
+            'UUID_EnhedsAdresse': '0a3f50c3-df71-32b8-e044-0003ba298018',
+            'postdistrikt': 'Risskov',
+            'postnr': '8240',
+            'vejnavn': 'Pilevej 5, 8240 Risskov'
+        }
+
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_add_new_location_correctly(self):
+        actual_addresses = writing._add_locations(
+            self.org_unit, self.location, '01-01-2020', 'infinity')
+        expected_addresses = [
+            {'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+             'virkning': {'from': '2017-04-30 22:00:00+00',
+                          'from_included': True,
+                          'to': 'infinity',
+                          'to_included': False}},
+            {'urn': 'urn:magenta.dk:telefon:12345678',
+             'virkning': {'from': '2017-04-30 22:00:00+00',
+                          'from_included': True,
+                          'to': 'infinity',
+                          'to_included': False}},
+            {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+             'virkning': {'from': '2020-01-01T00:00:00+01:00',
+                          'from_included': True,
+                          'to': 'infinity',
+                          'to_included': False}},
+        ]
+        self.assertEqual(expected_addresses, actual_addresses,
+                         'Should add a new location correctly')

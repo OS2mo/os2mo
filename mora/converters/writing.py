@@ -230,8 +230,8 @@ def _update_object(unitid: str, date: str, obj_path: list, props: dict) -> dict:
 # ---- Handling of role types ---- #
 
 # Role type contact channel
-def _extend_addresses_with_contact_channels(org_unit: dict,
-                                            contact_channels: list) -> dict:
+def _add_contact_channels(org_unit: dict,
+                          contact_channels: list) -> dict:
     addresses = org_unit['relationer']['adresser']
 
     # TODO: handle empty relation
@@ -268,8 +268,6 @@ def _update_existing_address(org_unit: dict,
 
     assert location
 
-    pprint(org_unit['relationer']['adresser'])
-
     addresses = [
         addr if addr.get('uuid') != unitid else {
             'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
@@ -277,5 +275,22 @@ def _update_existing_address(org_unit: dict,
         }
         for addr in org_unit['relationer']['adresser']
     ]
+
+    return addresses
+
+
+# Role type not set in payload JSON
+def _add_locations(org_unit: dict, location: dict, From: str, to: str) -> dict:
+    # Note: the frontend makes a call for each location it wants to update
+
+    assert location
+
+    new_addr = {
+        'uuid': location['UUID_EnhedsAdresse'],
+        'virkning': _create_virkning(From, to),
+    }
+
+    addresses = org_unit['relationer']['adresser'].copy()
+    addresses.append(new_addr)
 
     return addresses
