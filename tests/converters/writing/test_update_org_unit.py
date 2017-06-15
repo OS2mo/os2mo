@@ -4,15 +4,22 @@ import freezegun
 from mora.converters import writing
 from tests.util import jsonfile_to_dict
 
-from pprint import pprint
 
-
-class TestExtendAddressesWithContactChannels(unittest.TestCase):
-    maxDiff = None
+class TestSetup(unittest.TestCase):
 
     def setUp(self):
         self.org_unit = jsonfile_to_dict(
             'tests/mocking/mo/org_unit_registrering_virkning_infinity.json')
+        self.location = {
+            'UUID_EnhedsAdresse': '0a3f50c3-df71-32b8-e044-0003ba298018',
+            'postdistrikt': 'Risskov',
+            'postnr': '8240',
+            'vejnavn': 'Pilevej 5, 8240 Risskov'
+        }
+
+
+class TestExtendAddressesWithContactChannels(TestSetup):
+    maxDiff = None
 
     def test_should_add_zero_contact_channels_correctly(self):
         self.assertEqual(
@@ -82,18 +89,8 @@ class TestExtendAddressesWithContactChannels(unittest.TestCase):
             'Extending incorrectly with two contact channels')
 
 
-class TestUpdateExistingAddressesForLocations(unittest.TestCase):
+class TestUpdateExistingAddressesForLocations(TestSetup):
     maxDiff = None
-
-    def setUp(self):
-        self.org_unit = jsonfile_to_dict(
-            'tests/mocking/mo/org_unit_registrering_virkning_infinity.json')
-        self.location = {
-            'UUID_EnhedsAdresse': '0a3f50c3-df71-32b8-e044-0003ba298018',
-            'postdistrikt': 'Risskov',
-            'postnr': '8240',
-            'vejnavn': 'Pilevej 5, 8240 Risskov'
-        }
 
     def test_nothing_should_happen_when_uuid_is_not_found_in_addr_list(self):
         new_addr_list = writing._update_existing_address(self.org_unit,
@@ -133,19 +130,8 @@ class TestUpdateExistingAddressesForLocations(unittest.TestCase):
                          'Should change addr UUID correctly')
 
 
-class TestAddNewLocations(unittest.TestCase):
+class TestAddNewLocations(TestSetup):
     maxDiff = None
-
-    # TODO: refactor
-    def setUp(self):
-        self.org_unit = jsonfile_to_dict(
-            'tests/mocking/mo/org_unit_registrering_virkning_infinity.json')
-        self.location = {
-            'UUID_EnhedsAdresse': '0a3f50c3-df71-32b8-e044-0003ba298018',
-            'postdistrikt': 'Risskov',
-            'postnr': '8240',
-            'vejnavn': 'Pilevej 5, 8240 Risskov'
-        }
 
     @freezegun.freeze_time(tz_offset=+1)
     def test_should_add_new_location_correctly(self):
