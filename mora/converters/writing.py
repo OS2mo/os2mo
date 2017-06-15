@@ -246,12 +246,19 @@ def _update_object(unitid: str, date: str, obj_path: list,
 
     return org_unit
 
+# ---------------------------- Updating addresses -------------------------- #
 
-# ---- Handling of role types ---- #
+# ---- Handling of role types: contact-channel, location andn None ---- #
 
-# Role type contact channel
+
 def _add_contact_channels(org_unit: dict,
                           contact_channels: list) -> dict:
+    """
+    Adds new contact channels to the address list
+    :param org_unit: the org unit to update
+    :param contact_channels: list of contact channels to add
+    :return: updated list of addresses
+    """
     addresses = org_unit['relationer']['adresser']
 
     # TODO: handle empty relation
@@ -301,6 +308,15 @@ def _update_existing_address(org_unit: dict,
 
 # Role type not set in payload JSON
 def _add_locations(org_unit: dict, location: dict, From: str, to: str) -> dict:
+    """
+    Adds a new location the the existing list of addresses
+    :param org_unit: the org unit to update
+    :param location: the new location to add
+    :param From: the start date of the address
+    :param to: the end date of the address
+    :return: the updated list of addresses
+    """
+
     # Note: the frontend makes a call for each location it wants to update
 
     assert location
