@@ -92,11 +92,12 @@ class CodeStyleTests(unittest.TestCase):
         style.init_report(pycodestyle.StandardReport)
 
         for fn in self.source_files:
+            if os.path.relpath(fn, util.BASE_DIR) in SKIP_LIST:
+                continue
+
             # a subtest ensure we report each invalid file
             # independently, yet report all files in each run
             with self.subTest(fn):
-                if os.path.relpath(fn, util.BASE_DIR) in SKIP_LIST:
-                    self.skipTest(fn)
 
                 buf = io.StringIO()
 
