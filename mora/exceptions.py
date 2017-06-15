@@ -1,0 +1,2 @@
+class IllegalArgumentException(Exception):
+    pass

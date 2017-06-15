@@ -8,6 +8,7 @@
 
 from .. import lora
 from .. import util
+from .. import exceptions
 
 import json
 from pprint import pprint
@@ -216,7 +217,6 @@ def rename_org_unit(req: dict) -> dict:
 
 def _update_object(unitid: str, date: str, obj_path: list,
                    props: dict) -> dict:
-
     assert util.now() <= util.parsedate(date)
 
     # Get the current org unit and update this
@@ -246,6 +246,7 @@ def _update_object(unitid: str, date: str, obj_path: list,
 
     return org_unit
 
+
 # ---------------------------- Updating addresses -------------------------- #
 
 # ---- Handling of role types: contact-channel, location andn None ---- #
@@ -259,32 +260,34 @@ def _add_contact_channels(org_unit: dict,
     :param contact_channels: list of contact channels to add
     :return: updated list of addresses
     """
-    addresses = org_unit['relationer']['adresser']
+    addresses = org_unit['relationer']['adresser'].copy()
 
-    # TODO: handle empty relation
-    # TODO: not handled if the user add an already existing channel
+    if contact_channels:
+        # TODO: handle empty relation
+        # TODO: not handled if the user add an already existing channel
 
-    addresses.extend([
-        {
-            'urn': info['type']['prefix'] + info['contact-info'],
-            'virkning': _create_virkning(info['valid-from'], info['valid-to']),
-        }
-        for info in contact_channels
-    ])
+        addresses.extend([
+            {
+                'urn': info['type']['prefix'] + info['contact-info'],
+                'virkning': _create_virkning(info['valid-from'],
+                                             info['valid-to']),
+            }
+            for info in contact_channels
+        ])
 
     return addresses
 
 
 # Role type location
 def _update_existing_address(org_unit: dict,
-                             unitid: str,
+                             address_uuid: str,
                              location: dict,
                              From: str,
                              to: str) -> dict:
     """
     Used to update an already existing address
     :param org_unit: the org unit to update
-    :param unitid: the address UUID to update
+    :param address_uuid: the address UUID to update
     :param location: location JSON given by the frontend
     :param From: the start date
     :param to: the end date
@@ -296,7 +299,7 @@ def _update_existing_address(org_unit: dict,
     assert location
 
     addresses = [
-        addr if addr.get('uuid') != unitid else {
+        addr if addr.get('uuid') != address_uuid else {
             'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
             'virkning': _create_virkning(From, to),
         }
@@ -307,7 +310,7 @@ def _update_existing_address(org_unit: dict,
 
 
 # Role type not set in payload JSON
-def _add_locations(org_unit: dict, location: dict, From: str, to: str) -> dict:
+def _add_location(org_unit: dict, location: dict, From: str, to: str) -> dict:
     """
     Adds a new location the the existing list of addresses
     :param org_unit: the org unit to update
@@ -330,3 +333,38 @@ def _add_locations(org_unit: dict, location: dict, From: str, to: str) -> dict:
     addresses.append(new_addr)
 
     return addresses
+
+
+def _check_arguments(args: list):
+    for arg in args:
+        if arg not in args:
+            raise exceptions.IllegalArgumentException('%s missing' % arg)
+
+
+def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
+    # TODO: use danchr's decorator (not yet committed) on the route instead
+    assert roletype in ['contact-channel', 'location', None]
+
+    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+
+    # TODO: are the asserts below the optimal way to check the kwargs??
+
+    if roletype == 'contact-channel':
+        # Adding contact channels
+        _check_arguments(['contact-channel'])
+        updated_addresses = _add_contact_channels(
+            org_unit, kwargs['contact_channels'])
+    elif roletype == 'location':
+        # Updating an existing address
+        _check_arguments(['address_uuid', 'location', 'From', 'to'])
+        updated_addresses = _update_existing_address(
+            org_unit, kwargs['address_uuid'], kwargs['location'],
+            kwargs['From'], kwargs['to']
+        )
+    else:
+        # Roletype is None - adding new location
+        _check_arguments(['location', 'From', 'to'])
+        updated_addresses = _add_location(org_unit, kwargs['location'],
+                                          kwargs['From'], kwargs['to'])
+
+    return updated_addresses
