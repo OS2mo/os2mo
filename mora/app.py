@@ -17,6 +17,7 @@ import flask
 from . import cli
 from . import lora
 from . import util
+from .converters import reading
 from .converters import writing
 
 basedir = os.path.dirname(__file__)
@@ -66,34 +67,7 @@ def acl():
 
 @app.route('/o/')
 def list_organisations():
-    orgs = lora.organisation(uuid=lora.organisation(bvn='%'))
-
-    def convert(org):
-        rootid = lora.organisationenhed(overordnet=org['id'])[0]
-        orgunit = lora.organisationenhed.get(rootid)
-        unitattrs = orgunit['attributter']['organisationenhedegenskaber'][0]
-
-        reg = org['registreringer'][-1]
-        attrs = reg['attributter']['organisationegenskaber'][0]
-        return {
-            "hierarchy": {
-                'name': unitattrs['enhedsnavn'],
-                'user-key': unitattrs['brugervendtnoegle'],
-                'uuid': rootid,
-                'valid-from': unitattrs['virkning']['from'],
-                'valid-to': unitattrs['virkning']['to'],
-                'hasChildren': True,
-                'children': [],
-                'org': org['id'],
-            },
-            'name': attrs['organisationsnavn'],
-            'user-key': attrs['brugervendtnoegle'],
-            'uuid': org['id'],
-            'valid-from': attrs['virkning']['from'],
-            'valid-to': attrs['virkning']['to'],
-        }
-
-    return flask.jsonify(list(map(convert, orgs)))
+    return flask.jsonify(reading.list_organisations())
 
 # --- Writing to LoRa --- #
 
@@ -246,134 +220,58 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
+@util.restrictargs('treeType', 'orgUnitId')
 def full_hierarchy(orgid):
     args = flask.request.args
+
     treeType = args.get('treeType', None)
-
-    org = lora.organisation(uuid=orgid)[0]
-
-    assert 'validity' not in args
-
     if treeType == 'specific':
         overordnet = args['orgUnitId']
     else:
         overordnet = str(orgid)
 
-    roots = lora.organisationenhed(tilhoerer=orgid, overordnet=overordnet)
-
-    def convert_list(unitids):
-        return sorted(map(convert, unitids), key=lambda r: r['name'].lower())
-
-    def convert(unitid):
-        orgunit = lora.organisationenhed.get(unitid)
-        attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
-        rels = orgunit['relationer']
-
-        children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
-        is_root = rels['overordnet'][0]['uuid'] == str(orgid)
-
-        return {
-            'name': attrs['enhedsnavn'],
-            'user-key': attrs['brugervendtnoegle'],
-            'uuid': unitid,
-            'valid-from': attrs['virkning']['from'],
-            'valid-to': attrs['virkning']['to'],
-            'hasChildren': bool(children),
-            'children': (
-                convert_list(children)
-                if children and is_root
-                else []
-            ),
-            'org': str(orgid),
-            'parent': rels['overordnet'][0]['uuid'] if not is_root else None,
-        }
-
     if treeType == 'specific':
-        return flask.jsonify(convert_list(roots))
-
-    elif len(roots) == 1:
-        root = convert(roots.pop())
-
-        if root['parent']:
-            return flask.jsonify(root)
-        else:
-            orgreg = org['registreringer'][-1]
-            orgattrs = orgreg['attributter']['organisationegenskaber'][0]
-            return flask.jsonify({
-                'hierarchy': root,
-                'name': orgattrs['organisationsnavn'],
-                'user-key': orgattrs['brugervendtnoegle'],
-                'uuid': org['id'],
-                'valid-from': orgattrs['virkning']['from'],
-                'valid-to': orgattrs['virkning']['to'],
-            })
+        return flask.jsonify(
+            reading.full_hierarchy(str(orgid), overordnet)['children'],
+        )
 
     else:
-        return flask.jsonify(convert_list(roots))
+        return flask.jsonify(reading.wrap_in_org(
+            str(orgid),
+            reading.full_hierarchies(str(orgid), overordnet)[0],
+        ))
 
 
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
+@util.restrictargs('query', 'validity')
 def get_orgunit(orgid, unitid=None):
     query = flask.request.args.get('query', None)
+    params = {
+        'tilhoerer': str(orgid),
+    }
+
     if query:
+        assert unitid is None, 'unitid and query are both set!'
+
         try:
-            # Check if the query is an UUID
-            uuid.UUID(query)  # Throws an exception if this is not the case
-            params = {
-                'tilhoerer': orgid,
-                'uuid': query,
-            }
+            params['uuid'] = str(uuid.UUID(query))
         except ValueError:
             # If the query is not an UUID, search for an org unit name instead
-            params = {
-                'enhedsnavn': query,
-            }
+            params['enhedsnavn'] = query
     else:
-        params = {
-            'tilhoerer': orgid,
-            'uuid': unitid,
-        }
+        params['uuid'] = unitid
 
     validity = flask.request.args.get('validity', 'present')
 
-    orgunitids = set(lora.organisationenhed(**params))
-
-    def convert(unitid):
-        orgunit = lora.organisationenhed.get(unitid, validity)
-        try:
-            attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
-        except IndexError:
-            return None
-
-        rels = orgunit['relationer']
-
-        childids = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
-
-        parentid = rels['overordnet'][0]['uuid']
-
-        if parentid == str(orgid):
-            parentid = None
-
-        return {
-            "activeName": attrs['enhedsnavn'],
-            "hasChildren": bool(childids),
-            "name": attrs['enhedsnavn'],
-            "org": str(orgid),
-            "parent": parentid,
-            "parent-object": parentid and convert(parentid),
-            "user-key": attrs['brugervendtnoegle'],
-            "uuid": unitid,
-            'valid-from': attrs['virkning']['from'],
-            'valid-to': attrs['virkning']['to'],
-        }
-
-    return flask.jsonify(
-        # for validity, filter out empty entries
-        list(filter(None, [
-            convert(orgunitid) for orgunitid in orgunitids
-        ]))
-    )
+    return flask.jsonify([
+        reading.full_hierarchy(
+            str(orgid), orgunitid,
+            include_children=False, include_parents=True,
+            include_activename=True,
+        )
+        for orgunitid in lora.organisationenhed(**params)
+    ])
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
@@ -451,8 +349,8 @@ def list_classes():
     # those related to or listed in our organisation?
     clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
 
-    # TODO: Refactor this convert function (and the one used for orgs)
-    # into a module and make it generic
+    # TODO: Refactor this convert function into a module and make it
+    # generic
     def convert(clazz):
         reg = clazz['registreringer'][-1]
         attrs = reg['attributter']['klasseegenskaber'][0]
