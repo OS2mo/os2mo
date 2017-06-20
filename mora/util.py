@@ -51,7 +51,14 @@ def reparsedate(s):
 
 
 def now():
-    return datetime.datetime.now(pytz.UTC)
+    return datetime.datetime.now(tzlocal.get_localzone())
+
+def today():
+    return datetime.datetime.today(tzlocal.get_localzone())
+
+
+def fromtimestamp(t):
+    return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
 
 
 def restrictargs(*values: typing.List[str]):
@@ -61,7 +68,7 @@ def restrictargs(*values: typing.List[str]):
     the function logs an error and return HTTP 501.
 
     '''
-    argset = frozenset(values)
+    argset = {v.lower() for v in values}
 
     def wrap(f):
         @functools.wraps(f)
@@ -71,15 +78,25 @@ def restrictargs(*values: typing.List[str]):
                 if v and k.lower() not in argset
             }
 
+            # HACK: suppress timestamps from today
+            if 't' in invalidargs:
+                # TODO: delete this when timestamps actually work...
+                t = fromtimestamp(flask.request.args['t'])
+                if t.date() == today():
+                    invalidargs.remove('t')
+
             if invalidargs:
-                msg = (
-                    'Unsupported request arguments: {}\n'
-                    'Allowed: {}\n'
-                    'Given: {}'.format(
-                        ', '.join(sorted(invalidargs)),
-                        ', '.join(sorted(argset)),
-                        ', '.join(sorted(flask.request.args)),
-                    )
+                msg = '\n'.join((
+                    'Unsupported request arguments:',
+                    'URL: {}',
+                    'Allowed: {}',
+                    'Given: {}',
+                    'Unsupported: {}'
+                )).format(
+                    flask.request.url,
+                    ', '.join(sorted(argset)),
+                    ', '.join(sorted(flask.request.args)),
+                    ', '.join(sorted(invalidargs)),
                 )
 
                 flask.current_app.logger.error(msg)
