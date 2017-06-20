@@ -11,6 +11,7 @@ import freezegun
 
 import requests_mock
 
+from mora import lora
 from mora.converters import writing
 from tests.util import jsonfile_to_dict
 from mora.exceptions import IllegalArgumentException
@@ -180,7 +181,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
     def setUp(self):
         super().setUp()
         self.std_mock_org_unit = \
-            'http://mox/organisation/organisationenhed?' + \
+            lora.LORA_URL + 'organisation/organisationenhed?' + \
             'uuid=00000000-0000-0000-0000-000000000000'
         self.json = jsonfile_to_dict(
             'tests/mocking/lora/organisation/organisationenhed/' +

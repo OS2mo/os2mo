@@ -106,6 +106,7 @@ def map_to_list(func, values):
         key=lambda r: r['name'].lower(),
     )
 
+
 def wrap_in_org(orgid, value):
     org = lora.organisation(uuid=orgid)[0]
     orgreg = org['registreringer'][-1]

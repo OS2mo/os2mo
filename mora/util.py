@@ -53,6 +53,7 @@ def reparsedate(s):
 def now():
     return datetime.datetime.now(tzlocal.get_localzone())
 
+
 def today():
     return datetime.datetime.today(tzlocal.get_localzone())
 
