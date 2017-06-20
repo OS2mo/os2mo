@@ -15,6 +15,7 @@ from mora import lora
 from mora.converters import writing
 from tests.util import jsonfile_to_dict
 from mora.exceptions import IllegalArgumentException
+from mora import lora
 from pprint import pprint
 
 
