@@ -19,23 +19,16 @@ def list_organisations():
 
         reg = org['registreringer'][-1]
         attrs = reg['attributter']['organisationegenskaber'][0]
-        return {
-            "hierarchy": {
-                'name': unitattrs['enhedsnavn'],
-                'user-key': unitattrs['brugervendtnoegle'],
-                'uuid': rootid,
-                'valid-from': unitattrs['virkning']['from'],
-                'valid-to': unitattrs['virkning']['to'],
-                'hasChildren': True,
-                'children': [],
-                'org': org['id'],
-            },
-            'name': attrs['organisationsnavn'],
-            'user-key': attrs['brugervendtnoegle'],
-            'uuid': org['id'],
-            'valid-from': attrs['virkning']['from'],
-            'valid-to': attrs['virkning']['to'],
-        }
+        return wrap_in_org(org['id'], {
+            'name': unitattrs['enhedsnavn'],
+            'user-key': unitattrs['brugervendtnoegle'],
+            'uuid': rootid,
+            'valid-from': unitattrs['virkning']['from'],
+            'valid-to': unitattrs['virkning']['to'],
+            'hasChildren': True,
+            'children': [],
+            'org': org['id'],
+        }, reg)
 
     return list(map(convert, orgs))
 
@@ -107,10 +100,11 @@ def map_to_list(func, values):
     )
 
 
-def wrap_in_org(orgid, value):
-    org = lora.organisation(uuid=orgid)[0]
-    orgreg = org['registreringer'][-1]
-    orgattrs = orgreg['attributter']['organisationegenskaber'][0]
+def wrap_in_org(orgid, value, org=None):
+    if not org:
+        org = lora.organisation.get(orgid)
+
+    orgattrs = org['attributter']['organisationegenskaber'][0]
 
     return {
             'hierarchy': value,
