@@ -7,6 +7,7 @@
 #
 
 import atexit
+import functools
 import json
 import os
 import select
@@ -16,6 +17,7 @@ import subprocess
 import unittest
 
 import flask_testing
+import requests_mock
 
 from mora import lora, app
 
@@ -34,6 +36,11 @@ def jsonfile_to_dict(path):
         return json.load(f)
 
 
+def get_fixture(fixture_name):
+    with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
+        return json.load(fp)
+
+
 def get_unused_port():
     '''Obtain an unused port suitable for connecting to a server.
 
@@ -48,10 +55,7 @@ def load_fixture(path, fixture_name, uuid):
     into LoRA at the given path & UUID.
 
     '''
-    with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
-        data = json.load(fp)
-
-    return lora.create(path, data, uuid)
+    return lora.create(path, get_fixture(fixture_name), uuid)
 
 
 def load_sample_structures():
@@ -95,18 +99,86 @@ def load_sample_structures():
         )
 
 
-class LoRATestCase(flask_testing.TestCase):
-    '''Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
+def with_mock_fixture(name):
+    '''Decorator for running a function under requests_mock, with the
+    given mocking fixture loaded.
+    '''
+
+    def outer_wrapper(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            json_path = os.path.join(TESTS_DIR, 'mocking', name)
+
+            with open(json_path, 'r') as fp:
+                data = json.load(fp)
+
+            with requests_mock.mock() as mock:
+                # inject the fixture; note that complete_qs is
+                # important: without it, a URL need only match *some*
+                # of the query parameters passed, and that's quite
+                # obnoxious if requests only differ by them
+                for url, value in data.items():
+                    mock.get(url, json=value, complete_qs=True)
+
+                # stash the LoRA URL away, and restore it afterwards
+                orig_lora_url = lora.LORA_URL
+                lora.LORA_URL = 'http://mox/'
+
+                # pass the mocker object as the final parameter
+                args = args + (mock,)
+
+                try:
+                    return func(*args, **kwargs)
+                finally:
+                    lora.LORA_URL = orig_lora_url
+
+        return wrapper
+
+    return outer_wrapper
+
+
+class TestCase(flask_testing.TestCase):
+
+    '''Base class for MO testcases w/o LoRA access.
     '''
 
     maxDiff = None
 
     def create_app(self):
+        app.app.config['DEBUG'] = False
         app.app.config['TESTING'] = True
         app.app.config['LIVESERVER_PORT'] = 0
         app.app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
+
         return app.app
+
+    def assertRequestResponse(self, path, expected, message=None):
+        '''Issue a request and assert that it succeeds (and does not
+        redirect) and yields the expected output.
+        '''
+        message = message or 'request {!r} failed'.format(path)
+
+        r = self.client.get(path)
+
+        self.assertLess(r.status_code, 300, message)
+        self.assertGreaterEqual(r.status_code, 200, message)
+        self.assertEqual(expected, r.json, message)
+
+    def assertRequestFails(self, path, code, message=None):
+        '''Issue a request and assert that it succeeds (and does not
+        redirect) and yields the expected output.
+        '''
+        message = message or "request {!r} didn't fail properly".format(path)
+
+        r = self.client.get(path)
+
+        self.assertEqual(r.status_code, code, message)
+
+
+class LoRATestCase(TestCase):
+    '''Base class for LoRA testcases; the test creates an empty LoRA
+    instance, and deletes all objects between runs.
+    '''
 
     def load_sample_structures(self):
         self.assertIsNone(self.minimox.poll(), 'LoRA is not running!')
@@ -177,18 +249,6 @@ class LoRATestCase(flask_testing.TestCase):
             self.minimox.stdout.readline()
 
         super().tearDown()
-
-    def assertRequestResponse(self, path, expected, message=None):
-        '''Issue a request and assert that it succeeds (and does not
-        redirect) and yields the expected output.
-        '''
-        message = message or 'request {!r} failed'.format(path)
-
-        r = self.client.get(path)
-
-        self.assertLess(r.status_code, 300, message)
-        self.assertGreaterEqual(r.status_code, 200, message)
-        self.assertEqual(expected, r.json, message)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,592 @@
+{
+  "http://dawa.aws.dk/adresser/autocomplete?q=%C3%85bogade+15&kommunekode=751&noformat=1": [
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": null,
+        "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+        "husnr": "15",
+        "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "1",
+        "href": "http://dawa.aws.dk/adresser/606cf42e-9dc2-4477-bf70-594830fcbdec",
+        "husnr": "15",
+        "id": "606cf42e-9dc2-4477-bf70-594830fcbdec",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 1., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "2",
+        "href": "http://dawa.aws.dk/adresser/60130056-8ee4-4878-8035-20da31568042",
+        "husnr": "15",
+        "id": "60130056-8ee4-4878-8035-20da31568042",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 2., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "3",
+        "href": "http://dawa.aws.dk/adresser/684e501d-55cd-4d28-a14a-6012ab4cc2e2",
+        "husnr": "15",
+        "id": "684e501d-55cd-4d28-a14a-6012ab4cc2e2",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 3., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "kl",
+        "href": "http://dawa.aws.dk/adresser/79537eb3-5c29-4088-a377-5b068700fabd",
+        "husnr": "15",
+        "id": "79537eb3-5c29-4088-a377-5b068700fabd",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, kl., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "st",
+        "href": "http://dawa.aws.dk/adresser/663b2228-a56a-4366-be3a-ed064f1ba87e",
+        "husnr": "15",
+        "id": "663b2228-a56a-4366-be3a-ed064f1ba87e",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, st., 8200 Aarhus N"
+    }
+  ],
+  "http://dawa.aws.dk/adresser/autocomplete?q=%C3%85bogade+15&noformat=1": [
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": null,
+        "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+        "husnr": "15",
+        "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "1",
+        "href": "http://dawa.aws.dk/adresser/606cf42e-9dc2-4477-bf70-594830fcbdec",
+        "husnr": "15",
+        "id": "606cf42e-9dc2-4477-bf70-594830fcbdec",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 1., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "2",
+        "href": "http://dawa.aws.dk/adresser/60130056-8ee4-4878-8035-20da31568042",
+        "husnr": "15",
+        "id": "60130056-8ee4-4878-8035-20da31568042",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 2., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "3",
+        "href": "http://dawa.aws.dk/adresser/684e501d-55cd-4d28-a14a-6012ab4cc2e2",
+        "husnr": "15",
+        "id": "684e501d-55cd-4d28-a14a-6012ab4cc2e2",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, 3., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "kl",
+        "href": "http://dawa.aws.dk/adresser/79537eb3-5c29-4088-a377-5b068700fabd",
+        "husnr": "15",
+        "id": "79537eb3-5c29-4088-a377-5b068700fabd",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, kl., 8200 Aarhus N"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "st",
+        "href": "http://dawa.aws.dk/adresser/663b2228-a56a-4366-be3a-ed064f1ba87e",
+        "husnr": "15",
+        "id": "663b2228-a56a-4366-be3a-ed064f1ba87e",
+        "postnr": "8200",
+        "postnrnavn": "Aarhus N",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "\u00c5bogade"
+      },
+      "tekst": "\u00c5bogade 15, st., 8200 Aarhus N"
+    }
+  ],
+  "http://dawa.aws.dk/adresser/autocomplete?q=Pilestr%C3%A6de+43&kommunekode=751&noformat=1": [],
+  "http://dawa.aws.dk/adresser/autocomplete?q=Pilestr%C3%A6de+43&noformat=1": [
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": null,
+        "href": "http://dawa.aws.dk/adresser/9ead960b-5a5b-4d33-a5b8-10d356f336b5",
+        "husnr": "43",
+        "id": "9ead960b-5a5b-4d33-a5b8-10d356f336b5",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "1",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c7-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23c7-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 1., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "2",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c8-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23c8-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 2., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "3",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 3., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "4",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23ca-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23ca-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 4., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "5",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23cb-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23cb-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 5., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "6",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23cc-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23cc-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 6., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "th",
+        "etage": "1",
+        "href": "http://dawa.aws.dk/adresser/b7e19cbe-9bf2-41c3-83e3-8cbf174b76f2",
+        "husnr": "43",
+        "id": "b7e19cbe-9bf2-41c3-83e3-8cbf174b76f2",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 1. th, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "tv",
+        "etage": "1",
+        "href": "http://dawa.aws.dk/adresser/06b41494-9e16-438c-b406-e2de2df1adf2",
+        "husnr": "43",
+        "id": "06b41494-9e16-438c-b406-e2de2df1adf2",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 1. tv, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "th",
+        "etage": "2",
+        "href": "http://dawa.aws.dk/adresser/7c56035b-ae3b-467f-93ea-3dc05c902f8a",
+        "husnr": "43",
+        "id": "7c56035b-ae3b-467f-93ea-3dc05c902f8a",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 2. th, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "tv",
+        "etage": "2",
+        "href": "http://dawa.aws.dk/adresser/da62099e-fe48-4a92-8f93-d4df49c647d2",
+        "husnr": "43",
+        "id": "da62099e-fe48-4a92-8f93-d4df49c647d2",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 2. tv, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "th",
+        "etage": "3",
+        "href": "http://dawa.aws.dk/adresser/0ead9b4d-c615-442d-8447-b328a73b5b39",
+        "husnr": "43",
+        "id": "0ead9b4d-c615-442d-8447-b328a73b5b39",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 3. th, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "tv",
+        "etage": "3",
+        "href": "http://dawa.aws.dk/adresser/fe40c3ab-2e2e-4f00-8065-914b824d0457",
+        "husnr": "43",
+        "id": "fe40c3ab-2e2e-4f00-8065-914b824d0457",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 3. tv, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "th",
+        "etage": "4",
+        "href": "http://dawa.aws.dk/adresser/82a10242-215a-4294-98c2-4d6459668888",
+        "husnr": "43",
+        "id": "82a10242-215a-4294-98c2-4d6459668888",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 4. th, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "tv",
+        "etage": "4",
+        "href": "http://dawa.aws.dk/adresser/d37879bb-7087-4f32-bda0-494253c7bad0",
+        "husnr": "43",
+        "id": "d37879bb-7087-4f32-bda0-494253c7bad0",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 4. tv, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "th",
+        "etage": "5",
+        "href": "http://dawa.aws.dk/adresser/96de0b4a-3e24-4859-983e-70c3798ac045",
+        "husnr": "43",
+        "id": "96de0b4a-3e24-4859-983e-70c3798ac045",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 5. th, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "tv",
+        "etage": "5",
+        "href": "http://dawa.aws.dk/adresser/87f7cc95-fb11-484c-ae82-87ab8f2b4154",
+        "husnr": "43",
+        "id": "87f7cc95-fb11-484c-ae82-87ab8f2b4154",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, 5. tv, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": null,
+        "etage": "st",
+        "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c6-32b8-e044-0003ba298018",
+        "husnr": "43",
+        "id": "0a3f50a0-23c6-32b8-e044-0003ba298018",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, st., 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "th",
+        "etage": "st",
+        "href": "http://dawa.aws.dk/adresser/9d523ec5-e272-4510-b1e3-3024ef579092",
+        "husnr": "43",
+        "id": "9d523ec5-e272-4510-b1e3-3024ef579092",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, st. th, 1112 K\u00f8benhavn K"
+    },
+    {
+      "adresse": {
+        "d\u00f8r": "tv",
+        "etage": "st",
+        "href": "http://dawa.aws.dk/adresser/6866eb46-5e53-4e57-9c57-44902b881b18",
+        "husnr": "43",
+        "id": "6866eb46-5e53-4e57-9c57-44902b881b18",
+        "postnr": "1112",
+        "postnrnavn": "K\u00f8benhavn K",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Pilestr\u00e6de"
+      },
+      "tekst": "Pilestr\u00e6de 43, st. tv, 1112 K\u00f8benhavn K"
+    }
+  ],
+  "http://mox/organisation/organisation/456362c4-0ee4-4e5e-a72c-751239745e62": {
+    "456362c4-0ee4-4e5e-a72c-751239745e62": [
+      {
+        "id": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "registreringer": [
+          {
+            "attributter": {
+              "organisationegenskaber": [
+                {
+                  "brugervendtnoegle": "AU",
+                  "organisationsnavn": "Aarhus Universitet",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-06-21T12:43:13.397729+02:00"
+            },
+            "livscykluskode": "Importeret",
+            "relationer": {
+              "adresser": [
+                {
+                  "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "myndighed": [
+                {
+                  "urn": "urn:dk:kommune:751",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "organisationgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2017-01-01 12:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
