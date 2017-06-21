@@ -365,8 +365,8 @@ def list_classes():
 
 
 @app.route('/addressws/geographical-location')
-@app.route('/addressws/geographical-location/<uuid:orgid>')
-def get_geographical_addresses(orgid=None):
+@util.restrictargs('local', required=['vejnavn'])
+def get_geographical_addresses():
     # example output from runWithMocks:
     # [{
     #     "UUID_AdgangsAdresse": "0A3F507B-67A6-32B8-E044-0003BA298018",

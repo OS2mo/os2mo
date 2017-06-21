@@ -62,21 +62,27 @@ def fromtimestamp(t):
     return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
 
 
-def restrictargs(*values: typing.List[str]):
+def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
     '''Function decorator for checking and verifying Flask request arguments
 
     If any argument other than those listed is set and has a value,
     the function logs an error and return HTTP 501.
 
     '''
-    argset = {v.lower() for v in values}
+    allowed = {v.lower() for v in allowed}
+    required = {v.lower() for v in required}
+    allallowed = allowed | required
 
     def wrap(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             invalidargs = {
                 k for k, v in flask.request.args.items()
-                if v and k.lower() not in argset
+                if v and k.lower() not in allallowed
+            }
+            missing = {
+                k for k in required
+                if not flask.request.args.get(k, None)
             }
 
             # HACK: suppress timestamps from today
@@ -86,17 +92,21 @@ def restrictargs(*values: typing.List[str]):
                 if t.date() == today():
                     invalidargs.remove('t')
 
-            if invalidargs:
+            if missing or invalidargs:
                 msg = '\n'.join((
                     'Unsupported request arguments:',
                     'URL: {}',
+                    'Required: {}',
                     'Allowed: {}',
                     'Given: {}',
+                    'Missing: {}',
                     'Unsupported: {}'
                 )).format(
                     flask.request.url,
-                    ', '.join(sorted(argset)),
+                    ', '.join(sorted(required)),
+                    ', '.join(sorted(allowed)),
                     ', '.join(sorted(flask.request.args)),
+                    ', '.join(sorted(missing)),
                     ', '.join(sorted(invalidargs)),
                 )
 
