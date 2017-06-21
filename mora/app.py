@@ -18,6 +18,7 @@ from . import cli
 from . import lora
 from . import util
 from .converters import writing
+from pprint import pprint
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -159,7 +160,7 @@ def rename_org_unit(orgid, unitid):
     return flask.jsonify({'uuid': unitid}), 200
 
 
-@app.route('/o')
+#@app.route('/o')
 @app.route(
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
     methods=['POST'],
@@ -172,75 +173,17 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
     req = flask.request.get_json()
     roletype = req.get('role-type')
 
-    unitobj = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+    kwargs = writing.create_update_kwargs(roletype, req)
+    updated_addresses = writing.update_org_unit_addresses(
+        unitid, roletype, **kwargs)
 
-    if roletype == 'contact-channel':
-        # TODO: the UI assigns the objects to a location, but since we map
-        # locations to address UUIDs, we cannot do that; instead, we just
-        # stash everything on the unit
-        addresses = unitobj['relationer']['adresser']
+    pprint(updated_addresses)
 
-        # TODO: handle empty relation
-        addresses.extend([
-            {
-                'urn': info['type']['prefix'] + info['contact-info'],
-                'virkning': {
-                    'from': info['valid-from'],
-                    'to': info['valid-to'],
-                }
-            }
-            for info in req['contact-channels']
-        ])
-
-        lora.update('organisation/organisationenhed/{}'.format(unitid), {
-            'relationer': {
-                'adresser': addresses
-            }
-        })
-    elif roletype == 'location':
-        assert req['changed'], 'not changed?'
-
-        lora.update('organisation/organisationenhed/{}'.format(unitid), {
-            'relationer': {
-                'adresser': [
-                    addr if addr.get('uuid') != req['uuid'] else {
-                        'uuid': (req['location'].get('UUID_EnhedsAdresse') or
-                                 req['location']['uuid']),
-                        'virkning': {
-                            'from': util.reparsedate(req['valid-from']),
-                            'to': util.reparsedate(req['valid-to']),
-                        },
-                    }
-                    for addr in unitobj['relationer']['adresser']
-                ]
-            }
-        })
-
-    elif roletype:
-        raise NotImplementedError(roletype)
-    else:
-        # direct creation of a location
-
-        addresses = unitobj['relationer']['adresser']
-
-        # TODO: handle empty relation
-        addresses.append({
-            'uuid': req['location']['UUID_EnhedsAdresse'],
-            'virkning': {
-                'from': util.reparsedate(
-                    req['location'].get('valid-from') or req['valid-from']
-                ),
-                'to': util.reparsedate(
-                    req['location'].get('valid-to') or req['valid-to']
-                ),
-            },
-        })
-
-        lora.update('organisation/organisationenhed/{}'.format(unitid), {
-            'relationer': {
-                'adresser': addresses
-            }
-        })
+    lora.update('organisation/organisationenhed/{}'.format(unitid), {
+        'relationer': {
+            'adresser': updated_addresses
+        }
+    })
 
     return flask.jsonify(unitid), 201
 

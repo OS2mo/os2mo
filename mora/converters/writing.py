@@ -338,17 +338,37 @@ def _check_arguments(args: list):
             raise exceptions.IllegalArgumentException('%s missing' % arg)
 
 
+def create_update_kwargs(roletype: str, req: dict) -> dict:
+    if roletype == 'contact-channel':
+        kwargs = {'contact_channels': req['contact-channels']}
+    elif roletype == 'location':
+        kwargs = {
+            'address_uuid': req['uuid'],
+            'location': req['location'],
+            'From': req['valid-from'],
+            'to': req['valid-to']
+        }
+    elif roletype:
+        raise NotImplementedError(roletype)
+    else:
+        kwargs = {
+            'location': req['location'],
+            'From': req['valid-from'],
+            'to': req['valid-to']
+        }
+
+    return kwargs
+
+
 def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     # TODO: use danchr's decorator (not yet committed) on the route instead
     assert roletype in ['contact-channel', 'location', None]
 
     org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
 
-    # TODO: are the asserts below the optimal way to check the kwargs??
-
     if roletype == 'contact-channel':
         # Adding contact channels
-        _check_arguments(['contact-channel'])
+        _check_arguments(['contact-channels'])
         updated_addresses = _add_contact_channels(
             org_unit, kwargs['contact_channels'])
     elif roletype == 'location':
