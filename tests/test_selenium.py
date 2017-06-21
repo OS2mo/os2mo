@@ -13,7 +13,6 @@ import unittest
 import flask_testing
 
 from . import util
-from mora import lora
 
 try:
     import selenium
@@ -26,7 +25,6 @@ class RightsTests(util.LoRATestCase, flask_testing.LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         from selenium import webdriver
-        from selenium.common import exceptions
 
         driver_name = os.environ.get('BROWSER', 'Firefox')
         driver = getattr(webdriver, driver_name, None)
@@ -156,4 +154,3 @@ class RightsTests(util.LoRATestCase, flask_testing.LiveServerTestCase):
         search_field.send_keys('de')
         wait_for_search()
         self.assertEquals(get_result_count(), 20)
-
