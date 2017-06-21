@@ -110,14 +110,14 @@ angular.module('moApp.controllers')
 
             var local;
 
-            if ($scope.geoLocal) {
+            if ($scope.geoLocal && $scope.geoLocal != "0") {
                 if ($scope.org_unit) {
                     local = $scope.org_unit.org;
                 } else {
                     local = $scope.sysService.orgList.data[0].uuid;
                 }
             } else {
-                local = 0;
+                local = '';
             }
 
 			return $http.get('addressws/geographical-location', 
