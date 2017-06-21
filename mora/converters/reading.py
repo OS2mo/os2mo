@@ -110,7 +110,7 @@ def wrap_in_org(orgid, value, org=None):
             'hierarchy': value,
             'name': orgattrs['organisationsnavn'],
             'user-key': orgattrs['brugervendtnoegle'],
-            'uuid': org['id'],
+            'uuid': orgid,
             'valid-from': orgattrs['virkning']['from'],
             'valid-to': orgattrs['virkning']['to'],
         }
