@@ -160,7 +160,6 @@ def rename_org_unit(orgid, unitid):
     return flask.jsonify({'uuid': unitid}), 200
 
 
-#@app.route('/o')
 @app.route(
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
     methods=['POST'],
@@ -170,14 +169,14 @@ def rename_org_unit(orgid, unitid):
     methods=['POST'],
 )
 def update_organisation_unit_location(orgid, unitid, roleid=None):
+    # TODO: write test for this
+
     req = flask.request.get_json()
     roletype = req.get('role-type')
 
     kwargs = writing.create_update_kwargs(roletype, req)
     updated_addresses = writing.update_org_unit_addresses(
         unitid, roletype, **kwargs)
-
-    pprint(updated_addresses)
 
     lora.update('organisation/organisationenhed/{}'.format(unitid), {
         'relationer': {
