@@ -58,6 +58,13 @@
 		  "from": "2017-01-01 12:00:00",
 		  "to": "infinity"
         }
+      },
+      {
+        "urn": "urn:magenta.dk:telefon:+4587150000",
+        "virkning": {
+		  "from": "2017-01-01 12:00:00",
+		  "to": "infinity"
+        }
       }
     ]
   }
