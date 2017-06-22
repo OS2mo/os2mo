@@ -163,20 +163,16 @@ def full_hierarchy(orgid):
     args = flask.request.args
 
     treeType = args.get('treeType', None)
-    if treeType == 'specific':
-        overordnet = args['orgUnitId']
-    else:
-        overordnet = str(orgid)
 
     if treeType == 'specific':
         return flask.jsonify(
-            reading.full_hierarchy(str(orgid), overordnet)['children'],
+            reading.full_hierarchy(str(orgid), args['orgUnitId'])['children'],
         )
 
     else:
         return flask.jsonify(reading.wrap_in_org(
             str(orgid),
-            reading.full_hierarchies(str(orgid), overordnet)[0],
+            reading.full_hierarchies(str(orgid), str(orgid))[0],
         ))
 
 
