@@ -17,6 +17,17 @@ LORA_URL = 'http://mox/'
 session = requests.Session()
 
 
+def _check_response(r):
+    try:
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        if r.status_code == 400 and r.json():
+            raise ValueError(r.json()['message'])
+        else:
+            raise
+
+    return r
+
 def get(path, uuid, validity=None):
     uuid = str(uuid)
 
@@ -49,7 +60,7 @@ def get(path, uuid, validity=None):
         params = {}
 
     r = session.get('{}{}/{}'.format(LORA_URL, path, uuid), params=params)
-    r.raise_for_status()
+    _check_response(r)
 
     assert (len(r.json()) == 1 and
             len(r.json()[uuid]) == 1 and
@@ -67,7 +78,7 @@ def get(path, uuid, validity=None):
 
 def fetch(path, **params):
     r = session.get(LORA_URL + path, params=params)
-    r.raise_for_status()
+    _check_response(r)
 
     try:
         objs = r.json()['results'][0]
@@ -80,22 +91,22 @@ def fetch(path, **params):
 def create(path, obj, uuid=None):
     if uuid:
         r = session.put('{}{}/{}'.format(LORA_URL, path, uuid), json=obj)
-        r.raise_for_status()
+        _check_response(r)
         return uuid
     else:
         r = session.post(LORA_URL + path, json=obj)
-        r.raise_for_status()
+        _check_response(r)
         return r.json()['uuid']
 
 
 def delete(path, uuid):
     r = session.delete('{}{}/{}'.format(LORA_URL, path, uuid))
-    r.raise_for_status()
+    _check_response(r)
 
 
 def update(path, obj):
     r = session.put(LORA_URL + path, json=obj)
-    r.raise_for_status()
+    _check_response(r)
     return r.json()['uuid']
 
 
