@@ -28,6 +28,7 @@ def _check_response(r):
 
     return r
 
+
 def get(path, uuid, validity=None):
     uuid = str(uuid)
 
