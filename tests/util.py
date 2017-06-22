@@ -14,6 +14,7 @@ import select
 import signal
 import socket
 import subprocess
+import sys
 import unittest
 
 import flask_testing
@@ -50,38 +51,37 @@ def get_unused_port():
         return sock.getsockname()[1]
 
 
-def load_fixture(path, fixture_name, uuid):
+def load_fixture(path, fixture_name, uuid, *, verbose=False):
     '''Load a fixture, i.e. a JSON file with the 'fixtures' directory,
     into LoRA at the given path & UUID.
 
     '''
-    return lora.create(path, get_fixture(fixture_name), uuid)
+    if verbose:
+        print('creating', path, uuid, file=sys.stderr)
+    r = lora.create(path, get_fixture(fixture_name), uuid)
+    return r
 
 
-def load_sample_structures():
+def load_sample_structures(*, verbose=False):
     '''Inject our test data into LoRA.
 
     '''
-    load_fixture(
-        'klassifikation/klasse',
-        'create_klasse_fakultet.json',
-        '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-    )
-    load_fixture(
-        'klassifikation/klasse',
-        'create_klasse_afdeling.json',
-        '32547559-cfc1-4d97-94c6-70b192eff825',
-    )
-    load_fixture(
-        'klassifikation/klasse',
-        'create_klasse_institut.json',
-        'ca76a441-6226-404f-88a9-31e02e420e52',
-    )
-    load_fixture(
+    fixtures = [(
         'organisation/organisation',
         'create_organisation_AU.json',
         '456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
+    )]
+
+    for classkey, classid in {
+            'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+            'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
+            'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
+    }.items():
+        fixtures.append((
+            'klassifikation/klasse',
+            'create_klasse_{}.json'.format(classkey),
+            classid,
+        ))
 
     for unitkey, unitid in {
         'root': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -91,11 +91,14 @@ def load_sample_structures():
         'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
         'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
     }.items():
-        load_fixture(
+        fixtures.append((
             'organisation/organisationenhed',
             'create_organisationenhed_{}.json'.format(unitkey),
             unitid,
-        )
+        ))
+
+    for args in fixtures:
+        load_fixture(*args, verbose=verbose)
 
 
 def with_mock_fixture(name):
@@ -252,4 +255,4 @@ class LoRATestCase(TestCase):
 
 if __name__ == '__main__':
     # allow running this script with 'python -m'
-    load_sample_structures()
+    load_sample_structures(verbose=True)
