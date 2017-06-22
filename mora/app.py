@@ -96,6 +96,7 @@ def list_organisations():
 
     return flask.jsonify(list(map(convert, orgs)))
 
+
 # --- Writing to LoRa --- #
 
 
@@ -178,13 +179,14 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
     updated_addresses = writing.update_org_unit_addresses(
         unitid, roletype, **kwargs)
 
-    lora.update('organisation/organisationenhed/{}'.format(unitid), {
-        'relationer': {
-            'adresser': updated_addresses
-        }
-    })
+    if updated_addresses:
+        lora.update('organisation/organisationenhed/{}'.format(unitid), {
+            'relationer': {
+                'adresser': updated_addresses
+            }
+        })
 
-    return flask.jsonify(unitid), 201
+    return flask.jsonify(unitid), 200
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
@@ -337,9 +339,13 @@ def get_role(orgid, unitid, role):
             {
                 "contact-info": addr['urn'][len(PHONE_PREFIX):],
                 # "name": "telefon 12345678",
+                'location': {
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                },
                 "type": {
                     "name": "Telefonnummer",
                     "user-key": "Telephone_number",
+                    "prefix": "urn:magenta.dk:telefon:",
                 },
                 "valid-from": addr['virkning']['from'],
                 "valid-to": addr['virkning']['to'],

@@ -260,9 +260,6 @@ def _add_contact_channels(org_unit: dict,
     addresses = org_unit['relationer']['adresser'].copy()
 
     if contact_channels:
-        # TODO: handle empty relation
-        # TODO: not handled if the user add an already existing channel
-
         addresses.extend([
             {
                 'urn': info['type']['prefix'] + info['contact-info'],
@@ -332,15 +329,18 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str) -> dict:
     return addresses
 
 
-def _check_arguments(args: list):
-    for arg in args:
-        if arg not in args:
+def _check_arguments(mandatory_args: list, args_to_check: list):
+    for arg in mandatory_args:
+        if arg not in args_to_check:
             raise exceptions.IllegalArgumentException('%s missing' % arg)
 
 
 def create_update_kwargs(roletype: str, req: dict) -> dict:
     if roletype == 'contact-channel':
-        kwargs = {'contact_channels': req['contact-channels']}
+        if 'location' in req:
+            kwargs = {'contact_channels': req['contact-channels']}
+        else:
+            kwargs = {}
     elif roletype == 'location':
         kwargs = {
             'address_uuid': req['uuid'],
@@ -367,20 +367,24 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
 
     if roletype == 'contact-channel':
-        # Adding contact channels
-        _check_arguments(['contact-channels'])
-        updated_addresses = _add_contact_channels(
-            org_unit, kwargs['contact_channels'])
+        if 'contact_channels' in kwargs:
+            # Adding contact channels
+            updated_addresses = _add_contact_channels(
+                org_unit, kwargs['contact_channels'])
+        else:
+            # Contact channel already exists
+            updated_addresses = []
     elif roletype == 'location':
         # Updating an existing address
-        _check_arguments(['address_uuid', 'location', 'From', 'to'])
+        _check_arguments(['address_uuid', 'location', 'From', 'to'],
+                         list(kwargs.keys()))
         updated_addresses = _update_existing_address(
             org_unit, kwargs['address_uuid'], kwargs['location'],
             kwargs['From'], kwargs['to']
         )
     else:
         # Roletype is None - adding new location
-        _check_arguments(['location', 'From', 'to'])
+        _check_arguments(['location', 'From', 'to'], list(kwargs.keys()))
         updated_addresses = _add_location(org_unit, kwargs['location'],
                                           kwargs['From'], kwargs['to'])
 
