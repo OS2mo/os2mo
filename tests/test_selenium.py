@@ -154,3 +154,35 @@ class RightsTests(util.LoRATestCase, flask_testing.LiveServerTestCase):
         search_field.send_keys('de')
         wait_for_search()
         self.assertEquals(get_result_count(), 20)
+
+    def test_unit_view(self):
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.common.action_chains import ActionChains as AC
+        from selenium.webdriver.common.by import By
+
+        self.load_sample_structures()
+        self.test_login()
+
+        # a few utility methods
+        def wait(id='loading-bar-spinner'):
+            'wait for the action spinner to appear, then disappear'
+
+            WebDriverWait(self.browser, 5).until(
+                EC.presence_of_element_located((By.ID, id)),
+            )
+
+            el = self.browser.find_element_by_id(id)
+            WebDriverWait(self.browser, 5).until(EC.staleness_of(el))
+
+        self.browser.implicitly_wait(5)
+        self.browser.find_element_by_css_selector('treecontrol span').click()
+
+        wait()
+
+        self.assertEquals(
+            'Overordnet Enhed',
+            self.browser.find_element_by_css_selector(
+                '[ng-bind="organisation.activeName"]',
+            ).text,
+        )
