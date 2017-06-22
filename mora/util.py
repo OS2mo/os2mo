@@ -14,7 +14,7 @@ import flask
 import pytz
 import tzlocal
 
-DATE_PARSERS = (
+DATETIME_PARSERS = (
     # DD/MM/YY w/o time -- sent by the frontend
     lambda s: tzlocal.get_localzone().localize(
         datetime.datetime.strptime(s, '%d-%m-%Y')
@@ -27,11 +27,11 @@ DATE_PARSERS = (
 )
 
 
-def parsedate(s, default=None):
+def parsedatetime(s, default=None):
     if default is not None and not s:
         return default
 
-    for parser in DATE_PARSERS:
+    for parser in DATETIME_PARSERS:
         try:
             return parser(s)
         except ValueError:
@@ -40,14 +40,14 @@ def parsedate(s, default=None):
     raise ValueError('unparsable date {!r}'.format(s))
 
 
-def reparsedate(s):
+def reparsedatetime(s):
     if s == 'infinity' or s == '-infinity':
         return s
     elif not s:
         # In the case that the end-date is not specified in the frontend
         return 'infinity'
     else:
-        return parsedate(s).isoformat()
+        return parsedatetime(s).isoformat()
 
 
 def now():
