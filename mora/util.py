@@ -54,10 +54,6 @@ def now():
     return datetime.datetime.now(tzlocal.get_localzone())
 
 
-def today():
-    return datetime.datetime.today(tzlocal.get_localzone())
-
-
 def fromtimestamp(t):
     return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
 
@@ -89,7 +85,7 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
             if 't' in invalidargs:
                 # TODO: delete this when timestamps actually work...
                 t = fromtimestamp(flask.request.args['t'])
-                if t.date() == today():
+                if t.date() == datetime.date.today():
                     invalidargs.remove('t')
 
             if missing or invalidargs:
