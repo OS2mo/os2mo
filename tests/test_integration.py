@@ -290,3 +290,27 @@ class IntegrationTests(util.LoRATestCase):
                 },
             ],
         )
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
+            '/role-types/location/?validity=present',
+            [
+                {
+                    'location': {
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'user-key': '07515902___1_______',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'valid-from': '2014-05-05T19:07:48.577',
+                        'valid-to': 'infinity',
+                    },
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'primaer': True,
+                    'role-type': 'location',
+                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )
