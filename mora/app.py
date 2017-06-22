@@ -90,11 +90,8 @@ def create_organisation_unit(orgid):
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
+@util.restrictargs('endDate')
 def inactivate_org_unit(orgid, unitid):
-    # Make sure that there is exactly one URL parameter called endDate
-    assert len(flask.request.args) == 1
-    assert flask.request.args.get('endDate')
-
     org_unit = writing.inactivate_org_unit(unitid,
                                            flask.request.args.get('endDate'))
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
@@ -104,10 +101,8 @@ def inactivate_org_unit(orgid, unitid):
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/actions/move',
            methods=['POST'])
+@util.restrictargs()
 def move_org_unit(orgid, unitid):
-    # Check that there are no "surprise" URL parameters
-    assert len(flask.request.args) == 0
-
     # TODO: refactor common behavior from this route and the one below
 
     req = flask.request.get_json()
@@ -119,13 +114,12 @@ def move_org_unit(orgid, unitid):
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
+@util.restrictargs('rename')
 def rename_org_unit(orgid, unitid):
     rename = flask.request.args.get('rename', None)
 
     # Make sure the rename param is present and set to true
-    assert rename
     assert rename == 'true'
-    assert len(flask.request.args) == 1
 
     req = flask.request.get_json()
 
