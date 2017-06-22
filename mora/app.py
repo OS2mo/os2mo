@@ -164,8 +164,13 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
-@util.restrictargs('treeType', 'orgUnitId')
+@util.restrictargs('treeType', 'orgUnitId', 'effective-date')
 def full_hierarchy(orgid):
+
+    # TODO: the 'effective-date' parameter is not used below, but it is
+    # set by the frontend when moving an org unit - we could choose to
+    # remove it from the frontend call
+
     args = flask.request.args
 
     treeType = args.get('treeType', None)
@@ -188,8 +193,13 @@ def full_hierarchy(orgid):
 
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
-@util.restrictargs('query', 'validity')
+@util.restrictargs('query', 'validity', 'effective-date')
 def get_orgunit(orgid, unitid=None):
+
+    # TODO: the 'effective-date' parameter is not used below, but it is
+    # set by the frontend when renaming an org unit - we could choose to
+    # remove it from the frontend call
+
     query = flask.request.args.get('query', None)
     params = {
         'tilhoerer': str(orgid),
