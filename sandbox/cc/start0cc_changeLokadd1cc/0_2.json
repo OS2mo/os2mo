@@ -1,0 +1,35 @@
+{
+  "location": {
+    "name": "Mindet 2, 8000 Aarhus C",
+    "user-key": "07515474___2_______",
+    "uuid": "afc933a9-2468-40a8-b1b7-919ccc18667b",
+    "valid-from": "2014-05-05T19:07:48.577",
+    "valid-to": "infinity"
+  },
+  "name": "Mindet 2, 8000 Aarhus C",
+  "org-unit": "cf76df48-442f-4b58-85e0-38d2b27201f1",
+  "primaer": true,
+  "role-type": "contact-channel",
+  "uuid": "afc933a9-2468-40a8-b1b7-919ccc18667b",
+  "valid-from": "2015-12-31 23:00:00+00",
+  "valid-to": "infinity",
+  "contact-channels": [
+    {
+      "contact-info": "12345678",
+      "visibility": {
+        "name": "N/A",
+        "user-key": "N/A",
+        "uuid": "00000000-0000-0000-0000-000000000000"
+      },
+      "type": {
+        "name": "Phone Number",
+        "prefix": "urn:magenta.dk:telefon:",
+        "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+      },
+      "valid-to": "infinity",
+      "valid-from": "04-06-2017"
+    }
+  ],
+  "person": "cf76df48-442f-4b58-85e0-38d2b27201f1",
+  "user-key": "NULL"
+}
