@@ -27,7 +27,7 @@ DATETIME_PARSERS = (
 )
 
 
-def parsedatetime(s, default=None):
+def parsedatetime(s: str, default: str=None) -> datetime.datetime:
     if default is not None and not s:
         return default
 
@@ -50,11 +50,11 @@ def reparsedatetime(s):
         return parsedatetime(s).isoformat()
 
 
-def now():
+def now() -> datetime.datetime:
     return datetime.datetime.now(tzlocal.get_localzone())
 
 
-def fromtimestamp(t):
+def fromtimestamp(t: int) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
 
 
