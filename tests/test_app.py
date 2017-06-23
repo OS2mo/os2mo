@@ -115,13 +115,10 @@ class TestCreateOrgUnit(TestSetup):
                          'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
+# TODO: the tests below do not really tell us much...
 
-class TestRenameOrgUnit(unittest.TestCase):
-    # TODO: move JSON requests/responses into tests/mocking (JSON below also used in test_create_org_unit.py)
 
-    def setUp(self):
-        app.app.config['TESTING'] = True
-        self.app = app.app.test_client()
+class TestRenameOrgUnit(TestSetup):
 
     @requests_mock.mock()
     def test_should_rename_org_unit_correctly(self, mock):
@@ -157,104 +154,6 @@ class TestRenameOrgUnit(unittest.TestCase):
             'org': '59141156-ed0b-457c-9535-884447c5220b',
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc'
         }
-        lora_response = {
-            'results': [
-                [
-                    {
-                        'registreringer': [
-                            {
-                                'tilstande': {
-                                    'organisationenhedgyldighed': [
-                                        {
-                                            'virkning': {
-                                                'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
-                                                'to_included': False
-                                            },
-                                            'gyldighed': 'Aktiv'
-                                        }
-                                    ]
-                                },
-                                'fratidspunkt': {
-                                    'graenseindikator': True,
-                                    'tidsstempeldatotid': '2017-06-02T12:57:21.367559+00:00'
-                                },
-                                'brugerref': '42c432e8-9c4a-11e6-9f62-873cf34a735f',
-                                'attributter': {
-                                    'organisationenhedegenskaber': [
-                                        {
-                                            'virkning': {
-                                                'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
-                                                'to_included': False
-                                            },
-                                            'brugervendtnoegle': 'A6',
-                                            'enhedsnavn': 'A6'
-                                        }
-                                    ]
-                                },
-                                'livscykluskode': 'Rettet',
-                                'tiltidspunkt': {
-                                    'tidsstempeldatotid': 'infinity'
-                                },
-                                'relationer': {
-                                    'tilhoerer': [
-                                        {
-                                            'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                            'virkning': {
-                                                'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
-                                                'to_included': False
-                                            }
-                                        }
-                                    ],
-                                    'adresser': [
-                                        {
-                                            'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
-                                            'virkning': {
-                                                'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
-                                                'to_included': False
-                                            }
-                                        },
-                                    ],
-                                    'enhedstype': [
-                                        {
-                                            'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                                            'virkning': {
-                                                'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
-                                                'to_included': False
-                                            }
-                                        }
-                                    ],
-                                    'overordnet': [
-                                        {
-                                            'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
-                                            'virkning': {
-                                                'from_included': True,
-                                                'from': '2017-05-07 22:00:00+00',
-                                                'to': '2017-07-30 22:00:00+00',
-                                                'to_included': False
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        ],
-                        'id': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'
-                    }
-                ]
-            ]
-        }
-        mock.get(
-            lora.LORA_URL + 'organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
-            json=lora_response)
         mock.put(
             lora.LORA_URL + 'organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
             json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
@@ -269,8 +168,6 @@ class TestRenameOrgUnit(unittest.TestCase):
                          'Error in renaming org unit')
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
 
-
-# TODO: the tests below do not really tell us much...
 
 class TestInactivateOrgUnit(TestSetup):
     @requests_mock.mock()
