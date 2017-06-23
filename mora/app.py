@@ -19,7 +19,6 @@ from . import lora
 from . import util
 from .converters import reading
 from .converters import writing
-from pprint import pprint
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -83,7 +82,7 @@ def create_organisation_unit(orgid):
     # If an end date is set for the org unit, inactivate it automatically
     # from this date
     if 'valid-to' in req:
-        org_unit = writing.inactivate_org_unit(uuid, req['valid-to'])
+        org_unit = writing.inactivate_org_unit(req['valid-to'])
         lora.update('organisation/organisationenhed/%s' % uuid, org_unit)
 
     return flask.jsonify({'uuid': uuid}), 201
@@ -92,8 +91,7 @@ def create_organisation_unit(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
 @util.restrictargs('endDate')
 def inactivate_org_unit(orgid, unitid):
-    org_unit = writing.inactivate_org_unit(unitid,
-                                           flask.request.args.get('endDate'))
+    org_unit = writing.inactivate_org_unit(flask.request.args.get('endDate'))
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
 
     return flask.jsonify({'uuid': unitid}), 200
@@ -106,7 +104,7 @@ def move_org_unit(orgid, unitid):
     # TODO: refactor common behavior from this route and the one below
 
     req = flask.request.get_json()
-    org_unit = writing.move_org_unit(req, unitid)
+    org_unit = writing.move_org_unit(req)
 
     lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
 

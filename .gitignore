@@ -101,3 +101,6 @@ ENV/
 
 # IDE config files
 .idea/
+
+sandbox/andreas
+sandbox/AAK/addr.db

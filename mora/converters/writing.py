@@ -9,6 +9,7 @@
 from .. import lora
 from .. import util
 from .. import exceptions
+from pprint import pprint
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
@@ -92,12 +93,8 @@ def create_org_unit(req: dict) -> dict:
 
     # Create virkning
     # NOTE: 'to' date is always infinity here but if the 'valid-to' is set in
-    # the frontend request, the org unit will be inactivated below
+    # the frontend request, the org unit end-date will be changed elsewhere
     virkning = _create_virkning(req.get('valid-from', '-infinity'), 'infinity')
-
-    nullrelation = [{
-        'virkning': virkning,
-    }]
 
     # Create the organisation unit object
     org_unit = {
@@ -161,21 +158,25 @@ def create_org_unit(req: dict) -> dict:
     return _set_virkning(org_unit, virkning)
 
 
-def inactivate_org_unit(unitid: str, date: str) -> dict:
+def inactivate_org_unit(date: str) -> dict:
+    """
+    Inactivate an org unit
+    :param date: the date to inactivate the org unit from
+    :return: the payload JSON used to update LoRa
+    """
     # TODO: add doc string
 
     obj_path = ['tilstande', 'organisationenhedgyldighed']
     props = {'gyldighed': 'Inaktiv'}
 
-    return _update_object(unitid, date, obj_path, props)
+    return _create_payload(date, 'infinity', obj_path, props)
 
 
-def move_org_unit(req: dict, unitid: str) -> dict:
+def move_org_unit(req: dict) -> dict:
     """
     Move an org unit to a new parent unit
     :param req: the JSON reqeust from the frontend
-    :param unitid: the UUID of the org unit to move
-    :return: the updated org unit with a new parent unit given in the req
+    :return: the payload JSON used to update LoRa
     """
 
     # TODO: add more asserts
@@ -184,64 +185,42 @@ def move_org_unit(req: dict, unitid: str) -> dict:
     obj_path = ['relationer', 'overordnet']
     props = {'uuid': req['newParentOrgUnitUUID']}
 
-    return _update_object(unitid, date, obj_path, props)
+    return _create_payload(date, 'infinity', obj_path, props)
 
 
 def rename_org_unit(req: dict) -> dict:
     """Rename an org unit.
 
-    Pre-condition: all virknings in the given org unit must have 'to'
-    set to infinity.
-
-    Pre-condition: the current time must be small than or equal to the
-    date, where the renaming should take effect.
-
     :param req: the JSON request sent from the frontend
-    :return: the updated org unit with a new org unit name from the
-             (in the req) given date
-
+    :return: the payload JSON used to update LoRa
     """
 
-    # TODO: add more asserts (see pre-conditions above)
-
-    unitid = req['uuid']
-    date = req['valid-from']
+    From = req['valid-from']
+    to = req['valid-to']
     obj_path = ['attributter', 'organisationenhedegenskaber']
     props = {'enhedsnavn': req['name']}
 
-    return _update_object(unitid, date, obj_path, props)
+    out = _create_payload(From, to, obj_path, props)
+    pprint(out)
+    return out
 
 
-def _update_object(unitid: str, date: str, obj_path: list,
-                   props: dict) -> dict:
-    assert util.now() <= util.parsedate(date)
+def _create_payload(From: str, to: str, obj_path: list, props: dict) -> dict:
 
-    # Get the current org unit and update this
-    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+    # TODO: test this
 
-    obj = org_unit
+    payload = {}
+    current_value = payload
     while obj_path:
-        obj = obj[obj_path.pop(0)]
+        key = obj_path.pop(0)
+        if obj_path:
+            current_value[key] = {}
+            current_value = current_value[key]
+        else:
+            props['virkning'] = _create_virkning(From, to)
+            current_value[key] = [props]
 
-    assert len(obj) == 1
-
-    # Create current end new virkning: [----- name1 -----)[----- name2 ----->
-    # Time: |----------------------------now-------------------------------->
-
-    current_virkning = _create_virkning(obj[0]['virkning']['from'], date)
-    new_virkning = _create_virkning(date, 'infinity')
-
-    # Modify the old virkning
-    obj[0]['virkning'] = current_virkning
-
-    # Set the new properties and the new virkning
-    new_obj = obj[0].copy()
-    for key, value in props.items():
-        new_obj[key] = value
-    new_obj['virkning'] = new_virkning
-    obj.append(new_obj)
-
-    return org_unit
+    return payload
 
 
 # ---------------------------- Updating addresses -------------------------- #

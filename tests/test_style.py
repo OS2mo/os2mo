@@ -26,10 +26,7 @@ SKIP_LIST = {
     'tests/test_app.py',
     'tests/converters/writing/test_create_org_unit.py',
     'tests/converters/writing/test_create_virkning.py',
-    'tests/converters/writing/test_rename_org_unit.py',
     'tests/converters/writing/test_set_virkning.py',
-    'tests/converters/writing/test_move_org_unit.py',
-    'tests/converters/writing/test_inactivate_org_unit.py',
 }
 
 SKIP_DIRS = {
