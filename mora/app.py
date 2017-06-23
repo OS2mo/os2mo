@@ -91,8 +91,8 @@ def create_organisation_unit(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
 @util.restrictargs('endDate')
 def inactivate_org_unit(orgid, unitid):
-    org_unit = writing.inactivate_org_unit(flask.request.args.get('endDate'))
-    lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
+    payload = writing.inactivate_org_unit(flask.request.args.get('endDate'))
+    lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
     return flask.jsonify({'uuid': unitid}), 200
 
@@ -104,9 +104,9 @@ def move_org_unit(orgid, unitid):
     # TODO: refactor common behavior from this route and the one below
 
     req = flask.request.get_json()
-    org_unit = writing.move_org_unit(req)
+    payload = writing.move_org_unit(req)
 
-    lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
+    lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
     return flask.jsonify({'uuid': unitid}), 200
 
@@ -121,8 +121,8 @@ def rename_org_unit(orgid, unitid):
 
     req = flask.request.get_json()
 
-    org_unit = writing.rename_org_unit(req)
-    lora.update('organisation/organisationenhed/%s' % unitid, org_unit)
+    payload = writing.rename_org_unit(req)
+    lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
     return flask.jsonify({'uuid': unitid}), 200
 

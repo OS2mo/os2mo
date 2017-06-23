@@ -16,12 +16,14 @@ from mora import lora
 from tests.util import jsonfile_to_dict
 
 
-class MoraTestCase(unittest.TestCase):
+class TestSetup(unittest.TestCase):
     def setUp(self):
         app.app.config['TESTING'] = True
         self.app = app.app.test_client()
         self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
 
+
+class MoraTestCase(TestSetup):
     def _request(self, url):
         """
         Make request to the app, get a JSON response and convert this to a Python dictionary
@@ -66,21 +68,17 @@ class MoraTestCase(unittest.TestCase):
             ]
         }
                  )
-        mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'), json=lora_klasse_response)
+        mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'),
+                 json=lora_klasse_response)
 
-        expected_response = jsonfile_to_dict('tests/mocking/mo/list_classes.json')
+        expected_response = jsonfile_to_dict(
+            'tests/mocking/mo/list_classes.json')
         actual_response = self._request('/org-unit/type')
 
         self.assertEqual(actual_response, expected_response, 'Hurra')
 
 
-class TestCreateOrgUnit(unittest.TestCase):
-
-    def setUp(self):
-        app.app.config['TESTING'] = True
-        self.app = app.app.test_client()
-        self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
-
+class TestCreateOrgUnit(TestSetup):
     @requests_mock.mock()
     def test_create_organisation_unit_with_end_date_infinity(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
@@ -91,7 +89,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                           data=json.dumps(frontend_req),
                           content_type='application/json')
         actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response, expected_response, 'Error in creating org unit')
+        self.assertEqual(actual_response, expected_response,
+                         'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
     @requests_mock.mock()
@@ -101,15 +100,19 @@ class TestCreateOrgUnit(unittest.TestCase):
             'tests/mocking/mo/create_org_unit_specific_enddate.json')
         mock.post(lora.LORA_URL + 'organisation/organisationenhed',
                   json=expected_response)
-        mock.get(lora.LORA_URL + 'organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
-                 json=jsonfile_to_dict('tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
-        mock.put(lora.LORA_URL + 'organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
-                 json=expected_response)
+        mock.get(
+            lora.LORA_URL + 'organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
+            json=jsonfile_to_dict(
+                'tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
+        mock.put(
+            lora.LORA_URL + 'organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+            json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
                           data=json.dumps(frontend_req),
                           content_type='application/json')
         actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response, expected_response, 'Error in creating org unit')
+        self.assertEqual(actual_response, expected_response,
+                         'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
 
@@ -164,7 +167,8 @@ class TestRenameOrgUnit(unittest.TestCase):
                                     'organisationenhedgyldighed': [
                                         {
                                             'virkning': {
-                                                'from_included': True, 'from': '2017-05-07 22:00:00+00',
+                                                'from_included': True,
+                                                'from': '2017-05-07 22:00:00+00',
                                                 'to': '2017-07-30 22:00:00+00',
                                                 'to_included': False
                                             },
@@ -248,15 +252,58 @@ class TestRenameOrgUnit(unittest.TestCase):
                 ]
             ]
         }
-        mock.get(lora.LORA_URL + 'organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
-                 json=lora_response)
-        mock.put(lora.LORA_URL + 'organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
-                 json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
-        r = self.app.post('/o/' + frontend_req['org'] + '/org-unit/' + frontend_req['uuid'] + '?rename=true',
-                          data=json.dumps(frontend_req),
-                          content_type='application/json')
+        mock.get(
+            lora.LORA_URL + 'organisation/organisationenhed?uuid=65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+            json=lora_response)
+        mock.put(
+            lora.LORA_URL + 'organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+            json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
+        r = self.app.post(
+            '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
+                'uuid'] + '?rename=true',
+            data=json.dumps(frontend_req),
+            content_type='application/json')
         actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response, {'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'}, 'Error in renaming org unit')
+        self.assertEqual(actual_response,
+                         {'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'},
+                         'Error in renaming org unit')
+        self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
+
+
+# TODO: the tests below do not really tell us much...
+
+class TestInactivateOrgUnit(TestSetup):
+    @requests_mock.mock()
+    def test_should_respond_uuid_200_when_inactivating_org_unit(self, mock):
+        mock.put(
+            'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+            json={'uuid': '00000000-0000-0000-0000-000000000000'})
+        r = self.app.delete(
+            '/o/00000000-0000-0000-0000-000000000000/org-unit/00000000-0000-0000-0000-000000000000?endDate=01-01-2010')
+        actual_response = json.loads(r.data.decode())
+        self.assertEqual(actual_response,
+                         {'uuid': '00000000-0000-0000-0000-000000000000'},
+                         'Error when inactivating org unit')
+        self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
+
+
+class TestMoveOrgUnit(TestSetup):
+    @requests_mock.mock()
+    def test_should_respond_uuid_200_when_moving_org_unit(self, mock):
+        frontend_req = {
+            "moveDate": "01-01-2010",
+            "newParentOrgUnitUUID": "00000000-0000-0000-0000-000000000000"}
+        mock.put(
+            'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+            json={'uuid': '00000000-0000-0000-0000-000000000000'})
+        r = self.app.post(
+            '/o/00000000-0000-0000-0000-000000000000/org-unit/00000000-0000-0000-0000-000000000000/actions/move',
+            data=json.dumps(frontend_req),
+            content_type='application/json')
+        actual_response = json.loads(r.data.decode())
+        self.assertEqual(actual_response,
+                         {'uuid': '00000000-0000-0000-0000-000000000000'},
+                         'Error when moving org unit')
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
 
 
