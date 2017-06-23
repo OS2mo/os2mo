@@ -44,7 +44,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     ],
                     'name': 'locationname', 'primaer': True,
                     'location': {
-                        'UUID_EnhedsAdresse': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                        'UUID_EnhedsAdresse':
+                            '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'postnr': '8240',
                         'postdistrikt': 'Risskov',
                         'vejnavn': 'Pilevej 2, 8240 Risskov'
@@ -146,7 +147,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit,
+        self.assertEqual(writing.create_org_unit(frontend_req),
+                         output_org_unit,
                          'Org unit not created correctly from FE req')
 
     def test_should_create_org_unit_with_two_contact_channels_correctly(self):
@@ -187,7 +189,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     ],
                     'name': 'locationname', 'primaer': True,
                     'location': {
-                        'UUID_EnhedsAdresse': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                        'UUID_EnhedsAdresse':
+                            '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'postnr': '8240',
                         'postdistrikt': 'Risskov',
                         'vejnavn': 'Pilevej 2, 8240 Risskov'
@@ -299,7 +302,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(writing.create_org_unit(frontend_req), output_org_unit,
+        self.assertEqual(writing.create_org_unit(frontend_req),
+                         output_org_unit,
                          'Org unit not created correctly from FE req')
 
     def test_should_extend_attributes_correctly(self):

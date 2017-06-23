@@ -19,7 +19,7 @@ class TestSetVirkning(unittest.TestCase):
             'to': '2018-11-30T00:00:00+01:00'
         }
 
-    def test_should_add_virkning1_correctly_to_org_unit_props_leafs_in_attributter(self):
+    def test_should_add_virkning1_correctly_to_org_unit_props_leafs_attr(self):
         input_obj = {
             'attributter': {
                 'organisationenhedegenskaber': [
@@ -44,10 +44,11 @@ class TestSetVirkning(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(writing._set_virkning(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._set_virkning(input_obj, self.virkning),
+                         output_obj,
                          'Virkning not added correctly attributter')
 
-    def test_should_add_virkning2_correctly_to_org_unit_props_leafs_in_attributter(self):
+    def test_should_add_virkning2_correctly_to_org_unit_props_leafs_attr(self):
         input_obj = {
             'attributter': {
                 'organisationenhedegenskaber': [
@@ -72,10 +73,11 @@ class TestSetVirkning(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(writing._set_virkning(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._set_virkning(input_obj, self.virkning),
+                         output_obj,
                          'Virkning not added correctly for attributter')
 
-    def test_should_add_virkning_correctly_to_org_unit_props_leafs_in_tilstande(self):
+    def test_should_add_virkning_correctly_to_org_unit_props_leafs_tilst(self):
         input_obj = {
             'attributter': {
                 'organisationenhedegenskaber': [
@@ -118,10 +120,11 @@ class TestSetVirkning(unittest.TestCase):
                 ],
             },
         }
-        self.assertEqual(writing._set_virkning(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._set_virkning(input_obj, self.virkning),
+                         output_obj,
                          'Virkning not added correctly for tilstande')
 
-    def test_should_add_virkning_correctly_to_org_unit_props_leafs_in_enhedstype(self):
+    def test_should_add_virkning_to_org_unit_props_leafs_enhedtype(self):
         input_obj = {
             'attributter': {
                 'organisationenhedegenskaber': [
@@ -178,7 +181,8 @@ class TestSetVirkning(unittest.TestCase):
                 }
             ]
         }
-        self.assertEqual(writing._set_virkning(input_obj, self.virkning), output_obj,
+        self.assertEqual(writing._set_virkning(input_obj, self.virkning),
+                         output_obj,
                          'Virkning not added correctly for enhedstype')
 
     def test_should_add_virkning_correctly_to_full_org_unit_obj(self):
@@ -306,6 +310,6 @@ class TestSetVirkning(unittest.TestCase):
                 ],
             }
         }
-        self.assertEqual(writing._set_virkning(input_org_unit, self.virkning), output_org_unit,
+        self.assertEqual(writing._set_virkning(input_org_unit, self.virkning),
+                         output_org_unit,
                          'Virkning not added correctly for full org unit')
-

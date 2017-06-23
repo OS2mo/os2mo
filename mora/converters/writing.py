@@ -164,7 +164,6 @@ def inactivate_org_unit(date: str) -> dict:
     :param date: the date to inactivate the org unit from
     :return: the payload JSON used to update LoRa
     """
-    # TODO: add doc string
 
     obj_path = ['tilstande', 'organisationenhedgyldighed']
     props = {'gyldighed': 'Inaktiv'}
@@ -189,8 +188,8 @@ def move_org_unit(req: dict) -> dict:
 
 
 def rename_org_unit(req: dict) -> dict:
-    """Rename an org unit.
-
+    """
+    Rename an org unit.
     :param req: the JSON request sent from the frontend
     :return: the payload JSON used to update LoRa
     """
@@ -256,7 +255,7 @@ def _update_existing_address(org_unit: dict,
                              address_uuid: str,
                              location: dict,
                              From: str,
-                             to: str) -> dict:
+                             to: str) -> list:
     """
     Used to update an already existing address
     :param org_unit: the org unit to update

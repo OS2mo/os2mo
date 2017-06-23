@@ -24,9 +24,6 @@ UPSTREAM_FILES = {
 # TODO: re-enable style checks for these files as needed
 SKIP_LIST = {
     'tests/test_app.py',
-    'tests/converters/writing/test_create_org_unit.py',
-    'tests/converters/writing/test_create_virkning.py',
-    'tests/converters/writing/test_set_virkning.py',
 }
 
 SKIP_DIRS = {
