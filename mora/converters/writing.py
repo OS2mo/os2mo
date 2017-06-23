@@ -9,7 +9,6 @@
 from .. import lora
 from .. import util
 from .. import exceptions
-from pprint import pprint
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
@@ -48,38 +47,6 @@ def _create_virkning(From: str, to: str, from_included=True,
         'from_included': from_included,
         'to_included': to_included
     }
-
-
-def _extend_current_virkning(lora_registrering_obj: dict,
-                             virkning: dict) -> dict:
-    """Extend the elements in a given LoRa "registrering" object to also
-    apply during the new "virkning"
-
-    :param lora_registrering_obj: a LoRa "registrering" object
-                                  (pre-condition: must only contain data for
-                                  present date)
-    :param virkning: the new "virkning" to apply
-    :return: a LoRa "registrering" object extended with the given "virkning"
-
-    """
-
-    # TODO: Quick and dirty to make things work... refactor
-    # common functionality in this function and _add_virkning into
-    # separate function (or make class) and add (more) test cases!!!
-
-    for k, v in lora_registrering_obj.items():
-        if isinstance(v, dict):
-            _extend_current_virkning(v, virkning)
-        elif isinstance(v, list):
-            new_objs = []
-            for d in v:
-                d_copy = d.copy()
-                d_copy['virkning'] = virkning
-                new_objs.append(d_copy)
-            v.extend(new_objs)
-        else:
-            pass
-    return lora_registrering_obj
 
 
 def create_org_unit(req: dict) -> dict:
@@ -199,9 +166,7 @@ def rename_org_unit(req: dict) -> dict:
     obj_path = ['attributter', 'organisationenhedegenskaber']
     props = {'enhedsnavn': req['name']}
 
-    out = _create_payload(From, to, obj_path, props)
-    pprint(out)
-    return out
+    return _create_payload(From, to, obj_path, props)
 
 
 def _create_payload(From: str, to: str, obj_path: list, props: dict) -> dict:
