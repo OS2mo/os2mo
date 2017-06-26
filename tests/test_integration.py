@@ -309,12 +309,12 @@ class IntegrationTests(util.LoRATestCase):
                         'parent-object': None,
                         'user-key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-from': '2016-01-01 00:00:00+01',
                         'valid-to': 'infinity',
                     },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 }
             ]
@@ -338,12 +338,12 @@ class IntegrationTests(util.LoRATestCase):
                         'parent-object': None,
                         'user-key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-from': '2016-01-01 00:00:00+01',
                         'valid-to': 'infinity',
                     },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 }
             ]
