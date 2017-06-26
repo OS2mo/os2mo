@@ -170,7 +170,6 @@ def rename_org_unit(req: dict) -> dict:
 
 
 def _create_payload(From: str, to: str, obj_path: list, props: dict) -> dict:
-
     # TODO: test this
 
     payload = {}
@@ -331,4 +330,10 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
         updated_addresses = _add_location(org_unit, kwargs['location'],
                                           kwargs['From'], kwargs['to'])
 
-    return updated_addresses
+    payload = {
+        'relationer': {
+            'adresser': updated_addresses
+        }
+    }
+
+    return payload

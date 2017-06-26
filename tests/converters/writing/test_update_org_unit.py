@@ -223,26 +223,30 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                 }
             }
         ]
-        addresses = [{'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
-                      'virkning': {'from': '2017-05-08T00:00:00+0200',
-                                   'from_included': True,
-                                   'to': 'infinity',
-                                   'to_included': False}},
-                     {'urn': 'urn:magenta.dk:telefon:12345678',
-                      'virkning': {'from': '2017-05-08T00:00:00+0200',
-                                   'from_included': True,
-                                   'to': 'infinity',
-                                   'to_included': False}},
-                     {'urn': 'urn:magenta.dk:telefon:12345678',
-                      'virkning': {'from': '2017-06-20T00:00:00+02:00',
-                                   'from_included': True,
-                                   'to': 'infinity',
-                                   'to_included': False}},
-                     {'urn': 'urn:magenta.dk:telefon:87654321',
-                      'virkning': {'from': '2017-06-20T00:00:00+02:00',
-                                   'from_included': True,
-                                   'to': 'infinity',
-                                   'to_included': False}}]
+        addresses = {
+            'relationer': {
+                'adresser': [{'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                              'virkning': {'from': '2017-05-08T00:00:00+0200',
+                                           'from_included': True,
+                                           'to': 'infinity',
+                                           'to_included': False}},
+                             {'urn': 'urn:magenta.dk:telefon:12345678',
+                              'virkning': {'from': '2017-05-08T00:00:00+0200',
+                                           'from_included': True,
+                                           'to': 'infinity',
+                                           'to_included': False}},
+                             {'urn': 'urn:magenta.dk:telefon:12345678',
+                              'virkning': {'from': '2017-06-20T00:00:00+02:00',
+                                           'from_included': True,
+                                           'to': 'infinity',
+                                           'to_included': False}},
+                             {'urn': 'urn:magenta.dk:telefon:87654321',
+                              'virkning': {'from': '2017-06-20T00:00:00+02:00',
+                                           'from_included': True,
+                                           'to': 'infinity',
+                                           'to_included': False}}]
+            }
+        }
         mock.get(self.std_mock_org_unit, json=self.json)
         self.assertEqual(
             addresses,
@@ -265,19 +269,23 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             From='08-05-2017',
             to='infinity'
         )
-        expected_addresses = [
-            {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
-             'virkning': {
-                 'from': '2017-05-08T00:00:00+02:00',
-                 'from_included': True,
-                 'to': 'infinity',
-                 'to_included': False}},
-            {'urn': 'urn:magenta.dk:telefon:12345678',
-             'virkning': {'from': '2017-05-08T00:00:00+0200',
-                          'from_included': True,
-                          'to': 'infinity',
-                          'to_included': False}},
-        ]
+        expected_addresses = {
+            'relationer': {
+                'adresser': [
+                    {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                     'virkning': {
+                         'from': '2017-05-08T00:00:00+02:00',
+                         'from_included': True,
+                         'to': 'infinity',
+                         'to_included': False}},
+                    {'urn': 'urn:magenta.dk:telefon:12345678',
+                     'virkning': {'from': '2017-05-08T00:00:00+0200',
+                                  'from_included': True,
+                                  'to': 'infinity',
+                                  'to_included': False}},
+                ]
+            }
+        }
         self.assertEqual(expected_addresses, actual_addresses,
                          'Should change addr UUID correctly')
 
@@ -292,23 +300,27 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             From='01-01-2020',
             to='infinity'
         )
-        expected_addresses = [
-            {'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
-             'virkning': {'from': '2017-05-08T00:00:00+0200',
-                          'from_included': True,
-                          'to': 'infinity',
-                          'to_included': False}},
-            {'urn': 'urn:magenta.dk:telefon:12345678',
-             'virkning': {'from': '2017-05-08T00:00:00+0200',
-                          'from_included': True,
-                          'to': 'infinity',
-                          'to_included': False}},
-            {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
-             'virkning': {'from': '2020-01-01T00:00:00+01:00',
-                          'from_included': True,
-                          'to': 'infinity',
-                          'to_included': False}},
-        ]
+        expected_addresses = {
+            'relationer': {
+                'adresser': [
+                    {'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                     'virkning': {'from': '2017-05-08T00:00:00+0200',
+                                  'from_included': True,
+                                  'to': 'infinity',
+                                  'to_included': False}},
+                    {'urn': 'urn:magenta.dk:telefon:12345678',
+                     'virkning': {'from': '2017-05-08T00:00:00+0200',
+                                  'from_included': True,
+                                  'to': 'infinity',
+                                  'to_included': False}},
+                    {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                     'virkning': {'from': '2020-01-01T00:00:00+01:00',
+                                  'from_included': True,
+                                  'to': 'infinity',
+                                  'to_included': False}},
+                ]
+            }
+        }
         self.assertEqual(expected_addresses, actual_addresses,
                          'Should add a new location correctly')
 
@@ -321,4 +333,4 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             contact_channels=None)
         self.assertRaises(IllegalArgumentException)
 
-    # TODO: add more exception tests
+        # TODO: add more exception tests

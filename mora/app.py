@@ -142,15 +142,11 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
     roletype = req.get('role-type')
 
     kwargs = writing.create_update_kwargs(roletype, req)
-    updated_addresses = writing.update_org_unit_addresses(
+    payload = writing.update_org_unit_addresses(
         unitid, roletype, **kwargs)
 
-    if updated_addresses:
-        lora.update('organisation/organisationenhed/{}'.format(unitid), {
-            'relationer': {
-                'adresser': updated_addresses
-            }
-        })
+    if payload['relationer']['adresser']:
+        lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
     return flask.jsonify(unitid), 200
 
