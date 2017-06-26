@@ -59,7 +59,6 @@ def find_address(query: str, municipality: str=None):
 def autocomplete_address(query: str, orgid: str):
     if orgid:
         org = lora.organisation.get(orgid)
-        codeprefix = 'urn:dk:kommune:'
 
         for myndighed in org['relationer']['myndighed']:
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn', ''))
