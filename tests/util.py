@@ -33,13 +33,15 @@ def jsonfile_to_dict(path):
     :param path: path to json resource
     :return: dictionary corresponding to the resource JSON
     """
-    with open(path) as f:
-        return json.load(f)
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        raise ValueError('failed to decode ' + path)
 
 
 def get_fixture(fixture_name):
-    with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
-        return json.load(fp)
+    return jsonfile_to_dict(os.path.join(FIXTURE_DIR, fixture_name))
 
 
 def get_unused_port():
@@ -112,9 +114,7 @@ def mock(name=None):
             with requests_mock.mock() as mock:
                 if name:
                     json_path = os.path.join(TESTS_DIR, 'mocking', name)
-
-                    with open(json_path, 'r') as fp:
-                        data = json.load(fp)
+                    data = jsonfile_to_dict()
 
                     # inject the fixture; note that complete_qs is
                     # important: without it, a URL need only match *some*
