@@ -114,7 +114,7 @@ def mock(name=None):
             with requests_mock.mock() as mock:
                 if name:
                     json_path = os.path.join(TESTS_DIR, 'mocking', name)
-                    data = jsonfile_to_dict()
+                    data = jsonfile_to_dict(json_path)
 
                     # inject the fixture; note that complete_qs is
                     # important: without it, a URL need only match *some*
