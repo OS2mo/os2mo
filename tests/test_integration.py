@@ -291,6 +291,65 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '?query=Hum%',
+            [
+                {
+                    'activeName': 'Humanistisk fakultet',
+                    'hasChildren': True,
+                    'name': 'Humanistisk fakultet',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'parent-object': {
+                        'activeName': 'Overordnet Enhed',
+                        'hasChildren': True,
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-to': 'infinity',
+                    },
+                    'user-key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-to': 'infinity',
+                }
+            ]
+        )
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '?query=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            [
+                {
+                    'activeName': 'Humanistisk fakultet',
+                    'hasChildren': True,
+                    'name': 'Humanistisk fakultet',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'parent-object': {
+                        'activeName': 'Overordnet Enhed',
+                        'hasChildren': True,
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-to': 'infinity',
+                    },
+                    'user-key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-to': 'infinity',
+                }
+            ]
+        )
+
+        self.assertRequestResponse(
             '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
             '/role-types/location/?validity=present',
