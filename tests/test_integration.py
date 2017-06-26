@@ -241,9 +241,9 @@ class IntegrationTests(util.LoRATestCase):
             '04c78fc2-72d2-4d02-b55f-807af19eac48/',
             [
                 {
-                    'activeName': 'Afdeling for Fremtidshistorik',
+                    'activeName': 'Afdeling for Samtidshistorik',
                     'hasChildren': False,
-                    'name': 'Afdeling for Fremtidshistorik',
+                    'name': 'Afdeling for Samtidshistorik',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'parent-object': {
@@ -284,8 +284,8 @@ class IntegrationTests(util.LoRATestCase):
                     },
                     'user-key': 'frem',
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'valid-from': '2016-01-01 00:00:00+01',
-                    'valid-to': 'infinity',
+                    'valid-from': '2017-01-01 00:00:00+01',
+                    'valid-to': '2018-01-01 00:00:00+01',
                 },
             ],
         )

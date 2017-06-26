@@ -6,6 +6,22 @@
         "enhedsnavn": "Afdeling for Fremtidshistorik",
         "virkning": {
           "from": "2016-01-01 00:00:00+01:00",
+          "to": "2017-01-01 00:00:00+01:00"
+        }
+      },
+      {
+        "brugervendtnoegle": "frem",
+        "enhedsnavn": "Afdeling for Samtidshistorik",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      },
+      {
+        "brugervendtnoegle": "frem",
+        "enhedsnavn": "Afdeling for Fortidshistorik",
+        "virkning": {
+          "from": "2018-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
@@ -17,6 +33,13 @@
         "gyldighed": "Aktiv",
         "virkning": {
           "from": "2016-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      },
+      {
+        "gyldighed": "Inaktiv",
+        "virkning": {
+          "from": "2018-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
