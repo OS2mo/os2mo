@@ -42,8 +42,8 @@ def _create_virkning(From: str, to: str, from_included=True,
     :return: the virkning object
     """
     return {
-        'from': util.reparsedate(From),
-        'to': util.reparsedate(to),
+        'from': util.reparsedatetime(From),
+        'to': util.reparsedatetime(to),
         'from_included': from_included,
         'to_included': to_included
     }

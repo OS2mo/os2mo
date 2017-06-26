@@ -6,12 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import functools
-import os
-import unittest
 import urllib
-
-import requests_mock
 
 from .. import util
 from mora import app
@@ -28,7 +23,7 @@ class AddrTests(util.TestCase):
 
         return app.app
 
-    @requests_mock.mock()
+    @util.mock()
     def test_fetch_address_invalid_args(self, m):
         self.assertRequestFails('/addressws/geographical-location', 501)
         self.assertRequestFails('/addressws/geographical-location?asd', 501)
@@ -36,7 +31,7 @@ class AddrTests(util.TestCase):
         self.assertRequestFails('/addressws/geographical-location?vejnavn=',
                                 501)
 
-    @util.with_mock_fixture('dawa.json')
+    @util.mock('dawa.json')
     def test_autocomplete_address(self, mock):
         aarhus_road = urllib.parse.quote_plus('Åbogade 15')
 

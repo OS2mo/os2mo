@@ -9,14 +9,14 @@
 import unittest
 import freezegun
 
-import requests_mock
-
 from mora import lora
 from mora.converters import writing
 from tests.util import jsonfile_to_dict
 from mora.exceptions import IllegalArgumentException
 from mora import lora
 from pprint import pprint
+
+from ... import util
 
 
 class TestSetup(unittest.TestCase):
@@ -189,7 +189,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'get_org_unit_from_uuid.json')
 
     @freezegun.freeze_time(tz_offset=2)
-    @requests_mock.mock()
+    @util.mock()
     def test_should_update_add_contact_channels_correctly(self, mock):
         contact_channels = [
             {
@@ -258,7 +258,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         )
 
     @freezegun.freeze_time(tz_offset=2)
-    @requests_mock.mock()
+    @util.mock()
     def test_should_update_location_correctly(self, mock):
         mock.get(self.std_mock_org_unit, json=self.json)
         actual_addresses = writing.update_org_unit_addresses(
@@ -290,7 +290,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                          'Should change addr UUID correctly')
 
     @freezegun.freeze_time(tz_offset=+1)
-    @requests_mock.mock()
+    @util.mock()
     def test_should_add_new_location_correctly(self, mock):
         mock.get(self.std_mock_org_unit, json=self.json)
         actual_addresses = writing.update_org_unit_addresses(
@@ -324,7 +324,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         self.assertEqual(expected_addresses, actual_addresses,
                          'Should add a new location correctly')
 
-    @requests_mock.mock()
+    @util.mock()
     def test_should_raise_exception_if_contact_channel_not_given(self, mock):
         mock.get(self.std_mock_org_unit, json=self.json)
         writing.update_org_unit_addresses(

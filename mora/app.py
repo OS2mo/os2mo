@@ -17,6 +17,7 @@ import flask
 from . import cli
 from . import lora
 from . import util
+from .converters import addr
 from .converters import reading
 from .converters import writing
 
@@ -162,20 +163,16 @@ def full_hierarchy(orgid):
     args = flask.request.args
 
     treeType = args.get('treeType', None)
-    if treeType == 'specific':
-        overordnet = args['orgUnitId']
-    else:
-        overordnet = str(orgid)
 
     if treeType == 'specific':
         return flask.jsonify(
-            reading.full_hierarchy(str(orgid), overordnet)['children'],
+            reading.full_hierarchy(str(orgid), args['orgUnitId'])['children'],
         )
 
     else:
         return flask.jsonify(reading.wrap_in_org(
             str(orgid),
-            reading.full_hierarchies(str(orgid), overordnet)[0],
+            reading.full_hierarchies(str(orgid), str(orgid))[0],
         ))
 
 
@@ -250,14 +247,9 @@ def get_role(orgid, unitid, role):
             if addr.get('urn', '').startswith(PHONE_PREFIX)
         ])
     elif role == 'location':
-        def convert_addr(addr):
+        def convert_addr(addrobj):
             # TODO: can we live with struktur=mini?
-            addrinfo = requests.get(
-                'http://dawa.aws.dk/adresser/' + addr['uuid'],
-                params={
-                    'noformat': '1',
-                },
-            ).json()
+            addrinfo = addr.get_address(addrobj['uuid'])
 
             return {
                 "location": {
@@ -272,8 +264,8 @@ def get_role(orgid, unitid, role):
                 "primaer": True,  # TODO: really?
                 "role-type": "location",
                 "uuid": addrinfo['id'],
-                "valid-from": addr['virkning']['from'],
-                "valid-to": addr['virkning']['to'],
+                "valid-from": addrobj['virkning']['from'],
+                "valid-to": addrobj['virkning']['to'],
             }
 
         return flask.jsonify([
@@ -313,59 +305,10 @@ def list_classes():
 @app.route('/addressws/geographical-location')
 @util.restrictargs('local', required=['vejnavn'])
 def get_geographical_addresses():
-    # example output from runWithMocks:
-    # [{
-    #     "UUID_AdgangsAdresse": "0A3F507B-67A6-32B8-E044-0003BA298018",
-    #     "UUID_EnhedsAdresse": "0A3F50A2-FA9D-32B8-E044-0003BA298018",
-    #     "kommunenavn": "Ballerup",
-    #     "kommunenr": "151",
-    #     "koorNord": "6180286.02",
-    #     "koorOest": "710570.98",
-    #     "latitude": "55.7223788579",
-    #     "longitude": "12.3529929726",
-    #     "postdistrikt": "Ballerup",
-    #     "postnr": "2750",
-    #     "valid-from": "05-02-2000",
-    #     "valid-to": "31-12-9999",
-    #     "vejnavn": "Flakhaven 4"
-    # }]
-
-    query = flask.request.args.get('vejnavn')
-    local = flask.request.args.get('local')
-
-    if local:
-        org = lora.organisation.get(local)
-        codeprefix = 'urn:dk:kommune:'
-        for myndighed in org['relationer']['myndighed']:
-            if myndighed.get('urn', '').startswith(codeprefix):
-                code = int(myndighed['urn'][len(codeprefix):])
-                break
-        else:
-            return 'No local municipality found!', 400
-    else:
-        code = None
-
-    if not query:
-        return flask.jsonify([{
-            'message': 'missing "vejnavn" parameter',
-        }]), 400
-
-    return flask.jsonify([
-        {
-            "UUID_EnhedsAdresse": addrinfo['adresse']['id'],
-            "postdistrikt": addrinfo['adresse']['postnrnavn'],
-            "postnr": addrinfo['adresse']['postnr'],
-            "vejnavn": addrinfo['tekst'],
-        }
-        for addrinfo in requests.get(
-            'http://dawa.aws.dk/adresser/autocomplete',
-            params={
-                'noformat': '1',
-                'kommunekode': code,
-                'q': query,
-            },
-        ).json()
-    ])
+    return flask.jsonify(
+        addr.autocomplete_address(flask.request.args['vejnavn'],
+                                  flask.request.args.get('local')),
+    )
 
 
 @app.route('/role-types/contact/facets/properties/classes/')

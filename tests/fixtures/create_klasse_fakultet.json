@@ -5,7 +5,7 @@
 		"titel": "Fakultet",
 		"beskrivelse": "Dette er et fakultet",
 		"virkning": {
-		    "from": "2017-01-01 12:00:00",
+		    "from": "2016-01-01 00:00:00+01:00",
 		    "to": "infinity"
 		}
 	}]
@@ -14,7 +14,7 @@
 	"klassepubliceret": [{
 	    "publiceret": "Publiceret",
 	    "virkning": {
-		"from": "2017-01-01 12:00:00",
+		"from": "2016-01-01 00:00:00+01:00",
 		"to": "infinity"
 	    }
 	}]

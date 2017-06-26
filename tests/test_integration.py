@@ -67,13 +67,13 @@ class IntegrationTests(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'hasChildren': True,
                     'valid-to': 'infinity',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
                 'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 'name': 'Aarhus Universitet',
                 'user-key': 'AU',
-                'valid-to': 'infinity', 'valid-from': '2017-01-01 12:00:00+01',
+                'valid-to': 'infinity', 'valid-from': '2016-01-01 00:00:00+01',
             },
         ])
 
@@ -101,7 +101,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'user-key': 'hum',
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'valid-from': '2017-01-01 12:00:00+01',
+                            'valid-from': '2016-01-01 00:00:00+01',
                             'valid-to': 'infinity',
                         },
                         {
@@ -112,7 +112,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                            'valid-from': '2017-01-01 12:00:00+01',
+                            'valid-from': '2016-01-01 00:00:00+01',
                             'valid-to': 'infinity'
                         },
                     ],
@@ -122,12 +122,12 @@ class IntegrationTests(util.LoRATestCase):
                     'parent': None,
                     'user-key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity'},
                 'name': 'Aarhus Universitet',
                 'user-key': 'AU',
                 'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                'valid-from': '2017-01-01 12:00:00+01',
+                'valid-from': '2016-01-01 00:00:00+01',
                 'valid-to': 'infinity',
             })
 
@@ -144,7 +144,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'user-key': 'hum',
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'valid-from': '2017-01-01 12:00:00+01',
+                            'valid-from': '2016-01-01 00:00:00+01',
                             'valid-to': 'infinity',
                         },
                         {
@@ -155,7 +155,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                            'valid-from': '2017-01-01 12:00:00+01',
+                            'valid-from': '2016-01-01 00:00:00+01',
                             'valid-to': 'infinity'
                         },
                     ],
@@ -165,12 +165,12 @@ class IntegrationTests(util.LoRATestCase):
                     'parent': None,
                     'user-key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity'},
                 'name': 'Aarhus Universitet',
                 'user-key': 'AU',
                 'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                'valid-from': '2017-01-01 12:00:00+01',
+                'valid-from': '2016-01-01 00:00:00+01',
                 'valid-to': 'infinity',
             })
 
@@ -186,7 +186,7 @@ class IntegrationTests(util.LoRATestCase):
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 },
                 {
@@ -197,7 +197,7 @@ class IntegrationTests(util.LoRATestCase):
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'user-key': 'samf',
                     'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 }
             ]
@@ -225,12 +225,12 @@ class IntegrationTests(util.LoRATestCase):
                         'parent-object': None,
                         'user-key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-from': '2016-01-01 00:00:00+01',
                         'valid-to': 'infinity',
                     },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 }
             ]
@@ -241,9 +241,9 @@ class IntegrationTests(util.LoRATestCase):
             '04c78fc2-72d2-4d02-b55f-807af19eac48/',
             [
                 {
-                    'activeName': 'Afdeling for Fremtidshistorik',
+                    'activeName': 'Afdeling for Samtidshistorik',
                     'hasChildren': False,
-                    'name': 'Afdeling for Fremtidshistorik',
+                    'name': 'Afdeling for Samtidshistorik',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'parent-object': {
@@ -269,26 +269,84 @@ class IntegrationTests(util.LoRATestCase):
                                 'parent-object': None,
                                 'user-key': 'root',
                                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                                'valid-from': '2017-01-01 '
-                                '12:00:00+01',
+                                'valid-from': '2016-01-01 00:00:00+01',
                                 'valid-to': 'infinity',
                             },
                             'user-key': 'hum',
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'valid-from': '2017-01-01 12:00:00+01',
+                            'valid-from': '2016-01-01 00:00:00+01',
                             'valid-to': 'infinity',
                         },
                         'user-key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'valid-from': '2017-01-01 12:00:00+01',
+                        'valid-from': '2016-01-01 00:00:00+01',
                         'valid-to': 'infinity',
                     },
                     'user-key': 'frem',
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'valid-from': '2017-01-01 12:00:00+01',
-                    'valid-to': 'infinity',
+                    'valid-from': '2017-01-01 00:00:00+01',
+                    'valid-to': '2018-01-01 00:00:00+01',
                 },
             ],
+        )
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '?query=Hum%',
+            [
+                {
+                    'activeName': 'Humanistisk fakultet',
+                    'hasChildren': True,
+                    'name': 'Humanistisk fakultet',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'parent-object': {
+                        'activeName': 'Overordnet Enhed',
+                        'hasChildren': True,
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '2016-01-01 00:00:00+01',
+                        'valid-to': 'infinity',
+                    },
+                    'user-key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'valid-from': '2016-01-01 00:00:00+01',
+                    'valid-to': 'infinity',
+                }
+            ]
+        )
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '?query=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            [
+                {
+                    'activeName': 'Humanistisk fakultet',
+                    'hasChildren': True,
+                    'name': 'Humanistisk fakultet',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'parent-object': {
+                        'activeName': 'Overordnet Enhed',
+                        'hasChildren': True,
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '2016-01-01 00:00:00+01',
+                        'valid-to': 'infinity',
+                    },
+                    'user-key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'valid-from': '2016-01-01 00:00:00+01',
+                    'valid-to': 'infinity',
+                }
+            ]
         )
 
         self.assertRequestResponse(
@@ -309,7 +367,7 @@ class IntegrationTests(util.LoRATestCase):
                     'primaer': True,
                     'role-type': 'location',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '2017-01-01 12:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 },
             ],

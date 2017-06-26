@@ -38,7 +38,7 @@ def get(path, uuid, validity=None):
         if validity == 'future':
             def should_include(o):
                 s = o['virkning']['from']
-                return s != '-infinity' and util.parsedate(s) > now
+                return s != '-infinity' and util.parsedatetime(s) > now
 
             params = {
                 'virkningfra': str(now),
@@ -48,7 +48,7 @@ def get(path, uuid, validity=None):
         elif validity == 'past':
             def should_include(o):
                 s = o['virkning']['to']
-                return s != 'infinity' and util.parsedate(s) < now
+                return s != 'infinity' and util.parsedatetime(s) < now
 
             params = {
                 'virkningfra': '-infinity',
