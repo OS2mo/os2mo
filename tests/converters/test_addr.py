@@ -8,6 +8,8 @@
 
 import urllib
 
+import freezegun
+
 from .. import util
 from mora import app
 
@@ -31,6 +33,7 @@ class AddrTests(util.TestCase):
         self.assertRequestFails('/addressws/geographical-location?vejnavn=',
                                 501)
 
+    @freezegun.freeze_time('2017-01-01')
     @util.mock('dawa.json')
     def test_autocomplete_address(self, mock):
         aarhus_road = urllib.parse.quote_plus('Åbogade 15')
