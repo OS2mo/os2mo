@@ -101,7 +101,7 @@ def load_sample_structures(*, verbose=False):
         load_fixture(*args, verbose=verbose)
 
 
-def with_mock_fixture(name):
+def mock(name=None):
     '''Decorator for running a function under requests_mock, with the
     given mocking fixture loaded.
     '''
@@ -109,18 +109,19 @@ def with_mock_fixture(name):
     def outer_wrapper(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            json_path = os.path.join(TESTS_DIR, 'mocking', name)
-
-            with open(json_path, 'r') as fp:
-                data = json.load(fp)
-
             with requests_mock.mock() as mock:
-                # inject the fixture; note that complete_qs is
-                # important: without it, a URL need only match *some*
-                # of the query parameters passed, and that's quite
-                # obnoxious if requests only differ by them
-                for url, value in data.items():
-                    mock.get(url, json=value, complete_qs=True)
+                if name:
+                    json_path = os.path.join(TESTS_DIR, 'mocking', name)
+
+                    with open(json_path, 'r') as fp:
+                        data = json.load(fp)
+
+                    # inject the fixture; note that complete_qs is
+                    # important: without it, a URL need only match *some*
+                    # of the query parameters passed, and that's quite
+                    # obnoxious if requests only differ by them
+                    for url, value in data.items():
+                        mock.get(url, json=value, complete_qs=True)
 
                 # stash the LoRA URL away, and restore it afterwards
                 orig_lora_url = lora.LORA_URL

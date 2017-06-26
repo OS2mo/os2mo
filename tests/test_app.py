@@ -9,11 +9,11 @@
 import json
 import unittest
 
-import requests_mock
-
 from mora import app
 from mora import lora
 from tests.util import jsonfile_to_dict
+
+from . import util
 
 
 class TestSetup(unittest.TestCase):
@@ -55,7 +55,7 @@ class MoraTestCase(TestSetup):
                  json=self._jsonfile_to_dict(
                      'tests/mocking/lora/organisation/organisationenhed/get_orgEnhed_from_uuidx3.json'))
 
-    @requests_mock.mock()
+    @util.mock()
     def test_list_classes(self, mock):
         lora_klasse_response = jsonfile_to_dict(
             'tests/mocking/lora/klassifikation/klasse/get_klasse_from_uuidx2.json')
@@ -79,11 +79,11 @@ class MoraTestCase(TestSetup):
 
 
 class TestCreateOrgUnit(TestSetup):
-    @requests_mock.mock()
+    @util.mock()
     def test_create_organisation_unit_with_end_date_infinity(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
         frontend_req = jsonfile_to_dict('tests/mocking/mo/create_org_unit.json')
-        mock.post(lora.LORA_URL + 'organisation/organisationenhed',
+        mock.post('http://mox/organisation/organisationenhed',
                   json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
                           data=json.dumps(frontend_req),
@@ -93,19 +93,19 @@ class TestCreateOrgUnit(TestSetup):
                          'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
-    @requests_mock.mock()
+    @util.mock()
     def test_create_organisation_unit_with_specific_end_date(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
         frontend_req = jsonfile_to_dict(
             'tests/mocking/mo/create_org_unit_specific_enddate.json')
-        mock.post(lora.LORA_URL + 'organisation/organisationenhed',
+        mock.post('http://mox/organisation/organisationenhed',
                   json=expected_response)
         mock.get(
-            lora.LORA_URL + 'organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
+            'http://mox/organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
             json=jsonfile_to_dict(
                 'tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
         mock.put(
-            lora.LORA_URL + 'organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+            'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
             json=expected_response)
         r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
                           data=json.dumps(frontend_req),
@@ -120,7 +120,7 @@ class TestCreateOrgUnit(TestSetup):
 
 class TestRenameOrgUnit(TestSetup):
 
-    @requests_mock.mock()
+    @util.mock()
     def test_should_rename_org_unit_correctly(self, mock):
         frontend_req = {
             'name': 'A6om',
@@ -155,7 +155,7 @@ class TestRenameOrgUnit(TestSetup):
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc'
         }
         mock.put(
-            lora.LORA_URL + 'organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+            'http://mox/organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
             json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
         r = self.app.post(
             '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
@@ -170,7 +170,7 @@ class TestRenameOrgUnit(TestSetup):
 
 
 class TestInactivateOrgUnit(TestSetup):
-    @requests_mock.mock()
+    @util.mock()
     def test_should_respond_uuid_200_when_inactivating_org_unit(self, mock):
         mock.put(
             'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
@@ -185,7 +185,7 @@ class TestInactivateOrgUnit(TestSetup):
 
 
 class TestMoveOrgUnit(TestSetup):
-    @requests_mock.mock()
+    @util.mock()
     def test_should_respond_uuid_200_when_moving_org_unit(self, mock):
         frontend_req = {
             "moveDate": "01-01-2010",
