@@ -5,7 +5,7 @@
         "brugervendtnoegle": "frem",
         "enhedsnavn": "Afdeling for Fremtidshistorik",
         "virkning": {
-          "from": "2017-01-01 12:00:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
@@ -16,7 +16,7 @@
       {
         "gyldighed": "Aktiv",
         "virkning": {
-          "from": "2017-01-01 12:00:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
@@ -27,7 +27,7 @@
       {
         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
         "virkning": {
-          "from": "2017-01-01 12:00:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
@@ -36,7 +36,7 @@
       {
         "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
         "virkning": {
-          "from": "2017-01-01 12:00:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
@@ -45,7 +45,7 @@
       {
         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
         "virkning": {
-          "from": "2017-01-01 12:00:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
  
@@ -55,7 +55,7 @@
       {
         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
         "virkning": {
-		  "from": "2017-01-01 12:00:00",
+		  "from": "2016-01-01 00:00:00+01:00",
 		  "to": "infinity"
         }
       }

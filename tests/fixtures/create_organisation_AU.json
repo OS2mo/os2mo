@@ -4,7 +4,7 @@
 		"brugervendtnoegle": "AU",
 		"organisationsnavn": "Aarhus Universitet",
 		"virkning": {
-		    "from": "2017-01-01 12:00:00",
+		    "from": "2016-01-01 00:00:00+01:00",
 		    "to": "infinity"
 		}
 	}]
@@ -13,7 +13,7 @@
 	"organisationgyldighed": [{
 	    "gyldighed": "Aktiv",
 	    "virkning": {
-		"from": "2017-01-01 12:00:00",
+		"from": "2016-01-01 00:00:00+01:00",
 		"to": "infinity"
 	    }
 	}]
@@ -22,7 +22,7 @@
         "myndighed": [{
             "urn": "urn:dk:kommune:751",
             "virkning": {
-		        "from": "2017-01-01 12:00:00",
+		        "from": "2016-01-01 00:00:00+01:00",
 		        "to": "infinity"
             }
         }]
