@@ -1,22 +1,27 @@
 {
     "attributter": {
-	"klasseegenskaber": [{
-		"brugervendtnoegle": "afd",
-		"titel": "Afdeling",
-		"beskrivelse": "Dette er en afdeling",
-		"virkning": {
-		    "from": "2016-01-01 00:00:00+01:00",
-		    "to": "infinity"
-		}
-	}]
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "afd",
+                "titel": "Afdeling",
+                "beskrivelse": "Dette er en afdeling",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
     },
     "tilstande": {
-	"klassepubliceret": [{
-	    "publiceret": "Publiceret",
-	    "virkning": {
-		"from": "2016-01-01 00:00:00+01:00",
-		"to": "infinity"
-	    }
-	}]
-    }
+        "klassepubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning"
 }

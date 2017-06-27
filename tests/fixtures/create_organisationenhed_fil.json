@@ -1,71 +1,71 @@
 {
-  "attributter": {
-    "organisationenhedegenskaber": [
-      {
-        "brugervendtnoegle": "fil",
-        "enhedsnavn": "Filosofisk Institut",
-        "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ]
-  },
-  "tilstande": {
-    "organisationenhedgyldighed": [
-      {
-        "gyldighed": "Aktiv",
-        "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ]
-  },
-  "relationer": {
-    "tilhoerer": [
-      {
-        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-        "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ],
-    "overordnet": [
-      {
-        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-        "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ],
-    "enhedstype": [
-      {
-        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-        "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
- 
-      }
-    ],
-    "adresser": [
-      {
-        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-        "virkning": {
-		  "from": "2016-01-01 00:00:00+01:00",
-		  "to": "infinity"
-        }
-      },
-      {
-        "urn": "urn:magenta.dk:telefon:+4587150000",
-        "virkning": {
-		  "from": "2016-01-01 00:00:00+01:00",
-		  "to": "infinity"
-        }
-      }
-    ]
-  }
+    "attributter": {
+        "organisationenhedegenskaber": [
+            {
+                "brugervendtnoegle": "fil",
+                "enhedsnavn": "Filosofisk Institut",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "organisationenhedgyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "tilhoerer": [
+            {
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "overordnet": [
+            {
+                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "enhedstype": [
+            {
+                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "adresser": [
+            {
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            },
+            {
+                "urn": "urn:magenta.dk:telefon:+4587150000",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning"
 }

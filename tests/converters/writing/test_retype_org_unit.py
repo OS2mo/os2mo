@@ -46,6 +46,7 @@ class TestMoveOrgUnit(unittest.TestCase):
             "valid-from-updated": "2017-06-30T22:00:00.000Z"
         }
         expected_output = {
+            'note': 'Ret enhedstype',
             'relationer': {
                 'enhedstype': [
                     {
@@ -60,7 +61,7 @@ class TestMoveOrgUnit(unittest.TestCase):
                 ]
             },
         }
-
         actual_output = writing.retype_org_unit(frontend_req)
+
         self.assertEqual(actual_output, expected_output,
                          'Unexpected output for retype org unit')

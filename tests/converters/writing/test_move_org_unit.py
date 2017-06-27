@@ -21,6 +21,7 @@ class TestMoveOrgUnit(unittest.TestCase):
             'newParentOrgUnitUUID': '5c5ba813-0550-4284-8f47-cbb36725568d'
         }
         expected_output = {
+            'note': 'Flyt enhed',
             'relationer': {
                 'overordnet': [
                     {

@@ -18,6 +18,7 @@ class TestInactivateOrgUnit(unittest.TestCase):
     @freezegun.freeze_time('2000-01-01 12:00:00', tz_offset=+1)
     def test_should_rename_org_unit_correctly(self):
         expected_output = {
+            'note': 'Afslut enhed',
             'tilstande': {
                 'organisationenhedgyldighed': [
                     {

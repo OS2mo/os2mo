@@ -112,7 +112,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                            'valid-from': '2016-01-01 00:00:00+01',
+                            'valid-from': '2017-01-01 00:00:00+01',
                             'valid-to': 'infinity'
                         },
                     ],
@@ -155,7 +155,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                            'valid-from': '2016-01-01 00:00:00+01',
+                            'valid-from': '2017-01-01 00:00:00+01',
                             'valid-to': 'infinity'
                         },
                     ],
@@ -197,7 +197,7 @@ class IntegrationTests(util.LoRATestCase):
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'user-key': 'samf',
                     'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                    'valid-from': '2016-01-01 00:00:00+01',
+                    'valid-from': '2017-01-01 00:00:00+01',
                     'valid-to': 'infinity',
                 }
             ]
