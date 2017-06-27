@@ -89,8 +89,8 @@ def _read_sheet(sheet):
             "attributter": {
                 "klasseegenskaber": [
                     {
-                        "brugervendtnoegle": "Afdeling",
-                        "titel": "Afdeling",
+                        "brugervendtnoegle": "Afdeling" + clsid[:3],
+                        "titel": "Afdeling " + clsid[:3],
                         "beskrivelse": "Dette er en afdeling",
                         "virkning": {
                             "from": _dt2str(now),
