@@ -172,7 +172,7 @@ class TestCreateOrgUnit(util.LoRATestCase):
             "hasChildren": True,
             "name": "Humanistisk fakultet",
             "org": ORGID,
-            "parent":PARENTID,
+            "parent": PARENTID,
             "parent-object": {
                 "activeName":
                 "Overordnet Enhed",
@@ -182,7 +182,7 @@ class TestCreateOrgUnit(util.LoRATestCase):
                 "parent": None,
                 "parent-object": None,
                 "user-key": "root",
-                "uuid":PARENTID,
+                "uuid": PARENTID,
                 "valid-from": "2016-01-01 00:00:00+01",
                 "valid-to": "infinity",
             },
