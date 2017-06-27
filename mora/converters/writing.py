@@ -135,7 +135,8 @@ def inactivate_org_unit(date: str) -> dict:
     obj_path = ['tilstande', 'organisationenhedgyldighed']
     props = {'gyldighed': 'Inaktiv'}
 
-    return _create_payload(date, 'infinity', obj_path, props)
+    return _create_payload(date, 'infinity', obj_path, props,
+                           'Afslut enhed')
 
 
 def move_org_unit(req: dict) -> dict:
@@ -151,7 +152,8 @@ def move_org_unit(req: dict) -> dict:
     obj_path = ['relationer', 'overordnet']
     props = {'uuid': req['newParentOrgUnitUUID']}
 
-    return _create_payload(date, 'infinity', obj_path, props)
+    return _create_payload(date, 'infinity', obj_path, props,
+                           'Flyt enhed')
 
 
 def rename_org_unit(req: dict) -> dict:
@@ -166,13 +168,17 @@ def rename_org_unit(req: dict) -> dict:
     obj_path = ['attributter', 'organisationenhedegenskaber']
     props = {'enhedsnavn': req['name']}
 
-    return _create_payload(From, to, obj_path, props)
+    return _create_payload(From, to, obj_path, props,
+                           'Omdøb enhed')
 
 
-def _create_payload(From: str, to: str, obj_path: list, props: dict) -> dict:
+def _create_payload(From: str, to: str, obj_path: list,
+                    props: dict, note: str) -> dict:
     # TODO: test this
 
-    payload = {}
+    payload = {
+        'note': note,
+    }
     current_value = payload
     while obj_path:
         key = obj_path.pop(0)
@@ -311,15 +317,18 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     if roletype == 'contact-channel':
         if 'contact_channels' in kwargs:
             # Adding contact channels
+            note = 'Tilføj kontaktkanal'
             updated_addresses = _add_contact_channels(
                 org_unit, kwargs['contact_channels'])
         else:
             # Contact channel already exists
+            note = 'Tilføj eksisterende kontaktkanal'
             updated_addresses = []
     elif roletype == 'location':
         # Updating an existing address
         _check_arguments(['address_uuid', 'location', 'From', 'to'],
                          list(kwargs.keys()))
+        note = 'Ret adresse'
         updated_addresses = _update_existing_address(
             org_unit, kwargs['address_uuid'], kwargs['location'],
             kwargs['From'], kwargs['to']
@@ -327,10 +336,12 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     else:
         # Roletype is None - adding new location
         _check_arguments(['location', 'From', 'to'], list(kwargs.keys()))
+        note = 'Tilføj addresse'
         updated_addresses = _add_location(org_unit, kwargs['location'],
                                           kwargs['From'], kwargs['to'])
 
     payload = {
+        'note': note,
         'relationer': {
             'adresser': updated_addresses
         }

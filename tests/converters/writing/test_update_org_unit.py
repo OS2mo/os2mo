@@ -224,6 +224,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             }
         ]
         addresses = {
+            'note': 'Tilføj kontaktkanal',
             'relationer': {
                 'adresser': [{'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                               'virkning': {'from': '2017-05-08T00:00:00+0200',
@@ -270,6 +271,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             to='infinity'
         )
         expected_addresses = {
+            'note': 'Ret adresse',
             'relationer': {
                 'adresser': [
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
@@ -301,6 +303,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             to='infinity'
         )
         expected_addresses = {
+            'note': 'Tilføj addresse',
             'relationer': {
                 'adresser': [
                     {'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',

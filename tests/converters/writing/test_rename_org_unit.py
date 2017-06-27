@@ -49,6 +49,7 @@ class TestRenameOrgUnit(unittest.TestCase):
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc'
         }
         expected_output = {
+            'note': 'Omdøb enhed',
             'attributter': {
                 'organisationenhedegenskaber': [
                     {
@@ -102,6 +103,7 @@ class TestRenameOrgUnit(unittest.TestCase):
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc'
         }
         expected_output = {
+            'note': 'Omdøb enhed',
             'attributter': {
                 'organisationenhedegenskaber': [
                     {
