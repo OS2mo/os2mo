@@ -65,6 +65,7 @@ def create_org_unit(req: dict) -> dict:
 
     # Create the organisation unit object
     org_unit = {
+        'note': 'Oprettet i MO',
         'attributter': {
             'organisationenhedegenskaber': [
                 {

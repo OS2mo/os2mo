@@ -62,6 +62,7 @@ class TestCreateOrgUnit(unittest.TestCase):
         }
 
         output_org_unit = {
+            'note': 'Oprettet i MO',
             'attributter': {
                 'organisationenhedegenskaber': [
                     {
@@ -207,6 +208,7 @@ class TestCreateOrgUnit(unittest.TestCase):
         }
 
         output_org_unit = {
+            'note': 'Oprettet i MO',
             'attributter': {
                 'organisationenhedegenskaber': [
                     {
