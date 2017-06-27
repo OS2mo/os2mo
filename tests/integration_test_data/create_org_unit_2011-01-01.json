@@ -1,0 +1,102 @@
+{
+  "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+  "livscykluskode": "Rettet",
+  "fratidspunkt": {
+    "tidsstempeldatotid": "2017-06-26T10:49:24.085155+02:00",
+    "graenseindikator": true
+  },
+  "relationer": {
+    "overordnet": [
+      {
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        },
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+      }
+    ],
+    "adresser": [
+      {
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        },
+        "uuid": "98001816-a7cc-4115-a9e6-2c5c06c79e5d"
+      },
+      {
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        },
+        "urn": "urn:magenta.dk:telefon:12345678"
+      }
+    ],
+    "tilhoerer": [
+      {
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        },
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+      }
+    ],
+    "enhedstype": [
+      {
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        },
+        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "2011-01-01 00:00:00+01"
+        },
+        "gyldighed": "Aktiv"
+      },
+      {
+        "virkning": {
+          "from": "2011-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        },
+        "gyldighed": "Inaktiv"
+      }
+    ]
+  },
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "NyEnhed",
+        "enhedsnavn": "NyEnhed",
+        "virkning": {
+          "from": "2010-01-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tiltidspunkt": {
+    "tidsstempeldatotid": "infinity"
+  }
+}
