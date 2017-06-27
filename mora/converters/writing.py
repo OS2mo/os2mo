@@ -169,6 +169,21 @@ def rename_org_unit(req: dict) -> dict:
     return _create_payload(From, to, obj_path, props)
 
 
+def retype_org_unit(req: dict) -> dict:
+    """
+    Change the type of the org unit
+    :param req: the JSON request sent from the frontend
+    :return: the payload JSON used to update LoRa
+    """
+
+    From = req['valid-from']
+    to = req['valid-to']
+    obj_path = ['relationer', 'enhedstype']
+    props = {'uuid': req['type']['uuid']}
+
+    return _create_payload(From, to, obj_path, props)
+
+
 def _create_payload(From: str, to: str, obj_path: list, props: dict) -> dict:
     # TODO: test this
 

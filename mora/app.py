@@ -114,15 +114,19 @@ def move_org_unit(orgid, unitid):
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
 @util.restrictargs('rename')
-def rename_org_unit(orgid, unitid):
+def rename_or_retype_org_unit(orgid, unitid):
     rename = flask.request.args.get('rename', None)
-
-    # Make sure the rename param is present and set to true
-    assert rename == 'true'
 
     req = flask.request.get_json()
 
-    payload = writing.rename_org_unit(req)
+    if rename:
+        # Renaming an org unit
+        payload = writing.rename_org_unit(req)
+    else:
+        # Changing the org units enhedstype
+        assert req['type']
+        payload = writing.retype_org_unit(req)
+
     lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
     return flask.jsonify({'uuid': unitid}), 200
@@ -155,7 +159,6 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 @app.route('/o/<uuid:orgid>/full-hierarchy')
 @util.restrictargs('treeType', 'orgUnitId', 'effective-date')
 def full_hierarchy(orgid):
-
     # TODO: the 'effective-date' parameter is not used below, but it is
     # set by the frontend when moving an org unit - we could choose to
     # remove it from the frontend call
@@ -180,7 +183,6 @@ def full_hierarchy(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date')
 def get_orgunit(orgid, unitid=None):
-
     # TODO: the 'effective-date' parameter is not used below, but it is
     # set by the frontend when renaming an org unit - we could choose to
     # remove it from the frontend call
