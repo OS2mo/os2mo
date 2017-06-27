@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import copy
 import json
 import freezegun
 import unittest
@@ -157,3 +158,55 @@ class TestCreateOrgUnit(util.LoRATestCase):
         expected_response.pop('fratidspunkt')
 
         self.assertEqual(expected_response, lora_response)
+
+    @freezegun.freeze_time('2017-01-01 12:00:00', tz_offset=+1)
+    def test_permanent_rename(self):
+        self.load_sample_structures()
+
+        PARENTID = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        ORGID = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        UNITID = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        expected = {
+            "activeName": "Humanistisk fakultet",
+            "hasChildren": True,
+            "name": "Humanistisk fakultet",
+            "org": ORGID,
+            "parent":PARENTID,
+            "parent-object": {
+                "activeName":
+                "Overordnet Enhed",
+                "hasChildren": True,
+                "name": "Overordnet Enhed",
+                "org": ORGID,
+                "parent": None,
+                "parent-object": None,
+                "user-key": "root",
+                "uuid":PARENTID,
+                "valid-from": "2016-01-01 00:00:00+01",
+                "valid-to": "infinity",
+            },
+            "user-key": "hum",
+            "uuid": UNITID,
+            "valid-from": "2016-01-01 00:00:00+01",
+            "valid-to": "infinity",
+        }
+
+        r = self.assertRequestResponse(
+            '/o/{}/org-unit/{}/'.format(ORGID, UNITID),
+            [expected],
+        )
+
+        postdata = copy.deepcopy(expected)
+        postdata["name"] = "Humanistisk fikultat"
+        postdata["valid-from"] = "01-06-2016"
+        del postdata["valid-to"]
+
+        r = self.client.post(
+            '/o/{}/org-unit/{}?rename=true'.format(ORGID, UNITID),
+            data=json.dumps(postdata),
+            content_type='application/json',
+        )
+
+        self.assert200(r)
+        self.assertEquals(r.json, {'uuid': UNITID})

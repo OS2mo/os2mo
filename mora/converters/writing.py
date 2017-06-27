@@ -164,7 +164,7 @@ def rename_org_unit(req: dict) -> dict:
     """
 
     From = req['valid-from']
-    to = req['valid-to']
+    to = req.get('valid-to', 'infinity')
     obj_path = ['attributter', 'organisationenhedegenskaber']
     props = {'enhedsnavn': req['name']}
 
