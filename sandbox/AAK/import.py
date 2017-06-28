@@ -20,6 +20,7 @@ import grequests
 import openpyxl
 import requests
 import tzlocal
+import urllib3
 
 
 def _dt2str(dt):
@@ -274,7 +275,7 @@ def _read_sheet(sheet):
             raise ValueError(sheet.title)
 
 
-def import_file(url, fp, verbose=False):
+def import_file(url, fp, verbose=False, insecure=False):
     wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
     sheetlines = itertools.chain.from_iterable(map(_read_sheet, wb))
 
@@ -285,6 +286,11 @@ def import_file(url, fp, verbose=False):
         return
 
     session = grequests.Session()
+
+    if insecure:
+        session.verify = False
+        urllib3.disable_warnings()
+
     requests = (
         grequests.request(
             method, url + path, session=session,
@@ -322,10 +328,12 @@ def main(argv):
                         help='URL', nargs='?')
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='show requests')
+    parser.add_argument('--insecure', '-k', action='store_true',
+                        help='disable HTTPS security')
 
     args = parser.parse_args(argv)
 
-    import_file(args.server, args.spreadsheet, args.verbose)
+    import_file(args.server, args.spreadsheet, args.verbose, args.insecure)
 
     return 0
 
