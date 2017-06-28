@@ -1,2 +1,0 @@
-# mora
-MedarbejderOrganisation + LoRA
