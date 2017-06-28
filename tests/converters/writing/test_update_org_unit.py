@@ -46,7 +46,7 @@ class TestExtendAddressesWithContactChannels(TestSetup):
             writing._add_contact_channels(self.org_unit, None),
             'Extending incorrectly when contact channels is None')
 
-    @freezegun.freeze_time(tz_offset=2)
+    @freezegun.freeze_time('2017-01-01', tz_offset=2)
     def test_should_add_two_contact_channels_correctly(self):
         contact_channels = [
             {
@@ -122,7 +122,7 @@ class TestUpdateExistingAddressesForLocations(TestSetup):
             new_addr_list, 'Nothing should happen when UUID is not found'
         )
 
-    @freezegun.freeze_time(tz_offset=1)
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_should_set_addr_uuid_to_000(self):
         actual_addresses = writing._update_existing_address(
             self.org_unit,
@@ -181,14 +181,17 @@ class TestUpdateOrgUnitAddresses(TestSetup):
 
     def setUp(self):
         super().setUp()
-        self.std_mock_org_unit = \
-            lora.LORA_URL + 'organisation/organisationenhed?' + \
+        self.std_mock_org_unit = (
+            'http://mox/organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
+            '&virkningfra=2017-01-01'
+            '&virkningtil=2017-01-02'
+        )
         self.json = jsonfile_to_dict(
             'tests/mocking/lora/organisation/organisationenhed/' +
             'get_org_unit_from_uuid.json')
 
-    @freezegun.freeze_time(tz_offset=2)
+    @freezegun.freeze_time('2017-01-01', tz_offset=2)
     @util.mock()
     def test_should_update_add_contact_channels_correctly(self, mock):
         contact_channels = [
@@ -258,7 +261,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'Extending incorrectly with two contact channels'
         )
 
-    @freezegun.freeze_time(tz_offset=2)
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
     @util.mock()
     def test_should_update_location_correctly(self, mock):
         mock.get(self.std_mock_org_unit, json=self.json)
@@ -267,7 +270,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'location',
             address_uuid='98001816-a7cc-4115-a9e6-2c5c06c79e5d',
             location=self.location,
-            From='08-05-2017',
+            From='31-12-2016',
             to='infinity'
         )
         expected_addresses = {
@@ -276,7 +279,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                 'adresser': [
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
                      'virkning': {
-                         'from': '2017-05-08T00:00:00+02:00',
+                         'from': '2016-12-31T00:00:00+01:00',
                          'from_included': True,
                          'to': 'infinity',
                          'to_included': False}},
@@ -291,9 +294,10 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         self.assertEqual(expected_addresses, actual_addresses,
                          'Should change addr UUID correctly')
 
-    @freezegun.freeze_time(tz_offset=+1)
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
     @util.mock()
     def test_should_add_new_location_correctly(self, mock):
+        print(self.std_mock_org_unit)
         mock.get(self.std_mock_org_unit, json=self.json)
         actual_addresses = writing.update_org_unit_addresses(
             '00000000-0000-0000-0000-000000000000',
@@ -327,6 +331,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         self.assertEqual(expected_addresses, actual_addresses,
                          'Should add a new location correctly')
 
+    @freezegun.freeze_time('2017-01-01', tz_offset=2)
     @util.mock()
     def test_should_raise_exception_if_contact_channel_not_given(self, mock):
         mock.get(self.std_mock_org_unit, json=self.json)

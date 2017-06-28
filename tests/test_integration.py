@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import freezegun
 import requests
 
 from . import util
@@ -13,6 +14,8 @@ from mora import lora
 
 
 class IntegrationTests(util.LoRATestCase):
+    maxDiff = None
+
     def test_sanity(self):
         r = requests.get(lora.LORA_URL)
         self.assertTrue(r.ok)
@@ -238,60 +241,6 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
-            '04c78fc2-72d2-4d02-b55f-807af19eac48/',
-            [
-                {
-                    'activeName': 'Afdeling for Samtidshistorik',
-                    'hasChildren': False,
-                    'name': 'Afdeling for Samtidshistorik',
-                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                    'parent-object': {
-                        'activeName': 'Historisk Institut',
-                        'hasChildren': True,
-                        'name': 'Historisk Institut',
-                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                        'parent-object': {
-                            'activeName': 'Humanistisk fakultet',
-                            'hasChildren': True,
-                            'name': 'Humanistisk fakultet',
-                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                            'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'parent-object': {
-                                'activeName': 'Overordnet '
-                                'Enhed',
-                                'hasChildren': True,
-                                'name': 'Overordnet '
-                                'Enhed',
-                                'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                                'parent': None,
-                                'parent-object': None,
-                                'user-key': 'root',
-                                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                                'valid-from': '2016-01-01 00:00:00+01',
-                                'valid-to': 'infinity',
-                            },
-                            'user-key': 'hum',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'valid-from': '2016-01-01 00:00:00+01',
-                            'valid-to': 'infinity',
-                        },
-                        'user-key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'valid-from': '2016-01-01 00:00:00+01',
-                        'valid-to': 'infinity',
-                    },
-                    'user-key': 'frem',
-                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'valid-from': '2017-01-01 00:00:00+01',
-                    'valid-to': '2018-01-01 00:00:00+01',
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '?query=Hum%',
             [
                 {
@@ -372,3 +321,177 @@ class IntegrationTests(util.LoRATestCase):
                 },
             ],
         )
+
+    @freezegun.freeze_time('2017-06-01')
+    def test_org_unit_temporality(self):
+        self.load_sample_structures()
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+                '04c78fc2-72d2-4d02-b55f-807af19eac48/?validity=past',
+                [
+                    {
+                        'activeName': 'Afdeling for Fremtidshistorik',
+                        'hasChildren': False,
+                        'name': 'Afdeling for Fremtidshistorik',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'user-key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'valid-from': '2016-01-01 00:00:00+01',
+                        'valid-to': '2017-01-01 00:00:00+01',
+                    },
+                ],
+            )
+
+        with self.subTest('present'):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+                '04c78fc2-72d2-4d02-b55f-807af19eac48/?validity=present',
+                [
+                    {
+                        'activeName': 'Afdeling for Samtidshistorik',
+                        'hasChildren': False,
+                        'name': 'Afdeling for Samtidshistorik',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'parent-object': {
+                            'activeName': 'Historisk Institut',
+                            'hasChildren': True,
+                            'name': 'Historisk Institut',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'parent-object': {
+                                'activeName': 'Humanistisk fakultet',
+                                'hasChildren': True,
+                                'name': 'Humanistisk fakultet',
+                                'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                                'parent':
+                                '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                                'parent-object': {
+                                    'activeName': 'Overordnet '
+                                    'Enhed',
+                                    'hasChildren': True,
+                                    'name': 'Overordnet '
+                                    'Enhed',
+                                    'org':
+                                    '456362c4-0ee4-4e5e-a72c-751239745e62',
+                                    'parent': None,
+                                    'parent-object': None,
+                                    'user-key': 'root',
+                                    'uuid':
+                                    '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                                    'valid-from': '2016-01-01 00:00:00+01',
+                                    'valid-to': 'infinity',
+                                },
+                                'user-key': 'hum',
+                                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                                'valid-from': '2016-01-01 00:00:00+01',
+                                'valid-to': 'infinity',
+                            },
+                            'user-key': 'hist',
+                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'valid-from': '2016-01-01 00:00:00+01',
+                            'valid-to': 'infinity',
+                        },
+                        'user-key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'valid-from': '2017-01-01 00:00:00+01',
+                        'valid-to': '2018-01-01 00:00:00+01',
+                    },
+                ],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+                '04c78fc2-72d2-4d02-b55f-807af19eac48/?validity=future',
+                [
+                    {
+                        'activeName': 'Afdeling for Fortidshistorik',
+                        'hasChildren': False,
+                        'name': 'Afdeling for Fortidshistorik',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'user-key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'valid-from': '2018-01-01 00:00:00+01',
+                        'valid-to': 'infinity',
+                    },
+                ],
+            )
+
+    @freezegun.freeze_time('2017-06-01')
+    def test_full_hierarchy_temporality(self):
+        self.load_sample_structures()
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
+                '?treeType=specific&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '&validity=past',
+                [
+                    {
+                        "children": [],
+                        "hasChildren": False,
+                        "name": "Afdeling for Fremtidshistorik",
+                        "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "parent": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                        "user-key": "frem",
+                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                        "valid-from": "2018-01-01 00:00:00+01",
+                        "valid-to": "infinity",
+                    },
+                ],
+            )
+
+        with self.subTest('present'):
+            expected = [
+                {
+                    "children": [],
+                    "hasChildren": False,
+                    "name": "Afdeling for Samtidshistorik",
+                    "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "parent": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                    "user-key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "valid-from": "2017-01-01 00:00:00+01",
+                    "valid-to": "2018-01-01 00:00:00+01"
+                }
+            ]
+
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
+                '?treeType=specific&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '&validity=present',
+                expected,
+            )
+
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
+                '?orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48',
+                expected,
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
+                '?treeType=specific&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '&validity=future',
+                [
+                    {
+                        "children": [],
+                        "hasChildren": False,
+                        "name": "Afdeling for Fortidshistorik",
+                        "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "parent": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                        "user-key": "frem",
+                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                        "valid-from": "2018-01-01 00:00:00+01",
+                        "valid-to": "infinity",
+                    },
+                ],
+            )

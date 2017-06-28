@@ -18,7 +18,7 @@ def list_organisations():
         unitattrs = orgunit['attributter']['organisationenhedegenskaber'][0]
 
         reg = org['registreringer'][-1]
-        attrs = reg['attributter']['organisationegenskaber'][0]
+
         return wrap_in_org(org['id'], {
             'name': unitattrs['enhedsnavn'],
             'user-key': unitattrs['brugervendtnoegle'],
@@ -33,20 +33,38 @@ def list_organisations():
     return list(map(convert, orgs))
 
 
-def full_hierarchies(orgid: str, parentid: str, **kwargs):
+def full_hierarchies(orgid: str, parentid: str,
+                     include_children=True,
+                     include_parents=False,
+                     include_activename=False,
+                     **loraparams):
     assert isinstance(parentid, str), parentid
 
-    unitids = lora.organisationenhed(tilhoerer=orgid, overordnet=parentid)
+    kwargs = dict(
+        include_children=include_children,
+        include_parents=include_parents,
+        include_activename=include_activename,
+        **loraparams,
+    )
+
+    unitids = lora.organisationenhed(
+        tilhoerer=orgid,
+        overordnet=parentid,
+        **loraparams,
+    )
 
     return sorted(
-        (full_hierarchy(orgid, unitid, **kwargs)
-         for unitid in unitids),
+        filter(None, (full_hierarchy(orgid, unitid, **kwargs)
+                      for unitid in unitids)),
         key=lambda r: r['name'].lower(),
     )
 
 
-def full_hierarchy(orgid: str, unitid: str, include_children=True,
-                   include_parents=False, include_activename=False):
+def full_hierarchy(orgid: str, unitid: str,
+                   include_children=True,
+                   include_parents=False,
+                   include_activename=False,
+                   **loraparams):
     assert isinstance(orgid, str)
     assert isinstance(unitid, str)
 
@@ -55,13 +73,28 @@ def full_hierarchy(orgid: str, unitid: str, include_children=True,
         include_parents=include_parents,
         include_activename=include_activename,
     )
+    kwargs.update(loraparams)
 
-    orgunit = lora.organisationenhed.get(unitid)
-    attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    # TODO: check validity?
+
+    try:
+        attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
+    except LookupError:
+        return None
+
     rels = orgunit['relationer']
 
-    children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid)
-    parent = rels['overordnet'][0]['uuid']
+    children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid,
+                                      **loraparams)
+
+    validity = loraparams.get('validity')
+    if not validity or validity == 'present':
+        parent = rels['overordnet'][0]['uuid']
+        orgid = rels['tilhoerer'][0]['uuid']
+    else:
+        parent = None
 
     r = {
         'name': attrs['enhedsnavn'],
@@ -71,7 +104,7 @@ def full_hierarchy(orgid: str, unitid: str, include_children=True,
         'valid-to': attrs['virkning']['to'],
         'hasChildren': bool(children),
         'org': str(orgid),
-        'parent': parent if parent != orgid else None,
+        'parent': parent if parent and parent != orgid else None,
     }
 
     if include_parents:
@@ -79,7 +112,7 @@ def full_hierarchy(orgid: str, unitid: str, include_children=True,
 
         r["parent-object"] = (
             full_hierarchy(orgid, parent, **kwargs)
-            if parent != orgid else None
+            if parent and parent != orgid else None
         )
     else:
         r['children'] = (

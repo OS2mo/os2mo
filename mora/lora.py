@@ -6,13 +6,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import copy
+import datetime
 import functools
+import typing
 
 import requests
 
 from . import util
 
-LORA_URL = 'http://mox/'
+LORA_URL = 'http://localhost:5001/'
 
 session = requests.Session()
 
@@ -29,56 +32,110 @@ def _check_response(r):
     return r
 
 
-def get(path, uuid, validity=None):
+def _get_restrictions_for(*,
+                          effective_date: str=None, validity: str=None,
+                          **params) -> (dict, typing.Callable):
+    '''Get URL parameters for restricting effects by the specified period
+    rather than today/now.
+
+    All other parameters wind up in the dict as-is.
+
+    Return a pair containing the mapping/parameters, and a function
+    for processing elements.
+
+    '''
+
+    restrictions = {}
+
+    if not effective_date:
+        today = util.now().date()
+    else:
+        today = util.parsedatetime(effective_date).date()
+
+    tomorrow = today + datetime.timedelta(days=1)
+
+    if not validity or validity == 'present':
+        should_include = None
+
+        restrictions.update(
+            virkningfra=str(today),
+            virkningtil=str(tomorrow),
+        )
+
+    elif validity == 'future':
+        def should_include(o):
+            s = o['virkning']['from']
+            return s != '-infinity' and util.parsedatetime(s).date() > today
+
+        restrictions.update(
+            virkningfra=str(tomorrow),
+            virkningtil='infinity',
+        )
+
+    elif validity == 'past':
+        def should_include(o):
+            s = o['virkning']['to']
+            return s != 'infinity' and util.parsedatetime(s).date() <= today
+
+        restrictions.update(
+            virkningfra='-infinity',
+            virkningtil=str(today),
+        )
+
+    else:
+        raise ValueError('invalid validity {!r}'.format(validity))
+
+    restrictions.update(params)
+
+    if should_include:
+        def apply_restriction_func(entries):
+            keys = 'relationer', 'attributter', 'tilstande'
+            r = []
+
+            for entry in copy.deepcopy(entries):
+                for typekey in keys:
+                    typeval = entry.get(typekey, {})
+
+                    for itemkey in list(typeval):
+                        typeval[itemkey][:] = filter(should_include,
+                                                     typeval[itemkey])
+
+                if any(entry.get(key) for key in keys):
+                    r.append(entry)
+
+            return r
+
+    else:
+        def apply_restriction_func(entries):
+            return entries
+
+    return restrictions, apply_restriction_func
+
+
+def get(path, uuid, **params):
     uuid = str(uuid)
 
-    if validity and validity != 'present':
-        now = util.now()
+    loraparams, apply_restriction_func = _get_restrictions_for(**params)
 
-        if validity == 'future':
-            def should_include(o):
-                s = o['virkning']['from']
-                return s != '-infinity' and util.parsedatetime(s) > now
-
-            params = {
-                'virkningfra': str(now),
-                'virkningtil': 'infinity',
-            }
-
-        elif validity == 'past':
-            def should_include(o):
-                s = o['virkning']['to']
-                return s != 'infinity' and util.parsedatetime(s) < now
-
-            params = {
-                'virkningfra': '-infinity',
-                'virkningtil': str(now),
-            }
-        else:
-            raise ValueError('invalid validity {!r}'.format(validity))
-    else:
-        should_include = None
-        params = {}
-
-    r = session.get('{}{}/{}'.format(LORA_URL, path, uuid), params=params)
+    r = session.get('{}{}/{}'.format(LORA_URL, path, uuid),
+                    params=loraparams)
     _check_response(r)
 
     assert (len(r.json()) == 1 and
             len(r.json()[uuid]) == 1 and
             len(r.json()[uuid][0]['registreringer']) == 1)
 
-    obj = r.json()[uuid][0]['registreringer'].pop()
+    registrations = r.json()[uuid][0]['registreringer']
 
-    if should_include:
-        for key in 'relationer', 'attributter', 'tilstande':
-            for relvals in obj.get(key, {}).values():
-                relvals[:] = [val for val in relvals if should_include(val)]
+    assert len(registrations) == 1
 
-    return obj
+    return apply_restriction_func(registrations)[0]
 
 
 def fetch(path, **params):
-    r = session.get(LORA_URL + path, params=params)
+    loraparams, apply_restriction_func = _get_restrictions_for(**params)
+
+    r = session.get(LORA_URL + path, params=loraparams)
     _check_response(r)
 
     try:
@@ -86,7 +143,7 @@ def fetch(path, **params):
     except IndexError:
         return []
 
-    return objs
+    return apply_restriction_func(objs)
 
 
 def create(path, obj, uuid=None):

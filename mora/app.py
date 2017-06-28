@@ -157,7 +157,8 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
-@util.restrictargs('treeType', 'orgUnitId', 'effective-date')
+@util.restrictargs('treeType', 'orgUnitId', 'query',
+                   'effective-date', 'validity')
 def full_hierarchy(orgid):
     # TODO: the 'effective-date' parameter is not used below, but it is
     # set by the frontend when moving an org unit - we could choose to
@@ -167,25 +168,41 @@ def full_hierarchy(orgid):
 
     treeType = args.get('treeType', None)
 
+    params = dict(
+        effective_date=args.get('effective-date', None),
+        validity=args.get('validity', None),
+        include_children=True,
+    )
+
+    if args.get('query'):
+        return '', 400
+
     if treeType == 'specific':
-        return flask.jsonify(
-            reading.full_hierarchy(str(orgid), args['orgUnitId'])['children'],
-        )
+        r = reading.full_hierarchy(str(orgid), args['orgUnitId'], **params)
+
+        if r:
+            return flask.jsonify(
+                r['children'],
+            )
+        else:
+            return '', 404
 
     else:
-        return flask.jsonify(reading.wrap_in_org(
-            str(orgid),
-            reading.full_hierarchies(str(orgid), str(orgid))[0],
-        ))
+        r = reading.full_hierarchies(str(orgid), str(orgid), **params)
+
+        if r:
+            return flask.jsonify(reading.wrap_in_org(str(orgid), r[0]))
+        else:
+            return '', 404
 
 
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date')
 def get_orgunit(orgid, unitid=None):
-    # TODO: the 'effective-date' parameter is not used below, but it is
-    # set by the frontend when renaming an org unit - we could choose to
-    # remove it from the frontend call
+    # TODO: the 'effective-date' parameter is set by the frontend when
+    # renaming an org unit - we could choose to remove it from the
+    # frontend call
 
     query = flask.request.args.get('query', None)
     params = {
@@ -203,16 +220,18 @@ def get_orgunit(orgid, unitid=None):
     else:
         params['uuid'] = unitid
 
-    validity = flask.request.args.get('validity', 'present')
-
-    return flask.jsonify([
+    r = list(filter(None, (
         reading.full_hierarchy(
             str(orgid), orgunitid,
             include_children=False, include_parents=True,
             include_activename=True,
+            effective_date=flask.request.args.get('effective_date', None),
+            validity=flask.request.args.get('validity', None),
         )
         for orgunitid in lora.organisationenhed(**params)
-    ])
+    )))
+
+    return flask.jsonify(r) if r else ('', 404)
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
@@ -223,7 +242,7 @@ def get_role(orgid, unitid, role):
     validity = flask.request.args.get('validity')
 
     try:
-        orgunit = lora.organisationenhed.get(unitid, validity)
+        orgunit = lora.organisationenhed.get(unitid, validity=validity)
     except ValueError:
         traceback.print_exc()
         return '', 404
@@ -245,7 +264,7 @@ def get_role(orgid, unitid, role):
                 "valid-from": addr['virkning']['from'],
                 "valid-to": addr['virkning']['to'],
             }
-            for addr in orgunit['relationer']['adresser']
+            for addr in orgunit['relationer'].get('adresser', [])
             if addr.get('urn', '').startswith(PHONE_PREFIX)
         ])
     elif role == 'location':
@@ -272,7 +291,7 @@ def get_role(orgid, unitid, role):
 
         return flask.jsonify([
             convert_addr(addr)
-            for addr in orgunit['relationer']['adresser']
+            for addr in orgunit['relationer'].get('adresser', [])
             if addr.get('uuid', '')
         ])
 

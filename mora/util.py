@@ -27,9 +27,22 @@ DATETIME_PARSERS = (
 )
 
 
+def parsedate(s: str) -> datetime.date:
+    if isinstance(s, datetime.date):
+        return s
+    else:
+        return datetime.date.strptime(s, '%d-%m-%Y')
+
+
+def unparsedate(d: datetime.date) -> str:
+    return d.strftime('%d-%m-%Y')
+
+
 def parsedatetime(s: str, default: str=None) -> datetime.datetime:
     if default is not None and not s:
         return default
+    elif isinstance(s, datetime.datetime):
+        return s
 
     for parser in DATETIME_PARSERS:
         try:
@@ -51,6 +64,7 @@ def reparsedatetime(s):
 
 
 def now() -> datetime.datetime:
+    '''Get the current time, localized to the current time zone.'''
     return datetime.datetime.now(tzlocal.get_localzone())
 
 
