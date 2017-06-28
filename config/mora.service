@@ -1,0 +1,31 @@
+# -*- conf -*-
+
+[Unit]
+Description=mora daemon
+#Requires=mora.socket
+After=network.target
+
+[Service]
+PIDFile=/run/mora/pid
+# FIXME: don't run as root!
+User=mora
+Group=www-data
+RuntimeDirectory=gunicorn
+WorkingDirectory=/srv/mora
+ExecStart=/srv/mora/venv-linux-cpython-3.5/bin/gunicorn \
+    --pid /run/mora/pid \
+    --bind unix:/run/mora/socket \
+    --log-syslog-prefix mora \
+    --user mora \
+    --group www-data \
+    --workers 4 \
+    --worker-class gevent \
+    --access-logfile /var/log/mora/access.log \
+    --error-logfile /var/log/mora/error.log \
+    mora.app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+#PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

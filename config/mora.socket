@@ -1,0 +1,10 @@
+# -*- conf -*-
+
+[Unit]
+Description=MORA socket
+
+[Socket]
+ListenStream=/run/mora/socket
+
+[Install]
+WantedBy=sockets.target
