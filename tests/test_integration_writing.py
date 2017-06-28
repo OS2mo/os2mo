@@ -7,13 +7,17 @@
 #
 
 import copy
+import datetime
 import json
-import freezegun
 import unittest
-from . import util
+
+import freezegun
+import pytz
+
 from mora import lora
-from tests.util import jsonfile_to_dict
-from pprint import pprint
+from mora import util as mora_util
+
+from . import util
 
 
 class TestCreateOrgUnit(util.LoRATestCase):
@@ -74,17 +78,59 @@ class TestCreateOrgUnit(util.LoRATestCase):
         self.assertEqual(201, r.status_code)
 
         # Get the UUID of the org unit just created
-        uuid = json.loads(r.data.decode())['uuid']
+        uuid = r.json['uuid']
 
         lora_response = lora.organisationenhed(
             uuid=uuid)[0]['registreringer'][-1]
         lora_response.pop('fratidspunkt')
 
-        expected_response = jsonfile_to_dict(
+        expected_response = util.jsonfile_to_dict(
             'tests/integration_test_data/create_org_unit_infinity.json')
         expected_response.pop('fratidspunkt')
 
         self.assertEqual(expected_response, lora_response)
+
+        with self.subTest('rename'):
+            r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid),)
+
+            self.assert200(r)
+
+            postdata = r.json[0]
+            postdata["name"] = "MindreNyEnhed"
+            postdata["valid-from"] = "05-01-2010"
+
+            r = self.client.post(
+                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                data=json.dumps(postdata),
+                content_type='application/json',
+            )
+            self.assert200(r)
+
+            with self.subTest('history'):
+                r = self.client.get('/o/{}/org-unit/{}/history/'.format(org,
+                                                                        uuid))
+                self.assertEqual(r.status_code, 200)
+
+                entries = r.json
+
+                for k in 'date', 'from', 'to':
+                    for entry in entries:
+                        del entry[k]
+
+                self.assertEqual(entries, [
+                    {
+                        'action': 'Omdøb enhed',
+                        'changedBy': '42c432e8-9c4a-11e6-9f62-873cf34a735f',
+                        'object': uuid,
+                        'section': 'Rettet',
+                    },
+                    {
+                        'action': 'Oprettet i MO',
+                        'changedBy': '42c432e8-9c4a-11e6-9f62-873cf34a735f',
+                        'object': uuid,
+                        'section': 'Opstaaet',
+                    },
+                ])
 
     # TODO: test below is for some reason failing!?
     # 'Relationer' is missing from the JSON returned from the LoRa test
@@ -147,13 +193,13 @@ class TestCreateOrgUnit(util.LoRATestCase):
         self.assertEqual(201, r.status_code)
 
         # Get the UUID of the org unit just created
-        uuid = json.loads(r.data.decode())['uuid']
+        uuid = r.json['uuid']
 
         lora_response = lora.organisationenhed(
             uuid=uuid, virkningtil='infinity')[0]['registreringer'][-1]
         lora_response.pop('fratidspunkt')
 
-        expected_response = jsonfile_to_dict(
+        expected_response = util.jsonfile_to_dict(
             'tests/integration_test_data/create_org_unit_2011-01-01.json')
         expected_response.pop('fratidspunkt')
 
@@ -192,7 +238,7 @@ class TestCreateOrgUnit(util.LoRATestCase):
             "valid-to": "infinity",
         }
 
-        r = self.assertRequestResponse(
+        self.assertRequestResponse(
             '/o/{}/org-unit/{}/'.format(ORGID, UNITID),
             [expected],
         )

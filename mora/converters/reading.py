@@ -140,3 +140,21 @@ def wrap_in_org(orgid, value, org=None):
             'valid-from': orgattrs['virkning']['from'],
             'valid-to': orgattrs['virkning']['to'],
         }
+
+
+def unit_history(orgid, unitid):
+    # TODO: verify orgid?
+
+    regs = lora.organisationenhed.get(unitid, registreretfra='-infinity',
+                                      registrerettil='infinity')
+
+    for reg in regs:
+        yield {
+            'changedBy': reg['brugerref'],
+            'object': unitid,
+            'date': reg['fratidspunkt']['tidsstempeldatotid'],
+            'from': reg['fratidspunkt']['tidsstempeldatotid'],
+            'to': reg['tiltidspunkt']['tidsstempeldatotid'],
+            'section': reg['livscykluskode'],
+            'action': reg.get('note'),
+        }

@@ -234,6 +234,14 @@ def get_orgunit(orgid, unitid=None):
     return flask.jsonify(r) if r else ('', 404)
 
 
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/history/')
+@util.restrictargs()
+def get_orgunit_history(orgid, unitid):
+    r = reading.unit_history(str(orgid), str(unitid))
+
+    return flask.jsonify(list(r)) if r else ('', 404)
+
+
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
     if role not in ['contact-channel', 'location']:
