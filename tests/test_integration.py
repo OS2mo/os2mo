@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import unittest
+
 import freezegun
 import requests
 
@@ -424,6 +426,7 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
+    @unittest.expectedFailure
     @freezegun.freeze_time('2017-06-01')
     def test_full_hierarchy_temporality(self):
         self.load_sample_structures()
