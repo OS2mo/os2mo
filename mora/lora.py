@@ -18,6 +18,7 @@ from . import util
 LORA_URL = 'http://mox/'
 
 session = requests.Session()
+session.verify = True
 
 
 def _check_response(r):
