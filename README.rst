@@ -22,9 +22,9 @@ To install MORA, do::
     --disabled-password --disabled-login \
     --ingroup www-data mora
   sudo install -d -o mora -g www-data /var/log/mora /run/mora
-  sudo ln -s /srv/mora/config/mora.service /etc/systemd/system
-  sudo ln -s /srv/mora/config/mora.socket /etc/systemd/system
-  sudo ln -s /srv/mora/config/mora.conf /etc/tmpfiles.d
+  sudo install -m 644 /srv/mora/config/mora.service /etc/systemd/system
+  sudo install -m 644 /srv/mora/config/mora.socket /etc/systemd/system
+  sudo install -m 644 /srv/mora/config/mora.conf /etc/tmpfiles.d
 
   sudo systemctl daemon-reload
   sudo systemctl enable mora.socket mora.service
@@ -32,10 +32,15 @@ To install MORA, do::
 
 
 You now have a working MoRA installation listening on a local socket.
-To expose to the outside, configure Apache or nginx to forward
-requests to it::
+To expose to the outside, you'll need to configure Apache or nginx to
+forward requests to it. We're using Apache for now, and the following::
 
-  ProxyPass /mo/ unix:/run/mora/socket|http://localhost/
+  SSLProxyEngine on
+
+  <Location /mo/>
+      ProxyPass unix:/run/mora/socket|http://localhost/
+      ProxyPassReverse http://localhost/
+  </Location>
 
 Then enable the ``proxy_http`` module, and restart Apache::
 
@@ -48,4 +53,4 @@ point to your server::
   LORA_URL = "http://localhost/"
 
 Please note that using an HTTPS URL requires a trusted certificate on
-the server.
+the server, and that MORA doesn't support SAML authentication at this time.
