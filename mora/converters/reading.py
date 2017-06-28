@@ -93,13 +93,6 @@ def full_hierarchy(orgid: str, unitid: str, include_children=True,
     return r
 
 
-def map_to_list(func, values):
-    return sorted(
-        map(func, values),
-        key=lambda r: r['name'].lower(),
-    )
-
-
 def wrap_in_org(orgid, value, org=None):
     if not org:
         org = lora.organisation.get(orgid)
