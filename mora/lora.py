@@ -15,7 +15,7 @@ import requests
 
 from . import util
 
-LORA_URL = 'http://localhost:5001/'
+LORA_URL = 'http://mox/'
 
 session = requests.Session()
 
