@@ -434,7 +434,8 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('past'):
             self.assertRequestResponse(
                 '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?treeType=specific&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '?treeType=specific'
+                '&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '&validity=past',
                 [
                     {
@@ -468,7 +469,8 @@ class IntegrationTests(util.LoRATestCase):
 
             self.assertRequestResponse(
                 '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?treeType=specific&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '?treeType=specific'
+                '&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '&validity=present',
                 expected,
             )
@@ -482,7 +484,8 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('future'):
             self.assertRequestResponse(
                 '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?treeType=specific&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '?treeType=specific'
+                '&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '&validity=future',
                 [
                     {

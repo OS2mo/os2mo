@@ -132,7 +132,6 @@ def get(path, uuid, **params):
 
     assert len(registrations) == 1
 
-
     return apply_restriction_func(registrations)[0]
 
 
