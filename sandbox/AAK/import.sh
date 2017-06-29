@@ -7,5 +7,5 @@ PYTHON=${PYTHON:-python3.5}
 
 $PYTHON -m venv $VENV
 
-$VENV/bin/pip install grequests openpyxl tzlocal
+$VENV/bin/pip install grequests openpyxl tzlocal urllib3
 $VENV/bin/python $DIR/import.py "$@"
