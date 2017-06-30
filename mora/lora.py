@@ -34,7 +34,7 @@ def _check_response(r):
 
 
 def _get_restrictions_for(*,
-                          effective_date: str=None, validity: str=None,
+                          effective_date: str = None, validity: str = None,
                           **params) -> (dict, typing.Callable):
     '''Get URL parameters for restricting effects by the specified period
     rather than today/now.
@@ -58,9 +58,14 @@ def _get_restrictions_for(*,
     if not validity or validity == 'present':
         should_include = None
 
+        # TODO: are these line necessary?... if virkning is not specified
+        # LoRa will use what is valid for the present date
+
         restrictions.update(
-            virkningfra=str(today),
-            virkningtil=str(tomorrow),
+            {
+                'virkningfra': str(today),
+                'virkningtil': str(tomorrow)
+            }
         )
 
     elif validity == 'future':
@@ -69,18 +74,23 @@ def _get_restrictions_for(*,
             return s != '-infinity' and util.parsedatetime(s).date() > today
 
         restrictions.update(
-            virkningfra=str(tomorrow),
-            virkningtil='infinity',
+            {
+                'virkningfra': str(tomorrow),
+                'virkningtil': 'infinity',
+            }
         )
 
     elif validity == 'past':
+
         def should_include(o):
             s = o['virkning']['to']
             return s != 'infinity' and util.parsedatetime(s).date() <= today
 
         restrictions.update(
-            virkningfra='-infinity',
-            virkningtil=str(today),
+            {
+                'virkningfra': '-infinity',
+                'virkningtil': str(today),
+            }
         )
 
     else:

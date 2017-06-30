@@ -7,6 +7,7 @@
 #
 
 from .. import lora
+from pprint import pprint
 
 
 def list_organisations():
@@ -76,7 +77,6 @@ def full_hierarchy(orgid: str, unitid: str,
     kwargs.update(loraparams)
 
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
-
     # TODO: check validity?
 
     try:
@@ -89,6 +89,13 @@ def full_hierarchy(orgid: str, unitid: str,
     children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid,
                                       **loraparams)
 
+    unit_types = orgunit['relationer']['enhedstype']
+    if unit_types:
+        unit_type = lora.klasse.get(uuid=unit_types[0]['uuid'])
+    else:
+        unit_type = None
+        pprint(orgunit)
+
     validity = loraparams.get('validity')
     if not validity or validity == 'present':
         parent = rels['overordnet'][0]['uuid']
@@ -100,6 +107,10 @@ def full_hierarchy(orgid: str, unitid: str,
         'name': attrs['enhedsnavn'],
         'user-key': attrs['brugervendtnoegle'],
         'uuid': unitid,
+        'type': {
+            'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
+            if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
+        },
         'valid-from': attrs['virkning']['from'],
         'valid-to': attrs['virkning']['to'],
         'hasChildren': bool(children),
