@@ -94,7 +94,6 @@ def full_hierarchy(orgid: str, unitid: str,
         unit_type = lora.klasse.get(uuid=unit_types[0]['uuid'])
     else:
         unit_type = None
-        pprint(orgunit)
 
     validity = loraparams.get('validity')
     if not validity or validity == 'present':
