@@ -7,6 +7,7 @@
 #
 
 import os
+import sys
 import unittest
 
 import click
@@ -26,7 +27,14 @@ def load_cli(app):
 
         check_call(['npm', 'install'], cwd=base_dir)
         check_call([os.path.join(bin_dir, 'grunt')] +
-                   ([command] if command else []), cwd=base_dir)
+                   ([target] if target else []), cwd=base_dir)
+
+    @app.cli.command()
+    @click.argument('args', nargs=-1)
+    def python(args):
+        from subprocess import check_call, check_output
+
+        os.execv(sys.executable, (sys.executable,) + args)
 
     @app.cli.command(with_appcontext=False)
     @click.option('--verbose', '-v', count=True,
