@@ -17,8 +17,8 @@ basedir = os.path.dirname(__file__)
 
 def load_cli(app):
     @app.cli.command()
-    @click.argument('command', required=False)
-    def build(command=None):
+    @click.argument('target', required=False)
+    def build(target=None):
         'Build the frontend application.'
         from subprocess import check_call, check_output
 
