@@ -1,0 +1,7 @@
+# -*- conf -*-
+[run]
+branch = True
+omit =
+     venv*
+     tests/*
+     manage.py
