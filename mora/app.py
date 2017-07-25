@@ -198,7 +198,7 @@ def full_hierarchy(orgid):
 
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
-@util.restrictargs('query', 'validity', 'effective-date')
+@util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start')
 def get_orgunit(orgid, unitid=None):
     # TODO: the 'effective-date' parameter is set by the frontend when
     # renaming an org unit - we could choose to remove it from the
