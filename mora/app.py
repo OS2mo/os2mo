@@ -200,10 +200,6 @@ def full_hierarchy(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start')
 def get_orgunit(orgid, unitid=None):
-    # TODO: the 'effective-date' parameter is set by the frontend when
-    # renaming an org unit - we could choose to remove it from the
-    # frontend call
-
     query = flask.request.args.get('query', None)
     params = {
         'tilhoerer': str(orgid),
@@ -220,12 +216,16 @@ def get_orgunit(orgid, unitid=None):
     else:
         params['uuid'] = unitid
 
+    params.update(
+        effective_date=flask.request.args.get('effective-date', None),
+    )
+
     r = list(filter(None, (
         reading.full_hierarchy(
             str(orgid), orgunitid,
             include_children=False, include_parents=True,
             include_activename=True,
-            effective_date=flask.request.args.get('effective_date', None),
+            effective_date=flask.request.args.get('effective-date', None),
             validity=flask.request.args.get('validity', None),
         )
         for orgunitid in lora.organisationenhed(**params)
