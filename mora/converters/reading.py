@@ -17,6 +17,7 @@ def list_organisations():
         rootid = lora.organisationenhed(overordnet=org['id'])[0]
         orgunit = lora.organisationenhed.get(rootid)
         unitattrs = orgunit['attributter']['organisationenhedegenskaber'][0]
+        unit_validity = orgunit['tilstande']['organisationenhedgyldighed'][0]
 
         reg = org['registreringer'][-1]
 
@@ -24,8 +25,8 @@ def list_organisations():
             'name': unitattrs['enhedsnavn'],
             'user-key': unitattrs['brugervendtnoegle'],
             'uuid': rootid,
-            'valid-from': unitattrs['virkning']['from'],
-            'valid-to': unitattrs['virkning']['to'],
+            'valid-from': unit_validity['virkning']['from'],
+            'valid-to': unit_validity['virkning']['to'],
             'hasChildren': True,
             'children': [],
             'org': org['id'],
@@ -77,6 +78,7 @@ def full_hierarchy(orgid: str, unitid: str,
     kwargs.update(loraparams)
 
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
     # TODO: check validity?
 
     try:
@@ -85,6 +87,11 @@ def full_hierarchy(orgid: str, unitid: str,
         return None
 
     rels = orgunit['relationer']
+    try:
+        orgunit_validity = orgunit['tilstande'][
+            'organisationenhedgyldighed'][0]['virkning']
+    except IndexError:
+        orgunit_validity = None
 
     children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid,
                                       **loraparams)
@@ -110,8 +117,8 @@ def full_hierarchy(orgid: str, unitid: str,
             'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
             if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
         },
-        'valid-from': attrs['virkning']['from'],
-        'valid-to': attrs['virkning']['to'],
+        'valid-from': orgunit_validity['from'] if orgunit_validity else '',
+        'valid-to': orgunit_validity['to'] if orgunit_validity else '',
         'hasChildren': bool(children),
         'org': str(orgid),
         'parent': parent if parent and parent != orgid else None,
@@ -141,15 +148,16 @@ def wrap_in_org(orgid, value, org=None):
         org = lora.organisation.get(orgid)
 
     orgattrs = org['attributter']['organisationegenskaber'][0]
+    org_validity = org['tilstande']['organisationgyldighed'][0]
 
     return {
-            'hierarchy': value,
-            'name': orgattrs['organisationsnavn'],
-            'user-key': orgattrs['brugervendtnoegle'],
-            'uuid': orgid,
-            'valid-from': orgattrs['virkning']['from'],
-            'valid-to': orgattrs['virkning']['to'],
-        }
+        'hierarchy': value,
+        'name': orgattrs['organisationsnavn'],
+        'user-key': orgattrs['brugervendtnoegle'],
+        'uuid': orgid,
+        'valid-from': org_validity['virkning']['from'],
+        'valid-to': org_validity['virkning']['to'],
+    }
 
 
 def unit_history(orgid, unitid):
