@@ -4,3 +4,4 @@ freezegun
 requests_mock
 pycodestyle
 selenium
+coverage
