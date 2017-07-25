@@ -52,6 +52,7 @@ def full_hierarchies(orgid: str, parentid: str,
     unitids = lora.organisationenhed(
         tilhoerer=orgid,
         overordnet=parentid,
+        gyldighed='Aktiv',
         **loraparams,
     )
 
@@ -94,6 +95,7 @@ def full_hierarchy(orgid: str, unitid: str,
         orgunit_validity = None
 
     children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid,
+                                      gyldighed='Aktiv',
                                       **loraparams)
 
     unit_types = orgunit['relationer']['enhedstype']
