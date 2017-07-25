@@ -155,13 +155,17 @@ class TestCase(flask_testing.TestCase):
 
         return app.app
 
-    def assertRequestResponse(self, path, expected, message=None):
+    def assertRequestResponse(self, path, expected, message=None, **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
+
+        **kwargs is passed directly to the test client -- see the
+        documentation for werkzeug.test.EnvironBuilder for details.
+
         '''
         message = message or 'request {!r} failed'.format(path)
 
-        r = self.client.get(path)
+        r = self.client.open(path, **kwargs)
 
         self.assertLess(r.status_code, 300, message)
         self.assertGreaterEqual(r.status_code, 200, message)
