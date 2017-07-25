@@ -88,11 +88,11 @@ def full_hierarchy(orgid: str, unitid: str,
         return None
 
     rels = orgunit['relationer']
-    try:
-        orgunit_validity = orgunit['tilstande'][
-            'organisationenhedgyldighed'][0]['virkning']
-    except IndexError:
-        orgunit_validity = None
+
+    # Get the current org unit end-date and use this for past and future too
+    current_orgunit = lora.organisationenhed.get(uuid=unitid)
+    orgunit_validity = current_orgunit['tilstande'][
+        'organisationenhedgyldighed'][0]['virkning']
 
     children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid,
                                       gyldighed='Aktiv',
@@ -119,8 +119,8 @@ def full_hierarchy(orgid: str, unitid: str,
             'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
             if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
         },
-        'valid-from': orgunit_validity['from'] if orgunit_validity else '',
-        'valid-to': orgunit_validity['to'] if orgunit_validity else '',
+        'valid-from': orgunit_validity['from'],
+        'valid-to': orgunit_validity['to'],
         'hasChildren': bool(children),
         'org': str(orgid),
         'parent': parent if parent and parent != orgid else None,
