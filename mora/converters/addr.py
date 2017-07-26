@@ -39,12 +39,12 @@ def get_address(addrid: str):
 
 def find_address(query: str, municipality: str=None):
     addrs = requests.get(
-            'http://dawa.aws.dk/adresser/autocomplete',
-            params={
-                'noformat': '1',
-                'kommunekode': municipality,
-                'q': query,
-                },
+        'http://dawa.aws.dk/adresser/autocomplete',
+        params={
+            'noformat': '1',
+            'kommunekode': municipality,
+            'q': query,
+        },
     ).json()
 
     for addrinfo in addrs:
