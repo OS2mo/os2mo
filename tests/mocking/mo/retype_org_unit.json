@@ -1,0 +1,33 @@
+{
+  "activeName": "Aarhus Havn",
+  "hasChildren": false,
+  "name": "Aarhus Havn",
+  "org": "59141156-ed0b-457c-9535-884447c5220b",
+  "parent": "1c69bc33-cf7e-448b-9a1d-7713f57053f3",
+  "parent-object": {
+    "activeName": "Aarhus Kommune",
+    "hasChildren": true,
+    "name": "Aarhus Kommune",
+    "org": "59141156-ed0b-457c-9535-884447c5220b",
+    "parent": null,
+    "parent-object": null,
+    "type": {
+      "name": "Afdeling 003"
+    },
+    "user-key": "ÅRHUS",
+    "uuid": "1c69bc33-cf7e-448b-9a1d-7713f57053f3",
+    "valid-from": "2015-12-31 23:00:00+00",
+    "valid-to": "infinity"
+  },
+  "type": {
+    "name": "Afdeling 933",
+    "uuid": "0034fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+  },
+  "user-key": "HAVNEN",
+  "uuid": "383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe",
+  "valid-from": "2015-12-31 23:00:00+00",
+  "valid-to": "2017-07-30 22:00:00+00",
+  "$$hashKey": "04E",
+  "type-updated": "",
+  "changed": true
+}
