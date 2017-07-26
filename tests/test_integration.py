@@ -216,6 +216,7 @@ class IntegrationTests(util.LoRATestCase):
             ]
         )
 
+    @freezegun.freeze_time('2017-06-01')
     def test_org_units(self):
         self.load_sample_structures()
 
@@ -338,7 +339,6 @@ class IntegrationTests(util.LoRATestCase):
             ],
         )
 
-    @unittest.expectedFailure
     def test_org_unit_deletion(self):
         with freezegun.freeze_time('2017-01-01'):
             self.load_sample_structures()
@@ -362,8 +362,9 @@ class IntegrationTests(util.LoRATestCase):
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'user-key': 'frem',
+                    'type': {'name': 'Afdeling'},
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'valid-from': '2017-01-01 00:00:00+01',
+                    'valid-from': '2016-01-01 00:00:00+01',
                     'valid-to': '2018-01-01 00:00:00+01',
                 },
             ]
