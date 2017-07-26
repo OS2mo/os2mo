@@ -39,6 +39,10 @@ def unparsedate(d: datetime.date) -> str:
 def parsedatetime(s: str, default: str=None) -> datetime.datetime:
     if default is not None and not s:
         return default
+    elif isinstance(s, datetime.date):
+        return tzlocal.get_localzone().localize(
+            datetime.datetime.combine(s, datetime.time())
+        )
     elif isinstance(s, datetime.datetime):
         return s
 

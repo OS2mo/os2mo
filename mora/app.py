@@ -271,8 +271,12 @@ def get_role(orgid, unitid, role):
                     "user-key": "Telephone_number",
                     "prefix": "urn:magenta.dk:telefon:",
                 },
-                "valid-from": addr['virkning']['from'],
-                "valid-to": addr['virkning']['to'],
+                "valid-from": util.to_frontend_time(
+                    addr['virkning']['from'],
+                ),
+                "valid-to": util.to_frontend_time(
+                    addr['virkning']['to'],
+                ),
             }
             for addr in orgunit['relationer'].get('adresser', [])
             if addr.get('urn', '').startswith(PHONE_PREFIX)
@@ -287,7 +291,9 @@ def get_role(orgid, unitid, role):
                     "name": addrinfo['adressebetegnelse'],
                     "user-key": addrinfo['kvhx'],
                     "uuid": addrinfo['id'],
-                    "valid-from": addrinfo['historik']['oprettet'],
+                    "valid-from": util.to_frontend_time(
+                        addrinfo['historik']['oprettet'],
+                    ),
                     "valid-to": "infinity"
                 },
                 "name": addrinfo['adressebetegnelse'],
@@ -295,8 +301,12 @@ def get_role(orgid, unitid, role):
                 "primaer": True,  # TODO: really?
                 "role-type": "location",
                 "uuid": addrinfo['id'],
-                "valid-from": addrobj['virkning']['from'],
-                "valid-to": addrobj['virkning']['to'],
+                "valid-from": util.to_frontend_time(
+                    addrobj['virkning']['from'],
+                ),
+                "valid-to": util.to_frontend_time(
+                    addrobj['virkning']['to'],
+                ),
             }
 
         return flask.jsonify([
