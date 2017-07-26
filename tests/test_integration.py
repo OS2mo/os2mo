@@ -216,6 +216,7 @@ class IntegrationTests(util.LoRATestCase):
             ]
         )
 
+    @freezegun.freeze_time('2017-06-01')
     def test_org_units(self):
         self.load_sample_structures()
 
@@ -338,125 +339,12 @@ class IntegrationTests(util.LoRATestCase):
             ],
         )
 
-    @unittest.expectedFailure
-    def test_org_unit_deletion(self):
-        with freezegun.freeze_time('2017-01-01'):
-            self.load_sample_structures()
-
-            hierarchy_path = (
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
-                'treeType=specific'
-                '&orgUnitId=da77153e-30f3-4dc2-a611-ee912a28d8aa'
-            )
-
-            orgunit_path = (
+        with self.subTest('invalid validity'):
+            self.assert400(self.client.get(
                 '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
-            )
-
-            expected_existing = [
-                {
-                    'children': [],
-                    'hasChildren': False,
-                    'name': 'Afdeling for Samtidshistorik',
-                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                    'user-key': 'frem',
-                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'valid-from': '2017-01-01 00:00:00+01',
-                    'valid-to': '2018-01-01 00:00:00+01',
-                },
-            ]
-
-            # check our preconditions
-            self.assertEqual(
-                self.client.get(hierarchy_path).json,
-                expected_existing,
-            )
-
-            self.assertEqual(
-                lora.organisationenhed.get(
-                    '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    virkningfra='-infinity', virkningtil='infinity',
-                )['tilstande'],
-                {
-                    'organisationenhedgyldighed': [
-                        {
-                            'gyldighed': 'Aktiv',
-                            'virkning': {
-                                'from': '2016-01-01 00:00:00+01',
-                                'from_included': True,
-                                'to': '2018-01-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '2018-01-01 00:00:00+01',
-                                'from_included': True,
-                                'to': 'infinity',
-                                'to_included': False,
-                            },
-                        },
-                    ],
-                },
-            )
-
-            # expire the unit at 1 March 2017
-            self.assertRequestResponse(
-                orgunit_path + '?endDate=01-03-2017',
-                {
-                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                },
-                method='DELETE',
-            )
-
-            self.assertEqual(
-                lora.organisationenhed.get(
-                    '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    virkningfra='-infinity', virkningtil='infinity',
-                )['tilstande'],
-                {
-                    'organisationenhedgyldighed': [
-                        {
-                            'gyldighed': 'Aktiv',
-                            'virkning': {
-                                'from': '2016-01-01 00:00:00+01',
-                                'from_included': True,
-                                'to': '2017-03-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '2017-03-01 00:00:00+01',
-                                'from_included': True,
-                                'to': 'infinity',
-                                'to_included': False,
-                            },
-                        },
-                    ],
-                },
-            )
-
-        # check that it's gone
-        with freezegun.freeze_time('2017-06-01'):
-            self.assertEqual(
-                self.client.get(hierarchy_path).json,
-                [],
-            )
-
-        with self.assertRaises(AssertionError):
-            # the test below fails, for now...
-
-            # but not too gone...
-            with freezegun.freeze_time('2017-02-01'):
-                self.assertEqual(
-                    self.client.get(hierarchy_path).json,
-                    expected_existing,
-                )
+                '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3/'
+                '?validity=kaflaflibob',
+            ))
 
     @freezegun.freeze_time('2017-06-01')
     def test_org_unit_temporality(self):
@@ -562,82 +450,6 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '2016-01-01 00:00:00+01',
                         'valid-to': '2018-01-01 00:00:00+01',
-                    },
-                ],
-            )
-
-    @unittest.expectedFailure
-    @freezegun.freeze_time('2017-06-01')
-    def test_full_hierarchy_temporality(self):
-        self.load_sample_structures()
-
-        with self.subTest('past'):
-            self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?treeType=specific'
-                '&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '&validity=past',
-                [
-                    {
-                        "children": [],
-                        "hasChildren": False,
-                        "name": "Afdeling for Fremtidshistorik",
-                        "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "parent": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "user-key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "valid-from": "2016-01-01 00:00:00+01",
-                        "valid-to": "infinity",
-                    },
-                ],
-            )
-
-        with self.subTest('present'):
-            expected = [
-                {
-                    "children": [],
-                    "hasChildren": False,
-                    "name": "Afdeling for Samtidshistorik",
-                    "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    "parent": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                    "user-key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "valid-from": "2017-01-01 00:00:00+01",
-                    "valid-to": "2018-01-01 00:00:00+01"
-                }
-            ]
-
-            self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?treeType=specific'
-                '&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '&validity=present',
-                expected,
-            )
-
-            self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48',
-                expected,
-            )
-
-        with self.subTest('future'):
-            self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
-                '?treeType=specific'
-                '&orgUnitId=04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '&validity=future',
-                [
-                    {
-                        "children": [],
-                        "hasChildren": False,
-                        "name": "Afdeling for Fortidshistorik",
-                        "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "parent": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "user-key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "valid-from": "2018-01-01 00:00:00+01",
-                        "valid-to": "infinity",
                     },
                 ],
             )

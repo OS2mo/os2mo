@@ -82,25 +82,25 @@ def create_org_unit(req: dict) -> dict:
         },
         'relationer': {
             'adresser': [
-                            {
-                                'uuid': location['location'][
-                                    'UUID_EnhedsAdresse'],
-                            }
+                {
+                    'uuid': location['location'][
+                        'UUID_EnhedsAdresse'],
+                }
 
-                            # TODO: will we ever have more than one location?
-                            # (multiple locations not tested) (however,
-                            # multiple contact channels are tested)
+                # TODO: will we ever have more than one location?
+                # (multiple locations not tested) (however,
+                # multiple contact channels are tested)
 
-                            for location in req.get('locations', [])
-                        ] + [
-                            {
-                                'urn': 'urn:magenta.dk:telefon:{}'.format(
-                                    channel['contact-info'],
-                                ),
-                            }
-                            for location in req.get('locations', [])
-                            for channel in location.get('contact-channels', [])
-                        ] or nullrelation,
+                for location in req.get('locations', [])
+            ] + [
+                {
+                    'urn': 'urn:magenta.dk:telefon:{}'.format(
+                        channel['contact-info'],
+                    ),
+                }
+                for location in req.get('locations', [])
+                for channel in location.get('contact-channels', [])
+            ] or nullrelation,
             # TODO: will "... or nullrelation" ever happen?
             # (no test for this yet...)
             'tilhoerer': [

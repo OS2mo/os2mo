@@ -29,6 +29,11 @@ app = flask.Flask(__name__, static_url_path='')
 cli.load_cli(app)
 
 
+@app.errorhandler(ValueError)
+def handle_invalid_usage(error):
+    return '\n'.join(error.args), 400
+
+
 @app.route('/')
 def root():
     return flask.send_from_directory(staticdir, 'index.html')
@@ -158,26 +163,23 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
 @util.restrictargs('treeType', 'orgUnitId', 'query',
-                   'effective-date', 'validity')
+                   'effective-date')
 def full_hierarchy(orgid):
-    # TODO: the 'effective-date' parameter is not used below, but it is
-    # set by the frontend when moving an org unit - we could choose to
-    # remove it from the frontend call
-
     args = flask.request.args
-
-    treeType = args.get('treeType', None)
 
     params = dict(
         effective_date=args.get('effective-date', None),
-        validity=args.get('validity', None),
         include_children=True,
     )
 
     if args.get('query'):
+        # TODO: the query argument does sub-tree searching -- given
+        # that LoRA has no notion of the organisation tree, we'd have
+        # to emulate it
+        flask.current_app.logger.error('sub-tree searching is unsupported!')
         return '', 400
 
-    if treeType == 'specific':
+    if args.get('treeType', None) == 'specific':
         r = reading.full_hierarchy(str(orgid), args['orgUnitId'], **params)
 
         if r:
@@ -200,10 +202,6 @@ def full_hierarchy(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start')
 def get_orgunit(orgid, unitid=None):
-    # TODO: the 'effective-date' parameter is set by the frontend when
-    # renaming an org unit - we could choose to remove it from the
-    # frontend call
-
     query = flask.request.args.get('query', None)
     params = {
         'tilhoerer': str(orgid),
@@ -220,12 +218,16 @@ def get_orgunit(orgid, unitid=None):
     else:
         params['uuid'] = unitid
 
+    params.update(
+        effective_date=flask.request.args.get('effective-date', None),
+    )
+
     r = list(filter(None, (
         reading.full_hierarchy(
             str(orgid), orgunitid,
             include_children=False, include_parents=True,
             include_activename=True,
-            effective_date=flask.request.args.get('effective_date', None),
+            effective_date=flask.request.args.get('effective-date', None),
             validity=flask.request.args.get('validity', None),
         )
         for orgunitid in lora.organisationenhed(**params)

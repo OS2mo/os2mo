@@ -82,7 +82,7 @@ class CodeStyleTests(unittest.TestCase):
 
     def test_style(self):
         'Test that all Python source files pass the style check'
-        style = pycodestyle.StyleGuide()
+        style = pycodestyle.StyleGuide(ignore='N/A')
         style.init_report(pycodestyle.StandardReport)
 
         for fn in self.source_files:
