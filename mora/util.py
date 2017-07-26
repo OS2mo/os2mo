@@ -26,12 +26,14 @@ DATETIME_PARSERS = (
     lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z'),
 )
 
+# This function is not used anywhere in the code and its method signature
+# does not match the return type - is it ok to remove it from util.py?
 
-def parsedate(s: str) -> datetime.date:
-    if isinstance(s, datetime.date):
-        return s
-    else:
-        return datetime.date.strptime(s, '%d-%m-%Y')
+# def parsedate(s: str) -> datetime.date:
+#     if isinstance(s, datetime.date):
+#         return s
+#     else:
+#         return datetime.date.strptime(s, '%d-%m-%Y')
 
 
 def unparsedate(d: datetime.date) -> str:

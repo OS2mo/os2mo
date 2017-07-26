@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
+import datetime
 import unittest
 
 import flask
@@ -17,10 +17,7 @@ from mora import util
 class TestUtils(unittest.TestCase):
 
     def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
+        self.d = datetime.date(2000, 1, 1)
 
     @freezegun.freeze_time('2017-12-31 00:00:00', tz_offset=+1)
     def test_should_reparse_31_12_2017_to_correct_date(self):
@@ -38,6 +35,12 @@ class TestUtils(unittest.TestCase):
     def test_should_reparse_None_to_infinity(self):
         self.assertEqual(util.reparsedatetime(None), 'infinity',
                          'Error when pasring empty date')
+
+    # def test_should_parse_datetime_date_correctly(self):
+    #     self.assertEqual(self.d, util.parsedate(self.d))
+    #
+    # def test_should_parse_string_date_correctly(self):
+    #     self.assertEqual('01-01-2000', util.parsedate(self.d))
 
 
 class TestAppUtils(unittest.TestCase):
