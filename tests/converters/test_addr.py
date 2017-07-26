@@ -12,6 +12,7 @@ import freezegun
 
 from .. import util
 from mora import app
+from mora.converters import addr
 
 
 class AddrTests(util.TestCase):
@@ -63,3 +64,9 @@ class AddrTests(util.TestCase):
             '&vejnavn=' + cph_road,
             []
         )
+
+    @util.mock()
+    def test_should_raise_exception_for_unknown_address(self, mock):
+        mock.get('http://dawa.aws.dk/adresser/unknown', status_code=404)
+        with self.assertRaises(KeyError):
+            addr.get_address('unknown')
