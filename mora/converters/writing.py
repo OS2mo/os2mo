@@ -26,8 +26,6 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
         elif isinstance(v, list):
             for d in v:
                 d['virkning'] = virkning
-        else:
-            pass
     return lora_obj
 
 

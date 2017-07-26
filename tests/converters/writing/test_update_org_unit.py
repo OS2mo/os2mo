@@ -297,7 +297,6 @@ class TestUpdateOrgUnitAddresses(TestSetup):
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     @util.mock()
     def test_should_add_new_location_correctly(self, mock):
-        print(self.std_mock_org_unit)
         mock.get(self.std_mock_org_unit, json=self.json)
         actual_addresses = writing.update_org_unit_addresses(
             '00000000-0000-0000-0000-000000000000',
@@ -341,4 +340,18 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             contact_channels=None)
         self.assertRaises(IllegalArgumentException)
 
-        # TODO: add more exception tests
+    @freezegun.freeze_time('2017-01-01', tz_offset=2)
+    @util.mock()
+    def test_should_handle_case_where_contact_channel_already_exists(self,
+                                                                     mock):
+        mock.get(self.std_mock_org_unit, json=self.json)
+        expected = {
+            'note': 'Tilføj eksisterende kontaktkanal',
+            'relationer': {
+                'adresser': []
+            }
+        }
+        self.assertEqual(expected, writing.update_org_unit_addresses(
+            '00000000-0000-0000-0000-000000000000',
+            'contact-channel',
+        ))
