@@ -24,6 +24,9 @@ DATETIME_PARSERS = (
     lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
     # ISO 8601
     lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z'),
+    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S'),
+    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f%z'),
+    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f'),
     # limits
     lambda s: {
         'infinity': datetime.datetime.max,
