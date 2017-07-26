@@ -40,8 +40,8 @@ def _create_virkning(From: str, to: str, from_included=True,
     :return: the virkning object
     """
     return {
-        'from': util.reparsedatetime(From),
-        'to': util.reparsedatetime(to),
+        'from': util.to_lora_time(From),
+        'to': util.to_lora_time(to),
         'from_included': from_included,
         'to_included': to_included
     }
@@ -100,8 +100,8 @@ def create_org_unit(req: dict) -> dict:
                 }
                 for location in req.get('locations', [])
                 for channel in location.get('contact-channels', [])
-            ] or nullrelation,
-            # TODO: will "... or nullrelation" ever happen?
+            ],
+            # TODO: what happens if we have neither locations nor addresses?
             # (no test for this yet...)
             'tilhoerer': [
                 {

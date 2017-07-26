@@ -15,7 +15,7 @@ import pytz
 import tzlocal
 
 DATETIME_PARSERS = (
-    # DD/MM/YY w/o time -- sent by the frontend
+    # DD/MM/YYYY w/o time -- sent by the frontend
     lambda s: tzlocal.get_localzone().localize(
         datetime.datetime.strptime(s, '%d-%m-%Y')
     ),
@@ -24,16 +24,12 @@ DATETIME_PARSERS = (
     lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
     # ISO 8601
     lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z'),
+    # limits
+    lambda s: {
+        'infinity': datetime.datetime.max,
+        '-infinity': datetime.datetime.min,
+    }[s],
 )
-
-# This function is not used anywhere in the code and its method signature
-# does not match the return type - is it ok to remove it from util.py?
-
-# def parsedate(s: str) -> datetime.date:
-#     if isinstance(s, datetime.date):
-#         return s
-#     else:
-#         return datetime.date.strptime(s, '%d-%m-%Y')
 
 
 def unparsedate(d: datetime.date) -> str:
@@ -49,20 +45,34 @@ def parsedatetime(s: str, default: str=None) -> datetime.datetime:
     for parser in DATETIME_PARSERS:
         try:
             return parser(s)
-        except ValueError:
+        except (ValueError, KeyError):
             pass
 
     raise ValueError('unparsable date {!r}'.format(s))
 
 
-def reparsedatetime(s):
-    if s == 'infinity' or s == '-infinity':
-        return s
-    elif not s:
-        # In the case that the end-date is not specified in the frontend
+def to_lora_time(s):
+    dt = parsedatetime(s)
+
+    if dt == datetime.datetime.max:
         return 'infinity'
+    elif dt == datetime.datetime.min:
+        return '-infinity'
     else:
-        return parsedatetime(s).isoformat()
+        return dt.isoformat()
+
+
+def to_frontend_time(s):
+    dt = parsedatetime(s)
+
+    if dt == datetime.datetime.max:
+        return 'infinity'
+    elif dt == datetime.datetime.min:
+        return '-infinity'
+    elif dt and dt.time() == datetime.time():
+        return unparsedate(dt.date())
+    else:
+        return dt.isoformat()
 
 
 def now() -> datetime.datetime:
@@ -131,3 +141,4 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
         return wrapper
 
     return wrap
+

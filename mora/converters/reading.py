@@ -7,7 +7,7 @@
 #
 
 from .. import lora
-from pprint import pprint
+from .. import util
 
 
 def list_organisations():
@@ -25,8 +25,12 @@ def list_organisations():
             'name': unitattrs['enhedsnavn'],
             'user-key': unitattrs['brugervendtnoegle'],
             'uuid': rootid,
-            'valid-from': unit_validity['virkning']['from'],
-            'valid-to': unit_validity['virkning']['to'],
+            'valid-from': util.to_frontend_time(
+                unit_validity['virkning']['from'],
+            ),
+            'valid-to': util.to_frontend_time(
+                unit_validity['virkning']['to'],
+            ),
             'hasChildren': True,
             'children': [],
             'org': org['id'],
@@ -120,8 +124,12 @@ def full_hierarchy(orgid: str, unitid: str,
             'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
             if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
         },
-        'valid-from': orgunit_validity['from'],
-        'valid-to': orgunit_validity['to'],
+        'valid-from': util.to_frontend_time(
+            orgunit_validity['from'],
+        ),
+        'valid-to': util.to_frontend_time(
+            orgunit_validity['to'],
+        ),
         'hasChildren': bool(children),
         'org': str(orgid),
         'parent': parent if parent and parent != orgid else None,
@@ -158,8 +166,12 @@ def wrap_in_org(orgid, value, org=None):
         'name': orgattrs['organisationsnavn'],
         'user-key': orgattrs['brugervendtnoegle'],
         'uuid': orgid,
-        'valid-from': org_validity['virkning']['from'],
-        'valid-to': org_validity['virkning']['to'],
+        'valid-from': util.to_frontend_time(
+            org_validity['virkning']['from'],
+        ),
+        'valid-to': util.to_frontend_time(
+            org_validity['virkning']['to'],
+        ),
     }
 
 

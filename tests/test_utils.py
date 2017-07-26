@@ -16,31 +16,19 @@ from mora import util
 
 class TestUtils(unittest.TestCase):
 
-    def setUp(self):
-        self.d = datetime.date(2000, 1, 1)
+    def test_to_lora_time(self):
+        min, max = datetime.datetime.min, datetime.datetime.max
+        self.assertEqual(util.to_lora_time('31-12-2017'),
+                         '2017-12-31T00:00:00+01:00')
+        self.assertEqual(util.to_lora_time('infinity'), 'infinity')
+        self.assertEqual(util.to_lora_time('-infinity'), '-infinity')
 
-    @freezegun.freeze_time('2017-12-31 00:00:00', tz_offset=+1)
-    def test_should_reparse_31_12_2017_to_correct_date(self):
-        self.assertEqual(util.reparsedatetime('31-12-2017'),
-                         '2017-12-31T00:00:00+01:00', 'Error in parsing date')
-
-    def test_should_reparse_date_infinity_correctly(self):
-        self.assertEqual(util.reparsedatetime('infinity'), 'infinity',
-                         'Error in parsing date')
-
-    def test_should_reparse_date_minus_infinity_correctly(self):
-        self.assertEqual(util.reparsedatetime('-infinity'), '-infinity',
-                         'Error in parsing date')
-
-    def test_should_reparse_None_to_infinity(self):
-        self.assertEqual(util.reparsedatetime(None), 'infinity',
-                         'Error when pasring empty date')
-
-    # def test_should_parse_datetime_date_correctly(self):
-    #     self.assertEqual(self.d, util.parsedate(self.d))
-    #
-    # def test_should_parse_string_date_correctly(self):
-    #     self.assertEqual('01-01-2000', util.parsedate(self.d))
+    def test_to_frontend_time(self):
+        min, max = datetime.datetime.min, datetime.datetime.max
+        self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
+                         '31-12-2017')
+        self.assertEqual(util.to_frontend_time('infinity'), 'infinity')
+        self.assertEqual(util.to_frontend_time('-infinity'), '-infinity')
 
 
 class TestAppUtils(unittest.TestCase):
