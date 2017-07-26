@@ -115,11 +115,11 @@ class TestCreateOrgUnit(TestSetup):
                          'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
+
 # TODO: the tests below do not really tell us much...
 
 
-class TestRenameOrgUnit(TestSetup):
-
+class TestRenameAndRetypeOrgUnit(TestSetup):
     @util.mock()
     def test_should_rename_org_unit_correctly(self, mock):
         frontend_req = {
@@ -167,6 +167,23 @@ class TestRenameOrgUnit(TestSetup):
                          {'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'},
                          'Error in renaming org unit')
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
+
+    @util.mock()
+    def test_should_retype_org_unit_correctly(self, mock):
+        frontend_req = jsonfile_to_dict(
+            'tests/mocking/mo/retype_org_unit.json')
+        mock.put(
+            'http://mox/organisation/organisationenhed/383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe',
+            json={'uuid': '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe'})
+        r = self.app.post(
+            '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
+                'uuid'], data=json.dumps(frontend_req),
+            content_type='application/json')
+        actual_response = json.loads(r.data.decode())
+        self.assertEqual({'uuid': '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe'},
+                         actual_response)
+        self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
+
 
 
 class TestInactivateOrgUnit(TestSetup):
