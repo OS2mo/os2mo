@@ -100,6 +100,7 @@ def full_hierarchy(orgid: str, unitid: str,
 
     unit_types = orgunit['relationer']['enhedstype']
     if unit_types:
+        # TODO: should we pass on loraparams? perhaps, but not validity
         unit_type = lora.klasse.get(uuid=unit_types[0]['uuid'])
     else:
         unit_type = None

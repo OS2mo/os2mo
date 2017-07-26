@@ -160,13 +160,7 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 @util.restrictargs('treeType', 'orgUnitId', 'query',
                    'effective-date')
 def full_hierarchy(orgid):
-    # TODO: the 'effective-date' parameter is not used below, but it is
-    # set by the frontend when moving an org unit - we could choose to
-    # remove it from the frontend call
-
     args = flask.request.args
-
-    treeType = args.get('treeType', None)
 
     params = dict(
         effective_date=args.get('effective-date', None),
@@ -174,9 +168,13 @@ def full_hierarchy(orgid):
     )
 
     if args.get('query'):
+        # TODO: the query argument does sub-tree searching -- given
+        # that LoRA has no notion of the organisation tree, we'd have
+        # to emulate it
+        flask.current_app.logger.error('sub-tree searching is unsupported!')
         return '', 400
 
-    if treeType == 'specific':
+    if args.get('treeType', None) == 'specific':
         r = reading.full_hierarchy(str(orgid), args['orgUnitId'], **params)
 
         if r:
