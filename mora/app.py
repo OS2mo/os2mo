@@ -158,7 +158,7 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
 @util.restrictargs('treeType', 'orgUnitId', 'query',
-                   'effective-date', 'validity')
+                   'effective-date')
 def full_hierarchy(orgid):
     # TODO: the 'effective-date' parameter is not used below, but it is
     # set by the frontend when moving an org unit - we could choose to
@@ -170,7 +170,6 @@ def full_hierarchy(orgid):
 
     params = dict(
         effective_date=args.get('effective-date', None),
-        validity=args.get('validity', None),
         include_children=True,
     )
 
