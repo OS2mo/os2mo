@@ -138,7 +138,6 @@ class TestCreateOrgUnit(util.LoRATestCase):
     # in LoRa after running app.create_organisation_unit is correct.
     # It is strange that the test above passes and the one below does not...
 
-    @unittest.expectedFailure
     @freezegun.freeze_time('2010-06-01 12:00:00', tz_offset=+1)
     def test_should_create_org_unit_with_virkning_to_2011_01_01(self):
         self.load_sample_structures()
