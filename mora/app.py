@@ -29,6 +29,11 @@ app = flask.Flask(__name__, static_url_path='')
 cli.load_cli(app)
 
 
+@app.errorhandler(ValueError)
+def handle_invalid_usage(error):
+    return '\n'.join(error.args), 400
+
+
 @app.route('/')
 def root():
     return flask.send_from_directory(staticdir, 'index.html')
