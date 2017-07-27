@@ -63,8 +63,8 @@ def _get_restrictions_for(*,
 
         restrictions.update(
             {
-                'virkningfra': util.to_lora_time(today),
-                'virkningtil': util.to_lora_time(tomorrow)
+                'virkningfra': str(today),
+                'virkningtil': str(tomorrow),
             }
         )
 
@@ -75,7 +75,7 @@ def _get_restrictions_for(*,
 
         restrictions.update(
             {
-                'virkningfra': util.to_lora_time(tomorrow),
+                'virkningfra': str(tomorrow),
                 'virkningtil': 'infinity',
             }
         )
@@ -89,7 +89,7 @@ def _get_restrictions_for(*,
         restrictions.update(
             {
                 'virkningfra': '-infinity',
-                'virkningtil': util.to_lora_time(today),
+                'virkningtil': str(today),
             }
         )
 
