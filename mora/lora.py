@@ -58,9 +58,15 @@ def _get_restrictions_for(*,
     if not validity or validity == 'present':
         should_include = None
 
-        # TODO: are these line necessary?... if virkning is not specified
-        # LoRa will use what is valid for the present date
-
+        #
+        # restrict the search to anything affecting 'today' --
+        # although LoRA implicitly matches anything effective 'now',
+        # we want any hypothetical changes that took affect during
+        # this day
+        #
+        # also, our use of freezegun during tests means that 'now'
+        # from LoRAs perspective isn't what we want
+        #
         restrictions.update(
             {
                 'virkningfra': str(today),
