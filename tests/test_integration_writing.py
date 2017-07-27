@@ -229,13 +229,13 @@ class TestCreateOrgUnit(util.LoRATestCase):
                 "type": {"name": "Afdeling"},
                 "user-key": "root",
                 "uuid": PARENTID,
-                "valid-from": "2016-01-01 00:00:00+01",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity",
             },
             'type': {'name': 'Institut'},
             "user-key": "hum",
             "uuid": UNITID,
-            "valid-from": "2016-01-01 00:00:00+01",
+            "valid-from": "01-01-2016",
             "valid-to": "infinity",
         }
 
@@ -283,8 +283,8 @@ class TestCreateOrgUnit(util.LoRATestCase):
                     'user-key': 'frem',
                     'type': {'name': 'Afdeling'},
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'valid-from': '2016-01-01 00:00:00+01',
-                    'valid-to': '2018-01-01 00:00:00+01',
+                    'valid-from': '01-01-2016',
+                    'valid-to': '01-01-2018',
                 },
             ]
 

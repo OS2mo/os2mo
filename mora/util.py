@@ -148,4 +148,3 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
         return wrapper
 
     return wrap
-
