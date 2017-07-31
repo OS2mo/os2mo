@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import unittest
+import json
 
 import freezegun
 import requests
@@ -395,20 +395,20 @@ class IntegrationTests(util.LoRATestCase):
                                 'name': 'Humanistisk fakultet',
                                 'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                                 'parent':
-                                '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                                    '2874e1dc-85e6-4269-823a-e1125484dfd3',
                                 'parent-object': {
                                     'activeName': 'Overordnet '
-                                    'Enhed',
+                                                  'Enhed',
                                     'hasChildren': True,
                                     'name': 'Overordnet '
-                                    'Enhed',
+                                            'Enhed',
                                     'org':
-                                    '456362c4-0ee4-4e5e-a72c-751239745e62',
+                                        '456362c4-0ee4-4e5e-a72c-751239745e62',
                                     'parent': None,
                                     'parent-object': None,
                                     'user-key': 'root',
                                     'uuid':
-                                    '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                                        '2874e1dc-85e6-4269-823a-e1125484dfd3',
                                     'valid-from': '01-01-2016',
                                     'valid-to': 'infinity',
                                     'type': {'name': 'Afdeling'},
@@ -454,3 +454,20 @@ class IntegrationTests(util.LoRATestCase):
                     },
                 ],
             )
+
+    def test_should_add_one_new_contact_channel_correctly(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            'b688513d-11f7-4efc-b679-ab082a2055d0/role-types/location/'
+            '00000000-0000-0000-0000-000000000000',
+            {'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0'},
+            method='POST',
+            data=json.dumps(util.jsonfile_to_dict('tests/mocking/mo/writing/'
+                                                  'update_org_unit_contact_'
+                                                  'channel.json')),
+            headers={'Content-Type': 'application/json'}
+        )
+
+        # TODO: This test should also ask for the values from LoRa

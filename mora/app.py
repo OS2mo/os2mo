@@ -158,7 +158,7 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
     if payload['relationer']['adresser']:
         lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
-    return flask.jsonify(unitid), 200
+    return flask.jsonify({'uuid': unitid}), 200
 
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
