@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import operator
+
 from .. import lora
 from .. import util
 
@@ -191,3 +193,24 @@ def unit_history(orgid, unitid):
             'section': reg['livscykluskode'],
             'action': reg.get('note'),
         }
+
+
+def _convert_class(clazz):
+    reg = clazz['registreringer'][-1]
+    attrs = reg['attributter']['klasseegenskaber'][0]
+
+    return {
+        'uuid': clazz['id'],
+        'name': attrs['titel'],
+        'userKey': attrs['brugervendtnoegle']
+    }
+
+def get_classes():
+    # TODO: we need to somehow restrict the available classes to
+    # sensible options; a classification hierarchy, perhaps, or only
+    # those related to or listed in our organisation?
+    classes = lora.klasse(uuid=lora.klasse(bvn='%'))
+
+    return sorted(map(_convert_class,
+                      classes),
+                  key=operator.itemgetter('name'))

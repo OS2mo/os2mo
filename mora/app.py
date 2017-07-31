@@ -326,24 +326,7 @@ def get_role(orgid, unitid, role):
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
 def list_classes():
-    # TODO: we need to somehow restrict the available classes to
-    # sensible options; a classification hierarchy, perhaps, or only
-    # those related to or listed in our organisation?
-    clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
-
-    # TODO: Refactor this convert function into a module and make it
-    # generic
-    def convert(clazz):
-        reg = clazz['registreringer'][-1]
-        attrs = reg['attributter']['klasseegenskaber'][0]
-        return {
-            'uuid': clazz['id'],
-            'name': attrs['titel'],
-            'userKey': attrs['brugervendtnoegle']
-        }
-
-    return flask.jsonify(sorted(map(convert, clazzes),
-                                key=operator.itemgetter('name')))
+    return flask.jsonify(reading.get_classes())
 
 
 @app.route('/addressws/geographical-location')
