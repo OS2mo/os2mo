@@ -13,7 +13,6 @@ from mora import exceptions
 
 
 class TestHelperFunctions(unittest.TestCase):
-
     # Testing _check_arguments function
 
     def test_should_raise_exception_if_arg_is_missing(self):
@@ -77,3 +76,51 @@ class TestHelperFunctions(unittest.TestCase):
         }
         self.assertEqual(expected,
                          writing.create_update_kwargs(None, req))
+
+        # Testing _create_payload function
+
+        # The following could be relevant later on
+
+        # def test_should_append_props_correctly(self):
+        #     payload = {
+        #         'note': 'dummy note',
+        #         'a': {
+        #             'b': [
+        #                 {
+        #                     'c': 'dummy'
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #     expected_output = {
+        #         'note': 'changed dummy note',
+        #         'a': {
+        #             'b': [
+        #                 {
+        #                     'c': 'dummy'
+        #                 },
+        #                 {
+        #                     'c': 'dummy',
+        #                     'virkning': {
+        #                         'from': '2000-01-01',
+        #                         'to': '2000-12-12'
+        #                     }
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #     props = {
+        #         'c': 'dummy',
+        #         'virkning': {
+        #             'from': '2000-01-01',
+        #             'from_included': True,
+        #             'to': '2000-12-12',
+        #             'to_included': False,
+        #         }
+        #     }
+        # actual_output = writing._create_payload('01-01-2000', '12-12-2000',
+        #                                         ['a', 'b'],
+        #                             props, 'changed dummy note', payload)
+        #     print('actual output = ')
+        #     pprint(actual_output)
+        #     self.assertEqual(expected_output, actual_output)

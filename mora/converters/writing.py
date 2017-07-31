@@ -188,6 +188,7 @@ def rename_org_unit(req: dict) -> dict:
                            'Omdøb enhed')
 
 
+# TODO: rename this function...
 def retype_org_unit(req: dict) -> dict:
     """
     Change the type or start-date of the org unit
@@ -245,10 +246,8 @@ def _create_payload(From: str, to: str, obj_path: list,
             current_value = current_value[key]
         else:
             props['virkning'] = _create_virkning(From, to)
-            if key in current_value.keys():
-                current_value[key].append(props)
-            else:
-                current_value[key] = [props]
+            current_value[key] = [props]
+
     return payload
 
 
