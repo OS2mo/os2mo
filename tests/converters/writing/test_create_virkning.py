@@ -122,4 +122,14 @@ class TestCreateVirkning(unittest.TestCase):
                              'to_included'],
                          'to_included should be true')
 
-        # TODO: Should throw exception if to <= from
+    def test_should_set_from_and_to_to_minus_and_plus_infinity(self):
+        expected_virkning = {
+            'from': '-infinity',
+            'from_included': False,
+            'to': 'infinity',
+            'to_included': False
+        }
+        actual_virkning = writing._create_virkning('-infinity', 'infinity')
+        self.assertEqual(expected_virkning, actual_virkning)
+
+    # TODO: Should throw exception if to <= from

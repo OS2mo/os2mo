@@ -69,8 +69,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'enhedsnavn': 'New Unit',
                         'brugervendtnoegle': 'NewUnit',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -89,6 +89,13 @@ class TestCreateOrgUnit(unittest.TestCase):
                             'to_included': False,
                         },
                     },
+                    {'gyldighed': 'Inaktiv',
+                     'virkning': {
+                         'from': '-infinity',
+                         'from_included': False,
+                         'to': '2017-11-30T00:00:00+01:00',
+                         'to_included': False}
+                     }
                 ],
             },
             'relationer': {
@@ -96,8 +103,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -106,8 +113,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'urn': 'urn:magenta.dk:telefon:12345678',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -117,8 +124,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': '59141156-ed0b-457c-9535-884447c5220b',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -128,8 +135,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -139,8 +146,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -215,8 +222,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'enhedsnavn': 'New Unit',
                         'brugervendtnoegle': 'NewUnit',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -235,6 +242,15 @@ class TestCreateOrgUnit(unittest.TestCase):
                             'to_included': False,
                         },
                     },
+                    {
+                        'gyldighed': 'Inaktiv',
+                        'virkning': {
+                            'from': '-infinity',
+                            'from_included': False,
+                            'to': '2017-11-30T00:00:00+01:00',
+                            'to_included': False
+                        }
+                    }
                 ],
             },
             'relationer': {
@@ -242,8 +258,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -252,8 +268,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'urn': 'urn:magenta.dk:telefon:12345678',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -261,8 +277,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'urn': 'urn:magenta.dk:telefon:87654321',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -273,8 +289,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': '59141156-ed0b-457c-9535-884447c5220b',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -284,8 +300,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -295,8 +311,8 @@ class TestCreateOrgUnit(unittest.TestCase):
                     {
                         'uuid': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc',
                         'virkning': {
-                            'from': '2017-11-30T00:00:00+01:00',
-                            'from_included': True,
+                            'from': '-infinity',
+                            'from_included': False,
                             'to': 'infinity',
                             'to_included': False,
                         },

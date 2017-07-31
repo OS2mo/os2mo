@@ -11,11 +11,11 @@ import unittest
 from mora.converters import writing
 
 
-class TestMoveOrgUnit(unittest.TestCase):
+class TestRetypeOrgUnit(unittest.TestCase):
     maxDiff = None
 
-    @freezegun.freeze_time('2000-01-01 12:00:00', tz_offset=+1)
-    def test_should_move_org_unit_correctly(self):
+    @freezegun.freeze_time('2017-01-01')
+    def test_should_retype_org_unit_correctly(self):
         frontend_req = {
             "activeName": "Aarhus Havn",
             "hasChildren": False,
@@ -43,7 +43,6 @@ class TestMoveOrgUnit(unittest.TestCase):
                 "uuid": "0034fa1f-b1ef-4764-8505-c5b9ca43aaa9"
             },
             "changed": True,
-            "valid-from-updated": "2017-06-30T22:00:00.000Z"
         }
         expected_output = {
             'note': 'Ret enhedstype',
@@ -51,7 +50,7 @@ class TestMoveOrgUnit(unittest.TestCase):
                 'enhedstype': [
                     {
                         'virkning': {
-                            'from': '2010-01-01T00:00:00+01:00',
+                            'from': '2017-01-01T00:00:00+01:00',
                             'from_included': True,
                             'to': 'infinity',
                             'to_included': False,

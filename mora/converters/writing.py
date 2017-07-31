@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import datetime
+
 from .. import lora
 from .. import util
 from .. import exceptions
@@ -25,7 +27,7 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
             _set_virkning(v, virkning)
         elif isinstance(v, list):
             for d in v:
-                d['virkning'] = virkning
+                d['virkning'] = virkning.copy()
     return lora_obj
 
 
@@ -42,8 +44,8 @@ def _create_virkning(From: str, to: str, from_included=True,
     return {
         'from': util.to_lora_time(From),
         'to': util.to_lora_time(to),
-        'from_included': from_included,
-        'to_included': to_included
+        'from_included': from_included if not From == '-infinity' else False,
+        'to_included': to_included if not to == 'infinity' else False
     }
 
 
@@ -59,7 +61,7 @@ def create_org_unit(req: dict) -> dict:
     # Create virkning
     # NOTE: 'to' date is always infinity here but if the 'valid-to' is set in
     # the frontend request, the org unit end-date will be changed elsewhere
-    virkning = _create_virkning(req.get('valid-from', '-infinity'), 'infinity')
+    virkning = _create_virkning('-infinity', 'infinity')
 
     # Create the organisation unit object
     org_unit = {
@@ -121,7 +123,22 @@ def create_org_unit(req: dict) -> dict:
         }
     }
 
-    return _set_virkning(org_unit, virkning)
+    org_unit = _set_virkning(org_unit, virkning)
+    org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
+        'from'] = util.to_lora_time(req.get('valid-from'))
+    org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
+        'from_included'] = True
+
+    # TODO: refactor - lines below are also found in the retype function
+    org_unit['tilstande']['organisationenhedgyldighed'].append(
+        {
+            'gyldighed': 'Inaktiv',
+            'virkning': _create_virkning('-infinity', req.get('valid-from'),
+                                         False, False)
+        }
+    )
+
+    return org_unit
 
 
 def inactivate_org_unit(date: str) -> dict:
@@ -173,26 +190,53 @@ def rename_org_unit(req: dict) -> dict:
 
 def retype_org_unit(req: dict) -> dict:
     """
-    Change the type of the org unit
+    Change the type or start-date of the org unit
     :param req: the JSON request sent from the frontend
     :return: the payload JSON used to update LoRa
     """
 
-    From = req['valid-from']
-    to = req['valid-to']
-    obj_path = ['relationer', 'enhedstype']
-    props = {'uuid': req['type']['uuid']}
+    payload = None
 
-    return _create_payload(From, to, obj_path, props, 'Ret enhedstype')
+    if 'type-updated' in req.keys():
+        # Update the org unit type
+        From = datetime.datetime.today()
+        obj_path = ['relationer', 'enhedstype']
+        props = {'uuid': req['type']['uuid']}
+        to = req['valid-to']
+        payload = _create_payload(From, to, obj_path, props, 'Ret enhedstype')
+
+    if 'valid-from-updated' in req.keys():
+        # Update the org unit start-date
+        From = req['valid-from']
+        obj_path = ['tilstande', 'organisationenhedgyldighed']
+        props = {'gyldighed': 'Aktiv'}
+        to = req['valid-to']
+        payload = _create_payload(From, to, obj_path, props,
+                                  'Ret enhedstype og start dato'
+                                  if payload else 'Ret start dato', payload)
+
+        # TODO: maybe the adding-more-stuff-to-a-payload functionality below
+        # should be moved into the _create_payload function
+
+        payload['tilstande']['organisationenhedgyldighed'].append(
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': _create_virkning('-infinity', From, False, False)
+            }
+        )
+
+    return payload
 
 
 def _create_payload(From: str, to: str, obj_path: list,
-                    props: dict, note: str) -> dict:
-    # TODO: test this
+                    props: dict, note: str, payload: dict = None) -> dict:
+    if payload:
+        payload['note'] = note
+    else:
+        payload = {
+            'note': note,
+        }
 
-    payload = {
-        'note': note,
-    }
     current_value = payload
     while obj_path:
         key = obj_path.pop(0)
@@ -201,8 +245,10 @@ def _create_payload(From: str, to: str, obj_path: list,
             current_value = current_value[key]
         else:
             props['virkning'] = _create_virkning(From, to)
-            current_value[key] = [props]
-
+            if key in current_value.keys():
+                current_value[key].append(props)
+            else:
+                current_value[key] = [props]
     return payload
 
 

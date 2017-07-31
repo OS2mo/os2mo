@@ -94,8 +94,10 @@ def _read_sheet(sheet):
                         "titel": "Afdeling " + clsid[:3],
                         "beskrivelse": "Dette er en afdeling",
                         "virkning": {
-                            "from": _dt2str(now),
+                            "from": "-infinity",
                             "to": "infinity",
+                            'from_included': False,
+                            'to_included': False
                         },
                     }
                 ]
@@ -105,8 +107,10 @@ def _read_sheet(sheet):
                     {
                         "publiceret": "Publiceret",
                         "virkning": {
-                            "from": _dt2str(now),
+                            "from": "-infinity",
                             "to": "infinity",
+                            'from_included': False,
+                            'to_included': False
                         },
                     }
                 ]
@@ -120,9 +124,26 @@ def _read_sheet(sheet):
         virkning = {
             'from': _dt2str(obj['fra']),
             'to': _dt2str(obj['til']) or 'infinity',
+            'from_included': True,
+            'to_included': False,
         }
+
+        virkning_inactive = {
+            'from': '-infinity',
+            'to': _dt2str(obj['fra']),
+            'from_included': False,
+            'to_included': False,
+        }
+
+        virkning_inf = {
+            'from': '-infinity',
+            'to': 'infinity',
+            'from_included': False,
+            'to_included': False,
+        }
+
         nullrelation = [{
-            'virkning': virkning,
+            'virkning': virkning_inf,
         }]
 
         if sheet.title == 'organisation':
@@ -133,7 +154,7 @@ def _read_sheet(sheet):
                         {
                             'organisationsnavn': obj['brugervendtnoegle'],
                             'brugervendtnoegle': obj['brugervendtnoegle'],
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         },
                     ],
                 },
@@ -149,7 +170,7 @@ def _read_sheet(sheet):
                     'virksomhed': [
                         {
                             'urn': 'urn:dk:cvr:{}'.format(obj['virksomhed']),
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ] if obj['virksomhed'] else nullrelation,
                     'myndighed': [
@@ -157,7 +178,7 @@ def _read_sheet(sheet):
                             'urn': 'urn:dk:kommune:{}'.format(
                                 obj['myndighed'],
                             ),
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ] if obj['myndighed'] else nullrelation,
                     'myndighedstype': [
@@ -165,7 +186,7 @@ def _read_sheet(sheet):
                             'urn': 'urn:oio:objekttype:{}'.format(
                                 obj['myndighedstype'],
                             ),
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ] if obj['myndighedstype'] else nullrelation,
                 }
@@ -185,7 +206,7 @@ def _read_sheet(sheet):
                 addresses.append({
                     'urn': urn,
                     'gyldighed': obj['gyldighed'],
-                    'virkning': virkning,
+                    'virkning': virkning_inf,
                 })
 
             if obj['postnummer']:
@@ -210,7 +231,7 @@ def _read_sheet(sheet):
                     addresses.append({
                         'uuid': addrinfo['resultater'][0]['adresse']['id'],
                         'gyldighed': obj['gyldighed'],
-                        'virkning': virkning,
+                        'virkning': virkning_inf,
                     })
 
             r = {
@@ -220,7 +241,7 @@ def _read_sheet(sheet):
                         {
                             'enhedsnavn': obj['enhedsnavn'],
                             'brugervendtnoegle': obj['brugervendtnoegle'],
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         },
                     ],
                 },
@@ -230,6 +251,10 @@ def _read_sheet(sheet):
                             'gyldighed': obj['gyldighed'],
                             'virkning': virkning,
                         },
+                        {
+                            'gyldighed': 'Inaktiv',
+                            'virkning': virkning_inactive,
+                        }
                     ],
                 },
                 'relationer': {
@@ -237,19 +262,19 @@ def _read_sheet(sheet):
                     'tilhoerer': [
                         {
                             'uuid': obj['tilhoerer'],
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ],
                     'tilknyttedeenheder': [
                         {
                             'urn': obj['tilknyttedeenheder'],
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ],
                     'enhedstype': [
                         {
                             'uuid': obj['enhedstype'],
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ],
                     'overordnet': [
@@ -263,7 +288,7 @@ def _read_sheet(sheet):
                                 if obj['overordnet']
                                 else obj['tilhoerer']
                             ),
-                            'virkning': virkning,
+                            'virkning': virkning_inf,
                         }
                     ],
                 }

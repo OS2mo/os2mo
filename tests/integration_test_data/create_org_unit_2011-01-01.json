@@ -10,7 +10,7 @@
     "overordnet": [
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "-infinity",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
@@ -21,7 +21,7 @@
     "adresser": [
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "-infinity",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
@@ -30,7 +30,7 @@
       },
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "-infinity",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
@@ -41,7 +41,7 @@
     "tilhoerer": [
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "-infinity",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
@@ -52,7 +52,7 @@
     "enhedstype": [
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "-infinity",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
@@ -89,7 +89,7 @@
         "brugervendtnoegle": "NyEnhed",
         "enhedsnavn": "NyEnhed",
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "-infinity",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
