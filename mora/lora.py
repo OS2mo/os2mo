@@ -117,8 +117,11 @@ def _get_restrictions_for(*,
                         typeval[itemkey][:] = filter(should_include,
                                                      typeval[itemkey])
 
-                if any(entry.get(key) for key in keys):
+                if any(entry.get(typekey) and any(entry[typekey].values())
+                       for typekey in keys):
                     r.append(entry)
+                else:
+                    r.append(None)
 
             return r
 

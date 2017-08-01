@@ -372,6 +372,15 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
+        with self.subTest('empty past'):
+            self.assert404(
+                self.client.get(
+                    '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                    '/role-types/contact-channel/?validity=past'
+                )
+            )
+
         with self.subTest('present'):
             self.assertRequestResponse(
                 '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
@@ -453,6 +462,15 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': '01-01-2018',
                     },
                 ],
+            )
+
+        with self.subTest('empty future'):
+            self.assert404(
+                self.client.get(
+                    '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                    '/role-types/contact-channel/?validity=future'
+                )
             )
 
     def test_should_add_one_new_contact_channel_correctly(self):

@@ -255,6 +255,9 @@ def get_role(orgid, unitid, role):
         orgunit = lora.organisationenhed.get(unitid, validity=validity)
     except ValueError:
         traceback.print_exc()
+        orgunit = None
+
+    if not orgunit:
         return '', 404
 
     if role == 'contact-channel':
