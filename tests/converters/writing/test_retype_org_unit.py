@@ -123,6 +123,7 @@ class TestOrgUnitRetypeOrUpdateStartdate(unittest.TestCase):
         self.assertEqual(expected_output,
                          writing.retype_org_unit(frontend_req))
 
+    @freezegun.freeze_time('2017-07-31')
     def test_should_update_type_and_startdate_correctly(self):
         frontend_req = {
             "activeName": "Aarhus Havn",
