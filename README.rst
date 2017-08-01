@@ -10,7 +10,7 @@ forskellige organisationsenheder samt at redigere de data, der er tilknyttet
 de forskellige enheder.
 
 Navnet MORa er en sammentrækning af MO og LoRa og
-refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ of den
+refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ og den
 `Lokale Rammearkitektur <https://digitaliser.dk/group/3101080/members>`_.
 Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
 
@@ -29,16 +29,16 @@ backend. De enkelte moduler kan opfattes som elementer i
 `MVC-modellen <https://en.wikipedia.org/wiki/
 Model%E2%80%93view%E2%80%93controller>`_:
 
-MO (frontend)
+MO (Frontend / View)
 ~~~~~~~~~~~~~
-MO's frontend er skrevet i Javascript frameworket
+MOs frontend er skrevet i Javascript frameworket
 `AngularJS <https://angularjs.org/>`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
-kommunikerer indirekte med Lora via MO's middleend.
+kommunikerer indirekte med Lora via MOs middleend.
 
-MO (middleend)
+MO (Middleend / Control)
 ~~~~~~~~~~~~~~
-MO's middleend fungerer som en bro mellem frontenden og backenden, og den har
+MOs middleend fungerer som en bro mellem frontenden og backenden, og den har
 til opgave at oversætte de data, der sendes mellem frontenden og backenden til
 passende JSON formater, når der udføres læse- og skriveoperationer fra og
 til LoRa (se flere detaljer nedenfor).
@@ -47,17 +47,17 @@ Når der læses fra LoRa, leverer denne data i et JSON-format, som
 frontenden ikke umiddelbart kan tolke, hvorfor middleenden oversætter disse
 til det JSON-format, som frontenden forventer. Tilsvarende sender frontenden
 ved skriveoperationer JSON i et format, som skal oversættes af middleenden til
-det JSON-format, som kræves af LoRa's REST API.
+det JSON-format, som kræves af LoRa's REST API. Middlend kan opfattes som *Control* i MVC-modellen.
 
-LoRa (backend)
+LoRa (Backend / Model)
 ~~~~~~~~~~~~~~
 En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
 
-Detaljeret beskrivelse af MO's middleend
+Detaljeret beskrivelse af MOs middleend
 ----------------------------------------
-MO's middleend er underopdelt i en række moduler - se evt. illustrationen i
+MOs middleend er underopdelt i en række moduler - se evt. illustrationen i
 ovenstående afsnit. Formålet med denne modulære opbygning er at gøre koden
 struktureret (opdelt i en række klare ansvarsområder) og analysérbar samt
 at facilitere bedre muligheder for at teste kodebasen. MORa-koden består af
@@ -82,10 +82,12 @@ følgende moduler, som er skrevet i Python:
 
     - **Utils-modul**: En samling af nyttig funktioner, som afdækker diverse
       mindre ansvarsområder (parse datoer, håndtering af URN’er mv.).
+      
+  - **Testsuite-modul**
 
-Bemærk, at ovenstående liste ikke er udtømmende, idet der løbende vil blive
+Bemærk, at ovenstående liste ikke nødvendigvis udtømmende, idet der løbende kan blive
 tilføjet flere moduler i takt med, at kodebasen vokser. Det vil således under
-udviklingsprocessen af og til være nødvendigt at
+videreudviklingsprocessen af og til være nødvendigt at
 
 1. Tilføje nye moduler
 2. Splitte eksisterende moduler op i mindre dele for at undgå “responsibility
@@ -94,15 +96,15 @@ udviklingsprocessen af og til være nødvendigt at
 
 Opsætning af udviklingsmiljø
 ----------------------------
-I princippet er det muligt at fortage videre udvikling på MORa uden at have
+I princippet er det muligt at fortage videreudvikling af MORa uden at have
 en kørende instans af LoRa (idet man blot skriver tests til den udviklede
 kode), men i praksis vil det være mest praktisk med en kørende LoRa, som man
-kan udvilke op imod. Det anbefales derfor at installere LoRa i eksempelvis en
+kan udvikle op imod. Det anbefales derfor at installere LoRa i eksempelvis en
 Linux container som `LXC <https://linuxcontainers.org/>`_ eller lignende, som
-kører på udviklingsmaskinen. Nærmere instruktioner vedr. selve installeringen
-af LoRa kan findes på LoRas GitHub-side, som der linkes til ovenfor.
+kører på udviklingsmaskinen. Nærmere instruktioner vedr. selve installationen
+af LoRa kan findes på LoRas GitHub-side, som er linket til ovenfor.
 
-For at indstallere de nødvendige afhængigheder på en Ubuntu-maskine køres
+For at installere de nødvendige afhængigheder på en Ubuntu-maskine, køres
 følgende kommandoer::
 
   $ sudo apt install python3 python3-venv nodejs-legacy npm
@@ -114,8 +116,8 @@ Efterfølgende klones MORa-projektet fra GitHub::
   $ git clone https://github.com/magenta-aps/mora
 
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
-skal køre i og de nødvendige Python-moduler (med
-"pip install -r requirements.txt"), men de nemmeste er blot at anvende scriptet
+skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"), 
+men det nemmeste er blot at anvende scriptet
 **manage.py**::
 
   $ cd /path/to/folder/mora
@@ -125,10 +127,10 @@ Dette vil automatisk oprette et vituelt Python-miljø, installere de
 nødvendige Python-afhængigheder og starte applikationen (lyttende på
 port 5000). Applikationen kan således tilgås på *http://localhost:5000* med et
 brugernavn og password, som er hhv. *admin* og *secret*. Bemærk dog,
-at der først skal oploades data til LoRa - til dette formål kan man med
+at der først skal uploades data til LoRa - til dette formål kan man med
 fordel hente inspiration i scriptene, som er placeret i **sandbox**-mappen.
 
-Test suiten
+Testsuiten
 -----------
 Der arbejdes i proktet med tre typer af tests:
 
@@ -136,8 +138,7 @@ Der arbejdes i proktet med tre typer af tests:
 2. Integration tests
 3. End-to-end tests (Selenium tests)
 
-Der kræves ikke nogen yderligere opsætning for
-at køre unit testene (samt nogle af
+Der kræves ikke nogen yderligere opsætning for at køre unit testene (samt nogle af
 integrationstestene), idet disse blot kan køres med kommandoen fra rodmappen
 af projektet::
 
@@ -163,7 +164,7 @@ installerede minimox::
 
   $ ./coverage.py test --minimox=/path/to/folder/minimox
 
-som giver et output á la::
+som giver et output à la::
 
     Name                          Stmts   Miss Branch BrPart  Cover
     ---------------------------------------------------------------
@@ -187,9 +188,9 @@ gøres på følgende måde::
 
 Installing MORa on a server
 ---------------------------
-To install MORA, do::
+To install MORa, do::
 
-  # first, clone MORA
+  # first, clone MORa
   sudo install -d -o $UID -g $GID /srv/mora
   git clone https://github.com/magenta-aps/mora /srv/mora
 
@@ -217,7 +218,7 @@ To install MORA, do::
   sudo systemctl start mora.service
 
 
-You now have a working MoRA installation listening on a local socket.
+You now have a working MORa installation listening on a local socket.
 To expose to the outside, you'll need to configure Apache or nginx to
 forward requests to it. We're using Apache for now, and the following::
 
@@ -239,4 +240,4 @@ point to your server::
   LORA_URL = "http://localhost/"
 
 Please note that using an HTTPS URL requires a trusted certificate on
-the server, and that MORA doesn't support SAML authentication at this time.
+the server, and that MORa doesn't support SAML authentication at this time.
