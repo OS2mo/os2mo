@@ -10,7 +10,7 @@ import json
 import unittest
 
 from mora import app
-from mora import lora
+from mora import settings
 from tests.util import jsonfile_to_dict
 
 from . import util
@@ -38,7 +38,7 @@ class MoraTestCase(TestSetup):
         :param key: the key used in the url_map.json file
         :return: URL in LoRa as a string
         """
-        return lora.LORA_URL + self.lora_urls[key]
+        return settings.LORA_URL + self.lora_urls[key]
 
     def test_acl(self):
         rv = self.app.get('/acl/')

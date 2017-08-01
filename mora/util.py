@@ -8,6 +8,7 @@
 
 import datetime
 import functools
+import json
 import typing
 
 import flask
@@ -148,3 +149,20 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
         return wrapper
 
     return wrap
+
+
+def update_config(mapping, config_path):
+    '''load the JSON configuration at the given path
+
+    We disregard all entries in the configuration that lack a default
+    within the mapping.
+
+    '''
+    try:
+        with open(config_path) as fp:
+            overrides = json.load(fp)
+    except IOError:
+        return
+
+    for key in mapping.keys() & overrides.keys():
+        mapping[key] = overrides[key]

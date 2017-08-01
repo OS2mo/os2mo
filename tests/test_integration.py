@@ -12,19 +12,19 @@ import freezegun
 import requests
 
 from . import util
-from mora import lora
+from mora import settings
 
 
 class IntegrationTests(util.LoRATestCase):
     maxDiff = None
 
     def test_sanity(self):
-        r = requests.get(lora.LORA_URL)
+        r = requests.get(settings.LORA_URL)
         self.assertTrue(r.ok)
         self.assertEqual(r.json().keys(), {'site-map'})
 
     def test_empty(self):
-        r = requests.get(lora.LORA_URL)
+        r = requests.get(settings.LORA_URL)
         self.assertTrue(r.ok)
         self.assertEqual(r.json().keys(), {'site-map'})
 
