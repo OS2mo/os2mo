@@ -463,11 +463,9 @@ class IntegrationTests(util.LoRATestCase):
             'b688513d-11f7-4efc-b679-ab082a2055d0/role-types/location/'
             '00000000-0000-0000-0000-000000000000',
             {'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0'},
-            method='POST',
-            data=json.dumps(util.jsonfile_to_dict('tests/mocking/mo/writing/'
-                                                  'update_org_unit_contact_'
-                                                  'channel.json')),
-            headers={'Content-Type': 'application/json'}
+            json=util.get_mock_data(
+                'mo/writing/update_org_unit_contact_channel.json',
+            )
         )
 
         # TODO: This test should also ask for the values from LoRa

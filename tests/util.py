@@ -25,6 +25,7 @@ from mora import lora, app
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
+MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
 
 def jsonfile_to_dict(path):
@@ -42,6 +43,10 @@ def jsonfile_to_dict(path):
 
 def get_fixture(fixture_name):
     return jsonfile_to_dict(os.path.join(FIXTURE_DIR, fixture_name))
+
+
+def get_mock_data(mock_name):
+    return jsonfile_to_dict(os.path.join(MOCKING_DIR, mock_name))
 
 
 def get_unused_port():
@@ -64,7 +69,7 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
     return r
 
 
-def load_sample_structures(*, verbose=False):
+def load_sample_structures(*, verbose=False, minimal=False):
     '''Inject our test data into LoRA.
 
     '''
@@ -74,25 +79,36 @@ def load_sample_structures(*, verbose=False):
         '456362c4-0ee4-4e5e-a72c-751239745e62',
     )]
 
-    for classkey, classid in {
-            'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+    units = {
+        'root': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+    }
+
+    classes = {
             'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
+    }
+
+    if not minimal:
+        units.update({
+            'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            'samf': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+            'fil': '85715fc7-925d-401b-822d-467eb4b163b6',
+            'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+            'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+        })
+
+        classes.update({
+            'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
-    }.items():
+        })
+
+    for classkey, classid in classes.items():
         fixtures.append((
             'klassifikation/klasse',
             'create_klasse_{}.json'.format(classkey),
             classid,
         ))
 
-    for unitkey, unitid in {
-        'root': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-        'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-        'samf': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-        'fil': '85715fc7-925d-401b-822d-467eb4b163b6',
-        'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-        'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-    }.items():
+    for unitkey, unitid in units.items():
         fixtures.append((
             'organisation/organisationenhed',
             'create_organisationenhed_{}.json'.format(unitkey),
@@ -113,14 +129,11 @@ def mock(name=None):
         def wrapper(*args, **kwargs):
             with requests_mock.mock() as mock:
                 if name:
-                    json_path = os.path.join(TESTS_DIR, 'mocking', name)
-                    data = jsonfile_to_dict(json_path)
-
                     # inject the fixture; note that complete_qs is
                     # important: without it, a URL need only match *some*
                     # of the query parameters passed, and that's quite
                     # obnoxious if requests only differ by them
-                    for url, value in data.items():
+                    for url, value in get_mock_data(name).items():
                         mock.get(url, json=value, complete_qs=True)
 
                 # stash the LoRA URL away, and restore it afterwards
@@ -162,8 +175,20 @@ class TestCase(flask_testing.TestCase):
         **kwargs is passed directly to the test client -- see the
         documentation for werkzeug.test.EnvironBuilder for details.
 
+        One addition is that we support a 'json' argument that
+        automatically posts the given JSON data.
+
         '''
         message = message or 'request {!r} failed'.format(path)
+
+        if 'json' in kwargs:
+            # "In the face of ambiguity, refuse the temptation to guess."
+            # ...so check that the arguments we override don't exist
+            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
+
+            kwargs['method'] = 'POST'
+            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
+            kwargs['headers'] = {'Content-Type': 'application/json'}
 
         r = self.client.open(path, **kwargs)
 
@@ -187,9 +212,9 @@ class LoRATestCase(TestCase):
     instance, and deletes all objects between runs.
     '''
 
-    def load_sample_structures(self):
+    def load_sample_structures(self, **kwargs):
         self.assertIsNone(self.minimox.poll(), 'LoRA is not running!')
-        load_sample_structures()
+        load_sample_structures(**kwargs)
 
     @unittest.skipUnless('MINIMOX_DIR' in os.environ, 'MINIMOX_DIR not set!')
     @classmethod
