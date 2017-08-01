@@ -9,13 +9,13 @@ eksempelvis organisationshierarkiet, indhente relevante informationer om de
 forskellige organisationsenheder samt at redigere de data, der er tilknyttet
 de forskellige enheder.
 
-.. image:: doc/mo.png
-   :width: 800
-
 Navnet MORa er en sammentrækning af MO og LoRa og
 refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ of den
 `Lokale Rammearkitektur <https://digitaliser.dk/group/3101080/members>`_.
 Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
+
+.. image:: doc/mo.png
+   :width: 800
 
 Opbygningen af MORa
 -------------------
