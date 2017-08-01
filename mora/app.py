@@ -264,72 +264,21 @@ def get_role(orgid, unitid, role):
 
     validity = flask.request.args.get('validity')
 
-    try:
-        orgunit = lora.organisationenhed.get(unitid, validity=validity)
-    except ValueError:
-        traceback.print_exc()
-        orgunit = None
+    getters = {
+        'contact-channel': reading.get_contact_channel,
+        'location': reading.get_location,
+    }
 
-    if not orgunit:
+    if role not in getters:
+        flask.current_app.logger.warn('unsupported role {!r}'.format(role))
+        return flask.jsonify([]), 400
+
+    r = getters[role](unitid, validity=validity)
+
+    if r:
+        return flask.jsonify(r)
+    else:
         return '', 404
-
-    if role == 'contact-channel':
-        PHONE_PREFIX = 'urn:magenta.dk:telefon:'
-        return flask.jsonify([
-            {
-                "contact-info": addr['urn'][len(PHONE_PREFIX):],
-                # "name": "telefon 12345678",
-                'location': {
-                    'uuid': '00000000-0000-0000-0000-000000000000',
-                },
-                "type": {
-                    "name": "Telefonnummer",
-                    "user-key": "Telephone_number",
-                    "prefix": "urn:magenta.dk:telefon:",
-                },
-                "valid-from": util.to_frontend_time(
-                    addr['virkning']['from'],
-                ),
-                "valid-to": util.to_frontend_time(
-                    addr['virkning']['to'],
-                ),
-            }
-            for addr in orgunit['relationer'].get('adresser', [])
-            if addr.get('urn', '').startswith(PHONE_PREFIX)
-        ])
-    elif role == 'location':
-        def convert_addr(addrobj):
-            # TODO: can we live with struktur=mini?
-            addrinfo = addr.get_address(addrobj['uuid'])
-
-            return {
-                "location": {
-                    "name": addrinfo['adressebetegnelse'],
-                    "user-key": addrinfo['kvhx'],
-                    "uuid": addrinfo['id'],
-                    "valid-from": util.to_frontend_time(
-                        addrinfo['historik']['oprettet'],
-                    ),
-                    "valid-to": "infinity"
-                },
-                "name": addrinfo['adressebetegnelse'],
-                "org-unit": unitid,
-                "primaer": True,  # TODO: really?
-                "role-type": "location",
-                "uuid": addrinfo['id'],
-                "valid-from": util.to_frontend_time(
-                    addrobj['virkning']['from'],
-                ),
-                "valid-to": util.to_frontend_time(
-                    addrobj['virkning']['to'],
-                ),
-            }
-
-        return flask.jsonify([
-            convert_addr(addr)
-            for addr in orgunit['relationer'].get('adresser', [])
-            if addr.get('uuid', '')
-        ])
 
 
 #

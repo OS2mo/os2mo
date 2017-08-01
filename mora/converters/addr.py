@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import collections
 import re
 
 import requests
@@ -15,6 +16,32 @@ from .. import lora
 session = requests.Session()
 
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
+
+
+class AddressMeta(object):
+    __slots__ = ('name', 'primary')
+
+    VERSION_PREFIX = re.compile(r'v(\d+):')
+
+    def __init__(self, name: str, primary: bool):
+        self.name = name
+        self.primary = primary
+
+    @classmethod
+    def fromstring(cls, s):
+        if not s:
+            primary, name = '0', ''
+        elif not cls.VERSION_PREFIX.match(s):
+            primary, name = '0', s
+        elif s.startswith('v0:'):
+            primary, name = s.split(':', 2)[1:]
+        else:
+            raise ValueError('unsupported AddressMeta version: ' + s)
+
+        return cls(name, primary == '1')
+
+    def __str__(self):
+        return 'v0:{:d}:{:s}'.format(self.primary, self.name)
 
 
 def get_address(addrid: str):

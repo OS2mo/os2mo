@@ -323,15 +323,15 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'location': {
-                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'valid-from': '2014-05-05T19:07:48.577000+00:00',
                         'valid-to': 'infinity',
                     },
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'name': '',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
+                    'primaer': False,
                     'role-type': 'location',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'valid-from': '01-01-2016',

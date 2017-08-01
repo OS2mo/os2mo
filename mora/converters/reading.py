@@ -8,6 +8,8 @@
 
 import operator
 
+from . import addr
+
 from .. import lora
 from .. import util
 
@@ -85,6 +87,9 @@ def full_hierarchy(orgid: str, unitid: str,
     kwargs.update(loraparams)
 
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
 
     # TODO: check validity?
 
@@ -221,3 +226,78 @@ def get_classes():
     return sorted(map(_convert_class,
                       classes),
                   key=operator.itemgetter('name'))
+
+
+PHONE_PREFIX = 'urn:magenta.dk:telefon:'
+PHONE_NUMBER_DESC = 'Telefonnummer'
+
+
+def get_contact_channel(unitid, **loraparams):
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
+
+    return [
+        {
+            "contact-info": addr['urn'][len(PHONE_PREFIX):],
+            # "name": "telefon 12345678",
+            'location': {
+                'uuid': '00000000-0000-0000-0000-000000000000',
+            },
+            "type": {
+                "name": PHONE_NUMBER_DESC,
+                "prefix": PHONE_PREFIX,
+            },
+            "valid-from": util.to_frontend_time(
+                addr['virkning']['from'],
+            ),
+            "valid-to": util.to_frontend_time(
+                addr['virkning']['to'],
+            ),
+        }
+        for addr in orgunit['relationer'].get('adresser', [])
+        if addr.get('urn', '').startswith(PHONE_PREFIX)
+    ]
+
+
+def get_location(unitid, **loraparams):
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
+
+    def convert_addr(addrobj):
+        addrinfo = addr.get_address(addrobj['uuid'])
+
+        note = addrobj['virkning'].get('notetekst')
+        meta = addr.AddressMeta.fromstring(note)
+
+        return {
+            "location": {
+                "vejnavn": addrinfo['adressebetegnelse'],
+                "user-key": addrinfo['kvhx'],
+                "uuid": addrinfo['id'],
+                "valid-from": util.to_frontend_time(
+                    addrinfo['historik']['oprettet'],
+                ),
+                "valid-to": "infinity"
+            },
+            "name": meta.name,
+            "org-unit": unitid,
+            "primaer": meta.primary,
+            "role-type": "location",
+            "uuid": addrinfo['id'],
+            "valid-from": util.to_frontend_time(
+                addrobj['virkning']['from'],
+            ),
+            "valid-to": util.to_frontend_time(
+                addrobj['virkning']['to'],
+            ),
+        }
+
+    return [
+        convert_addr(addr)
+        for addr in orgunit['relationer'].get('adresser', [])
+        if addr.get('uuid', '')
+    ]

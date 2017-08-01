@@ -23,7 +23,208 @@ from . import util
 class TestCreateOrgUnit(util.LoRATestCase):
     maxDiff = None
 
-    # TODO: mock time
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_location_edit(self):
+        self.load_sample_structures(minimal=True)
+
+        LOCATION_URL = (
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
+            '/role-types/location/'
+        )
+
+        self.assertRequestResponse(
+            LOCATION_URL,
+            [
+                {
+                    'location': {
+                        'user-key': '07515902___1_______',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    },
+                    'name': '',
+                    'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'primaer': False,
+                    'role-type': 'location',
+                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'valid-from': '01-01-2016',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            LOCATION_URL,
+            [
+                {
+                    'location': {
+                        'user-key': '07515902___1_______',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    },
+                    'name': '',
+                    'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'primaer': False,
+                    'role-type': 'location',
+                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'valid-from': '01-01-2016',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            LOCATION_URL + 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+            {
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            json={
+                "location": {
+                    "UUID_EnhedsAdresse":
+                    "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                },
+                "name": "",
+                "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "primaer": False,
+                "role-type": "location",
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "valid-from": "01-01-2016",
+                "valid-to": "infinity",
+                "$$hashKey": "0AP",
+                "changed": True,
+            },
+        )
+
+        self.assertRequestResponse(
+            LOCATION_URL,
+            [
+                {
+                    'location': {
+                        'user-key': '07519651__15_______',
+                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Åbogade 15, 8200 Aarhus N',
+                    },
+                    'name': '',
+                    'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'primaer': False,
+                    'role-type': 'location',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'valid-from': '01-01-2016',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_location_edit_meta(self):
+        self.load_sample_structures(minimal=True)
+
+        LOCATION_URL = (
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
+            '/role-types/location/'
+        )
+
+        def check(primary, name):
+            self.assertRequestResponse(
+                LOCATION_URL,
+                [
+                    {
+                        'location': {
+                            'user-key': '07515902___1_______',
+                            'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                            'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                            'valid-to': 'infinity',
+                            'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        },
+                        'name': name,
+                        'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'primaer': primary,
+                        'role-type': 'location',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'valid-from': '01-01-2016',
+                        'valid-to': 'infinity',
+                    },
+                ],
+            )
+
+        # Initial sanity check
+        check(False, '')
+
+        # Edit primary only
+        self.assertRequestResponse(
+            LOCATION_URL + '44c532e1-f617-4174-b144-d37ce9fda2bd',
+            {
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            json={
+                "changed": True,
+                "location": {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                },
+                "name": "",
+                "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "primaer": True,
+                "role-type": "location",
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "valid-from": "01-01-2016",
+                "valid-to": "infinity"
+            },
+        )
+
+        check(True, '')
+
+        # Edit name only
+        self.assertRequestResponse(
+            LOCATION_URL + '44c532e1-f617-4174-b144-d37ce9fda2bd',
+            {
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            json={
+                "changed": True,
+                "location": {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                },
+                "name": "No Name No Name No Name",
+                "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "primaer": True,
+                "role-type": "location",
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "valid-from": "01-01-2016",
+                "valid-to": "infinity"
+            },
+        )
+
+        check(True, 'No Name No Name No Name')
+
+        # Edit both
+        self.assertRequestResponse(
+            LOCATION_URL + '44c532e1-f617-4174-b144-d37ce9fda2bd',
+            {
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            json={
+                "changed": True,
+                "location": {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                },
+                "name": "Totally unnamed",
+                "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "primaer": False,
+                "role-type": "location",
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "valid-from": "01-01-2016",
+                "valid-to": "infinity"
+            },
+        )
+
+        check(False, 'Totally unnamed')
 
     @freezegun.freeze_time('2010-06-01 12:00:00', tz_offset=+1)
     def test_should_create_org_unit_with_virkning_to_infinity(self):

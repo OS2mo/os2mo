@@ -46,6 +46,8 @@ class TestHelperFunctions(unittest.TestCase):
     def test_should_return_correct_kwargs_for_roletype_location(self):
         req = {
             'uuid': 'uuid',
+            'name': 'Whatever',
+            'primaer': True,
             'location': 'dummy1',
             'valid-from': 'dummy2',
             'valid-to': 'dummy3',
@@ -53,6 +55,8 @@ class TestHelperFunctions(unittest.TestCase):
         expected = {
             'address_uuid': 'uuid',
             'location': 'dummy1',
+            'name': 'Whatever',
+            'primary': True,
             'From': 'dummy2',
             'to': 'dummy3'
         }
@@ -66,11 +70,15 @@ class TestHelperFunctions(unittest.TestCase):
     def test_should_return_correct_kwargs_for_roletype_None(self):
         req = {
             'location': 'dummy1',
+            'name': 'Whatever',
+            'primaer': True,
             'valid-from': 'dummy2',
             'valid-to': 'dummy3',
         }
         expected = {
             'location': 'dummy1',
+            'name': 'Whatever',
+            'primary': True,
             'From': 'dummy2',
             'to': 'dummy3'
         }
