@@ -71,5 +71,4 @@ def autocomplete_address(query: str, orgid: str):
     else:
         code = None
 
-    print(code)
     return list(find_address(query, code))
