@@ -104,3 +104,7 @@ ENV/
 
 sandbox/andreas
 sandbox/AAK/addr.db
+.DS_Store
+
+# configuration
+config.json
