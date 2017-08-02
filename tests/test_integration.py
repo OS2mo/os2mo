@@ -469,3 +469,29 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         # TODO: This test should also ask for the values from LoRa
+
+    def test_effective_date_with_plus(self):
+        self.load_sample_structures(minimal=True)
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '?query=2874e1dc-85e6-4269-823a-e1125484dfd3'
+            '&effective-date=2017-07-31T22:00:00+00:00',
+            [
+                {
+                    'activeName': 'Overordnet Enhed',
+                    'hasChildren': False,
+                    'name': 'Overordnet Enhed',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': None,
+                    'parent-object': None,
+                    'type': {
+                        'name': 'Afdeling',
+                    },
+                    'user-key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'valid-from': '01-01-2016',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )

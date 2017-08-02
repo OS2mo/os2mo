@@ -38,6 +38,7 @@ DATETIME_PARSERS = (
     lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
     # ISO 8601
     iso8601.parse_date,
+    lambda s: iso8601.parse_date(s.replace(' ', '+')),
     # limits
     lambda s: {
         'infinity': positive_infinity,
