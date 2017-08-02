@@ -32,6 +32,14 @@ class TestCreateOrgUnit(util.LoRATestCase):
         root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
+        # Pre-check of URLs
+        self.assert200(
+            self.client.get('/role-types/contact/facets/type/classes/'
+                            '?facetKey=Contact_channel_location'))
+        self.assert200(
+            self.client.get('/role-types/contact/facets/properties/classes/'))
+        self.assert200(self.client.get('/o/%s/full-hierarchy?effective-date=&query=&treeType=specific&orgUnitId=%s&t=1501671856739' % (org, root)))
+
         payload = {
             "user-key": "NULL",
             "name": "NyEnhed",
@@ -90,6 +98,8 @@ class TestCreateOrgUnit(util.LoRATestCase):
 
         self.assertEqual(expected_response, lora_response)
 
+        # TODO: it is confusing (i.e. less analysable) that the rename test
+        # below is located under the class TestCreateOrgUnit
         with self.subTest('rename'):
             r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid),)
 
