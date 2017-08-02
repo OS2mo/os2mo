@@ -49,7 +49,7 @@ class SimpleTests(unittest.TestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2017-01-01 12:00:00+01",
+                            "from": "2017-01-01",
                             "from_included": True,
                             "to": "infinity",
                             "to_included": False,
@@ -72,9 +72,9 @@ class SimpleTests(unittest.TestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2016-01-01 12:00:00+01",
+                            "from": "2016-01-01",
                             "from_included": True,
-                            "to": "2017-01-01 12:00:00+01",
+                            "to": "2017-01-01",
                             "to_included": False,
                         },
                     },
@@ -82,7 +82,7 @@ class SimpleTests(unittest.TestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2017-01-01 12:00:00+01",
+                            "from": "2017-01-01",
                             "from_included": True,
                             "to": "infinity",
                             "to_included": False,
@@ -108,9 +108,9 @@ class SimpleTests(unittest.TestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2016-01-01 12:00:00+01",
+                            "from": "2016-01-01",
                             "from_included": True,
-                            "to": "2017-01-01 12:00:00+01",
+                            "to": "2017-01-01",
                             "to_included": False,
                         },
                     },
@@ -118,7 +118,7 @@ class SimpleTests(unittest.TestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2017-01-01 12:00:00+01",
+                            "from": "2017-01-01",
                             "from_included": True,
                             "to": "infinity",
                             "to_included": False,

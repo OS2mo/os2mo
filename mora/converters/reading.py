@@ -185,9 +185,15 @@ def unit_history(orgid, unitid):
         yield {
             'changedBy': reg['brugerref'],
             'object': unitid,
-            'date': reg['fratidspunkt']['tidsstempeldatotid'],
-            'from': reg['fratidspunkt']['tidsstempeldatotid'],
-            'to': reg['tiltidspunkt']['tidsstempeldatotid'],
+            'date': util.to_frontend_time(
+                reg['fratidspunkt']['tidsstempeldatotid'],
+            ),
+            'from': util.to_frontend_time(
+                reg['fratidspunkt']['tidsstempeldatotid'],
+            ),
+            'to': util.to_frontend_time(
+                reg['tiltidspunkt']['tidsstempeldatotid'],
+            ),
             'section': reg['livscykluskode'],
             'action': reg.get('note'),
         }

@@ -12,26 +12,36 @@ import json
 import typing
 
 import flask
+import iso8601
 import pytz
 import tzlocal
+
+
+# timezone-aware versions of min/max
+positive_infinity = datetime.datetime.max.replace(
+    tzinfo=datetime.timezone(datetime.timedelta(hours=23)),
+)
+negative_infinity = datetime.datetime.min.replace(
+    tzinfo=datetime.timezone(datetime.timedelta(hours=-23)),
+)
 
 DATETIME_PARSERS = (
     # DD/MM/YYYY w/o time -- sent by the frontend
     lambda s: tzlocal.get_localzone().localize(
         datetime.datetime.strptime(s, '%d-%m-%Y')
     ),
+    lambda s: tzlocal.get_localzone().localize(
+        datetime.datetime.strptime(s, '%Y-%m-%d')
+    ),
     lambda s: datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S%z'),
     # handle PG two-digit offsets
     lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
     # ISO 8601
-    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z'),
-    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S'),
-    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f%z'),
-    lambda s: datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f'),
+    iso8601.parse_date,
     # limits
     lambda s: {
-        'infinity': datetime.datetime.max,
-        '-infinity': datetime.datetime.min,
+        'infinity': positive_infinity,
+        '-infinity': negative_infinity,
     }[s],
 )
 
@@ -53,7 +63,7 @@ def parsedatetime(s: str, default: str=None) -> datetime.datetime:
     for parser in DATETIME_PARSERS:
         try:
             return parser(s)
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, iso8601.ParseError):
             pass
 
     raise ValueError('unparsable date {!r}'.format(s))
@@ -62,9 +72,9 @@ def parsedatetime(s: str, default: str=None) -> datetime.datetime:
 def to_lora_time(s):
     dt = parsedatetime(s)
 
-    if dt == datetime.datetime.max:
+    if dt == positive_infinity:
         return 'infinity'
-    elif dt == datetime.datetime.min:
+    elif dt == negative_infinity:
         return '-infinity'
     else:
         return dt.isoformat()
@@ -73,11 +83,11 @@ def to_lora_time(s):
 def to_frontend_time(s):
     dt = parsedatetime(s)
 
-    if dt == datetime.datetime.max:
+    if dt == positive_infinity:
         return 'infinity'
-    elif dt == datetime.datetime.min:
+    elif dt == negative_infinity:
         return '-infinity'
-    elif dt and dt.time() == datetime.time():
+    elif dt and dt.time().replace(tzinfo=None) == datetime.time():
         return unparsedate(dt.date())
     else:
         return dt.isoformat()
@@ -86,6 +96,13 @@ def to_frontend_time(s):
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
     return datetime.datetime.now(tzlocal.get_localzone())
+
+
+def today() -> datetime.datetime:
+    '''Get midnight of current date, localized to the current time zone.'''
+    dt = now()
+    t = datetime.time(tzinfo=dt.tzinfo)
+    return datetime.datetime.combine(dt.date(), t)
 
 
 def fromtimestamp(t: int) -> datetime.datetime:

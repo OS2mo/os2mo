@@ -48,9 +48,9 @@ def _get_restrictions_for(*,
     restrictions = {}
 
     if not effective_date:
-        today = util.now().date()
+        today = util.today()
     else:
-        today = util.parsedatetime(effective_date).date()
+        today = util.parsedatetime(effective_date)
 
     tomorrow = today + datetime.timedelta(days=1)
 
@@ -68,19 +68,19 @@ def _get_restrictions_for(*,
         #
         restrictions.update(
             {
-                'virkningfra': str(today),
-                'virkningtil': str(tomorrow),
+                'virkningfra': util.to_lora_time(today),
+                'virkningtil': util.to_lora_time(tomorrow),
             }
         )
 
     elif validity == 'future':
         def should_include(o):
             s = o['virkning']['from']
-            return s != '-infinity' and util.parsedatetime(s).date() > today
+            return util.parsedatetime(s) > today
 
         restrictions.update(
             {
-                'virkningfra': str(tomorrow),
+                'virkningfra': util.to_lora_time(tomorrow),
                 'virkningtil': 'infinity',
             }
         )
@@ -89,12 +89,12 @@ def _get_restrictions_for(*,
 
         def should_include(o):
             s = o['virkning']['to']
-            return s != 'infinity' and util.parsedatetime(s).date() <= today
+            return util.parsedatetime(s) <= today
 
         restrictions.update(
             {
                 'virkningfra': '-infinity',
-                'virkningtil': str(today),
+                'virkningtil': util.to_lora_time(today),
             }
         )
 
@@ -105,6 +105,7 @@ def _get_restrictions_for(*,
 
     if should_include:
         def apply_restriction_func(entries):
+
             keys = 'relationer', 'attributter', 'tilstande'
             r = []
 
