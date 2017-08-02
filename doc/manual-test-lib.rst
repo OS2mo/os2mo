@@ -15,10 +15,11 @@ after each of the following steps:
 5) Rename the org unit created in 1) (with immediate effect)
 6) Add a contact channel to the org unit from 1) (with immediate effect)
 7) Add two more contact channels to the org unit from 1) (with immediate effect)
-8) Add another location (address) to the org unit from 1) (with immediate effect)
-9) Change the address of the just added location (with immediate effect)
-10) TODO: more editing of locations and contact
-11) Edit the org unit from 1) by changing the unit type - leave the date unchanged
-12) Edit the org unit from 1) by changing the org unit startdate (i.e. 'gyldighed')
-13) Edit both the unit type and the org unit startdate in one go (for the org unit from 1))
+8) Add another location (not primary address) to the org unit from 1) (with immediate effect)
+9) Add another location (primary address) to the org unit from 1) (with immediate effect)
+10) Change the address of the just added location (with immediate effect)
+11) TODO: more editing of locations and contact
+12) Edit the org unit from 1) by changing the unit type - leave the date unchanged
+13) Edit the org unit from 1) by changing the org unit startdate (i.e. 'gyldighed')
+14) Edit both the unit type and the org unit startdate in one go (for the org unit from 1))
 
