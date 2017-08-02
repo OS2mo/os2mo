@@ -211,6 +211,7 @@ def _convert_class(clazz):
         'userKey': attrs['brugervendtnoegle']
     }
 
+
 def get_classes():
     # TODO: we need to somehow restrict the available classes to
     # sensible options; a classification hierarchy, perhaps, or only

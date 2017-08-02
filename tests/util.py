@@ -309,7 +309,10 @@ class LiveLoRATestCase(LoRATestCaseMixin, flask_testing.LiveServerTestCase):
 
         self._port_value.value = self._server.socket.getsockname()[1]
 
-        self._thread = threading.Thread(target=self._server.serve_forever, args=())
+        self._thread = threading.Thread(
+            target=self._server.serve_forever,
+            args=(),
+        )
         self._thread.start()
 
         # Copied from flask_testing
