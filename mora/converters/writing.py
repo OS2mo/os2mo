@@ -14,6 +14,7 @@ from .. import util
 from .. import exceptions
 
 from . import addr
+from . import meta
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
@@ -309,7 +310,7 @@ def _update_existing_address(org_unit: dict,
         address if address.get('uuid') != address_uuid else {
             'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
             'virkning': _create_virkning(From, to,
-                                         note=addr.AddressMeta(**kwargs)),
+                                         note=meta.Address(**kwargs)),
         }
         for address in org_unit['relationer']['adresser']
     ]
@@ -336,7 +337,7 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
     new_addr = {
         'uuid': location['UUID_EnhedsAdresse'],
         'virkning': _create_virkning(From, to,
-                                     note=addr.AddressMeta(**kwargs)),
+                                     note=meta.Address(**kwargs)),
     }
 
     addresses = org_unit['relationer']['adresser'].copy()

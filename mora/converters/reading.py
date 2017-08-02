@@ -9,6 +9,7 @@
 import operator
 
 from . import addr
+from . import meta
 
 from .. import lora
 from .. import util
@@ -272,7 +273,7 @@ def get_location(unitid, **loraparams):
         addrinfo = addr.get_address(addrobj['uuid'])
 
         note = addrobj['virkning'].get('notetekst')
-        meta = addr.AddressMeta.fromstring(note)
+        addrmeta = meta.Address.fromstring(note)
 
         return {
             "location": {
@@ -284,9 +285,9 @@ def get_location(unitid, **loraparams):
                 ),
                 "valid-to": "infinity"
             },
-            "name": meta.name,
+            "name": addrmeta.name,
             "org-unit": unitid,
-            "primaer": meta.primary,
+            "primaer": addrmeta.primary,
             "role-type": "location",
             "uuid": addrinfo['id'],
             "valid-from": util.to_frontend_time(
