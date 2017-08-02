@@ -12,19 +12,19 @@ import freezegun
 import requests
 
 from . import util
-from mora import lora
+from mora import settings
 
 
 class IntegrationTests(util.LoRATestCase):
     maxDiff = None
 
     def test_sanity(self):
-        r = requests.get(lora.LORA_URL)
+        r = requests.get(settings.LORA_URL)
         self.assertTrue(r.ok)
         self.assertEqual(r.json().keys(), {'site-map'})
 
     def test_empty(self):
-        r = requests.get(lora.LORA_URL)
+        r = requests.get(settings.LORA_URL)
         self.assertTrue(r.ok)
         self.assertEqual(r.json().keys(), {'site-map'})
 
@@ -326,7 +326,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '2014-05-05T19:07:48.577000',
+                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
                         'valid-to': 'infinity',
                     },
                     'name': 'Nordre Ringgade 1, 8000 Aarhus C',

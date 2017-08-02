@@ -9,8 +9,10 @@
 import json
 import unittest
 
+import freezegun
+
 from mora import app
-from mora import lora
+from mora import settings
 from tests.util import jsonfile_to_dict
 
 from . import util
@@ -38,7 +40,7 @@ class MoraTestCase(TestSetup):
         :param key: the key used in the url_map.json file
         :return: URL in LoRa as a string
         """
-        return lora.LORA_URL + self.lora_urls[key]
+        return settings.LORA_URL + self.lora_urls[key]
 
     def test_acl(self):
         rv = self.app.get('/acl/')
@@ -93,6 +95,7 @@ class TestCreateOrgUnit(TestSetup):
                          'Error in creating org unit')
         self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
 
+    @freezegun.freeze_time('2010-01-01')
     @util.mock()
     def test_create_organisation_unit_with_specific_end_date(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
@@ -101,7 +104,10 @@ class TestCreateOrgUnit(TestSetup):
         mock.post('http://mox/organisation/organisationenhed',
                   json=expected_response)
         mock.get(
-            'http://mox/organisation/organisationenhed?uuid=00000000-0000-0000-0000-000000000000',
+            'http://mox/organisation/organisationenhed'
+            '?uuid=00000000-0000-0000-0000-000000000000'
+            '&virkningfra=2010-01-01T00%3A00%3A00%2B01%3A00'
+            '&virkningtil=2010-01-02T00%3A00%3A00%2B01%3A00',
             json=jsonfile_to_dict(
                 'tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
         mock.put(

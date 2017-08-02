@@ -234,10 +234,12 @@ Then enable the ``proxy_http`` module, and restart Apache::
   sudo a2enmod proxy_http
   sudo apache2ctl graceful
 
-You also need to edit ``mora/lora.py`` and adjust ``LORA_URL`` to
-point to your server::
+You also need to copy ``config-example.json`` to ``config.json`` and
+adjust ``LORA_URL`` to point to your server::
 
-  LORA_URL = "http://localhost/"
+  {
+    "LORA_URL": "https://lora.example.com/"
+  }
 
 Please note that using an HTTPS URL requires a trusted certificate on
 the server, and that MORa doesn't support SAML authentication at this time.

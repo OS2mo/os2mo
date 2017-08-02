@@ -13,9 +13,8 @@ import typing
 
 import requests
 
+from . import settings
 from . import util
-
-LORA_URL = 'http://mox/'
 
 session = requests.Session()
 session.verify = True
@@ -49,9 +48,9 @@ def _get_restrictions_for(*,
     restrictions = {}
 
     if not effective_date:
-        today = util.now().date()
+        today = util.today()
     else:
-        today = util.parsedatetime(effective_date).date()
+        today = util.parsedatetime(effective_date)
 
     tomorrow = today + datetime.timedelta(days=1)
 
@@ -69,19 +68,19 @@ def _get_restrictions_for(*,
         #
         restrictions.update(
             {
-                'virkningfra': str(today),
-                'virkningtil': str(tomorrow),
+                'virkningfra': util.to_lora_time(today),
+                'virkningtil': util.to_lora_time(tomorrow),
             }
         )
 
     elif validity == 'future':
         def should_include(o):
             s = o['virkning']['from']
-            return s != '-infinity' and util.parsedatetime(s).date() > today
+            return util.parsedatetime(s) > today
 
         restrictions.update(
             {
-                'virkningfra': str(tomorrow),
+                'virkningfra': util.to_lora_time(tomorrow),
                 'virkningtil': 'infinity',
             }
         )
@@ -90,12 +89,12 @@ def _get_restrictions_for(*,
 
         def should_include(o):
             s = o['virkning']['to']
-            return s != 'infinity' and util.parsedatetime(s).date() <= today
+            return util.parsedatetime(s) <= today
 
         restrictions.update(
             {
                 'virkningfra': '-infinity',
-                'virkningtil': str(today),
+                'virkningtil': util.to_lora_time(today),
             }
         )
 
@@ -106,6 +105,7 @@ def _get_restrictions_for(*,
 
     if should_include:
         def apply_restriction_func(entries):
+
             keys = 'relationer', 'attributter', 'tilstande'
             r = []
 
@@ -137,7 +137,7 @@ def get(path, uuid, **params):
 
     loraparams, apply_restriction_func = _get_restrictions_for(**params)
 
-    r = session.get('{}{}/{}'.format(LORA_URL, path, uuid),
+    r = session.get('{}{}/{}'.format(settings.LORA_URL, path, uuid),
                     params=loraparams)
     _check_response(r)
 
@@ -157,7 +157,7 @@ def get(path, uuid, **params):
 def fetch(path, **params):
     loraparams, apply_restriction_func = _get_restrictions_for(**params)
 
-    r = session.get(LORA_URL + path, params=loraparams)
+    r = session.get(settings.LORA_URL + path, params=loraparams)
     _check_response(r)
 
     try:
@@ -170,22 +170,23 @@ def fetch(path, **params):
 
 def create(path, obj, uuid=None):
     if uuid:
-        r = session.put('{}{}/{}'.format(LORA_URL, path, uuid), json=obj)
+        r = session.put('{}{}/{}'.format(settings.LORA_URL, path, uuid),
+                        json=obj)
         _check_response(r)
         return uuid
     else:
-        r = session.post(LORA_URL + path, json=obj)
+        r = session.post(settings.LORA_URL + path, json=obj)
         _check_response(r)
         return r.json()['uuid']
 
 
 def delete(path, uuid):
-    r = session.delete('{}{}/{}'.format(LORA_URL, path, uuid))
+    r = session.delete('{}{}/{}'.format(settings.LORA_URL, path, uuid))
     _check_response(r)
 
 
 def update(path, obj):
-    r = session.put(LORA_URL + path, json=obj)
+    r = session.put(settings.LORA_URL + path, json=obj)
     _check_response(r)
     return r.json()['uuid']
 

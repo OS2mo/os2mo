@@ -25,7 +25,7 @@ import flask_testing
 import requests_mock
 import werkzeug.serving
 
-from mora import lora, app
+from mora import lora, app, settings
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -89,7 +89,7 @@ def load_sample_structures(*, verbose=False, minimal=False):
     }
 
     classes = {
-            'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
+        'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
     }
 
     if not minimal:
@@ -142,8 +142,8 @@ def mock(name=None):
                         mock.get(url, json=value, complete_qs=True)
 
                 # stash the LoRA URL away, and restore it afterwards
-                orig_lora_url = lora.LORA_URL
-                lora.LORA_URL = 'http://mox/'
+                orig_lora_url = settings.LORA_URL
+                settings.LORA_URL = 'http://mox/'
 
                 # pass the mocker object as the final parameter
                 args = args + (mock,)
@@ -151,7 +151,7 @@ def mock(name=None):
                 try:
                     return func(*args, **kwargs)
                 finally:
-                    lora.LORA_URL = orig_lora_url
+                    settings.LORA_URL = orig_lora_url
 
         return wrapper
 
@@ -240,8 +240,8 @@ class LoRATestCaseMixin(TestCaseMixin):
             cwd=MINIMOX_DIR,
         )
 
-        cls._orig_lora = lora.LORA_URL
-        lora.LORA_URL = 'http://localhost:{}/'.format(port)
+        cls._orig_lora = settings.LORA_URL
+        settings.LORA_URL = 'http://localhost:{}/'.format(port)
 
         # This is the first such measure: if the interpreter abruptly
         # exits for some reason, tell the subprocess to exit as well
@@ -261,7 +261,7 @@ class LoRATestCaseMixin(TestCaseMixin):
         # read output from the server process
         print(cls.minimox.stdout.read())
 
-        lora.LORA_URL = cls._orig_lora
+        settings.LORA_URL = cls._orig_lora
 
     def setUp(self):
         super().setUp()
