@@ -94,6 +94,10 @@ def create_org_unit(req: dict) -> dict:
                 {
                     'uuid': location['location'][
                         'UUID_EnhedsAdresse'],
+                    'virkning': dict(
+                        **virkning,
+                        notetekst=str(meta.Address.fromdict(location)),
+                    ),
                 }
 
                 # TODO: will we ever have more than one location?

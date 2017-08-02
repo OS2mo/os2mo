@@ -19,6 +19,13 @@ class Address(object):
         self.primary = primary
 
     @classmethod
+    def fromdict(cls, d):
+        return cls(
+            name=d['name'],
+            primary=d['primaer'],
+        )
+
+    @classmethod
     def fromstring(cls, s):
         if not s:
             primary, name = '0', ''
