@@ -31,7 +31,20 @@ cli.load_cli(app)
 
 @app.errorhandler(ValueError)
 def handle_invalid_usage(error):
-    return '\n'.join(error.args), 400
+    msg = '\n'.join(error.args)
+    flask.current_app.logger.exception(msg)
+    return msg, 400
+
+
+@app.errorhandler(Exception)
+def handle_invalid_usage(error):
+    stack = traceback.format_exc()
+    flask.current_app.logger.exception('AN ERROR OCCURRED')
+
+    return (
+        flask.render_template('error.html', stack=stack, now=util.now()),
+        500,
+    )
 
 
 @app.route('/')
