@@ -370,7 +370,7 @@ def create_update_kwargs(roletype: str, req: dict) -> dict:
             'From': req['valid-from'],
             'to': req['valid-to'],
             'name': req['name'],
-            'primary': req['primaer'],
+            'primary': req.get('primaer', False),
         }
     elif roletype:
         raise NotImplementedError(roletype)
@@ -380,7 +380,7 @@ def create_update_kwargs(roletype: str, req: dict) -> dict:
             'From': req['valid-from'],
             'to': req['valid-to'],
             'name': req['name'],
-            'primary': req['primaer'],
+            'primary': req.get('primaer', False),
         }
 
     return kwargs
