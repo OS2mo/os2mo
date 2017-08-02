@@ -303,3 +303,23 @@ def get_location(unitid, **loraparams):
         for addr in orgunit['relationer'].get('adresser', [])
         if addr.get('uuid', '')
     ]
+
+
+def get_contact_properties():
+    return [
+        {
+            "name": "N/A",
+            "user-key": "N/A",
+            "uuid": "00000000-0000-0000-0000-000000000000"
+        },
+    ]
+
+
+def get_contact_types():
+    return [
+        {
+            "name": "Phone Number",
+            "prefix": "urn:magenta.dk:telefon:",
+            "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+        },
+    ]
