@@ -23,6 +23,11 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(util.to_lora_time('infinity'), 'infinity')
         self.assertEqual(util.to_lora_time('-infinity'), '-infinity')
 
+        # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
+        # we get it as a space
+        self.assertEqual(util.to_lora_time('2017-07-31T22:00:00 00:00'),
+                         '2017-07-31T22:00:00+00:00')
+
     def test_to_frontend_time(self):
         min, max = datetime.datetime.min, datetime.datetime.max
         self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
