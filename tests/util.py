@@ -9,16 +9,21 @@
 import atexit
 import functools
 import json
+import multiprocessing
 import os
 import select
 import signal
 import socket
+import socketserver
 import subprocess
 import sys
+import threading
+import time
 import unittest
 
 import flask_testing
 import requests_mock
+import werkzeug.serving
 
 from mora import lora, app, settings
 
@@ -153,7 +158,7 @@ def mock(name=None):
     return outer_wrapper
 
 
-class TestCase(flask_testing.TestCase):
+class TestCaseMixin(object):
 
     '''Base class for MO testcases w/o LoRA access.
     '''
@@ -207,7 +212,7 @@ class TestCase(flask_testing.TestCase):
         self.assertEqual(r.status_code, code, message)
 
 
-class LoRATestCase(TestCase):
+class LoRATestCaseMixin(TestCaseMixin):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
@@ -281,6 +286,55 @@ class LoRATestCase(TestCase):
             self.minimox.stdout.readline()
 
         super().tearDown()
+
+
+class TestCase(TestCaseMixin, flask_testing.TestCase):
+    pass
+
+
+class LoRATestCase(LoRATestCaseMixin, flask_testing.TestCase):
+    pass
+
+
+class LiveLoRATestCase(LoRATestCaseMixin, flask_testing.LiveServerTestCase):
+    #
+    # The two methods below force the WSGI server to run in a thread
+    # rather than a process. This enables easy coverage gathering as
+    # output buffering.
+    #
+    def _spawn_live_server(self):
+        self._server = werkzeug.serving.make_server(
+            'localhost', self._port_value.value, self.app,
+        )
+
+        self._port_value.value = self._server.socket.getsockname()[1]
+
+        self._thread = threading.Thread(
+            target=self._server.serve_forever,
+            args=(),
+        )
+        self._thread.start()
+
+        # Copied from flask_testing
+
+        # We must wait for the server to start listening, but give up
+        # after a specified maximum timeout
+        timeout = self.app.config.get('LIVESERVER_TIMEOUT', 5)
+        start_time = time.time()
+
+        while True:
+            elapsed_time = (time.time() - start_time)
+            if elapsed_time > timeout:
+                raise RuntimeError(
+                    "Failed to start the server after %d seconds. " % timeout
+                )
+
+            if self._can_ping_server():
+                break
+
+    def _terminate_live_server(self):
+        self._server.shutdown()
+        self._thread.join()
 
 
 if __name__ == '__main__':

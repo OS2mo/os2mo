@@ -21,7 +21,7 @@ except ImportError:
 
 
 @unittest.skipUnless(selenium, 'selenium not installed')
-class RightsTests(util.LoRATestCase, flask_testing.LiveServerTestCase):
+class RightsTests(util.LiveLoRATestCase):
     @classmethod
     def setUpClass(cls):
         from selenium import webdriver

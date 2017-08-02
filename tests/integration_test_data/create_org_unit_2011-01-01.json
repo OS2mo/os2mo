@@ -23,6 +23,7 @@
         "virkning": {
           "from": "-infinity",
           "from_included": true,
+          "notetekst": "v0:1:lnavn",
           "to_included": false,
           "to": "infinity"
         },

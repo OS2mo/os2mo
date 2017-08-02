@@ -54,8 +54,7 @@ def load_cli(app):
     @click.option('--list', '-l', is_flag=True,
                   help='List all available tests')
     @click.argument('tests', nargs=-1)
-    def test(tests, quiet, verbose, failfast, buffer, minimox_dir, browser,
-             list):
+    def test(tests, quiet, verbose, minimox_dir, browser, list, **kwargs):
         verbosity = 0 if quiet else verbose + 1
 
         if minimox_dir:
@@ -90,5 +89,5 @@ def load_cli(app):
 
             return
 
-        runner = unittest.TextTestRunner(verbosity=verbosity, buffer=buffer)
+        runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
         runner.run(suite)

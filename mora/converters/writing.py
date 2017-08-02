@@ -6,11 +6,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import collections
 import datetime
 
 from .. import lora
 from .. import util
 from .. import exceptions
+
+from . import addr
+from . import meta
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
@@ -27,12 +31,12 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
             _set_virkning(v, virkning)
         elif isinstance(v, list):
             for d in v:
-                d['virkning'] = virkning.copy()
+                d.setdefault('virkning', virkning.copy())
     return lora_obj
 
 
 def _create_virkning(From: str, to: str, from_included=True,
-                     to_included=False) -> dict:
+                     to_included=False, note=None) -> dict:
     """
     Create virkning from frontend request
     :param From: the "from" date
@@ -41,12 +45,15 @@ def _create_virkning(From: str, to: str, from_included=True,
     :param to_included: specify if the to-date should be included or not
     :return: the virkning object
     """
-    return {
+    d = {
         'from': util.to_lora_time(From),
         'to': util.to_lora_time(to),
         'from_included': from_included if not From == '-infinity' else False,
         'to_included': to_included if not to == 'infinity' else False
     }
+    if note:
+        d['notetekst'] = str(note)
+    return d
 
 
 def create_org_unit(req: dict) -> dict:
@@ -87,6 +94,10 @@ def create_org_unit(req: dict) -> dict:
                 {
                     'uuid': location['location'][
                         'UUID_EnhedsAdresse'],
+                    'virkning': dict(
+                        **virkning,
+                        notetekst=str(meta.Address.fromdict(location)),
+                    ),
                 }
 
                 # TODO: will we ever have more than one location?
@@ -284,7 +295,7 @@ def _update_existing_address(org_unit: dict,
                              address_uuid: str,
                              location: dict,
                              From: str,
-                             to: str) -> list:
+                             to: str, **kwargs) -> list:
     """
     Used to update an already existing address
     :param org_unit: the org unit to update
@@ -300,18 +311,20 @@ def _update_existing_address(org_unit: dict,
     assert location
 
     addresses = [
-        addr if addr.get('uuid') != address_uuid else {
+        address if address.get('uuid') != address_uuid else {
             'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
-            'virkning': _create_virkning(From, to),
+            'virkning': _create_virkning(From, to,
+                                         note=meta.Address(**kwargs)),
         }
-        for addr in org_unit['relationer']['adresser']
+        for address in org_unit['relationer']['adresser']
     ]
 
     return addresses
 
 
 # Role type not set in payload JSON
-def _add_location(org_unit: dict, location: dict, From: str, to: str) -> dict:
+def _add_location(org_unit: dict, location: dict, From: str, to: str,
+                  **kwargs) -> dict:
     """
     Adds a new location the the existing list of addresses
     :param org_unit: the org unit to update
@@ -327,7 +340,8 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str) -> dict:
 
     new_addr = {
         'uuid': location['UUID_EnhedsAdresse'],
-        'virkning': _create_virkning(From, to),
+        'virkning': _create_virkning(From, to,
+                                     note=meta.Address(**kwargs)),
     }
 
     addresses = org_unit['relationer']['adresser'].copy()
@@ -336,7 +350,8 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str) -> dict:
     return addresses
 
 
-def _check_arguments(mandatory_args: list, args_to_check: list):
+def _check_arguments(mandatory_args: collections.abc.Iterable,
+                     args_to_check: collections.abc.Iterable):
     for arg in mandatory_args:
         if arg not in args_to_check:
             raise exceptions.IllegalArgumentException('%s missing' % arg)
@@ -353,7 +368,9 @@ def create_update_kwargs(roletype: str, req: dict) -> dict:
             'address_uuid': req['uuid'],
             'location': req['location'],
             'From': req['valid-from'],
-            'to': req['valid-to']
+            'to': req['valid-to'],
+            'name': req['name'],
+            'primary': req['primaer'],
         }
     elif roletype:
         raise NotImplementedError(roletype)
@@ -361,7 +378,9 @@ def create_update_kwargs(roletype: str, req: dict) -> dict:
         kwargs = {
             'location': req['location'],
             'From': req['valid-from'],
-            'to': req['valid-to']
+            'to': req['valid-to'],
+            'name': req['name'],
+            'primary': req['primaer'],
         }
 
     return kwargs
@@ -385,19 +404,17 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
             updated_addresses = []
     elif roletype == 'location':
         # Updating an existing address
-        _check_arguments(['address_uuid', 'location', 'From', 'to'],
-                         list(kwargs.keys()))
+        _check_arguments(['address_uuid', 'location', 'From', 'to',
+                          'name', 'primary'],
+                         kwargs)
         note = 'Ret adresse'
-        updated_addresses = _update_existing_address(
-            org_unit, kwargs['address_uuid'], kwargs['location'],
-            kwargs['From'], kwargs['to']
-        )
+        updated_addresses = _update_existing_address(org_unit, **kwargs)
     else:
         # Roletype is None - adding new location
-        _check_arguments(['location', 'From', 'to'], list(kwargs.keys()))
+        _check_arguments(['location', 'From', 'to', 'name', 'primary'],
+                         kwargs)
         note = 'Tilføj addresse'
-        updated_addresses = _add_location(org_unit, kwargs['location'],
-                                          kwargs['From'], kwargs['to'])
+        updated_addresses = _add_location(org_unit, **kwargs)
 
     payload = {
         'note': note,

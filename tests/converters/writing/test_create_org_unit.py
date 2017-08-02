@@ -105,6 +105,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '-infinity',
                             'from_included': False,
+                            'notetekst': 'v0:1:locationname',
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -195,7 +196,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         }
 
                     ],
-                    'name': 'locationname', 'primaer': True,
+                    'name': 'locationname', 'primaer': False,
                     'location': {
                         'UUID_EnhedsAdresse':
                             '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
@@ -260,6 +261,7 @@ class TestCreateOrgUnit(unittest.TestCase):
                         'virkning': {
                             'from': '-infinity',
                             'from_included': False,
+                            'notetekst': 'v0:0:locationname',
                             'to': 'infinity',
                             'to_included': False,
                         },

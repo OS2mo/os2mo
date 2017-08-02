@@ -323,15 +323,15 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'location': {
-                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'valid-from': '2014-05-05T19:07:48.577000+00:00',
                         'valid-to': 'infinity',
                     },
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'name': '',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
+                    'primaer': False,
                     'role-type': 'location',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'valid-from': '01-01-2016',
@@ -370,6 +370,15 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': '01-01-2018',
                     },
                 ],
+            )
+
+        with self.subTest('empty past'):
+            self.assert404(
+                self.client.get(
+                    '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                    '/role-types/contact-channel/?validity=past'
+                )
             )
 
         with self.subTest('present'):
@@ -453,6 +462,15 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': '01-01-2018',
                     },
                 ],
+            )
+
+        with self.subTest('empty future'):
+            self.assert404(
+                self.client.get(
+                    '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                    '/role-types/contact-channel/?validity=future'
+                )
             )
 
     def test_should_add_one_new_contact_channel_correctly(self):

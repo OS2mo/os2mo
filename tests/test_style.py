@@ -85,22 +85,15 @@ class CodeStyleTests(unittest.TestCase):
         style = pycodestyle.StyleGuide(ignore='N/A')
         style.init_report(pycodestyle.StandardReport)
 
-        for fn in self.source_files:
-            if os.path.relpath(fn, util.BASE_DIR) in SKIP_LIST:
-                continue
+        with contextlib.redirect_stdout(io.StringIO()) as buf:
+            style.check_files(
+                fn for fn in self.source_files
+                if os.path.relpath(fn, util.BASE_DIR) not in SKIP_LIST
+            )
 
-            # a subtest ensure we report each invalid file
-            # independently, yet report all files in each run
-            with self.subTest(fn):
-
-                buf = io.StringIO()
-
-                with contextlib.redirect_stdout(buf):
-                    style.check_files([fn])
-
-                if buf.getvalue():
-                    self.fail("Found code style errors and/or warnings:\n" +
-                              buf.getvalue())
+        if buf.getvalue():
+            self.fail("Found code style errors and/or warnings:\n" +
+                      buf.getvalue())
 
     def test_source_files(self):
         'Sanity check: we must find multiple sources'

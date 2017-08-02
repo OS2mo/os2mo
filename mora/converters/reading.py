@@ -6,6 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import operator
+
+from . import addr
+from . import meta
+
 from .. import lora
 from .. import util
 
@@ -83,6 +88,9 @@ def full_hierarchy(orgid: str, unitid: str,
     kwargs.update(loraparams)
 
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
 
     # TODO: check validity?
 
@@ -197,3 +205,101 @@ def unit_history(orgid, unitid):
             'section': reg['livscykluskode'],
             'action': reg.get('note'),
         }
+
+
+def _convert_class(clazz):
+    reg = clazz['registreringer'][-1]
+    attrs = reg['attributter']['klasseegenskaber'][0]
+
+    return {
+        'uuid': clazz['id'],
+        'name': attrs['titel'],
+        'userKey': attrs['brugervendtnoegle']
+    }
+
+
+def get_classes():
+    # TODO: we need to somehow restrict the available classes to
+    # sensible options; a classification hierarchy, perhaps, or only
+    # those related to or listed in our organisation?
+    classes = lora.klasse(uuid=lora.klasse(bvn='%'))
+
+    return sorted(map(_convert_class,
+                      classes),
+                  key=operator.itemgetter('name'))
+
+
+PHONE_PREFIX = 'urn:magenta.dk:telefon:'
+PHONE_NUMBER_DESC = 'Telefonnummer'
+
+
+def get_contact_channel(unitid, **loraparams):
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
+
+    return [
+        {
+            "contact-info": addr['urn'][len(PHONE_PREFIX):],
+            # "name": "telefon 12345678",
+            'location': {
+                'uuid': '00000000-0000-0000-0000-000000000000',
+            },
+            "type": {
+                "name": PHONE_NUMBER_DESC,
+                "prefix": PHONE_PREFIX,
+                "user-key": "Telephone_number",
+            },
+            "valid-from": util.to_frontend_time(
+                addr['virkning']['from'],
+            ),
+            "valid-to": util.to_frontend_time(
+                addr['virkning']['to'],
+            ),
+        }
+        for addr in orgunit['relationer'].get('adresser', [])
+        if addr.get('urn', '').startswith(PHONE_PREFIX)
+    ]
+
+
+def get_location(unitid, **loraparams):
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
+
+    def convert_addr(addrobj):
+        addrinfo = addr.get_address(addrobj['uuid'])
+
+        note = addrobj['virkning'].get('notetekst')
+        addrmeta = meta.Address.fromstring(note)
+
+        return {
+            "location": {
+                "vejnavn": addrinfo['adressebetegnelse'],
+                "user-key": addrinfo['kvhx'],
+                "uuid": addrinfo['id'],
+                "valid-from": util.to_frontend_time(
+                    addrinfo['historik']['oprettet'],
+                ),
+                "valid-to": "infinity"
+            },
+            "name": addrmeta.name,
+            "org-unit": unitid,
+            "primaer": addrmeta.primary,
+            "role-type": "location",
+            "uuid": addrinfo['id'],
+            "valid-from": util.to_frontend_time(
+                addrobj['virkning']['from'],
+            ),
+            "valid-to": util.to_frontend_time(
+                addrobj['virkning']['to'],
+            ),
+        }
+
+    return [
+        convert_addr(addr)
+        for addr in orgunit['relationer'].get('adresser', [])
+        if addr.get('uuid', '')
+    ]

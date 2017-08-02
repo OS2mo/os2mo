@@ -264,69 +264,21 @@ def get_role(orgid, unitid, role):
 
     validity = flask.request.args.get('validity')
 
-    try:
-        orgunit = lora.organisationenhed.get(unitid, validity=validity)
-    except ValueError:
-        traceback.print_exc()
+    getters = {
+        'contact-channel': reading.get_contact_channel,
+        'location': reading.get_location,
+    }
+
+    if role not in getters:
+        flask.current_app.logger.warn('unsupported role {!r}'.format(role))
+        return flask.jsonify([]), 400
+
+    r = getters[role](unitid, validity=validity)
+
+    if r:
+        return flask.jsonify(r)
+    else:
         return '', 404
-
-    if role == 'contact-channel':
-        PHONE_PREFIX = 'urn:magenta.dk:telefon:'
-        return flask.jsonify([
-            {
-                "contact-info": addr['urn'][len(PHONE_PREFIX):],
-                # "name": "telefon 12345678",
-                'location': {
-                    'uuid': '00000000-0000-0000-0000-000000000000',
-                },
-                "type": {
-                    "name": "Telefonnummer",
-                    "user-key": "Telephone_number",
-                    "prefix": "urn:magenta.dk:telefon:",
-                },
-                "valid-from": util.to_frontend_time(
-                    addr['virkning']['from'],
-                ),
-                "valid-to": util.to_frontend_time(
-                    addr['virkning']['to'],
-                ),
-            }
-            for addr in orgunit['relationer'].get('adresser', [])
-            if addr.get('urn', '').startswith(PHONE_PREFIX)
-        ])
-    elif role == 'location':
-        def convert_addr(addrobj):
-            # TODO: can we live with struktur=mini?
-            addrinfo = addr.get_address(addrobj['uuid'])
-
-            return {
-                "location": {
-                    "name": addrinfo['adressebetegnelse'],
-                    "user-key": addrinfo['kvhx'],
-                    "uuid": addrinfo['id'],
-                    "valid-from": util.to_frontend_time(
-                        addrinfo['historik']['oprettet'],
-                    ),
-                    "valid-to": "infinity"
-                },
-                "name": addrinfo['adressebetegnelse'],
-                "org-unit": unitid,
-                "primaer": True,  # TODO: really?
-                "role-type": "location",
-                "uuid": addrinfo['id'],
-                "valid-from": util.to_frontend_time(
-                    addrobj['virkning']['from'],
-                ),
-                "valid-to": util.to_frontend_time(
-                    addrobj['virkning']['to'],
-                ),
-            }
-
-        return flask.jsonify([
-            convert_addr(addr)
-            for addr in orgunit['relationer'].get('adresser', [])
-            if addr.get('uuid', '')
-        ])
 
 
 #
@@ -336,24 +288,7 @@ def get_role(orgid, unitid, role):
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
 def list_classes():
-    # TODO: we need to somehow restrict the available classes to
-    # sensible options; a classification hierarchy, perhaps, or only
-    # those related to or listed in our organisation?
-    clazzes = lora.klasse(uuid=lora.klasse(bvn='%'))
-
-    # TODO: Refactor this convert function into a module and make it
-    # generic
-    def convert(clazz):
-        reg = clazz['registreringer'][-1]
-        attrs = reg['attributter']['klasseegenskaber'][0]
-        return {
-            'uuid': clazz['id'],
-            'name': attrs['titel'],
-            'userKey': attrs['brugervendtnoegle']
-        }
-
-    return flask.jsonify(sorted(map(convert, clazzes),
-                                key=operator.itemgetter('name')))
+    return flask.jsonify(reading.get_classes())
 
 
 @app.route('/addressws/geographical-location')

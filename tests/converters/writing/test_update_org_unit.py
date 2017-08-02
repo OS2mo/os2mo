@@ -129,12 +129,15 @@ class TestUpdateExistingAddressesForLocations(TestSetup):
             '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
             self.location,
             '01-01-2017',
-            'infinity'
+            'infinity',
+            name='The name',
+            primary=True,
         )
         expected_addresses = [{'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
                                'virkning': {
                                    'from': '2017-01-01T00:00:00+01:00',
                                    'from_included': True,
+                                   'notetekst': 'v0:1:The name',
                                    'to': 'infinity',
                                    'to_included': False}},
                               {'urn': 'urn:magenta.dk:telefon:12345678',
@@ -154,7 +157,9 @@ class TestAddNewLocations(TestSetup):
     @freezegun.freeze_time(tz_offset=+1)
     def test_should_add_new_location_correctly(self):
         actual_addresses = writing._add_location(
-            self.org_unit, self.location, '01-01-2020', 'infinity')
+            self.org_unit, self.location, '01-01-2020', 'infinity',
+            name='The name', primary=True,
+        )
         expected_addresses = [
             {'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
              'virkning': {'from': '2017-04-30 22:00:00+00',
@@ -169,6 +174,7 @@ class TestAddNewLocations(TestSetup):
             {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
              'virkning': {'from': '2020-01-01T00:00:00+01:00',
                           'from_included': True,
+                          'notetekst': 'v0:1:The name',
                           'to': 'infinity',
                           'to_included': False}},
         ]
@@ -257,7 +263,8 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             writing.update_org_unit_addresses(
                 '00000000-0000-0000-0000-000000000000',
                 'contact-channel',
-                contact_channels=contact_channels),
+                contact_channels=contact_channels,
+            ),
             'Extending incorrectly with two contact channels'
         )
 
@@ -270,6 +277,8 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'location',
             address_uuid='98001816-a7cc-4115-a9e6-2c5c06c79e5d',
             location=self.location,
+            name='Null Location',
+            primary=True,
             From='31-12-2016',
             to='infinity'
         )
@@ -281,6 +290,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                      'virkning': {
                          'from': '2016-12-31T00:00:00+01:00',
                          'from_included': True,
+                         'notetekst': 'v0:1:Null Location',
                          'to': 'infinity',
                          'to_included': False}},
                     {'urn': 'urn:magenta.dk:telefon:12345678',
@@ -303,7 +313,9 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             None,
             location=self.location,
             From='01-01-2020',
-            to='infinity'
+            to='infinity',
+            name='Null Location',
+            primary=False,
         )
         expected_addresses = {
             'note': 'Tilføj addresse',
@@ -322,6 +334,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
                      'virkning': {'from': '2020-01-01T00:00:00+01:00',
                                   'from_included': True,
+                                  'notetekst': 'v0:0:Null Location',
                                   'to': 'infinity',
                                   'to_included': False}},
                 ]
@@ -337,7 +350,10 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         writing.update_org_unit_addresses(
             '00000000-0000-0000-0000-000000000000',
             'contact-channel',
-            contact_channels=None)
+            contact_channels=None,
+            name='Null Location',
+            primary=True,
+        )
         self.assertRaises(IllegalArgumentException)
 
     @freezegun.freeze_time('2017-01-01', tz_offset=2)
