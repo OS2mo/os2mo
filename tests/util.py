@@ -84,7 +84,7 @@ def load_sample_structures(*, verbose=False, minimal=False):
     }
 
     classes = {
-            'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
+        'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
     }
 
     if not minimal:
