@@ -248,6 +248,7 @@ def get_contact_channel(unitid, **loraparams):
             "type": {
                 "name": PHONE_NUMBER_DESC,
                 "prefix": PHONE_PREFIX,
+                "user-key": "Telephone_number",
             },
             "valid-from": util.to_frontend_time(
                 addr['virkning']['from'],
