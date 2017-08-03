@@ -16,7 +16,7 @@ from mora import lora
 from . import util
 
 
-class TestCreateOrgUnit(util.LoRATestCase):
+class TestWritingIntegration(util.LoRATestCase):
     maxDiff = None
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -81,7 +81,7 @@ class TestCreateOrgUnit(util.LoRATestCase):
             json={
                 "location": {
                     "UUID_EnhedsAdresse":
-                    "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                        "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
                 "name": "",
                 "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -436,6 +436,15 @@ class TestCreateOrgUnit(util.LoRATestCase):
         ORGID = '456362c4-0ee4-4e5e-a72c-751239745e62'
         UNITID = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
+        # Check that the GET requests made to MORa by the frontend
+        # before the actual POST request are working
+
+        self.assert200(self.client.get(
+            '/o/%s/org-unit/?query=Humanistisk+fakultet' % ORGID))
+        self.assert200(self.client.get(
+            '/o/%s/org-unit/?query=%s&effective-date='
+            '2017-01-01T12:00:00+00:00' % (ORGID, UNITID)))
+
         expected = {
             "activeName": "Humanistisk fakultet",
             "hasChildren": True,
@@ -444,7 +453,7 @@ class TestCreateOrgUnit(util.LoRATestCase):
             "parent": PARENTID,
             "parent-object": {
                 "activeName":
-                "Overordnet Enhed",
+                    "Overordnet Enhed",
                 "hasChildren": True,
                 "name": "Overordnet Enhed",
                 "org": ORGID,
@@ -481,6 +490,19 @@ class TestCreateOrgUnit(util.LoRATestCase):
 
         self.assert200(r)
         self.assertEquals(r.json, {'uuid': UNITID})
+
+        # Check that the GET requests made to MORa by the frontend
+        # after the actual POST request are working
+
+        # Convert 'now' (from freezegun) to epoch seconds
+        now = datetime.datetime.today().strftime('%s') + '000'
+
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=treeType&t=%s' % (ORGID, now)))
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=specific&orgUnitId=%s&t=%s' % (ORGID, PARENTID, now)))
 
     def test_org_unit_deletion(self):
         with freezegun.freeze_time('2017-01-01'):
