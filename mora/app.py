@@ -155,10 +155,10 @@ def rename_or_retype_org_unit(orgid, unitid):
     methods=['POST'],
 )
 @app.route(
-    '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:roleid>',
+    '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:locid>',
     methods=['POST'],
 )
-def update_organisation_unit_location(orgid, unitid, roleid=None):
+def update_organisation_unit_location(orgid, unitid, locid=None):
     # TODO: write test for this
 
     req = flask.request.get_json()
