@@ -9,14 +9,10 @@
 import copy
 import datetime
 import json
-import unittest
 
 import freezegun
-import pytz
 
 from mora import lora
-from mora import util as mora_util
-
 from . import util
 
 
@@ -226,17 +222,33 @@ class TestCreateOrgUnit(util.LoRATestCase):
 
         check(False, 'Totally unnamed')
 
-    @freezegun.freeze_time('2010-06-01 12:00:00', tz_offset=+1)
+    @freezegun.freeze_time('2016-06-01 12:00:00', tz_offset=+1)
     def test_should_create_org_unit_with_virkning_to_infinity(self):
         self.load_sample_structures()
 
         root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
+        # Check that the GET requests made to MORa by the frontend
+        # before the actual POST request are working
+
+        self.assert200(
+            self.client.get('/role-types/contact/facets/type/classes/'
+                            '?facetKey=Contact_channel_location'))
+        self.assert200(
+            self.client.get('/role-types/contact/facets/properties/classes/'))
+        self.assert200(
+            self.client.get('/o/%s/full-hierarchy?effective-date='
+                            '01-06-2016&query=&treeType=treeType' % org))
+        self.assert200(self.client.get(
+            '/addressws/geographical-location?local=%s&vejnavn=pile' % org))
+
+        # Check POST request
+
         payload = {
             "user-key": "NULL",
             "name": "NyEnhed",
-            "valid-from": "01-01-2010",
+            "valid-from": "01-02-2016",
             "org": org,
             "parent": root,
             "type": {
@@ -281,6 +293,7 @@ class TestCreateOrgUnit(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
+        # TODO: not checking gyldighed in (-inf, date]
         lora_response = lora.organisationenhed(
             uuid=uuid)[0]['registreringer'][-1]
         lora_response.pop('fratidspunkt')
@@ -291,14 +304,30 @@ class TestCreateOrgUnit(util.LoRATestCase):
 
         self.assertEqual(expected_response, lora_response)
 
+        # Check that the GET requests made to MORa by the frontend
+        # after the actual POST request are working
+
+        # Convert 'now' (from freezegun) to epoch seconds
+        now = datetime.datetime.today().strftime('%s') + '000'
+
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=treeType&t=%s' % (org, now)))
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
+
+        # TODO: it is confusing (i.e. less analysable) that the rename test
+        # below is located under the class TestCreateOrgUnit
+
         with self.subTest('rename'):
-            r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid),)
+            r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid), )
 
             self.assert200(r)
 
             postdata = r.json[0]
             postdata["name"] = "MindreNyEnhed"
-            postdata["valid-from"] = "05-01-2010"
+            postdata["valid-from"] = "05-02-2016"
 
             r = self.client.post(
                 '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
@@ -332,12 +361,6 @@ class TestCreateOrgUnit(util.LoRATestCase):
                         'section': 'Opstaaet',
                     },
                 ])
-
-    # TODO: test below is for some reason failing!?
-    # 'Relationer' is missing from the JSON returned from the LoRa test
-    # instance. The create org unit has been test manually and the data
-    # in LoRa after running app.create_organisation_unit is correct.
-    # It is strange that the test above passes and the one below does not...
 
     @freezegun.freeze_time('2010-06-01 12:00:00', tz_offset=+1)
     def test_should_create_org_unit_with_virkning_to_2011_01_01(self):
