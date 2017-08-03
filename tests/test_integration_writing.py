@@ -623,3 +623,50 @@ class TestWritingIntegration(util.LoRATestCase):
                     self.client.get(hierarchy_path).json,
                     expected_existing,
                 )
+
+    @freezegun.freeze_time('2016-06-01 12:00:00', tz_offset=+1)
+    def test_should_move_org_unit_correctly(self):
+        self.load_sample_structures()
+
+        root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        org = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        org_unit = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'  # hum
+        new_parent_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
+
+        # Check that the GET requests made to MORa by the frontend
+        # before the actual POST request are working
+
+        # Convert 'now' (from freezegun) to epoch seconds
+        now = datetime.datetime.today().strftime('%s') + '000'
+
+        self.assert200(
+            self.client.get('/o/%s/full-hierarchy?effective-date='
+                            '01-06-2016&query=&treeType=treeType' % org))
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
+        self.assert200(
+            self.client.get(
+                '/o/%s/org-unit/?query=%s&effective-date=01-06-2016' % (
+                    org, root)))
+
+        # Check the POST request
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s/actions/move' % (org, org_unit),
+            {'uuid': org_unit},
+            json={
+                'moveDate': '01-05-2016',
+                'newParentOrgUnitUUID': new_parent_org_unit
+            }
+        )
+
+        # Check that the GET requests made to MORa by the frontend
+        # after the actual POST request are working
+
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date='
+            '&query=&treeType=treeType&t=%s' % (org, now)))
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
