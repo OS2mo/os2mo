@@ -17,6 +17,9 @@ import pytz
 import tzlocal
 
 
+# use this string rather than nothing or N/A in UI -- it's the em dash
+PLACEHOLDER = "\u2014"
+
 # timezone-aware versions of min/max
 positive_infinity = datetime.datetime.max.replace(
     tzinfo=datetime.timezone(datetime.timedelta(hours=23)),

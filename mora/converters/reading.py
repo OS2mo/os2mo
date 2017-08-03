@@ -229,67 +229,88 @@ def get_classes():
                   key=operator.itemgetter('name'))
 
 
-PHONE_PREFIX = 'urn:magenta.dk:telefon:'
-PHONE_NUMBER_DESC = 'Telefonnummer'
-
-
-def get_contact_channel(unitid, **loraparams):
+def get_contact_channels(unitid, **loraparams):
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
 
     if not orgunit:
         return None
 
-    return [
-        {
-            "contact-info": addr['urn'][len(PHONE_PREFIX):],
+    def convert_address(obj):
+        info = meta.PhoneNumber.fromstring(
+            obj['virkning'].get('notetekst'),
+        )
+
+        return {
+            "contact-info": obj['urn'][len(meta.PHONE_PREFIX):],
             # "name": "telefon 12345678",
-            'location': {
-                'uuid': '00000000-0000-0000-0000-000000000000',
+            'location': _get_location(info.location),
+            'visibility': {
+                'user-key': info.visibility,
+                'uuid': meta.PHONE_VISIBILITY_UUIDS[info.visibility],
+                'name': meta.PHONE_VISIBILITIES[info.visibility],
             },
             "type": {
-                "name": PHONE_NUMBER_DESC,
-                "prefix": PHONE_PREFIX,
-                "user-key": "Telephone_number",
+                "name": meta.PHONE_NUMBER_DESC,
+                "prefix": meta.PHONE_PREFIX,
+                "user-key": 'Telephone_number',
             },
             "valid-from": util.to_frontend_time(
-                addr['virkning']['from'],
+                obj['virkning']['from'],
             ),
             "valid-to": util.to_frontend_time(
-                addr['virkning']['to'],
+                obj['virkning']['to'],
             ),
         }
+
+    return [
+        convert_address(addr)
         for addr in orgunit['relationer'].get('adresser', [])
-        if addr.get('urn', '').startswith(PHONE_PREFIX)
+        if addr.get('urn', '').startswith(meta.PHONE_PREFIX)
     ]
 
 
-def get_location(unitid, **loraparams):
+def _get_location(addrid, name=None):
+    if not addrid:
+        return {
+            "name": name or util.PLACEHOLDER,
+        }
+
+    info = addr.get_address(addrid)
+
+    return {
+        "name": name or info['adressebetegnelse'],
+        "uuid": info['id'],
+        "vejnavn": info['adressebetegnelse'],
+        "user-key": info['kvhx'],
+        "uuid": info['id'],
+        "valid-from": util.to_frontend_time(
+            info['historik']['oprettet'],
+        ),
+        "valid-to": "infinity"
+    }
+
+
+def get_locations(unitid, **loraparams):
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
 
     if not orgunit:
-        return None
+        return []
 
     def convert_addr(addrobj):
-        addrinfo = addr.get_address(addrobj['uuid'])
+        addrmeta = meta.Address.fromstring(
+            addrobj['virkning'].get('notetekst'),
+        )
 
-        note = addrobj['virkning'].get('notetekst')
-        addrmeta = meta.Address.fromstring(note)
+        location = _get_location(addrobj['uuid'], addrmeta.name)
 
         return {
-            "location": {
-                "vejnavn": addrinfo['adressebetegnelse'],
-                "user-key": addrinfo['kvhx'],
-                "uuid": addrinfo['id'],
-                "valid-from": util.to_frontend_time(
-                    addrinfo['historik']['oprettet'],
-                ),
-                "valid-to": "infinity"
-            },
-            "name": addrmeta.name,
+            "location": location,
+            "name": addrmeta.name or util.PLACEHOLDER,
             "org-unit": unitid,
             "primaer": addrmeta.primary,
             "role-type": "location",
-            "uuid": addrinfo['id'],
+            "uuid": addrobj['uuid'],
+            "user-key": addrobj['uuid'],
             "valid-from": util.to_frontend_time(
                 addrobj['virkning']['from'],
             ),
@@ -308,10 +329,11 @@ def get_location(unitid, **loraparams):
 def get_contact_properties():
     return [
         {
-            "name": "N/A",
-            "user-key": "N/A",
-            "uuid": "00000000-0000-0000-0000-000000000000"
-        },
+            'user-key': k,
+            'name': v,
+            'uuid': k,
+        }
+        for k, v in meta.PHONE_VISIBILITIES.items()
     ]
 
 

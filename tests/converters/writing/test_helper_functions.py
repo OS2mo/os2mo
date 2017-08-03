@@ -25,26 +25,33 @@ class TestHelperFunctions(unittest.TestCase):
 
     def test_should_return_correct_kwargs_for_roletype_contact_channel(self):
         req = {
+            'role-type': 'contact-channel',
             'contact-channels': 'dummy',
             'location': None
         }
         expected = {
+            'location': None,
+            'roletype': 'contact-channel',
             'contact_channels': 'dummy'
         }
         self.assertEqual(expected,
-                         writing.create_update_kwargs('contact-channel', req))
+                         writing.create_update_kwargs(req))
 
     def test_should_return_correct_kwargs_for_roletype_contact_channel2(self):
         # Location not present in the request here
         req = {
+            'role-type': 'contact-channel',
             'contact-channels': 'dummy',
         }
-        expected = {}
+        expected = {
+            'roletype': 'contact-channel',
+        }
         self.assertEqual(expected,
-                         writing.create_update_kwargs('contact-channel', req))
+                         writing.create_update_kwargs(req))
 
     def test_should_return_correct_kwargs_for_roletype_location(self):
         req = {
+            'role-type': 'location',
             'uuid': 'uuid',
             'name': 'Whatever',
             'primaer': True,
@@ -53,6 +60,7 @@ class TestHelperFunctions(unittest.TestCase):
             'valid-to': 'dummy3',
         }
         expected = {
+            'roletype': 'location',
             'address_uuid': 'uuid',
             'location': 'dummy1',
             'name': 'Whatever',
@@ -61,11 +69,11 @@ class TestHelperFunctions(unittest.TestCase):
             'to': 'dummy3'
         }
         self.assertEqual(expected,
-                         writing.create_update_kwargs('location', req))
+                         writing.create_update_kwargs(req))
 
     def test_should_raise_exception_when_roletype_unknown(self):
         with self.assertRaises(NotImplementedError):
-            writing.create_update_kwargs('unknown', {})
+            writing.create_update_kwargs({'role-type': 'unknown'})
 
     def test_should_return_correct_kwargs_for_roletype_None(self):
         req = {
@@ -76,6 +84,7 @@ class TestHelperFunctions(unittest.TestCase):
             'valid-to': 'dummy3',
         }
         expected = {
+            'roletype': None,
             'location': 'dummy1',
             'name': 'Whatever',
             'primary': True,
@@ -83,7 +92,7 @@ class TestHelperFunctions(unittest.TestCase):
             'to': 'dummy3'
         }
         self.assertEqual(expected,
-                         writing.create_update_kwargs(None, req))
+                         writing.create_update_kwargs(req))
 
         # Testing _create_payload function
 

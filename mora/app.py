@@ -162,11 +162,10 @@ def update_organisation_unit_location(orgid, unitid, locid=None):
     # TODO: write test for this
 
     req = flask.request.get_json()
-    roletype = req.get('role-type')
 
-    kwargs = writing.create_update_kwargs(roletype, req)
+    kwargs = writing.create_update_kwargs(req)
     payload = writing.update_org_unit_addresses(
-        unitid, roletype, **kwargs)
+        unitid, **kwargs)
 
     if payload['relationer']['adresser']:
         lora.update('organisation/organisationenhed/%s' % unitid, payload)
@@ -265,8 +264,8 @@ def get_role(orgid, unitid, role):
     validity = flask.request.args.get('validity')
 
     getters = {
-        'contact-channel': reading.get_contact_channel,
-        'location': reading.get_location,
+        'contact-channel': reading.get_contact_channels,
+        'location': reading.get_locations,
     }
 
     if role not in getters:
