@@ -65,7 +65,7 @@
     "organisationenhedgyldighed": [
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "2016-02-01 00:00:00+01",
           "from_included": true,
           "to_included": false,
           "to": "infinity"
