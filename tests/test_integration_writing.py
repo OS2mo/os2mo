@@ -508,6 +508,28 @@ class TestWritingIntegration(util.LoRATestCase):
         with freezegun.freeze_time('2017-01-01'):
             self.load_sample_structures()
 
+            ORGID = '456362c4-0ee4-4e5e-a72c-751239745e62'
+            UNITID = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+            # Check that the GET requests made to MORa by the frontend
+            # before the actual POST request are working
+
+            # Convert 'now' (from freezegun) to epoch seconds
+            now = datetime.datetime.today().strftime('%s') + '000'
+
+            self.assert200(self.client.get(
+                '/o/%s/org-unit/?query=Afdeling+for+Samtidshistorik' % ORGID))
+            self.assert200(self.client.get(
+                '/o/%s/org-unit/?query=%s'
+                '&effective-date=2017-07-01T12:00:00+00:00' % (ORGID, UNITID)))
+            self.assert200(self.client.get(
+                '/o/%s/org-unit/%s/?validity='
+                '&effective-date=01-03-2017&t=%s' % (ORGID, UNITID, now)))
+            self.assert200(self.client.get(
+                '/o/%s/org-unit/%s/role-types/location/'
+                '?validity=&effective-date=01-03-2017&t=%s' % (
+                    ORGID, UNITID, now)))
+
             hierarchy_path = (
                 '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
                 'treeType=specific'
@@ -623,6 +645,19 @@ class TestWritingIntegration(util.LoRATestCase):
                     self.client.get(hierarchy_path).json,
                     expected_existing,
                 )
+
+        # Check that the GET requests made to MORa by the frontend
+        # after the actual POST request are working
+
+        self.assert200(self.client.get(
+            '/o/%s/org-unit/%s/?validity=present&effective-date='
+            '&t=1501766568577' % (ORGID, UNITID)))
+        self.assert200(self.client.get(
+            '/o/%s/org-unit/%s/role-types/location/?validity=present'
+            '&effective-date=&t=1501766568577' % (ORGID, UNITID)))
+        self.assert200(self.client.get(
+            '/o/%s/full-hierarchy?effective-date=&query='
+            '&treeType=treeType&t=1501766568624' % ORGID))
 
     @freezegun.freeze_time('2016-06-01 12:00:00', tz_offset=+1)
     def test_should_move_org_unit_correctly(self):
