@@ -1,6 +1,9 @@
 MORa — MedarbejderOrganisation + LoRa
 =====================================
 
+.. contents:: `Indhold`
+   :depth: 2
+
 Om MORa
 -------
 MORa er en webapplikation til håndtering af et medarbejder- og
@@ -186,23 +189,24 @@ gøres på følgende måde::
   $ ./manage.py test --minimox=/path/to/folder/minimox tests.test_integration.IntegrationTests
   $ ./manage.py test --minimox=/path/to/folder/minimox tests.test_integration.IntegrationTests.test_should_add_one_new_contact_channel_correctly
 
-Installing MORa on a server
----------------------------
-To install MORa, do::
+Installering
+------------
 
-  # first, clone MORa
+Gør følgende for at installere MORa på Ubuntu 16.04::
+
+  # først, klon MORa
   sudo install -d -o $UID -g $GID /srv/mora
   git clone https://github.com/magenta-aps/mora /srv/mora
 
-  # install dependencies
+  # installér afhængigheder
   sudo apt install python3-venv nodejs-legacy npm
 
-  # build the application, creating the virtualenv in the progress
+  # byg applikationen; dette opretter det virtuelle miljø
   /srv/mora/manage.py build
-  # install gunicorn
+  # installér gunicorn
   /srv/mora/venv-linux-cpython-3.5/bin/pip install gunicorn gevent
 
-  # create the user and required infrastructure
+  # opret en bruger og installer den krævede infrastruktur
   sudo adduser --system \
     --home /srv/mora \
     --shell /usr/sbin/nologin \
@@ -218,9 +222,9 @@ To install MORa, do::
   sudo systemctl start mora.service
 
 
-You now have a working MORa installation listening on a local socket.
-To expose to the outside, you'll need to configure Apache or nginx to
-forward requests to it. We're using Apache for now, and the following::
+Du har nu en funktionel installation af MORa som lytter på et lokalt
+socket. For at eksponere den udadtil skal Apache eller nginx konfigureres til
+at videresende forespørgsler. For eksempel anvendes følgende til Apache::
 
   SSLProxyEngine on
 
@@ -229,17 +233,17 @@ forward requests to it. We're using Apache for now, and the following::
       ProxyPassReverse http://localhost/
   </Location>
 
-Then enable the ``proxy_http`` module, and restart Apache::
+Aktivér modulet ``proxy_http``, og genstart Apache::
 
   sudo a2enmod proxy_http
   sudo apache2ctl graceful
 
-You also need to copy ``config-example.json`` to ``config.json`` and
-adjust ``LORA_URL`` to point to your server::
+Til sidst kopieres ``config-example.json`` til ``config.json`` og
+``LORA_URL`` justeres til at pege der hvor du har LoRa kørende::
 
   {
     "LORA_URL": "https://lora.example.com/"
   }
 
-Please note that using an HTTPS URL requires a trusted certificate on
-the server, and that MORa doesn't support SAML authentication at this time.
+Bemærk venligst at anvendelse af HTTPS kræver et betroet certifikat på
+serveren, og at MORa ikke understøtter autentificering med SAML endnu.
