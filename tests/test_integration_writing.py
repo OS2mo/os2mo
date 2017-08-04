@@ -293,9 +293,8 @@ class TestWritingIntegration(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
-        # TODO: not checking gyldighed in (-inf, date]
-        lora_response = lora.organisationenhed(
-            uuid=uuid)[0]['registreringer'][-1]
+        lora_response = lora.organisationenhed.get(
+            uuid=uuid, virkningfra='-infinity', virkningtil='infinity')
         lora_response.pop('fratidspunkt')
 
         expected_response = util.jsonfile_to_dict(
@@ -316,9 +315,6 @@ class TestWritingIntegration(util.LoRATestCase):
         self.assert200(self.client.get(
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
-
-        # TODO: it is confusing (i.e. less analysable) that the rename test
-        # below is located under the class TestCreateOrgUnit
 
         with self.subTest('rename'):
             r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid), )

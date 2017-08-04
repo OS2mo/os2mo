@@ -133,13 +133,6 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
                 if not flask.request.args.get(k, None)
             }
 
-            # HACK: suppress timestamps from today
-            if 't' in invalidargs:
-                # TODO: delete this when timestamps actually work...
-                t = fromtimestamp(flask.request.args['t'])
-                if t.date() == datetime.date.today():
-                    invalidargs.remove('t')
-
             if missing or invalidargs:
                 msg = '\n'.join((
                     'Unsupported request arguments:',

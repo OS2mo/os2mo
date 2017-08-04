@@ -176,7 +176,7 @@ def update_organisation_unit_location(orgid, unitid, roleid=None):
 
 @app.route('/o/<uuid:orgid>/full-hierarchy')
 @util.restrictargs('treeType', 'orgUnitId', 'query',
-                   'effective-date')
+                   'effective-date', 't')
 def full_hierarchy(orgid):
     args = flask.request.args
 
