@@ -29,22 +29,30 @@ app = flask.Flask(__name__, static_url_path='')
 cli.load_cli(app)
 
 
-@app.errorhandler(ValueError)
-def handle_invalid_usage(error):
-    msg = '\n'.join(error.args)
-    flask.current_app.logger.exception(msg)
-    return msg, 400
-
-
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
     stack = traceback.format_exc()
-    flask.current_app.logger.exception('AN ERROR OCCURRED')
+    data = flask.request.get_json()
 
-    return (
-        flask.render_template('error.html', stack=stack, now=util.now()),
-        500,
-    )
+    if data:
+        flask.current_app.logger.exception(
+            'AN ERROR OCCURRED in %r:\n%s',
+            flask.request.full_path,
+            json.dumps(data, indent=2),
+        )
+    else:
+        flask.current_app.logger.exception(
+            'AN ERROR OCCURRED in %r',
+            flask.request.full_path,
+        )
+
+    status_code = 400 if isinstance(error, ValueError) else 500
+
+    return flask.jsonify({
+        'status': status_code,
+        'message': str(error),
+        'context': stack,
+    }), status_code
 
 
 @app.route('/')
