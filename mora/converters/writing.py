@@ -112,7 +112,8 @@ def create_org_unit(req: dict) -> dict:
                     'virkning': dict(
                         **virkning,
                         notetekst=str(meta.PhoneNumber(
-                            location=location['location']['UUID_EnhedsAdresse'],
+                            location=location['location']
+                            ['UUID_EnhedsAdresse'],
                             visibility=channel['visibility']['user-key'],
                         )),
                     ),

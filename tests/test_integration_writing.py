@@ -935,7 +935,8 @@ class TestWritingIntegration(util.LoRATestCase):
                                 "type": {
                                     "name": "Phone Number",
                                     "prefix": "urn:magenta.dk:telefon:",
-                                    "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                    "uuid":
+                                    "b7ccfb21-f623-4e8f-80ce-89731f726224",
                                 },
                             },
                             {
@@ -948,7 +949,8 @@ class TestWritingIntegration(util.LoRATestCase):
                                 "type": {
                                     "name": "Phone Number",
                                     "prefix": "urn:magenta.dk:telefon:",
-                                    "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                    "uuid":
+                                    "b7ccfb21-f623-4e8f-80ce-89731f726224",
                                 },
                             },
                         ],
