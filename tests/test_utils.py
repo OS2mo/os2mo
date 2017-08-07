@@ -5,11 +5,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import datetime
+
 import unittest
 
 import flask
-import freezegun
 
 from mora import util
 
@@ -17,7 +16,6 @@ from mora import util
 class TestUtils(unittest.TestCase):
 
     def test_to_lora_time(self):
-        min, max = datetime.datetime.min, datetime.datetime.max
         self.assertEqual(util.to_lora_time('31-12-2017'),
                          '2017-12-31T00:00:00+01:00')
         self.assertEqual(util.to_lora_time('infinity'), 'infinity')
@@ -29,7 +27,6 @@ class TestUtils(unittest.TestCase):
                          '2017-07-31T22:00:00+00:00')
 
     def test_to_frontend_time(self):
-        min, max = datetime.datetime.min, datetime.datetime.max
         self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
                          '31-12-2017')
         self.assertEqual(util.to_frontend_time('infinity'), 'infinity')

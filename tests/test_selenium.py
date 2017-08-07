@@ -10,8 +10,6 @@ import functools
 import os
 import unittest
 
-import flask_testing
-
 from . import util
 
 try:
@@ -130,13 +128,13 @@ class RightsTests(util.LiveLoRATestCase):
         search_field.send_keys('Pile')
 
         wait_for_search()
-        self.assertEquals(get_result_count(), 20)
+        self.assertEqual(get_result_count(), 20)
 
         # now enter more letters it so the query matches no roads in Aarhus
         search_field.send_keys('stræ')
 
         wait_for_search()
-        self.assertEquals(get_result_count(), 0)
+        self.assertEqual(get_result_count(), 0)
 
         # now expand the search to the entire country, and enter more
         # letters it so that the search occurs again
@@ -153,7 +151,7 @@ class RightsTests(util.LiveLoRATestCase):
 
         search_field.send_keys('de')
         wait_for_search()
-        self.assertEquals(get_result_count(), 20)
+        self.assertEqual(get_result_count(), 20)
 
     def test_unit_view(self):
         from selenium.webdriver.support.ui import WebDriverWait
@@ -180,7 +178,7 @@ class RightsTests(util.LiveLoRATestCase):
 
         wait()
 
-        self.assertEquals(
+        self.assertEqual(
             'Overordnet Enhed',
             self.browser.find_element_by_css_selector(
                 '[ng-bind="organisation.activeName"]',

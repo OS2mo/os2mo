@@ -13,7 +13,6 @@ from .. import lora
 from .. import util
 from .. import exceptions
 
-from . import addr
 from . import meta
 
 

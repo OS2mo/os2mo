@@ -32,8 +32,6 @@ def load_cli(app):
     @app.cli.command()
     @click.argument('args', nargs=-1)
     def python(args):
-        from subprocess import check_call, check_output
-
         os.execv(sys.executable, (sys.executable,) + args)
 
     @app.cli.command(with_appcontext=False)

@@ -6,11 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import operator
 import os
-import requests
 import traceback
-import uuid
 
 import flask
 
