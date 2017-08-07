@@ -32,7 +32,6 @@ class SimpleTests(unittest.TestCase):
             with freezegun.freeze_time('2011-01-01 00:00:00', tz_offset=+1):
                 backdated = lora._get_restrictions_for(validity=validity,
                                                        effective_date=oldtime)
-                new = lora._get_restrictions_for(validity=validity)
 
             self.assertEqual(old[0], backdated[0])
             self.assertEqual(old[1]([value]), backdated[1]([value]))
