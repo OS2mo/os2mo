@@ -217,8 +217,13 @@ def full_hierarchy(orgid):
 
 @app.route('/o/<uuid:orgid>/org-unit/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
-@util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start')
+@util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start',
+                   't')
 def get_orgunit(orgid, unitid=None):
+
+    # TODO: we are not actually using the 't' parameter - we should
+    # probably remove this from the frontend calls later on...
+
     query = flask.request.args.get('query')
 
     if bool(unitid) is bool(query) is True:
