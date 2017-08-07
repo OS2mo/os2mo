@@ -298,8 +298,8 @@ class TestWritingIntegration(util.LoRATestCase):
                         {
                             "contact-info": "12345678",
                             "visibility": {
-                                "name": "N/A",
-                                "user-key": "N/A",
+                                "name": "flaf",
+                                "user-key": "blyf",
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
@@ -584,8 +584,8 @@ class TestWritingIntegration(util.LoRATestCase):
                         {
                             "contact-info": "12345678",
                             "visibility": {
-                                "name": "N/A",
-                                "user-key": "N/A",
+                                "name": "flaf",
+                                "user-key": "blyf",
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
@@ -891,3 +891,122 @@ class TestWritingIntegration(util.LoRATestCase):
         self.assert200(self.client.get(
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
+
+    @freezegun.freeze_time('2016-06-01 12:00:00', tz_offset=+1)
+    def test_create_unit_with_contact_channels(self):
+        self.load_sample_structures(minimal=True)
+
+        root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        org = '456362c4-0ee4-4e5e-a72c-751239745e62'
+
+        r = self.client.post(
+            '/o/{}/org-unit'.format(org),
+            content_type='application/json',
+            data=json.dumps({
+                "user-key": "NULL",
+                "name": "NewUnit",
+                "valid-from": "01-08-2017",
+                "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "type": {
+                    "name": "Afdeling",
+                    "userKey": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "locations": [
+                    {
+                        "name": "Kontor",
+                        "primaer": True,
+                        "location": {
+                            "UUID_EnhedsAdresse":
+                            "0a3f50c4-c4ba-32b8-e044-0003ba298018",
+                            "postdistrikt": "Viby J",
+                            "postnr": "8260",
+                            "vejnavn": "Åbovej 5, Åbo, 8260 Viby J",
+                        },
+                        "contact-channels": [
+                            {
+                                "contact-info": "42",
+                                "visibility": {
+                                    "name": "N/A",
+                                    "user-key": "secret",
+                                    "uuid": "N/A",
+                                },
+                                "type": {
+                                    "name": "Phone Number",
+                                    "prefix": "urn:magenta.dk:telefon:",
+                                    "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                },
+                            },
+                            {
+                                "contact-info": "1337",
+                                "visibility": {
+                                    "name": "N/A",
+                                    "user-key": "external",
+                                    "uuid": "N/A",
+                                },
+                                "type": {
+                                    "name": "Phone Number",
+                                    "prefix": "urn:magenta.dk:telefon:",
+                                    "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            }),
+        )
+
+        self.assertEqual(r.status_code, 201)
+
+        unitid = r.json['uuid']
+        unitpath = '/o/{}/org-unit/{}/'.format(org, unitid)
+
+        self.assertRequestResponse(unitpath + 'role-types/contact-channel/', [
+            {
+                'contact-info': '1337',
+                'location': {
+                    "name": "Åbovej 5, Åbo, 8260 Viby J",
+                    'user-key': '07519659___5_______',
+                    'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
+                    'valid-from': '2000-02-05T15:27:05+00:00',
+                    'valid-to': 'infinity',
+                    'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                },
+                'type': {
+                    'name': 'Telefonnummer',
+                    'prefix': 'urn:magenta.dk:telefon:',
+                    'user-key': 'Telephone_number',
+                },
+                'valid-from': '-infinity',
+                'valid-to': 'infinity',
+                'visibility': {
+                    'name': 'Må vises eksternt',
+                    'user-key': 'external',
+                    'uuid': 'c67d7315-a0a2-4238-a883-f33aa7ddabc2',
+                },
+            },
+            {
+                'contact-info': '42',
+                'location': {
+                    "name": "Åbovej 5, Åbo, 8260 Viby J",
+                    'user-key': '07519659___5_______',
+                    'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
+                    'valid-from': '2000-02-05T15:27:05+00:00',
+                    'valid-to': 'infinity',
+                    'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                },
+                'type': {
+                    'name': 'Telefonnummer',
+                    'prefix': 'urn:magenta.dk:telefon:',
+                    'user-key': 'Telephone_number',
+                },
+                'valid-from': '-infinity',
+                'valid-to': 'infinity',
+                'visibility': {
+                    'name': 'Hemmeligt',
+                    'user-key': 'secret',
+                    'uuid': '8d37a1ec-3d58-461f-821f-c2a7bb6bc861',
+                },
+            },
+        ])
