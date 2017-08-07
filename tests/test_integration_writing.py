@@ -237,10 +237,8 @@ class TestWritingIntegration(util.LoRATestCase):
         root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
-        parent_object = \
-            self.client.get('/o/{}/org-unit/{}/'.format(org, root)).json[0]
-
         self.assertEquals(
+            self.client.get('/o/{}/org-unit/{}/'.format(org, root)).json[0],
             {
                 'activeName': 'Overordnet Enhed',
                 'name': 'Overordnet Enhed',
@@ -253,7 +251,6 @@ class TestWritingIntegration(util.LoRATestCase):
                 'valid-from': '01-01-2016',
                 'valid-to': 'infinity',
             },
-            parent_object,
         )
 
         # Check that the GET requests made to MORa by the frontend
@@ -358,7 +355,18 @@ class TestWritingIntegration(util.LoRATestCase):
                     'name': 'NyEnhed',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'parent-object': parent_object,
+                    'parent-object': {
+                        'activeName': 'Overordnet Enhed',
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': None,
+                        'parent-object': None,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '01-01-2016',
+                        'valid-to': 'infinity',
+                    },
                     'type': {'name': 'Afdeling'},
                     'user-key': 'NyEnhed',
                     'uuid': uuid,
@@ -416,7 +424,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'NyEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '01-02-2016',
+                            'valid-to': '05-02-2016',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -447,7 +466,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'NyEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '01-02-2016',
+                            'valid-to': '05-02-2016',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -459,7 +489,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'MindreNyEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '05-02-2016',
+                            'valid-to': '08-02-2016',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -491,7 +532,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'NyEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '01-02-2016',
+                            'valid-to': '05-02-2016',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -503,7 +555,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'MindreNyEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '05-02-2016',
+                            'valid-to': '08-02-2016',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -521,7 +584,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'EndnuMindreNyEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -540,7 +614,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'KommendeEnhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': root,
-                        'parent-object': parent_object,
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '01-10-2016',
+                            'valid-to': 'infinity',
+                        },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
@@ -845,7 +930,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 '/o/%s/full-hierarchy?effective-date=&query='
                 '&treeType=treeType&t=1501766568624' % ORGID))
 
-    @freezegun.freeze_time('2016-06-01 12:00:00', tz_offset=+1)
+    @freezegun.freeze_time('2017-06-01 12:00:00', tz_offset=+1)
     def test_should_move_org_unit_correctly(self):
         self.load_sample_structures()
 
@@ -862,7 +947,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         self.assert200(
             self.client.get('/o/%s/full-hierarchy?effective-date='
-                            '01-06-2016&query=&treeType=treeType' % org))
+                            '01-06-2017&query=&treeType=treeType' % org))
         self.assert200(self.client.get(
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
@@ -877,7 +962,7 @@ class TestWritingIntegration(util.LoRATestCase):
             '/o/%s/org-unit/%s/actions/move' % (org, org_unit),
             {'uuid': org_unit},
             json={
-                'moveDate': '01-05-2016',
+                'moveDate': '01-05-2017',
                 'newParentOrgUnitUUID': new_parent_org_unit
             }
         )
@@ -891,6 +976,89 @@ class TestWritingIntegration(util.LoRATestCase):
         self.assert200(self.client.get(
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
+
+        entry = lora.organisationenhed.get(
+            org_unit,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
+
+        expected = util.jsonfile_to_dict(
+            'tests/integration_test_data/should_move_org_unit_correctly.json',
+        )
+        expected['relationer']['overordnet'][1]['uuid'] = new_parent_org_unit
+
+        # drop lora-generated timestamps & users
+        del entry['fratidspunkt'], entry['tiltidspunkt'], entry['brugerref']
+
+        self.assertEqual(entry, expected)
+
+        with self.subTest('present'):
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=present'.format(org, org_unit),
+                [
+                    {
+                        'activeName': 'Humanistisk fakultet',
+                        'name': 'Humanistisk fakultet',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                        'parent-object': {
+                            'activeName': 'Samfundsvidenskabelige fakultet',
+                            'name': 'Samfundsvidenskabelige fakultet',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'parent-object': None,
+                            'type': {'name': 'Fakultet'},
+                            'user-key': 'samf',
+                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'valid-from': '01-01-2017',
+                            'valid-to': 'infinity',
+                        },
+                        'type': {'name': 'Institut'},
+                        'user-key': 'hum',
+                        'uuid': org_unit,
+                        'valid-from': '01-01-2016',
+                        'valid-to': 'infinity',
+                    },
+                ],
+            )
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=past'.format(org, org_unit),
+                [
+                    {
+                        'activeName': 'Humanistisk fakultet',
+                        'name': 'Humanistisk fakultet',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'parent-object': {
+                            'activeName': 'Overordnet Enhed',
+                            'name': 'Overordnet Enhed',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': None,
+                            'parent-object': None,
+                            'type': {'name': 'Afdeling'},
+                            'user-key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'valid-from': '01-01-2016',
+                            'valid-to': '01-05-2017',
+                        },
+                        'type': {'name': 'Institut'},
+                        'user-key': 'hum',
+                        'uuid': org_unit,
+                        'valid-from': '01-01-2016',
+                        'valid-to': '01-05-2017',
+                    },
+                ],
+            )
+
+        with self.subTest('future'):
+            self.assert404(
+                self.client.get(
+                    '/o/{}/org-unit/{}/?validity=future'.format(org, org_unit),
+                ),
+            )
 
     @freezegun.freeze_time('2016-06-01 12:00:00', tz_offset=+1)
     def test_create_unit_with_contact_channels(self):

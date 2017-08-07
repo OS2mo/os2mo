@@ -383,7 +383,8 @@ def _get_one_orgunit(orgid: str, unitid: str, include_parents=True,
         'org': str(orgid),
         'parent': parentid if parentid and parentid != orgid else None,
         'parent-object': (
-            _get_one_orgunit(orgid, parentid, False)
+            _get_one_orgunit(orgid, parentid,
+                             include_parents=False, **loraparams)
             if include_parents and parentid and parentid != orgid else None
         ),
         'type': {
