@@ -237,6 +237,25 @@ class TestWritingIntegration(util.LoRATestCase):
         root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
+        parent_object = \
+            self.client.get('/o/{}/org-unit/{}/'.format(org, root)).json[0]
+
+        self.assertEquals(
+            {
+                'activeName': 'Overordnet Enhed',
+                'name': 'Overordnet Enhed',
+                'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                'parent': None,
+                'parent-object': None,
+                'type': {'name': 'Afdeling'},
+                'user-key': 'root',
+                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'valid-from': '01-01-2016',
+                'valid-to': 'infinity',
+            },
+            parent_object,
+        )
+
         # Check that the GET requests made to MORa by the frontend
         # before the actual POST request are working
 
@@ -333,16 +352,32 @@ class TestWritingIntegration(util.LoRATestCase):
 
             self.assert200(r)
 
+            self.assertEqual([
+                {
+                    'activeName': 'NyEnhed',
+                    'name': 'NyEnhed',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'parent-object': parent_object,
+                    'type': {'name': 'Afdeling'},
+                    'user-key': 'NyEnhed',
+                    'uuid': uuid,
+                    'valid-from': '01-02-2016',
+                    'valid-to': 'infinity',
+                },
+            ], r.json)
+
             postdata = r.json[0]
             postdata["name"] = "MindreNyEnhed"
             postdata["valid-from"] = "05-02-2016"
 
-            r = self.client.post(
+            self.assertRequestResponse(
                 '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
-                data=json.dumps(postdata),
-                content_type='application/json',
+                {
+                    'uuid': uuid,
+                },
+                json=postdata,
             )
-            self.assert200(r)
 
             with self.subTest('history'):
                 r = self.client.get('/o/{}/org-unit/{}/history/'.format(org,
@@ -369,6 +404,151 @@ class TestWritingIntegration(util.LoRATestCase):
                         'section': 'Opstaaet',
                     },
                 ])
+
+            r = self.client.get('/o/{}/org-unit/{}/?validity=past'
+                                .format(org, uuid))
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                [
+                    {
+                        'activeName': 'NyEnhed',
+                        'name': 'NyEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        'valid-from': '01-02-2016',
+                        'valid-to': '05-02-2016',
+                    },
+                ]
+            )
+
+            postdata = r.json[0]
+            postdata["name"] = "EndnuMindreNyEnhed"
+            postdata["valid-from"] = "08-02-2016"
+            postdata["valid-to"] = "infinity"
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                {
+                    'uuid': uuid,
+                },
+                json=postdata,
+            )
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                [
+                    {
+                        'activeName': 'NyEnhed',
+                        'name': 'NyEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        'valid-from': '01-02-2016',
+                        'valid-to': '05-02-2016',
+                    },
+                    {
+                        'activeName': 'MindreNyEnhed',
+                        'name': 'MindreNyEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        'valid-from': '05-02-2016',
+                        'valid-to': '08-02-2016',
+                    },
+                ]
+            )
+
+            r = self.client.get('/o/{}/org-unit/{}/?validity=past'
+                                .format(org, uuid))
+
+            postdata["name"] = "KommendeEnhed"
+            postdata["valid-from"] = "1-10-2016"
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                {
+                    'uuid': uuid,
+                },
+                json=postdata,
+            )
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                [
+                    {
+                        'activeName': 'NyEnhed',
+                        'name': 'NyEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        'valid-from': '01-02-2016',
+                        'valid-to': '05-02-2016',
+                    },
+                    {
+                        'activeName': 'MindreNyEnhed',
+                        'name': 'MindreNyEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        'valid-from': '05-02-2016',
+                        'valid-to': '08-02-2016',
+                    },
+                ]
+            )
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=present'.format(org, uuid),
+                [
+                    {
+                        'activeName': 'EndnuMindreNyEnhed',
+                        'name': 'EndnuMindreNyEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        # FIXME: is this right?
+                        'valid-from': '01-02-2016',
+                        'valid-to': 'infinity',
+                    },
+                ]
+            )
+
+            self.assertRequestResponse(
+                '/o/{}/org-unit/{}/?validity=future'.format(org, uuid),
+                [
+                    {
+                        'activeName': 'KommendeEnhed',
+                        'name': 'KommendeEnhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': root,
+                        'parent-object': parent_object,
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'NyEnhed',
+                        'uuid': uuid,
+                        'valid-from': '01-10-2016',
+                        'valid-to': 'infinity',
+                    },
+                ]
+            )
 
     @freezegun.freeze_time('2010-06-01 12:00:00', tz_offset=+1)
     def test_should_create_org_unit_with_virkning_to_2011_01_01(self):
@@ -455,14 +635,11 @@ class TestWritingIntegration(util.LoRATestCase):
 
         expected = {
             "activeName": "Humanistisk fakultet",
-            "hasChildren": True,
             "name": "Humanistisk fakultet",
             "org": ORGID,
             "parent": PARENTID,
             "parent-object": {
-                "activeName":
-                    "Overordnet Enhed",
-                "hasChildren": True,
+                "activeName": "Overordnet Enhed",
                 "name": "Overordnet Enhed",
                 "org": ORGID,
                 "parent": None,

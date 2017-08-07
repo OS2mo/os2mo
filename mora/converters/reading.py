@@ -6,7 +6,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import datetime
+import itertools
 import operator
+import uuid
 
 from . import addr
 from . import meta
@@ -46,15 +49,11 @@ def list_organisations():
 
 def full_hierarchies(orgid: str, parentid: str,
                      include_children=True,
-                     include_parents=False,
-                     include_activename=False,
                      **loraparams):
     assert isinstance(parentid, str), parentid
 
     kwargs = dict(
         include_children=include_children,
-        include_parents=include_parents,
-        include_activename=include_activename,
         **loraparams,
     )
 
@@ -74,18 +73,14 @@ def full_hierarchies(orgid: str, parentid: str,
 
 def full_hierarchy(orgid: str, unitid: str,
                    include_children=True,
-                   include_parents=False,
-                   include_activename=False,
                    **loraparams):
     assert isinstance(orgid, str)
     assert isinstance(unitid, str)
 
     kwargs = dict(
         include_children=False,
-        include_parents=include_parents,
-        include_activename=include_activename,
+        **loraparams,
     )
-    kwargs.update(loraparams)
 
     orgunit = lora.organisationenhed.get(unitid, **loraparams)
 
@@ -139,25 +134,13 @@ def full_hierarchy(orgid: str, unitid: str,
             orgunit_validity['to'],
         ),
         'hasChildren': bool(children),
+        'children': (
+            full_hierarchies(orgid, unitid, **kwargs)
+            if include_children else []
+        ),
         'org': str(orgid),
         'parent': parent if parent and parent != orgid else None,
     }
-
-    if include_parents:
-        assert not include_children, 'including both parents and children?'
-
-        r["parent-object"] = (
-            full_hierarchy(orgid, parent, **kwargs)
-            if parent and parent != orgid else None
-        )
-    else:
-        r['children'] = (
-            full_hierarchies(orgid, unitid, **kwargs)
-            if include_children else []
-        )
-
-    if include_activename:
-        r['activeName'] = attrs['enhedsnavn']
 
     return r
 
@@ -282,7 +265,6 @@ def _get_location(addrid, name=None):
         "uuid": info['id'],
         "vejnavn": info['adressebetegnelse'],
         "user-key": info['kvhx'],
-        "uuid": info['id'],
         "valid-from": util.to_frontend_time(
             info['historik']['oprettet'],
         ),
@@ -345,3 +327,154 @@ def get_contact_types():
             "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
         },
     ]
+
+
+def _get_one_orgunit(orgid: str, unitid: str, include_parents=True,
+                     **loraparams):
+    assert isinstance(orgid, str), '{!r} is not a string!'.format(orgid)
+    assert isinstance(unitid, str), '{!r} is not a string!'.format(unitid)
+
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return None
+
+    rels = orgunit['relationer']
+    props = orgunit['attributter']['organisationenhedegenskaber'][0]
+    state = orgunit['tilstande']['organisationenhedgyldighed'][0]
+
+    if state['gyldighed'] != 'Aktiv':
+        return None
+
+    try:
+        parentid = rels['overordnet'][0]['uuid']
+    except IndexError:
+        parentid = None
+
+    try:
+        orgid = rels['tilhoerer'][0]['uuid']
+    except IndexError:
+        pass
+
+    # get the 'current' information for the type, although we don't
+    # expect them to change much
+    assert not rels['enhedstype'] or len(rels['enhedstype']) == 1
+    unit_type = (
+        lora.klasse.get(uuid=rels['enhedstype'][0]['uuid'])
+        if rels['enhedstype'] else None
+    )
+
+    start = loraparams.get('virkningfra', '-infinity')
+    end = loraparams.get('virkningtil', 'infinity')
+
+    if start == '-infinity':
+        start = state['virkning']['from']
+
+    if end == 'infinity':
+        end = state['virkning']['to']
+
+    return {
+        'activeName': props['enhedsnavn'],
+        'name': props['enhedsnavn'],
+        'user-key': props['brugervendtnoegle'],
+        'uuid': unitid,
+        'valid-from': util.to_frontend_time(start),
+        'valid-to': util.to_frontend_time(end),
+        'org': str(orgid),
+        'parent': parentid if parentid and parentid != orgid else None,
+        'parent-object': (
+            _get_one_orgunit(orgid, parentid, False)
+            if include_parents and parentid and parentid != orgid else None
+        ),
+        'type': {
+            'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
+            if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
+        },
+    }
+
+
+def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
+    assert isinstance(orgid, str)
+    assert isinstance(unitid, str)
+
+    validity = loraparams.pop('validity', None) or 'present'
+
+    if validity == 'present':
+        yield _get_one_orgunit(
+            orgid, unitid, include_parents, **loraparams,
+        )
+
+        return
+
+    today = util.parsedatetime(
+        loraparams.get('effective_date', util.today()),
+    )
+    tomorrow = today + datetime.timedelta(days=1)
+
+    if validity == 'past':
+        loraparams.update(virkningfra='-infinity', virkningtil=today)
+
+        def requirement_func(s):
+            return util.parsedatetime(s) < today
+    elif validity == 'future':
+        loraparams.update(virkningfra=tomorrow, virkningtil='infinity')
+
+        def requirement_func(s):
+            return util.parsedatetime(s) > tomorrow
+    else:
+        raise ValueError('invalid validity {!r}'.format(validity))
+
+    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+
+    if not orgunit:
+        return
+
+    chunks = set()
+
+    relevant = {
+        ('attributter', 'organisationenhedegenskaber'),
+        ('relationer', 'enhedstype'),
+        ('relationer', 'overordnet'),
+        ('relationer', 'tilhoerer'),
+        ('tilstande', 'organisationenhedgyldighed'),
+    }
+
+    for group in 'attributter', 'relationer', 'tilstande':
+        for key in orgunit[group]:
+            for entry in orgunit[group][key]:
+                if(group, key) in relevant:
+                    chunks.update([entry['virkning']['from'],
+                                   entry['virkning']['to']])
+
+    chunks = sorted(filter(requirement_func, chunks))
+
+    for start, end in zip(chunks, chunks[1:]):
+        orgunit = _get_one_orgunit(
+            orgid, unitid, include_parents,
+            virkningfra=start, virkningtil=end,
+        )
+
+        if orgunit:
+            yield orgunit
+
+
+def list_orgunits(query, **loraparams):
+    if isinstance(query, uuid.UUID):
+        return [str(query)]
+
+    try:
+        return [str(uuid.UUID(query))]
+    except (ValueError, TypeError):
+        pass
+
+    return lora.organisationenhed(enhedsnavn=query or '%', **loraparams)
+
+
+def get_orgunits(orgid, unitids, **loraparams):
+    def _get(unitid):
+        yield from get_orgunit(orgid, unitid, **loraparams)
+
+    return list(filter(None, itertools.chain.from_iterable(map(
+        _get,
+        unitids,
+    ))))

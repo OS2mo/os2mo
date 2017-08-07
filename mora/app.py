@@ -222,36 +222,21 @@ def full_hierarchy(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start')
 def get_orgunit(orgid, unitid=None):
-    query = flask.request.args.get('query', None)
-    params = {
-        'tilhoerer': str(orgid),
-    }
+    query = flask.request.args.get('query')
 
-    if query:
-        assert unitid is None, 'unitid and query are both set!'
+    if bool(unitid) is bool(query) is True:
+        raise ValueError('unitid and query cannot both be set!')
 
-        try:
-            params['uuid'] = str(uuid.UUID(query))
-        except ValueError:
-            # If the query is not an UUID, search for an org unit name instead
-            params['enhedsnavn'] = query
-    else:
-        params['uuid'] = unitid
-
-    params.update(
+    unitids = reading.list_orgunits(
+        unitid or query,
+        tilhoerer=str(orgid),
         effective_date=flask.request.args.get('effective-date', None),
     )
 
-    r = list(filter(None, (
-        reading.full_hierarchy(
-            str(orgid), orgunitid,
-            include_children=False, include_parents=True,
-            include_activename=True,
-            effective_date=flask.request.args.get('effective-date', None),
-            validity=flask.request.args.get('validity', None),
-        )
-        for orgunitid in lora.organisationenhed(**params)
-    )))
+    r = reading.get_orgunits(
+        str(orgid), unitids,
+        validity=flask.request.args.get('validity', None),
+    )
 
     return flask.jsonify(r) if r else ('', 404)
 
