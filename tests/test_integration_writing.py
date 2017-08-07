@@ -538,7 +538,7 @@ class TestWritingIntegration(util.LoRATestCase):
                     'type': {'name': 'Afdeling'},
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'valid-from': '01-01-2016',
-                    'valid-to': '01-01-2018',
+                    'valid-to': '01-01-2019',
                 },
             ]
 
@@ -560,14 +560,14 @@ class TestWritingIntegration(util.LoRATestCase):
                             'virkning': {
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
-                                'to': '2018-01-01 00:00:00+01',
+                                'to': '2019-01-01 00:00:00+01',
                                 'to_included': False,
                             },
                         },
                         {
                             'gyldighed': 'Inaktiv',
                             'virkning': {
-                                'from': '2018-01-01 00:00:00+01',
+                                'from': '2019-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': 'infinity',
                                 'to_included': False,

@@ -439,7 +439,7 @@ class IntegrationTests(util.LoRATestCase):
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2016',
-                        'valid-to': '01-01-2018',
+                        'valid-to': '01-01-2019',
                         'type': {'name': 'Afdeling'},
                     },
                 ],
@@ -461,7 +461,7 @@ class IntegrationTests(util.LoRATestCase):
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2016',
-                        'valid-to': '01-01-2018',
+                        'valid-to': '01-01-2019',
                     },
                 ],
             )
