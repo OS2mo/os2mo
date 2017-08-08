@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import json
-
 import freezegun
 import requests
 
@@ -227,13 +225,11 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'activeName': 'Humanistisk fakultet',
-                    'hasChildren': True,
                     'name': 'Humanistisk fakultet',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'parent-object': {
                         'activeName': 'Overordnet Enhed',
-                        'hasChildren': True,
                         'name': 'Overordnet Enhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': None,
@@ -259,13 +255,11 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'activeName': 'Humanistisk fakultet',
-                    'hasChildren': True,
                     'name': 'Humanistisk fakultet',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'parent-object': {
                         'activeName': 'Overordnet Enhed',
-                        'hasChildren': True,
                         'name': 'Overordnet Enhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': None,
@@ -290,13 +284,11 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'activeName': 'Humanistisk fakultet',
-                    'hasChildren': True,
                     'name': 'Humanistisk fakultet',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'parent-object': {
                         'activeName': 'Overordnet Enhed',
-                        'hasChildren': True,
                         'name': 'Overordnet Enhed',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': None,
@@ -323,16 +315,18 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'location': {
+                        'name': 'Kontor',
                         'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'valid-from': '2014-05-05T19:07:48.577000+00:00',
                         'valid-to': 'infinity',
                     },
-                    'name': '',
+                    'name': 'Kontor',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': False,
+                    'primaer': True,
                     'role-type': 'location',
+                    'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
@@ -358,16 +352,26 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'activeName': 'Afdeling for Fremtidshistorik',
-                        'hasChildren': False,
                         'name': 'Afdeling for Fremtidshistorik',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'parent': None,
-                        'parent-object': None,
-                        'type': {'name': ''},
+                        'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'parent-object': {
+                            'activeName': 'Historisk Institut',
+                            'name': 'Historisk Institut',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'parent-object': None,
+                            'type': {'name': 'Institut'},
+                            'user-key': 'hist',
+                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'valid-from': '01-01-2016',
+                            'valid-to': '01-01-2017',
+                        },
+                        'type': {'name': 'Afdeling'},
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2016',
-                        'valid-to': '01-01-2018',
+                        'valid-to': '01-01-2017',
                     },
                 ],
             )
@@ -388,46 +392,15 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'activeName': 'Afdeling for Samtidshistorik',
-                        'hasChildren': False,
                         'name': 'Afdeling for Samtidshistorik',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'parent-object': {
                             'activeName': 'Historisk Institut',
-                            'hasChildren': True,
                             'name': 'Historisk Institut',
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'parent-object': {
-                                'activeName': 'Humanistisk fakultet',
-                                'hasChildren': True,
-                                'name': 'Humanistisk fakultet',
-                                'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                                'parent':
-                                    '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                                'parent-object': {
-                                    'activeName': 'Overordnet '
-                                                  'Enhed',
-                                    'hasChildren': True,
-                                    'name': 'Overordnet '
-                                            'Enhed',
-                                    'org':
-                                        '456362c4-0ee4-4e5e-a72c-751239745e62',
-                                    'parent': None,
-                                    'parent-object': None,
-                                    'user-key': 'root',
-                                    'uuid':
-                                        '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                                    'valid-from': '01-01-2016',
-                                    'valid-to': 'infinity',
-                                    'type': {'name': 'Afdeling'},
-                                },
-                                'user-key': 'hum',
-                                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                                'valid-from': '01-01-2016',
-                                'valid-to': 'infinity',
-                                'type': {'name': 'Institut'},
-                            },
+                            'parent-object': None,
                             'user-key': 'hist',
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                             'valid-from': '01-01-2016',
@@ -437,7 +410,7 @@ class IntegrationTests(util.LoRATestCase):
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2016',
-                        'valid-to': '01-01-2018',
+                        'valid-to': '01-01-2019',
                         'type': {'name': 'Afdeling'},
                     },
                 ],
@@ -450,16 +423,26 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'activeName': 'Afdeling for Fortidshistorik',
-                        'hasChildren': False,
                         'name': 'Afdeling for Fortidshistorik',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'parent': None,
-                        'parent-object': None,
-                        'type': {'name': ''},
+                        'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'parent-object': {
+                            'activeName': 'Historisk Institut',
+                            'name': 'Historisk Institut',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'parent-object': None,
+                            'user-key': 'hist',
+                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'valid-from': '01-01-2018',
+                            'valid-to': '01-01-2019',
+                            'type': {'name': 'Institut'},
+                        },
+                        'type': {'name': 'Afdeling'},
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                        'valid-from': '01-01-2016',
-                        'valid-to': '01-01-2018',
+                        'valid-from': '01-01-2018',
+                        'valid-to': '01-01-2019',
                     },
                 ],
             )
@@ -498,7 +481,6 @@ class IntegrationTests(util.LoRATestCase):
             [
                 {
                     'activeName': 'Overordnet Enhed',
-                    'hasChildren': False,
                     'name': 'Overordnet Enhed',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': None,

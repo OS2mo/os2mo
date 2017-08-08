@@ -110,6 +110,14 @@ def create_org_unit(req: dict) -> dict:
                     'urn': 'urn:magenta.dk:telefon:{}'.format(
                         channel['contact-info'],
                     ),
+                    'virkning': dict(
+                        **virkning,
+                        notetekst=str(meta.PhoneNumber(
+                            location=location['location']
+                            ['UUID_EnhedsAdresse'],
+                            visibility=channel['visibility']['user-key'],
+                        )),
+                    ),
                 }
                 for location in req.get('locations', [])
                 for channel in location.get('contact-channels', [])
@@ -283,7 +291,7 @@ def _create_payload(From: str, to: str, obj_path: list,
 # ---- Handling of role types: contact-channel, location andn None ---- #
 
 
-def _add_contact_channels(org_unit: dict,
+def _add_contact_channels(org_unit: dict, location: dict,
                           contact_channels: list) -> dict:
     """
     Adds new contact channels to the address list
@@ -297,8 +305,14 @@ def _add_contact_channels(org_unit: dict,
         addresses.extend([
             {
                 'urn': info['type']['prefix'] + info['contact-info'],
-                'virkning': _create_virkning(info['valid-from'],
-                                             info['valid-to']),
+                'virkning': _create_virkning(
+                    info['valid-from'],
+                    info['valid-to'],
+                    note=meta.PhoneNumber(
+                        location=location['uuid'],
+                        visibility=info['visibility']['user-key'],
+                    ),
+                ),
             }
             for info in contact_channels
         ])
@@ -373,14 +387,23 @@ def _check_arguments(mandatory_args: collections.abc.Iterable,
             raise exceptions.IllegalArgumentException('%s missing' % arg)
 
 
-def create_update_kwargs(roletype: str, req: dict) -> dict:
+def create_update_kwargs(req: dict) -> dict:
+    roletype = req.get('role-type')
+
     if roletype == 'contact-channel':
         if 'location' in req:
-            kwargs = {'contact_channels': req['contact-channels']}
+            kwargs = {
+                'contact_channels': req['contact-channels'],
+                'roletype': roletype,
+                'location': req['location'],
+            }
         else:
-            kwargs = {}
+            kwargs = {
+                'roletype': roletype,
+            }
     elif roletype == 'location':
         kwargs = {
+            'roletype': roletype,
             'address_uuid': req['uuid'],
             'location': req['location'],
             'From': req['valid-from'],
@@ -392,6 +415,7 @@ def create_update_kwargs(roletype: str, req: dict) -> dict:
         raise NotImplementedError(roletype)
     else:
         kwargs = {
+            'roletype': roletype,
             'location': req['location'],
             'From': req['valid-from'],
             'to': req['valid-to'],
@@ -413,7 +437,7 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
             # Adding contact channels
             note = 'Tilføj kontaktkanal'
             updated_addresses = _add_contact_channels(
-                org_unit, kwargs['contact_channels'])
+                org_unit, **kwargs)
         else:
             # Contact channel already exists
             note = 'Tilføj eksisterende kontaktkanal'

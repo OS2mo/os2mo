@@ -17,6 +17,9 @@ import pytz
 import tzlocal
 
 
+# use this string rather than nothing or N/A in UI -- it's the em dash
+PLACEHOLDER = "\u2014"
+
 # timezone-aware versions of min/max
 positive_infinity = datetime.datetime.max.replace(
     tzinfo=datetime.timezone(datetime.timedelta(hours=23)),
@@ -26,6 +29,14 @@ negative_infinity = datetime.datetime.min.replace(
 )
 
 DATETIME_PARSERS = (
+    # limits
+    lambda s: {
+        'infinity': positive_infinity,
+        '-infinity': negative_infinity,
+    }[s],
+    # ISO 8601
+    iso8601.parse_date,
+    lambda s: iso8601.parse_date(s.replace(' ', '+')),
     # DD/MM/YYYY w/o time -- sent by the frontend
     lambda s: tzlocal.get_localzone().localize(
         datetime.datetime.strptime(s, '%d-%m-%Y')
@@ -36,14 +47,6 @@ DATETIME_PARSERS = (
     lambda s: datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S%z'),
     # handle PG two-digit offsets
     lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
-    # ISO 8601
-    iso8601.parse_date,
-    lambda s: iso8601.parse_date(s.replace(' ', '+')),
-    # limits
-    lambda s: {
-        'infinity': positive_infinity,
-        '-infinity': negative_infinity,
-    }[s],
 )
 
 
@@ -55,9 +58,12 @@ def parsedatetime(s: str, default: str=None) -> datetime.datetime:
     if default is not None and not s:
         return default
     elif isinstance(s, datetime.date):
-        return tzlocal.get_localzone().localize(
-            datetime.datetime.combine(s, datetime.time())
-        )
+        if s in (positive_infinity, negative_infinity):
+            return s
+        else:
+            return tzlocal.get_localzone().localize(
+                datetime.datetime.combine(s, datetime.time())
+            )
     elif isinstance(s, datetime.datetime):
         return s
 

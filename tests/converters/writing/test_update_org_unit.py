@@ -9,12 +9,9 @@
 import unittest
 import freezegun
 
-from mora import lora
 from mora.converters import writing
 from tests.util import jsonfile_to_dict
 from mora.exceptions import IllegalArgumentException
-from mora import lora
-from pprint import pprint
 
 from ... import util
 
@@ -37,13 +34,13 @@ class TestExtendAddressesWithContactChannels(TestSetup):
     def test_should_add_zero_contact_channels_correctly(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._add_contact_channels(self.org_unit, []),
+            writing._add_contact_channels(self.org_unit, None, []),
             'Extending incorrectly with an empty list of channels')
 
     def test_should_handle_contact_channels_is_none(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._add_contact_channels(self.org_unit, None),
+            writing._add_contact_channels(self.org_unit, None, None),
             'Extending incorrectly when contact channels is None')
 
     @freezegun.freeze_time('2017-01-01', tz_offset=2)
@@ -93,18 +90,26 @@ class TestExtendAddressesWithContactChannels(TestSetup):
                      {'urn': 'urn:magenta.dk:telefon:12345678',
                       'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                    'from_included': True,
+                                   'notetekst': 'v0:N/A:1337',
                                    'to': 'infinity',
                                    'to_included': False}},
                      {'urn': 'urn:magenta.dk:telefon:87654321',
                       'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                    'from_included': True,
+                                   'notetekst': 'v0:N/A:1337',
                                    'to': 'infinity',
                                    'to_included': False}}]
         self.assertEqual(
             addresses,
-            writing._add_contact_channels(self.org_unit,
-                                          contact_channels),
-            'Extending incorrectly with two contact channels')
+            writing._add_contact_channels(
+                self.org_unit,
+                {
+                    'uuid': '1337',
+                },
+                contact_channels
+            ),
+            'Extending incorrectly with two contact channels',
+        )
 
 
 class TestUpdateExistingAddressesForLocations(TestSetup):
@@ -248,11 +253,13 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                              {'urn': 'urn:magenta.dk:telefon:12345678',
                               'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                            'from_included': True,
+                                           'notetekst': 'v0:N/A:1337',
                                            'to': 'infinity',
                                            'to_included': False}},
                              {'urn': 'urn:magenta.dk:telefon:87654321',
                               'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                            'from_included': True,
+                                           'notetekst': 'v0:N/A:1337',
                                            'to': 'infinity',
                                            'to_included': False}}]
             }
@@ -264,6 +271,9 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                 '00000000-0000-0000-0000-000000000000',
                 'contact-channel',
                 contact_channels=contact_channels,
+                location={
+                    'uuid': '1337',
+                },
             ),
             'Extending incorrectly with two contact channels'
         )
@@ -351,8 +361,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             '00000000-0000-0000-0000-000000000000',
             'contact-channel',
             contact_channels=None,
-            name='Null Location',
-            primary=True,
+            location=None,
         )
         self.assertRaises(IllegalArgumentException)
 
@@ -370,4 +379,5 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         self.assertEqual(expected, writing.update_org_unit_addresses(
             '00000000-0000-0000-0000-000000000000',
             'contact-channel',
+            location=None,
         ))

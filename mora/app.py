@@ -8,7 +8,6 @@
 
 import os
 import traceback
-import uuid
 
 import flask
 
@@ -27,22 +26,30 @@ app = flask.Flask(__name__, static_url_path='')
 cli.load_cli(app)
 
 
-@app.errorhandler(ValueError)
-def handle_invalid_usage(error):
-    msg = '\n'.join(error.args)
-    flask.current_app.logger.exception(msg)
-    return msg, 400
-
-
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
     stack = traceback.format_exc()
-    flask.current_app.logger.exception('AN ERROR OCCURRED')
+    data = flask.request.get_json()
 
-    return (
-        flask.render_template('error.html', stack=stack, now=util.now()),
-        500,
-    )
+    if data:
+        flask.current_app.logger.exception(
+            'AN ERROR OCCURRED in %r:\n%s',
+            flask.request.full_path,
+            json.dumps(data, indent=2),
+        )
+    else:
+        flask.current_app.logger.exception(
+            'AN ERROR OCCURRED in %r',
+            flask.request.full_path,
+        )
+
+    status_code = 400 if isinstance(error, ValueError) else 500
+
+    return flask.jsonify({
+        'status': status_code,
+        'message': str(error),
+        'context': stack,
+    }), status_code
 
 
 @app.route('/')
@@ -172,18 +179,17 @@ def rename_or_retype_org_unit(orgid, unitid):
     methods=['POST'],
 )
 @app.route(
-    '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:roleid>',
+    '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:locid>',
     methods=['POST'],
 )
-def update_organisation_unit_location(orgid, unitid, roleid=None):
+def update_organisation_unit_location(orgid, unitid, locid=None):
     # TODO: write test for this
 
     req = flask.request.get_json()
-    roletype = req.get('role-type')
 
-    kwargs = writing.create_update_kwargs(roletype, req)
+    kwargs = writing.create_update_kwargs(req)
     payload = writing.update_org_unit_addresses(
-        unitid, roletype, **kwargs)
+        unitid, **kwargs)
 
     if payload['relationer']['adresser']:
         lora.update('organisation/organisationenhed/%s' % unitid, payload)
@@ -236,36 +242,21 @@ def get_orgunit(orgid, unitid=None):
     # TODO: we are not actually using the 't' parameter - we should
     # probably remove this from the frontend calls later on...
 
-    query = flask.request.args.get('query', None)
-    params = {
-        'tilhoerer': str(orgid),
-    }
+    query = flask.request.args.get('query')
 
-    if query:
-        assert unitid is None, 'unitid and query are both set!'
+    if bool(unitid) is bool(query) is True:
+        raise ValueError('unitid and query cannot both be set!')
 
-        try:
-            params['uuid'] = str(uuid.UUID(query))
-        except ValueError:
-            # If the query is not an UUID, search for an org unit name instead
-            params['enhedsnavn'] = query
-    else:
-        params['uuid'] = unitid
-
-    params.update(
+    unitids = reading.list_orgunits(
+        unitid or query,
+        tilhoerer=str(orgid),
         effective_date=flask.request.args.get('effective-date', None),
     )
 
-    r = list(filter(None, (
-        reading.full_hierarchy(
-            str(orgid), orgunitid,
-            include_children=False, include_parents=True,
-            include_activename=True,
-            effective_date=flask.request.args.get('effective-date', None),
-            validity=flask.request.args.get('validity', None),
-        )
-        for orgunitid in lora.organisationenhed(**params)
-    )))
+    r = reading.get_orgunits(
+        str(orgid), unitids,
+        validity=flask.request.args.get('validity', None),
+    )
 
     return flask.jsonify(r) if r else ('', 404)
 
@@ -286,8 +277,8 @@ def get_role(orgid, unitid, role):
     validity = flask.request.args.get('validity')
 
     getters = {
-        'contact-channel': reading.get_contact_channel,
-        'location': reading.get_location,
+        'contact-channel': reading.get_contact_channels,
+        'location': reading.get_locations,
     }
 
     if role not in getters:
@@ -321,29 +312,19 @@ def get_geographical_addresses():
     )
 
 
+@util.restrictargs()
 @app.route('/role-types/contact/facets/properties/classes/')
 def get_contact_facet_properties_classes():
     # This yields three options in the original Mock test:
     # internal-only, external and unlisted. (In Danish: “Må vises
     # internt”, “Må vises eksternt” and “Hemmligt”.)
-    return flask.jsonify([
-        {
-            "name": "N/A",
-            "user-key": "N/A",
-            "uuid": "00000000-0000-0000-0000-000000000000"
-        },
-    ])
+    return flask.jsonify(reading.get_contact_properties())
 
 
+@util.restrictargs(required=['facetKey'])
 @app.route('/role-types/contact/facets/type/classes/')
 def get_contact_facet_types_classes():
-    key = flask.request.args.get('facetKey')
+    key = flask.request.args['facetKey']
     assert key == 'Contact_channel_location', 'unknown key: ' + key
 
-    return flask.jsonify([
-        {
-            "name": "Phone Number",
-            "prefix": "urn:magenta.dk:telefon:",
-            "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
-        },
-    ])
+    return flask.jsonify(reading.get_contact_types())

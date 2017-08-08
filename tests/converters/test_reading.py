@@ -32,7 +32,6 @@ class SimpleTests(unittest.TestCase):
             with freezegun.freeze_time('2011-01-01 00:00:00', tz_offset=+1):
                 backdated = lora._get_restrictions_for(validity=validity,
                                                        effective_date=oldtime)
-                new = lora._get_restrictions_for(validity=validity)
 
             self.assertEqual(old[0], backdated[0])
             self.assertEqual(old[1]([value]), backdated[1]([value]))
@@ -135,3 +134,34 @@ class SimpleTests(unittest.TestCase):
         actual = self._apply_restrictions_for(obj, 'future')
 
         self.assertEquals(expected, actual)
+
+
+class LoRATest(test_util.TestCase):
+    @freezegun.freeze_time('2017-07-28')
+    @test_util.mock('role-type-contact-channel.json')
+    def test_role_type_contact(self, mock):
+        self.assertRequestResponse(
+            '/o/59141156-ed0b-457c-9535-884447c5220b'
+            '/org-unit/4b8fa170-d30e-43ff-aff3-b9792acfaa7d'
+            '/role-types/contact-channel/',
+            [
+                {
+                    "contact-info": "29208081",
+                    "location": {
+                        "name": "—",
+                    },
+                    "type": {
+                        "name": "Telefonnummer",
+                        "prefix": "urn:magenta.dk:telefon:",
+                        "user-key": "Telephone_number",
+                    },
+                    "visibility": {
+                        'name': 'Må vises internt',
+                        'user-key': 'internal',
+                        'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
+                    },
+                    "valid-from": "28-07-2017",
+                    "valid-to": "infinity"
+                }
+            ],
+        )

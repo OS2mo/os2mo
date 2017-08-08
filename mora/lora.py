@@ -141,8 +141,12 @@ def get(path, uuid, **params):
                     params=loraparams)
     _check_response(r)
 
-    assert (len(r.json()) == 1 and
-            len(r.json()[uuid]) == 1)
+    assert len(r.json()) == 1
+
+    if r.json()[uuid] is None:
+        return None
+
+    assert len(r.json()[uuid]) == 1
 
     registrations = r.json()[uuid][0]['registreringer']
 

@@ -9,12 +9,10 @@
 import atexit
 import functools
 import json
-import multiprocessing
 import os
 import select
 import signal
 import socket
-import socketserver
 import subprocess
 import sys
 import threading
@@ -40,7 +38,7 @@ def jsonfile_to_dict(path):
     :return: dictionary corresponding to the resource JSON
     """
     try:
-        with open(path) as f:
+        with open(os.path.join(BASE_DIR, path)) as f:
             return json.load(f)
     except json.JSONDecodeError:
         raise ValueError('failed to decode ' + path)

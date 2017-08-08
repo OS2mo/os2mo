@@ -1,0 +1,97 @@
+{
+  "note": "Flyt enhed", 
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "virkning": {
+          "to": "infinity", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "gyldighed": "Aktiv"
+      }
+    ]
+  }, 
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "virkning": {
+          "to": "infinity", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "brugervendtnoegle": "hum", 
+        "enhedsnavn": "Humanistisk fakultet"
+      }
+    ]
+  }, 
+  "livscykluskode": "Rettet", 
+  "relationer": {
+    "enhedstype": [
+      {
+        "virkning": {
+          "to": "infinity", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
+      }
+    ], 
+    "adresser": [
+      {
+        "virkning": {
+          "notetekst": "v0:1:Kontor", 
+          "to": "infinity", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+      }, 
+      {
+        "virkning": {
+          "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197", 
+          "to": "infinity", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "urn": "urn:magenta.dk:telefon:+4587150000"
+      }
+    ], 
+    "overordnet": [
+      {
+        "virkning": {
+          "to": "2017-05-01 00:00:00+02", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+      }, 
+      {
+        "virkning": {
+          "to": "infinity", 
+          "from": "2017-05-01 00:00:00+02", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "uuid": null
+      }
+    ], 
+    "tilhoerer": [
+      {
+        "virkning": {
+          "to": "infinity", 
+          "from": "2016-01-01 00:00:00+01", 
+          "to_included": false, 
+          "from_included": true
+        }, 
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+      }
+    ]
+  }
+}
