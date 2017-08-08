@@ -615,6 +615,15 @@ class TestWritingIntegration(util.LoRATestCase):
                         {
                             'gyldighed': 'Inaktiv',
                             'virkning': {
+                                'from': '-infinity',
+                                'from_included': True,
+                                'to': '2016-01-01 00:00:00+01',
+                                'to_included': False,
+                            },
+                        },
+                        {
+                            'gyldighed': 'Inaktiv',
+                            'virkning': {
                                 'from': '2017-03-01 00:00:00+01',
                                 'from_included': True,
                                 'to': 'infinity',

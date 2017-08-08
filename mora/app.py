@@ -6,9 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import operator
 import os
-import requests
 import traceback
 import uuid
 
@@ -101,7 +99,8 @@ def create_organisation_unit(orgid):
     # If an end date is set for the org unit, inactivate it automatically
     # from this date
     if 'valid-to' in req:
-        org_unit = writing.inactivate_org_unit(req['valid-to'])
+        org_unit = writing.inactivate_org_unit(req['valid-from'],
+                                               req['valid-to'])
         lora.update('organisation/organisationenhed/%s' % uuid, org_unit)
 
     return flask.jsonify({'uuid': uuid}), 201
@@ -110,8 +109,26 @@ def create_organisation_unit(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
 @util.restrictargs('endDate')
 def inactivate_org_unit(orgid, unitid):
-    payload = writing.inactivate_org_unit(flask.request.args.get('endDate'))
-    lora.update('organisation/organisationenhed/%s' % unitid, payload)
+    update_url = 'organisation/organisationenhed/%s' % unitid
+
+    # Keep the calls to LoRa in app.py (makes it easier to test writing.py)
+    org_unit = lora.organisationenhed.get(uuid=unitid, virkningfra='-infinity',
+                                          virkningtil='infinity')
+    startdate = [
+        g['virkning']['from'] for g in
+        org_unit['tilstande']['organisationenhedgyldighed']
+        if g['gyldighed'] == 'Aktiv'
+    ]
+    assert len(startdate) == 1  # We only support one active period for now
+    startdate = startdate[0]
+
+    # Delete org data for validity first - only way to do it in LoRa
+    lora.update(update_url, {'tilstande': {'organisationenhedgyldighed': []}})
+
+    # Then upload payload with actual virkninger
+    payload = writing.inactivate_org_unit(startdate,
+                                          flask.request.args.get('endDate'))
+    lora.update(update_url, payload)
 
     return flask.jsonify({'uuid': unitid}), 200
 
@@ -216,7 +233,6 @@ def full_hierarchy(orgid):
 @util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start',
                    't')
 def get_orgunit(orgid, unitid=None):
-
     # TODO: we are not actually using the 't' parameter - we should
     # probably remove this from the frontend calls later on...
 

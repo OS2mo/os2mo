@@ -13,7 +13,6 @@ from .. import lora
 from .. import util
 from .. import exceptions
 
-from . import addr
 from . import meta
 
 
@@ -96,7 +95,8 @@ def create_org_unit(req: dict) -> dict:
                         'UUID_EnhedsAdresse'],
                     'virkning': dict(
                         **virkning,
-                        notetekst=str(meta.Address.fromdict(location)),
+                        notetekst=str(
+                            meta.Address.fromdict(location)),
                     ),
                 }
 
@@ -152,18 +152,26 @@ def create_org_unit(req: dict) -> dict:
     return org_unit
 
 
-def inactivate_org_unit(date: str) -> dict:
+def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     """
     Inactivate an org unit
-    :param date: the date to inactivate the org unit from
+    :param startend: the date from which the org unit is active
+    :param enddate: the date to inactivate the org unit from
     :return: the payload JSON used to update LoRa
     """
 
     obj_path = ['tilstande', 'organisationenhedgyldighed']
-    props = {'gyldighed': 'Inaktiv'}
+    props_active = {'gyldighed': 'Aktiv'}
+    props_inactive = {'gyldighed': 'Inaktiv'}
 
-    return _create_payload(date, 'infinity', obj_path, props,
-                           'Afslut enhed')
+    payload = _create_payload('-infinity', startdate, obj_path, props_inactive,
+                              'Afslut enhed')
+    payload = _create_payload(startdate, enddate, obj_path, props_active,
+                              'Afslut enhed', payload)
+    payload = _create_payload(enddate, 'infinity', obj_path, props_inactive,
+                              'Afslut enhed', payload)
+
+    return payload
 
 
 def move_org_unit(req: dict) -> dict:
@@ -242,6 +250,10 @@ def retype_org_unit(req: dict) -> dict:
 
 def _create_payload(From: str, to: str, obj_path: list,
                     props: dict, note: str, payload: dict = None) -> dict:
+
+    obj_path_copy = obj_path.copy()
+    props_copy = props.copy()
+
     if payload:
         payload['note'] = note
     else:
@@ -250,14 +262,18 @@ def _create_payload(From: str, to: str, obj_path: list,
         }
 
     current_value = payload
-    while obj_path:
-        key = obj_path.pop(0)
-        if obj_path:
-            current_value[key] = {}
+    while obj_path_copy:
+        key = obj_path_copy.pop(0)
+        if obj_path_copy:
+            if key not in current_value.keys():
+                current_value[key] = {}
             current_value = current_value[key]
         else:
-            props['virkning'] = _create_virkning(From, to)
-            current_value[key] = [props]
+            props_copy['virkning'] = _create_virkning(From, to)
+            if key in current_value.keys():
+                current_value[key].append(props_copy)
+            else:
+                current_value[key] = [props_copy]
 
     return payload
 
