@@ -1,6 +1,5 @@
 Manual testing of MO
 ====================
-
 Before merging a branch into master, check that the following is ok. This is
 not a complete test of all features, but just some quick tests to check
 that all the major features are not unexpectedly broken.
@@ -23,4 +22,25 @@ after each of the following steps:
 13) Edit the org unit from 1) by changing the unit type - leave the date unchanged
 14) Edit the org unit from 1) by changing the org unit startdate (i.e. 'gyldighed')
 15) Edit both the unit type and the org unit startdate in one go (for the org unit from 1))
+16) Test that search is working (with and without wildcards)
 
+Testing tempority
+-----------------
+Wipe the DB and use the spreadsheet found in ``sandbox/AAK/AARHUS_3orgUnits.xlsx`` to
+test the following (or just make a similar scenario on the LoRa instance, you
+have running). Check that you can construct the following temporal org unit
+configuration. Begin by setting the org unit name and 'overordnet' as::
+
+  -----------[--------n1--------)[-----n2-----)[---------n3-------------
+  -----------[-------------------------o1-------------------------------
+
+where ``n`` refers to the name and ``o`` refers to 'overordnet'. Then set the
+org unit 'overordnet' as::
+
+  -----------[----o1---)[--------------o2------------------)[---o1------
+
+and check that the resulting configuration::
+
+  -----------[--n1,o1--)[-n1,o2-)[---n2,o2----)[-n3,o2-----)[---n3,o1---
+
+is shown correctly in the frontend.
