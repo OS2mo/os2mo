@@ -14,6 +14,7 @@ import freezegun
 
 from mora import lora
 from . import util
+from pprint import pprint
 
 
 class TestWritingIntegration(util.LoRATestCase):
@@ -934,6 +935,109 @@ class TestWritingIntegration(util.LoRATestCase):
             self.assert200(self.client.get(
                 '/o/%s/full-hierarchy?effective-date=&query='
                 '&treeType=treeType&t=1501766568624' % ORGID))
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=+1)
+    def test_should_be_possible_to_inactivate_an_org_unit_several_times(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        ORG_UNIT = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        # Expire the unit at 1 March 2017
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?endDate=01-03-2017' % (ORG, ORG_UNIT),
+            {
+                'uuid': ORG_UNIT,
+            },
+            method='DELETE',
+        )
+
+        expected_output = [
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-03-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': True,
+                    'to': '2016-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '2017-03-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_output = lora.organisationenhed.get(
+            uuid=ORG_UNIT,
+            virkningfra='-infinity',
+            virkningtil='infinity'
+        )['tilstande']['organisationenhedgyldighed']
+
+        self.assertEqual(expected_output, actual_output)
+
+        # ... and then again on 14 March 2017
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?endDate=14-03-2017' % (ORG, ORG_UNIT),
+            {
+                'uuid': ORG_UNIT,
+            },
+            method='DELETE',
+        )
+
+        expected_output = [
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-03-14 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': True,
+                    'to': '2016-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '2017-03-14 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_output = lora.organisationenhed.get(
+            uuid=ORG_UNIT,
+            virkningfra='-infinity',
+            virkningtil='infinity'
+        )['tilstande']['organisationenhedgyldighed']
+
+        self.assertEqual(expected_output, actual_output)
 
     @freezegun.freeze_time('2017-06-01 12:00:00', tz_offset=+1)
     def test_should_move_org_unit_correctly(self):
