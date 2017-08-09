@@ -1,4 +1,7 @@
+argon2_cffi
 flask
 requests
 tzlocal
 iso8601
+cython
+lxml

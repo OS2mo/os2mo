@@ -11,6 +11,7 @@ import os
 
 import flask
 
+from . import auth
 from . import cli
 from . import lora
 from . import util
@@ -81,19 +82,12 @@ def send_styles(path):
 
 @app.route('/service/user/<user>/login', methods=['POST'])
 def login(user):
-    r = lora.login(user, flask.request.get_json()['password'])
-
-    if r:
-        return flask.jsonify(r)
-    else:
-        return '', 401
+    return auth.login(user)
 
 
 @app.route('/service/user/<user>/logout', methods=['POST'])
 def logout(user):
-    return flask.jsonify(
-        lora.logout(user, flask.request.headers['X-AUTH-TOKEN'])
-    )
+    return auth.logout()
 
 
 @app.route('/acl/', methods=['POST', 'GET'])

@@ -16,7 +16,6 @@ import pycodestyle
 
 # upstream files; do not modify
 UPSTREAM_FILES = {
-    'mora/compat/secrets.py',
 }
 
 SKIP_DIRS = {
