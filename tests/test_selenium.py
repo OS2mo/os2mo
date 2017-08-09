@@ -156,7 +156,7 @@ class RightsTests(util.LiveLoRATestCase):
     def test_unit_view(self):
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
-        from selenium.webdriver.common.action_chains import ActionChains as AC
+        from selenium.webdriver.common.action_chains import ActionChains as AC  # noqa
         from selenium.webdriver.common.by import By
 
         self.load_sample_structures()

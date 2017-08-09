@@ -139,6 +139,7 @@ def get(path, uuid, **params):
 
     r = session.get('{}{}/{}'.format(settings.LORA_URL, path, uuid),
                     params=loraparams)
+
     _check_response(r)
 
     assert len(r.json()) == 1
