@@ -85,6 +85,32 @@ class MoraTestCase(TestSetup):
 
         self.assertEqual(actual_response, expected_response, 'Hurra')
 
+    @util.mock()
+    def test_invalid_operations(self, mock):
+        # we should do network I/O in the test, and 'empty' mocking
+        # verifies that
+
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/org-unit/00000000-0000-0000-0000-000000000000/?query=fail',
+            {
+                'message': 'unitid and query cannot both be set!',
+                'status': 400,
+            },
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/org-unit/00000000-0000-0000-0000-000000000000/'
+            'role-types/fail/',
+            {
+                'message': "unsupported role 'fail'",
+                'status': 400,
+            },
+            status_code=400,
+        )
+
 
 class TestCreateOrgUnit(TestSetup):
     @util.mock()
