@@ -20,6 +20,18 @@ from pprint import pprint
 class TestWritingIntegration(util.LoRATestCase):
     maxDiff = None
 
+    def _get_org_unit(self, org_unit: str) -> dict:
+        """
+        Get the full org unit with virkning from -infinity to +infinity
+        :param org_unit: the UUID of the org unit
+        :return: the full org unit
+        """
+        return lora.organisationenhed.get(
+            uuid=org_unit,
+            virkningfra='-infinity',
+            virkningtil='infinity'
+        )
+
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_location_edit(self):
         self.load_sample_structures(minimal=True)
@@ -318,8 +330,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
-        lora_response = lora.organisationenhed.get(
-            uuid=uuid, virkningfra='-infinity', virkningtil='infinity')
+        lora_response = self._get_org_unit(uuid)
         lora_response.pop('fratidspunkt')
 
         expected_response = util.jsonfile_to_dict(
@@ -771,6 +782,74 @@ class TestWritingIntegration(util.LoRATestCase):
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (ORGID, PARENTID, now)))
 
+    @freezegun.freeze_time('2017-07-01', tz_offset=+1)
+    def test_rename_org_unit_from_the_july1(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        ORG_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?rename=true' % (ORG, ORG_UNIT),
+            {'uuid': ORG_UNIT},
+            json={
+                "activeName": "Samfundsvidenskabelige fakultet",
+                "name": "NEW NAME",
+                "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "parent-object": {
+                    "activeName": "Overordnet Enhed",
+                    "name": "Overordnet Enhed",
+                    "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "parent": None,
+                    "parent-object": None,
+                    "type": {
+                        "name": "Afdeling"
+                    },
+                    "user-key": "root",
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "valid-from": "2015-12-31T23:00:00+00:00",
+                    "valid-to": "infinity"
+                },
+                "type": {
+                    "name": "Fakultet"
+                },
+                "user-key": "samf",
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                "valid-from": "01-08-2017"
+            }
+        )
+
+        # Check that the renaming was written correctly to LoRa
+
+        expected_response = [
+            {
+                'brugervendtnoegle': 'samf',
+                'enhedsnavn': 'NEW NAME',
+                'virkning': {
+                    'from': '2017-08-01 00:00:00+02',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'brugervendtnoegle': 'samf',
+                'enhedsnavn': 'Samfundsvidenskabelige fakultet',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-08-01 00:00:00+02',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_response = self._get_org_unit(ORG_UNIT)['attributter'][
+            'organisationenhedegenskaber']
+
+        self.assertEqual(expected_response, actual_response)
+
     def test_org_unit_deletion(self):
         with freezegun.freeze_time('2017-01-01'):
             self.load_sample_structures()
@@ -830,10 +909,8 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertEqual(
-                lora.organisationenhed.get(
-                    '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    virkningfra='-infinity', virkningtil='infinity',
-                )['tilstande'],
+                self._get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
+                    'tilstande'],
                 {
                     'organisationenhedgyldighed': [
                         {
@@ -868,10 +945,8 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertEqual(
-                lora.organisationenhed.get(
-                    '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    virkningfra='-infinity', virkningtil='infinity',
-                )['tilstande'],
+                self._get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
+                    'tilstande'],
                 {
                     'organisationenhedgyldighed': [
                         {
@@ -983,11 +1058,8 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_output = lora.organisationenhed.get(
-            uuid=ORG_UNIT,
-            virkningfra='-infinity',
-            virkningtil='infinity'
-        )['tilstande']['organisationenhedgyldighed']
+        actual_output = self._get_org_unit(ORG_UNIT)[
+            'tilstande']['organisationenhedgyldighed']
 
         self.assertEqual(expected_output, actual_output)
 
@@ -1031,11 +1103,8 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_output = lora.organisationenhed.get(
-            uuid=ORG_UNIT,
-            virkningfra='-infinity',
-            virkningtil='infinity'
-        )['tilstande']['organisationenhedgyldighed']
+        actual_output = self._get_org_unit(ORG_UNIT)[
+            'tilstande']['organisationenhedgyldighed']
 
         self.assertEqual(expected_output, actual_output)
 
@@ -1086,11 +1155,7 @@ class TestWritingIntegration(util.LoRATestCase):
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
-        entry = lora.organisationenhed.get(
-            org_unit,
-            virkningfra='-infinity',
-            virkningtil='infinity',
-        )
+        entry = self._get_org_unit(org_unit)
 
         expected = util.jsonfile_to_dict(
             'tests/integration_test_data/should_move_org_unit_correctly.json',
@@ -1351,11 +1416,8 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_addresses = lora.organisationenhed.get(
-            uuid=ORG_UNIT,
-            virkningfra='-infinity',
-            virkningtil='infinity'
-        )['relationer']['adresser']
+        actual_addresses = self._get_org_unit(ORG_UNIT)[
+            'relationer']['adresser']
 
         self.assertEqual(expected_addresses, actual_addresses)
 
@@ -1423,10 +1485,7 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_addresses = lora.organisationenhed.get(
-            uuid=ORG_UNIT,
-            virkningfra='-infinity',
-            virkningtil='infinity'
-        )['relationer']['adresser']
+        actual_addresses = self._get_org_unit(ORG_UNIT)[
+            'relationer']['adresser']
 
         self.assertEqual(expected_addresses, actual_addresses)
