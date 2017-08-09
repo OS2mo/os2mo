@@ -60,14 +60,14 @@ def autocomplete_address(query: str, orgid: str):
     if orgid:
         org = lora.organisation.get(orgid)
 
-        for myndighed in org['relationer']['myndighed']:
+        for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn', ''))
 
             if m:
                 code = int(m.group(1))
                 break
         else:
-            return 'No local municipality found!', 501
+            raise KeyError('No local municipality found!')
     else:
         code = None
 
