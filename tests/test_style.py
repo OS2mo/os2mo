@@ -14,16 +14,9 @@ import unittest
 
 import pycodestyle
 
-from . import util
-
 # upstream files; do not modify
 UPSTREAM_FILES = {
     'mora/compat/secrets.py',
-}
-
-# TODO: re-enable style checks for these files as needed
-SKIP_LIST = {
-    'tests/test_app.py',
 }
 
 SKIP_DIRS = {
@@ -90,10 +83,7 @@ class CodeStyleTests(unittest.TestCase):
         style.init_report(pycodestyle.StandardReport)
 
         with contextlib.redirect_stdout(io.StringIO()) as buf:
-            style.check_files(
-                fn for fn in self.source_files
-                if os.path.relpath(fn, util.BASE_DIR) not in SKIP_LIST
-            )
+            style.check_files(self.source_files)
 
         if buf.getvalue():
             self.fail("Found code style errors and/or warnings:\n" +

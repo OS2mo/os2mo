@@ -52,6 +52,11 @@ def get_mock_data(mock_name):
     return jsonfile_to_dict(os.path.join(MOCKING_DIR, mock_name))
 
 
+def get_mock_text(mock_name):
+    with open(os.path.join(MOCKING_DIR, mock_name)) as fp:
+        return fp.read()
+
+
 def get_unused_port():
     '''Obtain an unused port suitable for connecting to a server.
 
