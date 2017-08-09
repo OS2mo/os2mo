@@ -228,24 +228,6 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
 
 
-class TestInactivateOrgUnit(TestSetup):
-    @util.mock()
-    def test_should_respond_uuid_200_when_inactivating_org_unit(self, mock):
-        mock.put(
-            'http://mox/organisation/organisationenhed/'
-            '00000000-0000-0000-0000-000000000000',
-            json={'uuid': '00000000-0000-0000-0000-000000000000'})
-        r = self.client.delete(
-            '/o/00000000-0000-0000-0000-000000000000'
-            '/org-unit/00000000-0000-0000-0000-000000000000'
-            '?endDate=01-01-2010')
-        actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response,
-                         {'uuid': '00000000-0000-0000-0000-000000000000'},
-                         'Error when inactivating org unit')
-        self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
-
-
 class TestMoveOrgUnit(TestSetup):
     @util.mock()
     def test_should_respond_uuid_200_when_moving_org_unit(self, mock):

@@ -14,10 +14,23 @@ import freezegun
 
 from mora import lora
 from . import util
+from pprint import pprint
 
 
 class TestWritingIntegration(util.LoRATestCase):
     maxDiff = None
+
+    def _get_org_unit(self, org_unit: str) -> dict:
+        """
+        Get the full org unit with virkning from -infinity to +infinity
+        :param org_unit: the UUID of the org unit
+        :return: the full org unit
+        """
+        return lora.organisationenhed.get(
+            uuid=org_unit,
+            virkningfra='-infinity',
+            virkningtil='infinity'
+        )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_location_edit(self):
@@ -317,9 +330,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
-        # TODO: not checking gyldighed in (-inf, date]
-        lora_response = lora.organisationenhed(
-            uuid=uuid)[0]['registreringer'][-1]
+        lora_response = self._get_org_unit(uuid)
         lora_response.pop('fratidspunkt')
 
         expected_response = util.jsonfile_to_dict(
@@ -340,9 +351,6 @@ class TestWritingIntegration(util.LoRATestCase):
         self.assert200(self.client.get(
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
-
-        # TODO: it is confusing (i.e. less analysable) that the rename test
-        # below is located under the class TestCreateOrgUnit
 
         with self.subTest('rename'):
             r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid), )
@@ -774,6 +782,74 @@ class TestWritingIntegration(util.LoRATestCase):
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (ORGID, PARENTID, now)))
 
+    @freezegun.freeze_time('2017-07-01', tz_offset=+1)
+    def test_rename_org_unit_from_the_july1(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        ORG_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?rename=true' % (ORG, ORG_UNIT),
+            {'uuid': ORG_UNIT},
+            json={
+                "activeName": "Samfundsvidenskabelige fakultet",
+                "name": "NEW NAME",
+                "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "parent-object": {
+                    "activeName": "Overordnet Enhed",
+                    "name": "Overordnet Enhed",
+                    "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "parent": None,
+                    "parent-object": None,
+                    "type": {
+                        "name": "Afdeling"
+                    },
+                    "user-key": "root",
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "valid-from": "2015-12-31T23:00:00+00:00",
+                    "valid-to": "infinity"
+                },
+                "type": {
+                    "name": "Fakultet"
+                },
+                "user-key": "samf",
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                "valid-from": "01-08-2017"
+            }
+        )
+
+        # Check that the renaming was written correctly to LoRa
+
+        expected_response = [
+            {
+                'brugervendtnoegle': 'samf',
+                'enhedsnavn': 'NEW NAME',
+                'virkning': {
+                    'from': '2017-08-01 00:00:00+02',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'brugervendtnoegle': 'samf',
+                'enhedsnavn': 'Samfundsvidenskabelige fakultet',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-08-01 00:00:00+02',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_response = self._get_org_unit(ORG_UNIT)['attributter'][
+            'organisationenhedegenskaber']
+
+        self.assertEqual(expected_response, actual_response)
+
     def test_org_unit_deletion(self):
         with freezegun.freeze_time('2017-01-01'):
             self.load_sample_structures()
@@ -833,10 +909,8 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertEqual(
-                lora.organisationenhed.get(
-                    '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    virkningfra='-infinity', virkningtil='infinity',
-                )['tilstande'],
+                self._get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
+                    'tilstande'],
                 {
                     'organisationenhedgyldighed': [
                         {
@@ -871,10 +945,8 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertEqual(
-                lora.organisationenhed.get(
-                    '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    virkningfra='-infinity', virkningtil='infinity',
-                )['tilstande'],
+                self._get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
+                    'tilstande'],
                 {
                     'organisationenhedgyldighed': [
                         {
@@ -883,6 +955,15 @@ class TestWritingIntegration(util.LoRATestCase):
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': '2017-03-01 00:00:00+01',
+                                'to_included': False,
+                            },
+                        },
+                        {
+                            'gyldighed': 'Inaktiv',
+                            'virkning': {
+                                'from': '-infinity',
+                                'from_included': True,
+                                'to': '2016-01-01 00:00:00+01',
                                 'to_included': False,
                             },
                         },
@@ -929,6 +1010,103 @@ class TestWritingIntegration(util.LoRATestCase):
             self.assert200(self.client.get(
                 '/o/%s/full-hierarchy?effective-date=&query='
                 '&treeType=treeType&t=1501766568624' % ORGID))
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=+1)
+    def test_should_be_possible_to_inactivate_an_org_unit_several_times(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        ORG_UNIT = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        # Expire the unit at 1 March 2017
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?endDate=01-03-2017' % (ORG, ORG_UNIT),
+            {
+                'uuid': ORG_UNIT,
+            },
+            method='DELETE',
+        )
+
+        expected_output = [
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-03-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': True,
+                    'to': '2016-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '2017-03-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_output = self._get_org_unit(ORG_UNIT)[
+            'tilstande']['organisationenhedgyldighed']
+
+        self.assertEqual(expected_output, actual_output)
+
+        # ... and then again on 14 March 2017
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?endDate=14-03-2017' % (ORG, ORG_UNIT),
+            {
+                'uuid': ORG_UNIT,
+            },
+            method='DELETE',
+        )
+
+        expected_output = [
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-03-14 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': True,
+                    'to': '2016-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': {
+                    'from': '2017-03-14 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_output = self._get_org_unit(ORG_UNIT)[
+            'tilstande']['organisationenhedgyldighed']
+
+        self.assertEqual(expected_output, actual_output)
 
     @freezegun.freeze_time('2017-06-01 12:00:00', tz_offset=+1)
     def test_should_move_org_unit_correctly(self):
@@ -977,11 +1155,7 @@ class TestWritingIntegration(util.LoRATestCase):
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
-        entry = lora.organisationenhed.get(
-            org_unit,
-            virkningfra='-infinity',
-            virkningtil='infinity',
-        )
+        entry = self._get_org_unit(org_unit)
 
         expected = util.jsonfile_to_dict(
             'tests/integration_test_data/should_move_org_unit_correctly.json',
@@ -1086,7 +1260,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         "primaer": True,
                         "location": {
                             "UUID_EnhedsAdresse":
-                            "0a3f50c4-c4ba-32b8-e044-0003ba298018",
+                                "0a3f50c4-c4ba-32b8-e044-0003ba298018",
                             "postdistrikt": "Viby J",
                             "postnr": "8260",
                             "vejnavn": "Åbovej 5, Åbo, 8260 Viby J",
@@ -1103,7 +1277,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "name": "Phone Number",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
-                                    "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                        "b7ccfb21-f623-4e8f-80ce-89731f726224",
                                 },
                             },
                             {
@@ -1117,7 +1291,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "name": "Phone Number",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
-                                    "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                        "b7ccfb21-f623-4e8f-80ce-89731f726224",
                                 },
                             },
                         ],
@@ -1179,3 +1353,138 @@ class TestWritingIntegration(util.LoRATestCase):
                 },
             },
         ])
+
+    @freezegun.freeze_time('2017-08-01', tz_offset=+1)
+    def test_should_new_add_past_and_future_locations_correctly(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        ORG_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        # First add an address in the past
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            {'uuid': ORG_UNIT},
+            json={
+                "valid-from": "01-07-2017",
+                "valid-to": "19-07-2017",
+                "location": {
+                    "UUID_EnhedsAdresse": "0a3f50c2-6f16-32b8-"
+                                          "e044-0003ba298018",
+                    "postdistrikt": "Sabro",
+                    "postnr": "8471",
+                    "vejnavn": "Astervej 2, 8471 Sabro"
+                },
+                "name": "fortid",
+                "$$hashKey": "0YS"
+            }
+        )
+
+        expected_addresses = [
+            {
+                'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'virkning': {
+                    'from': '2017-07-01 00:00:00+02',
+                    'from_included': True,
+                    'notetekst': 'v0:0:fortid',
+                    'to': '2017-07-19 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:1:Kontor',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:external:b1f1817d-5f02-'
+                                 '4331-b8b3-97330a5d3197',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_addresses = self._get_org_unit(ORG_UNIT)[
+            'relationer']['adresser']
+
+        self.assertEqual(expected_addresses, actual_addresses)
+
+        # Then add an address in the future
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            {'uuid': ORG_UNIT},
+            json={
+                "valid-from": "01-09-2017",
+                "valid-to": "19-09-2017",
+                "location": {
+                    "UUID_EnhedsAdresse": "0a3f50c2-6f16-32b8-"
+                                          "e044-0003ba298018",
+                    "postdistrikt": "Sabro",
+                    "postnr": "8471",
+                    "vejnavn": "Astervej 2, 8471 Sabro"
+                },
+                "name": "fremtid",
+                "$$hashKey": "0YS"
+            }
+        )
+
+        expected_addresses = [
+            {
+                'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'virkning': {
+                    'from': '2017-09-01 00:00:00+02',
+                    'from_included': True,
+                    'notetekst': 'v0:0:fremtid',
+                    'to': '2017-09-19 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'virkning': {
+                    'from': '2017-07-01 00:00:00+02',
+                    'from_included': True,
+                    'notetekst': 'v0:0:fortid',
+                    'to': '2017-07-19 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:1:Kontor',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:external:b1f1817d-5f02-'
+                                 '4331-b8b3-97330a5d3197',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_addresses = self._get_org_unit(ORG_UNIT)[
+            'relationer']['adresser']
+
+        self.assertEqual(expected_addresses, actual_addresses)

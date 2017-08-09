@@ -278,7 +278,23 @@ def get_locations(unitid, **loraparams):
     if not orgunit:
         return []
 
-    def convert_addr(addrobj):
+    def convert_addr(addrobj: dict) -> dict:
+        """
+        Converts a LoRa address object to the appropriate frontend format, i.e.
+        the function converts an object like this:
+        {
+            "uuid": "0a3f50c3-5556-32b8-e044-0003ba298018",
+            "virkning": {
+                "from": "2017-07-10 22:00:00+00",
+                "from_included": true,
+                "notetekst": "v0:0:j",
+                "to": "2017-07-18 22:00:00+00",
+                "to_included": false
+            }
+        }
+        :param addrobj: The LoRa (UUID) address obejct to convert
+        :return: Address object in frontend format
+        """
         addrmeta = meta.Address.fromstring(
             addrobj['virkning'].get('notetekst'),
         )

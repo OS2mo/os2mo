@@ -73,6 +73,15 @@
           "to": "infinity"
         },
         "gyldighed": "Aktiv"
+      },
+      {
+        "virkning": {
+          "to": "2016-02-01 00:00:00+01",
+          "from_included": true,
+          "to_included": false,
+          "from": "-infinity"
+        },
+        "gyldighed": "Inaktiv"
       }
     ]
   },

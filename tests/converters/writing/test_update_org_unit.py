@@ -194,8 +194,8 @@ class TestUpdateOrgUnitAddresses(TestSetup):
         self.std_mock_org_unit = (
             'http://mox/organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
-            '&virkningfra=2017-01-01T00%3A00%3A00%2B01%3A00'
-            '&virkningtil=2017-01-02T00%3A00%3A00%2B01%3A00'
+            '&virkningfra=-infinity'
+            '&virkningtil=infinity'
         )
         self.json = jsonfile_to_dict(
             'tests/mocking/lora/organisation/organisationenhed/' +

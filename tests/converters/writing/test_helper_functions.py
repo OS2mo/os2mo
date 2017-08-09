@@ -8,11 +8,15 @@
 
 import unittest
 
+import freezegun
+
 from mora.converters import writing
 from mora import exceptions
 
 
 class TestHelperFunctions(unittest.TestCase):
+    maxDiff = None
+
     # Testing _check_arguments function
 
     def test_should_raise_exception_if_arg_is_missing(self):
@@ -94,50 +98,115 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(expected,
                          writing.create_update_kwargs(req))
 
-        # Testing _create_payload function
+    # Testing _create_payload function
 
-        # The following could be relevant later on
+    def test_should_append_props_correctly(self):
+        payload = {
+            'note': 'dummy note',
+            'a': {
+                'b': [
+                    {
+                        'c': 'dummy',
+                        'virkning': {
+                            'from': '2000-01-01',
+                            'from_included': True,
+                            'to': '2000-12-12',
+                            'to_included': False,
+                        }
+                    }
+                ]
+            }
+        }
+        expected_output = {
+            'note': 'changed dummy note',
+            'a': {
+                'b': [
+                    {
+                        'c': 'dummy',
+                        'virkning': {
+                            'from': '2000-01-01',
+                            'from_included': True,
+                            'to': '2000-12-12',
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'c': 'dummy2',
+                        'virkning': {
+                            'from': '2000-01-01T00:00:00+01:00',
+                            'from_included': True,
+                            'to': '2000-12-12T00:00:00+01:00',
+                            'to_included': False,
+                        }
+                    }
+                ]
+            }
+        }
+        props = {'c': 'dummy2'}
+        actual_output = writing._create_payload('01-01-2000', '12-12-2000',
+                                                ['a', 'b'],
+                                                props,
+                                                'changed dummy note',
+                                                payload)
+        self.assertEqual(expected_output, actual_output)
 
-        # def test_should_append_props_correctly(self):
-        #     payload = {
-        #         'note': 'dummy note',
-        #         'a': {
-        #             'b': [
-        #                 {
-        #                     'c': 'dummy'
-        #                 }
-        #             ]
-        #         }
-        #     }
-        #     expected_output = {
-        #         'note': 'changed dummy note',
-        #         'a': {
-        #             'b': [
-        #                 {
-        #                     'c': 'dummy'
-        #                 },
-        #                 {
-        #                     'c': 'dummy',
-        #                     'virkning': {
-        #                         'from': '2000-01-01',
-        #                         'to': '2000-12-12'
-        #                     }
-        #                 }
-        #             ]
-        #         }
-        #     }
-        #     props = {
-        #         'c': 'dummy',
-        #         'virkning': {
-        #             'from': '2000-01-01',
-        #             'from_included': True,
-        #             'to': '2000-12-12',
-        #             'to_included': False,
-        #         }
-        #     }
-        # actual_output = writing._create_payload('01-01-2000', '12-12-2000',
-        #                                         ['a', 'b'],
-        #                             props, 'changed dummy note', payload)
-        #     print('actual output = ')
-        #     pprint(actual_output)
-        #     self.assertEqual(expected_output, actual_output)
+    @freezegun.freeze_time(tz_offset=+1)
+    def test_should_add_more_payloads_correctly(self):
+        obj_path = ['tilstande', 'organisationenhedgyldighed']
+        props_active = {'gyldighed': 'Aktiv'}
+        props_inactive = {'gyldighed': 'Inaktiv'}
+
+        payload = writing._create_payload('-infinity', '01-01-2000', obj_path,
+                                          props_inactive, 'Afslut enhed')
+
+        self.assertEqual({
+            'note': 'Afslut enhed',
+            'tilstande': {
+                'organisationenhedgyldighed': [
+                    {
+                        'gyldighed': 'Inaktiv',
+                        'virkning': {
+                            'from': '-infinity',
+                            'from_included': False,
+                            'to': '2000-01-01T00:00:00+01:00',
+                            'to_included': False,
+                        }
+                    }
+                ]
+            }
+        },
+            payload
+        )
+
+        payload2 = writing._create_payload('01-01-2000', '01-02-2000',
+                                           obj_path, props_active,
+                                           'Afslut enhed', payload)
+
+        self.assertEqual({
+            'note': 'Afslut enhed',
+            'tilstande': {
+                'organisationenhedgyldighed': [
+                    {
+                        'gyldighed': 'Inaktiv',
+                        'virkning': {
+                            'from': '-infinity',
+                            'from_included': False,
+                            'to': '2000-01-01T00:00:00+01:00',
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2000-01-01T00:00:00+01:00',
+                            'from_included': True,
+                            'to': '2000-02-01T00:00:00+01:00',
+                            'to_included': False,
+                        }
+                    }
+
+                ]
+            }
+        },
+            payload2
+        )
