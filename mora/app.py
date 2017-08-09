@@ -306,9 +306,6 @@ def get_geographical_addresses():
 @util.restrictargs()
 @app.route('/role-types/contact/facets/properties/classes/')
 def get_contact_facet_properties_classes():
-    # This yields three options in the original Mock test:
-    # internal-only, external and unlisted. (In Danish: “Må vises
-    # internt”, “Må vises eksternt” and “Hemmligt”.)
     return flask.jsonify(reading.get_contact_properties())
 
 
