@@ -7,6 +7,7 @@
 #
 
 import atexit
+import contextlib
 import functools
 import json
 import os
@@ -127,6 +128,18 @@ def load_sample_structures(*, verbose=False, minimal=False):
         load_fixture(*args, verbose=verbose)
 
 
+@contextlib.contextmanager
+def override_settings(**overrides):
+    orig_settings = {k: getattr(settings, k) for k in overrides}
+    settings.__dict__.update(overrides)
+    yield
+    settings.__dict__.update(orig_settings)
+
+
+def override_lora_url(lora_url='http://mox/'):
+    return override_settings(LORA_URL=lora_url)
+
+
 def mock(name=None):
     '''Decorator for running a function under requests_mock, with the
     given mocking fixture loaded.
@@ -144,17 +157,11 @@ def mock(name=None):
                     for url, value in get_mock_data(name).items():
                         mock.get(url, json=value, complete_qs=True)
 
-                # stash the LoRA URL away, and restore it afterwards
-                orig_lora_url = settings.LORA_URL
-                settings.LORA_URL = 'http://mox/'
-
                 # pass the mocker object as the final parameter
                 args = args + (mock,)
 
-                try:
+                with override_lora_url():
                     return func(*args, **kwargs)
-                finally:
-                    settings.LORA_URL = orig_lora_url
 
         return wrapper
 
@@ -176,7 +183,12 @@ class TestCaseMixin(object):
 
         return app.app
 
-    def assertRequestResponse(self, path, expected, message=None, **kwargs):
+    @property
+    def lora_url(self):
+        return settings.LORA_URL
+
+    def assertRequestResponse(self, path, expected, message=None, *,
+                              status_code=None, drop_keys=(), **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -200,9 +212,22 @@ class TestCaseMixin(object):
 
         r = self.client.open(path, **kwargs)
 
-        self.assertLess(r.status_code, 300, message)
-        self.assertGreaterEqual(r.status_code, 200, message)
-        self.assertEqual(expected, r.json, message)
+        with self.subTest('HTTP status'):
+            if status_code is None:
+                self.assertLess(r.status_code, 300, message)
+                self.assertGreaterEqual(r.status_code, 200, message)
+            else:
+                self.assertEqual(r.status_code, status_code, message)
+
+        actual = r.json
+
+        for k in drop_keys:
+            try:
+                actual.pop(k)
+            except (IndexError, KeyError, TypeError):
+                pass
+
+        self.assertEqual(expected, actual, message)
 
     def assertRequestFails(self, path, code, message=None):
         '''Issue a request and assert that it succeeds (and does not
@@ -245,6 +270,7 @@ class LoRATestCaseMixin(TestCaseMixin):
 
         cls._orig_lora = settings.LORA_URL
         settings.LORA_URL = 'http://localhost:{}/'.format(port)
+        settings.SAML_IDP_TYPE = None
 
         # This is the first such measure: if the interpreter abruptly
         # exits for some reason, tell the subprocess to exit as well
