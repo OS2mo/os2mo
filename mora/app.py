@@ -271,8 +271,8 @@ def get_orgunit_history(orgid, unitid):
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
-    if role not in ['contact-channel', 'location']:
-        return flask.jsonify([]), 400
+    # if role not in ['contact-channel', 'location']:
+    #     return flask.jsonify([]), 400
 
     validity = flask.request.args.get('validity')
 

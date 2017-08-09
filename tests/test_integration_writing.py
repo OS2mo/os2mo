@@ -1092,7 +1092,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         "primaer": True,
                         "location": {
                             "UUID_EnhedsAdresse":
-                            "0a3f50c4-c4ba-32b8-e044-0003ba298018",
+                                "0a3f50c4-c4ba-32b8-e044-0003ba298018",
                             "postdistrikt": "Viby J",
                             "postnr": "8260",
                             "vejnavn": "Åbovej 5, Åbo, 8260 Viby J",
@@ -1109,7 +1109,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "name": "Phone Number",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
-                                    "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                        "b7ccfb21-f623-4e8f-80ce-89731f726224",
                                 },
                             },
                             {
@@ -1123,7 +1123,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "name": "Phone Number",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
-                                    "b7ccfb21-f623-4e8f-80ce-89731f726224",
+                                        "b7ccfb21-f623-4e8f-80ce-89731f726224",
                                 },
                             },
                         ],
@@ -1185,3 +1185,144 @@ class TestWritingIntegration(util.LoRATestCase):
                 },
             },
         ])
+
+    @freezegun.freeze_time('2017-08-01', tz_offset=+1)
+    def test_should_new_add_past_and_future_locations_correctly(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        ORG_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        # First add an address in the past
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            {'uuid': ORG_UNIT},
+            json={
+                "valid-from": "01-07-2017",
+                "valid-to": "19-07-2017",
+                "location": {
+                    "UUID_EnhedsAdresse": "0a3f50c2-6f16-32b8-"
+                                          "e044-0003ba298018",
+                    "postdistrikt": "Sabro",
+                    "postnr": "8471",
+                    "vejnavn": "Astervej 2, 8471 Sabro"
+                },
+                "name": "fortid",
+                "$$hashKey": "0YS"
+            }
+        )
+
+        expected_addresses = [
+            {
+                'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'virkning': {
+                    'from': '2017-07-01 00:00:00+02',
+                    'from_included': True,
+                    'notetekst': 'v0:0:fortid',
+                    'to': '2017-07-19 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:1:Kontor',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:external:b1f1817d-5f02-'
+                                 '4331-b8b3-97330a5d3197',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_addresses = lora.organisationenhed.get(
+            uuid=ORG_UNIT,
+            virkningfra='-infinity',
+            virkningtil='infinity'
+        )['relationer']['adresser']
+
+        self.assertEqual(expected_addresses, actual_addresses)
+
+        # Then add an address in the future
+
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            {'uuid': ORG_UNIT},
+            json={
+                "valid-from": "01-09-2017",
+                "valid-to": "19-09-2017",
+                "location": {
+                    "UUID_EnhedsAdresse": "0a3f50c2-6f16-32b8-"
+                                          "e044-0003ba298018",
+                    "postdistrikt": "Sabro",
+                    "postnr": "8471",
+                    "vejnavn": "Astervej 2, 8471 Sabro"
+                },
+                "name": "fremtid",
+                "$$hashKey": "0YS"
+            }
+        )
+
+        expected_addresses = [
+            {
+                'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'virkning': {
+                    'from': '2017-09-01 00:00:00+02',
+                    'from_included': True,
+                    'notetekst': 'v0:0:fremtid',
+                    'to': '2017-09-19 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'virkning': {
+                    'from': '2017-07-01 00:00:00+02',
+                    'from_included': True,
+                    'notetekst': 'v0:0:fortid',
+                    'to': '2017-07-19 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:1:Kontor',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'notetekst': 'v0:external:b1f1817d-5f02-'
+                                 '4331-b8b3-97330a5d3197',
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        actual_addresses = lora.organisationenhed.get(
+            uuid=ORG_UNIT,
+            virkningfra='-infinity',
+            virkningtil='infinity'
+        )['relationer']['adresser']
+
+        self.assertEqual(expected_addresses, actual_addresses)

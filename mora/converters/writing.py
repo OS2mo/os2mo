@@ -115,7 +115,8 @@ def create_org_unit(req: dict) -> dict:
                         notetekst=str(meta.PhoneNumber(
                             location=location['location']
                             ['UUID_EnhedsAdresse'],
-                            visibility=channel['visibility']['user-key'],
+                            visibility=channel['visibility'][
+                                'user-key'],
                         )),
                     ),
                 }
@@ -258,7 +259,6 @@ def retype_org_unit(req: dict) -> dict:
 
 def _create_payload(From: str, to: str, obj_path: list,
                     props: dict, note: str, payload: dict = None) -> dict:
-
     obj_path_copy = obj_path.copy()
     props_copy = props.copy()
 
@@ -288,7 +288,7 @@ def _create_payload(From: str, to: str, obj_path: list,
 
 # ---------------------------- Updating addresses -------------------------- #
 
-# ---- Handling of role types: contact-channel, location andn None ---- #
+# ---- Handling of role types: contact-channel, location and None ---- #
 
 
 def _add_contact_channels(org_unit: dict, location: dict,
@@ -430,7 +430,9 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     # TODO: use danchr's decorator (not yet committed) on the route instead
     assert roletype in ['contact-channel', 'location', None]
 
-    org_unit = lora.organisationenhed(uuid=unitid)[0]['registreringer'][-1]
+    org_unit = lora.organisationenhed(
+        uuid=unitid, virkningfra='-infinity', virkningtil='infinity')[0][
+        'registreringer'][-1]
 
     if roletype == 'contact-channel':
         if 'contact_channels' in kwargs:

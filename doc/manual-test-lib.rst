@@ -24,8 +24,8 @@ after each of the following steps:
 15) Edit both the unit type and the org unit startdate in one go (for the org unit from 1))
 16) Test that search is working (with and without wildcards)
 
-Testing tempority
------------------
+Testing temporality
+-------------------
 Wipe the DB and use the spreadsheet found in ``sandbox/AAK/AARHUS_3orgUnits.xlsx`` to
 test the following (or just make a similar scenario on the LoRa instance, you
 have running). Check that you can construct the following temporal org unit
@@ -44,3 +44,6 @@ and check that the resulting configuration::
   -----------[--n1,o1--)[-n1,o2-)[---n2,o2----)[-n3,o2-----)[---n3,o1---
 
 is shown correctly in the frontend.
+
+Also test that it is possible to add a new location in the past and a new
+location in the future for the same org unit.
