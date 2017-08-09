@@ -6,8 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import json
 import os
-import traceback
 
 import flask
 
@@ -28,10 +28,12 @@ cli.load_cli(app)
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
-    stack = traceback.format_exc()
     data = flask.request.get_json()
 
     if data:
+        if 'password' in data:
+            data['password'] = 'X' * 8
+
         flask.current_app.logger.exception(
             'AN ERROR OCCURRED in %r:\n%s',
             flask.request.full_path,
@@ -43,12 +45,22 @@ def handle_invalid_usage(error):
             flask.request.full_path,
         )
 
-    status_code = 400 if isinstance(error, ValueError) else 500
+    if isinstance(error, ValueError):
+        status_code = 400
+    elif isinstance(error, (KeyError, IndexError)):
+        status_code = 404
+    elif isinstance(error, PermissionError):
+        status_code = 401
+    else:
+        status_code = 500
 
     return flask.jsonify({
         'status': status_code,
-        'message': str(error),
-        'context': stack,
+        'message': (
+            error.args[0]
+            if error.args and len(error.args) == 1
+            else error.args
+        )
     }), status_code
 
 
