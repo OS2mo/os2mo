@@ -265,10 +265,8 @@ def get_orgunit_history(orgid, unitid):
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
-    if role not in ['contact-channel', 'location']:
-        return flask.jsonify([]), 400
-
     validity = flask.request.args.get('validity')
+    effective_date = flask.request.args.get('effective-date')
 
     getters = {
         'contact-channel': reading.get_contact_channels,
@@ -276,10 +274,9 @@ def get_role(orgid, unitid, role):
     }
 
     if role not in getters:
-        flask.current_app.logger.warn('unsupported role {!r}'.format(role))
-        return flask.jsonify([]), 400
+        raise ValueError('unsupported role {!r}'.format(role))
 
-    r = getters[role](unitid, validity=validity)
+    r = getters[role](unitid, validity=validity, effective_date=effective_date)
 
     if r:
         return flask.jsonify(r)
