@@ -61,18 +61,12 @@ def get_token(username, passwd, pretty_print=False,
         expires=expires.isoformat(),
     )
 
-    with open('/tmp/request.xml', 'w') as fp:
-        fp.write(xml)
-
     resp = requests.post(
         settings.SAML_IDP_URL,
         data=xml, verify=not insecure, headers={
             'Content-Type': 'application/soap+xml; charset=utf-8',
         },
     )
-
-    with open('/tmp/response.xml', 'w') as fp:
-        fp.write(resp.text)
 
     if not resp.ok:
         # do something?

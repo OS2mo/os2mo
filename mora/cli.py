@@ -121,6 +121,7 @@ def load_cli(app):
             urllib3.disable_warnings()
 
         try:
+            # this is where the magic happens
             token = tokens.get_token(username, password,
                                      options['raw'] or options['cert_only'],
                                      options['insecure'])
