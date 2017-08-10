@@ -34,9 +34,10 @@ class SAMLAuth(requests.auth.AuthBase):
 
 
 def login(username):
+    # TODO: remember me?
     password = flask.request.get_json()['password']
 
-    assertion = tokens.get_token(username, password)
+    expiry, assertion = tokens.get_token(username, password)
 
     resp = flask.jsonify({
         "user": username,
@@ -46,6 +47,7 @@ def login(username):
 
     resp.set_cookie(COOKIE_NAME, assertion,
                     secure=flask.request.is_secure,
+                    expires=expiry,
                     httponly=True)
 
     return resp

@@ -12,6 +12,7 @@ import io
 import xml.etree.ElementTree
 import zlib
 
+import iso8601
 import flask
 import requests
 
@@ -56,7 +57,7 @@ def get_token(username, passwd, raw=False, insecure=None):
         xml.etree.ElementTree.register_namespace(prefix, uri)
 
     if not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
-        return 'N/A'
+        return None, 'N/A'
 
     if insecure is None:
         insecure = settings.SAML_IDP_INSECURE
@@ -104,11 +105,14 @@ def get_token(username, passwd, raw=False, insecure=None):
 
     doc._setroot(tokens[0])
 
+    conditions = doc.find('.//saml:Conditions', XML_NAMESPACES)
+    expiry = iso8601.parse_date(conditions.attrib['NotBefore'])
+
     with io.BytesIO() as buf:
         doc.write(buf)
         assertion = buf.getvalue()
 
-    return assertion if raw else _pack(assertion)
+    return expiry, assertion if raw else _pack(assertion)
 
 
 __all__ = ('get_token')

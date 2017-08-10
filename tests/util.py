@@ -53,8 +53,8 @@ def get_mock_data(mock_name):
     return jsonfile_to_dict(os.path.join(MOCKING_DIR, mock_name))
 
 
-def get_mock_text(mock_name):
-    with open(os.path.join(MOCKING_DIR, mock_name)) as fp:
+def get_mock_text(mock_name, mode='r'):
+    with open(os.path.join(MOCKING_DIR, mock_name), mode) as fp:
         return fp.read()
 
 
