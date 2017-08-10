@@ -3,6 +3,5 @@
 branch = True
 omit =
      venv*
-     tests/*
      manage.py
      mora/cli.py

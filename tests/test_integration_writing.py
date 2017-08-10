@@ -14,7 +14,6 @@ import freezegun
 
 from mora import lora
 from . import util
-from pprint import pprint
 
 
 class TestWritingIntegration(util.LoRATestCase):

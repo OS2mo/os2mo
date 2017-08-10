@@ -11,6 +11,7 @@ import copy
 
 import freezegun
 
+from mora.converters import meta
 from mora import lora
 from mora import util
 
@@ -134,6 +135,37 @@ class SimpleTests(unittest.TestCase):
         actual = self._apply_restrictions_for(obj, 'future')
 
         self.assertEquals(expected, actual)
+
+    def test_meta(self):
+        self.assertEquals(meta.Address.fromstring('asdasdasd'),
+                          meta.Address(name='asdasdasd', primary=False))
+
+        self.assertEquals(meta.Address.fromstring(''),
+                          meta.Address(name='', primary=False))
+
+        with self.assertRaises(ValueError):
+            meta.Address.fromstring('v1337:::::::')
+
+        self.assertEquals(
+            meta.PhoneNumber.fromstring(
+                'v0:kaflaflibob:00000000-0000-0000-0000-000000000000',
+            ),
+            meta.PhoneNumber(
+                location='00000000-0000-0000-0000-000000000000',
+                visibility='kaflaflibob',
+            ),
+        )
+
+        self.assertEquals(
+            meta.PhoneNumber.fromstring(''),
+            meta.PhoneNumber(location=None, visibility='internal'),
+        )
+
+        with self.assertRaises(ValueError):
+            meta.PhoneNumber.fromstring('v1337:::::::')
+
+        with self.assertRaises(ValueError):
+            meta.PhoneNumber.fromstring('asdasdasd')
 
 
 class LoRATest(test_util.TestCase):

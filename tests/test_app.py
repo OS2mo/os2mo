@@ -44,26 +44,6 @@ class MoraTestCase(TestSetup):
         self.assertEqual(b'[]\n', rv.data,
                          'Acl route should return empty list')
 
-    def _standard_mock_setup(self, mock):
-        lora_org_response = util.get_mock_data(
-            'lora/organisation/organisation/get_org_from_uuid.json',
-        )
-        mock.get(self._get_lora_url('org_org_uuid'), json=lora_org_response)
-        mock.get(
-            self._get_lora_url('org_orgEnhed_tilhoerer'),
-            json=util.get_mock_data(
-                'lora/organisation/organisationenhed/'
-                'get_orgEnhed_from_tilhoerer.json',
-            ),
-        )
-        mock.get(
-            self._get_lora_url('org_orgEnhed_uuidx3'),
-            json=util.get_mock_data(
-                'lora/organisation/organisationenhed/'
-                'get_orgEnhed_from_uuidx3.json',
-            ),
-        )
-
     @util.mock()
     def test_list_classes(self, mock):
         lora_klasse_response = util.get_mock_data(
@@ -106,6 +86,16 @@ class MoraTestCase(TestSetup):
             'role-types/fail/',
             {
                 'message': "unsupported role 'fail'",
+                'status': 400,
+            },
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/full-hierarchy?query=fail',
+            {
+                'message': 'sub-tree searching is unsupported!',
                 'status': 400,
             },
             status_code=400,
@@ -248,7 +238,3 @@ class TestMoveOrgUnit(TestSetup):
                          {'uuid': '00000000-0000-0000-0000-000000000000'},
                          'Error when moving org unit')
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
-
-
-if __name__ == '__main__':
-    unittest.main()

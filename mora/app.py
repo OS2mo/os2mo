@@ -218,8 +218,7 @@ def full_hierarchy(orgid):
         # TODO: the query argument does sub-tree searching -- given
         # that LoRA has no notion of the organisation tree, we'd have
         # to emulate it
-        flask.current_app.logger.error('sub-tree searching is unsupported!')
-        return '', 400
+        raise ValueError('sub-tree searching is unsupported!')
 
     if args.get('treeType', None) == 'specific':
         r = reading.full_hierarchy(str(orgid), args['orgUnitId'], **params)

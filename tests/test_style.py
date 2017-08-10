@@ -82,11 +82,12 @@ class CodeStyleTests(unittest.TestCase):
         style.init_report(pycodestyle.StandardReport)
 
         with contextlib.redirect_stdout(io.StringIO()) as buf:
-            style.check_files(self.source_files)
+            report = style.check_files(self.source_files)
 
-        if buf.getvalue():
-            self.fail("Found code style errors and/or warnings:\n" +
-                      buf.getvalue())
+        self.assertFalse(
+            report.total_errors,
+            "Found code style errors and/or warnings:\n\n" + buf.getvalue(),
+        )
 
     def test_source_files(self):
         'Sanity check: we must find multiple sources'

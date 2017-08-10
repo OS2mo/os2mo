@@ -98,10 +98,7 @@ def get_token(username, passwd, raw=False, insecure=None):
 
     tokens = doc.findall('.//saml:Assertion', XML_NAMESPACES)
 
-    if len(tokens) != 1:
-        raise ValueError(
-            'one single token expected, but got {}'.format(len(tokens)),
-        )
+    assert len(tokens) == 1, 'one token expected, got {}'.format(len(tokens))
 
     doc._setroot(tokens[0])
 
