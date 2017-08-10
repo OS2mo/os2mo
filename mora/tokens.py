@@ -8,11 +8,12 @@
 
 import base64
 import datetime
-import requests
+import io
+import xml.etree.ElementTree
 import zlib
 
-from lxml import etree
 import flask
+import requests
 
 from . import settings
 from . import util
@@ -20,6 +21,13 @@ from . import util
 IDP_TEMPLATES = {
     'adfs': 'adfs-soap-request.xml',
     'wso2': 'wso2-soap-request.xml',
+}
+
+XML_NAMESPACES = {
+    'soapenv': 'http://www.w3.org/2003/05/soap-envelope',
+    'saml': 'urn:oasis:names:tc:SAML:2.0:assertion',
+    'dsig': 'http://www.w3.org/2000/09/xmldsig#',
+    'canon': 'http://www.w3.org/2001/10/xml-exc-c14n#',
 }
 
 
@@ -30,8 +38,11 @@ def _gzipstring(s):
     return compressor.compress(s) + compressor.flush()
 
 
-def get_token(username, passwd, pretty_print=False,
-              insecure=None):
+def _pack(s):
+    return b'saml-gzipped ' + base64.standard_b64encode(_gzipstring(s))
+
+
+def get_token(username, passwd, raw=False, insecure=None):
     '''Request a SAML authentication token from the given host and endpoint.
 
     Windows Server typically returns a 500 Internal Server Error on
@@ -40,6 +51,9 @@ def get_token(username, passwd, pretty_print=False,
     KeyError. WSO2 tends to yield more meaningful errors.
 
     '''
+
+    for prefix, uri in XML_NAMESPACES.items():
+        xml.etree.ElementTree.register_namespace(prefix, uri)
 
     if not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
         return 'N/A'
@@ -52,7 +66,7 @@ def get_token(username, passwd, pretty_print=False,
     template_name = IDP_TEMPLATES[settings.SAML_IDP_TYPE]
 
     t = flask.current_app.jinja_env.get_template(template_name)
-    xml = t.render(
+    requestxml = t.render(
         username=username,
         password=passwd,
         endpoint=settings.SAML_ENTITY_ID,
@@ -61,45 +75,40 @@ def get_token(username, passwd, pretty_print=False,
         expires=expires.isoformat(),
     )
 
-    resp = requests.post(
-        settings.SAML_IDP_URL,
-        data=xml, verify=not insecure, headers={
-            'Content-Type': 'application/soap+xml; charset=utf-8',
-        },
-    )
-
-    if not resp.ok:
-        # do something?
+    with requests.post(
+            settings.SAML_IDP_URL,
+            data=requestxml, verify=not insecure, headers={
+                'Content-Type': 'application/soap+xml; charset=utf-8',
+            },
+            stream=True,
+    ) as resp:
         ct = resp.headers.get('Content-Type', '').split(';')[0]
 
-        if resp.status_code == 500 and ct == 'application/soap+xml':
-            doc = etree.fromstring(resp.content)
+        if not resp.ok and ct != 'application/soap+xml':
+            resp.raise_for_status()
 
-            raise PermissionError(' '.join(doc.itertext('{*}Text')))
+        doc = xml.etree.ElementTree.parse(resp.raw)
 
-        resp.raise_for_status()
+    errormsg = doc.findtext('.//soapenv:Reason/soapenv:Text',
+                            None, XML_NAMESPACES)
 
-    doc = etree.fromstring(resp.content)
+    if not resp.ok or errormsg:
+        raise PermissionError(errormsg)
 
-    if doc.find('./{*}Body/{*}Fault') is not None:
-        raise PermissionError(' '.join(doc.itertext('{*}Text')))
+    tokens = doc.findall('.//saml:Assertion', XML_NAMESPACES)
 
-    tokens = doc.findall('.//{*}RequestedSecurityToken/{*}Assertion')
+    if len(tokens) != 1:
+        raise ValueError(
+            'one single token expected, but got {}'.format(len(tokens)),
+        )
 
-    if len(tokens) == 0:
-        raise ValueError('no tokens found - is the endpoint correct?')
-    if len(tokens) > 1:
-        raise ValueError('too many tokens found')
+    doc._setroot(tokens[0])
 
-    assert len(tokens) == 1
+    with io.BytesIO() as buf:
+        doc.write(buf)
+        assertion = buf.getvalue()
 
-    if pretty_print:
-        return etree.tostring(tokens[0], pretty_print=pretty_print)
-    else:
-        text = \
-            base64.standard_b64encode(_gzipstring(etree.tostring(tokens[0])))
-
-        return b'saml-gzipped ' + text
+    return assertion if raw else _pack(assertion)
 
 
 __all__ = ('get_token')
