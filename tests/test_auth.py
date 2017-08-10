@@ -8,6 +8,8 @@
 
 import freezegun
 
+from mora import tokens
+
 from . import util
 
 IDP_URL = 'mock://idp'
@@ -66,6 +68,32 @@ class MockTests(util.TestCase):
             )
 
     @util.mock()
+    def test_failed_adfs_login(self, mock):
+        mock.post(IDP_URL,
+                  text=util.get_mock_text('auth/adfs-failed-login.xml'),
+                  headers={
+                      'Content-Type': 'application/soap+xml',
+                  },
+                  status_code=500)
+
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/USER/login',
+                {
+                    'message': (
+                        'ID3242: The security token could not be '
+                        'authenticated or authorized.'
+                    ),
+                    'status': 401,
+                },
+                json={
+                    'password': 's3cr1t!',
+                },
+                status_code=401,
+            )
+
+    @util.mock()
     def test_successful_wso2_login(self, mock):
         mock.post(IDP_URL,
                   text=util.get_mock_text('auth/wso2-successful-login.xml'),
@@ -82,6 +110,36 @@ class MockTests(util.TestCase):
                 json={
                     'password': 's3cr1t!',
                 },
+            )
+
+            with self.subTest('raw'):
+                self.assertEquals(
+                    tokens.get_token('X', 'Y', raw=True).decode('us-ascii'),
+                    util.get_mock_text('auth/wso2-assertion.xml'),
+                )
+
+    @util.mock()
+    def test_successful_adfs_login(self, mock):
+        mock.post(IDP_URL,
+                  text=util.get_mock_text('auth/adfs-successful-login.xml'),
+                  headers={
+                      'Content-Type': 'application/soap+xml',
+                  },
+                  status_code=200)
+
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/USER/login',
+                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                json={
+                    'password': 's3cr1t!',
+                },
+            )
+
+            self.assertEquals(
+                tokens.get_token('X', 'Y', raw=True).decode('us-ascii'),
+                util.get_mock_text('auth/adfs-assertion.xml'),
             )
 
     @util.mock()
