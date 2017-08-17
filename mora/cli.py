@@ -152,3 +152,44 @@ def load_cli(app):
                 data = base64.standard_b64decode(el.text)
 
                 sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
+
+    @app.cli.command()
+    @click.option('--user', '-u',
+                  help="account user name")
+    @click.option('--password', '-p',
+                  help="account password")
+    @click.option('--insecure', '-k', is_flag=True,
+                  help="disable SSL/TLS security checks")
+    @click.argument('path')
+    def get(path, **options):
+        '''Fetch objects.'''
+        import getpass
+        import json
+
+        import requests
+
+        from . import auth
+        from . import lora
+        from . import tokens
+
+        '''Request a SAML token'''
+        def my_input(prompt):
+            sys.stderr.write(prompt)
+            return input()
+
+        if options['insecure']:
+            from requests.packages import urllib3
+            urllib3.disable_warnings()
+
+        username = options['user'] or my_input('User: ')
+        password = options['password'] or getpass.getpass('Password: ')
+
+        lora.session.auth = auth.SAMLAuth(tokens.get_token(username, password))
+        lora.session.verify = not options['insecure']
+
+        uuids = lora.fetch(path)
+
+        print(json.dumps({
+            uuid: lora.get(path.split('?')[0], uuid)
+            for uuid in uuids
+        }, indent=4))

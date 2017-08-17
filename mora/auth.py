@@ -23,12 +23,19 @@ COOKIE_NAME = 'MO-Token'
 
 
 class SAMLAuth(requests.auth.AuthBase):
-    def __call__(self, r):
-        if flask.request:
-            assertion = flask.request.cookies.get(COOKIE_NAME)
+    def __init__(self, assertion=None):
+        self.assertion = assertion
 
-            if assertion:
-                r.headers['Authorization'] = assertion
+    def __call__(self, r):
+        if self.assertion:
+            assertion = self.assertion
+        elif flask.request:
+            assertion = flask.request.cookies.get(COOKIE_NAME)
+        else:
+            assertion = None
+
+        if assertion:
+            r.headers['Authorization'] = assertion
 
         return r
 
