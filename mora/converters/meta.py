@@ -6,17 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import collections
 import re
 
 VERSION_PREFIX = re.compile(r'v(\d+):')
 
 
-class Address(object):
-    __slots__ = ('name', 'primary')
-
-    def __init__(self, name: str, primary: bool):
-        self.name = name
-        self.primary = primary
+class Address(collections.namedtuple('Address', ['name', 'primary'])):
+    __slots__ = ()
 
     @classmethod
     def fromdict(cls, d):
@@ -60,12 +57,10 @@ PHONE_VISIBILITY_UUIDS = {
 DEFAULT_PHONE_VISIBILITY = 'internal'
 
 
-class PhoneNumber(object):
-    __slots__ = ('location', 'visibility')
-
-    def __init__(self, location: str, visibility: str):
-        self.location = location
-        self.visibility = visibility
+class PhoneNumber(collections.namedtuple(
+        'PhoneNumber', ['location', 'visibility'],
+)):
+    __slots__ = ()
 
     @classmethod
     def fromstring(cls, s):

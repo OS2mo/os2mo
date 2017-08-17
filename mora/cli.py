@@ -89,3 +89,61 @@ def load_cli(app):
 
         runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
         runner.run(suite)
+
+    @app.cli.command()
+    @click.option('--user', '-u',
+                  help="account user name")
+    @click.option('--password', '-p',
+                  help="account password")
+    @click.option('--raw', '-r', is_flag=True,
+                  help="don't pack and wrap the token")
+    @click.option('--insecure', '-k', is_flag=True,
+                  help="disable SSL/TLS security checks")
+    @click.option('--cert-only', '-c', is_flag=True,
+                  help="output embedded certificates in PEM form")
+    def auth(**options):
+        import getpass
+
+        import requests
+
+        from . import tokens
+
+        '''Request a SAML token'''
+        def my_input(prompt):
+            sys.stderr.write(prompt)
+            return input()
+
+        username = options['user'] or my_input('User: ')
+        password = options['password'] or getpass.getpass('Password: ')
+
+        if options['insecure']:
+            from requests.packages import urllib3
+            urllib3.disable_warnings()
+
+        try:
+            # this is where the magic happens
+            token = tokens.get_token(username, password,
+                                     options['raw'] or options['cert_only'],
+                                     options['insecure'])
+        except requests.exceptions.SSLError as e:
+            msg = ('SSL request failed; you probably need to install the '
+                   'appropriate certificate authority, or use the correct '
+                   'host name.')
+            print(msg, file=sys.stderr)
+            print('error:', e, file=sys.stderr)
+
+            raise click.Abort
+
+        if not options['cert_only']:
+            sys.stdout.write(token.decode())
+
+        else:
+            import base64
+            import ssl
+
+            from lxml import etree
+
+            for el in etree.fromstring(token).findall('.//{*}X509Certificate'):
+                data = base64.standard_b64decode(el.text)
+
+                sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))

@@ -13,11 +13,13 @@ import typing
 
 import requests
 
+from . import auth
 from . import settings
 from . import util
 
 session = requests.Session()
 session.verify = True
+session.auth = auth.SAMLAuth()
 
 
 def _check_response(r):
@@ -26,6 +28,8 @@ def _check_response(r):
     except requests.exceptions.HTTPError as e:
         if r.status_code == 400 and r.json():
             raise ValueError(r.json()['message'])
+        elif r.status_code == 401 and r.json():
+            raise PermissionError(r.json()['message'])
         else:
             raise
 
@@ -139,6 +143,7 @@ def get(path, uuid, **params):
 
     r = session.get('{}{}/{}'.format(settings.LORA_URL, path, uuid),
                     params=loraparams)
+
     _check_response(r)
 
     assert len(r.json()) == 1
@@ -193,21 +198,6 @@ def update(path, obj):
     r = session.put(settings.LORA_URL + path, json=obj)
     _check_response(r)
     return r.json()['uuid']
-
-
-def login(username, password):
-    if username == 'admin' and password == 'secret':
-        return {
-            "user": 'Administrator',
-            "token": 'kaflaflibob',
-            "role": [],
-        }
-    else:
-        return None
-
-
-def logout(user, token):
-    return token == 'kaflaflibob'
 
 
 organisation = functools.partial(fetch, 'organisation/organisation')

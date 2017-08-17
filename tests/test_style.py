@@ -14,16 +14,8 @@ import unittest
 
 import pycodestyle
 
-from . import util
-
 # upstream files; do not modify
 UPSTREAM_FILES = {
-    'mora/compat/secrets.py',
-}
-
-# TODO: re-enable style checks for these files as needed
-SKIP_LIST = {
-    'tests/test_app.py',
 }
 
 SKIP_DIRS = {
@@ -44,6 +36,8 @@ class CodeStyleTests(unittest.TestCase):
         """Generator that yields Python sources to test"""
 
         for dirpath, dirs, fns in os.walk(self.rootdir):
+            reldirpath = os.path.relpath(dirpath, self.rootdir)
+
             if 'pip-selfcheck.json' in fns:
                 dirs[:] = []
                 continue
@@ -54,12 +48,14 @@ class CodeStyleTests(unittest.TestCase):
             ]
 
             for fn in fns:
-                fp = os.path.join(dirpath, fn)
-                if fp in UPSTREAM_FILES or fn[0] == '.':
+                if (
+                        fn[0] == '.' or
+                        os.path.join(reldirpath, fn) in UPSTREAM_FILES
+                ):
                     # skip these
                     continue
                 elif fn.endswith('.py'):
-                    yield os.path.relpath(fp)
+                    yield os.path.relpath(os.path.join(dirpath, fn))
 
     def test_license_headers(self):
         'Test that all Python source files begin with our license header'
@@ -86,14 +82,12 @@ class CodeStyleTests(unittest.TestCase):
         style.init_report(pycodestyle.StandardReport)
 
         with contextlib.redirect_stdout(io.StringIO()) as buf:
-            style.check_files(
-                fn for fn in self.source_files
-                if os.path.relpath(fn, util.BASE_DIR) not in SKIP_LIST
-            )
+            report = style.check_files(self.source_files)
 
-        if buf.getvalue():
-            self.fail("Found code style errors and/or warnings:\n" +
-                      buf.getvalue())
+        self.assertFalse(
+            report.total_errors,
+            "Found code style errors and/or warnings:\n\n" + buf.getvalue(),
+        )
 
     def test_source_files(self):
         'Sanity check: we must find multiple sources'

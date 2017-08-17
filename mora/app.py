@@ -6,11 +6,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import json
 import os
-import traceback
 
 import flask
 
+from . import auth
 from . import cli
 from . import lora
 from . import util
@@ -28,10 +29,12 @@ cli.load_cli(app)
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
-    stack = traceback.format_exc()
     data = flask.request.get_json()
 
     if data:
+        if 'password' in data:
+            data['password'] = 'X' * 8
+
         flask.current_app.logger.exception(
             'AN ERROR OCCURRED in %r:\n%s',
             flask.request.full_path,
@@ -43,12 +46,22 @@ def handle_invalid_usage(error):
             flask.request.full_path,
         )
 
-    status_code = 400 if isinstance(error, ValueError) else 500
+    if isinstance(error, ValueError):
+        status_code = 400
+    elif isinstance(error, (KeyError, IndexError)):
+        status_code = 404
+    elif isinstance(error, PermissionError):
+        status_code = 401
+    else:
+        status_code = 500
 
     return flask.jsonify({
         'status': status_code,
-        'message': str(error),
-        'context': stack,
+        'message': (
+            error.args[0]
+            if error.args and len(error.args) == 1
+            else error.args
+        )
     }), status_code
 
 
@@ -69,19 +82,12 @@ def send_styles(path):
 
 @app.route('/service/user/<user>/login', methods=['POST'])
 def login(user):
-    r = lora.login(user, flask.request.get_json()['password'])
-
-    if r:
-        return flask.jsonify(r)
-    else:
-        return '', 401
+    return auth.login(user)
 
 
 @app.route('/service/user/<user>/logout', methods=['POST'])
 def logout(user):
-    return flask.jsonify(
-        lora.logout(user, flask.request.headers['X-AUTH-TOKEN'])
-    )
+    return auth.logout()
 
 
 @app.route('/acl/', methods=['POST', 'GET'])
@@ -212,8 +218,7 @@ def full_hierarchy(orgid):
         # TODO: the query argument does sub-tree searching -- given
         # that LoRA has no notion of the organisation tree, we'd have
         # to emulate it
-        flask.current_app.logger.error('sub-tree searching is unsupported!')
-        return '', 400
+        raise ValueError('sub-tree searching is unsupported!')
 
     if args.get('treeType', None) == 'specific':
         r = reading.full_hierarchy(str(orgid), args['orgUnitId'], **params)
@@ -271,10 +276,8 @@ def get_orgunit_history(orgid, unitid):
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
-    # if role not in ['contact-channel', 'location']:
-    #     return flask.jsonify([]), 400
-
     validity = flask.request.args.get('validity')
+    effective_date = flask.request.args.get('effective-date')
 
     getters = {
         'contact-channel': reading.get_contact_channels,
@@ -282,10 +285,9 @@ def get_role(orgid, unitid, role):
     }
 
     if role not in getters:
-        flask.current_app.logger.warn('unsupported role {!r}'.format(role))
-        return flask.jsonify([]), 400
+        raise ValueError('unsupported role {!r}'.format(role))
 
-    r = getters[role](unitid, validity=validity)
+    r = getters[role](unitid, validity=validity, effective_date=effective_date)
 
     if r:
         return flask.jsonify(r)
@@ -315,9 +317,6 @@ def get_geographical_addresses():
 @util.restrictargs()
 @app.route('/role-types/contact/facets/properties/classes/')
 def get_contact_facet_properties_classes():
-    # This yields three options in the original Mock test:
-    # internal-only, external and unlisted. (In Danish: “Må vises
-    # internt”, “Må vises eksternt” and “Hemmligt”.)
     return flask.jsonify(reading.get_contact_properties())
 
 

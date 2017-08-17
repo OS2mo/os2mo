@@ -1,0 +1,28 @@
+<saml:Assertion xmlns:canon="http://www.w3.org/2001/10/xml-exc-c14n#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ID="urn:uuid:FC3F26B677A540B3561502282373450" IssueInstant="2017-08-09T12:39:33.402Z" Version="2.0"><saml:Issuer>https://localhost</saml:Issuer><dsig:Signature>
+<dsig:SignedInfo>
+<dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+<dsig:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+<dsig:Reference URI="#urn:uuid:FC3F26B677A540B3561502282373450">
+<dsig:Transforms>
+<dsig:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+<dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><canon:InclusiveNamespaces PrefixList="xs" /></dsig:Transform>
+</dsig:Transforms>
+<dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+<dsig:DigestValue>N/SWXwTMPOkcByD91H/80uVmGIw=</dsig:DigestValue>
+</dsig:Reference>
+</dsig:SignedInfo>
+<dsig:SignatureValue>
+IXVfxQtKy4B76P9sxrYOkysxGEEbcWCLK18UIT/Bb3QYe0UzBUW+mqP8TFypaeI/sTH/PWURXJA9
+XQXNwPJF+BsaUyMaUGZDmUU3M86uS2skhmBs6GySFbcmHaWCGJrNawTVGzxZiRF/ON+hxD2L2bHU
+5dGX39GNLGm3cUIFjUA=
+</dsig:SignatureValue>
+<dsig:KeyInfo><dsig:X509Data><dsig:X509Certificate>MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJVUzELMAkGA1UE
+CAwCQ0ExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxDTALBgNVBAoMBFdTTzIxEjAQBgNVBAMMCWxv
+Y2FsaG9zdDAeFw0xMDAyMTkwNzAyMjZaFw0zNTAyMTMwNzAyMjZaMFUxCzAJBgNVBAYTAlVTMQsw
+CQYDVQQIDAJDQTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzENMAsGA1UECgwEV1NPMjESMBAGA1UE
+AwwJbG9jYWxob3N0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCUp/oV1vWc8/TkQSiAvTou
+sMzOM4asB2iltr2QKozni5aVFu818MpOLZIr8LMnTzWllJvvaA5RAAdpbECb+48FjbBe0hseUdN5
+HpwvnH/DW8ZccGvk53I6Orq7hLCv1ZHtuOCokghz/ATrhyPq+QktMfXnRS4HrKGJTzxaCcU7OQID
+AQABoxIwEDAOBgNVHQ8BAf8EBAMCBPAwDQYJKoZIhvcNAQEFBQADgYEAW5wPR7cr1LAdq+IrR44i
+QlRG5ITCZXY9hI0PygLP2rHANh+PYfTmxbuOnykNGyhM6FjFLbW2uZHQTY1jMrPprjOrmyK5sjJR
+O4d1DeGHT/YnIjs9JogRKv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo=</dsig:X509Certificate></dsig:X509Data></dsig:KeyInfo></dsig:Signature><saml:Subject><saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">admin</saml:NameID><saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer" /></saml:Subject><saml:Conditions NotBefore="2017-08-09T12:39:33.402Z" NotOnOrAfter="2017-08-09T12:44:33.402Z" /><saml:AttributeStatement><saml:Attribute Name="http://wso2.org/claims/role" NameFormat="http://wso2.org/claims/role"><saml:AttributeValue xsi:type="xs:string">Internal/everyone,admin</saml:AttributeValue></saml:Attribute><saml:Attribute Name="http://wso2.org/claims/emailaddress" NameFormat="http://wso2.org/claims/emailaddress"><saml:AttributeValue xsi:type="xs:string">admin@wso2.com</saml:AttributeValue></saml:Attribute><saml:Attribute Name="http://wso2.org/claims/givenname" NameFormat="http://wso2.org/claims/givenname"><saml:AttributeValue xsi:type="xs:string">admin</saml:AttributeValue></saml:Attribute></saml:AttributeStatement><saml:AuthnStatement AuthnInstant="2017-08-09T12:39:33.418Z"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></saml:Assertion>

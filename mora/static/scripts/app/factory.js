@@ -2,7 +2,9 @@
 /* Controllers */
 
 angular.module('moApp.factory', [])
-    .factory('myHttpInterceptor',['$q', 'sysLog',function($q, sysLog) {
+    .factory('myHttpInterceptor', [
+        '$q', 'sysLog', 'localStorageService',
+        function($q, sysLog, localStorageService) {
         return {
             response: function (response) {
                 // do nothing
@@ -13,6 +15,7 @@ angular.module('moApp.factory', [])
                 if((response.status == '404') || (response.status == '400')|| (response.status == '0')){
                 	return $q.reject(response);
                 }else if(response.status == '401'){
+                    localStorageService.remove('moUserAuth');
                     sysLog.record("Unauthorized access!", response, 'debug', false);
                     return $q.reject(response); 
                 }else{

@@ -14,7 +14,6 @@ import freezegun
 
 from mora import lora
 from . import util
-from pprint import pprint
 
 
 class TestWritingIntegration(util.LoRATestCase):
@@ -1238,7 +1237,6 @@ class TestWritingIntegration(util.LoRATestCase):
     def test_create_unit_with_contact_channels(self):
         self.load_sample_structures(minimal=True)
 
-        root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
         r = self.client.post(

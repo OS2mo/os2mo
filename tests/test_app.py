@@ -11,28 +11,25 @@ import unittest
 
 import freezegun
 
-from mora import app
-from mora import settings
-from tests.util import jsonfile_to_dict
-
 from . import util
 
 
-class TestSetup(unittest.TestCase):
+class TestSetup(util.TestCase):
     def setUp(self):
-        app.app.config['TESTING'] = True
-        self.app = app.app.test_client()
-        self.lora_urls = jsonfile_to_dict('tests/mocking/lora/url_map.json')
+        self.lora_urls = util.get_mock_data('lora/url_map.json')
+
+        super().setUp()
 
 
 class MoraTestCase(TestSetup):
     def _request(self, url):
-        """
-        Make request to the app, get a JSON response and convert this to a Python dictionary
+        """Make request to the app, get a JSON response and convert this to a
+        Python dictionary
+
         :param url: url to request in the app
         :return: dictionary representing the JSON response from the app
         """
-        return json.loads(self.app.get(url).data.decode())
+        return json.loads(self.client.get(url).data.decode())
 
     def _get_lora_url(self, key):
         """
@@ -40,27 +37,18 @@ class MoraTestCase(TestSetup):
         :param key: the key used in the url_map.json file
         :return: URL in LoRa as a string
         """
-        return settings.LORA_URL + self.lora_urls[key]
+        return self.lora_url + self.lora_urls[key]
 
     def test_acl(self):
-        rv = self.app.get('/acl/')
-        self.assertEqual(b'[]\n', rv.data, 'Acl route should return empty list')
-
-    def _standard_mock_setup(self, mock):
-        lora_org_response = self._jsonfile_to_dict(
-            'tests/mocking/lora/organisation/organisation/get_org_from_uuid.json')
-        mock.get(self._get_lora_url('org_org_uuid'), json=lora_org_response)
-        mock.get(self._get_lora_url('org_orgEnhed_tilhoerer'),
-                 json=self._jsonfile_to_dict(
-                     'tests/mocking/lora/organisation/organisationenhed/get_orgEnhed_from_tilhoerer.json'))
-        mock.get(self._get_lora_url('org_orgEnhed_uuidx3'),
-                 json=self._jsonfile_to_dict(
-                     'tests/mocking/lora/organisation/organisationenhed/get_orgEnhed_from_uuidx3.json'))
+        rv = self.client.get('/acl/')
+        self.assertEqual(b'[]\n', rv.data,
+                         'Acl route should return empty list')
 
     @util.mock()
     def test_list_classes(self, mock):
-        lora_klasse_response = jsonfile_to_dict(
-            'tests/mocking/lora/klassifikation/klasse/get_klasse_from_uuidx2.json')
+        lora_klasse_response = util.get_mock_data(
+            'lora/klassifikation/klasse/get_klasse_from_uuidx2.json',
+        )
         mock.get(self._get_lora_url('klassifikation_klasse_bvn'), json={
             'results': [
                 [
@@ -68,28 +56,62 @@ class MoraTestCase(TestSetup):
                     '14cf4675-e8c9-410f-aef4-abe3e4c1a9b7'
                 ]
             ]
-        }
-                 )
+        })
         mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'),
                  json=lora_klasse_response)
 
-        expected_response = jsonfile_to_dict(
-            'tests/mocking/mo/list_classes.json')
+        expected_response = util.get_mock_data('mo/list_classes.json')
         actual_response = self._request('/org-unit/type')
 
         self.assertEqual(actual_response, expected_response, 'Hurra')
+
+    @util.mock()
+    def test_invalid_operations(self, mock):
+        # we should do network I/O in the test, and 'empty' mocking
+        # verifies that
+
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/org-unit/00000000-0000-0000-0000-000000000000/?query=fail',
+            {
+                'message': 'unitid and query cannot both be set!',
+                'status': 400,
+            },
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/org-unit/00000000-0000-0000-0000-000000000000/'
+            'role-types/fail/',
+            {
+                'message': "unsupported role 'fail'",
+                'status': 400,
+            },
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/full-hierarchy?query=fail',
+            {
+                'message': 'sub-tree searching is unsupported!',
+                'status': 400,
+            },
+            status_code=400,
+        )
 
 
 class TestCreateOrgUnit(TestSetup):
     @util.mock()
     def test_create_organisation_unit_with_end_date_infinity(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
-        frontend_req = jsonfile_to_dict('tests/mocking/mo/create_org_unit.json')
+        frontend_req = util.get_mock_data('mo/create_org_unit.json')
         mock.post('http://mox/organisation/organisationenhed',
                   json=expected_response)
-        r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
-                          data=json.dumps(frontend_req),
-                          content_type='application/json')
+        r = self.client.post('/o/' + frontend_req['org'] + '/org-unit',
+                             data=json.dumps(frontend_req),
+                             content_type='application/json')
         actual_response = json.loads(r.data.decode())
         self.assertEqual(actual_response, expected_response,
                          'Error in creating org unit')
@@ -99,8 +121,9 @@ class TestCreateOrgUnit(TestSetup):
     @util.mock()
     def test_create_organisation_unit_with_specific_end_date(self, mock):
         expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
-        frontend_req = jsonfile_to_dict(
-            'tests/mocking/mo/create_org_unit_specific_enddate.json')
+        frontend_req = util.get_mock_data(
+            'mo/create_org_unit_specific_enddate.json',
+        )
         mock.post('http://mox/organisation/organisationenhed',
                   json=expected_response)
         mock.get(
@@ -108,14 +131,17 @@ class TestCreateOrgUnit(TestSetup):
             '?uuid=00000000-0000-0000-0000-000000000000'
             '&virkningfra=2010-01-01T00%3A00%3A00%2B01%3A00'
             '&virkningtil=2010-01-02T00%3A00%3A00%2B01%3A00',
-            json=jsonfile_to_dict(
-                'tests/mocking/lora/organisation/organisationenhed/get_org_unit_from_uuid.json'))
+            json=util.get_mock_data(
+                'lora/organisation/organisationenhed/'
+                'get_org_unit_from_uuid.json',
+            ))
         mock.put(
-            'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+            'http://mox/organisation/organisationenhed/'
+            '00000000-0000-0000-0000-000000000000',
             json=expected_response)
-        r = self.app.post('/o/' + frontend_req['org'] + '/org-unit',
-                          data=json.dumps(frontend_req),
-                          content_type='application/json')
+        r = self.client.post('/o/' + frontend_req['org'] + '/org-unit',
+                             data=json.dumps(frontend_req),
+                             content_type='application/json')
         actual_response = json.loads(r.data.decode())
         self.assertEqual(actual_response, expected_response,
                          'Error in creating org unit')
@@ -161,9 +187,10 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
             'parent': 'b2ec5a54-0713-43f8-91f2-e4fd8b9376bc'
         }
         mock.put(
-            'http://mox/organisation/organisationenhed/65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
+            'http://mox/organisation/organisationenhed/'
+            '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
             json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
-        r = self.app.post(
+        r = self.client.post(
             '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
                 'uuid'] + '?rename=true',
             data=json.dumps(frontend_req),
@@ -176,12 +203,12 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
 
     @util.mock()
     def test_should_retype_org_unit_correctly(self, mock):
-        frontend_req = jsonfile_to_dict(
-            'tests/mocking/mo/retype_org_unit.json')
+        frontend_req = util.get_mock_data('mo/retype_org_unit.json')
         mock.put(
-            'http://mox/organisation/organisationenhed/383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe',
+            'http://mox/organisation/organisationenhed/'
+            '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe',
             json={'uuid': '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe'})
-        r = self.app.post(
+        r = self.client.post(
             '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
                 'uuid'], data=json.dumps(frontend_req),
             content_type='application/json')
@@ -191,49 +218,6 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
 
 
-# class TestInactivateOrgUnit(TestSetup):
-#     @util.mock()
-#     def test_should_respond_uuid_200_when_inactivating_org_unit(self, mock):
-#         mock.get('http://mox/organisation/organisationenhed/00000000-0000-'
-#                  '0000-0000-000000000000?virkningfra=-infinity'
-#                  '&virkningtil=infinity', json=
-#                  {
-#                      'tilstande': {
-#                          'organisationenhedgyldighed': [
-#                              {
-#                                  'virkning': {
-#                                      'from': '-infinity',
-#                                      'from_included': True,
-#                                      'to': '2010-01-01T00:00:00+01:00',
-#                                      'to_included': False,
-#                                  },
-#                                  'gyldighed': 'Inaktiv',
-#                              },
-#                              {
-#                                  'virkning': {
-#                                      'from': '2010-01-01T00:00:00+01:00',
-#                                      'from_included': True,
-#                                      'to': 'infinity',
-#                                      'to_included': False,
-#                                  },
-#                                  'gyldighed': 'Aktiv',
-#                              },
-#                          ]
-#                      }
-#
-#                  })
-#         mock.put(
-#             'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
-#             json={'uuid': '00000000-0000-0000-0000-000000000000'})
-#         r = self.app.delete(
-#             '/o/00000000-0000-0000-0000-000000000000/org-unit/00000000-0000-0000-0000-000000000000?endDate=01-01-2010')
-#         actual_response = json.loads(r.data.decode())
-#         self.assertEqual(actual_response,
-#                          {'uuid': '00000000-0000-0000-0000-000000000000'},
-#                          'Error when inactivating org unit')
-#         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
-
-
 class TestMoveOrgUnit(TestSetup):
     @util.mock()
     def test_should_respond_uuid_200_when_moving_org_unit(self, mock):
@@ -241,10 +225,12 @@ class TestMoveOrgUnit(TestSetup):
             "moveDate": "01-01-2010",
             "newParentOrgUnitUUID": "00000000-0000-0000-0000-000000000000"}
         mock.put(
-            'http://mox/organisation/organisationenhed/00000000-0000-0000-0000-000000000000',
+            'http://mox/organisation/organisationenhed/'
+            '00000000-0000-0000-0000-000000000000',
             json={'uuid': '00000000-0000-0000-0000-000000000000'})
-        r = self.app.post(
-            '/o/00000000-0000-0000-0000-000000000000/org-unit/00000000-0000-0000-0000-000000000000/actions/move',
+        r = self.client.post(
+            '/o/00000000-0000-0000-0000-000000000000'
+            '/org-unit/00000000-0000-0000-0000-000000000000/actions/move',
             data=json.dumps(frontend_req),
             content_type='application/json')
         actual_response = json.loads(r.data.decode())
@@ -252,7 +238,3 @@ class TestMoveOrgUnit(TestSetup):
                          {'uuid': '00000000-0000-0000-0000-000000000000'},
                          'Error when moving org unit')
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
-
-
-if __name__ == '__main__':
-    unittest.main()

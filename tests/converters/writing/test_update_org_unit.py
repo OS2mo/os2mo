@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import unittest
 import freezegun
 
 from mora.converters import writing
@@ -16,7 +15,7 @@ from mora.exceptions import IllegalArgumentException
 from ... import util
 
 
-class TestSetup(unittest.TestCase):
+class TestSetup(util.TestCase):
     def setUp(self):
         self.org_unit = jsonfile_to_dict(
             'tests/mocking/mo/org_unit_registrering_virkning_infinity.json')
