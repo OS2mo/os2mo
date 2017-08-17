@@ -3,3 +3,4 @@ flask
 requests
 tzlocal
 iso8601
+lxml

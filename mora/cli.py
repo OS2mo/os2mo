@@ -97,6 +97,8 @@ def load_cli(app):
                   help="account password")
     @click.option('--raw', '-r', is_flag=True,
                   help="don't pack and wrap the token")
+    @click.option('--verbose', '-v', is_flag=True,
+                  help="pretty-print the token")
     @click.option('--insecure', '-k', is_flag=True,
                   help="disable SSL/TLS security checks")
     @click.option('--cert-only', '-c', is_flag=True,
@@ -122,9 +124,12 @@ def load_cli(app):
 
         try:
             # this is where the magic happens
-            token = tokens.get_token(username, password,
-                                     options['raw'] or options['cert_only'],
-                                     options['insecure'])
+            token = tokens.get_token(
+                username, password,
+                raw=options['raw'] or options['cert_only'],
+                verbose=options['verbose'],
+                insecure=options['insecure'],
+            )
         except requests.exceptions.SSLError as e:
             msg = ('SSL request failed; you probably need to install the '
                    'appropriate certificate authority, or use the correct '

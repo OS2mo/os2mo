@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
-
 import freezegun
 
 from mora import tokens
@@ -117,11 +115,7 @@ class MockTests(util.TestCase):
             with self.subTest('raw'):
                 self.assertEquals(
                     tokens.get_token('X', 'Y', raw=True),
-                    (
-                        datetime.datetime(2017, 8, 9, 12, 39, 33, 402000,
-                                          tzinfo=datetime.timezone.utc),
-                        util.get_mock_text('auth/wso2-assertion.xml', 'rb'),
-                    )
+                    util.get_mock_text('auth/wso2-assertion.xml', 'rb'),
                 )
 
     @util.mock()
@@ -145,11 +139,7 @@ class MockTests(util.TestCase):
 
             self.assertEquals(
                 tokens.get_token('X', 'Y', raw=True),
-                (
-                    datetime.datetime(2017, 8, 10, 11, 5, 43, 74000,
-                                      tzinfo=datetime.timezone.utc),
-                    util.get_mock_text('auth/adfs-assertion.xml', 'rb')
-                ),
+                util.get_mock_text('auth/adfs-assertion.xml', 'rb')
             )
 
     @util.mock()

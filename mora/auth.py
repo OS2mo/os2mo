@@ -37,7 +37,7 @@ def login(username):
     # TODO: remember me?
     password = flask.request.get_json()['password']
 
-    expiry, assertion = tokens.get_token(username, password)
+    assertion = tokens.get_token(username, password)
 
     resp = flask.jsonify({
         "user": username,
@@ -45,10 +45,14 @@ def login(username):
         "role": [],
     })
 
-    resp.set_cookie(COOKIE_NAME, assertion,
-                    secure=flask.request.is_secure,
-                    expires=expiry,
-                    httponly=True)
+    if assertion:
+        resp.set_cookie(
+            COOKIE_NAME, assertion,
+            secure=flask.request.is_secure,
+            httponly=True,
+        )
+    else:
+        resp.delete_cookie(COOKIE_NAME)
 
     return resp
 
