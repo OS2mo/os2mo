@@ -22,7 +22,15 @@ def list_organisations():
     orgs = lora.organisation(uuid=lora.organisation(bvn='%'))
 
     def convert(org):
-        rootid = lora.organisationenhed(overordnet=org['id'])[0]
+        rootids = lora.organisationenhed(overordnet=org['id'])
+
+        # our data model assumes and requires that every organisation
+        # has one single root unit; obviously, any org. that doesn't
+        # satisfy this requirements isn't intended for us...
+        if len(rootids) != 1:
+            return None
+
+        rootid = rootids.pop()
         orgunit = lora.organisationenhed.get(rootid)
         unitattrs = orgunit['attributter']['organisationenhedegenskaber'][0]
         unit_validity = orgunit['tilstande']['organisationenhedgyldighed'][0]
@@ -44,7 +52,7 @@ def list_organisations():
             'org': org['id'],
         }, reg)
 
-    return list(map(convert, orgs))
+    return list(filter(None, map(convert, orgs)))
 
 
 def full_hierarchies(orgid: str, parentid: str,

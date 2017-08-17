@@ -197,3 +197,65 @@ class LoRATest(test_util.TestCase):
                 }
             ],
         )
+
+    @freezegun.freeze_time('2017-07-28')
+    @test_util.mock('reading-organisation.json')
+    def test_organisation(self, mock):
+        self.assertRequestResponse(
+            '/o/',
+            [
+                {
+                    'hierarchy': {
+                        'children': [],
+                        'hasChildren': True,
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '01-01-2016',
+                        'valid-to': 'infinity',
+                    },
+                    'name': 'Aarhus Universitet',
+                    'user-key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'valid-from': '01-01-2016',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )
+
+    @freezegun.freeze_time('2017-07-28')
+    @test_util.mock('reading-organisation-rootless.json')
+    def test_organisation_without_root(self, mock):
+        self.assertRequestResponse('/o/', [])
+
+    @freezegun.freeze_time('2017-07-28')
+    @test_util.mock('reading-organisation-multiple-roots.json')
+    def test_organisation_multiple_roots(self, mock):
+        self.assertRequestResponse('/o/', [])
+
+    @freezegun.freeze_time('2017-07-28')
+    @test_util.mock('reading-organisation-combined.json')
+    def test_organisation_combined(self, mock):
+        self.assertRequestResponse(
+            '/o/',
+            [
+                {
+                    'hierarchy': {
+                        'children': [],
+                        'hasChildren': True,
+                        'name': 'Overordnet Enhed',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'user-key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-from': '01-01-2016',
+                        'valid-to': 'infinity',
+                    },
+                    'name': 'Aarhus Universitet',
+                    'user-key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'valid-from': '01-01-2016',
+                    'valid-to': 'infinity',
+                },
+            ],
+        )
