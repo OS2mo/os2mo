@@ -368,4 +368,4 @@ class LiveLoRATestCase(LoRATestCaseMixin, flask_testing.LiveServerTestCase):
 
 if __name__ == '__main__':
     # allow running this script with 'python -m'
-    load_sample_structures(verbose=True)
+    load_sample_structures(verbose=True, minimal='-m' in sys.argv[1:])
