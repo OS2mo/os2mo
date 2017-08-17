@@ -187,9 +187,5 @@ def load_cli(app):
         lora.session.auth = auth.SAMLAuth(tokens.get_token(username, password))
         lora.session.verify = not options['insecure']
 
-        uuids = lora.fetch(path)
-
-        print(json.dumps({
-            uuid: lora.get(path.split('?')[0], uuid)
-            for uuid in uuids
-        }, indent=4))
+        for uuid in lora.fetch(path):
+            print(json.dumps(lora.get(path.split('?')[0], uuid), indent=4))
