@@ -1,6 +1,6 @@
-argon2_cffi
-flask
-requests
-tzlocal
-iso8601
-lxml
+argon2-cffi~=16.3.0
+Flask~=0.12.2
+requests~=2.18.2
+tzlocal~=1.4
+iso8601~=0.1.12
+lxml~=3.8.0
