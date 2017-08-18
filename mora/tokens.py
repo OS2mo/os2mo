@@ -8,11 +8,9 @@
 
 import base64
 import datetime
-import io
-import xml.etree.ElementTree
 import zlib
 
-import iso8601
+import lxml.etree
 import flask
 import requests
 
@@ -43,7 +41,7 @@ def _pack(s):
     return b'saml-gzipped ' + base64.standard_b64encode(_gzipstring(s))
 
 
-def get_token(username, passwd, raw=False, insecure=None):
+def get_token(username, passwd, raw=False, verbose=False, insecure=None):
     '''Request a SAML authentication token from the given host and endpoint.
 
     Windows Server typically returns a 500 Internal Server Error on
@@ -53,11 +51,8 @@ def get_token(username, passwd, raw=False, insecure=None):
 
     '''
 
-    for prefix, uri in XML_NAMESPACES.items():
-        xml.etree.ElementTree.register_namespace(prefix, uri)
-
     if not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
-        return None, 'N/A'
+        return 'N/A'
 
     if insecure is None:
         insecure = settings.SAML_IDP_INSECURE
@@ -88,7 +83,7 @@ def get_token(username, passwd, raw=False, insecure=None):
         if not resp.ok and ct != 'application/soap+xml':
             resp.raise_for_status()
 
-        doc = xml.etree.ElementTree.parse(resp.raw)
+        doc = lxml.etree.parse(resp.raw)
 
     errormsg = doc.findtext('.//soapenv:Reason/soapenv:Text',
                             None, XML_NAMESPACES)
@@ -100,16 +95,9 @@ def get_token(username, passwd, raw=False, insecure=None):
 
     assert len(tokens) == 1, 'one token expected, got {}'.format(len(tokens))
 
-    doc._setroot(tokens[0])
+    assertion = lxml.etree.tostring(tokens[0], pretty_print=verbose)
 
-    conditions = doc.find('.//saml:Conditions', XML_NAMESPACES)
-    expiry = iso8601.parse_date(conditions.attrib['NotBefore'])
-
-    with io.BytesIO() as buf:
-        doc.write(buf)
-        assertion = buf.getvalue()
-
-    return expiry, assertion if raw else _pack(assertion)
+    return assertion if raw else _pack(assertion)
 
 
 __all__ = ('get_token')

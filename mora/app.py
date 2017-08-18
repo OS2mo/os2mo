@@ -285,7 +285,12 @@ def get_role(orgid, unitid, role):
     }
 
     if role not in getters:
-        raise ValueError('unsupported role {!r}'.format(role))
+        # equivalent to raising a ValueError, but without the logging;
+        # it's too spammy
+        return flask.jsonify({
+            'status': 400,
+            'message': 'unsupported role {!r}'.format(role),
+        }), 400
 
     r = getters[role](unitid, validity=validity, effective_date=effective_date)
 
