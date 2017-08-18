@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import functools
 import os
 import sys
 import unittest
@@ -16,6 +17,37 @@ basedir = os.path.dirname(__file__)
 
 
 def load_cli(app):
+    def requires_auth(func):
+        @click.option('--user', '-u',
+                      help="account user name",
+                      prompt='Enter user name')
+        @click.option('--password', '-p',
+                      help="account password",
+                      prompt='Enter password', hide_input=True)
+        @click.option('--insecure', '-k', is_flag=True,
+                      help="disable SSL/TLS security checks")
+        @functools.wraps(func)
+        def wrapper(*args, **options):
+            from . import auth
+            from . import lora
+            from . import tokens
+
+            if options.pop('insecure'):
+                from requests.packages import urllib3
+                urllib3.disable_warnings()
+
+                lora.session.verify = False
+
+            tokens.get_token(
+                options.pop('user'),
+                options.pop('password'),
+            )
+            lora.session.auth = auth.SAMLAuth()
+
+            return func(*args, **options)
+
+        return wrapper
+
     @app.cli.command()
     @click.argument('target', required=False)
     def build(target=None):
@@ -92,9 +124,11 @@ def load_cli(app):
 
     @app.cli.command()
     @click.option('--user', '-u',
-                  help="account user name")
+                  help="account user name",
+                  prompt='Enter user name')
     @click.option('--password', '-p',
-                  help="account password")
+                  help="account password",
+                  prompt='Enter password', hide_input=True)
     @click.option('--raw', '-r', is_flag=True,
                   help="don't pack and wrap the token")
     @click.option('--verbose', '-v', is_flag=True,
@@ -104,19 +138,9 @@ def load_cli(app):
     @click.option('--cert-only', '-c', is_flag=True,
                   help="output embedded certificates in PEM form")
     def auth(**options):
-        import getpass
-
         import requests
 
         from . import tokens
-
-        '''Request a SAML token'''
-        def my_input(prompt):
-            sys.stderr.write(prompt)
-            return input()
-
-        username = options['user'] or my_input('User: ')
-        password = options['password'] or getpass.getpass('Password: ')
 
         if options['insecure']:
             from requests.packages import urllib3
@@ -125,7 +149,7 @@ def load_cli(app):
         try:
             # this is where the magic happens
             token = tokens.get_token(
-                username, password,
+                options['user'], options['password'],
                 raw=options['raw'] or options['cert_only'],
                 verbose=options['verbose'],
                 insecure=options['insecure'],
@@ -154,38 +178,25 @@ def load_cli(app):
                 sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
 
     @app.cli.command()
-    @click.option('--user', '-u',
-                  help="account user name")
-    @click.option('--password', '-p',
-                  help="account password")
-    @click.option('--insecure', '-k', is_flag=True,
-                  help="disable SSL/TLS security checks")
     @click.argument('path')
-    def get(path, **options):
-        '''Fetch objects.'''
-        import getpass
+    @requires_auth
+    def get(path):
         import json
 
-        import requests
-
-        from . import auth
         from . import lora
-        from . import tokens
-
-        '''Request a SAML token'''
-        def my_input(prompt):
-            sys.stderr.write(prompt)
-            return input()
-
-        if options['insecure']:
-            from requests.packages import urllib3
-            urllib3.disable_warnings()
-
-        username = options['user'] or my_input('User: ')
-        password = options['password'] or getpass.getpass('Password: ')
-
-        lora.session.auth = auth.SAMLAuth(tokens.get_token(username, password))
-        lora.session.verify = not options['insecure']
 
         for uuid in lora.fetch(path):
-            print(json.dumps(lora.get(path.split('?')[0], uuid), indent=4))
+            print(uuid)
+            json.dump(lora.get(path.split('?')[0], uuid), sys.stdout, indent=4)
+            sys.stdout.write('\n')
+
+    @app.cli.command()
+    @click.argument('path')
+    @click.argument('input', type=click.File('rb'), default='-')
+    @requires_auth
+    def update(path, input):
+        import json
+
+        from . import lora
+
+        lora.put(path, json.load(input))
