@@ -6,48 +6,61 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import base64
 import functools
+import json
 import os
+import ssl
 import sys
 import unittest
+import warnings
 
 import click
+import requests
+import urllib3
+
+from . import auth
+from . import lora
+from . import tokens
+from .converters import importing
 
 basedir = os.path.dirname(__file__)
 
 
-def load_cli(app):
-    def requires_auth(func):
-        @click.option('--user', '-u',
-                      help="account user name",
-                      prompt='Enter user name')
-        @click.option('--password', '-p',
-                      help="account password",
-                      prompt='Enter password', hide_input=True)
-        @click.option('--insecure', '-k', is_flag=True,
-                      help="disable SSL/TLS security checks")
-        @functools.wraps(func)
-        def wrapper(*args, **options):
-            from . import auth
-            from . import lora
-            from . import tokens
+def requires_auth(func):
+    @click.option('--user', '-u',
+                  help="account user name",
+                  prompt='Enter user name')
+    @click.option('--password', '-p',
+                  help="account password",
+                  prompt='Enter password', hide_input=True)
+    @click.option('--insecure', '-k', is_flag=True,
+                  help="disable SSL/TLS security checks")
+    @functools.wraps(func)
+    def wrapper(*args, **options):
+        if options.pop('insecure'):
+            warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
 
-            if options.pop('insecure'):
-                from requests.packages import urllib3
-                urllib3.disable_warnings()
+            lora.session.verify = False
+        else:
+            warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
 
-                lora.session.verify = False
-
-            tokens.get_token(
+        try:
+            lora.session.auth = auth.SAMLAuth(tokens.get_token(
                 options.pop('user'),
                 options.pop('password'),
-            )
-            lora.session.auth = auth.SAMLAuth()
+            ))
 
             return func(*args, **options)
+        except urllib3.exceptions.HTTPWarning as e:
+            print(e)
+            print('or use -k/--insecure to suppress this warning')
+            sys.exit(1)
 
-        return wrapper
+    return wrapper
 
+
+def load_cli(app):
     @app.cli.command()
     @click.argument('target', required=False)
     def build(target=None):
@@ -138,13 +151,10 @@ def load_cli(app):
     @click.option('--cert-only', '-c', is_flag=True,
                   help="output embedded certificates in PEM form")
     def auth(**options):
-        import requests
-
-        from . import tokens
-
         if options['insecure']:
-            from requests.packages import urllib3
-            urllib3.disable_warnings()
+            warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
+        else:
+            warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
 
         try:
             # this is where the magic happens
@@ -167,9 +177,6 @@ def load_cli(app):
             sys.stdout.write(token.decode())
 
         else:
-            import base64
-            import ssl
-
             from lxml import etree
 
             for el in etree.fromstring(token).findall('.//{*}X509Certificate'):
@@ -181,13 +188,10 @@ def load_cli(app):
     @click.argument('path')
     @requires_auth
     def get(path):
-        import json
-
-        from . import lora
-
-        for uuid in lora.fetch(path):
-            print(uuid)
-            json.dump(lora.get(path.split('?')[0], uuid), sys.stdout, indent=4)
+        for objuuid in lora.fetch(path):
+            print(objuuid)
+            json.dump(lora.get(path.split('?')[0], objuuid),
+                      sys.stdout, indent=4)
             sys.stdout.write('\n')
 
     @app.cli.command()
@@ -195,8 +199,59 @@ def load_cli(app):
     @click.argument('input', type=click.File('rb'), default='-')
     @requires_auth
     def update(path, input):
-        import json
-
-        from . import lora
-
         lora.put(path, json.load(input))
+
+    @app.cli.command('import')
+    @click.argument('spreadsheet', type=click.File('rb'))
+    @click.argument('url')
+    @click.option('--verbose', '-v', count=True,
+                  help='Show more output.')
+    @click.option('--check', '-c', is_flag=True,
+                  help=('check if import would overwrite any existing '
+                        'objects'))
+    @requires_auth
+    def import_(url, spreadsheet, verbose, check):
+        '''
+        Import an Excel spreadsheet into LoRa
+        '''
+
+        sheetlines = importing.convert(spreadsheet)
+
+        if not url:
+            for method, path, obj in sheetlines:
+                print(method, path,
+                      json.dumps(obj, check_circular=False, indent=2))
+            return
+
+        requests = (
+            grequests.request(
+                # check means that we always get GET anything
+                method if not check else 'GET',
+                url + path, session=lora.session,
+                # reload the object to break duplicate entries
+                json=json.loads(json.dumps(obj, check_circular=False)),
+            )
+            for method, path, obj in sheetlines
+        )
+
+        def fail(r, exc):
+            if verbose:
+                print(r.url)
+            print(*exc.args)
+
+        for r in grequests.imap(requests, size=6, exception_handler=fail):
+            if verbose:
+                print(r.url)
+
+            if check:
+                if r.ok:
+                    print('EXISTS:', r.request.path_url)
+                elif r.status_code == 404:
+                    print('CREATE:', r.request.path_url)
+
+            elif not r.ok:
+                try:
+                    print(r.status_code, r.json())
+                except ValueError:
+                    print(r.status_code, r.text)
+            r.raise_for_status()
