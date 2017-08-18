@@ -15,6 +15,7 @@ from . import auth
 from . import cli
 from . import lora
 from . import util
+from . import validator
 from .converters import addr
 from .converters import reading
 from .converters import writing
@@ -106,15 +107,11 @@ def list_organisations():
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
 def create_organisation_unit(orgid):
     req = flask.request.get_json()
+    if not validator.is_create_org_unit_request_valid(req):
+        return flask.jsonify(validator.ERRORS['create_org_unit']), 400
+
     org_unit = writing.create_org_unit(req)
     uuid = lora.create('organisation/organisationenhed', org_unit)
-
-    # If an end date is set for the org unit, inactivate it automatically
-    # from this date
-    if 'valid-to' in req:
-        org_unit = writing.inactivate_org_unit(req['valid-from'],
-                                               req['valid-to'])
-        lora.update('organisation/organisationenhed/%s' % uuid, org_unit)
 
     return flask.jsonify({'uuid': uuid}), 201
 
@@ -150,11 +147,14 @@ def inactivate_org_unit(orgid, unitid):
            methods=['POST'])
 @util.restrictargs()
 def move_org_unit(orgid, unitid):
+
     # TODO: refactor common behavior from this route and the one below
 
     req = flask.request.get_json()
-    payload = writing.move_org_unit(req)
+    if not validator.is_candidate_parent_valid(str(unitid), req):
+        return flask.jsonify(validator.ERRORS['rename_org_unit']), 400
 
+    payload = writing.move_org_unit(req)
     lora.update('organisation/organisationenhed/%s' % unitid, payload)
 
     return flask.jsonify({'uuid': unitid}), 200

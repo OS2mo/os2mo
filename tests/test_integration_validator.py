@@ -6,11 +6,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import json
+
 from mora import validator
 from tests import util
 
 
-class TestIntegrationValidator(util.LoRATestCase):
+class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
     maxDiff = None
 
     # parent = samf, valid from 2017-01-01 to infinity
@@ -27,6 +29,8 @@ class TestIntegrationValidator(util.LoRATestCase):
             method='DELETE',
         )
 
+    # Test validator._is_date_range_valid
+
     def test_should_return_true_when_interval_contained(self):
         """
         [------ super ------)
@@ -39,7 +43,7 @@ class TestIntegrationValidator(util.LoRATestCase):
         enddate = '01-06-2017'
 
         self.assertTrue(
-            validator.is_date_range_valid(self.PARENT, startdate, enddate))
+            validator._is_date_range_valid(self.PARENT, startdate, enddate))
 
     def test_should_return_true_when_interval_contained2(self):
         """
@@ -53,7 +57,7 @@ class TestIntegrationValidator(util.LoRATestCase):
         enddate = '01-06-2017'
 
         self.assertTrue(
-            validator.is_date_range_valid(self.PARENT, startdate, enddate))
+            validator._is_date_range_valid(self.PARENT, startdate, enddate))
 
     def test_should_return_true_when_interval_contained3(self):
         """
@@ -67,7 +71,7 @@ class TestIntegrationValidator(util.LoRATestCase):
         enddate = '01-01-2018'
 
         self.assertTrue(
-            validator.is_date_range_valid(self.PARENT, startdate, enddate))
+            validator._is_date_range_valid(self.PARENT, startdate, enddate))
 
     def test_should_false_true_when_interval_not_contained1(self):
         """
@@ -81,7 +85,7 @@ class TestIntegrationValidator(util.LoRATestCase):
         enddate = '01-06-2017'
 
         self.assertFalse(
-            validator.is_date_range_valid(self.PARENT, startdate, enddate))
+            validator._is_date_range_valid(self.PARENT, startdate, enddate))
 
     def test_should_return_false_when_interval_not_contained2(self):
         """
@@ -95,7 +99,7 @@ class TestIntegrationValidator(util.LoRATestCase):
         enddate = '01-06-2019'
 
         self.assertFalse(
-            validator.is_date_range_valid(self.PARENT, startdate, enddate))
+            validator._is_date_range_valid(self.PARENT, startdate, enddate))
 
     def test_should_return_false_when_interval_not_contained3(self):
         """
@@ -109,4 +113,286 @@ class TestIntegrationValidator(util.LoRATestCase):
         enddate = '01-06-2015'
 
         self.assertFalse(
-            validator.is_date_range_valid(self.PARENT, startdate, enddate))
+            validator._is_date_range_valid(self.PARENT, startdate, enddate))
+
+    # Test validator.is_create_org_unit_request_valid
+
+    def test_should_create_org_unit_when_interval_contained(self):
+        self.load_sample_structures()
+
+        frontend_req = {
+            "user-key": "NULL", "name": "AAA",
+            "valid-from": "01-02-2017",
+            "org": self.ORG,
+            "parent": self.PARENT,
+            "type": {
+                "name": "Afdeling 003",
+                "userKey": "Afdeling003",
+                "uuid": "0034fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+            },
+            "locations": [
+                {
+                    "name": "pil1",
+                    "primaer": True,
+                    "location": {
+                        "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-"
+                                              "e044-0003ba298018",
+                        "postdistrikt": "Risskov",
+                        "postnr": "8240",
+                        "vejnavn": "Pilevej 3, 8240 Risskov"
+                    },
+                    "contact-channels": [
+                        {
+                            "contact-info": "12345678",
+                            "visibility": {
+                                "name": "Må vises eksternt",
+                                "user-key": "external",
+                                "uuid": "external"
+                            },
+                            "type": {
+                                "name": "Phone Number",
+                                "prefix": "urn:magenta.dk:telefon:",
+                                "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.assertTrue(
+            validator.is_create_org_unit_request_valid(frontend_req))
+
+    def test_should_not_create_org_unit_when_not_interval_contained1(self):
+        self.load_sample_structures()
+        self._expire_parent()
+
+        frontend_req = {
+            "user-key": "NULL", "name": "AAA",
+            "valid-from": "01-02-2017",
+            "valid-to": "01-06-2020",
+            "org": self.ORG,
+            "parent": self.PARENT,
+            "type": {
+                "name": "Afdeling 003",
+                "userKey": "Afdeling003",
+                "uuid": "0034fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+            },
+            "locations": [
+                {
+                    "name": "pil1",
+                    "primaer": True,
+                    "location": {
+                        "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-"
+                                              "e044-0003ba298018",
+                        "postdistrikt": "Risskov",
+                        "postnr": "8240",
+                        "vejnavn": "Pilevej 3, 8240 Risskov"
+                    },
+                    "contact-channels": [
+                        {
+                            "contact-info": "12345678",
+                            "visibility": {
+                                "name": "Må vises eksternt",
+                                "user-key": "external",
+                                "uuid": "external"
+                            },
+                            "type": {
+                                "name": "Phone Number",
+                                "prefix": "urn:magenta.dk:telefon:",
+                                "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.assertFalse(
+            validator.is_create_org_unit_request_valid(frontend_req))
+
+    def test_should_not_create_org_unit_when_not_interval_contained2(self):
+        self.load_sample_structures()
+
+        frontend_req = {
+            "user-key": "NULL", "name": "AAA",
+            "valid-from": "01-02-2000",
+            "org": self.ORG,
+            "parent": self.PARENT,
+            "type": {
+                "name": "Afdeling 003",
+                "userKey": "Afdeling003",
+                "uuid": "0034fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+            },
+            "locations": [
+                {
+                    "name": "pil1",
+                    "primaer": True,
+                    "location": {
+                        "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-"
+                                              "e044-0003ba298018",
+                        "postdistrikt": "Risskov",
+                        "postnr": "8240",
+                        "vejnavn": "Pilevej 3, 8240 Risskov"
+                    },
+                    "contact-channels": [
+                        {
+                            "contact-info": "12345678",
+                            "visibility": {
+                                "name": "Må vises eksternt",
+                                "user-key": "external",
+                                "uuid": "external"
+                            },
+                            "type": {
+                                "name": "Phone Number",
+                                "prefix": "urn:magenta.dk:telefon:",
+                                "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.assertFalse(
+            validator.is_create_org_unit_request_valid(frontend_req))
+
+    def test_should_return_status_400_when_date_range_invalid(self):
+        self.load_sample_structures()
+        self._expire_parent()
+
+        payload = {
+            "user-key": "NULL",
+            "name": "NyEnhed",
+            "valid-from": "01-02-2020",
+            "org": self.ORG,
+            "parent": self.PARENT,
+            "type": {
+                "name": "Afdeling",
+                "userKey": "Afdeling",
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+            },
+            "locations": [
+                {
+                    "name": "lnavn",
+                    "primaer": True,
+                    "location": {
+                        "UUID_EnhedsAdresse":
+                            "98001816-a7cc-4115-a9e6-2c5c06c79e5d",
+                        "postdistrikt": "Risskov",
+                        "postnr": "8240",
+                        "vejnavn": "Pilevej 2, 8240 Risskov"
+                    },
+                    "contact-channels": [
+                        {
+                            "contact-info": "12345678",
+                            "visibility": {
+                                "name": "flaf",
+                                "user-key": "blyf",
+                                "uuid": "00000000-0000-0000-0000-000000000000"
+                            },
+                            "type": {
+                                "name": "Phone Number",
+                                "prefix": "urn:magenta.dk:telefon:",
+                                "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        r = self.client.post('/o/%s/org-unit' % self.ORG,
+                             data=json.dumps(payload),
+                             content_type='application/json')
+        self.assertEqual(400, r.status_code)
+
+
+class TestIntegrationMoveOrgUnitValidator(util.LoRATestCase):
+    maxDiff = None
+    UNIT_TO_MOVE = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'  # Hum
+    ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+
+    def test_cannot_move_unit_to_own_subtree(self):
+        self.load_sample_structures()
+
+        candidate_parent = '04c78fc2-72d2-4d02-b55f-807af19eac48'  # Frem
+
+        frontend_req = {
+            'moveDate': '01-02-2017',
+            'newParentOrgUnitUUID': candidate_parent
+        }
+
+        self.assertFalse(
+            validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
+                                                frontend_req))
+
+    def test_should_allow_move_unit_to_valid_orgtree_location(self):
+        self.load_sample_structures()
+
+        candidate_parent = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # Samf
+
+        frontend_req = {
+            'moveDate': '01-02-2017',
+            'newParentOrgUnitUUID': candidate_parent
+        }
+
+        self.assertTrue(
+            validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
+                                                frontend_req))
+
+    def test_should_not_move_root_org_unit(self):
+        self.load_sample_structures()
+
+        root_org_unit = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        candidate_parent = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # Samf
+
+        frontend_req = {
+            'moveDate': '01-02-2017',
+            'newParentOrgUnitUUID': candidate_parent
+        }
+
+        self.assertFalse(
+            validator.is_candidate_parent_valid(root_org_unit, frontend_req))
+
+    def test_should_not_move_org_unit_to_child(self):
+        self.load_sample_structures()
+
+        candidate_parent = '85715fc7-925d-401b-822d-467eb4b163b6'  # Fil
+
+        frontend_req = {
+            'moveDate': '01-02-2017',
+            'newParentOrgUnitUUID': candidate_parent
+        }
+
+        self.assertFalse(
+            validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
+                                                frontend_req))
+
+    def test_should_not_move_org_unit_to_itself(self):
+        self.load_sample_structures()
+
+        frontend_req = {
+            'moveDate': '01-02-2017',
+            'newParentOrgUnitUUID': self.UNIT_TO_MOVE
+        }
+
+        self.assertFalse(
+            validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
+                                                frontend_req))
+
+    def test_should_return_status_400_when_move_invalid(self):
+        self.load_sample_structures()
+
+        candidate_parent = '04c78fc2-72d2-4d02-b55f-807af19eac48'  # Frem
+
+        frontend_req = {
+            'moveDate': '01-02-2017',
+            'newParentOrgUnitUUID': candidate_parent
+        }
+
+        r = self.client.post(
+            '/o/%s/org-unit/%s/actions/move' % (self.ORG, self.UNIT_TO_MOVE),
+            data=json.dumps(frontend_req),
+            content_type='application/json')
+
+        self.assertEqual(400, r.status_code)

@@ -23,6 +23,9 @@ after each of the following steps:
 14) Edit the org unit from 1) by changing the org unit startdate (i.e. 'gyldighed')
 15) Edit both the unit type and the org unit startdate in one go (for the org unit from 1))
 16) Test that search is working (with and without wildcards)
+17) Check that it is not possible to create an org unit with an invalid date range
+18) Check that it is not possible to move an org unit to its own subtree
+19) Check that the "History" button is working
 
 Testing temporality
 -------------------

@@ -642,8 +642,8 @@ class TestWritingIntegration(util.LoRATestCase):
                 ]
             )
 
-    @freezegun.freeze_time('2010-06-01 12:00:00', tz_offset=+1)
-    def test_should_create_org_unit_with_virkning_to_2011_01_01(self):
+    @freezegun.freeze_time('2017-05-01 12:00:00', tz_offset=+2)
+    def test_should_create_org_unit_with_virkning_to_2017_02_01(self):
         self.load_sample_structures()
 
         root = '2874e1dc-85e6-4269-823a-e1125484dfd3'
@@ -652,8 +652,8 @@ class TestWritingIntegration(util.LoRATestCase):
         payload = {
             "user-key": "NULL",
             "name": "NyEnhed",
-            "valid-from": "01-01-2010",
-            "valid-to": "01-01-2011",
+            "valid-from": "01-02-2017",
+            "valid-to": "01-06-2017",
             "org": org,
             "parent": root,
             "type": {
@@ -698,9 +698,10 @@ class TestWritingIntegration(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
-        lora_response = lora.organisationenhed(
-            uuid=uuid, virkningtil='infinity')[0]['registreringer'][-1]
+        lora_response = self._get_org_unit(uuid)
         lora_response.pop('fratidspunkt')
+        lora_response.pop('livscykluskode')
+        lora_response.pop('note')
 
         expected_response = util.jsonfile_to_dict(
             'tests/integration_test_data/create_org_unit_2011-01-01.json')

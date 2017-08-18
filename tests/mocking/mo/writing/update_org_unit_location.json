@@ -1,0 +1,12 @@
+{
+  "valid-from": "15-06-2017",
+  "location": {
+    "UUID_EnhedsAdresse": "0a3f50c3-df71-32b8-e044-0003ba298018",
+    "postdistrikt": "Risskov",
+    "postnr": "8240",
+    "vejnavn": "Pilevej 5, 8240 Risskov"
+  },
+  "name": "abc",
+  "valid-to": "infinity",
+  "$$hashKey": "0SQ"
+}

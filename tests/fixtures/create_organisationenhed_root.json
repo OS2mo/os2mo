@@ -14,10 +14,19 @@
     "tilstande": {
         "organisationenhedgyldighed": [
             {
+                "gyldighed": "Inaktiv",
+                "virkning": {
+                    "from": "-infinity",
+                    "to": "2016-01-01 00:00:00+01:00",
+                    "to_included": false
+                }
+            },
+            {
                 "gyldighed": "Aktiv",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01:00",
-                    "to": "infinity"
+                    "to": "infinity",
+                    "from_included": true
                 }
             }
         ]

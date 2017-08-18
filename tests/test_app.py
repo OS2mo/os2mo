@@ -7,8 +7,7 @@
 #
 
 import json
-
-import freezegun
+import unittest
 
 from . import util
 
@@ -101,55 +100,6 @@ class MoraTestCase(TestSetup):
         )
 
 
-class TestCreateOrgUnit(TestSetup):
-    @util.mock()
-    def test_create_organisation_unit_with_end_date_infinity(self, mock):
-        expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
-        frontend_req = util.get_mock_data('mo/create_org_unit.json')
-        mock.post('http://mox/organisation/organisationenhed',
-                  json=expected_response)
-        r = self.client.post('/o/' + frontend_req['org'] + '/org-unit',
-                             data=json.dumps(frontend_req),
-                             content_type='application/json')
-        actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response, expected_response,
-                         'Error in creating org unit')
-        self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
-
-    @freezegun.freeze_time('2010-01-01')
-    @util.mock()
-    def test_create_organisation_unit_with_specific_end_date(self, mock):
-        expected_response = {'uuid': '00000000-0000-0000-0000-000000000000'}
-        frontend_req = util.get_mock_data(
-            'mo/create_org_unit_specific_enddate.json',
-        )
-        mock.post('http://mox/organisation/organisationenhed',
-                  json=expected_response)
-        mock.get(
-            'http://mox/organisation/organisationenhed'
-            '?uuid=00000000-0000-0000-0000-000000000000'
-            '&virkningfra=2010-01-01T00%3A00%3A00%2B01%3A00'
-            '&virkningtil=2010-01-02T00%3A00%3A00%2B01%3A00',
-            json=util.get_mock_data(
-                'lora/organisation/organisationenhed/'
-                'get_org_unit_from_uuid.json',
-            ))
-        mock.put(
-            'http://mox/organisation/organisationenhed/'
-            '00000000-0000-0000-0000-000000000000',
-            json=expected_response)
-        r = self.client.post('/o/' + frontend_req['org'] + '/org-unit',
-                             data=json.dumps(frontend_req),
-                             content_type='application/json')
-        actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response, expected_response,
-                         'Error in creating org unit')
-        self.assertEqual(r.status_code, 201, 'HTTP status code not 201')
-
-
-# TODO: the tests below do not really tell us much...
-
-
 class TestRenameAndRetypeOrgUnit(TestSetup):
     @util.mock()
     def test_should_rename_org_unit_correctly(self, mock):
@@ -217,23 +167,5 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
         self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
 
 
-class TestMoveOrgUnit(TestSetup):
-    @util.mock()
-    def test_should_respond_uuid_200_when_moving_org_unit(self, mock):
-        frontend_req = {
-            "moveDate": "01-01-2010",
-            "newParentOrgUnitUUID": "00000000-0000-0000-0000-000000000000"}
-        mock.put(
-            'http://mox/organisation/organisationenhed/'
-            '00000000-0000-0000-0000-000000000000',
-            json={'uuid': '00000000-0000-0000-0000-000000000000'})
-        r = self.client.post(
-            '/o/00000000-0000-0000-0000-000000000000'
-            '/org-unit/00000000-0000-0000-0000-000000000000/actions/move',
-            data=json.dumps(frontend_req),
-            content_type='application/json')
-        actual_response = json.loads(r.data.decode())
-        self.assertEqual(actual_response,
-                         {'uuid': '00000000-0000-0000-0000-000000000000'},
-                         'Error when moving org unit')
-        self.assertEqual(r.status_code, 200, 'HTTP status code not 200')
+if __name__ == '__main__':
+    unittest.main()

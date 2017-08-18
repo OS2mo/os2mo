@@ -1,0 +1,33 @@
+{
+  "activeName": "ABC2",
+  "hasChildren": false,
+  "name": "ABC2",
+  "org": "59141156-ed0b-457c-9535-884447c5220b",
+  "parent": "95decf0e-e7a4-4635-a42f-86fcc6ec0175",
+  "parent-object": {
+    "activeName": "Aarhus Kommune",
+    "hasChildren": true,
+    "name": "Aarhus Kommune",
+    "org": "59141156-ed0b-457c-9535-884447c5220b",
+    "parent": null,
+    "parent-object": null,
+    "type": {
+      "name": "Afdeling 003"
+    },
+    "user-key": "ÅRHUS",
+    "uuid": "95decf0e-e7a4-4635-a42f-86fcc6ec0175",
+    "valid-from": "2015-12-31 23:00:00+00",
+    "valid-to": "infinity"
+  },
+  "type": {
+    "name": "Afdeling 003",
+    "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9"
+  },
+  "user-key": "ABC",
+  "uuid": "783c877a-b5cf-4ef8-b384-7b4f89d08c8f",
+  "valid-from": "2017-06-11 22:00:00+00",
+  "valid-to": "2017-07-11 22:00:00+00",
+  "$$hashKey": "10O",
+  "type-updated": "",
+  "changed": true
+}

@@ -1,7 +1,5 @@
 {
-  "note": "Afslut enhed",
   "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
-  "livscykluskode": "Rettet",
   "fratidspunkt": {
     "tidsstempeldatotid": "2017-06-26T10:49:24.085155+02:00",
     "graenseindikator": true
@@ -67,16 +65,25 @@
     "organisationenhedgyldighed": [
       {
         "virkning": {
-          "from": "2010-01-01 00:00:00+01",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "to_included": false,
-          "to": "2011-01-01 00:00:00+01"
+          "to": "2017-06-01 00:00:00+02"
         },
         "gyldighed": "Aktiv"
       },
       {
         "virkning": {
-          "from": "2011-01-01 00:00:00+01",
+          "from": "-infinity",
+          "from_included": true,
+          "to_included": false,
+          "to": "2017-02-01 00:00:00+01"
+        },
+        "gyldighed": "Inaktiv"
+      },
+      {
+        "virkning": {
+          "from": "2017-06-01 00:00:00+02",
           "from_included": true,
           "to_included": false,
           "to": "infinity"

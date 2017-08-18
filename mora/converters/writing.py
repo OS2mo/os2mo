@@ -65,8 +65,9 @@ def create_org_unit(req: dict) -> dict:
     """
 
     # Create virkning
+
     # NOTE: 'to' date is always infinity here but if the 'valid-to' is set in
-    # the frontend request, the org unit end-date will be changed elsewhere
+    # the frontend request, the org unit end-date will be changed below
     virkning = _create_virkning('-infinity', 'infinity')
 
     # Create the organisation unit object
@@ -157,6 +158,15 @@ def create_org_unit(req: dict) -> dict:
                                          False, False)
         }
     )
+    if 'valid-to' in req:
+        org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
+            'to'] = util.to_lora_time(req.get('valid-to'))
+        org_unit['tilstande']['organisationenhedgyldighed'].append(
+            {
+                'gyldighed': 'Inaktiv',
+                'virkning': _create_virkning(req['valid-to'], 'infinity')
+            }
+        )
 
     return org_unit
 
