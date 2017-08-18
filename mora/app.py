@@ -267,8 +267,11 @@ def get_orgunit(orgid, unitid=None):
 
 
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/history/')
-@util.restrictargs()
+@util.restrictargs('t')
 def get_orgunit_history(orgid, unitid):
+    # TODO: we are not actually using the 't' parameter - we should
+    # probably remove this from the frontend calls later on...
+
     r = reading.unit_history(str(orgid), str(unitid))
 
     return flask.jsonify(list(r)) if r else ('', 404)
