@@ -1,0 +1,184 @@
+{
+  "http://mox/organisation/organisation?bvn=%25&virkningtil=2017-07-29T00%3A00%3A00%2B02%3A00&virkningfra=2017-07-28T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+          "456362c4-0ee4-4e5e-a72c-751239745e62"
+      ]
+    ]
+  },
+  "http://mox/organisation/organisation?uuid=456362c4-0ee4-4e5e-a72c-751239745e62&virkningfra=2017-07-28T00%3A00%3A00%2B02%3A00&virkningtil=2017-07-29T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        {
+          "id": "456362c4-0ee4-4e5e-a72c-751239745e62",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationegenskaber": [
+                  {
+                    "brugervendtnoegle": "AU",
+                    "organisationsnavn": "Aarhus Universitet",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-08-17T10:27:27.65144+02:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "myndighed": [
+                  {
+                    "urn": "urn:dk:kommune:751",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed/2874e1dc-85e6-4269-823a-e1125484dfd3?virkningfra=2017-07-28T00%3A00%3A00%2B02%3A00&virkningtil=2017-07-29T00%3A00%3A00%2B02%3A00": {
+    "2874e1dc-85e6-4269-823a-e1125484dfd3": [
+      {
+        "id": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "registreringer": [
+          {
+            "attributter": {
+              "organisationenhedegenskaber": [
+                {
+                  "brugervendtnoegle": "root",
+                  "enhedsnavn": "Overordnet Enhed",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+              "graenseindikator": true,
+              "tidsstempeldatotid": "2017-08-17T10:27:27.702649+02:00"
+            },
+            "livscykluskode": "Importeret",
+            "note": "Automatisk indl\u00e6sning",
+            "relationer": {
+              "adresser": [
+                {
+                  "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "notetekst": "v0:1:Kontor",
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                },
+                {
+                  "urn": "urn:magenta.dk:telefon:+4587150000",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "enhedstype": [
+                {
+                  "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "overordnet": [
+                {
+                  "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ],
+              "tilhoerer": [
+                {
+                  "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "organisationenhedgyldighed": [
+                {
+                  "gyldighed": "Aktiv",
+                  "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "http://mox/organisation/organisationenhed?virkningfra=2017-07-28T00%3A00%3A00%2B02%3A00&overordnet=456362c4-0ee4-4e5e-a72c-751239745e62&virkningtil=2017-07-29T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        "2874e1dc-85e6-4269-823a-e1125484dfd3"
+      ]
+    ]
+  }
+}
