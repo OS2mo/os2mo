@@ -15,7 +15,6 @@ Customised to create and configure a virtual environment.
 
 from __future__ import print_function, absolute_import, unicode_literals
 
-import base64
 import os
 import platform
 import subprocess

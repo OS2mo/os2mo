@@ -8,10 +8,8 @@
 
 import base64
 import datetime
-import io
 import zlib
 
-import iso8601
 import lxml.etree
 import flask
 import requests
