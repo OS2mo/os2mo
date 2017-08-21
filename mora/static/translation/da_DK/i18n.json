@@ -161,6 +161,7 @@
         "dashboard_toolbar_label": "Værktøjslinie",
         "dato_label": "Dato",
         "employee_not_found_label": "Personen er ikke kendt i MO",
+        "employees_not_loaded": "Ingen søgning at vise.",
         "employeeAbsence_alt_label": "Alt",
         "employeeAbsence_arbejdsfunktion_label": "Roller",
         "employeeAbsence_egenskaber_label": "Egenskaber",
