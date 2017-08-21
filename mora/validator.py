@@ -84,17 +84,23 @@ def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
             org_unit_relations['tilhoerer'][0]['uuid']:
         return False
 
-    # Org unit is to the root org unit
+    # Use for checking that the candidate parent is not the units own subtree
     def is_node_valid(node_uuid: str) -> bool:
         if node_uuid == unitid:
             return False
 
-        node_relations = lora.organisationenhed.get(
+        node = lora.organisationenhed.get(
             uuid=node_uuid,
             virkningfra=from_.isoformat(),
             virkningtil=to.isoformat()
-        )['relationer']
+        )
 
+        # Check that the node is not inactive
+        if node['tilstande']['organisationenhedgyldighed'][0]['gyldighed'] == \
+                'Inaktiv':
+            return False
+
+        node_relations = node['relationer']
         parent = node_relations['overordnet'][0]['uuid']
         if parent == node_relations['tilhoerer'][0]['uuid']:
             # Root org unit

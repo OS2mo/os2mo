@@ -12,23 +12,25 @@ from mora import validator
 from tests import util
 
 
-class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
+class TestHelper(util.LoRATestCase):
     maxDiff = None
 
     # parent = samf, valid from 2017-01-01 to infinity
     ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
     PARENT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
-    def _expire_parent(self):
+    def expire_org_unit(self, org_unit):
         # Expire the parent from 2018-01-01
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=01-01-2018' % (self.ORG, self.PARENT),
+            '/o/%s/org-unit/%s?endDate=01-01-2018' % (self.ORG, org_unit),
             {
-                'uuid': self.PARENT,
+                'uuid': org_unit,
             },
             method='DELETE',
         )
 
+
+class TestIntegrationCreateOrgUnitValidator(TestHelper):
     # Test validator._is_date_range_valid
 
     def test_should_return_true_when_interval_contained(self):
@@ -37,7 +39,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
            [--- sub ---)
         """
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         startdate = '01-02-2017'
         enddate = '01-06-2017'
@@ -51,7 +53,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
         [------ sub ---)
         """
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         startdate = '01-01-2017'
         enddate = '01-06-2017'
@@ -65,7 +67,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
           [------ sub ------)
         """
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         startdate = '01-02-2017'
         enddate = '01-01-2018'
@@ -79,7 +81,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
         [------ sub ---)
         """
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         startdate = '01-01-2016'
         enddate = '01-06-2017'
@@ -93,7 +95,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
           [---- sub -----------)
         """
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         startdate = '01-02-2017'
         enddate = '01-06-2019'
@@ -107,7 +109,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
         [---- sub -----------)
         """
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         startdate = '01-02-2010'
         enddate = '01-06-2015'
@@ -165,7 +167,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
 
     def test_should_not_create_org_unit_when_not_interval_contained1(self):
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         frontend_req = {
             "user-key": "NULL", "name": "AAA",
@@ -259,7 +261,7 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
 
     def test_should_return_status_400_when_date_range_invalid(self):
         self.load_sample_structures()
-        self._expire_parent()
+        self.expire_org_unit(self.PARENT)
 
         payload = {
             "user-key": "NULL",
@@ -307,10 +309,8 @@ class TestIntegrationCreateOrgUnitValidator(util.LoRATestCase):
         self.assertEqual(400, r.status_code)
 
 
-class TestIntegrationMoveOrgUnitValidator(util.LoRATestCase):
-    maxDiff = None
+class TestIntegrationMoveOrgUnitValidator(TestHelper):
     UNIT_TO_MOVE = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'  # Hum
-    ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
     def test_cannot_move_unit_to_own_subtree(self):
         self.load_sample_structures()
@@ -379,6 +379,18 @@ class TestIntegrationMoveOrgUnitValidator(util.LoRATestCase):
         self.assertFalse(
             validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
                                                 frontend_req))
+
+    def test_should_return_false_when_candicate_parent_is_inactive(self):
+        self.load_sample_structures()
+        self.expire_org_unit(self.PARENT)  # Expire the candidate parent unit
+
+        frontend_req = {
+            'moveDate': '01-02-2020',
+            'newParentOrgUnitUUID': self.PARENT
+        }
+
+        self.assertFalse(validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
+                                                             frontend_req))
 
     def test_should_return_status_400_when_move_invalid(self):
         self.load_sample_structures()
