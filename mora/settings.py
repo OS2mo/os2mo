@@ -16,7 +16,7 @@ CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
 LORA_URL = 'http://mox/'
 
 SAML_IDP_TYPE = 'wso2'
-SAML_IDP_URL = 'http://localhost'
+SAML_IDP_URL = None
 SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = True
 
