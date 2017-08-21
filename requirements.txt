@@ -4,3 +4,6 @@ requests~=2.18.2
 tzlocal~=1.4
 iso8601~=0.1.12
 lxml~=3.8.0
+
+grequests~=0.3.0
+openpyxl>=2.4.7

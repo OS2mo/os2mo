@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Copyright (c) 2017, Magenta ApS
 #
@@ -7,63 +6,32 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import argparse
-import datetime
-import itertools
-import json
-import os
-import shelve
-import sys
+import collections
+import functools
 import uuid
 
-import grequests
 import openpyxl
-import requests
-import tzlocal
-import urllib3
+
+from .. import util
+from .. import lora
 
 
-def _dt2str(dt):
-    '''Convert a datetime to string
+def convert(fp):
+    wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
 
-    We consider anything before 1900 or after y9k as "infinity"
-
-    '''
-
-    if not isinstance(dt, datetime.datetime):
-        return dt
-    elif dt.year >= 9000:
-        return 'infinity'
-    elif dt.year < 1900:
-        return '-infinity'
-    else:
-        if not dt.tzinfo:
-            dt = tzlocal.get_localzone().localize(dt)
-
-        return dt.isoformat()
+    for sheet in wb:
+        yield from convert_sheet(sheet)
 
 
-ADDR_CACHE_FILE = os.path.join(os.path.dirname(__file__), 'addr.db')
-
-
-class AddrCache(shelve.DbfilenameShelf):
-    def __init__(self):
-        super().__init__(ADDR_CACHE_FILE, 'c', 4)
-
-    def __getitem__(self, k):
-        try:
-            return super().__getitem__(k)
-        except KeyError:
-            r = requests.get('http://dawa.aws.dk/datavask/adresser',
+def convert_sheet(sheet):
+    @functools.lru_cache(10000)
+    def wash_address(k):
+        r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
                              params={'betegnelse': k})
-            r.raise_for_status()
-            d = self[k] = r.json()
-            return d
+        r.raise_for_status()
+        return r.json()
 
-
-def _read_sheet(sheet):
-    now = datetime.datetime.now(tzlocal.get_localzone())
-    cache = {}
+    cache = collections.OrderedDict()
     classes = set()
     rows = sheet.rows
 
@@ -85,7 +53,7 @@ def _read_sheet(sheet):
         if 'enhedstype' in obj:
             classes.add(obj['enhedstype'])
 
-    for clsid in classes:
+    for clsid in sorted(classes):
         yield 'PUT', '/klassifikation/klasse/' + clsid, {
             "attributter": {
                 "klasseegenskaber": [
@@ -122,15 +90,15 @@ def _read_sheet(sheet):
             print(i)
 
         virkning = {
-            'from': _dt2str(obj['fra']),
-            'to': _dt2str(obj['til']) or 'infinity',
+            'from': util.to_lora_time(obj['fra']),
+            'to': util.to_lora_time(obj['til'] or 'infinity'),
             'from_included': True,
             'to_included': False,
         }
 
         virkning_inactive = {
             'from': '-infinity',
-            'to': _dt2str(obj['fra']),
+            'to': util.to_lora_time(obj['fra']),
             'from_included': False,
             'to_included': False,
         }
@@ -220,12 +188,11 @@ def _read_sheet(sheet):
                 else:
                     address = obj['adresse']
 
-                with AddrCache() as addrcache:
-                    addrinfo = addrcache[
-                        '{}, {} {}'.format(
-                            address, postalcode, obj['postdistrikt']
-                        )
-                    ]
+                addrinfo = wash_address(
+                    '{}, {} {}'.format(
+                        address, postalcode, obj['postdistrikt']
+                    )
+                )
 
                 if len(addrinfo['resultater']) == 1:
                     addresses.append({
@@ -298,70 +265,3 @@ def _read_sheet(sheet):
                    r)
         else:
             raise ValueError(sheet.title)
-
-
-def import_file(url, fp, verbose=False, insecure=False):
-    wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
-    sheetlines = itertools.chain.from_iterable(map(_read_sheet, wb))
-
-    if not url:
-        for method, path, obj in sheetlines:
-            print(method, path,
-                  json.dumps(obj, check_circular=False, indent=2))
-        return
-
-    session = grequests.Session()
-
-    if insecure:
-        session.verify = False
-        urllib3.disable_warnings()
-
-    requests = (
-        grequests.request(
-            method, url + path, session=session,
-            # reload the object to break duplicate entries
-            json=json.loads(json.dumps(obj, check_circular=False)),
-        )
-        for method, path, obj in sheetlines
-    )
-
-    def fail(r, exc):
-        if verbose:
-            print(r.url)
-        print(*exc.args)
-
-    for r in grequests.imap(requests, size=6, exception_handler=fail):
-        if verbose:
-            print(r.url)
-
-        if not r.ok:
-            try:
-                print(r.status_code, r.json())
-            except ValueError:
-                print(r.status_code, r.text)
-        r.raise_for_status()
-
-
-def main(argv):
-    parser = argparse.ArgumentParser(
-        description='Import an Excel spreadsheet into LoRa',
-    )
-
-    parser.add_argument('spreadsheet', type=argparse.FileType('rb'),
-                        help='the spreadsheet to import')
-    parser.add_argument('server', type=str,
-                        help='URL', nargs='?')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                        help='show requests')
-    parser.add_argument('--insecure', '-k', action='store_true',
-                        help='disable HTTPS security')
-
-    args = parser.parse_args(argv)
-
-    import_file(args.server, args.spreadsheet, args.verbose, args.insecure)
-
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
