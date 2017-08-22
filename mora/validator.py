@@ -18,13 +18,21 @@ ERRORS = {
             }
         ]
     },
+    'inactivate_org_unit': {
+        'errors': [
+            {
+                'key not used': 'Dato for afslutning ikke tilladt (er der '
+                                'aktive underenheder?)'
+            }
+        ]
+    },
     'rename_org_unit': {
         'errors': [
             {
                 'key not used': 'Ulovlig overenhed'
             }
         ]
-    }
+    },
 }
 
 
@@ -109,3 +117,36 @@ def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
         return is_node_valid(parent)
 
     return is_node_valid(req['newParentOrgUnitUUID'])
+
+
+def _get_org_unit_endpoint_date(org_unit: dict,
+                                enddate=True) -> datetime.datetime:
+    """
+    Get the validity start date or end date for an org unit.
+    Pre-condition: the org unit has exactly one active period.
+    """
+    for g in org_unit['tilstande']['organisationenhedgyldighed']:
+        if g['gyldighed'] == 'Aktiv':
+            virkning = g['virkning']
+            if enddate:
+                return lora.util.parsedatetime(virkning['to'])
+            else:
+                return lora.util.parsedatetime(virkning['from'])
+
+
+def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
+    candidate_enddate = util.parsedatetime(end_date)
+
+    # Check that the end date is greater than the start date of the org unit
+    org_unit = lora.get_org_unit(unitid)
+    if candidate_enddate <= _get_org_unit_endpoint_date(org_unit, False):
+        return False
+
+    # Check that the end dates of the children smaller than org unit end date
+    children = lora.organisationenhed(overordnet=unitid)
+    for child in children:
+        child_unit = lora.get_org_unit(child)
+        if candidate_enddate < _get_org_unit_endpoint_date(child_unit):
+            return False
+
+    return True

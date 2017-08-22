@@ -408,3 +408,47 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
             content_type='application/json')
 
         self.assertEqual(400, r.status_code)
+
+
+class TestInactivateOrgUnitValidation(util.LoRATestCase):
+    maxDiff = None
+    ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+    SAMF_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+    HIST_UNIT = 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
+
+    def test_should_not_allow_end_date_2000_01_01(self):
+        self.load_sample_structures()
+        self.assertFalse(
+            validator.is_inactivation_date_valid(self.SAMF_UNIT, '01-01-2000'))
+
+    def test_should_allow_end_2019_01_01(self):
+        self.load_sample_structures()
+        self.assertTrue(
+            validator.is_inactivation_date_valid(self.SAMF_UNIT, '01-01-2019'))
+
+    def test_should_not_allow_end_date_2018_when_subunit_still_active(self):
+        self.load_sample_structures()
+        self.assertFalse(
+            validator.is_inactivation_date_valid(self.HIST_UNIT, '01-01-2018')
+        )
+
+    def test_should_allow_end_date_2020_when_subunit_still_active(self):
+        self.load_sample_structures()
+        self.assertTrue(
+            validator.is_inactivation_date_valid(self.HIST_UNIT, '01-01-2020')
+        )
+
+    def test_should_not_allow_end_date_2018_when_subunits_still_active(self):
+        self.load_sample_structures()
+        self.assertFalse(
+            validator.is_inactivation_date_valid(
+                '2874e1dc-85e6-4269-823a-e1125484dfd3', '01-01-2018')
+        )
+
+    def test_should_return_status_400_when_enddate_invalid(self):
+        self.load_sample_structures()
+
+        r = self.client.delete(
+            '/o/%s/org-unit/%s?endDate=01-01-2018' %
+            (self.ORG, self.HIST_UNIT))
+        self.assertEqual(400, r.status_code)

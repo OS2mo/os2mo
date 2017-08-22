@@ -119,11 +119,14 @@ def create_organisation_unit(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
 @util.restrictargs('endDate')
 def inactivate_org_unit(orgid, unitid):
+    enddate = flask.request.args.get('endDate')
+    if not validator.is_inactivation_date_valid(str(unitid), enddate):
+        return flask.jsonify(validator.ERRORS['inactivate_org_unit']), 400
+
     update_url = 'organisation/organisationenhed/%s' % unitid
 
     # Keep the calls to LoRa in app.py (makes it easier to test writing.py)
-    org_unit = lora.organisationenhed.get(uuid=unitid, virkningfra='-infinity',
-                                          virkningtil='infinity')
+    org_unit = lora.get_org_unit(unitid)
     startdate = [
         g['virkning']['from'] for g in
         org_unit['tilstande']['organisationenhedgyldighed']
@@ -136,8 +139,7 @@ def inactivate_org_unit(orgid, unitid):
     lora.update(update_url, {'tilstande': {'organisationenhedgyldighed': []}})
 
     # Then upload payload with actual virkninger
-    payload = writing.inactivate_org_unit(startdate,
-                                          flask.request.args.get('endDate'))
+    payload = writing.inactivate_org_unit(startdate, enddate)
     lora.update(update_url, payload)
 
     return flask.jsonify({'uuid': unitid}), 200
