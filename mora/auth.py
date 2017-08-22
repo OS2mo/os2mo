@@ -44,7 +44,15 @@ def login(username):
     # TODO: remember me?
     password = flask.request.get_json()['password']
 
-    assertion = tokens.get_token(username, password)
+    try:
+        assertion = tokens.get_token(username, password)
+    except requests.exceptions.ConnectionError as e:
+        flask.current_app.logger.exception(
+            'AN ERROR OCCURRED in %r',
+            flask.request.full_path,
+        )
+
+        raise PermissionError('connection failed')
 
     resp = flask.jsonify({
         "user": username,

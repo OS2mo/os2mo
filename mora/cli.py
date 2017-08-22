@@ -29,14 +29,11 @@ basedir = os.path.dirname(__file__)
 
 def requires_auth(func):
     @click.option('--user', '-u',
-                  help="account user name",
-                  prompt='Enter user name')
+                  help="account user name")
     @click.option('--password', '-p',
-                  help="account password",
-                  prompt='Enter password', hide_input=True)
+                  help="account password")
     @click.option('--insecure', '-k', is_flag=True,
                   help="disable SSL/TLS security checks")
-    @functools.wraps(func)
     def wrapper(*args, **options):
         if options.pop('insecure'):
             warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
@@ -45,19 +42,32 @@ def requires_auth(func):
         else:
             warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
 
+        if options['user'] and not options['password']:
+            options['password'] = click.prompt('Enter password for {}'.format(
+                options['user'],
+                hiden_input=True,
+                err=True,
+            ))
+
         try:
-            lora.session.auth = auth.SAMLAuth(tokens.get_token(
+            assertion = tokens.get_token(
                 options.pop('user'),
                 options.pop('password'),
-            ))
+            )
+
+            lora.session.auth = auth.SAMLAuth(assertion)
 
             return func(*args, **options)
         except urllib3.exceptions.HTTPWarning as e:
             print(e)
             print('or use -k/--insecure to suppress this warning')
-            sys.exit(1)
+            raise click.Abort()
 
-    return wrapper
+        except PermissionError as e:
+            print('Authentication failed:', e)
+            raise click.Abort()
+
+    return functools.update_wrapper(wrapper, func)
 
 
 def load_cli(app):
@@ -203,7 +213,7 @@ def load_cli(app):
 
     @app.cli.command('import')
     @click.argument('spreadsheet', type=click.File('rb'))
-    @click.argument('url')
+    @click.argument('url', required=False)
     @click.option('--verbose', '-v', count=True,
                   help='Show more output.')
     @click.option('--check', '-c', is_flag=True,
@@ -214,6 +224,8 @@ def load_cli(app):
         '''
         Import an Excel spreadsheet into LoRa
         '''
+
+        import grequests
 
         sheetlines = importing.convert(spreadsheet)
 
