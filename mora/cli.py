@@ -232,7 +232,7 @@ def load_cli(app):
         if not url:
             for method, path, obj in sheetlines:
                 print(method, path,
-                      json.dumps(obj, check_circular=False, indent=2))
+                      json.dumps(obj, indent=2))
             return
 
         requests = (
@@ -240,8 +240,7 @@ def load_cli(app):
                 # check means that we always get GET anything
                 method if not check else 'GET',
                 url + path, session=lora.session,
-                # reload the object to break duplicate entries
-                json=json.loads(json.dumps(obj, check_circular=False)),
+                json=obj,
             )
             for method, path, obj in sheetlines
         )
