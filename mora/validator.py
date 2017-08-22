@@ -33,6 +33,13 @@ ERRORS = {
             }
         ]
     },
+    'update_existing_location': {
+        'errors': [
+            {
+                'key not used': 'Adressefeltet må ikke være tomt'
+            }
+        ]
+    }
 }
 
 
@@ -149,4 +156,10 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
         if candidate_enddate < _get_org_unit_endpoint_date(child_unit):
             return False
 
+    return True
+
+
+def is_location_update_valid(req: dict) -> bool:
+    if not req['location']:
+        return False
     return True

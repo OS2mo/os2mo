@@ -191,9 +191,9 @@ def rename_or_retype_org_unit(orgid, unitid):
     methods=['POST'],
 )
 def update_organisation_unit_location(orgid, unitid, locid=None):
-    # TODO: write test for this
-
     req = flask.request.get_json()
+    if not validator.is_location_update_valid(req):
+        return flask.jsonify(validator.ERRORS['update_existing_location']), 400
 
     kwargs = writing.create_update_kwargs(req)
     payload = writing.update_org_unit_addresses(

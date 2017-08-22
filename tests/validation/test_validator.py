@@ -12,7 +12,7 @@ import unittest
 from mora import validator
 
 
-class TestValidation(unittest.TestCase):
+class TestGetEndpointDate(unittest.TestCase):
     def setUp(self):
         self.org_unit = {
             'tilstande': {
@@ -65,3 +65,23 @@ class TestValidation(unittest.TestCase):
                          validator._get_org_unit_endpoint_date(self.org_unit,
                                                                False)
                          )
+
+
+class TestUpdateLocation(unittest.TestCase):
+
+    def test_should_return_false_if_location_is_missing(self):
+        frontend_req = {
+            'location': ''
+        }
+        self.assertFalse(validator.is_location_update_valid(frontend_req))
+
+    def test_should_return_true_when_location_is_set(self):
+        frontend_req = {
+            "location": {
+                "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
+                "postdistrikt": "Risskov",
+                "postnr": "8240",
+                "vejnavn": "Pilevej 3, 8240 Risskov"
+            }
+        }
+        self.assertTrue(validator.is_location_update_valid(frontend_req))
