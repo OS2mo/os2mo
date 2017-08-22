@@ -19,18 +19,6 @@ from . import util
 class TestWritingIntegration(util.LoRATestCase):
     maxDiff = None
 
-    def _get_org_unit(self, org_unit: str) -> dict:
-        """
-        Get the full org unit with virkning from -infinity to +infinity
-        :param org_unit: the UUID of the org unit
-        :return: the full org unit
-        """
-        return lora.organisationenhed.get(
-            uuid=org_unit,
-            virkningfra='-infinity',
-            virkningtil='infinity'
-        )
-
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_location_edit(self):
         self.load_sample_structures(minimal=True)
@@ -329,7 +317,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
-        lora_response = self._get_org_unit(uuid)
+        lora_response = lora.get_org_unit(uuid)
         lora_response.pop('fratidspunkt')
 
         expected_response = util.jsonfile_to_dict(
@@ -698,7 +686,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Get the UUID of the org unit just created
         uuid = r.json['uuid']
 
-        lora_response = self._get_org_unit(uuid)
+        lora_response = lora.get_org_unit(uuid)
         lora_response.pop('fratidspunkt')
         lora_response.pop('livscykluskode')
         lora_response.pop('note')
@@ -845,7 +833,7 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_response = self._get_org_unit(ORG_UNIT)['attributter'][
+        actual_response = lora.get_org_unit(ORG_UNIT)['attributter'][
             'organisationenhedegenskaber']
 
         self.assertEqual(expected_response, actual_response)
@@ -909,7 +897,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertEqual(
-                self._get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
+                lora.get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
                     'tilstande'],
                 {
                     'organisationenhedgyldighed': [
@@ -945,7 +933,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertEqual(
-                self._get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
+                lora.get_org_unit('04c78fc2-72d2-4d02-b55f-807af19eac48')[
                     'tilstande'],
                 {
                     'organisationenhedgyldighed': [
@@ -1058,7 +1046,7 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_output = self._get_org_unit(ORG_UNIT)[
+        actual_output = lora.get_org_unit(ORG_UNIT)[
             'tilstande']['organisationenhedgyldighed']
 
         self.assertEqual(expected_output, actual_output)
@@ -1103,7 +1091,7 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_output = self._get_org_unit(ORG_UNIT)[
+        actual_output = lora.get_org_unit(ORG_UNIT)[
             'tilstande']['organisationenhedgyldighed']
 
         self.assertEqual(expected_output, actual_output)
@@ -1155,7 +1143,7 @@ class TestWritingIntegration(util.LoRATestCase):
             '/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
-        entry = self._get_org_unit(org_unit)
+        entry = lora.get_org_unit(org_unit)
 
         expected = util.jsonfile_to_dict(
             'tests/integration_test_data/should_move_org_unit_correctly.json',
@@ -1415,7 +1403,7 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_addresses = self._get_org_unit(ORG_UNIT)[
+        actual_addresses = lora.get_org_unit(ORG_UNIT)[
             'relationer']['adresser']
 
         self.assertEqual(expected_addresses, actual_addresses)
@@ -1484,7 +1472,7 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
 
-        actual_addresses = self._get_org_unit(ORG_UNIT)[
+        actual_addresses = lora.get_org_unit(ORG_UNIT)[
             'relationer']['adresser']
 
         self.assertEqual(expected_addresses, actual_addresses)
