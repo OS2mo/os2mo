@@ -69,19 +69,32 @@ class TestGetEndpointDate(unittest.TestCase):
 
 class TestUpdateLocation(unittest.TestCase):
 
-    def test_should_return_false_if_location_is_missing(self):
+    def test_should_return_false_if_address_is_missing(self):
         frontend_req = {
             'location': ''
         }
         self.assertFalse(validator.is_location_update_valid(frontend_req))
 
-    def test_should_return_true_when_location_is_set(self):
+    def test_should_return_true_when_address_and_name_is_set(self):
         frontend_req = {
             "location": {
                 "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
                 "postdistrikt": "Risskov",
                 "postnr": "8240",
                 "vejnavn": "Pilevej 3, 8240 Risskov"
-            }
+            },
+            'name': 'name'
         }
         self.assertTrue(validator.is_location_update_valid(frontend_req))
+
+    def test_should_return_false_when_name_is_missing(self):
+        frontend_req = {
+            "location": {
+                "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
+                "postdistrikt": "Risskov",
+                "postnr": "8240",
+                "vejnavn": "Pilevej 3, 8240 Risskov"
+            },
+            'name': ''
+        }
+        self.assertFalse(validator.is_location_update_valid(frontend_req))

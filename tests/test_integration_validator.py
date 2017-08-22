@@ -34,7 +34,6 @@ class TestHelper(util.LoRATestCase):
 
 
 class TestIntegrationCreateOrgUnitValidator(TestHelper):
-
     def setUp(self):
         super().setUp()
 
@@ -396,7 +395,6 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
 
 
 class TestInactivateOrgUnitValidation(TestHelper):
-
     def setUp(self):
         super().setUp()
 
@@ -432,13 +430,31 @@ class TestInactivateOrgUnitValidation(TestHelper):
 
 
 class TestUpdateLocationValidator(TestHelper):
-
     def setUp(self):
         super().setUp()
 
-    def test_should_not_allow_empty_location(self):
+    def test_should_not_allow_empty_address(self):
         frontend_req = {
             'location': ''
+        }
+
+        r = self.client.post(
+            '/o/%s/org-unit/%s/role-types/location/'
+            '0a3f50c3-df6f-32b8-e044-0003ba298018' %
+            (self.ORG, self.SAMF_UNIT),
+            data=json.dumps(frontend_req),
+            content_type='application/json')
+        self.assertEqual(400, r.status_code)
+
+    def test_should_not_allow_empty_name(self):
+        frontend_req = {
+            "location": {
+                "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
+                "postdistrikt": "Risskov",
+                "postnr": "8240",
+                "vejnavn": "Pilevej 3, 8240 Risskov"
+            },
+            'name': ''
         }
 
         r = self.client.post(

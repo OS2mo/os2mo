@@ -36,7 +36,8 @@ ERRORS = {
     'update_existing_location': {
         'errors': [
             {
-                'key not used': 'Adressefeltet må ikke være tomt'
+                'key not used': 'Der må ikke være tomme felter, '
+                                'når lokationen opdateres'
             }
         ]
     }
@@ -161,5 +162,7 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
 
 def is_location_update_valid(req: dict) -> bool:
     if not req['location']:
+        return False
+    if not req['name']:
         return False
     return True
