@@ -53,7 +53,8 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
     :return:
     """
 
-    assert util.parsedatetime(startdate) < util.parsedatetime(enddate)
+    if util.parsedatetime(startdate) >= util.parsedatetime(enddate):
+        return False
 
     parent = lora.organisationenhed.get(
         uuid=parent,

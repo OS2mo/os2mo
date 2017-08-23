@@ -12,6 +12,12 @@ import unittest
 from mora import validator
 
 
+class TestIsDateRangeValid(unittest.TestCase):
+    def test_startdate_should_be_smaller_than_enddate(self):
+        self.assertFalse(
+            validator._is_date_range_valid(None, '01-01-2017', '01-01-2016'))
+
+
 class TestGetEndpointDate(unittest.TestCase):
     def setUp(self):
         self.org_unit = {
@@ -68,7 +74,6 @@ class TestGetEndpointDate(unittest.TestCase):
 
 
 class TestUpdateLocation(unittest.TestCase):
-
     def test_should_return_false_if_address_is_missing(self):
         frontend_req = {
             'location': ''
