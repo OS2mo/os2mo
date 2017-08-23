@@ -12,6 +12,7 @@ import json
 import os
 import ssl
 import sys
+import traceback
 import unittest
 import warnings
 
@@ -132,8 +133,14 @@ def load_cli(app):
 
             return
 
-        runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
-        runner.run(suite)
+        try:
+            runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
+            runner.run(suite)
+
+        except Exception:
+            if verbosity > 1:
+                traceback.print_exc()
+            raise
 
     @app.cli.command()
     @click.option('--user', '-u',
