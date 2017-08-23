@@ -58,7 +58,7 @@ def _create_virkning(From: str, to: str, from_included=True,
 def create_org_unit(req: dict) -> dict:
     """Create org unit data to send to LoRa
 
-    :param : Dictionary representation of JSON request from the frontend
+    :param req: Dictionary representation of JSON request from the frontend
     :return: Dictionary representation of the org unit JSON object to send to
              LoRa
 
@@ -174,6 +174,7 @@ def create_org_unit(req: dict) -> dict:
 def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     """
     Inactivate an org unit
+    
     :param startend: the date from which the org unit is active
     :param enddate: the date to inactivate the org unit from
     :return: the payload JSON used to update LoRa
@@ -304,10 +305,12 @@ def _create_payload(From: str, to: str, obj_path: list,
 def _add_contact_channels(org_unit: dict, location: dict,
                           contact_channels: list) -> dict:
     """
-    Adds new contact channels to the address list
-    :param org_unit: the org unit to update
-    :param contact_channels: list of contact channels to add
-    :return: updated list of addresses
+    Adds new contact channels to the address list.
+    
+    :param org_unit: The org unit to update.
+    :param location: The location to attach the contact channel to.
+    :param contact_channels: List of contact channels to add.
+    :return: The updated list of addresses.
     """
     addresses = org_unit['relationer']['adresser'].copy()
 
@@ -364,14 +367,16 @@ def _update_existing_address(org_unit: dict,
 
 # Role type not set in payload JSON
 def _add_location(org_unit: dict, location: dict, From: str, to: str,
-                  **kwargs) -> dict:
+                  **kwargs: dict) -> dict:
     """
-    Adds a new location the the existing list of addresses
-    :param org_unit: the org unit to update
-    :param location: the new location to add
-    :param From: the start date of the address
-    :param to: the end date of the address
-    :return: the updated list of addresses
+    Adds a new location the the existing list of addresses.
+    
+    :param org_unit: The org unit to update.
+    :param location: The new location to add.
+    :param From: The start date of the address.
+    :param to: The end date of the address.
+    :param kwargs: The necessary data from the frontend request.
+    :return: The updated list of addresses.
     """
 
     # Note: the frontend makes a call for each location it wants to update
@@ -392,6 +397,15 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
 
 def _check_arguments(mandatory_args: collections.abc.Iterable,
                      args_to_check: collections.abc.Iterable):
+    """
+    Check that the mandatory arguments are present when updating or adding new 
+    locations to an org unit.
+    
+    :param mandatory_args: List of mandatory arguments.
+    :param args_to_check: List of arguments to check.
+    :raises: IllegalArgumentException if the argument list does not contain all
+        the mandatory arguments.
+    """
     for arg in mandatory_args:
         if arg not in args_to_check:
             raise exceptions.IllegalArgumentException('%s missing' % arg)
