@@ -17,10 +17,11 @@ from . import meta
 
 
 def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
-    """Adds virkning to the "leafs" of the given LoRa JSON (tree) object
+    """
+    Adds virkning to the "leafs" of the given LoRa JSON (tree) object.
 
-    :param lora_obj: a LoRa object with or without virkning. All
-                     virknings that are already set will be changed
+    :param lora_obj: a LoRa object with or without virkning. All virknings that
+        are already set will be preserved.
     :param virkning: the virkning to set in the LoRa object
     :return: the LoRa object with the new virkning
 
@@ -174,7 +175,7 @@ def create_org_unit(req: dict) -> dict:
 def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     """
     Inactivate an org unit
-    
+
     :param startend: the date from which the org unit is active
     :param enddate: the date to inactivate the org unit from
     :return: the payload JSON used to update LoRa
@@ -306,7 +307,7 @@ def _add_contact_channels(org_unit: dict, location: dict,
                           contact_channels: list) -> dict:
     """
     Adds new contact channels to the address list.
-    
+
     :param org_unit: The org unit to update.
     :param location: The location to attach the contact channel to.
     :param contact_channels: List of contact channels to add.
@@ -370,7 +371,7 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
                   **kwargs: dict) -> dict:
     """
     Adds a new location the the existing list of addresses.
-    
+
     :param org_unit: The org unit to update.
     :param location: The new location to add.
     :param From: The start date of the address.
@@ -398,9 +399,9 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
 def _check_arguments(mandatory_args: collections.abc.Iterable,
                      args_to_check: collections.abc.Iterable):
     """
-    Check that the mandatory arguments are present when updating or adding new 
+    Check that the mandatory arguments are present when updating or adding new
     locations to an org unit.
-    
+
     :param mandatory_args: List of mandatory arguments.
     :param args_to_check: List of arguments to check.
     :raises: IllegalArgumentException if the argument list does not contain all
