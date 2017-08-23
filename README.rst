@@ -247,3 +247,15 @@ Til sidst kopieres ``config-example.json`` til ``config.json`` og
 
 Bemærk venligst at anvendelse af HTTPS kræver et betroet certifikat på
 serveren, og at MORa ikke understøtter autentificering med SAML endnu.
+
+Autogenerering af dokumentation
+-------------------------------
+Det er muligt at autogenerere dokumentation ud fra doc-strings i kildekoden.
+Til dette anvendes `Sphinx <http://www.sphinx-doc.org/en/stable/index.html>`_.
+Kør nedenstående kommando for at autogenerere dokumentationen (husk, at det
+virtuelle miljø skal være aktivt)::
+
+  (venv) $ sphinx-build -b html /sti/til/mora/sphinx/ /sti/til/mora/autogen-doc
+
+Dokumentation kan nu findes ved at åbne filen
+``/sti/til/mora/autogen-doc/index.html``.
