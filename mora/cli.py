@@ -273,3 +273,24 @@ def load_cli(app):
                 except ValueError:
                     print(r.status_code, r.text)
             r.raise_for_status()
+
+    @app.cli.command('load-fixtures')
+    @click.option('--quiet', '-q', is_flag=True,
+                  help='Suppress all output.')
+    @click.option('--minimal', is_flag=True,
+                  help='Just import the root unit.')
+    @click.option('--check', '-c', is_flag=True,
+                  help=('check if import would overwrite any existing '
+                        'objects'))
+    @requires_auth
+    def load_fixtures(**kwargs):
+        '''
+        Import the sample fixtures into LoRA.
+        '''
+
+        from tests import util
+
+        util.load_sample_structures(
+            verbose=not kwargs.pop('quiet'),
+            **kwargs,
+        )
