@@ -232,6 +232,9 @@ def load_cli(app):
         Import an Excel spreadsheet into LoRa
         '''
 
+        # apparently, you cannot call tzlocal after importing gevent/eventlets
+        util.now()
+
         import grequests
 
         sheetlines = importing.convert(spreadsheet)
