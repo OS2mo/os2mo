@@ -298,6 +298,8 @@ class LoRATestCaseMixin(TestCaseMixin):
         self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
 
     def tearDown(self):
+        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
+
         # our test-runner enforces buffering of stdout, so we can
         # safely print out the process output; this ensures any
         # exceptions, etc. get reported to the user/test-runner
