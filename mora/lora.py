@@ -28,7 +28,7 @@ def _check_response(r):
     except requests.exceptions.HTTPError as e:
         if r.status_code == 400 and r.json():
             raise ValueError(r.json()['message'])
-        elif r.status_code == 401 and r.json():
+        elif r.status_code in (401, 403) and r.json():
             raise PermissionError(r.json()['message'])
         else:
             raise

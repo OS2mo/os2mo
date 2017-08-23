@@ -14,6 +14,9 @@
      {{i18n['no_results_found_label']}}
      <span ng-show="queryString">for {{queryString}}</span> 
     </div> 
+    <div class="alert alert-info" ng-show="!organisationsLoaded" id="orgMsgNotLoaded">
+      {{i18n['organisations_not_loaded']}}
+    </div> 
     <div class="org-list" loading-container="organisations.settings().$loading" ng-show="organisations &amp;&amp; organisationsFound &amp;&amp; organisationsLoaded"> 
 	<div>{{$data}}</div>
      <table ng-table="organisations" show-filter="false" class="table" id="organisationList"> 
