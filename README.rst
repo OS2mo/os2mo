@@ -1,11 +1,14 @@
-MORa — MedarbejderOrganisation + LoRa
-=====================================
+=======
+Om MORa
+=======
 
 .. contents:: `Indhold`
    :depth: 2
 
-Om MORa
--------
+
+Introduktion
+------------
+
 MORa er en webapplikation til håndtering af et medarbejder- og
 organisationshierarki. Systemet sætter brugerne i stand til at navigere rundt i
 eksempelvis organisationshierarkiet, indhente relevante informationer om de
@@ -17,14 +20,15 @@ refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ og den
 `Lokale Rammearkitektur <https://digitaliser.dk/group/3101080/members>`_.
 Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
 
-.. image:: sphinx/graphics/mo.png
+.. image:: docs/graphics/mo.png
    :width: 800
 
-Opbygningen af MORa
--------------------
+Opbygning
+---------
+
 Den modulære opbygning af MORa ses på nedenstående figur.
 
-.. image:: sphinx/graphics/MORaModuler3.png
+.. image:: docs/graphics/MORaModuler3.png
    :width: 800
 
 MORa består af frontend og en middleend og sidstnævnte kommunikerer med en LoRa
@@ -33,14 +37,20 @@ backend. De enkelte moduler kan opfattes som elementer i
 Model%E2%80%93view%E2%80%93controller>`_:
 
 MO (Frontend / View)
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 MOs frontend er skrevet i Javascript frameworket
 `AngularJS <https://angularjs.org/>`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
 kommunikerer indirekte med Lora via MOs middleend.
 
+LoRa (Backend / Model)
+~~~~~~~~~~~~~~~~~~~~~~
+En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
+i en PostgreSQL-database. Disse data udstilles og manipuleres via en
+RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
+
 MO (Middleend / Control)
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 MOs middleend fungerer som en bro mellem frontenden og backenden, og den har
 til opgave at oversætte de data, der sendes mellem frontenden og backenden til
 passende JSON formater, når der udføres læse- og skriveoperationer fra og
@@ -52,14 +62,9 @@ til det JSON-format, som frontenden forventer. Tilsvarende sender frontenden
 ved skriveoperationer JSON i et format, som skal oversættes af middleenden til
 det JSON-format, som kræves af LoRa's REST API. Middlend kan opfattes som *Control* i MVC-modellen.
 
-LoRa (Backend / Model)
-~~~~~~~~~~~~~~
-En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
-i en PostgreSQL-database. Disse data udstilles og manipuleres via en
-RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
+Underopdeling
++++++++++++++
 
-Detaljeret beskrivelse af MOs middleend
-----------------------------------------
 MOs middleend er underopdelt i en række moduler - se evt. illustrationen i
 ovenstående afsnit. Formålet med denne modulære opbygning er at gøre koden
 struktureret (opdelt i en række klare ansvarsområder) og analysérbar samt
@@ -145,7 +150,7 @@ Der kræves ikke nogen yderligere opsætning for at køre unit testene (samt nog
 integrationstestene), idet disse blot kan køres med kommandoen fra rodmappen
 af projektet::
 
-  $ ./manage test
+  $ ./manage.py test
 
 En del af integrationstestene er sat op til at køre på en sådan måde, at der
 startes en LoRa-instans før de enkelte test cases kører. Hver test case
@@ -157,6 +162,10 @@ feature kræves det, at man installerer *minimox*::
   $ git clone https://github.com/magenta-aps/mox /path/to/folder/minimox
   $ cd /path/to/folder/mox
   $ git checkout -b minimox origin/minimox
+
+Bemærk at minimox kræver nogle ekstra afhængigeder::
+
+  $ sudo apt install git python-virtualenv libxmlsec1-openssl postgresql-contrib
 
 Det er nu muligt at køre alle integrationstestene vha. den netop
 installerede minimox::
@@ -248,14 +257,14 @@ Til sidst kopieres ``config-example.json`` til ``config.json`` og
 Bemærk venligst at anvendelse af HTTPS kræver et betroet certifikat på
 serveren, og at MORa ikke understøtter autentificering med SAML endnu.
 
-Autogenerering af dokumentation
--------------------------------
+Dokumentation
+-------------
+
 Det er muligt at autogenerere dokumentation ud fra doc-strings i kildekoden.
 Til dette anvendes `Sphinx <http://www.sphinx-doc.org/en/stable/index.html>`_.
-Kør nedenstående kommando for at autogenerere dokumentationen (husk, at det
-virtuelle miljø skal være aktivt)::
+Kør nedenstående kommando for at autogenerere dokumentationen::
 
-  (venv) $ sphinx-build -b html /sti/til/mora/sphinx/ /sti/til/mora/autogen-doc
+  $ ./manage.py sphinx
 
 Dokumentation kan nu findes ved at åbne filen
-``/sti/til/mora/autogen-doc/index.html``.
+``/sti/til/mora/docs/out/index.html``.

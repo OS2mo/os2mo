@@ -1,10 +1,8 @@
-.. MORa documentation master file, created by
-   sphinx-quickstart on Wed Aug 23 09:52:25 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+API dokumentation
+=================
 
-Welcome to the MORa docs
-========================
+Bemærk venligst at selve kodedokumentationen er på engelsk, eftersom
+det sprog anvendes i al koden.
 
 .. toctree::
    :maxdepth: 2
@@ -19,7 +17,6 @@ Welcome to the MORa docs
    modules-to-doc/writing
    modules-to-doc/validator
    modules-to-doc/util
-   manual-test-lib.rst
 
 
 .. Indices and tables

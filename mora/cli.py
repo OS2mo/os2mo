@@ -74,6 +74,32 @@ def requires_auth(func):
 
 def load_cli(app):
     @app.cli.command()
+    @click.option('--outdir', '-o',
+                  default=os.path.join(topdir, 'docs', 'out'),
+                  help='Output directory.')
+    @click.option('--verbose', '-v', count=True,
+                  help='Show more output.')
+    @click.argument('args', nargs=-1)
+    def sphinx(outdir, verbose, args):
+        '''Build documentation'''
+        import sphinx.cmdline
+
+        if args:
+            args = list(args)
+        else:
+            args = [
+                '-b', 'html',
+                topdir,
+                outdir,
+            ]
+
+        args += ['-v'] * verbose
+
+        r = sphinx.cmdline.main(['sphinx-build'] + args)
+        if r:
+            sys.exit(r)
+
+    @app.cli.command()
     @click.argument('target', required=False)
     def build(target=None):
         'Build the frontend application.'
