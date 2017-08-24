@@ -13,6 +13,9 @@
        {{i18n['employee_not_found_label']}}
        <!-- <span ng-show="queryString">for {{queryString}}</span> -->
       </div> 
+      <div class="alert alert-info" ng-show="!employeesLoaded" id="empMsgNotLoaded">
+       {{i18n['employees_not_loaded']}}
+      </div> 
       <div loading-container="employees.settings().$loading" ng-show="employees && employeesFound && employeesLoaded"> 
        <table ng-table="employees" show-filter="false" class="table" id="employeeList"> 
         <tbody> 

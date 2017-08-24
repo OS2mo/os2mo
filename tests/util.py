@@ -78,7 +78,7 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
     return r
 
 
-def load_sample_structures(*, verbose=False, minimal=False):
+def load_sample_structures(*, verbose=False, minimal=False, check=False):
     '''Inject our test data into LoRA.
 
     '''
@@ -124,8 +124,14 @@ def load_sample_structures(*, verbose=False, minimal=False):
             unitid,
         ))
 
-    for args in fixtures:
-        load_fixture(*args, verbose=verbose)
+    for path, fixture_name, uuid in fixtures:
+        if check:
+            if lora.get(path, uuid):
+                raise Exception('{} already exists at {}!'.format(
+                    uuid, path,
+                ))
+        else:
+            load_fixture(path, fixture_name, uuid, verbose=verbose)
 
 
 @contextlib.contextmanager
@@ -298,6 +304,8 @@ class LoRATestCaseMixin(TestCaseMixin):
         self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
 
     def tearDown(self):
+        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
+
         # our test-runner enforces buffering of stdout, so we can
         # safely print out the process output; this ensures any
         # exceptions, etc. get reported to the user/test-runner
@@ -364,8 +372,3 @@ class LiveLoRATestCase(LoRATestCaseMixin, flask_testing.LiveServerTestCase):
     def _terminate_live_server(self):
         self._server.shutdown()
         self._thread.join()
-
-
-if __name__ == '__main__':
-    # allow running this script with 'python -m'
-    load_sample_structures(verbose=True, minimal='-m' in sys.argv[1:])
