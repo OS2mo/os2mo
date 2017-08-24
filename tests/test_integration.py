@@ -327,7 +327,7 @@ class IntegrationTests(util.LoRATestCase):
                     'role-type': 'location',
                     'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '01-01-2016',
+                    'valid-from': '-infinity',
                     'valid-to': 'infinity',
                 },
             ],

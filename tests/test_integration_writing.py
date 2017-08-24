@@ -47,31 +47,7 @@ class TestWritingIntegration(util.LoRATestCase):
                     'role-type': 'location',
                     'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '01-01-2016',
-                    'valid-to': 'infinity',
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            LOCATION_URL,
-            [
-                {
-                    'location': {
-                        'name': 'Kontor',
-                        'user-key': '07515902___1_______',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
-                        'valid-to': 'infinity',
-                        'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    },
-                    'name': 'Kontor',
-                    'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
-                    'role-type': 'location',
-                    'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '01-01-2016',
+                    'valid-from': '-infinity',
                     'valid-to': 'infinity',
                 },
             ],
@@ -152,7 +128,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         'role-type': 'location',
                         'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '01-01-2016',
+                        'valid-from': '-infinity',
                         'valid-to': 'infinity',
                     },
                 ],
@@ -177,7 +153,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "01-01-2016",
+                "valid-from": "-infinity",
                 "valid-to": "infinity"
             },
         )
@@ -200,7 +176,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "01-01-2016",
+                "valid-from": "-infinity",
                 "valid-to": "infinity"
             },
         )
@@ -223,7 +199,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": True,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "01-01-2016",
+                "valid-from": "-infinity",
                 "valid-to": "infinity"
             },
         )
@@ -825,7 +801,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 'brugervendtnoegle': 'samf',
                 'enhedsnavn': 'Samfundsvidenskabelige fakultet',
                 'virkning': {
-                    'from': '2017-01-01 00:00:00+01',
+                    'from': '-infinity',
                     'from_included': True,
                     'to': '2017-08-01 00:00:00+02',
                     'to_included': False
@@ -907,6 +883,15 @@ class TestWritingIntegration(util.LoRATestCase):
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': '2019-01-01 00:00:00+01',
+                                'to_included': False,
+                            },
+                        },
+                        {
+                            'gyldighed': 'Inaktiv',
+                            'virkning': {
+                                'from': '-infinity',
+                                'from_included': True,
+                                'to': '2016-01-01 00:00:00+01',
                                 'to_included': False,
                             },
                         },
@@ -1383,7 +1368,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'virkning': {
-                    'from': '2017-01-01 00:00:00+01',
+                    'from': '-infinity',
                     'from_included': True,
                     'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
@@ -1393,7 +1378,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'virkning': {
-                    'from': '2017-01-01 00:00:00+01',
+                    'from': '-infinity',
                     'from_included': True,
                     'notetekst': 'v0:external:b1f1817d-5f02-'
                                  '4331-b8b3-97330a5d3197',
@@ -1452,7 +1437,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'virkning': {
-                    'from': '2017-01-01 00:00:00+01',
+                    'from': '-infinity',
                     'from_included': True,
                     'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
@@ -1462,7 +1447,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'virkning': {
-                    'from': '2017-01-01 00:00:00+01',
+                    'from': '-infinity',
                     'from_included': True,
                     'notetekst': 'v0:external:b1f1817d-5f02-'
                                  '4331-b8b3-97330a5d3197',
