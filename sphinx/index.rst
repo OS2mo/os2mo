@@ -12,6 +12,7 @@ Welcome to the MORa docs
 
    reading
    writing
+   manual-test-lib.rst
 
 
 .. Indices and tables

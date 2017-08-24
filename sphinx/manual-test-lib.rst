@@ -4,6 +4,8 @@ Before merging a branch into master, check that the following is ok. This is
 not a complete test of all features, but just some quick tests to check
 that all the major features are not unexpectedly broken.
 
+Testing the basic features
+--------------------------
 Remember to check that everything looks ok (maybe also directly in LoRa)
 after each of the following steps:
 

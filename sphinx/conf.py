@@ -5,8 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# -*- coding: utf-8 -*-
-#
 # MORa documentation build configuration file, created by
 # sphinx-quickstart on Wed Aug 23 09:52:25 2017.
 #

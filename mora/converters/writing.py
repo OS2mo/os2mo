@@ -20,10 +20,10 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object.
 
-    :param lora_obj: a LoRa object with or without virkning. All virknings that
+    :param lora_obj: A LoRa object with or without virkning. All virknings that
         are already set will be preserved.
-    :param virkning: the virkning to set in the LoRa object
-    :return: the LoRa object with the new virkning
+    :param virkning: The virkning to set in the LoRa object
+    :return: The LoRa object with the new virkning
 
     """
     for k, v in lora_obj.items():
@@ -38,12 +38,13 @@ def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
 def _create_virkning(From: str, to: str, from_included=True,
                      to_included=False, note=None) -> dict:
     """
-    Create virkning from frontend request
-    :param From: the "from" date
-    :param to: the "to" date
-    :param from_included: specify if the from-date should be included or not
-    :param to_included: specify if the to-date should be included or not
-    :return: the virkning object
+    Create virkning from frontend request.
+
+    :param From: The "from" date.
+    :param to: The "to" date.
+    :param from_included: Specify if the from-date should be included or not.
+    :param to_included: Specify if the to-date should be included or not.
+    :return: The virkning object.
     """
     d = {
         'from': util.to_lora_time(From),
@@ -57,12 +58,12 @@ def _create_virkning(From: str, to: str, from_included=True,
 
 
 def create_org_unit(req: dict) -> dict:
-    """Create org unit data to send to LoRa
+    """
+    Create org unit data to send to LoRa.
 
-    :param req: Dictionary representation of JSON request from the frontend
+    :param req: Dictionary representation of JSON request from the frontend.
     :return: Dictionary representation of the org unit JSON object to send to
-             LoRa
-
+        LoRa.
     """
 
     # Create virkning
@@ -174,11 +175,11 @@ def create_org_unit(req: dict) -> dict:
 
 def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     """
-    Inactivate an org unit
+    Inactivate an org unit.
 
-    :param startend: the date from which the org unit is active
-    :param enddate: the date to inactivate the org unit from
-    :return: the payload JSON used to update LoRa
+    :param startend: The date from which the org unit is active.
+    :param enddate: The date to inactivate the org unit from.
+    :return: The payload JSON used to update LoRa.
     """
 
     obj_path = ['tilstande', 'organisationenhedgyldighed']
@@ -197,12 +198,11 @@ def inactivate_org_unit(startdate: str, enddate: str) -> dict:
 
 def move_org_unit(req: dict) -> dict:
     """
-    Move an org unit to a new parent unit
-    :param req: the JSON reqeust from the frontend
-    :return: the payload JSON used to update LoRa
-    """
+    Move an org unit to a new parent unit.
 
-    # TODO: add more asserts
+    :param req: The JSON reqeust from the frontend.
+    :return: The payload JSON used to update LoRa.
+    """
 
     date = req['moveDate']
     obj_path = ['relationer', 'overordnet']
@@ -215,8 +215,9 @@ def move_org_unit(req: dict) -> dict:
 def rename_org_unit(req: dict) -> dict:
     """
     Rename an org unit.
-    :param req: the JSON request sent from the frontend
-    :return: the payload JSON used to update LoRa
+
+    :param req: The JSON request sent from the frontend.
+    :return: The payload JSON used to update LoRa.
     """
 
     From = req['valid-from']
@@ -231,9 +232,10 @@ def rename_org_unit(req: dict) -> dict:
 # TODO: rename this function...
 def retype_org_unit(req: dict) -> dict:
     """
-    Change the type or start-date of the org unit
-    :param req: the JSON request sent from the frontend
-    :return: the payload JSON used to update LoRa
+    Change the type or start-date of the org unit.
+
+    :param req: The JSON request sent from the frontend.
+    :return: The payload JSON used to update LoRa.
     """
 
     payload = None
@@ -271,6 +273,44 @@ def retype_org_unit(req: dict) -> dict:
 
 def _create_payload(From: str, to: str, obj_path: list,
                     props: dict, note: str, payload: dict = None) -> dict:
+    """
+    Generate payload to send to LoRa when updating or writing new data. See
+    the example below.
+
+    :param From: The "from" date.
+    :param to: The "to" date.
+    :param obj_path: List with "path" to object to add.
+    :param props: Properties to add.
+    :param note: Note to add to the payload.
+    :param payload: An already existing payload that should have extra
+        properties added.
+    :return: The resulting payload (see example below).
+
+    :Example:
+
+    >>> _create_payload(
+            '01-01-2017', '01-01-2018',
+            ['tilstande', 'organisationenhedgyldighed'],
+            {'gyldighed': 'Aktiv'}, 'Ret gyldighed'
+        )
+        {
+            'tilstande': {
+                'organisationenhedgyldighed': [
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'to': '2018-01-01T00:00:00+01:00',
+                            'from_included': True,
+                            'from': '2017-01-01T00:00:00+01:00',
+                            'to_included': False
+                        }
+                    }
+                ]
+            },
+            'note': 'Ret gyldighed'
+        }
+    """
+
     obj_path_copy = obj_path.copy()
     props_copy = props.copy()
 
@@ -341,13 +381,14 @@ def _update_existing_address(org_unit: dict,
                              From: str,
                              to: str, **kwargs) -> list:
     """
-    Used to update an already existing address
-    :param org_unit: the org unit to update
-    :param address_uuid: the address UUID to update
-    :param location: location JSON given by the frontend
-    :param From: the start date
-    :param to: the end date
-    :return: the updated list of addresses
+    Used to update an already existing address.
+
+    :param org_unit: The org unit to update.
+    :param address_uuid: The address UUID to update.
+    :param location: Location JSON given by the frontend.
+    :param From: The start date.
+    :param to: The end date.
+    :return: The updated list of addresses.
     """
 
     # Note: the frontend makes a call for each location it wants to update
@@ -413,6 +454,15 @@ def _check_arguments(mandatory_args: collections.abc.Iterable,
 
 
 def create_update_kwargs(req: dict) -> dict:
+    """
+    Pick out the necessary data from the frontend request depending on
+    the roletype - the frontend handles location updates in a very funny
+    way...
+
+    :param req: The frontend request.
+    :return: The necessary data depending on the roletype.
+    """
+
     roletype = req.get('role-type')
 
     if roletype == 'contact-channel':
@@ -452,7 +502,16 @@ def create_update_kwargs(req: dict) -> dict:
 
 
 def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
-    # TODO: use danchr's decorator (not yet committed) on the route instead
+    """
+    Update or add an org unit address or contact channel.
+
+    :param unitid: The org unit UUID.
+    :param roletype: The roletype (contact-channel, location, None) to use -
+      this is handled in a funny way by the frontend!?
+    :param kwargs: The required data from the frontend request.
+    :return: The payload to send (PUT) to LoRa.
+    """
+
     assert roletype in ['contact-channel', 'location', None]
 
     org_unit = lora.organisationenhed(
