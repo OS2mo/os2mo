@@ -10,8 +10,15 @@ Welcome to the MORa docs
    :maxdepth: 2
    :caption: Contents:
 
-   reading
-   writing
+   modules-to-doc/addr
+   modules-to-doc/importing
+   modules-to-doc/app
+   modules-to-doc/auth
+   modules-to-doc/lora
+   modules-to-doc/reading
+   modules-to-doc/writing
+   modules-to-doc/validator
+   modules-to-doc/util
    manual-test-lib.rst
 
 
