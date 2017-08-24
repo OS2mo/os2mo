@@ -494,3 +494,26 @@ class IntegrationTests(util.LoRATestCase):
                 },
             ],
         )
+
+    def test_history_for_org_unit(self):
+        self.load_sample_structures()
+
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        SAMF_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        # Expire the unit in order to get some more data in the history log
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?endDate=01-01-2018' % (ORG, SAMF_UNIT),
+            {
+                'uuid': SAMF_UNIT,
+            },
+            method='DELETE',
+        )
+
+        # Easier than using self.assertRequestResponse due to timestamps
+        r = self.client.get(
+            '/o/%s/org-unit/%s/history/?t=notUsed' % (ORG, SAMF_UNIT)
+        )
+
+        # TODO: check more than just the status code
+        self.assertEqual(200, r.status_code)
