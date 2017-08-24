@@ -30,6 +30,12 @@ cli.load_cli(app)
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
+    """
+    Handles errors in case an exception is raised.
+
+    :param error: The error raised.
+    :return: JSON describing the problem and the apropriate status code.
+    """
     data = flask.request.get_json()
 
     if data:
@@ -106,6 +112,15 @@ def list_organisations():
 
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
 def create_organisation_unit(orgid):
+    """
+    Create a new org unit.
+
+    :param orgid: The UUID of the organisation (not used, but given by the
+        frontend).
+    :return: JSON containing the new org unit UUID and the response status
+        code.
+    """
+
     req = flask.request.get_json()
     if not validator.is_create_org_unit_request_valid(req):
         return flask.jsonify(validator.ERRORS['create_org_unit']), 400
@@ -119,6 +134,15 @@ def create_organisation_unit(orgid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
 @util.restrictargs('endDate')
 def inactivate_org_unit(orgid, unitid):
+    """
+    Inactivate an org unit.
+
+    :param orgid: The UUID of the organisation (not used, but given by the
+        frontend).
+    :param unitid: The UUID of the org unit.
+    :return: JSON containing the org unit UUID and the response status code.
+    """
+
     enddate = flask.request.args.get('endDate')
     if not validator.is_inactivation_date_valid(str(unitid), enddate):
         return flask.jsonify(validator.ERRORS['inactivate_org_unit']), 400
@@ -149,6 +173,14 @@ def inactivate_org_unit(orgid, unitid):
            methods=['POST'])
 @util.restrictargs()
 def move_org_unit(orgid, unitid):
+    """
+    Move an org unit.
+
+    :param orgid: The UUID of the organisation (not used, but given by the
+        frontend).
+    :param unitid: The UUID of the org unit.
+    :return: JSON containing the org unit UUID and the response status code.
+    """
 
     # TODO: refactor common behavior from this route and the one below
 
@@ -165,6 +197,14 @@ def move_org_unit(orgid, unitid):
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
 @util.restrictargs('rename')
 def rename_or_retype_org_unit(orgid, unitid):
+    """
+    Change the name or the type of an org unit.
+
+    :param orgid: The UUID of the organisation.
+    :param unitid: The UUID of the org unit.
+    :return: JSON containing the org unit UUID and the response status code.
+    """
+
     rename = flask.request.args.get('rename', None)
 
     req = flask.request.get_json()
@@ -191,6 +231,15 @@ def rename_or_retype_org_unit(orgid, unitid):
     methods=['POST'],
 )
 def update_organisation_unit_location(orgid, unitid, locid=None):
+    """
+    Add a location or contact channel or update existing ones.
+
+    :param orgid: The UUID of the organisation.
+    :param unitid: The UUID of the org unit.
+    :param locid: The UUID of the location (i.e. the address UUID).
+    :return: JSON containing the org unit UUID and the response status code.
+    """
+
     req = flask.request.get_json()
     if not validator.is_location_update_valid(req):
         return flask.jsonify(validator.ERRORS['update_existing_location']), 400
