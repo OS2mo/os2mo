@@ -23,6 +23,7 @@ import urllib3
 from . import auth
 from . import lora
 from . import tokens
+from . import util
 from .converters import importing
 
 basedir = os.path.dirname(__file__)
