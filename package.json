@@ -1,9 +1,17 @@
 {
   "name": "mora",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "dev": "mora/static",
+  "license": "MPL-2.0",
   "dist": "dist",
-  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magenta-aps/mora.git"
+  },
+  "scripts": {
+    "grunt": "grunt"
+  },
+  "private": true,
   "devDependencies": {
     "matchdep": "~1.0.1",
     "grunt": "~1.0.1",
@@ -39,8 +47,5 @@
     "git": "^0.1.5",
     "karma-ie-launcher": "~1.0.0",
     "grunt-contrib-cssmin": "~2.1.0"
-  },
-  "peerDependencies": {
-    "grunt-cli": "^1.2.0"
   }
 }

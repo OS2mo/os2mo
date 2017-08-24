@@ -26,7 +26,7 @@ from . import tokens
 from .converters import importing
 
 basedir = os.path.dirname(__file__)
-
+topdir = os.path.dirname(basedir)
 
 def requires_auth(func):
     @click.option('--user', '-u',
@@ -78,12 +78,9 @@ def load_cli(app):
         'Build the frontend application.'
         from subprocess import check_call, check_output
 
-        base_dir = os.path.dirname(os.path.dirname(__file__))
-        bin_dir = check_output(['npm', 'bin'], cwd=base_dir).decode().strip()
-
-        check_call(['npm', 'install'], cwd=base_dir)
-        check_call([os.path.join(bin_dir, 'grunt')] +
-                   ([target] if target else []), cwd=base_dir)
+        check_call(['npm', 'install'], cwd=topdir)
+        check_call(['npm', 'run', 'grunt'] +
+                   ([target] if target else []), cwd=topdir)
 
     @app.cli.command()
     @click.argument('args', nargs=-1)
@@ -123,8 +120,8 @@ def load_cli(app):
             suite = loader.loadTestsFromNames(tests)
         else:
             suite = loader.discover(
-                start_dir=os.path.join(basedir, '..', 'tests'),
-                top_level_dir=os.path.join(basedir, '..'),
+                start_dir=os.path.join(topdir, 'tests'),
+                top_level_dir=os.path.join(topdir),
             )
 
         if list:
