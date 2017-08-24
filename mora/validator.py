@@ -46,11 +46,12 @@ ERRORS = {
 
 def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
     """
-    Determine if the given dates are within validity of the parent unit
-    :param parent: The UUID of the parent unit
-    :param startdate:
-    :param enddate:
-    :return:
+    Determine if the given dates are within validity of the parent unit.
+
+    :param parent: The UUID of the parent unit.
+    :param startdate: The candidate start date.
+    :param enddate: The candidate end date.
+    :return: True if the date range is valid and false otherwise.
     """
 
     if util.parsedatetime(startdate) >= util.parsedatetime(enddate):
@@ -71,6 +72,13 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
 
 
 def is_create_org_unit_request_valid(req: dict) -> bool:
+    """
+    Check if the create org unit request is valid.
+
+    :param req: The frontend request.
+    :return: True if the request is valid and false otherwise.
+    """
+
     startdate = req['valid-from']
     enddate = req.get('valid-to', 'infinity')
     parent = req['parent']
@@ -82,10 +90,11 @@ def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
     For moving an org unit. Check if the candidate parent is in the subtree of
     the org unit itself. Note: it is (and should be) allowed to move an org
     unit to its own parent - since it can be moved back and forth on different
-    dates
-    :param unitid: the UUID of the current org unit
-    :param req: the frontend request
-    :return: True if the candidate parent is valid and False otherwise
+    dates.
+
+    :param unitid: The UUID of the current org unit.
+    :param req: The frontend request.
+    :return: True if the candidate parent is valid and False otherwise.
     """
 
     from_ = util.parsedatetime(req['moveDate']) + datetime.timedelta(hours=12)
@@ -131,8 +140,12 @@ def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
 def _get_org_unit_endpoint_date(org_unit: dict,
                                 enddate=True) -> datetime.datetime:
     """
-    Get the validity start date or end date for an org unit.
-    Pre-condition: the org unit has exactly one active period.
+    Get the validity start date or end date for an org unit (pre-condition:
+    the org unit has exactly one active period.
+
+    :param org_unit: The org unit to get the end-point date from.
+    :param enddate: If true (default) the enddate will be used as the end-point
+        date.
     """
     for g in org_unit['tilstande']['organisationenhedgyldighed']:
         if g['gyldighed'] == 'Aktiv':
@@ -144,6 +157,13 @@ def _get_org_unit_endpoint_date(org_unit: dict,
 
 
 def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
+    """
+    Check if the inactivation date is valid.
+
+    :param unitid: The UUID of the org unit.
+    :param end_date: The candidate end-date.
+    :return: True if the inactivation date is valid and false otherwise.
+    """
     candidate_enddate = util.parsedatetime(end_date)
 
     # Check that the end date is greater than the start date of the org unit
@@ -162,6 +182,12 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
 
 
 def is_location_update_valid(req: dict) -> bool:
+    """
+    Check if the location update frontend request is valid.
+
+    :param req: The request send from the frontend.
+    :return: True if the location update is valid and false otherwise.
+    """
     if not req['location']:
         return False
     if not req['name']:
