@@ -136,7 +136,68 @@ nødvendige Python-afhængigheder og starte applikationen (lyttende på
 port 5000). Applikationen kan således tilgås på *http://localhost:5000* med et
 brugernavn og password, som er hhv. *admin* og *secret*. Bemærk dog,
 at der først skal uploades data til LoRa - til dette formål kan man med
-fordel hente inspiration i scriptene, som er placeret i **sandbox**-mappen.
+fordel anvende **manage.py**.
+
+Generel brug af manage.py
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Scriptet manage.py kan bruges til en række forskellige operationer. De
+mulige funktioner ses ved blot at køre scriptet fra kommandolinjen
+uden argumenter::
+
+  $ ./manage.py
+
+hvilket vil resultere i flg. output::
+
+  Usage: manage.py [OPTIONS] COMMAND [ARGS]...
+
+  This shell command acts as general utility script for Flask applications.
+
+  It loads the application configured (through the FLASK_APP environment
+  variable) and then provides commands either provided by the application or
+  Flask itself.
+
+  The most useful commands are the "run" and "shell" command.
+
+  Example usage:
+
+    $ export FLASK_APP=hello.py
+    $ export FLASK_DEBUG=1
+    $ flask run
+
+  Options:
+  --version  Show the flask version
+  --help     Show this message and exit.
+
+  Commands:
+    auth
+    build          Build the frontend application.
+    get
+    import         Import an Excel spreadsheet into LoRa
+    load-fixtures  Import the sample fixtures into LoRA.
+    python
+    run            Runs a development server.
+    shell          Runs a shell in the app context.
+    sphinx         Build documentation
+    test
+    update
+
+En liste af mulige funktioner ses under *Commands*. Hvis man fx vil importere
+et regneark med data til en kørende LoRa-instans, kan dette gøre således
+(for passende værdier af sti til regneark og URL til LoRa)::
+
+  $ ./manage.py import /sti/til/regneark.xlsx http://lora-url
+
+Ønsker man dokumentation for syntaksen af en given kommando, skriver man fx::
+
+  $ ./manage.py import
+
+Som vil angive, hvad den korrekte syntaks er::
+
+  Usage: manage.py import [OPTIONS] SPREADSHEET [URL]
+
+  Error: Missing argument "spreadsheet".
+
+For yderligere detaljer om brugen af manage.py henvises til kildekoden.
 
 Testsuiten
 -----------
