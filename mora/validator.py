@@ -188,8 +188,12 @@ def is_location_update_valid(req: dict) -> bool:
     :param req: The request send from the frontend.
     :return: True if the location update is valid and false otherwise.
     """
-    if not req['location']:
-        return False
-    if not req['name']:
-        return False
+
+    roletype = req.get('role-type')
+    if not roletype or roletype == 'location':
+        if not req['location']:
+            return False
+        if not req['name']:
+            return False
+
     return True

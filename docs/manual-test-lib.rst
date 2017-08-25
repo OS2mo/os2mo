@@ -27,7 +27,8 @@ after each of the following steps:
 16) Test that search is working (with and without wildcards)
 17) Check that it is not possible to create an org unit with an invalid date range
 18) Check that it is not possible to move an org unit to its own subtree
-19) Check that the "History" button is working
+19) Check that it is not possible to update an address to an empty value
+20) Check that the "History" button is working
 
 Testing temporality
 -------------------

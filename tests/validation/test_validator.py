@@ -76,12 +76,14 @@ class TestGetEndpointDate(unittest.TestCase):
 class TestUpdateLocation(unittest.TestCase):
     def test_should_return_false_if_address_is_missing(self):
         frontend_req = {
+            'role-type': 'location',
             'location': ''
         }
         self.assertFalse(validator.is_location_update_valid(frontend_req))
 
     def test_should_return_true_when_address_and_name_is_set(self):
         frontend_req = {
+            'role-type': 'location',
             "location": {
                 "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
                 "postdistrikt": "Risskov",
@@ -94,6 +96,7 @@ class TestUpdateLocation(unittest.TestCase):
 
     def test_should_return_false_when_name_is_missing(self):
         frontend_req = {
+            'role-type': 'location',
             "location": {
                 "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
                 "postdistrikt": "Risskov",
