@@ -103,7 +103,6 @@ ENV/
 .idea/
 
 sandbox/andreas
-sandbox/AAK/addr.db
 .DS_Store
 
 # configuration
