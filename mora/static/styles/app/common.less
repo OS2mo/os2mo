@@ -1,6 +1,4 @@
 html, body{height: 100%;}
-body{background: #B0D8F0;font-family: @font-family-Helvetica; font-size: @font-size-base;
-  background-image: url("@{images}/knud_front.png");background-repeat: no-repeat;background-position: bottom right; background-attachment: fixed;}
 h1, h2, h3, h4, h5, h6{font-family: @font-family-Helvetica!important;}
 /*header login page css starts*/
 header{background-color: @dark-blue;height: 120px;padding-top: 20px; margin-bottom: 30px;}
@@ -25,8 +23,27 @@ button.close{color: #000!important;}
 .common{background-image: url("@{sprite-image}"); background-repeat: no-repeat;height: 28px; width: 28px; display: block;  background-color: @dark-blue;}
 
 /*header inner page css starts*/
-body, .employee, .dashboard, .home, .organisation{background:@light-blue-bg;font-family: @font-family-Helvetica;font-size: @font-size-base;
-background-image: url("@{images}/knud_back.png");background-repeat: no-repeat;background-position: bottom right; height: 100%}
+body, .employee, .dashboard, .home, .organisation{
+    &:after {
+        content: "";
+        background-image: url("@{images}/os2_logo_black.svg");
+        background-size: 200px;
+        background-repeat: no-repeat;
+        background-position: bottom right;
+        opacity: 0.1;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        z-index: -1;
+    }
+    background:@light-blue-bg;
+    font-family: @font-family-Helvetica;
+    font-size: @font-size-base;
+    height: 100%;
+}
+
 .home{background:#b0d8f0;}
 .employee header, .dashboard header, .organisation header{height: 36px; background-color:transparent; padding-top: 0px;}
 .employee header #user, .dashboard header #user,  .organisation #user{padding-top: 12px;}
