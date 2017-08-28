@@ -106,3 +106,36 @@ class TestUpdateLocation(unittest.TestCase):
             'name': ''
         }
         self.assertFalse(validator.is_location_update_valid(frontend_req))
+
+    def test_should_return_status_200_when_location_not_set(self):
+        # The first request made by the frontend when adding a new contact
+        # channel. The request is not used by the middleend.
+
+        frontend_req = {
+            "name": "Nordre Ringgade 1, 8000 Aarhus C",
+            "user-key": "NULL",
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "valid-from": "2014-05-05T19:07:48.577000+00:00",
+            "valid-to": "infinity",
+            "vejnavn": "Nordre Ringgade 1, 8000 Aarhus C",
+            "contact-channels": [
+                {
+                    "contact-info": "+4587150000",
+                    "visibility": {
+                        "name": "Må vises eksternt",
+                        "user-key": "external",
+                        "uuid": "c67d7315-a0a2-4238-a883-f33aa7ddabc2"
+                    },
+                    "type": {
+                        "name": "Telefonnummer",
+                        "prefix": "urn:magenta.dk:telefon:",
+                        "user-key": "Telephone_number"
+                    },
+                    "valid-to": "infinity",
+                    "valid-from": "-infinity"
+                }
+            ],
+            "person": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "role-type": "contact-channel"
+        }
+        self.assertTrue(validator.is_location_update_valid(frontend_req))
