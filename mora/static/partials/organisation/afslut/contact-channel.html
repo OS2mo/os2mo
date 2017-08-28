@@ -13,10 +13,10 @@
      </thead> 
      <tbody> 
       <tr ng-repeat="dataRow in role.data"> 
-       <td> <span>{{dataRow['phone-type']}}</span></td> 
+       <td> <span>{{dataRow['type'].name}}</span></td>
        <td> <span>{{dataRow['contact-info']}}</span></td> 
        <td> <span>{{dataRow['visibility'].name}}</span></td> 
-       <td> <span>{{dataRow['location']}}</span></td> 
+       <td> <span>{{dataRow['location'].name}}</span></td>
        <td class="inline-cal"> <span>{{dataRow['valid-from']}}</span></td> 
        <td class="inline-cal"> <span>{{dataRow['valid-to']}}</span></td> 
       </tr> 
