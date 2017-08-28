@@ -105,6 +105,7 @@ html_theme_options = {
 }
 
 html_show_sphinx = False
+html_logo = 'docs/graphics/os2_logo_white.svg'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
