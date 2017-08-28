@@ -4,7 +4,8 @@
 angular.module('moApp.controllers').
 	controller('moOrgTree',["$scope", "$http", "$filter", "$state", "$rootScope", "$modal", "orgFactory", "$location", "sysService", "$q",function($scope, $http, $filter, $state, $rootScope, $modal, orgFactory, $location, sysService, $q) {
 		$scope.organizations = [];
-		$scope.orgUnits = [];
+	  $scope.orgUnits = [];
+      console.trace()
 		// Load Orgs and OrgUnits
 		sysService.orgList.fetch().then(function(response){
 			$scope.organizations = response;
