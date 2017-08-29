@@ -7,9 +7,6 @@
 #
 
 import os
-import unittest
-
-import freezegun
 
 from mora.converters import importing
 
