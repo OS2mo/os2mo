@@ -6,42 +6,49 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import functools
 import os
+import platform
 import unittest
 
 from . import util
 
 try:
-    import selenium
+    import selenium.webdriver
 except ImportError:
     selenium = None
+
+
+SAFARI_PREVIEW_DRIVER = ('/Applications/Safari Technology Preview.app'
+                         '/Contents/MacOS/safaridriver')
+CHROME_UBUNTU_DRIVER = '/usr/lib/chromium-browser/chromedriver'
 
 
 @unittest.skipUnless(selenium, 'selenium not installed')
 class RightsTests(util.LiveLoRATestCase):
     @classmethod
     def setUpClass(cls):
-        from selenium import webdriver
+        default_driver = (
+            'Safari'
+            if platform.system() == 'Darwin'
+            else 'Chrome'
+        )
+        driver_name = os.environ.get('BROWSER', default_driver)
 
-        driver_name = os.environ.get('BROWSER', 'Firefox')
-        driver = getattr(webdriver, driver_name, None)
+        driver = getattr(selenium.webdriver, driver_name, None)
 
         if not driver:
             raise unittest.SkipTest('$BROWSER unset or invalid')
 
-        if driver_name == 'Safari':
-            preview_app = '/Applications/Safari Technology Preview.app'
-            if os.path.isdir(preview_app):
-                driver = functools.partial(
-                    driver,
-                    executable_path=os.path.join(
-                        preview_app, 'Contents/MacOS/safaridriver',
-                    )
-                )
+        args = {}
+
+        if driver_name == 'Safari' and os.path.isfile(SAFARI_PREVIEW_DRIVER):
+            args.update(executable_path=SAFARI_PREVIEW_DRIVER)
+
+        if driver_name == 'Chrome' and platform.dist()[0] == 'Ubuntu':
+            args.update(executable_path=CHROME_UBUNTU_DRIVER)
 
         try:
-            cls.browser = driver()
+            cls.browser = driver(**args)
         except Exception as exc:
             raise unittest.SkipTest(exc.args[0])
 
@@ -96,7 +103,7 @@ class RightsTests(util.LiveLoRATestCase):
             succeeded
 
             '''
-            WebDriverWait(self.browser, 5).until(
+            WebDriverWait(self.browser, 15).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR,
                                                   '#sys-search .refresh')),
             )
