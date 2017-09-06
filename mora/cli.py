@@ -46,11 +46,13 @@ def requires_auth(func):
             warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
 
         if options['user'] and not options['password']:
-            options['password'] = click.prompt('Enter password for {}'.format(
-                options['user'],
-                hiden_input=True,
+            options['password'] = click.prompt(
+                'Enter password for {}'.format(
+                    options['user'],
+                ),
+                hide_input=True,
                 err=True,
-            ))
+            )
 
         try:
             assertion = tokens.get_token(
@@ -182,8 +184,7 @@ def load_cli(app):
                   help="account user name",
                   prompt='Enter user name')
     @click.option('--password', '-p',
-                  help="account password",
-                  prompt='Enter password', hide_input=True)
+                  help="account password")
     @click.option('--raw', '-r', is_flag=True,
                   help="don't pack and wrap the token")
     @click.option('--verbose', '-v', is_flag=True,
@@ -197,6 +198,15 @@ def load_cli(app):
             warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
         else:
             warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
+
+        if options['user'] and not options['password']:
+            options['password'] = click.prompt(
+                'Enter password for {}'.format(
+                    options['user'],
+                ),
+                hide_input=True,
+                err=True,
+            )
 
         try:
             # this is where the magic happens
