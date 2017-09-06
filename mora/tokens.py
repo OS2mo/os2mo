@@ -71,9 +71,14 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
         expires=expires.isoformat(),
     )
 
+    if insecure:
+        verify = False
+    else:
+        verify = settings.CA_BUNDLE or True
+
     with requests.post(
             settings.SAML_IDP_URL,
-            data=requestxml, verify=not insecure, headers={
+            data=requestxml, verify=verify, headers={
                 'Content-Type': 'application/soap+xml; charset=utf-8',
             },
             stream=True,

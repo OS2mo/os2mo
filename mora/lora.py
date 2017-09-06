@@ -18,7 +18,7 @@ from . import settings
 from . import util
 
 session = requests.Session()
-session.verify = True
+session.verify = settings.CA_BUNDLE or True
 session.auth = auth.SAMLAuth()
 
 
