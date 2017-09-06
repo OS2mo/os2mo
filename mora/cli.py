@@ -10,6 +10,7 @@ import base64
 import functools
 import json
 import os
+import posixpath
 import ssl
 import sys
 import traceback
@@ -24,6 +25,7 @@ from . import auth
 from . import lora
 from . import tokens
 from . import util
+from . import settings
 from .converters import importing
 
 basedir = os.path.dirname(__file__)
@@ -332,3 +334,68 @@ def load_cli(app):
             verbose=not kwargs.pop('quiet'),
             **kwargs,
         )
+
+    @app.cli.command()
+    @click.option('--quiet', '-q', is_flag=True,
+                  help='Suppress all output.')
+    @click.option('--dry-run', '-n', is_flag=True,
+                  help=("don't actually change anything"))
+    @click.option('--yes', '-y', is_flag=True,
+                  help=("don't prompt for confirmation before making changes"))
+    @requires_auth
+    def fixroots(**kwargs):
+        '''
+        Import the sample fixtures into LoRA.
+        '''
+
+        # apparently, you cannot call tzlocal after importing gevent/eventlets
+        util.now()
+
+        import grequests
+
+        unitids = lora.organisationenhed(bvn='%')
+        requests = (
+            grequests.get(
+                posixpath.join(settings.LORA_URL,
+                               'organisation', 'organisationenhed'),
+                session=lora.session,
+                params={
+                    'uuid': unitids[i:i + 10],
+                },
+            )
+            for i in range(0, len(unitids), 20)
+        )
+
+        for r in grequests.imap(requests, size=6):
+            for entry in r.json()['results'][0]:
+                unitid = entry['id']
+                unit = entry['registreringer'][-1]
+
+                if unit['relationer'].get('overordnet'):
+                    continue
+
+                print(unitid)
+
+                tilhoerer = unit['relationer']['tilhoerer'][0]
+
+                unit['note'] = \
+                    'Relation til organisation som overordnet tilføjet'
+                unit['relationer']['overordnet'] = [
+                    {
+                        'uuid': tilhoerer['uuid'],
+                        'virkning': tilhoerer['virkning'].copy(),
+                    },
+                ]
+
+                print(json.dumps(unit, indent=2))
+
+                if not kwargs['dry_run'] and (
+                        kwargs['yes'] or
+                        click.prompt('Perform update', prompt_suffix='? ',
+                                     err=True).lower() in ('y', 'yes')
+                ):
+                    lora.update(
+                        posixpath.join('organisation', 'organisationenhed',
+                                       unitid),
+                        unit,
+                    )
