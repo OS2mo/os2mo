@@ -10,7 +10,7 @@ PIDFile=/run/mora/pid
 # FIXME: don't run as root!
 User=mora
 Group=www-data
-RuntimeDirectory=gunicorn
+RuntimeDirectory=mora
 WorkingDirectory=/srv/mora
 ExecStart=/srv/mora/venv-linux-cpython-3.5/bin/gunicorn \
     --pid /run/mora/pid \
