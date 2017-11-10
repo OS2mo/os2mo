@@ -437,12 +437,14 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
     tomorrow = today + datetime.timedelta(days=1)
 
     if validity == 'past':
-        loraparams.update(virkningfra='-infinity', virkningtil=today)
+        loraparams.update(virkningfra='-infinity',
+                          virkningtil=util.to_lora_time(today))
 
         def requirement_func(s):
             return util.parsedatetime(s) < today
     elif validity == 'future':
-        loraparams.update(virkningfra=tomorrow, virkningtil='infinity')
+        loraparams.update(virkningfra=util.to_lora_time(tomorrow),
+                          virkningtil='infinity')
 
         def requirement_func(s):
             return util.parsedatetime(s) > tomorrow
@@ -476,7 +478,8 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
     for start, end in zip(chunks, chunks[1:]):
         orgunit = _get_one_orgunit(
             orgid, unitid, include_parents,
-            virkningfra=start, virkningtil=end,
+            virkningfra=util.to_lora_time(start),
+            virkningtil=util.to_lora_time(end),
         )
 
         if orgunit:
