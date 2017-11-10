@@ -259,3 +259,185 @@ class LoRATest(test_util.TestCase):
                 },
             ],
         )
+
+
+@freezegun.freeze_time('2017-06-01')
+class TemporalTests(test_util.TestCase):
+    @test_util.mock('reading_orgunit.json')
+    def test_orgunit_past(self, mock):
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/?validity=past',
+            [
+                {
+                    'activeName': 'Afdeling for Fremtidshistorik',
+                    'name': 'Afdeling for Fremtidshistorik',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'parent-object': {
+                        'activeName': 'Historisk Institut',
+                        'name': 'Historisk Institut',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'parent-object': None,
+                        'type': {'name': 'Institut'},
+                        'user-key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'valid-from': '01-01-2016',
+                        'valid-to': '01-01-2017',
+                    },
+                    'type': {'name': 'Afdeling'},
+                    'user-key': 'frem',
+                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    'valid-from': '01-01-2016',
+                    'valid-to': '01-01-2017',
+                },
+            ],
+        )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_orgunit_present(self, mock):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/?validity=present',
+                [
+                    {
+                        'activeName': 'Afdeling for Samtidshistorik',
+                        'name': 'Afdeling for Samtidshistorik',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'parent-object': {
+                            'activeName': 'Historisk Institut',
+                            'name': 'Historisk Institut',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'parent-object': None,
+                            'type': {'name': 'Institut'},
+                            'user-key': 'hist',
+                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
+                        },
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'valid-from': '01-01-2016',
+                        'valid-to': '01-01-2019',
+                    },
+                ]
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_orgunit_future(self, mock):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/?validity=future',
+                [
+                    {
+                        'activeName': 'Afdeling for Fortidshistorik',
+                        'name': 'Afdeling for Fortidshistorik',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'parent-object': {
+                            'activeName': 'Historisk Institut',
+                            'name': 'Historisk Institut',
+                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'parent-object': None,
+                            'type': {'name': 'Institut'},
+                            'user-key': 'hist',
+                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'valid-from': '01-01-2018',
+                            'valid-to': '01-01-2019',
+                        },
+                        'type': {'name': 'Afdeling'},
+                        'user-key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'valid-from': '01-01-2018',
+                        'valid-to': '01-01-2019',
+                    },
+                ]
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_location_past(self, mock):
+        with self.subTest('location'):
+            self.assertRequestFails(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/role-types/location'
+                '/?validity=past',
+                404,
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_location_present(self, mock):
+            self.assertRequestResponse(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/role-types/location'
+                '/?validity=present',
+                [
+                    {
+                        'location': {
+                            'name': 'Kontor',
+                            'user-key': '07515902___1_______',
+                            'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                            'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                            'valid-to': 'infinity',
+                            'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        },
+                        'name': 'Kontor',
+                        'org-unit': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'primaer': True,
+                        'role-type': 'location',
+                        'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'valid-from': '-infinity',
+                        'valid-to': 'infinity',
+                    },
+                ],
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_location_past(self, mock):
+            self.assertRequestFails(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/role-types/location'
+                '/?validity=future',
+                404,
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_contact_channel_past(self, mock):
+            self.assertRequestFails(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/role-types/contact-channel'
+                '/?validity=past',
+                404,
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_contact_channel_present(self, mock):
+            self.assertRequestFails(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/role-types/contact-channel'
+                '/?validity=present',
+                404,
+            )
+
+    @test_util.mock('reading_orgunit.json')
+    def test_contact_channel_future(self, mock):
+            self.assertRequestFails(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/role-types/contact-channel'
+                '/?validity=future',
+                404,
+            )

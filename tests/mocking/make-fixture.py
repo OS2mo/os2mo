@@ -18,6 +18,7 @@ import requests
 
 
 def map_response(r):
+    r.raise_for_status()
     return r.url, r.json()
 
 
