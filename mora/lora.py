@@ -137,30 +137,22 @@ def _get_restrictions_for(*,
 
 
 def get(path, uuid, **params):
-    uuid = str(uuid)
 
-    loraparams, apply_restriction_func = _get_restrictions_for(**params)
+    d = fetch(path, uuid=str(uuid), **params)
 
-    r = session.get('{}{}/{}'.format(settings.LORA_URL, path, uuid),
-                    params=loraparams)
-
-    _check_response(r)
-
-    assert len(r.json()) == 1
-
-    if r.json()[uuid] is None:
+    if not d or not d[0]:
         return None
 
-    assert len(r.json()[uuid]) == 1
+    registrations = d[0]['registreringer']
 
-    registrations = r.json()[uuid][0]['registreringer']
+    assert len(d) == 1
 
     if params.keys() & {'registreretfra', 'registrerettil'}:
         return registrations
+    else:
+        assert len(registrations) == 1
 
-    assert len(registrations) == 1
-
-    return apply_restriction_func(registrations)[0]
+        return registrations[0]
 
 
 def fetch(path, **params):

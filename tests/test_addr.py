@@ -17,12 +17,12 @@ class TestSetup(util.TestCase):
     def test_autocomplete_no_municipality(self, mock):
         mock.get(
             'http://mox/organisation/organisation'
-            '/00000000-0000-0000-0000-000000000000'
-            '?virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
+            '?uuid=00000000-0000-0000-0000-000000000000'
+            '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
             '&virkningtil=2016-06-07T00%3A00%3A00%2B02%3A00',
             json={
-                "00000000-0000-0000-0000-000000000000": [
-                    {
+                "results": [
+                    [{
                         "id": "00000000-0000-0000-0000-000000000000",
                         "registreringer": [
                             {
@@ -43,7 +43,7 @@ class TestSetup(util.TestCase):
                                 },
                             }
                         ]
-                    }
+                    }]
                 ]
             }
         )
@@ -63,12 +63,12 @@ class TestSetup(util.TestCase):
     def test_autocomplete_invalid_municipality(self, mock):
         mock.get(
             'http://mox/organisation/organisation'
-            '/00000000-0000-0000-0000-000000000000'
-            '?virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
+            '?uuid=00000000-0000-0000-0000-000000000000'
+            '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
             '&virkningtil=2016-06-07T00%3A00%3A00%2B02%3A00',
             json={
-                "00000000-0000-0000-0000-000000000000": [
-                    {
+                "results": [
+                    [{
                         "id": "00000000-0000-0000-0000-000000000000",
                         "registreringer": [
                             {
@@ -96,7 +96,7 @@ class TestSetup(util.TestCase):
                                 },
                             }
                         ]
-                    }
+                    }]
                 ]
             }
         )
