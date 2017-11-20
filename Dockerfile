@@ -1,4 +1,4 @@
-FROM node:4-slim as builder
+FROM node:4 as builder
 
 MAINTAINER cmoesgaard
 
