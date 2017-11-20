@@ -107,16 +107,9 @@ class TestOrgUnitRetypeOrUpdateStartdate(unittest.TestCase):
                             'from': '2016-01-20T00:00:00+01:00',
                             'from_included': True,
                             'to': 'infinity',
-                            'to_included': False}},
-                    {
-                        'gyldighed': 'Inaktiv',
-                        'virkning': {
-                            'from': '-infinity',
-                            'from_included': False,
-                            'to': '2016-01-20T00:00:00+01:00',
-                            'to_included': False
-                        }
-                    }
+                            'to_included': False,
+                        },
+                    },
                 ]
             }
         }
@@ -185,15 +178,6 @@ class TestOrgUnitRetypeOrUpdateStartdate(unittest.TestCase):
                             'to_included': False
                         }
                     },
-                    {
-                        'gyldighed': 'Inaktiv',
-                        'virkning': {
-                            'from': '-infinity',
-                            'from_included': False,
-                            'to': '2016-01-23T00:00:00+01:00',
-                            'to_included': False
-                        }
-                    }
                 ]
             }
         }

@@ -11,8 +11,6 @@ import requests.auth
 
 from . import tokens
 
-ASSERTIONS = dict()
-
 __all__ = (
     'SAMLAuth',
     'login',

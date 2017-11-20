@@ -86,7 +86,7 @@ def convert_sheet(sheet):
         }
 
     for i, obj in enumerate(cache.values()):
-        if i % 50 == 0:
+        if i % 100 == 0:
             print(i)
 
         virkning = {
@@ -96,22 +96,8 @@ def convert_sheet(sheet):
             'to_included': False,
         }
 
-        virkning_inactive = {
-            'from': '-infinity',
-            'to': util.to_lora_time(obj['fra']),
-            'from_included': False,
-            'to_included': False,
-        }
-
-        virkning_inf = {
-            'from': '-infinity',
-            'to': 'infinity',
-            'from_included': False,
-            'to_included': False,
-        }
-
         nullrelation = [{
-            'virkning': virkning_inf,
+            'uuid': None,
         }]
 
         if sheet.title == 'organisation':
@@ -122,7 +108,7 @@ def convert_sheet(sheet):
                         {
                             'organisationsnavn': obj['brugervendtnoegle'],
                             'brugervendtnoegle': obj['brugervendtnoegle'],
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         },
                     ],
                 },
@@ -138,7 +124,7 @@ def convert_sheet(sheet):
                     'virksomhed': [
                         {
                             'urn': 'urn:dk:cvr:{}'.format(obj['virksomhed']),
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ] if obj['virksomhed'] else nullrelation,
                     'myndighed': [
@@ -146,7 +132,7 @@ def convert_sheet(sheet):
                             'urn': 'urn:dk:kommune:{}'.format(
                                 obj['myndighed'],
                             ),
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ] if obj['myndighed'] else nullrelation,
                     'myndighedstype': [
@@ -154,7 +140,7 @@ def convert_sheet(sheet):
                             'urn': 'urn:oio:objekttype:{}'.format(
                                 obj['myndighedstype'],
                             ),
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ] if obj['myndighedstype'] else nullrelation,
                 }
@@ -174,7 +160,7 @@ def convert_sheet(sheet):
                 addresses.append({
                     'urn': urn,
                     'gyldighed': obj['gyldighed'],
-                    'virkning': virkning_inf,
+                    'virkning': virkning,
                 })
 
             if obj['postnummer']:
@@ -198,7 +184,7 @@ def convert_sheet(sheet):
                     addresses.append({
                         'uuid': addrinfo['resultater'][0]['adresse']['id'],
                         'gyldighed': obj['gyldighed'],
-                        'virkning': virkning_inf,
+                        'virkning': virkning,
                     })
 
             r = {
@@ -208,7 +194,7 @@ def convert_sheet(sheet):
                         {
                             'enhedsnavn': obj['enhedsnavn'],
                             'brugervendtnoegle': obj['brugervendtnoegle'],
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         },
                     ],
                 },
@@ -218,10 +204,6 @@ def convert_sheet(sheet):
                             'gyldighed': obj['gyldighed'],
                             'virkning': virkning,
                         },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': virkning_inactive,
-                        }
                     ],
                 },
                 'relationer': {
@@ -229,19 +211,19 @@ def convert_sheet(sheet):
                     'tilhoerer': [
                         {
                             'uuid': obj['tilhoerer'],
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ],
                     'tilknyttedeenheder': [
                         {
                             'urn': obj['tilknyttedeenheder'],
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ],
                     'enhedstype': [
                         {
                             'uuid': obj['enhedstype'],
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ],
                     'overordnet': [
@@ -255,7 +237,7 @@ def convert_sheet(sheet):
                                 if obj['overordnet']
                                 else obj['tilhoerer']
                             ),
-                            'virkning': virkning_inf,
+                            'virkning': virkning,
                         }
                     ],
                 }

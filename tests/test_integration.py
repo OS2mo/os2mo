@@ -327,7 +327,7 @@ class IntegrationTests(util.LoRATestCase):
                     'role-type': 'location',
                     'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '-infinity',
+                    'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
                 },
             ],
@@ -364,7 +364,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user-key': 'hist',
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                             'valid-from': '01-01-2016',
-                            'valid-to': '01-01-2017',
+                            'valid-to': '01-01-2019',
                         },
                         'type': {'name': 'Afdeling'},
                         'user-key': 'frem',
@@ -403,13 +403,13 @@ class IntegrationTests(util.LoRATestCase):
                             'user-key': 'hist',
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                             'valid-from': '01-01-2016',
-                            'valid-to': 'infinity',
+                            'valid-to': '01-01-2019',
                             'type': {'name': 'Institut'},
                         },
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                        'valid-from': '01-01-2016',
-                        'valid-to': '01-01-2019',
+                        'valid-from': '01-01-2017',
+                        'valid-to': '01-01-2018',
                         'type': {'name': 'Afdeling'},
                     },
                 ],
@@ -433,7 +433,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent-object': None,
                             'user-key': 'hist',
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                            'valid-from': '01-01-2018',
+                            'valid-from': '01-01-2016',
                             'valid-to': '01-01-2019',
                             'type': {'name': 'Institut'},
                         },
@@ -447,12 +447,11 @@ class IntegrationTests(util.LoRATestCase):
             )
 
         with self.subTest('empty future'):
-            self.assert404(
-                self.client.get(
-                    '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                    '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-                    '/role-types/contact-channel/?validity=future'
-                )
+            self.assertRequestFails(
+                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                '/role-types/contact-channel/?validity=future',
+                404,
             )
 
     def test_should_add_one_new_contact_channel_correctly(self):

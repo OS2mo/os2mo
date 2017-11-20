@@ -5,7 +5,7 @@
                 "brugervendtnoegle": "root",
                 "enhedsnavn": "Overordnet Enhed",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -13,14 +13,6 @@
     },
     "tilstande": {
         "organisationenhedgyldighed": [
-            {
-                "gyldighed": "Inaktiv",
-                "virkning": {
-                    "from": "-infinity",
-                    "to": "2016-01-01 00:00:00+01:00",
-                    "to_included": false
-                }
-            },
             {
                 "gyldighed": "Aktiv",
                 "virkning": {
@@ -36,7 +28,7 @@
             {
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -45,7 +37,7 @@
             {
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -54,7 +46,7 @@
             {
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -64,7 +56,7 @@
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "virkning": {
                     "notetekst": "v0:1:Kontor",
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             },
@@ -72,7 +64,7 @@
                 "urn": "urn:magenta.dk:telefon:+4587150000",
                 "virkning": {
                     "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }

@@ -27,15 +27,6 @@ class TestInactivateOrgUnit(unittest.TestCase):
                     'organisationenhedgyldighed': [
                         {
                             'virkning': {
-                                'from': '-infinity',
-                                'from_included': True,
-                                'to': '2010-01-01T00:00:00+01:00',
-                                'to_included': False,
-                            },
-                            'gyldighed': 'Inaktiv',
-                        },
-                        {
-                            'virkning': {
                                 'from': '2010-01-01T00:00:00+01:00',
                                 'from_included': True,
                                 'to': 'infinity',
@@ -51,15 +42,6 @@ class TestInactivateOrgUnit(unittest.TestCase):
             'note': 'Afslut enhed',
             'tilstande': {
                 'organisationenhedgyldighed': [
-                    {
-                        'virkning': {
-                            'from': '-infinity',
-                            'from_included': False,
-                            'to': '2009-01-01T00:00:00+01:00',
-                            'to_included': False,
-                        },
-                        'gyldighed': 'Inaktiv',
-                    },
                     {
                         'virkning': {
                             'from': '2009-01-01T00:00:00+01:00',

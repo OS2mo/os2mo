@@ -8,10 +8,10 @@
     "overordnet": [
       {
         "virkning": {
-          "from": "-infinity",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "to_included": false,
-          "to": "infinity"
+          "to": "2017-06-01 00:00:00+02"
         },
         "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
       }
@@ -19,21 +19,21 @@
     "adresser": [
       {
         "virkning": {
-          "from": "-infinity",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "notetekst": "v0:1:lnavn",
           "to_included": false,
-          "to": "infinity"
+          "to": "2017-06-01 00:00:00+02"
         },
         "uuid": "98001816-a7cc-4115-a9e6-2c5c06c79e5d"
       },
       {
         "virkning": {
-          "from": "-infinity",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "notetekst": "v0:blyf:98001816-a7cc-4115-a9e6-2c5c06c79e5d",
           "to_included": false,
-          "to": "infinity"
+          "to": "2017-06-01 00:00:00+02"
         },
         "urn": "urn:magenta.dk:telefon:12345678"
       }
@@ -41,10 +41,10 @@
     "tilhoerer": [
       {
         "virkning": {
-          "from": "-infinity",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "to_included": false,
-          "to": "infinity"
+          "to": "2017-06-01 00:00:00+02"
         },
         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
       }
@@ -52,10 +52,10 @@
     "enhedstype": [
       {
         "virkning": {
-          "from": "-infinity",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "to_included": false,
-          "to": "infinity"
+          "to": "2017-06-01 00:00:00+02"
         },
         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
       }
@@ -71,24 +71,6 @@
           "to": "2017-06-01 00:00:00+02"
         },
         "gyldighed": "Aktiv"
-      },
-      {
-        "virkning": {
-          "from": "-infinity",
-          "from_included": true,
-          "to_included": false,
-          "to": "2017-02-01 00:00:00+01"
-        },
-        "gyldighed": "Inaktiv"
-      },
-      {
-        "virkning": {
-          "from": "2017-06-01 00:00:00+02",
-          "from_included": true,
-          "to_included": false,
-          "to": "infinity"
-        },
-        "gyldighed": "Inaktiv"
       }
     ]
   },
@@ -98,10 +80,10 @@
         "brugervendtnoegle": "NyEnhed",
         "enhedsnavn": "NyEnhed",
         "virkning": {
-          "from": "-infinity",
+          "from": "2017-02-01 00:00:00+01",
           "from_included": true,
           "to_included": false,
-          "to": "infinity"
+          "to": "2017-06-01 00:00:00+02"
         }
       }
     ]

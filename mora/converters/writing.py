@@ -70,7 +70,8 @@ def create_org_unit(req: dict) -> dict:
 
     # NOTE: 'to' date is always infinity here but if the 'valid-to' is set in
     # the frontend request, the org unit end-date will be changed below
-    virkning = _create_virkning('-infinity', 'infinity')
+    virkning = _create_virkning(req.get('valid-from'),
+                                req.get('valid-to', 'infinity'))
 
     # Create the organisation unit object
     org_unit = {
@@ -147,28 +148,6 @@ def create_org_unit(req: dict) -> dict:
     }
 
     org_unit = _set_virkning(org_unit, virkning)
-    org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
-        'from'] = util.to_lora_time(req.get('valid-from'))
-    org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
-        'from_included'] = True
-
-    # TODO: refactor - lines below are also found in the retype function
-    org_unit['tilstande']['organisationenhedgyldighed'].append(
-        {
-            'gyldighed': 'Inaktiv',
-            'virkning': _create_virkning('-infinity', req.get('valid-from'),
-                                         False, False)
-        }
-    )
-    if 'valid-to' in req:
-        org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
-            'to'] = util.to_lora_time(req.get('valid-to'))
-        org_unit['tilstande']['organisationenhedgyldighed'].append(
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': _create_virkning(req['valid-to'], 'infinity')
-            }
-        )
 
     return org_unit
 
@@ -186,10 +165,8 @@ def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     props_active = {'gyldighed': 'Aktiv'}
     props_inactive = {'gyldighed': 'Inaktiv'}
 
-    payload = _create_payload('-infinity', startdate, obj_path, props_inactive,
-                              'Afslut enhed')
     payload = _create_payload(startdate, enddate, obj_path, props_active,
-                              'Afslut enhed', payload)
+                              'Afslut enhed')
     payload = _create_payload(enddate, 'infinity', obj_path, props_inactive,
                               'Afslut enhed', payload)
 
@@ -257,16 +234,6 @@ def retype_org_unit(req: dict) -> dict:
         payload = _create_payload(From, to, obj_path, props,
                                   'Ret enhedstype og start dato'
                                   if payload else 'Ret start dato', payload)
-
-        # TODO: maybe the adding-more-stuff-to-a-payload functionality below
-        # should be moved into the _create_payload function
-
-        payload['tilstande']['organisationenhedgyldighed'].append(
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': _create_virkning('-infinity', From, False, False)
-            }
-        )
 
     return payload
 

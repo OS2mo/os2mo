@@ -8,3 +8,4 @@ Sphinx~=1.6.3
 sphinx_rtd_theme>=0.2.4
 grequests~=0.3.0
 openpyxl>=2.4.7
+gevent~=1.2.2

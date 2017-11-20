@@ -54,7 +54,8 @@ def unparsedate(d: datetime.date) -> str:
     return d.strftime('%d-%m-%Y')
 
 
-def parsedatetime(s: str, default: str=None) -> datetime.datetime:
+def parsedatetime(s: str,
+                  default: datetime.datetime=None) -> datetime.datetime:
     if default is not None and not s:
         return default
     elif isinstance(s, datetime.date):
@@ -116,7 +117,7 @@ def fromtimestamp(t: int) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
 
 
-def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
+def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     '''Function decorator for checking and verifying Flask request arguments
 
     If any argument other than those listed is set and has a value,

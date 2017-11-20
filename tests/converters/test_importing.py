@@ -17,9 +17,21 @@ class ImportTest(util.LoRATestCase):
     maxDiff = None
 
     def test_import(self):
-        virkning_inf = {
+        virkning_class = {
             'from': '-infinity',
             'from_included': False,
+            'to': 'infinity',
+            'to_included': False,
+        }
+        virkning_org = {
+            'from': '2012-01-01T00:00:00+01:00',
+            'from_included': True,
+            'to': 'infinity',
+            'to_included': False,
+        }
+        virkning_unit = {
+            'from': '2016-01-01T00:00:00+01:00',
+            'from_included': True,
             'to': 'infinity',
             'to_included': False,
         }
@@ -35,7 +47,7 @@ class ImportTest(util.LoRATestCase):
                             {
                                 'brugervendtnoegle': 'Aarhus Kommune',
                                 'organisationsnavn': 'Aarhus Kommune',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_org,
                             },
                         ],
                     },
@@ -44,19 +56,19 @@ class ImportTest(util.LoRATestCase):
                         'myndighed': [
                             {
                                 'urn': 'urn:dk:kommune:751',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_org,
                             },
                         ],
                         'myndighedstype': [
                             {
                                 'urn': 'urn:oio:objekttype:Kommune',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_org,
                             },
                         ],
                         'virksomhed': [
                             {
                                 'urn': 'urn:dk:cvr:55133018',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_org,
                             },
                         ],
                     },
@@ -64,12 +76,7 @@ class ImportTest(util.LoRATestCase):
                         'organisationgyldighed': [
                             {
                                 'gyldighed': 'Aktiv',
-                                'virkning': {
-                                    'from': '2012-01-01T00:00:00+01:00',
-                                    'from_included': True,
-                                    'to': 'infinity',
-                                    'to_included': False,
-                                },
+                                'virkning': virkning_org,
                             },
                         ],
                     },
@@ -85,7 +92,7 @@ class ImportTest(util.LoRATestCase):
                                 'beskrivelse': 'Dette er en afdeling',
                                 'brugervendtnoegle': 'Afdeling003',
                                 'titel': 'Afdeling 003',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_class,
                             },
                         ],
                     },
@@ -93,7 +100,7 @@ class ImportTest(util.LoRATestCase):
                         'klassepubliceret': [
                             {
                                 'publiceret': 'Publiceret',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_class,
                             },
                         ],
                     },
@@ -109,7 +116,7 @@ class ImportTest(util.LoRATestCase):
                                 'beskrivelse': 'Dette er en afdeling',
                                 'brugervendtnoegle': 'Afdeling933',
                                 'titel': 'Afdeling 933',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_class,
                             },
                         ],
                     },
@@ -117,7 +124,7 @@ class ImportTest(util.LoRATestCase):
                         'klassepubliceret': [
                             {
                                 'publiceret': 'Publiceret',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_class,
                             },
                         ],
                     },
@@ -133,7 +140,7 @@ class ImportTest(util.LoRATestCase):
                             {
                                 'brugervendtnoegle': 'HAVNEN',
                                 'enhedsnavn': 'Aarhus Havn',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                     },
@@ -143,37 +150,37 @@ class ImportTest(util.LoRATestCase):
                             {
                                 'gyldighed': 'Aktiv',
                                 'urn': 'urn:magenta.dk:telefon:+4512345678',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                             {
                                 'gyldighed': 'Aktiv',
                                 'uuid': 'afc933a9-2468-40a8-b1b7-919ccc18667b',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'enhedstype': [
                             {
                                 'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'overordnet': [
                             {
                                 'uuid': '85219a34-a9ca-4fc6-ad34-48019f5dfc44',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'tilhoerer': [
                             {
                                 'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'tilknyttedeenheder': [
                             {
                                 'urn': ('urn:kmd.dk:'
                                         'administrativenhedsid:70070'),
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                     },
@@ -181,21 +188,7 @@ class ImportTest(util.LoRATestCase):
                         'organisationenhedgyldighed': [
                             {
                                 'gyldighed': 'Aktiv',
-                                'virkning': {
-                                    'from': '2016-01-01T00:00:00+01:00',
-                                    'from_included': True,
-                                    'to': 'infinity',
-                                    'to_included': False,
-                                },
-                            },
-                            {
-                                'gyldighed': 'Inaktiv',
-                                'virkning': {
-                                    'from': '-infinity',
-                                    'from_included': False,
-                                    'to': '2016-01-01T00:00:00+01:00',
-                                    'to_included': False,
-                                },
+                                'virkning': virkning_unit,
                             },
                         ],
                     },
@@ -211,7 +204,7 @@ class ImportTest(util.LoRATestCase):
                             {
                                 'brugervendtnoegle': 'ÅRHUS',
                                 'enhedsnavn': 'Aarhus Kommune',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                     },
@@ -221,36 +214,36 @@ class ImportTest(util.LoRATestCase):
                             {
                                 'gyldighed': 'Aktiv',
                                 'urn': 'urn:magenta.dk:telefon:+4587654321',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                             {
                                 'gyldighed': 'Aktiv',
                                 'uuid': '9b9a6a18-ffb7-4ece-a7f1-5368812e4719',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'enhedstype': [
                             {
                                 'uuid': '0034fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'overordnet': [
                             {
                                 'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'tilhoerer': [
                             {
                                 'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                         'tilknyttedeenheder': [
                             {
                                 'urn': 'urn:kmd.dk:administrativenhedsid:325',
-                                'virkning': virkning_inf,
+                                'virkning': virkning_unit,
                             },
                         ],
                     },
@@ -258,21 +251,7 @@ class ImportTest(util.LoRATestCase):
                         'organisationenhedgyldighed': [
                             {
                                 'gyldighed': 'Aktiv',
-                                'virkning': {
-                                    'from': '2016-01-01T00:00:00+01:00',
-                                    'from_included': True,
-                                    'to': 'infinity',
-                                    'to_included': False,
-                                },
-                            },
-                            {
-                                'gyldighed': 'Inaktiv',
-                                'virkning': {
-                                    'from': '-infinity',
-                                    'from_included': False,
-                                    'to': '2016-01-01T00:00:00+01:00',
-                                    'to_included': False,
-                                },
+                                'virkning': virkning_unit,
                             },
                         ],
                     },

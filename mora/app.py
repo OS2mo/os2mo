@@ -285,7 +285,9 @@ def full_hierarchy(orgid):
         r = reading.full_hierarchies(str(orgid), str(orgid), **params)
 
         if r:
-            return flask.jsonify(reading.wrap_in_org(str(orgid), r[0]))
+            c = lora.Connector(effective_date=args.get('effective-date', None))
+
+            return flask.jsonify(reading.wrap_in_org(c, str(orgid), r[0]))
         else:
             return '', 404
 

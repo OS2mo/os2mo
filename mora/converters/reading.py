@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
 import itertools
 import operator
 import uuid
@@ -19,10 +18,12 @@ from .. import util
 
 
 def list_organisations():
-    orgs = lora.organisation(uuid=lora.organisation(bvn='%'))
+    c = lora.Connector()
+
+    orgs = c.organisation(uuid=c.organisation(bvn='%'))
 
     def convert(org):
-        rootids = lora.organisationenhed(overordnet=org['id'])
+        rootids = c.organisationenhed(overordnet=org['id'])
 
         # our data model assumes and requires that every organisation
         # has one single root unit; obviously, any org. that doesn't
@@ -31,13 +32,13 @@ def list_organisations():
             return None
 
         rootid = rootids.pop()
-        orgunit = lora.organisationenhed.get(rootid)
+        orgunit = c.organisationenhed.get(rootid)
         unitattrs = orgunit['attributter']['organisationenhedegenskaber'][0]
         unit_validity = orgunit['tilstande']['organisationenhedgyldighed'][0]
 
         reg = org['registreringer'][-1]
 
-        return wrap_in_org(org['id'], {
+        return wrap_in_org(c, org['id'], {
             'name': unitattrs['enhedsnavn'],
             'user-key': unitattrs['brugervendtnoegle'],
             'uuid': rootid,
@@ -65,11 +66,10 @@ def full_hierarchies(orgid: str, parentid: str,
         **loraparams,
     )
 
-    unitids = lora.organisationenhed(
+    unitids = lora.Connector(**loraparams).organisationenhed(
         tilhoerer=orgid,
         overordnet=parentid,
         gyldighed='Aktiv',
-        **loraparams,
     )
 
     return sorted(
@@ -90,12 +90,13 @@ def full_hierarchy(orgid: str, unitid: str,
         **loraparams,
     )
 
-    orgunit = lora.organisationenhed.get(unitid, **loraparams)
+    c = lora.Connector(**loraparams)
+    orgunit = c.organisationenhed.get(unitid)
 
     if not orgunit:
         return None
 
-    # TODO: check validity?
+    assert c.validity == 'present'
 
     try:
         attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
@@ -105,23 +106,21 @@ def full_hierarchy(orgid: str, unitid: str,
     rels = orgunit['relationer']
 
     # Get the current org unit end-date and use this for past and future too
-    current_orgunit = lora.organisationenhed.get(uuid=unitid)
-    orgunit_validity = current_orgunit['tilstande'][
-        'organisationenhedgyldighed'][0]['virkning']
+    orgunit_validity = (
+        orgunit['tilstande']['organisationenhedgyldighed'][0]['virkning']
+    )
 
-    children = lora.organisationenhed(tilhoerer=orgid, overordnet=unitid,
-                                      gyldighed='Aktiv',
-                                      **loraparams)
+    children = c.organisationenhed(tilhoerer=orgid, overordnet=unitid,
+                                   gyldighed='Aktiv',
+                                   **loraparams)
 
     unit_types = orgunit['relationer']['enhedstype']
     if unit_types:
-        # TODO: should we pass on loraparams? perhaps, but not validity
-        unit_type = lora.klasse.get(uuid=unit_types[0]['uuid'])
+        unit_type = c.klasse.get(uuid=unit_types[0]['uuid'])
     else:
         unit_type = None
 
-    validity = loraparams.get('validity')
-    if not validity or validity == 'present':
+    if c.validity == 'present':
         parent = rels['overordnet'][0]['uuid']
         orgid = rels['tilhoerer'][0]['uuid']
     else:
@@ -153,9 +152,9 @@ def full_hierarchy(orgid: str, unitid: str,
     return r
 
 
-def wrap_in_org(orgid, value, org=None):
+def wrap_in_org(connector, orgid, value, org=None):
     if not org:
-        org = lora.organisation.get(orgid)
+        org = connector.organisation.get(orgid)
 
     orgattrs = org['attributter']['organisationegenskaber'][0]
     org_validity = org['tilstande']['organisationgyldighed'][0]
@@ -221,10 +220,7 @@ def get_classes():
 
 
 def get_contact_channels(unitid, **loraparams):
-    orgunit = lora.organisationenhed.get(unitid, **loraparams)
-
-    if not orgunit:
-        return None
+    c = lora.Connector(**loraparams)
 
     def convert_address(obj):
         info = meta.PhoneNumber.fromstring(
@@ -255,8 +251,13 @@ def get_contact_channels(unitid, **loraparams):
 
     return [
         convert_address(addr)
+        for start, end, orgunit in c.organisationenhed.get_effects(unitid, {
+            'relationer': (
+                'adresser',
+            )
+        })
         for addr in orgunit['relationer'].get('adresser', [])
-        if addr.get('urn', '').startswith(meta.PHONE_PREFIX)
+        if addr.get('urn', '')
     ]
 
 
@@ -281,10 +282,7 @@ def _get_location(addrid, name=None):
 
 
 def get_locations(unitid, **loraparams):
-    orgunit = lora.organisationenhed.get(unitid, **loraparams)
-
-    if not orgunit:
-        return []
+    c = lora.Connector(**loraparams)
 
     def convert_addr(addrobj: dict) -> dict:
         """
@@ -327,6 +325,11 @@ def get_locations(unitid, **loraparams):
 
     return [
         convert_addr(addr)
+        for start, end, orgunit in c.organisationenhed.get_effects(unitid, {
+            'relationer': (
+                'adresser',
+            )
+        })
         for addr in orgunit['relationer'].get('adresser', [])
         if addr.get('uuid', '')
     ]
@@ -353,137 +356,80 @@ def get_contact_types():
     ]
 
 
-def _get_one_orgunit(orgid: str, unitid: str, include_parents=True,
-                     **loraparams):
-    assert isinstance(orgid, str), '{!r} is not a string!'.format(orgid)
-    assert isinstance(unitid, str), '{!r} is not a string!'.format(unitid)
-
-    orgunit = lora.organisationenhed.get(unitid, **loraparams)
-
-    if not orgunit:
-        return None
-
-    rels = orgunit['relationer']
-    props = orgunit['attributter']['organisationenhedegenskaber'][0]
-    state = orgunit['tilstande']['organisationenhedgyldighed'][0]
-
-    if state['gyldighed'] != 'Aktiv':
-        return None
-
-    try:
-        parentid = rels['overordnet'][0]['uuid']
-    except IndexError:
-        parentid = None
-
-    try:
-        orgid = rels['tilhoerer'][0]['uuid']
-    except IndexError:
-        pass
-
-    # get the 'current' information for the type, although we don't
-    # expect them to change much
-    assert not rels['enhedstype'] or len(rels['enhedstype']) == 1
-    unit_type = (
-        lora.klasse.get(uuid=rels['enhedstype'][0]['uuid'])
-        if rels['enhedstype'] else None
-    )
-
-    start = loraparams.get('virkningfra', '-infinity')
-    end = loraparams.get('virkningtil', 'infinity')
-
-    if start == '-infinity':
-        start = state['virkning']['from']
-
-    if end == 'infinity':
-        end = state['virkning']['to']
-
-    return {
-        'activeName': props['enhedsnavn'],
-        'name': props['enhedsnavn'],
-        'user-key': props['brugervendtnoegle'],
-        'uuid': unitid,
-        'valid-from': util.to_frontend_time(start),
-        'valid-to': util.to_frontend_time(end),
-        'org': str(orgid),
-        'parent': parentid if parentid and parentid != orgid else None,
-        'parent-object': (
-            _get_one_orgunit(orgid, parentid,
-                             include_parents=False, **loraparams)
-            if include_parents and parentid and parentid != orgid else None
-        ),
-        'type': {
-            'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
-            if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
-        },
-    }
-
-
 def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
     assert isinstance(orgid, str)
     assert isinstance(unitid, str)
 
-    validity = loraparams.pop('validity', None) or 'present'
+    c = lora.Connector(**loraparams)
+    r = []
 
-    if validity == 'present':
-        yield _get_one_orgunit(
-            orgid, unitid, include_parents, **loraparams,
+    for start, end, orgunit in c.organisationenhed.get_effects(
+        unitid,
+        {
+            'attributter': (
+                'organisationenhedegenskaber',
+            ),
+            'relationer': (
+                'enhedstype',
+                'overordnet',
+                'tilhoerer',
+            ),
+            'tilstande': (
+                'organisationenhedgyldighed',
+            ),
+        },
+    ):
+
+        states = orgunit['tilstande']['organisationenhedgyldighed']
+
+        if not states or any(s.get('gyldighed') != 'Aktiv' for s in states):
+            continue
+
+        rels = orgunit['relationer']
+        try:
+            props = orgunit['attributter']['organisationenhedegenskaber'][0]
+        except IndexError:
+            continue
+
+        try:
+            parentid = rels['overordnet'][0]['uuid']
+        except IndexError:
+            parentid = None
+
+        unit_types = rels['enhedstype']
+        # TODO: should we pass on loraparams? perhaps, but not validity
+        unit_type = (
+            lora.klasse.get(uuid=unit_types[0]['uuid'])
+            if unit_types else None
         )
 
-        return
+        r.append({
+            'activeName': props['enhedsnavn'],
+            'name': props['enhedsnavn'],
+            'user-key': props['brugervendtnoegle'],
+            'uuid': unitid,
+            'valid-from': util.to_frontend_time(start),
+            'valid-to': util.to_frontend_time(end),
+            'org': str(orgid),
+            'parent': parentid if parentid and parentid != orgid else None,
+            'parent-object': (
+                get_orgunit(
+                    orgid, parentid,
+                    include_parents=False,
+                    virkningfra=util.to_lora_time(start),
+                    virkningtil=util.to_lora_time(end),
+                ).pop()
+                if include_parents and parentid and parentid != orgid else None
+            ),
+            'type': {
+                'name':
+                unit_type['attributter']['klasseegenskaber'][0]['titel']
+                # TODO: problem with ['klasseegenskaber'][0]?
+                if unit_type else ''
+            },
+        })
 
-    today = util.parsedatetime(
-        loraparams.get('effective_date', util.today()),
-    )
-    tomorrow = today + datetime.timedelta(days=1)
-
-    if validity == 'past':
-        loraparams.update(virkningfra='-infinity',
-                          virkningtil=util.to_lora_time(today))
-
-        def requirement_func(s):
-            return util.parsedatetime(s) < today
-    elif validity == 'future':
-        loraparams.update(virkningfra=util.to_lora_time(tomorrow),
-                          virkningtil='infinity')
-
-        def requirement_func(s):
-            return util.parsedatetime(s) > tomorrow
-    else:
-        raise ValueError('invalid validity {!r}'.format(validity))
-
-    orgunit = lora.organisationenhed.get(unitid, **loraparams)
-
-    if not orgunit:
-        return
-
-    chunks = set()
-
-    relevant = {
-        ('attributter', 'organisationenhedegenskaber'),
-        ('relationer', 'enhedstype'),
-        ('relationer', 'overordnet'),
-        ('relationer', 'tilhoerer'),
-        ('tilstande', 'organisationenhedgyldighed'),
-    }
-
-    for group in 'attributter', 'relationer', 'tilstande':
-        for key in orgunit[group]:
-            for entry in orgunit[group][key]:
-                if(group, key) in relevant:
-                    chunks.update([entry['virkning']['from'],
-                                   entry['virkning']['to']])
-
-    chunks = sorted(filter(requirement_func, chunks))
-
-    for start, end in zip(chunks, chunks[1:]):
-        orgunit = _get_one_orgunit(
-            orgid, unitid, include_parents,
-            virkningfra=util.to_lora_time(start),
-            virkningtil=util.to_lora_time(end),
-        )
-
-        if orgunit:
-            yield orgunit
+    return r
 
 
 def list_orgunits(query, **loraparams):
