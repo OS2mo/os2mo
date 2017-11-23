@@ -8,6 +8,7 @@
 
 import itertools
 import operator
+
 import uuid
 
 from . import addr
@@ -203,7 +204,8 @@ def _convert_class(clazz):
 
     return {
         'uuid': clazz['id'],
-        'name': attrs['titel'],
+        'name': (attrs.get('titel') or attrs.get('beskrivelse') or
+                 attrs['brugervendtnoegle']),
         'userKey': attrs['brugervendtnoegle']
     }
 
@@ -217,6 +219,25 @@ def get_classes():
     return sorted(map(_convert_class,
                       classes),
                   key=operator.itemgetter('name'))
+
+
+def get_class(uuid):
+    if not uuid:
+        return None
+
+    cls = lora.klasse.get(uuid=uuid)
+
+    if not cls:
+        return None
+
+    attrs = cls['attributter']['klasseegenskaber'][-1]
+
+    return {
+        'name': (attrs.get('titel') or attrs.get('beskrivelse') or
+                 attrs['brugervendtnoegle']),
+        'user-key': attrs['brugervendtnoegle'],
+        'uuid': uuid,
+    }
 
 
 def get_contact_channels(unitid, **loraparams):
@@ -452,3 +473,154 @@ def get_orgunits(orgid, unitids, **loraparams):
         _get,
         unitids,
     ))))
+
+
+def list_employees(*, limit=1000, start=0, **loraparams):
+    return lora.Connector().bruger(
+        maximalantalresultater=start + limit,
+        **loraparams,
+    )[-limit:]
+
+
+def get_employees(uuids, **loraparams):
+    def convert(r):
+        userid = r['id']
+        user = r['registreringer'][0]
+
+        rels = user['relationer']
+        props = user['attributter']['brugeregenskaber'][0]
+
+        return {
+            "uuid": userid,
+            "user-key": rels['tilknyttedepersoner'][0]['urn'][4:],
+            "name": props["brugernavn"],
+            "nick-name": props["brugervendtnoegle"],
+        }
+
+    return [
+        convert(empl)
+        for chunk in util.splitlist(uuids, 20)
+        for empl in lora.Connector(**loraparams).bruger(uuid=chunk)
+    ]
+
+
+def get_unit_engagements(unitid, **loraparams):
+    c = lora.Connector(**loraparams)
+
+    def convert(funcid, start, end, effect):
+        props = effect['attributter']['organisationfunktionegenskaber'][0]
+        rels = effect['relationer']
+
+        emplid = rels['tilknyttedebrugere'][-1]['uuid']
+        empl = get_employees([emplid], effective_date=start)[-1]
+
+        return {
+            "job-title": {
+                "uuid": funcid,
+                "user-key": props['brugervendtnoegle'],
+                "name": props['funktionsnavn'],
+            },
+            "type": get_class(
+                rels['organisatoriskfunktionstype'][-1].get('uuid'),
+            ),
+            "uuid": funcid,
+            "name": props['funktionsnavn'],
+            "person": emplid,
+            "person-name": empl['name'],
+            "role-type": "engagement",
+            "valid-from": util.to_frontend_time(start),
+            "valid-to": util.to_frontend_time(end),
+        }
+
+    return [
+        convert(funcid, start, end, effect)
+
+        for funcid in c.organisationfunktion(
+            tilknyttedeenheder=unitid,
+        )
+        for start, end, effect in c.organisationfunktion.get_effects(
+            funcid,
+            {
+                'relationer': (
+                    'tilknyttedebrugere',
+                ),
+            },
+            {
+                'attributter': (
+                    'organisationfunktionegenskaber',
+                ),
+                'relationer': (
+                    'organisatoriskfunktionstype',
+                    'tilknyttedeenheder',
+                    'tilknyttedeorganisationer',
+                    'tilhoerer',
+                ),
+            },
+        )
+    ]
+
+
+def get_engagements(emplid, **loraparams):
+    c = lora.Connector(**loraparams)
+
+    def convert(funcid, start, end, effect):
+        print(effect)
+
+        props = effect['attributter']['organisationfunktionegenskaber'][0]
+        rels = effect['relationer']
+
+        orgunitid = rels['tilknyttedeenheder'][-1]['uuid']
+        orgid = rels['tilknyttedeorganisationer'][-1]['uuid']
+
+        return {
+            "job-title": {
+                "uuid": funcid,
+                "user-key": props['brugervendtnoegle'],
+                "name": props['funktionsnavn']
+            },
+            "type": get_class(
+                rels['organisatoriskfunktionstype'][-1].get('uuid'),
+            ),
+            "uuid": funcid,
+            "name": props['funktionsnavn'],
+            "person": emplid,
+            "org-unit": get_orgunit(orgid, orgunitid,
+                                    virkningfra=util.to_lora_time(start),
+                                    virkningtil=util.to_lora_time(end),
+                                    include_parents=False)[-1],
+            "org": {
+                "uuid": "1001",
+                "user-key": "auth",
+                "name": "Administrativ Organisation"
+            },
+            "role-type": "engagement",
+            "valid-from": util.to_frontend_time(start),
+            "valid-to": util.to_frontend_time(end),
+        }
+
+    return [
+        convert(funcid, start, end, effect)
+
+        for funcid in c.organisationfunktion(
+            tilknyttedebrugere=emplid,
+        )
+        for start, end, effect in c.organisationfunktion.get_effects(
+            funcid,
+            {
+                'relationer': (
+                    'tilknyttedebrugere',
+                ),
+            },
+            {
+                'attributter': (
+                    'organisationfunktionegenskaber',
+                ),
+                'relationer': (
+                    'organisatoriskfunktionstype',
+                    'tilknyttedeenheder',
+                    'tilknyttedeorganisationer',
+                    'tilhoerer',
+                ),
+            },
+        )
+    ]

@@ -107,6 +107,55 @@ def list_organisations():
     return flask.jsonify(reading.list_organisations())
 
 
+#
+# EMPLOYEES
+#
+
+@app.route('/e/')
+@util.restrictargs('limit', 'query', 'start')
+def list_employees():
+    limit = int(flask.request.args.get('limit', 100))
+    start = int(flask.request.args.get('start', 0))
+    query = flask.request.args.get('query')
+
+    ids = reading.list_employees(
+        vilkaarligattr='%{}%'.format(query),
+        limit=limit,
+        start=start,
+    )
+
+    return flask.jsonify(
+        reading.get_employees(
+            ids,
+        )
+    )
+
+
+@app.route('/e/<int:cpr_number>/')
+@util.restrictargs()
+def get_employee_by_cpr(cpr_number):
+    ids = reading.list_employees(
+        tilknyttedepersoner='urn:{:010d}'.format(cpr_number),
+    )
+
+    if not ids:
+        return flask.jsonify({
+            'message': 'no such user',
+        }), 404
+    elif len(ids) > 1:
+        return flask.jsonify({
+            'message': 'multiple users found',
+        }), 404
+
+    return flask.jsonify(reading.get_employees(ids)[0])
+
+
+@app.route('/e/<uuid:id>/')
+@util.restrictargs()
+def get_employee(id):
+    return flask.jsonify(reading.get_employees([id])[0])
+
+
 # --- Writing to LoRa --- #
 
 
@@ -330,12 +379,28 @@ def get_orgunit_history(orgid, unitid):
     return flask.jsonify(list(r)) if r else ('', 404)
 
 
+@app.route('/e/<uuid:emplid>/role-types/<role>/')
+@util.restrictargs('validity', 't')
+def get_employee_role(emplid, role, **loraparams):
+    validity = flask.request.args.get('validity')
+    effective_date = flask.request.args.get('effective-date')
+
+    if role == 'engagement':
+        return flask.jsonify(reading.get_engagements(
+            emplid, validity=validity, effective_date=effective_date,
+        ))
+
+    else:
+        return '', 404
+
+
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
 def get_role(orgid, unitid, role):
     validity = flask.request.args.get('validity')
     effective_date = flask.request.args.get('effective-date')
 
     getters = {
+        'engagement': reading.get_unit_engagements,
         'contact-channel': reading.get_contact_channels,
         'location': reading.get_locations,
     }

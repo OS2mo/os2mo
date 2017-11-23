@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import collections
 import datetime
 import functools
 
@@ -18,6 +19,125 @@ from . import util
 session = requests.Session()
 session.verify = settings.CA_BUNDLE or True
 session.auth = auth.SAMLAuth()
+session.headers = {
+    'User-Agent': 'MORA/0.1',
+}
+
+ALL_RELATION_NAMES = {
+    'adresse',
+    'adresser',
+    'afgiftsobjekt',
+    'afleveringsarkiv',
+    'aktivitetdokument',
+    'aktivitetgrundlag',
+    'aktivitetresultat',
+    'aktivitetstype',
+    'andetarkiv',
+    'andrebehandlere',
+    'andredokumenter',
+    'andreklasser',
+    'andresager',
+    'ansatte',
+    'ansvarlig',
+    'ansvarligklasse',
+    'arkiver',
+    'begrundelse',
+    'behandlingarkiv',
+    'besvarelser',
+    'bilag',
+    'branche',
+    'bruger',
+    'brugerrolle',
+    'brugertyper',
+    'byggeri',
+    'deltager',
+    'deltagerklasse',
+    'ejendomsskat',
+    'ejer',
+    'emne',
+    'enhedstype',
+    'erstatter',
+    'facet',
+    'facettilhoerer',
+    'facilitet',
+    'facilitetklasse',
+    'foelsomhedklasse',
+    'foelsomhedsklasse',
+    'fordelttil',
+    'fredning',
+    'geoobjekt',
+    'grundlagklasse',
+    'handlingsklasse',
+    'indsatsaktoer',
+    'indsatsdokument',
+    'indsatsklasse',
+    'indsatskvalitet',
+    'indsatsmodtager',
+    'indsatssag',
+    'indsatstype',
+    # NB: also an attribute :(
+    # 'interessefaellesskabstype',
+    'journalpost',
+    'kommentarer',
+    'kontoklasse',
+    'kopiparter',
+    'lokale',
+    'lovligekombinationer',
+    'mapninger',
+    'myndighed',
+    'myndighedstype',
+    'nyrevision',
+    'objekt',
+    'objektklasse',
+    'opgaveklasse',
+    'opgaver',
+    'organisatoriskfunktionstype',
+    'overordnet',
+    'overordnetklasse',
+    'oversag',
+    'parter',
+    'position',
+    'praecedens',
+    'primaerbehandler',
+    'primaerklasse',
+    'primaerpart',
+    'produktionsenhed',
+    'redaktoerer',
+    'rekvirentklasse',
+    'resultatklasse',
+    'samtykke',
+    'sekundaerpart',
+    'sideordnede',
+    'sikkerhedsklasse',
+    'skatteenhed',
+    'systemtyper',
+    'tilfoejelser',
+    'tilhoerer',
+    'tilknyttedebrugere',
+    'tilknyttedeenheder',
+    'tilknyttedefunktioner',
+    'tilknyttedeinteressefaellesskaber',
+    'tilknyttedeitsystemer',
+    'tilknyttedeorganisationer',
+    'tilknyttedepersoner',
+    'tilknyttedesager',
+    'tilstandsaktoer',
+    'tilstandsdokument',
+    'tilstandskvalitet',
+    'tilstandsobjekt',
+    'tilstandstype',
+    'tilstandsudstyr',
+    'tilstandsvaerdi',
+    'tilstandsvurdering',
+    'udfoerer',
+    'udfoererklasse',
+    'udgangspunkter',
+    'udlaanttil',
+    'virksomhed',
+    'virksomhedstype',
+    'ydelsesklasse',
+    'ydelsesmodtager',
+}
 
 
 def _check_response(r):
@@ -91,7 +211,12 @@ class Connector:
     scope_map = dict(
         organisation='organisation/organisation',
         organisationenhed='organisation/organisationenhed',
+        organisationfunktion='organisation/organisationfunktion',
+        bruger='organisation/bruger',
+        itsystem='organisation/itsystem',
         klasse='klassifikation/klasse',
+        facet='klassifikation/facet',
+        klassifikation='klassifikation/klassifikation',
     )
 
     def __init__(self, **overrides):
@@ -230,10 +355,17 @@ class Scope:
         _check_response(r)
         return r.json()['uuid']
 
-    def get_effects(self, uuid: str, relevant, **params):
+    def get_effects(self, uuid: str, relevant, also=None, **params):
         reg = self.get(uuid, **params)
 
         chunks = set()
+
+        everything = collections.defaultdict(tuple)
+
+        for group in relevant:
+            everything[group] += relevant[group]
+        for group in also or {}:
+            everything[group] += also[group]
 
         # extract all beginning and end timestamps for all effects
         for group, keys in relevant.items():
@@ -268,10 +400,10 @@ class Scope:
             effect = {
                 group: {
                     key: list(filter_list(reg[group][key], start, end))
-                    for key in relevant[group]
-                    if key in relevant[group]
+                    for key in everything[group]
+                    if key in everything[group] and key in reg[group]
                 }
-                for group in relevant
+                for group in everything
                 if group in reg
             }
 

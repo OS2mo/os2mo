@@ -259,7 +259,6 @@ class ImportTest(util.LoRATestCase):
             ),
         ]
 
-        with open(os.path.join(util.BASE_DIR, 'sandbox', 'AAK',
-                               'AARHUS_minified.xlsx'),
-                  'rb') as fp:
-            self.assertEqual(expected, list(importing.convert(fp)))
+        p = os.path.join(util.BASE_DIR, 'sandbox', 'AAK',
+                         'AARHUS_minified.xlsx')
+        self.assertEqual(expected, list(importing.convert([p])))

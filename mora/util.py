@@ -184,3 +184,23 @@ def update_config(mapping, config_path):
 
     for key in mapping.keys() & overrides.keys():
         mapping[key] = overrides[key]
+
+
+def splitlist(xs, size):
+    if size <= 0:
+        raise ValueError('size must be positive!')
+
+    i = 0
+    nxs = len(xs)
+
+    while i < nxs:
+        yield xs[i:i + size]
+        i += size
+
+
+def is_uuid(v):
+    try:
+        uuid.UUID(v)
+        return True
+    except Exception:
+        return False
