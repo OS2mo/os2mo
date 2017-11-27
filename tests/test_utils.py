@@ -26,6 +26,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(util.to_lora_time('2017-07-31T22:00:00 00:00'),
                          '2017-07-31T22:00:00+00:00')
 
+        self.assertRaises(ValueError, util.to_lora_time, '1999-15-11 00:00:00+01')
+
     def test_to_frontend_time(self):
         self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
                          '31-12-2017')

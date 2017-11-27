@@ -361,7 +361,7 @@ def load_cli(app):
         if compact:
             json.dump(d, output)
         else:
-            json.dump(d, output, indent=2)
+            json.dump(d, output, indent=2, sort_keys=True)
 
     @app.cli.command('load-fixtures')
     @click.option('--quiet', '-q', is_flag=True,

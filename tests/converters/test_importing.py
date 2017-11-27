@@ -262,3 +262,43 @@ class ImportTest(util.LoRATestCase):
         p = os.path.join(util.BASE_DIR, 'sandbox', 'AAK',
                          'AARHUS_minified.xlsx')
         self.assertEqual(expected, list(importing.convert([p])))
+
+class MockTests(util.TestCase):
+    maxDiff = None
+
+    @util.mock('importing.json')
+    def test_load(self, m):
+        expected = util.get_fixture('MAGENTA_01.json')
+
+        self.assertEqual(expected, importing.load_data([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+        ]))
+
+        self.assertEqual(expected, importing.load_data([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+        ], exact=True))
+
+        self.assertEqual(expected, importing.load_data([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.xlsx'),
+        ]))
+
+    @util.mock()
+    def test_convert(self, m):
+        data = util.get_fixture('MAGENTA_01.json')
+
+        # JSON converts tuples to lists - convert them back
+        expected = list(map(tuple, util.get_fixture('MAGENTA_01-result.json')))
+
+        with open('/tmp/x.json', 'w') as fp:
+            import json
+            json.dump(
+                list(importing.convert([
+                    os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+                ])),
+                fp,
+                indent=2, sort_keys=True,
+            )
+
+        self.assertEqual(sorted(expected), sorted(importing.convert([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+        ])))

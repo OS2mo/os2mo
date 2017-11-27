@@ -7,6 +7,7 @@
 #
 
 import datetime
+import collections
 import functools
 import itertools
 import json
@@ -137,7 +138,8 @@ def read_paths(paths):
 
 
 def load_data(sheets, exact=False):
-    dest = {}
+    # use an ordered dictionary to ensure consistent walk order if the types
+    dest = collections.OrderedDict()
 
     remap = {
         "funktionstype": "organisatoriskfunktionstype",
@@ -192,7 +194,7 @@ def load_data(sheets, exact=False):
             if 'tilknyttedepersoner' in obj and not obj['tilknyttedepersoner']:
                 hired = util.parsedatetime(obj['fra'])
 
-                obj['tilknyttedepersoner'] = int('{:%Y%m%d}{:04d}'.format(
+                obj['tilknyttedepersoner'] = int('{:%d%m%Y}{:04d}'.format(
                     # randomly assume that everyone was hired on their 32nd birthday
                     # (note: 32 is divible by four, which is a rather useful)
                     hired.replace(year=hired.year - 32),
@@ -228,7 +230,10 @@ def load_data(sheets, exact=False):
         postalcode = obj.pop('postnummer', None)
         address = obj.pop('adresse', None)
 
-        if address and postalcode and postaldistrict:
+        if exact or util.is_uuid(address):
+            # just use it
+            obj['adresse'] = address
+        elif address and postalcode and postaldistrict:
             if str(postalcode) == '8100':
                 postalcode = 8000
 
@@ -345,6 +350,7 @@ def convert_klasse(obj):
 
 
 def convert_klassifikation(obj):
+    print(obj)
     objectid = obj['objektid']
 
     return 'PUT', '/klassifikation/klassifikation/' + objectid, {
@@ -439,14 +445,12 @@ def convert_organisationenhed(obj):
     if obj['telefon']:
         addresses.append({
             'urn': obj['telefon'],
-            'gyldighed': obj['gyldighed'],
             'virkning': virkning,
         })
 
     if obj['adresse']:
         addresses.append({
-            'urn': obj['adresse'],
-            'gyldighed': obj['gyldighed'],
+            'uuid': obj['adresse'],
             'virkning': virkning,
         })
 

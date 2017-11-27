@@ -278,6 +278,8 @@ class Connector:
 
         elif self.__validity == 'future':
             dates = sorted(filter(lambda d: d > self.tomorrow, dates))
+        else:
+            raise ValueError('no validity!')
 
         yield from zip(dates, dates[1:])
 

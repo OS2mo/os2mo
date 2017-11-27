@@ -1,0 +1,186 @@
+{
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=%C3%85bogade+15%2C+8200+Aarhus+N": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5097-3260-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "\u00c5bogade",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+          "husnr": "15",
+          "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+          "postnr": "8200",
+          "postnrnavn": "Aarhus N",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "\u00c5bogade"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5097-3260-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "\u00c5bogade",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+          "husnr": "15",
+          "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+          "postnr": "8200",
+          "postnrnavn": "Aarhus N",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "\u00c5bogade"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "15",
+            "postnr": "8200",
+            "postnrnavn": "Aarhus N",
+            "vejnavn": "\u00c5bogade"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "15",
+            "postnr": "8200",
+            "postnrnavn": "Aarhus N",
+            "supplerendebynavn": null,
+            "vejnavn": "\u00c5bogade"
+          }
+        }
+      }
+    ]
+  },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=Pilestr%C3%A6de+43%2C+3.%2C+1112+K%C3%B8benhavn+K": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f507a-da84-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "Pilestr\u00e6de",
+          "d\u00f8r": null,
+          "etage": "3",
+          "husnr": "43",
+          "id": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+          "postnr": "1112",
+          "postnrnavn": "K\u00f8benhavn K",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Pilestr\u00e6de"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f507a-da84-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "Pilestr\u00e6de",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018",
+          "husnr": "43",
+          "id": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+          "postnr": "1112",
+          "postnrnavn": "K\u00f8benhavn K",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Pilestr\u00e6de"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 0,
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "3",
+            "husnr": "43",
+            "postnr": "1112",
+            "postnrnavn": "K\u00f8benhavn K",
+            "vejnavn": "Pilestr\u00e6de"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "3",
+            "husnr": "43",
+            "postnr": "1112",
+            "postnrnavn": "K\u00f8benhavn K",
+            "supplerendebynavn": null,
+            "vejnavn": "Pilestr\u00e6de"
+          }
+        }
+      }
+    ]
+  },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=R%C3%A5dhuspladsen+2%2C+8000+Aarhus+C": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "husnr": "2",
+          "id": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "husnr": "2",
+          "id": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      }
+    ]
+  }
+}
