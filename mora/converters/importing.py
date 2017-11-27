@@ -210,10 +210,10 @@ def convert(paths, include=None, exact=False):
             print('skipping {}!'.format(title), file=sys.stderr)
             continue
 
-        print('importing {} {}...'.format(len(sheet) - 1, title),
+        print('importing {} {}...'.format(len(sheet), title),
               file=sys.stderr)
 
-        for i, obj in enumerate(sheet[1:], 1):
+        for i, obj in enumerate(sheet, 1):
             if not i % 500:
                 print(i)
 
