@@ -274,9 +274,11 @@ def load_cli(app):
     @click.option('--check', '-c', is_flag=True,
                   help=('check if import would overwrite any existing '
                         'objects'))
+    @click.option('--exact', '-e', is_flag=True,
+                  help="don't calculate missing values")
     @requires_auth
     def import_(destination_url, spreadsheets, verbose, jobs, failfast,
-                include, check):
+                include, check, exact):
         '''
         Import an Excel spreadsheet into LoRa
         '''
@@ -286,7 +288,7 @@ def load_cli(app):
 
         import grequests
 
-        sheetlines = importing.convert(spreadsheets, include=include)
+        sheetlines = importing.convert(spreadsheets, include=include, exact=exact)
 
         if not destination_url:
             for method, path, obj in sheetlines:
@@ -346,12 +348,14 @@ def load_cli(app):
     @click.argument('spreadsheets', nargs=-1, type=click.Path(exists=True))
     @click.option('--output', '-o', type=click.File('w'), default='-')
     @click.option('--compact', '-c', is_flag=True)
+    @click.option('--exact', '-e', is_flag=True,
+                  help="don't calculate missing values")
     @requires_auth
-    def preimport(output, spreadsheets, compact):
+    def preimport(output, spreadsheets, compact, exact):
         '''
         Convert an Excel spreadsheet into JSON for faster importing
         '''
-        d = importing.load_data(spreadsheets)
+        d = importing.load_data(spreadsheets, exact=exact)
 
         if compact:
             json.dump(d, output)

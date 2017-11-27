@@ -11,6 +11,7 @@ import functools
 import itertools
 import json
 import os
+import random
 import sys
 import uuid
 
@@ -77,7 +78,7 @@ def read_paths(paths):
             raise ValueError('bad format ' + fmt)
 
 
-def load_data(sheets):
+def load_data(sheets, exact=False):
     dest = {}
 
     remap = {
@@ -121,6 +122,23 @@ def load_data(sheets):
                 continue
 
             out.append(dict(map(lambda h, c: (h, c), headers, row)))
+
+    # optionally generate a CPR number in a reproducible way, for test & dev
+    if not exact:
+        for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
+            # leave some users without a CPR number
+            if not i % 100:
+                continue
+
+            if 'tilknyttedepersoner' in obj and not obj['tilknyttedepersoner']:
+                hired = util.parsedatetime(obj['fra'])
+
+                obj['tilknyttedepersoner'] = int('{:%Y%m%d}{:04d}'.format(
+                    # randomly assume that everyone was hired on their 32nd birthday
+                    # (note: 32 is divible by four, which is a rather useful)
+                    hired.replace(year=hired.year - 32),
+                    i % 10000,
+                ))
 
     # ensure that all objects have an ID
     for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
@@ -177,9 +195,9 @@ def load_data(sheets):
     return dest
 
 
-def convert(paths, include=None):
+def convert(paths, include=None, exact=False):
     print('loading input...', file=sys.stderr)
-    sheets = load_data(paths)
+    sheets = load_data(paths, exact=exact)
 
     for title, sheet in sheets.items():
         try:
