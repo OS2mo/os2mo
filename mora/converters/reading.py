@@ -568,8 +568,6 @@ def get_engagements(emplid, **loraparams):
     c = lora.Connector(**loraparams)
 
     def convert(funcid, start, end, effect):
-        print(effect)
-
         props = effect['attributter']['organisationfunktionegenskaber'][0]
         rels = effect['relationer']
 
