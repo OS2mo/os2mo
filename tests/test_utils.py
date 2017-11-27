@@ -52,6 +52,11 @@ class TestUtils(unittest.TestCase):
         self.assertRaises(TypeError,
                           list, util.splitlist([], 'horse'))
 
+    def test_is_uuid(self):
+        self.assertTrue(util.is_uuid('00000000-0000-0000-0000-000000000000'))
+        self.assertFalse(util.is_uuid('42'))
+        self.assertFalse(util.is_uuid(None))
+
 
 class TestAppUtils(unittest.TestCase):
     def test_restrictargs(self):
