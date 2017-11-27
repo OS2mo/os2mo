@@ -12,6 +12,7 @@ import itertools
 import json
 import os
 import random
+import re
 import sys
 import uuid
 
@@ -45,11 +46,68 @@ def _make_relation(obj, k):
 
 
 @functools.lru_cache(10000)
-def _wash_address(k):
-    r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
-                         params={'betegnelse': k})
-    r.raise_for_status()
-    return r.json()
+def _wash_address(addrstring, postalcode, postaldistrict):
+    if not addrstring:
+        return None
+
+    def wash(k):
+        r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
+                         params={
+                             'betegnelse': k,
+                         })
+        r.raise_for_status()
+
+        addrinfo = r.json()
+
+        if addrinfo["kategori"] == 'A' or len(addrinfo['resultater']) == 1:
+            return addrinfo['resultater'][0]['adresse']['id']
+
+    # first, try a direct lookup...
+    v = wash('{}, {} {}'.format(
+        addrstring.strip(), postalcode, postaldistrict.strip(),
+    ))
+
+    # ..and return it without further processing if found
+    if v:
+        return v
+
+    # now, try a bit of massaging
+    if postalcode == 8100:
+        postalcode = 8000
+
+    q = addrstring.strip()
+
+    if re.search('\s*-\s*\d+\Z', q):
+        q = re.sub('-\d+\Z', '', q)
+
+    if q in ('Rådhuspladsen', 'Rådhuset') and postalcode == 8000:
+        q = 'Rådhuspladsen 1'
+
+    v = wash('{}, {} {}'.format(
+        q, postalcode, postaldistrict
+    ))
+
+    if v:
+        return v
+
+    if ',' in q:
+        q = q.rsplit(',', 1)[0]
+
+    q = re.sub(r'(\s*-\s*\d+)+\Z', '', q)
+
+    if q in ('Rådhuspladsen', 'Rådhuset') and postalcode == 8000:
+        q = 'Rådhuspladsen 1'
+
+    v = wash('{}, {} {}'.format(
+        q, postalcode, postaldistrict
+    ))
+
+    if v:
+        return v
+
+    print('no address found for {!r}, {!r}, {!r}'.format(
+        addrstring, postalcode, postaldistrict
+    ))
 
 
 def _make_effect(from_, to):
@@ -89,10 +147,11 @@ def load_data(sheets, exact=False):
         'tilknyttedepersoner': 'urn:dk:cpr:person:{:010d}',
         'myndighed': 'urn:dk:kommune:{:d}',
         'virksomhed': 'urn:dk:cvr:virksomhed:{:d}',
+
+        'telefon': 'urn:magenta.dk:telefon:+45{:08d}',
     }
 
     allow_invalid_types = {
-        'adresse',
         'brugertyper',
     }
 
@@ -165,7 +224,22 @@ def load_data(sheets, exact=False):
     )
 
     for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
-            for k, v in obj.items():
+        postaldistrict = obj.pop('postdistrikt', None)
+        postalcode = obj.pop('postnummer', None)
+        address = obj.pop('adresse', None)
+
+        if address and postalcode and postaldistrict:
+            if str(postalcode) == '8100':
+                postalcode = 8000
+
+            if address == 'Rådhuset':
+                address = 'Rådhuspladsen 2'
+
+            obj['adresse'] = _wash_address(address, postalcode, postaldistrict)
+        else:
+            obj['adresse'] = None
+
+        for k, v in obj.items():
                 if k not in lora.ALL_RELATION_NAMES:
                     continue
 
@@ -361,44 +435,20 @@ def convert_organisationenhed(obj):
     virkning = _make_effect(obj['fra'], obj['til'])
 
     addresses = []
-    telefon = obj['telefon']
-    if obj['postnummer']:
-        pass
 
-    if isinstance(telefon, str):
-        telefon = telefon.strip()
-
-    if telefon:
-        urn = 'urn:magenta.dk:telefon:+45{:08d}'.format(telefon)
+    if obj['telefon']:
         addresses.append({
-            'urn': urn,
+            'urn': obj['telefon'],
             'gyldighed': obj['gyldighed'],
             'virkning': virkning,
         })
 
-    if obj['postnummer']:
-        if str(obj['postnummer']) == '8100':
-            postalcode = 8000
-        else:
-            postalcode = obj['postnummer']
-
-        if obj['adresse'] == 'Rådhuset':
-            address = 'Rådhuspladsen 2'
-        else:
-            address = obj['adresse']
-
-        addrinfo = _wash_address(
-            '{}, {} {}'.format(
-                address, postalcode, obj['postdistrikt']
-            )
-        )
-
-        if len(addrinfo['resultater']) == 1:
-            addresses.append({
-                'uuid': addrinfo['resultater'][0]['adresse']['id'],
-                'gyldighed': obj['gyldighed'],
-                'virkning': virkning,
-            })
+    if obj['adresse']:
+        addresses.append({
+            'urn': obj['adresse'],
+            'gyldighed': obj['gyldighed'],
+            'virkning': virkning,
+        })
 
     r = {
         'note': obj['note'],
