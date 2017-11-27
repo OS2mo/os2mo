@@ -100,41 +100,46 @@ def load_data(sheets):
     }
 
     for sheet in read_paths(sheets):
-            if isinstance(sheet, dict):
-                dest.update(sheet)
+        if isinstance(sheet, dict):
+            dest.update(sheet)
+            continue
+
+        out = dest[sheet.title] = []
+
+        print(sheet.title, file=sys.stderr)
+
+        headers = [c.value.lower() for c in sheet[1]]
+        headers = [remap.get(v, v) for v in headers]
+
+        for i, row in enumerate(sheet.iter_rows(min_row=2), 2):
+            if not i % 5000:
+                print(i, file=sys.stderr)
+
+            row = [cell.value for cell in row]
+
+            if not any(row):
                 continue
 
-            out = dest[sheet.title] = []
+            out.append(dict(map(lambda h, c: (h, c), headers, row)))
 
-            print(sheet.title, file=sys.stderr)
-
-            headers = [c.value.lower() for c in sheet[1]]
-            headers = [remap.get(v, v) for v in headers]
-
-            for i, row in enumerate(sheet.iter_rows(min_row=2), 2):
-                if not i % 5000:
-                    print(i, file=sys.stderr)
-
-                row = [cell.value for cell in row]
-
-                if not any(row):
-                    continue
-
-                out.append(dict(map(lambda h, c: (h, c), headers, row)))
-
-    for obj in itertools.chain.from_iterable(dest.values()):
+    # ensure that all objects have an ID
+    for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
         if not obj['objektid']:
             obj['objektid'] = str(uuid.uuid4())
+
+    # coerce all dates to strings
+    for obj in itertools.chain.from_iterable(dest.values()):
         for k, v in obj.items():
             if isinstance(v, datetime.datetime):
                 obj[k] = v.isoformat()
 
+    # some items in the spreadsheet refer to other rows by their bvn
     uuid_mapping = {
         obj['brugervendtnoegle']: obj['objektid']
         for obj in itertools.chain.from_iterable(dest.values())
     }
 
-    # fixups
+    # inject some missing UUID mappings?
     uuid_mapping.setdefault(
         'Organisation Aarhus',
         uuid_mapping.get('Aarhus kommune',
@@ -164,8 +169,8 @@ def load_data(sheets):
 
                 else:
                     if k not in ignore_invalid_types:
-                        print('BAD VALUE {} for {} in {}'.format(
-                            val, k, json.dumps(obj, indent=2),
+                        print('BAD VALUE {!r} for {} in {}'.format(
+                            val, k, json.dumps(obj, indent=2, sort_keys=True),
                         ), file=sys.stderr)
                     obj[k] = None
 
