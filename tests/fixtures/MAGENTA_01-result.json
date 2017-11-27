@@ -1,16 +1,15 @@
 [
   [
     "PUT",
-    "/organisation/bruger/cd2dcfad-6d34-4553-9fee-a7023139a9e8",
+    "/organisation/organisation/59141156-ed0b-457c-9535-884447c5220b",
     {
       "attributter": {
-        "brugeregenskaber": [
+        "organisationegenskaber": [
           {
-            "brugernavn": "Joe User",
-            "brugertype": "idp",
-            "brugervendtnoegle": "user",
+            "brugervendtnoegle": "Aarhus Kommune",
+            "organisationsnavn": "Aarhus Kommune",
             "virkning": {
-              "from": "2016-02-15T00:00:00+01:00",
+              "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -20,44 +19,33 @@
       },
       "note": null,
       "relationer": {
-        "adresser": [
+        "myndighed": [
           {
-            "urn": "urn:mailto:user@example.com",
+            "urn": "urn:dk:kommune:urn:dk:kommune:751",
             "virkning": {
-              "from": "2016-02-15T00:00:00+01:00",
+              "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
             }
           }
         ],
-        "brugertyper": [
+        "myndighedstype": [
           {
-            "urn": "urn:email",
+            "urn": "urn:oio:objekttype:c0fa2bbf-ce54-4fc6-85cc-d0f2e7d15840",
             "virkning": {
-              "from": "2016-02-15T00:00:00+01:00",
+              "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
             }
           }
         ],
-        "tilhoerer": [
+        "virksomhed": [
           {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "urn": "urn:dk:cvr:urn:dk:cvr:virksomhed:55133018",
             "virkning": {
-              "from": "2016-02-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedepersoner": [
-          {
-            "urn": "urn:dk:cpr:person:10119001010",
-            "virkning": {
-              "from": "2016-02-15T00:00:00+01:00",
+              "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -66,11 +54,11 @@
         ]
       },
       "tilstande": {
-        "brugergyldighed": [
+        "organisationgyldighed": [
           {
             "gyldighed": "Aktiv",
             "virkning": {
-              "from": "2016-02-15T00:00:00+01:00",
+              "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -82,16 +70,15 @@
   ],
   [
     "PUT",
-    "/organisation/bruger/9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
+    "/organisation/organisation/8efbd074-ad2a-4e6a-afec-1d0b1891f566",
     {
       "attributter": {
-        "brugeregenskaber": [
+        "organisationegenskaber": [
           {
-            "brugernavn": "Hans Bruger",
-            "brugertype": "idp",
-            "brugervendtnoegle": "bruger",
+            "brugervendtnoegle": "Magenta ApS",
+            "organisationsnavn": "Magenta ApS",
             "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
+              "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -101,353 +88,9 @@
       },
       "note": null,
       "relationer": {
-        "adresser": [
+        "myndighed": [
           {
-            "urn": "urn:mailto:bruger@example.com",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "brugertyper": [
-          {
-            "urn": "urn:email",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedepersoner": [
-          {
-            "urn": "urn:dk:cpr:person:101120101010",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "brugergyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/bruger/F715A2C9-A425-4CC9-B69B-7D89AAEDECE4",
-    {
-      "attributter": {
-        "brugeregenskaber": [
-          {
-            "brugernavn": "MAAAAAM",
-            "brugertype": "idp",
-            "brugervendtnoegle": "mam",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "adresser": [
-          {
-            "urn": "urn:mailto:mam@example.com",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "brugertyper": [
-          {
-            "urn": "urn:email",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedepersoner": [
-          {
-            "urn": "urn:dk:cpr:person:140219840002",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "brugergyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "2016-02-14T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/746eeba3-30a9-4c0a-8d22-c6f34af1095f",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "\u00c5RHUS",
-            "enhedsnavn": "Aarhus Kommune",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "adresser": [
-          {
-            "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "enhedstype": [
-          {
-            "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnet": [
-          {
-            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": "urn:kmd.dk:administrativenhedsid:325",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "organisationenhedgyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/FF2F8CAE-0CED-467D-B934-D61939D06BC6",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "AARHUS-ENHED",
-            "enhedsnavn": "Aarhus Enhed",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "adresser": [
-          {
-            "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "enhedstype": [
-          {
-            "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnet": [
-          {
-            "uuid": "746eeba3-30a9-4c0a-8d22-c6f34af1095f",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "organisationenhedgyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/01e479c4-66ef-42aa-877e-15f0512f792c",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "MAGENTA",
-            "enhedsnavn": "Magenta ApS",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": "https://datacvr.virk.dk/data/visenhed?enhedstype=virksomhed&id=25052943",
-      "relationer": {
-        "adresser": [],
-        "enhedstype": [
-          {
-            "uuid": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f",
+            "urn": "urn:dk:kommune:None",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -456,9 +99,9 @@
             }
           }
         ],
-        "overordnet": [
+        "myndighedstype": [
           {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "urn": "urn:oio:objekttype:None",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -467,20 +110,9 @@
             }
           }
         ],
-        "tilhoerer": [
+        "virksomhed": [
           {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": null,
+            "urn": "urn:dk:cvr:urn:dk:cvr:virksomhed:25052943",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -491,412 +123,11 @@
         ]
       },
       "tilstande": {
-        "organisationenhedgyldighed": [
+        "organisationgyldighed": [
           {
             "gyldighed": "Aktiv",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/8a32549b-458e-4ff3-814d-9155963c519a",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "MAGENTA-AAR",
-            "enhedsnavn": "Aarhuskontoret",
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "adresser": [
-          {
-            "urn": 33369696,
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          },
-          {
-            "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "enhedstype": [
-          {
-            "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8",
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnet": [
-          {
-            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": null,
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "organisationenhedgyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "2014-08-07T00:00:00+02:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/514e8a8e-2d3f-4789-9237-0492688d5024",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "MAGENTA-HQ",
-            "enhedsnavn": "Hovedkvarteret",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "adresser": [
-          {
-            "urn": 33369696,
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          },
-          {
-            "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "enhedstype": [
-          {
-            "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnet": [
-          {
-            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": null,
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "organisationenhedgyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/3cd8be77-043c-4044-a9c1-8e4261fd7da6",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "MAGENTA-AAR",
-            "enhedsnavn": "Aarhuskontoret",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": "Ikke eksisterende",
-      "relationer": {
-        "adresser": [],
-        "enhedstype": [
-          {
-            "uuid": "254c6782-9fef-478a-89b3-c043ca7cb0e9",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnet": [
-          {
-            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": null,
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "organisationenhedgyldighed": [
-          {
-            "gyldighed": "Inaktiv",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/klassifikation/7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
-    {
-      "attributter": {
-        "klassifikationegenskaber": [
-          {
-            "beskrivelse": "OIO standard",
-            "brugervendtnoegle": "Organisation",
-            "kaldenavn": null,
-            "ophavsret": null,
-            "virkning": {
-              "from": "2016-02-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2016-02-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2016-02-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "klassifikationpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-02-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/klassifikation/b92d5668-7085-4cdb-a64a-82953b1b1ac6",
-    {
-      "attributter": {
-        "klassifikationegenskaber": [
-          {
-            "beskrivelse": "Aarhus kommunes typer",
-            "brugervendtnoegle": "Organisation Aarhus",
-            "kaldenavn": null,
-            "ophavsret": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "klassifikationpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -1057,480 +288,6 @@
             "gyldighed": "Aktiv",
             "virkning": {
               "from": "2015-05-13T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/itsystem/A6690A5F-1B16-484D-B762-B293BD49FCA1",
-    {
-      "attributter": {
-        "itsystemegenskaber": [
-          {
-            "brugervendtnoegle": "AD",
-            "itsystemnavn": "ActiveDirectory",
-            "itsystemtype": "Omsorgssystem",
-            "konfigurationreference": null,
-            "virkning": {
-              "from": "2010-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "tilhoerer": [
-          {
-            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
-            "virkning": {
-              "from": "2010-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeorganisationer": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2010-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "itsystemgyldighed": [
-          {
-            "gyldighed": "Aktiv",
-            "virkning": {
-              "from": "2010-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/facet/3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
-    {
-      "attributter": {
-        "facetegenskaber": [
-          {
-            "beskrivelse": null,
-            "brugervendtnoegle": "Funktionstype",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47499",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "facettilhoerer": [
-          {
-            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "facetpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/facet/54d42619-785e-4d18-9704-71a2cf72942d",
-    {
-      "attributter": {
-        "facetegenskaber": [
-          {
-            "beskrivelse": null,
-            "brugervendtnoegle": "Myndighedstype",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47496",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "facettilhoerer": [
-          {
-            "uuid": "14fe483d-b067-42f1-8061-43d5ba57af40",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "facetpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/facet/56db5e34-a725-4644-8310-a7af11e8df20",
-    {
-      "attributter": {
-        "facetegenskaber": [
-          {
-            "beskrivelse": null,
-            "brugervendtnoegle": "Brugertype",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47502",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "facettilhoerer": [
-          {
-            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "facetpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/facet/ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
-    {
-      "attributter": {
-        "facetegenskaber": [
-          {
-            "beskrivelse": null,
-            "brugervendtnoegle": "Enhedstype",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47498",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "facettilhoerer": [
-          {
-            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "facetpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/facet/eceaa732-ef8b-4c33-9048-16f27d07e7ed",
-    {
-      "attributter": {
-        "facetegenskaber": [
-          {
-            "beskrivelse": null,
-            "brugervendtnoegle": "Rolletype",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47506",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "facettilhoerer": [
-          {
-            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "facetpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/klassifikation/facet/7469cc0f-d42f-4d94-b6ee-de005c321bb7",
-    {
-      "attributter": {
-        "facetegenskaber": [
-          {
-            "beskrivelse": null,
-            "brugervendtnoegle": "Stillingsbetegnelse",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": null,
-      "relationer": {
-        "ansvarlig": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "facettilhoerer": [
-          {
-            "uuid": "b92d5668-7085-4cdb-a64a-82953b1b1ac6",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "facetpubliceret": [
-          {
-            "publiceret": "Publiceret",
-            "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7182,15 +5939,17 @@
   ],
   [
     "PUT",
-    "/organisation/organisation/59141156-ed0b-457c-9535-884447c5220b",
+    "/organisation/itsystem/A6690A5F-1B16-484D-B762-B293BD49FCA1",
     {
       "attributter": {
-        "organisationegenskaber": [
+        "itsystemegenskaber": [
           {
-            "brugervendtnoegle": "Aarhus Kommune",
-            "organisationsnavn": "Aarhus Kommune",
+            "brugervendtnoegle": "AD",
+            "itsystemnavn": "ActiveDirectory",
+            "itsystemtype": "Omsorgssystem",
+            "konfigurationreference": null,
             "virkning": {
-              "from": "1976-01-01T00:00:00+01:00",
+              "from": "2010-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7200,33 +5959,22 @@
       },
       "note": null,
       "relationer": {
-        "myndighed": [
+        "tilhoerer": [
           {
-            "urn": "urn:dk:kommune:urn:dk:kommune:751",
+            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
             "virkning": {
-              "from": "1976-01-01T00:00:00+01:00",
+              "from": "2010-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
             }
           }
         ],
-        "myndighedstype": [
+        "tilknyttedeorganisationer": [
           {
-            "urn": "urn:oio:objekttype:c0fa2bbf-ce54-4fc6-85cc-d0f2e7d15840",
+            "uuid": null,
             "virkning": {
-              "from": "1976-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "virksomhed": [
-          {
-            "urn": "urn:dk:cvr:urn:dk:cvr:virksomhed:55133018",
-            "virkning": {
-              "from": "1976-01-01T00:00:00+01:00",
+              "from": "2010-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7235,11 +5983,11 @@
         ]
       },
       "tilstande": {
-        "organisationgyldighed": [
+        "itsystemgyldighed": [
           {
             "gyldighed": "Aktiv",
             "virkning": {
-              "from": "1976-01-01T00:00:00+01:00",
+              "from": "2010-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7251,13 +5999,910 @@
   ],
   [
     "PUT",
-    "/organisation/organisation/8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+    "/klassifikation/klassifikation/7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
     {
       "attributter": {
-        "organisationegenskaber": [
+        "klassifikationegenskaber": [
           {
-            "brugervendtnoegle": "Magenta ApS",
-            "organisationsnavn": "Magenta ApS",
+            "beskrivelse": "OIO standard",
+            "brugervendtnoegle": "Organisation",
+            "kaldenavn": null,
+            "ophavsret": null,
+            "virkning": {
+              "from": "2016-02-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-02-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-02-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "klassifikationpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-02-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/klassifikation/b92d5668-7085-4cdb-a64a-82953b1b1ac6",
+    {
+      "attributter": {
+        "klassifikationegenskaber": [
+          {
+            "beskrivelse": "Aarhus kommunes typer",
+            "brugervendtnoegle": "Organisation Aarhus",
+            "kaldenavn": null,
+            "ophavsret": null,
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "klassifikationpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/facet/3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
+    {
+      "attributter": {
+        "facetegenskaber": [
+          {
+            "beskrivelse": null,
+            "brugervendtnoegle": "Funktionstype",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47499",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "facettilhoerer": [
+          {
+            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "facetpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/facet/54d42619-785e-4d18-9704-71a2cf72942d",
+    {
+      "attributter": {
+        "facetegenskaber": [
+          {
+            "beskrivelse": null,
+            "brugervendtnoegle": "Myndighedstype",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47496",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "facettilhoerer": [
+          {
+            "uuid": "14fe483d-b067-42f1-8061-43d5ba57af40",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "facetpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/facet/56db5e34-a725-4644-8310-a7af11e8df20",
+    {
+      "attributter": {
+        "facetegenskaber": [
+          {
+            "beskrivelse": null,
+            "brugervendtnoegle": "Brugertype",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47502",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "facettilhoerer": [
+          {
+            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "facetpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/facet/ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
+    {
+      "attributter": {
+        "facetegenskaber": [
+          {
+            "beskrivelse": null,
+            "brugervendtnoegle": "Enhedstype",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47498",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "facettilhoerer": [
+          {
+            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "facetpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/facet/eceaa732-ef8b-4c33-9048-16f27d07e7ed",
+    {
+      "attributter": {
+        "facetegenskaber": [
+          {
+            "beskrivelse": null,
+            "brugervendtnoegle": "Rolletype",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47506",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "facettilhoerer": [
+          {
+            "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "facetpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/klassifikation/facet/7469cc0f-d42f-4d94-b6ee-de005c321bb7",
+    {
+      "attributter": {
+        "facetegenskaber": [
+          {
+            "beskrivelse": null,
+            "brugervendtnoegle": "Stillingsbetegnelse",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "ansvarlig": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "ejer": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "facettilhoerer": [
+          {
+            "uuid": "b92d5668-7085-4cdb-a64a-82953b1b1ac6",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "facetpubliceret": [
+          {
+            "publiceret": "Publiceret",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/organisationenhed/746eeba3-30a9-4c0a-8d22-c6f34af1095f",
+    {
+      "attributter": {
+        "organisationenhedegenskaber": [
+          {
+            "brugervendtnoegle": "\u00c5RHUS",
+            "enhedsnavn": "Aarhus Kommune",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "adresser": [
+          {
+            "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "enhedstype": [
+          {
+            "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "overordnet": [
+          {
+            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedeenheder": [
+          {
+            "urn": "urn:kmd.dk:administrativenhedsid:325",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "organisationenhedgyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/organisationenhed/FF2F8CAE-0CED-467D-B934-D61939D06BC6",
+    {
+      "attributter": {
+        "organisationenhedegenskaber": [
+          {
+            "brugervendtnoegle": "AARHUS-ENHED",
+            "enhedsnavn": "Aarhus Enhed",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "adresser": [
+          {
+            "uuid": "a79762e7-52bf-4199-a026-4ab42e1138a7",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "enhedstype": [
+          {
+            "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "overordnet": [
+          {
+            "uuid": "746eeba3-30a9-4c0a-8d22-c6f34af1095f",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "59141156-ed0b-457c-9535-884447c5220b",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedeenheder": [
+          {
+            "urn": null,
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "organisationenhedgyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/organisationenhed/01e479c4-66ef-42aa-877e-15f0512f792c",
+    {
+      "attributter": {
+        "organisationenhedegenskaber": [
+          {
+            "brugervendtnoegle": "MAGENTA",
+            "enhedsnavn": "Magenta ApS",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": "https://datacvr.virk.dk/data/visenhed?enhedstype=virksomhed&id=25052943",
+      "relationer": {
+        "adresser": [],
+        "enhedstype": [
+          {
+            "uuid": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "overordnet": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedeenheder": [
+          {
+            "urn": null,
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "organisationenhedgyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/organisationenhed/8a32549b-458e-4ff3-814d-9155963c519a",
+    {
+      "attributter": {
+        "organisationenhedegenskaber": [
+          {
+            "brugervendtnoegle": "MAGENTA-AAR",
+            "enhedsnavn": "Aarhuskontoret",
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "adresser": [
+          {
+            "urn": 33369696,
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          },
+          {
+            "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "enhedstype": [
+          {
+            "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8",
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "overordnet": [
+          {
+            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedeenheder": [
+          {
+            "urn": null,
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "organisationenhedgyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "2014-08-07T00:00:00+02:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/organisationenhed/514e8a8e-2d3f-4789-9237-0492688d5024",
+    {
+      "attributter": {
+        "organisationenhedegenskaber": [
+          {
+            "brugervendtnoegle": "MAGENTA-HQ",
+            "enhedsnavn": "Hovedkvarteret",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -7269,9 +6914,18 @@
       },
       "note": null,
       "relationer": {
-        "myndighed": [
+        "adresser": [
           {
-            "urn": "urn:dk:kommune:None",
+            "urn": 33369696,
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          },
+          {
+            "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -7280,9 +6934,9 @@
             }
           }
         ],
-        "myndighedstype": [
+        "enhedstype": [
           {
-            "urn": "urn:oio:objekttype:None",
+            "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -7291,9 +6945,31 @@
             }
           }
         ],
-        "virksomhed": [
+        "overordnet": [
           {
-            "urn": "urn:dk:cvr:urn:dk:cvr:virksomhed:25052943",
+            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedeenheder": [
+          {
+            "urn": null,
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -7304,11 +6980,335 @@
         ]
       },
       "tilstande": {
-        "organisationgyldighed": [
+        "organisationenhedgyldighed": [
           {
             "gyldighed": "Aktiv",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/organisationenhed/3cd8be77-043c-4044-a9c1-8e4261fd7da6",
+    {
+      "attributter": {
+        "organisationenhedegenskaber": [
+          {
+            "brugervendtnoegle": "MAGENTA-AAR",
+            "enhedsnavn": "Aarhuskontoret",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "2014-08-07T00:00:00+00:00",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": "Ikke eksisterende",
+      "relationer": {
+        "adresser": [],
+        "enhedstype": [
+          {
+            "uuid": "254c6782-9fef-478a-89b3-c043ca7cb0e9",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "2014-08-07T00:00:00+00:00",
+              "to_included": false
+            }
+          }
+        ],
+        "overordnet": [
+          {
+            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "2014-08-07T00:00:00+00:00",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "2014-08-07T00:00:00+00:00",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedeenheder": [
+          {
+            "urn": null,
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "2014-08-07T00:00:00+00:00",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "organisationenhedgyldighed": [
+          {
+            "gyldighed": "Inaktiv",
+            "virkning": {
+              "from": "1999-11-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "2014-08-07T00:00:00+00:00",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/bruger/cd2dcfad-6d34-4553-9fee-a7023139a9e8",
+    {
+      "attributter": {
+        "brugeregenskaber": [
+          {
+            "brugernavn": "Joe User",
+            "brugertype": "idp",
+            "brugervendtnoegle": "user",
+            "virkning": {
+              "from": "2016-02-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "adresser": [
+          {
+            "urn": "urn:mailto:user@example.com",
+            "virkning": {
+              "from": "2016-02-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "brugertyper": [
+          {
+            "urn": "urn:email",
+            "virkning": {
+              "from": "2016-02-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "2016-02-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedepersoner": [
+          {
+            "urn": "urn:dk:cpr:person:10119001010",
+            "virkning": {
+              "from": "2016-02-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "brugergyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "2016-02-15T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/bruger/9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
+    {
+      "attributter": {
+        "brugeregenskaber": [
+          {
+            "brugernavn": "Hans Bruger",
+            "brugertype": "idp",
+            "brugervendtnoegle": "bruger",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "adresser": [
+          {
+            "urn": "urn:mailto:bruger@example.com",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "brugertyper": [
+          {
+            "urn": "urn:email",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedepersoner": [
+          {
+            "urn": "urn:dk:cpr:person:101120101010",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "brugergyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "PUT",
+    "/organisation/bruger/F715A2C9-A425-4CC9-B69B-7D89AAEDECE4",
+    {
+      "attributter": {
+        "brugeregenskaber": [
+          {
+            "brugernavn": "MAAAAAM",
+            "brugertype": "idp",
+            "brugervendtnoegle": "mam",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "note": null,
+      "relationer": {
+        "adresser": [
+          {
+            "urn": "urn:mailto:mam@example.com",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "brugertyper": [
+          {
+            "uuid": null,
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilhoerer": [
+          {
+            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ],
+        "tilknyttedepersoner": [
+          {
+            "urn": "urn:dk:cpr:person:140219840002",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
+              "from_included": true,
+              "to": "infinity",
+              "to_included": false
+            }
+          }
+        ]
+      },
+      "tilstande": {
+        "brugergyldighed": [
+          {
+            "gyldighed": "Aktiv",
+            "virkning": {
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false

@@ -122,6 +122,1799 @@
       }
     ]
   },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=R%C3%A5dhuspladsen%2C+8000+Aarhus+C": {
+    "kategori": "C",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "husnr": "1",
+          "id": "a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "husnr": "1",
+          "id": "a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 1,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 1,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/583cf9db-8b4d-453d-bfde-eb61828eb0aa",
+          "husnr": "3",
+          "id": "583cf9db-8b4d-453d-bfde-eb61828eb0aa",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/583cf9db-8b4d-453d-bfde-eb61828eb0aa",
+          "husnr": "3",
+          "id": "583cf9db-8b4d-453d-bfde-eb61828eb0aa",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 1,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 1,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "husnr": "2",
+          "id": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "husnr": "2",
+          "id": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 1,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 1,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/572872e9-5dc9-499a-a17b-325f3427ae24",
+          "husnr": "3B",
+          "id": "572872e9-5dc9-499a-a17b-325f3427ae24",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/572872e9-5dc9-499a-a17b-325f3427ae24",
+          "husnr": "3B",
+          "id": "572872e9-5dc9-499a-a17b-325f3427ae24",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 2,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 2,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "3B",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "th",
+          "etage": "4",
+          "husnr": "3",
+          "id": "0a3f50c4-05ae-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "th",
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05ae-32b8-e044-0003ba298018",
+          "husnr": "3",
+          "id": "0a3f50c4-05ae-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 10,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "d\u00f8r": 4,
+            "etage": 1,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "d\u00f8r": "8000",
+            "etage": "",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": "th",
+            "etage": "4",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "2",
+          "etage": "kl",
+          "husnr": "3",
+          "id": "0a3f50c4-05a8-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "2",
+          "etage": "kl",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05a8-32b8-e044-0003ba298018",
+          "husnr": "3",
+          "id": "0a3f50c4-05a8-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 11,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "d\u00f8r": 4,
+            "etage": 2,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "d\u00f8r": "8000",
+            "etage": "",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": "2",
+            "etage": "kl",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "1",
+          "etage": "kl",
+          "husnr": "3",
+          "id": "0a3f50c4-05a7-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "1",
+          "etage": "kl",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05a7-32b8-e044-0003ba298018",
+          "husnr": "3",
+          "id": "0a3f50c4-05a7-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 11,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "d\u00f8r": 4,
+            "etage": 2,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "d\u00f8r": "8000",
+            "etage": "",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": "1",
+            "etage": "kl",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "3",
+          "etage": "kl",
+          "husnr": "3",
+          "id": "0a3f50c4-05a9-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": "3",
+          "etage": "kl",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05a9-32b8-e044-0003ba298018",
+          "husnr": "3",
+          "id": "0a3f50c4-05a9-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 11,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "d\u00f8r": 4,
+            "etage": 2,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "d\u00f8r": "8000",
+            "etage": "",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": "3",
+            "etage": "kl",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/1148a560-21dc-41ed-87d1-94d1b766f48d",
+          "husnr": "2",
+          "id": "1148a560-21dc-41ed-87d1-94d1b766f48d",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/1148a560-21dc-41ed-87d1-94d1b766f48d",
+          "husnr": "2",
+          "id": "1148a560-21dc-41ed-87d1-94d1b766f48d",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "2",
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/5c47f68b-c016-414a-b652-7b37aa88be90",
+          "husnr": "2",
+          "id": "5c47f68b-c016-414a-b652-7b37aa88be90",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/5c47f68b-c016-414a-b652-7b37aa88be90",
+          "husnr": "2",
+          "id": "5c47f68b-c016-414a-b652-7b37aa88be90",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "3",
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/ae95777c-7ec1-4039-8025-e2ecce5099fb",
+          "husnr": "2",
+          "id": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/ae95777c-7ec1-4039-8025-e2ecce5099fb",
+          "husnr": "2",
+          "id": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "4",
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/f7c326d1-9d91-4a5d-994d-25a28370900a",
+          "husnr": "1",
+          "id": "f7c326d1-9d91-4a5d-994d-25a28370900a",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/f7c326d1-9d91-4a5d-994d-25a28370900a",
+          "husnr": "1",
+          "id": "f7c326d1-9d91-4a5d-994d-25a28370900a",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "3",
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "husnr": "3",
+          "id": "0a3f50c4-05ac-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05ac-32b8-e044-0003ba298018",
+          "husnr": "3",
+          "id": "0a3f50c4-05ac-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "1",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/79eb78cb-645e-4e50-96bb-9e2426accef8",
+          "husnr": "3",
+          "id": "79eb78cb-645e-4e50-96bb-9e2426accef8",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/79eb78cb-645e-4e50-96bb-9e2426accef8",
+          "husnr": "3",
+          "id": "79eb78cb-645e-4e50-96bb-9e2426accef8",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "2",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "husnr": "3",
+          "id": "0a3f50c4-05ad-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c920-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05ad-32b8-e044-0003ba298018",
+          "husnr": "3",
+          "id": "0a3f50c4-05ad-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "3",
+            "husnr": "3",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/2b297357-a1cc-4ee6-ae62-06d5c5760d5b",
+          "husnr": "1",
+          "id": "2b297357-a1cc-4ee6-ae62-06d5c5760d5b",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/2b297357-a1cc-4ee6-ae62-06d5c5760d5b",
+          "husnr": "1",
+          "id": "2b297357-a1cc-4ee6-ae62-06d5c5760d5b",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "1",
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "kl",
+          "husnr": "1",
+          "id": "0a3f50c4-05a2-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "kl",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05a2-32b8-e044-0003ba298018",
+          "husnr": "1",
+          "id": "0a3f50c4-05a2-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "kl",
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/76e730cd-30b1-46f3-935c-450b5bf384ff",
+          "husnr": "1",
+          "id": "76e730cd-30b1-46f3-935c-450b5bf384ff",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/76e730cd-30b1-46f3-935c-450b5bf384ff",
+          "husnr": "1",
+          "id": "76e730cd-30b1-46f3-935c-450b5bf384ff",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "4",
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/657924e3-35fd-4323-8164-b2fb7e947530",
+          "husnr": "2",
+          "id": "657924e3-35fd-4323-8164-b2fb7e947530",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/657924e3-35fd-4323-8164-b2fb7e947530",
+          "husnr": "2",
+          "id": "657924e3-35fd-4323-8164-b2fb7e947530",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "1",
+            "husnr": "2",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "husnr": "1",
+          "id": "0a3f50c4-05a4-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05a4-32b8-e044-0003ba298018",
+          "husnr": "1",
+          "id": "0a3f50c4-05a4-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "2",
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "5",
+          "husnr": "5",
+          "id": "0a3f50c4-05b6-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "5",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05b6-32b8-e044-0003ba298018",
+          "husnr": "5",
+          "id": "0a3f50c4-05b6-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "5",
+            "husnr": "5",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/615bae06-3eb2-47da-8b06-164c72eac669",
+          "husnr": "5",
+          "id": "615bae06-3eb2-47da-8b06-164c72eac669",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/615bae06-3eb2-47da-8b06-164c72eac669",
+          "husnr": "5",
+          "id": "615bae06-3eb2-47da-8b06-164c72eac669",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "4",
+            "husnr": "5",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/e4e8df8c-aece-4e07-be0c-f59f5ca4cc8c",
+          "husnr": "5",
+          "id": "e4e8df8c-aece-4e07-be0c-f59f5ca4cc8c",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/e4e8df8c-aece-4e07-be0c-f59f5ca4cc8c",
+          "husnr": "5",
+          "id": "e4e8df8c-aece-4e07-be0c-f59f5ca4cc8c",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "3",
+            "husnr": "5",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "husnr": "5",
+          "id": "0a3f50c4-05b5-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05b5-32b8-e044-0003ba298018",
+          "husnr": "5",
+          "id": "0a3f50c4-05b5-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "2",
+            "husnr": "5",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "husnr": "5",
+          "id": "0a3f50c4-05b4-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05b4-32b8-e044-0003ba298018",
+          "husnr": "5",
+          "id": "0a3f50c4-05b4-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "1",
+            "husnr": "5",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "kl",
+          "husnr": "5",
+          "id": "0a3f50c4-05b2-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c922-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "kl",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05b2-32b8-e044-0003ba298018",
+          "husnr": "5",
+          "id": "0a3f50c4-05b2-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 9,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 1,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "kl",
+            "husnr": "5",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/934dabf8-4643-4a33-852f-0619117c5c65",
+          "husnr": "3B",
+          "id": "934dabf8-4643-4a33-852f-0619117c5c65",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "4",
+          "href": "http://dawa.aws.dk/adresser/934dabf8-4643-4a33-852f-0619117c5c65",
+          "husnr": "3B",
+          "id": "934dabf8-4643-4a33-852f-0619117c5c65",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 10,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 2,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "4",
+            "husnr": "3B",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/178d2043-f373-4109-b1d2-2949fd8734e9",
+          "husnr": "3B",
+          "id": "178d2043-f373-4109-b1d2-2949fd8734e9",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "3",
+          "href": "http://dawa.aws.dk/adresser/178d2043-f373-4109-b1d2-2949fd8734e9",
+          "husnr": "3B",
+          "id": "178d2043-f373-4109-b1d2-2949fd8734e9",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 10,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 2,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "3",
+            "husnr": "3B",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/f478907d-5239-46fc-a99e-d43ab23b616c",
+          "husnr": "3B",
+          "id": "f478907d-5239-46fc-a99e-d43ab23b616c",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "2",
+          "href": "http://dawa.aws.dk/adresser/f478907d-5239-46fc-a99e-d43ab23b616c",
+          "husnr": "3B",
+          "id": "f478907d-5239-46fc-a99e-d43ab23b616c",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 10,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 2,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "2",
+            "husnr": "3B",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      },
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "husnr": "3B",
+          "id": "0a3f50c4-05a6-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c921-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": "1",
+          "href": "http://dawa.aws.dk/adresser/0a3f50c4-05a6-32b8-e044-0003ba298018",
+          "husnr": "3B",
+          "id": "0a3f50c4-05a6-32b8-e044-0003ba298018",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 10,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "etage": 4,
+            "husnr": 2,
+            "postnr": 4,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "etage": "8000",
+            "husnr": "",
+            "postnr": "",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": "1",
+            "husnr": "3B",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      }
+    ]
+  },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=R%C3%A5dhuspladsen+1%2C+8000+Aarhus+C": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "husnr": "1",
+          "id": "a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f5096-c91e-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "R\u00e5dhuspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "husnr": "1",
+          "id": "a79762e7-52bf-4199-a026-4ab42e1138a7",
+          "postnr": "8000",
+          "postnrnavn": "Aarhus C",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "R\u00e5dhuspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "vejnavn": "R\u00e5dhuspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "1",
+            "postnr": "8000",
+            "postnrnavn": "Aarhus C",
+            "supplerendebynavn": null,
+            "vejnavn": "R\u00e5dhuspladsen"
+          }
+        }
+      }
+    ]
+  },
   "http://dawa.aws.dk/datavask/adresser?betegnelse=R%C3%A5dhuspladsen+2%2C+8000+Aarhus+C": {
     "kategori": "A",
     "resultater": [

@@ -36,7 +36,7 @@
       "adresse": null,
       "brugernavn": "MAAAAAM",
       "brugertype": "idp",
-      "brugertyper": "email",
+      "brugertyper": null,
       "brugervendtnoegle": "mam",
       "email": "mam@example.com",
       "fra": "2016-02-14 00:00:00+01",
@@ -2182,7 +2182,7 @@
       "tilknyttedeenheder": "urn:kmd.dk:administrativenhedsid:325"
     },
     {
-      "adresse": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+      "adresse": "a79762e7-52bf-4199-a026-4ab42e1138a7",
       "brugervendtnoegle": "AARHUS-ENHED",
       "enhedsnavn": "Aarhus Enhed",
       "enhedstype": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
