@@ -135,7 +135,7 @@ def list_employees():
 @util.restrictargs()
 def get_employee_by_cpr(cpr_number):
     ids = reading.list_employees(
-        tilknyttedepersoner='urn:{:010d}'.format(cpr_number),
+        tilknyttedepersoner='urn:dk:cpr:person:{:010d}'.format(cpr_number),
     )
 
     if not ids:

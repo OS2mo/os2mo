@@ -490,9 +490,13 @@ def get_employees(uuids, **loraparams):
         rels = user['relationer']
         props = user['attributter']['brugeregenskaber'][0]
 
+        cpr = rels['tilknyttedepersoner'][0].get('urn')
+        if cpr and cpr.startswith('urn:dk:cpr:person:'):
+            cpr = int(cpr[18:])
+
         return {
             "uuid": userid,
-            "user-key": rels['tilknyttedepersoner'][0]['urn'][4:],
+            "user-key": cpr,
             "name": props["brugernavn"],
             "nick-name": props["brugervendtnoegle"],
         }
