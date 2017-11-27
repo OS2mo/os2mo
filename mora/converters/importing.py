@@ -12,7 +12,6 @@ import functools
 import itertools
 import json
 import os
-import random
 import re
 import sys
 import uuid
@@ -53,9 +52,9 @@ def _wash_address(addrstring, postalcode, postaldistrict):
 
     def wash(k):
         r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
-                         params={
-                             'betegnelse': k,
-                         })
+                             params={
+                                 'betegnelse': k,
+                             })
         r.raise_for_status()
 
         addrinfo = r.json()
@@ -195,8 +194,9 @@ def load_data(sheets, exact=False):
                 hired = util.parsedatetime(obj['fra'])
 
                 obj['tilknyttedepersoner'] = int('{:%d%m%Y}{:04d}'.format(
-                    # randomly assume that everyone was hired on their 32nd birthday
-                    # (note: 32 is divible by four, which is a rather useful)
+                    # randomly assume that everyone was hired on their
+                    # 32nd birthday (note: 32 is divible by four,
+                    # which is a rather useful)
                     hired.replace(year=hired.year - 32),
                     i % 10000,
                 ))

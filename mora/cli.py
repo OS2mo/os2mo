@@ -289,7 +289,8 @@ def load_cli(app):
 
         import grequests
 
-        sheetlines = importing.convert(spreadsheets, include=include, exact=exact)
+        sheetlines = importing.convert(spreadsheets,
+                                       include=include, exact=exact)
 
         if not destination_url:
             for method, path, obj in sheetlines:
