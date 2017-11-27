@@ -247,6 +247,7 @@ def load_cli(app):
 
             for obj in lora.fetch(path) or [None]:
                 if isinstance(obj, str):
+                    print(obj)
                     obj = lora.get(path.split('?')[0], obj)
 
                 json.dump(obj, sys.stdout, indent=4)
