@@ -350,7 +350,6 @@ def convert_klasse(obj):
 
 
 def convert_klassifikation(obj):
-    print(obj)
     objectid = obj['objektid']
 
     return 'PUT', '/klassifikation/klassifikation/' + objectid, {
