@@ -150,7 +150,6 @@ def load_data(sheets, exact=False):
         'tilknyttedepersoner': 'urn:dk:cpr:person:{:010d}',
         'myndighed': 'urn:dk:kommune:{:d}',
         'virksomhed': 'urn:dk:cvr:virksomhed:{:d}',
-
         'telefon': 'urn:magenta.dk:telefon:+45{:08d}',
     }
 
@@ -249,21 +248,21 @@ def load_data(sheets, exact=False):
             obj['adresse_type'] = None
 
         for k, v in obj.items():
-                if k not in lora.ALL_RELATION_NAMES:
-                    continue
-
                 val = obj[k]
 
                 if not val or util.is_uuid(val) or str(val).startswith('urn:'):
                     continue
 
-                elif val in uuid_mapping:
-                    obj[k] = uuid_mapping[val]
-
                 elif k in type_formats:
                     obj[k] = type_formats[k].format(
                         val if val is not None else i,
                     )
+
+                elif k not in lora.ALL_RELATION_NAMES:
+                    continue
+
+                elif val in uuid_mapping:
+                    obj[k] = uuid_mapping[val]
 
                 elif k in allow_invalid_types:
                     pass

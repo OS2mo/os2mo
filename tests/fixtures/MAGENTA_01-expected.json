@@ -7131,7 +7131,7 @@
         "adresser": [
           {
             "objekttype": "Adresse",
-            "urn": 33369696,
+            "urn": "urn:magenta.dk:telefon:+4533369696",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -7325,7 +7325,7 @@
         "adresser": [
           {
             "objekttype": "Adresse",
-            "urn": 33369696,
+            "urn": "urn:magenta.dk:telefon:+4533369696",
             "virkning": {
               "from": "2014-08-07T00:00:00+02:00",
               "from_included": true,

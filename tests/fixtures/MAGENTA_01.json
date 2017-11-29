@@ -2302,7 +2302,7 @@
       "objektid": "8a32549b-458e-4ff3-814d-9155963c519a",
       "operation": null,
       "overordnet": "01e479c4-66ef-42aa-877e-15f0512f792c",
-      "telefon": 33369696,
+      "telefon": "urn:magenta.dk:telefon:+4533369696",
       "til": null,
       "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
       "tilknyttedeenheder": null
@@ -2319,7 +2319,7 @@
       "objektid": "514e8a8e-2d3f-4789-9237-0492688d5024",
       "operation": null,
       "overordnet": "01e479c4-66ef-42aa-877e-15f0512f792c",
-      "telefon": 33369696,
+      "telefon": "urn:magenta.dk:telefon:+4533369696",
       "til": null,
       "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
       "tilknyttedeenheder": null
