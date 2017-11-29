@@ -21,6 +21,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -32,6 +33,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47499",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -43,6 +45,7 @@
         ],
         "facettilhoerer": [
           {
+            "objekttype": "klassifikation",
             "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -90,6 +93,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -101,6 +105,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47496",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -112,6 +117,7 @@
         ],
         "facettilhoerer": [
           {
+            "objekttype": "klassifikation",
             "uuid": "14fe483d-b067-42f1-8061-43d5ba57af40",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -159,6 +165,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -170,6 +177,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47502",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -181,6 +189,7 @@
         ],
         "facettilhoerer": [
           {
+            "objekttype": "klassifikation",
             "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -228,6 +237,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -239,6 +249,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -250,6 +261,7 @@
         ],
         "facettilhoerer": [
           {
+            "objekttype": "klassifikation",
             "uuid": "b92d5668-7085-4cdb-a64a-82953b1b1ac6",
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -297,6 +309,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -308,6 +321,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47498",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -319,6 +333,7 @@
         ],
         "facettilhoerer": [
           {
+            "objekttype": "klassifikation",
             "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -366,6 +381,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -377,6 +393,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47506",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -388,6 +405,7 @@
         ],
         "facettilhoerer": [
           {
+            "objekttype": "klassifikation",
             "uuid": "7cd9277c-fcb5-49ce-9a50-37f1f35b6a84",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -438,6 +456,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -449,6 +468,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -460,6 +480,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -471,6 +492,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -482,6 +504,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -532,6 +555,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -543,6 +567,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -554,6 +579,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -565,6 +591,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -576,6 +603,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "f512ca86-242e-4701-94cf-b903d6e53131",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -626,6 +654,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": null,
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -637,6 +666,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -648,6 +678,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -659,6 +690,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -670,6 +702,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "db9b9c18-b631-4541-acc4-08e32d84f516",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -720,6 +753,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -731,6 +765,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -742,6 +777,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -753,6 +789,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -764,6 +801,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -814,6 +852,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -825,6 +864,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -836,6 +876,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -847,6 +888,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -858,6 +900,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -908,6 +951,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-02T00:00:00+01:00",
@@ -919,6 +963,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-02T00:00:00+01:00",
@@ -930,6 +975,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-02T00:00:00+01:00",
@@ -941,6 +987,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-02T00:00:00+01:00",
@@ -952,6 +999,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-02T00:00:00+01:00",
@@ -1002,6 +1050,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1013,6 +1062,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1024,6 +1074,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1035,6 +1086,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1046,6 +1098,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1096,6 +1149,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1107,6 +1161,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1118,6 +1173,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1129,6 +1185,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1140,6 +1197,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1190,6 +1248,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1201,6 +1260,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1212,6 +1272,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "54d42619-785e-4d18-9704-71a2cf72942d",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1223,6 +1284,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1234,6 +1296,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1284,6 +1347,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1295,6 +1359,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1306,6 +1371,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1317,6 +1383,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1328,6 +1395,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1378,6 +1446,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1389,6 +1458,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1400,6 +1470,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1411,6 +1482,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1422,6 +1494,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1472,6 +1545,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1483,6 +1557,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1494,6 +1569,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1505,6 +1581,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1516,6 +1593,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "1e2ba4c3-dba3-498b-8e48-488fc71b4edf",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1566,6 +1644,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1577,6 +1656,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1588,6 +1668,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "56db5e34-a725-4644-8310-a7af11e8df20",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1599,6 +1680,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1610,6 +1692,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1660,6 +1743,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1671,6 +1755,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1682,6 +1767,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "54d42619-785e-4d18-9704-71a2cf72942d",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1693,6 +1779,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1704,6 +1791,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1754,6 +1842,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1765,6 +1854,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1776,6 +1866,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1787,6 +1878,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1798,6 +1890,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1848,6 +1941,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1859,6 +1953,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1870,6 +1965,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1881,6 +1977,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1892,6 +1989,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1942,6 +2040,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1953,6 +2052,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1964,6 +2064,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "56db5e34-a725-4644-8310-a7af11e8df20",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1975,6 +2076,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -1986,6 +2088,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2036,6 +2139,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2047,6 +2151,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2058,6 +2163,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2069,6 +2175,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2080,6 +2187,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2130,6 +2238,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2141,6 +2250,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2152,6 +2262,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2163,6 +2274,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2174,6 +2286,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2224,6 +2337,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2235,6 +2349,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2246,6 +2361,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2257,6 +2373,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2268,6 +2385,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2318,6 +2436,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2329,6 +2448,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2340,6 +2460,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "56db5e34-a725-4644-8310-a7af11e8df20",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2351,6 +2472,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2362,6 +2484,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2412,6 +2535,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2423,6 +2547,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2434,6 +2559,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2445,6 +2571,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2456,6 +2583,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "e2bb65aa-0258-4e8e-b3cc-3c6cf81bc53b",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2506,6 +2634,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -2517,6 +2646,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -2528,6 +2658,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "7469cc0f-d42f-4d94-b6ee-de005c321bb7",
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -2539,6 +2670,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -2550,6 +2682,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -2600,6 +2733,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2611,6 +2745,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2622,6 +2757,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "5f5c9fd3-1118-4093-84c9-17cb930dfe96",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2633,6 +2769,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2644,6 +2781,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2694,6 +2832,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2705,6 +2844,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2716,6 +2856,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2727,6 +2868,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2738,6 +2880,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2788,6 +2931,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2799,6 +2943,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2810,6 +2955,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2821,6 +2967,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2832,6 +2979,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "e2bb65aa-0258-4e8e-b3cc-3c6cf81bc53b",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2882,6 +3030,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2893,6 +3042,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2904,6 +3054,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2915,6 +3066,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2926,6 +3078,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "e2bb65aa-0258-4e8e-b3cc-3c6cf81bc53b",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2976,6 +3129,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2987,6 +3141,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -2998,6 +3153,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3009,6 +3165,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3020,6 +3177,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3070,6 +3228,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3081,6 +3240,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3092,6 +3252,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3103,6 +3264,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3114,6 +3276,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3164,6 +3327,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3175,6 +3339,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3186,6 +3351,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3197,6 +3363,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3208,6 +3375,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3258,6 +3426,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3269,6 +3438,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3280,6 +3450,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3291,6 +3462,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3302,6 +3474,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3352,6 +3525,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3363,6 +3537,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3374,6 +3549,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3385,6 +3561,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3396,6 +3573,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "f512ca86-242e-4701-94cf-b903d6e53131",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3446,6 +3624,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3457,6 +3636,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3468,6 +3648,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3479,6 +3660,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3490,6 +3672,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3540,6 +3723,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3551,6 +3735,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3562,6 +3747,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "56db5e34-a725-4644-8310-a7af11e8df20",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3573,6 +3759,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3584,6 +3771,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3634,6 +3822,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -3645,6 +3834,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -3656,6 +3846,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "7469cc0f-d42f-4d94-b6ee-de005c321bb7",
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -3667,6 +3858,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -3678,6 +3870,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -3728,6 +3921,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3739,6 +3933,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3750,6 +3945,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3761,6 +3957,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3772,6 +3969,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3822,6 +4020,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3833,6 +4032,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3844,6 +4044,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3855,6 +4056,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3866,6 +4068,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3916,6 +4119,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3927,6 +4131,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3938,6 +4143,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3949,6 +4155,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -3960,6 +4167,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "e2bb65aa-0258-4e8e-b3cc-3c6cf81bc53b",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4010,6 +4218,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4021,6 +4230,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4032,6 +4242,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4043,6 +4254,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4054,6 +4266,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4104,6 +4317,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4115,6 +4329,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4126,6 +4341,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4137,6 +4353,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4148,6 +4365,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4198,6 +4416,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4209,6 +4428,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4220,6 +4440,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4231,6 +4452,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4242,6 +4464,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4292,6 +4515,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4303,6 +4527,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4314,6 +4539,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4325,6 +4551,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4336,6 +4563,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4386,6 +4614,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4397,6 +4626,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4408,6 +4638,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4419,6 +4650,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4430,6 +4662,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4480,6 +4713,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4491,6 +4725,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4502,6 +4737,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "54d42619-785e-4d18-9704-71a2cf72942d",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4513,6 +4749,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4524,6 +4761,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4574,6 +4812,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4585,6 +4824,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4596,6 +4836,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4607,6 +4848,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4618,6 +4860,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4668,6 +4911,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4679,6 +4923,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4690,6 +4935,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4701,6 +4947,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4712,6 +4959,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4762,6 +5010,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4773,6 +5022,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4784,6 +5034,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4795,6 +5046,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4806,6 +5058,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4856,6 +5109,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4867,6 +5121,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4878,6 +5133,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4889,6 +5145,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4900,6 +5157,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4950,6 +5208,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4961,6 +5220,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4972,6 +5232,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4983,6 +5244,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -4994,6 +5256,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5044,6 +5307,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5055,6 +5319,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5066,6 +5331,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5077,6 +5343,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5088,6 +5355,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5138,6 +5406,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5149,6 +5418,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5160,6 +5430,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5171,6 +5442,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5182,6 +5454,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "f512ca86-242e-4701-94cf-b903d6e53131",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5232,6 +5505,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5243,6 +5517,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5254,6 +5529,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5265,6 +5541,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5276,6 +5553,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5326,6 +5604,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5337,6 +5616,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5348,6 +5628,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5359,6 +5640,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5370,6 +5652,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5420,6 +5703,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5431,6 +5715,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5442,6 +5727,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5453,6 +5739,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5464,6 +5751,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "69603653-486f-44e0-9168-3cfe23ed8d26",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5514,6 +5802,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5525,6 +5814,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5536,6 +5826,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "56db5e34-a725-4644-8310-a7af11e8df20",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5547,6 +5838,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5558,6 +5850,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5608,6 +5901,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5619,6 +5913,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5630,6 +5925,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5641,6 +5937,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5652,6 +5949,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5702,6 +6000,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-03T00:00:00+01:00",
@@ -5713,6 +6012,7 @@
         ],
         "ejer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-03T00:00:00+01:00",
@@ -5724,6 +6024,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-03T00:00:00+01:00",
@@ -5735,6 +6036,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-03T00:00:00+01:00",
@@ -5746,6 +6048,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "eceaa732-ef8b-4c33-9048-16f27d07e7ed",
             "virkning": {
               "from": "2016-01-03T00:00:00+01:00",
@@ -5796,6 +6099,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5807,6 +6111,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5818,6 +6123,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "ab91a2bb-b96c-474c-81e7-b3945b5a9f43",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5829,6 +6135,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5840,6 +6147,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5890,6 +6198,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5901,6 +6210,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5912,6 +6222,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "3e7396a8-aaea-417a-92b4-5b8ca0d241ad",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5923,6 +6234,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5934,6 +6246,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": "bd8cb10c-7522-4db9-8bfc-c62c75df4396",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5984,6 +6297,7 @@
       "relationer": {
         "ansvarlig": [
           {
+            "objekttype": "bruger",
             "uuid": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -5995,6 +6309,7 @@
         ],
         "ejer": [
           {
+            "objekttype": "organisation",
             "uuid": "79fcecd6-ec6c-4aea-b974-a84060b47486",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -6006,6 +6321,7 @@
         ],
         "facet": [
           {
+            "objekttype": "facet",
             "uuid": "56db5e34-a725-4644-8310-a7af11e8df20",
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -6017,6 +6333,7 @@
         ],
         "mapninger": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -6028,6 +6345,7 @@
         ],
         "overordnetklasse": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-01-01T00:00:00+01:00",
@@ -6196,6 +6514,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": null,
             "urn": "urn:mailto:bruger@example.com",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6207,6 +6526,7 @@
         ],
         "brugertyper": [
           {
+            "objekttype": null,
             "urn": "urn:email",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6218,6 +6538,7 @@
         ],
         "tilhoerer": [
           {
+            "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6229,6 +6550,7 @@
         ],
         "tilknyttedepersoner": [
           {
+            "objekttype": null,
             "urn": "urn:dk:cpr:person:101120101010",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6277,6 +6599,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": null,
             "urn": "urn:mailto:mam@example.com",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6288,6 +6611,7 @@
         ],
         "brugertyper": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6299,6 +6623,7 @@
         ],
         "tilhoerer": [
           {
+            "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6310,6 +6635,7 @@
         ],
         "tilknyttedepersoner": [
           {
+            "objekttype": null,
             "urn": "urn:dk:cpr:person:140219840002",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
@@ -6358,6 +6684,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": null,
             "urn": "urn:mailto:user@example.com",
             "virkning": {
               "from": "2016-02-15T00:00:00+01:00",
@@ -6369,6 +6696,7 @@
         ],
         "brugertyper": [
           {
+            "objekttype": null,
             "urn": "urn:email",
             "virkning": {
               "from": "2016-02-15T00:00:00+01:00",
@@ -6380,6 +6708,7 @@
         ],
         "tilhoerer": [
           {
+            "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
               "from": "2016-02-15T00:00:00+01:00",
@@ -6391,6 +6720,7 @@
         ],
         "tilknyttedepersoner": [
           {
+            "objekttype": null,
             "urn": "urn:dk:cpr:person:10119001010",
             "virkning": {
               "from": "2016-02-15T00:00:00+01:00",
@@ -6440,6 +6770,7 @@
       "relationer": {
         "tilhoerer": [
           {
+            "objekttype": null,
             "uuid": "59141156-ed0b-457c-9535-884447c5220b",
             "virkning": {
               "from": "2010-01-01T00:00:00+01:00",
@@ -6451,6 +6782,7 @@
         ],
         "tilknyttedeorganisationer": [
           {
+            "objekttype": null,
             "uuid": null,
             "virkning": {
               "from": "2010-01-01T00:00:00+01:00",
@@ -6798,6 +7130,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": "Adresse",
             "urn": 33369696,
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
@@ -6807,6 +7140,7 @@
             }
           },
           {
+            "objekttype": "DAR",
             "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
@@ -6898,6 +7232,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": "DAR",
             "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -6989,6 +7324,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": "Adresse",
             "urn": 33369696,
             "virkning": {
               "from": "2014-08-07T00:00:00+02:00",
@@ -6998,6 +7334,7 @@
             }
           },
           {
+            "objekttype": "DAR",
             "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
             "virkning": {
               "from": "2014-08-07T00:00:00+02:00",
@@ -7089,6 +7426,7 @@
       "relationer": {
         "adresser": [
           {
+            "objekttype": "DAR",
             "uuid": "a79762e7-52bf-4199-a026-4ab42e1138a7",
             "virkning": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -7180,6 +7518,7 @@
       "relationer": {
         "organisatoriskfunktionstype": [
           {
+            "objekttype": null,
             "uuid": "9C2DC91E-4E48-4748-AA76-B1A95BF1EE9E",
             "virkning": {
               "from": "2015-05-13T00:00:00+00:00",
@@ -7191,6 +7530,7 @@
         ],
         "tilknyttedebrugere": [
           {
+            "objekttype": null,
             "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
             "virkning": {
               "from": "2015-05-13T00:00:00+00:00",
@@ -7202,6 +7542,7 @@
         ],
         "tilknyttedeenheder": [
           {
+            "objekttype": null,
             "uuid": "514e8a8e-2d3f-4789-9237-0492688d5024",
             "virkning": {
               "from": "2015-05-13T00:00:00+00:00",
@@ -7213,6 +7554,7 @@
         ],
         "tilknyttedeorganisationer": [
           {
+            "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
               "from": "2015-05-13T00:00:00+00:00",
@@ -7260,6 +7602,7 @@
       "relationer": {
         "organisatoriskfunktionstype": [
           {
+            "objekttype": null,
             "uuid": "66BA8830-9FAA-467E-8723-0C256C196273",
             "virkning": {
               "from": "2015-05-12T00:00:00+00:00",
@@ -7271,6 +7614,7 @@
         ],
         "tilknyttedebrugere": [
           {
+            "objekttype": null,
             "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8",
             "virkning": {
               "from": "2015-05-12T00:00:00+00:00",
@@ -7282,6 +7626,7 @@
         ],
         "tilknyttedeenheder": [
           {
+            "objekttype": null,
             "uuid": "3cd8be77-043c-4044-a9c1-8e4261fd7da6",
             "virkning": {
               "from": "2015-05-12T00:00:00+00:00",
@@ -7293,6 +7638,7 @@
         ],
         "tilknyttedeorganisationer": [
           {
+            "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
               "from": "2015-05-12T00:00:00+00:00",

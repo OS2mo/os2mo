@@ -24,6 +24,7 @@ from .. import lora
 
 def _make_relation(obj, k):
     val = obj[k]
+    valtype = obj.get(k + '_type')
 
     if not val:
         key = 'uuid'
@@ -40,6 +41,7 @@ def _make_relation(obj, k):
     return [
         {
             key: val,
+            'objekttype': valtype,
             'virkning': _make_effect(obj['fra'], obj['til']),
         }
     ]
@@ -241,8 +243,10 @@ def load_data(sheets, exact=False):
                 address = 'Rådhuspladsen 2'
 
             obj['adresse'] = _wash_address(address, postalcode, postaldistrict)
+            obj['adresse_type'] = 'DAR'
         else:
             obj['adresse'] = None
+            obj['adresse_type'] = None
 
         for k, v in obj.items():
                 if k not in lora.ALL_RELATION_NAMES:
@@ -444,12 +448,14 @@ def convert_organisationenhed(obj):
     if obj['telefon']:
         addresses.append({
             'urn': obj['telefon'],
+            'objekttype': 'Adresse',
             'virkning': virkning,
         })
 
     if obj['adresse']:
         addresses.append({
             'uuid': obj['adresse'],
+            'objekttype': obj['adresse_type'],
             'virkning': virkning,
         })
 

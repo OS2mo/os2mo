@@ -2,6 +2,7 @@
   "bruger": [
     {
       "adresse": null,
+      "adresse_type": null,
       "brugernavn": "Joe User",
       "brugertype": "idp",
       "brugertyper": "email",
@@ -18,6 +19,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "brugernavn": "Hans Bruger",
       "brugertype": "idp",
       "brugertyper": "email",
@@ -34,6 +36,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "brugernavn": "MAAAAAM",
       "brugertype": "idp",
       "brugertyper": null,
@@ -52,6 +55,7 @@
   "facet": [
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
       "ansvarlig_type": "bruger",
@@ -76,6 +80,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
       "ansvarlig_type": "bruger",
@@ -100,6 +105,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
       "ansvarlig_type": "bruger",
@@ -124,6 +130,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
       "ansvarlig_type": "bruger",
@@ -148,6 +155,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
       "ansvarlig_type": "bruger",
@@ -172,6 +180,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": null,
       "ansvarlig_bvn": null,
       "ansvarlig_type": null,
@@ -198,6 +207,7 @@
   "itsystem": [
     {
       "adresse": null,
+      "adresse_type": null,
       "brugerref": "00000000-0000-0000-0000-000000000000",
       "brugerref_bvn": "test@magenta-aps.dk",
       "brugervendtnoegle": "AD",
@@ -221,6 +231,7 @@
   "klasse": [
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -252,6 +263,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -283,6 +295,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -314,6 +327,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -345,6 +359,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -376,6 +391,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -407,6 +423,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -438,6 +455,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -469,6 +487,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -500,6 +519,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -531,6 +551,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -562,6 +583,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -593,6 +615,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -624,6 +647,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -655,6 +679,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -686,6 +711,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -717,6 +743,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -748,6 +775,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -779,6 +807,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -810,6 +839,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -841,6 +871,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -872,6 +903,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -903,6 +935,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -934,6 +967,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -965,6 +999,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -996,6 +1031,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1027,6 +1063,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1058,6 +1095,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1089,6 +1127,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1120,6 +1159,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1151,6 +1191,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1182,6 +1223,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1213,6 +1255,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1244,6 +1287,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1275,6 +1319,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1306,6 +1351,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1337,6 +1383,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1368,6 +1415,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1399,6 +1447,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1430,6 +1479,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1461,6 +1511,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1492,6 +1543,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1523,6 +1575,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1554,6 +1607,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1585,6 +1639,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1616,6 +1671,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1647,6 +1703,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1678,6 +1735,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1709,6 +1767,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1740,6 +1799,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1771,6 +1831,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1802,6 +1863,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1833,6 +1895,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1864,6 +1927,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1895,6 +1959,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1926,6 +1991,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1957,6 +2023,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -1988,6 +2055,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
@@ -2019,6 +2087,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": null,
       "ansvarlig_bvn": null,
@@ -2050,6 +2119,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "aendringsnotat": null,
       "ansvarlig": null,
       "ansvarlig_bvn": null,
@@ -2083,6 +2153,7 @@
   "klassifikation": [
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "fa3b2acd-914f-4c22-bd38-9cec62a8e966",
       "ansvarlig_bvn": "erik.helweg@kommuneproces.dk",
       "ansvarlig_type": "bruger",
@@ -2106,6 +2177,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "ansvarlig": "4c6125da-2629-47b8-baaf-23a270ed5eb4",
       "ansvarlig_bvn": null,
       "ansvarlig_type": null,
@@ -2131,6 +2203,7 @@
   "organisation": [
     {
       "adresse": null,
+      "adresse_type": null,
       "brugerref": "00000000-0000-0000-0000-000000000000",
       "brugerref_bvn": "test@magenta-aps.dk",
       "brugervendtnoegle": "Aarhus Kommune",
@@ -2148,6 +2221,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "brugerref": "00000000-0000-0000-0000-000000000000",
       "brugerref_bvn": "test@magenta-aps.dk",
       "brugervendtnoegle": "Magenta ApS",
@@ -2167,6 +2241,7 @@
   "organisationenhed": [
     {
       "adresse": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+      "adresse_type": "DAR",
       "brugervendtnoegle": "\u00c5RHUS",
       "enhedsnavn": "Aarhus Kommune",
       "enhedstype": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
@@ -2183,6 +2258,7 @@
     },
     {
       "adresse": "a79762e7-52bf-4199-a026-4ab42e1138a7",
+      "adresse_type": "DAR",
       "brugervendtnoegle": "AARHUS-ENHED",
       "enhedsnavn": "Aarhus Enhed",
       "enhedstype": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
@@ -2199,6 +2275,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "brugervendtnoegle": "MAGENTA",
       "enhedsnavn": "Magenta ApS",
       "enhedstype": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f",
@@ -2215,6 +2292,7 @@
     },
     {
       "adresse": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+      "adresse_type": "DAR",
       "brugervendtnoegle": "MAGENTA-AAR",
       "enhedsnavn": "Aarhuskontoret",
       "enhedstype": "333b3660-438b-4a5a-9982-2790ed4626d8",
@@ -2231,6 +2309,7 @@
     },
     {
       "adresse": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+      "adresse_type": "DAR",
       "brugervendtnoegle": "MAGENTA-HQ",
       "enhedsnavn": "Hovedkvarteret",
       "enhedstype": "333b3660-438b-4a5a-9982-2790ed4626d8",
@@ -2247,6 +2326,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "brugervendtnoegle": "MAGENTA-AAR",
       "enhedsnavn": "Aarhuskontoret",
       "enhedstype": "254c6782-9fef-478a-89b3-c043ca7cb0e9",
@@ -2265,6 +2345,7 @@
   "organisationfunktion": [
     {
       "adresse": null,
+      "adresse_type": null,
       "brugervendtnoegle": 398538,
       "fra": "2015-05-12T00:00:00",
       "funktionsnavn": "Hest",
@@ -2280,6 +2361,7 @@
     },
     {
       "adresse": null,
+      "adresse_type": null,
       "brugervendtnoegle": 336273,
       "fra": "2015-05-13T00:00:00",
       "funktionsnavn": "Fest",
