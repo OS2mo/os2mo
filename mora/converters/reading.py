@@ -57,6 +57,31 @@ def list_organisations():
     return list(filter(None, map(convert, orgs)))
 
 
+def get_unit_type(typerel) -> dict:
+    if not typerel:
+        return None
+
+    assert len(typerel) == 1
+    assert typerel[0]['uuid']
+
+    typeid = typerel[0]['uuid']
+    obj = lora.klasse.get(uuid=typeid)
+
+    if not obj:
+        return None
+
+    props = obj['attributter']['klasseegenskaber'][0]
+
+    if not props:
+        return None
+
+    return {
+        'name': props.get('titel') or props['brugervendtnoegle'],
+        'user-key': props['brugervendtnoegle'],
+        'uuid': typeid,
+    }
+
+
 def full_hierarchies(orgid: str, parentid: str,
                      include_children=True,
                      **loraparams):
@@ -115,11 +140,6 @@ def full_hierarchy(orgid: str, unitid: str,
                                    gyldighed='Aktiv',
                                    **loraparams)
 
-    unit_types = orgunit['relationer']['enhedstype']
-    if unit_types:
-        unit_type = c.klasse.get(uuid=unit_types[0]['uuid'])
-    else:
-        unit_type = None
 
     if c.validity == 'present':
         parent = rels['overordnet'][0]['uuid']
@@ -131,10 +151,7 @@ def full_hierarchy(orgid: str, unitid: str,
         'name': attrs['enhedsnavn'],
         'user-key': attrs['brugervendtnoegle'],
         'uuid': unitid,
-        'type': {
-            'name': unit_type['attributter']['klasseegenskaber'][0]['titel']
-            if unit_type else ''  # TODO: problem with ['klasseegenskaber'][0]?
-        },
+        'type': get_unit_type(rels['enhedstype']),
         'valid-from': util.to_frontend_time(
             orgunit_validity['from'],
         ),
@@ -177,8 +194,9 @@ def wrap_in_org(connector, orgid, value, org=None):
 def unit_history(orgid, unitid):
     # TODO: verify orgid?
 
-    regs = lora.organisationenhed.get(unitid, registreretfra='-infinity',
-                                      registrerettil='infinity')
+    c = lora.Connector()
+    regs = c.organisationenhed.get(unitid, registreretfra='-infinity',
+                                   registrerettil='infinity')
 
     for reg in regs:
         yield {
@@ -417,13 +435,6 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
         except IndexError:
             parentid = None
 
-        unit_types = rels['enhedstype']
-        # TODO: should we pass on loraparams? perhaps, but not validity
-        unit_type = (
-            lora.klasse.get(uuid=unit_types[0]['uuid'])
-            if unit_types else None
-        )
-
         r.append({
             'activeName': props['enhedsnavn'],
             'name': props['enhedsnavn'],
@@ -442,12 +453,7 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
                 ).pop()
                 if include_parents and parentid and parentid != orgid else None
             ),
-            'type': {
-                'name':
-                unit_type['attributter']['klasseegenskaber'][0]['titel']
-                # TODO: problem with ['klasseegenskaber'][0]?
-                if unit_type else ''
-            },
+            'type': get_unit_type(rels['enhedstype']),
         })
 
     return r
