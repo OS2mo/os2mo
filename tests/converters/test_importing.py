@@ -35,19 +35,30 @@ class MockTests(util.TestCase):
 
     @util.mock()
     def test_convert(self, m):
+        def keyfunc(val):
+            fromdates = {
+                f['virkning']['from']
+                for group in val[2].values()
+                if isinstance(group, dict)
+                for effects in group.values()
+                for f in effects
+            }
+            return val[0], val[1], fromdates
+
         data = util.get_fixture('MAGENTA_01.json')
 
         # JSON converts tuples to lists - the map() converts them back
         expected = sorted(map(tuple,
-                              util.get_fixture('MAGENTA_01-result.json')))
+                              util.get_fixture('MAGENTA_01-expected.json')),
+                          key=keyfunc)
 
         actual = sorted(importing.convert([
             os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
-        ]))
+        ]), key=keyfunc)
+        actual_path = os.path.join(util.FIXTURE_DIR, 'MAGENTA_01-actual.json')
 
         # for resetting the test
-        if False:
-            with open('/tmp/x.json', 'w') as fp:
+        with open(actual_path, 'w') as fp:
                 json.dump(actual, fp, indent=2, sort_keys=True)
 
         self.assertEqual(expected, actual)
