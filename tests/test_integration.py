@@ -105,7 +105,11 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Humanistisk fakultet',
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'type': {'name': 'Institut'},
+                            'type': {
+                                'name': 'Institut',
+                                'user-key': 'inst',
+                                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                            },
                             'user-key': 'hum',
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                             'valid-from': '01-01-2016',
@@ -117,7 +121,11 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Samfundsvidenskabelige fakultet',
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'type': {'name': 'Fakultet'},
+                            'type': {
+                                'name': 'Fakultet',
+                                'user-key': 'fak',
+                                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                            },
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                             'valid-from': '01-01-2017',
@@ -131,7 +139,11 @@ class IntegrationTests(util.LoRATestCase):
                     'user-key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'valid-from': '01-01-2016',
-                    'type': {'name': 'Afdeling'},
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
                     'valid-to': 'infinity'},
                 'name': 'Aarhus Universitet',
                 'user-key': 'AU',
@@ -155,7 +167,11 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                             'valid-from': '01-01-2016',
                             'valid-to': 'infinity',
-                            'type': {'name': 'Institut'},
+                            'type': {
+                                'name': 'Institut',
+                                'user-key': 'inst',
+                                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                            },
                         },
                         {
                             'children': [],
@@ -167,7 +183,11 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                             'valid-from': '01-01-2017',
                             'valid-to': 'infinity',
-                            'type': {'name': 'Fakultet'},
+                            'type': {
+                                'name': 'Fakultet',
+                                'user-key': 'fak',
+                                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                            },
                         },
                     ],
                     'hasChildren': True,
@@ -177,7 +197,11 @@ class IntegrationTests(util.LoRATestCase):
                     'user-key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'valid-from': '01-01-2016',
-                    'type': {'name': 'Afdeling'},
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
                     'valid-to': 'infinity'},
                 'name': 'Aarhus Universitet',
                 'user-key': 'AU',
@@ -196,7 +220,11 @@ class IntegrationTests(util.LoRATestCase):
                     'name': 'Humanistisk fakultet',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'type': {'name': 'Institut'},
+                    'type': {
+                        'name': 'Institut',
+                        'user-key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                     'valid-from': '01-01-2016',
@@ -208,7 +236,11 @@ class IntegrationTests(util.LoRATestCase):
                     'name': 'Samfundsvidenskabelige fakultet',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'type': {'name': 'Fakultet'},
+                    'type': {
+                        'name': 'Fakultet',
+                        'user-key': 'fak',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                    },
                     'user-key': 'samf',
                     'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                     'valid-from': '01-01-2017',
@@ -240,13 +272,21 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                         'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                     },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                     'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
-                    'type': {'name': 'Institut'},
+                    'type': {
+                        'name': 'Institut',
+                        'user-key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
                 }
             ]
         )
@@ -270,13 +310,21 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                         'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                     },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                     'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
-                    'type': {'name': 'Institut'},
+                    'type': {
+                        'name': 'Institut',
+                        'user-key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
                 }
             ]
         )
@@ -299,13 +347,21 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                         'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                     },
                     'user-key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                     'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
-                    'type': {'name': 'Institut'},
+                    'type': {
+                        'name': 'Institut',
+                        'user-key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
                 }
             ]
         )
@@ -363,13 +419,21 @@ class IntegrationTests(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                             'parent-object': None,
-                            'type': {'name': 'Institut'},
+                            'type': {
+                                'name': 'Institut',
+                                'user-key': 'inst',
+                                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                            },
                             'user-key': 'hist',
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                             'valid-from': '01-01-2016',
                             'valid-to': '01-01-2019',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2016',
@@ -407,13 +471,21 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                             'valid-from': '01-01-2016',
                             'valid-to': '01-01-2019',
-                            'type': {'name': 'Institut'},
+                            'type': {
+                                'name': 'Institut',
+                                'user-key': 'inst',
+                                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                            },
                         },
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2017',
                         'valid-to': '01-01-2018',
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                     },
                 ],
             )
@@ -438,9 +510,17 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                             'valid-from': '01-01-2016',
                             'valid-to': '01-01-2019',
-                            'type': {'name': 'Institut'},
+                            'type': {
+                                'name': 'Institut',
+                                'user-key': 'inst',
+                                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                            },
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'valid-from': '01-01-2018',
@@ -488,6 +568,8 @@ class IntegrationTests(util.LoRATestCase):
                     'parent-object': None,
                     'type': {
                         'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
                     'user-key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -544,3 +626,27 @@ class IntegrationTests(util.LoRATestCase):
         rels -= {'interessefaellesskabstype'}
 
         self.assertEqual(rels, lora.ALL_RELATION_NAMES)
+
+    def test_list_orgunit_classes(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/org-unit/type',
+            [
+                {
+                    'name': 'Afdeling',
+                    'userKey': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                {
+                    'name': 'Fakultet',
+                    'userKey': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                },
+                {
+                    'name': 'Institut',
+                    'userKey': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+            ],
+        )

@@ -43,27 +43,6 @@ class MoraTestCase(TestSetup):
                          'Acl route should return empty list')
 
     @util.mock()
-    def test_list_classes(self, mock):
-        lora_klasse_response = util.get_mock_data(
-            'lora/klassifikation/klasse/get_klasse_from_uuidx2.json',
-        )
-        mock.get(self._get_lora_url('klassifikation_klasse_bvn'), json={
-            'results': [
-                [
-                    'eb3dc9d3-297d-4c3d-9056-435d7696a8e9',
-                    '14cf4675-e8c9-410f-aef4-abe3e4c1a9b7'
-                ]
-            ]
-        })
-        mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'),
-                 json=lora_klasse_response)
-
-        expected_response = util.get_mock_data('mo/list_classes.json')
-        actual_response = self._request('/org-unit/type')
-
-        self.assertEqual(actual_response, expected_response, 'Hurra')
-
-    @util.mock()
     def test_invalid_operations(self, mock):
         # we should do network I/O in the test, and 'empty' mocking
         # verifies that
@@ -78,15 +57,11 @@ class MoraTestCase(TestSetup):
             status_code=400,
         )
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/o/00000000-0000-0000-0000-000000000000'
             '/org-unit/00000000-0000-0000-0000-000000000000/'
             'role-types/fail/',
-            {
-                'message': "unsupported role 'fail'",
-                'status': 400,
-            },
-            status_code=400,
+            404,
         )
 
         self.assertRequestResponse(

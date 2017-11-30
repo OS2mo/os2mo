@@ -96,6 +96,12 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
         'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
     }
 
+    facets = {
+        'enhedstype': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
+    }
+
+    # TODO: add classifications, etc.
+
     if not minimal:
         units.update({
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -109,6 +115,13 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
             'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
         })
+
+    for facetkey, facetid in facets.items():
+        fixtures.append((
+            'klassifikation/facet',
+            'create_facet_{}.json'.format(facetkey),
+            facetid,
+        ))
 
     for classkey, classid in classes.items():
         fixtures.append((

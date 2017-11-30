@@ -2323,23 +2323,6 @@
       "til": null,
       "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
       "tilknyttedeenheder": null
-    },
-    {
-      "adresse": null,
-      "adresse_type": null,
-      "brugervendtnoegle": "MAGENTA-AAR",
-      "enhedsnavn": "Aarhuskontoret",
-      "enhedstype": "254c6782-9fef-478a-89b3-c043ca7cb0e9",
-      "fra": "1999-11-15 00:00:00+01",
-      "gyldighed": "Inaktiv",
-      "note": "Ikke eksisterende",
-      "objektid": "3cd8be77-043c-4044-a9c1-8e4261fd7da6",
-      "operation": null,
-      "overordnet": "01e479c4-66ef-42aa-877e-15f0512f792c",
-      "telefon": null,
-      "til": "2014-08-07T00:00:00",
-      "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-      "tilknyttedeenheder": null
     }
   ],
   "organisationfunktion": [
@@ -2347,7 +2330,7 @@
       "adresse": null,
       "adresse_type": null,
       "brugervendtnoegle": 398538,
-      "fra": "2015-05-12T00:00:00",
+      "fra": "2016-02-15 00:00:00+01",
       "funktionsnavn": "Hest",
       "gyldighed": "Aktiv",
       "note": "Prim\u00e6r ans\u00e6ttelse = Ja",
@@ -2356,14 +2339,14 @@
       "organisatoriskfunktionstype": "66BA8830-9FAA-467E-8723-0C256C196273",
       "til": null,
       "tilknyttedebrugere": "cd2dcfad-6d34-4553-9fee-a7023139a9e8",
-      "tilknyttedeenheder": "3cd8be77-043c-4044-a9c1-8e4261fd7da6",
+      "tilknyttedeenheder": "8a32549b-458e-4ff3-814d-9155963c519a",
       "tilknyttedeorganisationer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566"
     },
     {
       "adresse": null,
       "adresse_type": null,
       "brugervendtnoegle": 336273,
-      "fra": "2015-05-13T00:00:00",
+      "fra": "2016-02-14 00:00:00+01",
       "funktionsnavn": "Fest",
       "gyldighed": "Aktiv",
       "note": "Prim\u00e6r ans\u00e6ttelse = Ja",

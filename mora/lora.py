@@ -320,6 +320,18 @@ class Scope:
 
     __call__ = fetch
 
+    def get_all(self, *, start=0, limit=1000, **params):
+        params['maximalantalresultater'] = start + limit
+
+        uuids = self.fetch(**params)[start:start + limit]
+
+        wantregs = params.keys() & {'registreretfra', 'registrerettil'}
+
+        for chunk in util.splitlist(uuids, 20):
+            for d in self.fetch(uuid=chunk):
+                yield d['id'], (d['registreringer'] if wantregs
+                                else d['registreringer'][0])
+
     def get(self, uuid, **params):
         d = self.fetch(uuid=str(uuid), **params)
 

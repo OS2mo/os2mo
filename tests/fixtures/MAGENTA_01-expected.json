@@ -6830,7 +6830,8 @@
       "relationer": {
         "myndighed": [
           {
-            "urn": "urn:dk:kommune:urn:dk:kommune:751",
+            "objekttype": null,
+            "urn": "urn:dk:kommune:751",
             "virkning": {
               "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
@@ -6841,7 +6842,8 @@
         ],
         "myndighedstype": [
           {
-            "urn": "urn:oio:objekttype:c0fa2bbf-ce54-4fc6-85cc-d0f2e7d15840",
+            "objekttype": null,
+            "uuid": "c0fa2bbf-ce54-4fc6-85cc-d0f2e7d15840",
             "virkning": {
               "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
@@ -6852,7 +6854,8 @@
         ],
         "virksomhed": [
           {
-            "urn": "urn:dk:cvr:urn:dk:cvr:virksomhed:55133018",
+            "objekttype": null,
+            "urn": "urn:dk:cvr:virksomhed:55133018",
             "virkning": {
               "from": "1976-01-01T00:00:00+01:00",
               "from_included": true,
@@ -6899,7 +6902,8 @@
       "relationer": {
         "myndighed": [
           {
-            "urn": "urn:dk:kommune:None",
+            "objekttype": null,
+            "uuid": null,
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -6910,7 +6914,8 @@
         ],
         "myndighedstype": [
           {
-            "urn": "urn:oio:objekttype:None",
+            "objekttype": null,
+            "uuid": null,
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -6921,7 +6926,8 @@
         ],
         "virksomhed": [
           {
-            "urn": "urn:dk:cvr:urn:dk:cvr:virksomhed:25052943",
+            "objekttype": null,
+            "urn": "urn:dk:cvr:virksomhed:25052943",
             "virkning": {
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
@@ -7020,87 +7026,6 @@
               "from": "1999-11-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  [
-    "PUT",
-    "/organisation/organisationenhed/3cd8be77-043c-4044-a9c1-8e4261fd7da6",
-    {
-      "attributter": {
-        "organisationenhedegenskaber": [
-          {
-            "brugervendtnoegle": "MAGENTA-AAR",
-            "enhedsnavn": "Aarhuskontoret",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "note": "Ikke eksisterende",
-      "relationer": {
-        "adresser": [],
-        "enhedstype": [
-          {
-            "uuid": "254c6782-9fef-478a-89b3-c043ca7cb0e9",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnet": [
-          {
-            "uuid": "01e479c4-66ef-42aa-877e-15f0512f792c",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ],
-        "tilhoerer": [
-          {
-            "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ],
-        "tilknyttedeenheder": [
-          {
-            "urn": null,
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
-              "to_included": false
-            }
-          }
-        ]
-      },
-      "tilstande": {
-        "organisationenhedgyldighed": [
-          {
-            "gyldighed": "Inaktiv",
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "2014-08-07T00:00:00+00:00",
               "to_included": false
             }
           }
@@ -7506,7 +7431,7 @@
             "brugervendtnoegle": 336273,
             "funktionsnavn": "Fest",
             "virkning": {
-              "from": "2015-05-13T00:00:00+00:00",
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7521,7 +7446,7 @@
             "objekttype": null,
             "uuid": "9C2DC91E-4E48-4748-AA76-B1A95BF1EE9E",
             "virkning": {
-              "from": "2015-05-13T00:00:00+00:00",
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7533,7 +7458,7 @@
             "objekttype": null,
             "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
             "virkning": {
-              "from": "2015-05-13T00:00:00+00:00",
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7545,7 +7470,7 @@
             "objekttype": null,
             "uuid": "514e8a8e-2d3f-4789-9237-0492688d5024",
             "virkning": {
-              "from": "2015-05-13T00:00:00+00:00",
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7557,7 +7482,7 @@
             "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
-              "from": "2015-05-13T00:00:00+00:00",
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7570,7 +7495,7 @@
           {
             "gyldighed": "Aktiv",
             "virkning": {
-              "from": "2015-05-13T00:00:00+00:00",
+              "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7590,7 +7515,7 @@
             "brugervendtnoegle": 398538,
             "funktionsnavn": "Hest",
             "virkning": {
-              "from": "2015-05-12T00:00:00+00:00",
+              "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7605,7 +7530,7 @@
             "objekttype": null,
             "uuid": "66BA8830-9FAA-467E-8723-0C256C196273",
             "virkning": {
-              "from": "2015-05-12T00:00:00+00:00",
+              "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7617,7 +7542,7 @@
             "objekttype": null,
             "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8",
             "virkning": {
-              "from": "2015-05-12T00:00:00+00:00",
+              "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7627,9 +7552,9 @@
         "tilknyttedeenheder": [
           {
             "objekttype": null,
-            "uuid": "3cd8be77-043c-4044-a9c1-8e4261fd7da6",
+            "uuid": "8a32549b-458e-4ff3-814d-9155963c519a",
             "virkning": {
-              "from": "2015-05-12T00:00:00+00:00",
+              "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7641,7 +7566,7 @@
             "objekttype": null,
             "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
             "virkning": {
-              "from": "2015-05-12T00:00:00+00:00",
+              "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7654,7 +7579,7 @@
           {
             "gyldighed": "Aktiv",
             "virkning": {
-              "from": "2015-05-12T00:00:00+00:00",
+              "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false

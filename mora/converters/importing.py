@@ -197,7 +197,7 @@ def load_data(sheets, exact=False):
                 obj['tilknyttedepersoner'] = int('{:%d%m%Y}{:04d}'.format(
                     # randomly assume that everyone was hired on their
                     # 32nd birthday (note: 32 is divible by four,
-                    # which is a rather useful)
+                    # which is a rather useful property)
                     hired.replace(year=hired.year - 32),
                     i % 10000,
                 ))
@@ -250,13 +250,23 @@ def load_data(sheets, exact=False):
         for k, v in obj.items():
                 val = obj[k]
 
+                if isinstance(val, str):
+                    val = val.strip()
+
                 if not val or util.is_uuid(val) or str(val).startswith('urn:'):
                     continue
 
                 elif k in type_formats:
-                    obj[k] = type_formats[k].format(
-                        val if val is not None else i,
-                    )
+                    try:
+                        obj[k] = type_formats[k].format(
+                            val if val is not None else i,
+                        )
+                    except ValueError as exc:
+                        raise ValueError(
+                            'Unknown value {!r} for {}: {}'.format(
+                                v, k, exc.args[0],
+                            ),
+                        )
 
                 elif k not in lora.ALL_RELATION_NAMES:
                     continue
@@ -413,29 +423,29 @@ def convert_organisation(obj):
                 ],
             },
             'relationer': {
-                'virksomhed': [
-                    {
-                        'urn': 'urn:dk:cvr:{}'.format(obj['virksomhed']),
-                        'virkning': virkning,
-                    }
-                ],
-                'myndighed': [
-                    {
-                        'urn': 'urn:dk:kommune:{}'.format(
-                            obj['myndighed'],
-                        ),
-                        'virkning': virkning,
-                    }
-                ],
-                'myndighedstype': [
-                    {
-                        'urn': 'urn:oio:objekttype:{}'.format(
-                            obj['myndighedstype'],
-                        ),
-                        'virkning': virkning,
-                    }
-                ],
-            }
+                k: _make_relation(obj, k)
+                for k in (
+                    # "adresser",
+                    # "ansatte",
+                    # "branche",
+                    "myndighed",
+                    "myndighedstype",
+                    # "opgaver",
+                    # "overordnet",
+                    # "produktionsenhed",
+                    # "skatteenhed",
+                    # "tilhoerer",
+                    # "tilknyttedebrugere",
+                    # "tilknyttedeenheder",
+                    # "tilknyttedefunktioner",
+                    # "tilknyttedeinteressefaellesskaber",
+                    # "tilknyttedeitsystemer"
+                    # "tilknyttedeorganisationer",
+                    # "tilknyttedepersoner",
+                    "virksomhed",
+                    # "virksomhedstype",
+                )
+            },
         }
 
 

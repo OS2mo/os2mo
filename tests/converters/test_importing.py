@@ -45,8 +45,6 @@ class MockTests(util.TestCase):
             }
             return val[0], val[1], fromdates
 
-        data = util.get_fixture('MAGENTA_01.json')
-
         # JSON converts tuples to lists - the map() converts them back
         expected = sorted(map(tuple,
                               util.get_fixture('MAGENTA_01-expected.json')),
