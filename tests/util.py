@@ -231,12 +231,11 @@ class TestCaseMixin(object):
 
         r = self.client.open(path, **kwargs)
 
-        with self.subTest('HTTP status'):
-            if status_code is None:
-                self.assertLess(r.status_code, 300, message)
-                self.assertGreaterEqual(r.status_code, 200, message)
-            else:
-                self.assertEqual(r.status_code, status_code, message)
+        if status_code is None:
+            self.assertLess(r.status_code, 300, message)
+            self.assertGreaterEqual(r.status_code, 200, message)
+        else:
+            self.assertEqual(r.status_code, status_code, message)
 
         actual = r.json
 
