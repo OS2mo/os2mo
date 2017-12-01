@@ -131,14 +131,11 @@ def list_employees():
     )
 
 
-@app.route('/e/<string:cpr_number>/')
+@app.route('/e/<int:cpr_number>/')
 @util.restrictargs()
 def get_employee_by_cpr(cpr_number):
-    if len(cpr_number) is not 10:
-        return flask.jsonify({'message': 'invalid CPR'}), 404
-
     ids = reading.list_employees(
-        tilknyttedepersoner='urn:dk:cpr:person:{}'.format(cpr_number),
+        tilknyttedepersoner='urn:dk:cpr:person:{:010d}'.format(cpr_number),
     )
 
     if not ids:
