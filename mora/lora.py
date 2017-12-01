@@ -352,8 +352,8 @@ class Scope:
         r = session.delete('{}/{}'.format(self.base_path, uuid))
         _check_response(r)
 
-    def update(self, obj):
-        r = session.put(self.base_path, json=obj)
+    def update(self, obj, uuid):
+        r = session.put('{}/{}'.format(self.base_path, uuid), json=obj)
         _check_response(r)
         return r.json()['uuid']
 
