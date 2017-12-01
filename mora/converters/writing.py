@@ -264,7 +264,6 @@ def move_org_funktion(orgfunk, org_unit_uuid, startdate, enddate):
     return _set_virkning(orgfunk, new_virkning, True)
 
 
-
 def inactivate_org_funktion(startdate, enddate):
     obj_path = ['tilstande', 'organisationfunktiongyldighed']
     props_active = {'gyldighed': 'Aktiv'}
