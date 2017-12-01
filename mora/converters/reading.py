@@ -575,13 +575,11 @@ def get_engagements(emplid, **loraparams):
         orgid = rels['tilknyttedeorganisationer'][-1]['uuid']
 
         return {
-            "job-title": {
-                "uuid": funcid,
-                "user-key": props['brugervendtnoegle'],
-                "name": props['funktionsnavn']
-            },
+            "job-title": get_class(
+                rels['opgaver'][-1].get('uuid'),
+            ),
             "type": get_class(
-                rels['organisatoriskfunktionstype'][-1].get('uuid'),
+               rels['organisatoriskfunktionstype'][-1].get('uuid'),
             ),
             "uuid": funcid,
             "name": props['funktionsnavn'],
@@ -609,8 +607,8 @@ def get_engagements(emplid, **loraparams):
         for start, end, effect in c.organisationfunktion.get_effects(
             funcid,
             {
-                'relationer': (
-                    'tilknyttedebrugere',
+                'tilstande': (
+                    'organisationfunktiongyldighed',
                 ),
             },
             {
@@ -622,7 +620,11 @@ def get_engagements(emplid, **loraparams):
                     'tilknyttedeenheder',
                     'tilknyttedeorganisationer',
                     'tilhoerer',
+                    'opgaver',
                 ),
             },
         )
+        if effect.get('tilstande')
+               .get('organisationfunktiongyldighed')[0]
+               .get('gyldighed') == 'Aktiv'
     ]

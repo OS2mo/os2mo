@@ -8,6 +8,7 @@
 
 import collections
 import datetime
+import uuid
 
 from .. import lora
 from .. import util
@@ -16,22 +17,25 @@ from .. import exceptions
 from . import meta
 
 
-def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
+def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object.
 
-    :param lora_obj: A LoRa object with or without virkning. All virknings that
-        are already set will be preserved.
+    :param lora_obj: A LoRa object with or without virkning.
     :param virkning: The virkning to set in the LoRa object
+    :param overwrite: Whether any original virknings should be overwritten
     :return: The LoRa object with the new virkning
 
     """
     for k, v in lora_obj.items():
         if isinstance(v, dict):
-            _set_virkning(v, virkning)
+            _set_virkning(v, virkning, overwrite)
         elif isinstance(v, list):
             for d in v:
-                d.setdefault('virkning', virkning.copy())
+                if overwrite:
+                    d['virkning'] = virkning.copy()
+                else:
+                    d.setdefault('virkning', virkning.copy())
     return lora_obj
 
 
@@ -150,6 +154,138 @@ def create_org_unit(req: dict) -> dict:
     org_unit = _set_virkning(org_unit, virkning)
 
     return org_unit
+
+
+def create_bruger(name: str, cpr: dict) -> dict:
+    virkning = _create_virkning("-infinity", "infinity")
+
+    bruger = {
+        "attributter": {
+            "brugeregenskaber": [
+                {
+                    "brugernavn": name,
+                    "brugervendtnoegle": str(uuid.uuid4())
+                }
+            ]
+        },
+        "relationer": {
+            "tilhoerer": [
+                {
+                    # TODO: How do we find the org uuid?
+                    "uuid": "3ad316d4-1222-427f-b406-96295b4b20bd",
+                }
+            ],
+            "tilknyttedepersoner": [
+                {
+                    "urn": "urn:dk:cpr:person:{}".format(cpr)
+                }
+            ]
+        },
+        "tilstande": {
+            "brugergyldighed": [
+                {
+                    "gyldighed": "Aktiv",
+                }
+            ]
+        }
+    }
+
+    bruger = _set_virkning(bruger, virkning)
+
+    return bruger
+
+
+def create_org_funktion(req: dict) -> dict:
+    virkning = _create_virkning(req.get('valid-from'),
+                                req.get('valid-to', 'infinity'))
+
+    funktionstype_name = req.get('job-title').get('name')
+    funktionstype_uuid = req.get('job-title').get('uuid')
+    engagementstype_uuid = req.get('type').get('uuid')
+    bruger_uuid = req.get('person')
+    org_enhed_uuid = req.get('org-unit').get('uuid')
+    org_uuid = req.get('org-unit').get('org')
+
+    org_funk = {
+        'note': 'Oprettet i MO',
+        'attributter': {
+            'organisationfunktionegenskaber': [
+                {
+                    'funktionsnavn': "{} {}".format(funktionstype_name,
+                                                    org_enhed_uuid),
+                    'brugervendtnoegle': str(uuid.uuid4())
+                },
+            ],
+        },
+        'tilstande': {
+            'organisationfunktiongyldighed': [
+                {
+                    'gyldighed': 'Aktiv',
+                },
+            ],
+        },
+        'relationer': {
+            'organisatoriskfunktionstype': [
+                {
+                    'uuid': engagementstype_uuid
+                }
+            ],
+            'tilknyttedebrugere': [
+                {
+                    'uuid': bruger_uuid
+                }
+            ],
+            'tilknyttedeorganisationer': [
+                {
+                    'uuid': org_uuid
+                }
+            ],
+            'tilknyttedeenheder': [
+                {
+                    'uuid': org_enhed_uuid
+                }
+            ],
+            'opgaver': [
+                {
+                    'uuid': funktionstype_uuid
+                }
+            ]
+        }
+    }
+
+    org_funk = _set_virkning(org_funk, virkning)
+
+    return org_funk
+
+
+def move_org_funktion(orgfunk, org_unit_uuid, startdate, enddate):
+    orgfunk['relationer']['tilknyttedeenheder'][0]['uuid'] = org_unit_uuid
+    new_virkning = _create_virkning(startdate, enddate)
+    return _set_virkning(orgfunk, new_virkning, True)
+
+
+
+def inactivate_org_funktion(startdate, enddate):
+    obj_path = ['tilstande', 'organisationfunktiongyldighed']
+    props_active = {'gyldighed': 'Aktiv'}
+    props_inactive = {'gyldighed': 'Inaktiv'}
+
+    payload = _create_payload(startdate, enddate, obj_path, props_active,
+                              'Afslut funktion')
+    payload = _create_payload(enddate, 'infinity', obj_path, props_inactive,
+                              'Afslut funktion', payload)
+
+    return payload
+
+
+def fully_inactivate_org_funktion(startdate, enddate):
+    obj_path = ['tilstande', 'organisationfunktiongyldighed']
+    props_inactive = {'gyldighed': 'Inaktiv'}
+
+    payload = _create_payload(startdate, enddate, obj_path, props_inactive,
+                              'Afslut funktion')
+
+    return payload
 
 
 def inactivate_org_unit(startdate: str, enddate: str) -> dict:
