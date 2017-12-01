@@ -144,9 +144,14 @@ def _check_response(r):
     try:
         r.raise_for_status()
     except requests.exceptions.HTTPError as e:
-        if r.status_code == 400 and r.json():
+        try:
+            d = r.json()
+        except ValueError:
+            raise ValueError(r.text)
+
+        if r.status_code == 400 and d:
             raise ValueError(r.json()['message'])
-        elif r.status_code in (401, 403) and r.json():
+        elif r.status_code in (401, 403) and d:
             raise PermissionError(r.json()['message'])
         else:
             raise
