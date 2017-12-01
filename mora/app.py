@@ -167,7 +167,8 @@ def get_employee_role(emplid, role, **loraparams):
 
     # TODO: Remove this, when the relevant reading-methods have been
     # implemented
-    dummy_fn = lambda *args, **kwargs: {}
+    def dummy_fn(*args, **kwargs):
+        return {}
 
     mappings = {
         'engagement': reading.get_engagements,

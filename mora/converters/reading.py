@@ -579,7 +579,7 @@ def get_engagements(emplid, **loraparams):
                 rels['opgaver'][-1].get('uuid'),
             ),
             "type": get_class(
-               rels['organisatoriskfunktionstype'][-1].get('uuid'),
+                rels['organisatoriskfunktionstype'][-1].get('uuid'),
             ),
             "uuid": funcid,
             "name": props['funktionsnavn'],
@@ -625,6 +625,6 @@ def get_engagements(emplid, **loraparams):
             },
         )
         if effect.get('tilstande')
-               .get('organisationfunktiongyldighed')[0]
-               .get('gyldighed') == 'Aktiv'
+                 .get('organisationfunktiongyldighed')[0]
+                 .get('gyldighed') == 'Aktiv'
     ]

@@ -13,7 +13,7 @@ from . import util
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
 
-LORA_URL = 'http://mox/'
+LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
 
 SAML_IDP_TYPE = 'wso2'
