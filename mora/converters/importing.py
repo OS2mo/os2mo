@@ -74,16 +74,16 @@ def _wash_address(addrstring, postalcode, postaldistrict):
         return v
 
     # now, try a bit of massaging
-    if postalcode == 8100:
-        postalcode = 8000
+    if str(postalcode) == '8100':
+        postalcode = '8000'
 
     q = addrstring.strip()
 
     if re.search('\s*-\s*\d+\Z', q):
         q = re.sub('-\d+\Z', '', q)
 
-    if q in ('Rådhuspladsen', 'Rådhuset') and postalcode == 8000:
-        q = 'Rådhuspladsen 1'
+    if q in ('Rådhuspladsen', 'Rådhuset') and str(postalcode) == '8000':
+        q = 'Rådhuspladsen 2'
 
     v = wash('{}, {} {}'.format(
         q, postalcode, postaldistrict
@@ -96,9 +96,6 @@ def _wash_address(addrstring, postalcode, postaldistrict):
         q = q.rsplit(',', 1)[0]
 
     q = re.sub(r'(\s*-\s*\d+)+\Z', '', q)
-
-    if q in ('Rådhuspladsen', 'Rådhuset') and postalcode == 8000:
-        q = 'Rådhuspladsen 1'
 
     v = wash('{}, {} {}'.format(
         q, postalcode, postaldistrict
@@ -235,11 +232,6 @@ def load_data(sheets, exact=False):
             # just use it
             obj['adresse'] = address
         elif address and postalcode and postaldistrict:
-            if str(postalcode) == '8100':
-                postalcode = 8000
-
-            if address == 'Rådhuset':
-                address = 'Rådhuspladsen 2'
 
             obj['adresse'] = _wash_address(address, postalcode, postaldistrict)
             obj['adresse_type'] = 'DAR'
