@@ -15,7 +15,7 @@
       "operation": null,
       "til": "infinity",
       "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-      "tilknyttedepersoner": "urn:dk:cpr:person:10119001010"
+      "tilknyttedepersoner": "urn:dk:cpr:person:0101001010"
     },
     {
       "adresse": null,
@@ -32,7 +32,7 @@
       "operation": null,
       "til": "infinity",
       "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-      "tilknyttedepersoner": "urn:dk:cpr:person:101120101010"
+      "tilknyttedepersoner": "urn:dk:cpr:person:1011101010"
     },
     {
       "adresse": null,
@@ -49,7 +49,7 @@
       "operation": null,
       "til": "infinity",
       "tilhoerer": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
-      "tilknyttedepersoner": "urn:dk:cpr:person:140219840002"
+      "tilknyttedepersoner": "urn:dk:cpr:person:1402840002"
     }
   ],
   "facet": [

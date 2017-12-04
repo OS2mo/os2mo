@@ -6551,7 +6551,7 @@
         "tilknyttedepersoner": [
           {
             "objekttype": null,
-            "urn": "urn:dk:cpr:person:101120101010",
+            "urn": "urn:dk:cpr:person:1011101010",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
@@ -6636,7 +6636,7 @@
         "tilknyttedepersoner": [
           {
             "objekttype": null,
-            "urn": "urn:dk:cpr:person:140219840002",
+            "urn": "urn:dk:cpr:person:1402840002",
             "virkning": {
               "from": "2016-02-14T00:00:00+01:00",
               "from_included": true,
@@ -6721,7 +6721,7 @@
         "tilknyttedepersoner": [
           {
             "objekttype": null,
-            "urn": "urn:dk:cpr:person:10119001010",
+            "urn": "urn:dk:cpr:person:0101001010",
             "virkning": {
               "from": "2016-02-15T00:00:00+01:00",
               "from_included": true,

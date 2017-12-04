@@ -504,7 +504,7 @@ def get_employees(uuids, **loraparams):
 
         cpr = rels['tilknyttedepersoner'][0].get('urn')
         if cpr and cpr.startswith('urn:dk:cpr:person:'):
-            cpr = int(cpr[18:])
+            cpr = cpr[18:]
 
         return {
             "uuid": userid,

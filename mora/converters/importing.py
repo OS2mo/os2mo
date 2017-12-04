@@ -194,7 +194,7 @@ def load_data(sheets, exact=False):
             if 'tilknyttedepersoner' in obj and not obj['tilknyttedepersoner']:
                 hired = util.parsedatetime(obj['fra'])
 
-                obj['tilknyttedepersoner'] = int('{:%d%m%Y}{:04d}'.format(
+                obj['tilknyttedepersoner'] = int('{:%d%m%y}{:04d}'.format(
                     # randomly assume that everyone was hired on their
                     # 32nd birthday (note: 32 is divible by four,
                     # which is a rather useful property)

@@ -118,10 +118,20 @@ def list_employees():
     start = int(flask.request.args.get('start', 0))
     query = flask.request.args.get('query')
 
+    if query:
+        search = {
+            'vilkaarligattr': '%{}%'.format(query),
+        }
+    else:
+        search = {
+            'bvn': '%',
+        }
+
+
     ids = reading.list_employees(
-        vilkaarligattr='%{}%'.format(query),
         limit=limit,
         start=start,
+        **search,
     )
 
     return flask.jsonify(
@@ -131,7 +141,7 @@ def list_employees():
     )
 
 
-@app.route('/e/<int:cpr_number>/')
+@app.route('/e/<int(fixed_digits=10):cpr_number>/')
 @util.restrictargs()
 def get_employee_by_cpr(cpr_number):
     ids = reading.list_employees(

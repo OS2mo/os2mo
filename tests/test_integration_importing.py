@@ -300,13 +300,84 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
+        with self.subTest('users'):
+            for user in self.client.get('/e/').json:
+                print(user)
+                self.assertRegex(user['user-key'], r'\A\d{10}\Z')
+
+        with self.subTest('organisations'):
+            self.assertRequestResponse(
+                '/o/',
+                [
+                    {
+                        'hierarchy': {
+                            'children': [],
+                            'hasChildren': True,
+                            'name': 'Aarhus Kommune',
+                            'org': '59141156-ed0b-457c-9535-884447c5220b',
+                            'user-key': 'ÅRHUS',
+                            'uuid': '746eeba3-30a9-4c0a-8d22-c6f34af1095f',
+                            'valid-from': '2016-01-01T01:00:00+01:00',
+                            'valid-to': 'infinity',
+                        },
+                        'name': 'Aarhus Kommune',
+                        'user-key': 'Aarhus Kommune',
+                        'uuid': '59141156-ed0b-457c-9535-884447c5220b',
+                        'valid-from': '01-01-1976',
+                        'valid-to': 'infinity',
+                    },
+                    {
+                        'hierarchy': {
+                            'children': [],
+                            'hasChildren': True,
+                            'name': 'Magenta ApS',
+                            'org': '8efbd074-ad2a-4e6a-afec-1d0b1891f566',
+                            'user-key': 'MAGENTA',
+                            'uuid': '01e479c4-66ef-42aa-877e-15f0512f792c',
+                            'valid-from': '15-11-1999',
+                            'valid-to': 'infinity',
+                        },
+                        'name': 'Magenta ApS',
+                        'user-key': 'Magenta ApS',
+                        'uuid': '8efbd074-ad2a-4e6a-afec-1d0b1891f566',
+                        'valid-from': '15-11-1999',
+                        'valid-to': 'infinity',
+                    },
+                ],
+            )
+
+        with self.subTest('users'):
+            self.assertRequestResponse(
+                '/e/',
+                [
+                    {
+                        "name": "Hans Bruger",
+                        "nick-name": "bruger",
+                        "user-key": '1011101010',
+                        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+                    },
+                    {
+                        'name': 'Joe User',
+                        'nick-name': 'user',
+                        'user-key': '0101001010',
+                        'uuid': 'cd2dcfad-6d34-4553-9fee-a7023139a9e8',
+                    },
+                    {
+                        'name': 'MAAAAAM',
+                        'nick-name': 'mam',
+                        'user-key': '1402840002',
+                        'uuid': 'f715a2c9-a425-4cc9-b69b-7d89aaedece4'
+                    },
+                ]
+            )
+
         with self.subTest('get user by cpr'):
             self.assertRequestResponse(
-                '/e/101120101010/',
+                '/e/1011101010/',
                 {
                     "name": "Hans Bruger",
                     "nick-name": "bruger",
-                    "user-key": 101120101010,
+                    "user-key": '1011101010',
                     "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
                 },
             )
@@ -317,7 +388,7 @@ class IntegrationTests(util.LoRATestCase):
                 {
                     "name": "Hans Bruger",
                     "nick-name": "bruger",
-                    "user-key": 101120101010,
+                    "user-key": '1011101010',
                     "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
                 },
             )
