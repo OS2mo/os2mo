@@ -127,7 +127,6 @@ def list_employees():
             'bvn': '%',
         }
 
-
     ids = reading.list_employees(
         limit=limit,
         start=start,
