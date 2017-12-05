@@ -239,14 +239,19 @@ def load_cli(app):
                 sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
 
     @app.cli.command()
-    @click.argument('path')
+    @click.argument('paths', nargs=-1)
     @requires_auth
-    def get(path):
-        for objuuid in lora.fetch(path):
-            print(objuuid)
-            json.dump(lora.get(path.split('?')[0], objuuid),
-                      sys.stdout, indent=4)
-            sys.stdout.write('\n')
+    def get(paths):
+        for path in paths:
+            print(path)
+
+            for obj in lora.fetch(path) or [None]:
+                if isinstance(obj, str):
+                    print(obj)
+                    obj = lora.get(path.split('?')[0], obj)
+
+                json.dump(obj, sys.stdout, indent=4)
+                sys.stdout.write('\n')
 
     @app.cli.command()
     @click.argument('path')
@@ -256,37 +261,49 @@ def load_cli(app):
         lora.put(path, json.load(input))
 
     @app.cli.command('import')
-    @click.argument('spreadsheet', type=click.File('rb'))
-    @click.argument('url', required=False)
+    @click.argument('spreadsheets', nargs=-1, type=click.Path(exists=True))
+    @click.option('--destination-url', '-d',
+                  help='LoRA url')
     @click.option('--verbose', '-v', count=True,
                   help='Show more output.')
+    @click.option('--jobs', '-j', default=1, type=int,
+                  help='Amount of parallel requests.')
+    @click.option('--failfast', '-f', is_flag=True,
+                  help='Stop at first error.')
+    @click.option('--include', '-I', multiple=True,
+                  help='include only the given types.')
     @click.option('--check', '-c', is_flag=True,
                   help=('check if import would overwrite any existing '
                         'objects'))
+    @click.option('--exact', '-e', is_flag=True,
+                  help="don't calculate missing values")
     @requires_auth
-    def import_(url, spreadsheet, verbose, check):
+    def import_(destination_url, spreadsheets, verbose, jobs, failfast,
+                include, check, exact):
         '''
         Import an Excel spreadsheet into LoRa
         '''
 
         # apparently, you cannot call tzlocal after importing gevent/eventlets
-        util.now()
+        start = util.now()
 
         import grequests
 
-        sheetlines = importing.convert(spreadsheet)
+        sheetlines = importing.convert(spreadsheets,
+                                       include=include, exact=exact)
 
-        if not url:
+        if not destination_url:
             for method, path, obj in sheetlines:
                 print(method, path,
                       json.dumps(obj, indent=2))
+
             return
 
         requests = (
             grequests.request(
                 # check means that we always get GET anything
                 method if not check else 'GET',
-                url + path, session=lora.session,
+                destination_url + path, session=lora.session,
                 json=obj,
             )
             for method, path, obj in sheetlines
@@ -296,8 +313,13 @@ def load_cli(app):
             if verbose:
                 print(r.url)
             print(*exc.args)
+            if failfast:
+                raise exc
 
-        for r in grequests.imap(requests, size=6, exception_handler=fail):
+        total = 0
+
+        for r in grequests.imap(requests, size=jobs, exception_handler=fail):
+
             if verbose:
                 print(r.url)
 
@@ -312,7 +334,35 @@ def load_cli(app):
                     print(r.status_code, r.json())
                 except ValueError:
                     print(r.status_code, r.text)
-            r.raise_for_status()
+
+            if failfast:
+                r.raise_for_status()
+            else:
+                total += 1
+
+        duration = util.now() - start
+
+        print('imported {} objects in {} ({} per second)'.format(
+            total, duration, total / duration.total_seconds(),
+        ))
+
+    @app.cli.command()
+    @click.argument('spreadsheets', nargs=-1, type=click.Path(exists=True))
+    @click.option('--output', '-o', type=click.File('w'), default='-')
+    @click.option('--compact', '-c', is_flag=True)
+    @click.option('--exact', '-e', is_flag=True,
+                  help="don't calculate missing values")
+    @requires_auth
+    def preimport(output, spreadsheets, compact, exact):
+        '''
+        Convert an Excel spreadsheet into JSON for faster importing
+        '''
+        d = importing.load_data(spreadsheets, exact=exact)
+
+        if compact:
+            json.dump(d, output)
+        else:
+            json.dump(d, output, indent=2, sort_keys=True)
 
     @app.cli.command('load-fixtures')
     @click.option('--quiet', '-q', is_flag=True,

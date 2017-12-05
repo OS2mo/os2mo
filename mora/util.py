@@ -10,6 +10,7 @@ import datetime
 import functools
 import json
 import typing
+import uuid
 
 import flask
 import iso8601
@@ -54,7 +55,8 @@ def unparsedate(d: datetime.date) -> str:
     return d.strftime('%d-%m-%Y')
 
 
-def parsedatetime(s: str, default: str=None) -> datetime.datetime:
+def parsedatetime(s: str,
+                  default: datetime.datetime=None) -> datetime.datetime:
     if default is not None and not s:
         return default
     elif isinstance(s, datetime.date):
@@ -116,7 +118,7 @@ def fromtimestamp(t: int) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
 
 
-def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
+def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     '''Function decorator for checking and verifying Flask request arguments
 
     If any argument other than those listed is set and has a value,
@@ -183,3 +185,23 @@ def update_config(mapping, config_path):
 
     for key in mapping.keys() & overrides.keys():
         mapping[key] = overrides[key]
+
+
+def splitlist(xs, size):
+    if size <= 0:
+        raise ValueError('size must be positive!')
+
+    i = 0
+    nxs = len(xs)
+
+    while i < nxs:
+        yield xs[i:i + size]
+        i += size
+
+
+def is_uuid(v):
+    try:
+        uuid.UUID(v)
+        return True
+    except Exception:
+        return False

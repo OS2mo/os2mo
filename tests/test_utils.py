@@ -26,11 +26,40 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(util.to_lora_time('2017-07-31T22:00:00 00:00'),
                          '2017-07-31T22:00:00+00:00')
 
+        # 15 is not a valid month
+        self.assertRaises(ValueError, util.to_lora_time,
+                          '1999-15-11 00:00:00+01')
+
     def test_to_frontend_time(self):
         self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
                          '31-12-2017')
         self.assertEqual(util.to_frontend_time('infinity'), 'infinity')
         self.assertEqual(util.to_frontend_time('-infinity'), '-infinity')
+
+    def test_splitlist(self):
+        self.assertEqual(
+            list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)),
+            [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]],
+        )
+        self.assertEqual(
+            list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)),
+            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]],
+        )
+        self.assertEqual(
+            list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 11)),
+            [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
+        )
+        self.assertRaises(ValueError,
+                          list, util.splitlist([], 0))
+        self.assertRaises(ValueError,
+                          list, util.splitlist([], -1))
+        self.assertRaises(TypeError,
+                          list, util.splitlist([], 'horse'))
+
+    def test_is_uuid(self):
+        self.assertTrue(util.is_uuid('00000000-0000-0000-0000-000000000000'))
+        self.assertFalse(util.is_uuid('42'))
+        self.assertFalse(util.is_uuid(None))
 
 
 class TestAppUtils(unittest.TestCase):

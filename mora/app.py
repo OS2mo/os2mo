@@ -107,6 +107,64 @@ def list_organisations():
     return flask.jsonify(reading.list_organisations())
 
 
+#
+# EMPLOYEES
+#
+
+@app.route('/e/')
+@util.restrictargs('limit', 'query', 'start')
+def list_employees():
+    limit = int(flask.request.args.get('limit', 100))
+    start = int(flask.request.args.get('start', 0))
+    query = flask.request.args.get('query')
+
+    if query:
+        search = {
+            'vilkaarligattr': '%{}%'.format(query),
+        }
+    else:
+        search = {
+            'bvn': '%',
+        }
+
+    ids = reading.list_employees(
+        limit=limit,
+        start=start,
+        **search,
+    )
+
+    return flask.jsonify(
+        reading.get_employees(
+            ids,
+        )
+    )
+
+
+@app.route('/e/<int(fixed_digits=10):cpr_number>/')
+@util.restrictargs()
+def get_employee_by_cpr(cpr_number):
+    ids = reading.list_employees(
+        tilknyttedepersoner='urn:dk:cpr:person:{:010d}'.format(cpr_number),
+    )
+
+    if not ids:
+        return flask.jsonify({
+            'message': 'no such user',
+        }), 404
+    elif len(ids) > 1:
+        return flask.jsonify({
+            'message': 'multiple users found',
+        }), 404
+
+    return flask.jsonify(reading.get_employees(ids)[0])
+
+
+@app.route('/e/<uuid:id>/')
+@util.restrictargs()
+def get_employee(id):
+    return flask.jsonify(reading.get_employees([id])[0])
+
+
 # --- Writing to LoRa --- #
 
 
@@ -285,7 +343,9 @@ def full_hierarchy(orgid):
         r = reading.full_hierarchies(str(orgid), str(orgid), **params)
 
         if r:
-            return flask.jsonify(reading.wrap_in_org(str(orgid), r[0]))
+            c = lora.Connector(effective_date=args.get('effective-date', None))
+
+            return flask.jsonify(reading.wrap_in_org(c, str(orgid), r[0]))
         else:
             return '', 404
 
@@ -328,25 +388,25 @@ def get_orgunit_history(orgid, unitid):
     return flask.jsonify(list(r)) if r else ('', 404)
 
 
-@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/<role>/')
-def get_role(orgid, unitid, role):
+ROLE_TYPES = {
+    'engagement': reading.get_engagements,
+    'contact-channel': reading.get_contact_channels,
+    'location': reading.get_locations,
+}
+ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
+
+
+@app.route('/e/<uuid:userid>/role-types/' + ROLE_TYPE_SUFFIX)
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
+           ROLE_TYPE_SUFFIX)
+@util.restrictargs('effective-date', 'validity', 't')
+def get_role(role, **kwargs):
     validity = flask.request.args.get('validity')
     effective_date = flask.request.args.get('effective-date')
 
-    getters = {
-        'contact-channel': reading.get_contact_channels,
-        'location': reading.get_locations,
-    }
-
-    if role not in getters:
-        # equivalent to raising a ValueError, but without the logging;
-        # it's too spammy
-        return flask.jsonify({
-            'status': 400,
-            'message': 'unsupported role {!r}'.format(role),
-        }), 400
-
-    r = getters[role](unitid, validity=validity, effective_date=effective_date)
+    r = ROLE_TYPES[role](validity=validity,
+                         effective_date=effective_date,
+                         **kwargs)
 
     if r:
         return flask.jsonify(r)
@@ -360,8 +420,26 @@ def get_role(orgid, unitid, role):
 
 # This one is used when creating new "Enheder"
 @app.route('/org-unit/type')
+@util.restrictargs()
 def list_classes():
-    return flask.jsonify(reading.get_classes())
+    # TODO: require an organisation parameter
+
+    return flask.jsonify(reading.get_classes("Enhedstype"))
+
+
+@app.route(
+    '/role-types/engagement/facets/<any("type", "job-title"):facet>/classes/',
+)
+@util.restrictargs()
+def get_engagement_classes(facet):
+    # TODO: require a unit or organisation parameter?
+
+    return flask.jsonify(reading.get_classes({
+        "type": "Funktionstype",
+        "job-title": "Stillingsbetegnelse",
+    }[facet]))
+
+    return flask.jsonify(reading.get_contact_types())
 
 
 @app.route('/addressws/geographical-location')

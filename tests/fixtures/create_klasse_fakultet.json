@@ -23,5 +23,19 @@
             }
         ]
     },
-    "note": "Automatisk indl\u00e6sning"
+    "relationer": {
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                "virkning": {
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2016-01-01 00:00:00+01",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+   "note": "Automatisk indl\u00e6sning"
 }

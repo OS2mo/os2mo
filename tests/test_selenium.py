@@ -125,6 +125,8 @@ class RightsTests(util.LiveLoRATestCase):
 
             return len(items)
 
+        self.browser.implicitly_wait(5)
+
         # focus the address search field
         search_field = self.browser.find_element_by_css_selector(
             '#search-address input[name=query]',

@@ -13,6 +13,7 @@ import json
 import freezegun
 
 from mora import lora
+from mora import util as mora_util
 from . import util
 
 
@@ -47,7 +48,7 @@ class TestWritingIntegration(util.LoRATestCase):
                     'role-type': 'location',
                     'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '-infinity',
+                    'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
                 },
             ],
@@ -128,7 +129,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         'role-type': 'location',
                         'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '-infinity',
+                        'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
                     },
                 ],
@@ -153,7 +154,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "-infinity",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity"
             },
         )
@@ -176,7 +177,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "-infinity",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity"
             },
         )
@@ -199,7 +200,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": True,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "-infinity",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity"
             },
         )
@@ -221,7 +222,11 @@ class TestWritingIntegration(util.LoRATestCase):
                 'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 'parent': None,
                 'parent-object': None,
-                'type': {'name': 'Afdeling'},
+                'type': {
+                    'name': 'Afdeling',
+                    'user-key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
                 'user-key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'valid-from': '01-01-2016',
@@ -316,6 +321,11 @@ class TestWritingIntegration(util.LoRATestCase):
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
         with self.subTest('rename'):
+            self.assertRequestFails(
+                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                404,
+            )
+
             r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid), )
 
             self.assert200(r)
@@ -332,13 +342,21 @@ class TestWritingIntegration(util.LoRATestCase):
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': None,
                         'parent-object': None,
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                         'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
                     },
-                    'type': {'name': 'Afdeling'},
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
                     'user-key': 'NyEnhed',
                     'uuid': uuid,
                     'valid-from': '01-02-2016',
@@ -349,6 +367,11 @@ class TestWritingIntegration(util.LoRATestCase):
             postdata = r.json[0]
             postdata["name"] = "MindreNyEnhed"
             postdata["valid-from"] = "05-02-2016"
+
+            self.assertLess(
+                mora_util.parsedatetime(postdata["valid-from"]),
+                mora_util.now(),
+            )
 
             self.assertRequestResponse(
                 '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
@@ -401,13 +424,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-02-2016',
-                            'valid-to': '05-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-02-2016',
@@ -443,13 +474,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-02-2016',
-                            'valid-to': '05-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-02-2016',
@@ -466,13 +505,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '05-02-2016',
-                            'valid-to': '08-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '05-02-2016',
@@ -509,13 +556,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-02-2016',
-                            'valid-to': '05-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-02-2016',
@@ -532,13 +587,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '05-02-2016',
-                            'valid-to': '08-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '05-02-2016',
@@ -561,18 +624,25 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'valid-from': '01-01-2016',
                             'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
-                        # FIXME: is this right?
-                        'valid-from': '01-02-2016',
-                        'valid-to': 'infinity',
+                        'valid-from': '08-02-2016',
+                        'valid-to': '01-10-2016',
                     },
                 ]
             )
@@ -591,13 +661,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-10-2016',
+                            'valid-from': '01-01-2016',
                             'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-10-2016',
@@ -701,13 +779,21 @@ class TestWritingIntegration(util.LoRATestCase):
                 "org": ORGID,
                 "parent": None,
                 "parent-object": None,
-                "type": {"name": "Afdeling"},
+                'type': {
+                    'name': 'Afdeling',
+                    'user-key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
                 "user-key": "root",
                 "uuid": PARENTID,
                 "valid-from": "01-01-2016",
                 "valid-to": "infinity",
             },
-            'type': {'name': 'Institut'},
+            'type': {
+                'name': 'Institut',
+                'user-key': 'inst',
+                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+            },
             "user-key": "hum",
             "uuid": UNITID,
             "valid-from": "01-01-2016",
@@ -767,16 +853,20 @@ class TestWritingIntegration(util.LoRATestCase):
                     "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "parent": None,
                     "parent-object": None,
-                    "type": {
-                        "name": "Afdeling"
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
                     "user-key": "root",
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "valid-from": "2015-12-31T23:00:00+00:00",
                     "valid-to": "infinity"
                 },
-                "type": {
-                    "name": "Fakultet"
+                'type': {
+                    'name': 'Fakultet',
+                    'user-key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
                 "user-key": "samf",
                 "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
@@ -801,7 +891,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 'brugervendtnoegle': 'samf',
                 'enhedsnavn': 'Samfundsvidenskabelige fakultet',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
                     'to': '2017-08-01 00:00:00+02',
                     'to_included': False
@@ -859,7 +949,11 @@ class TestWritingIntegration(util.LoRATestCase):
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'user-key': 'frem',
-                    'type': {'name': 'Afdeling'},
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'valid-from': '01-01-2016',
                     'valid-to': '01-01-2019',
@@ -883,24 +977,6 @@ class TestWritingIntegration(util.LoRATestCase):
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': '2019-01-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '-infinity',
-                                'from_included': True,
-                                'to': '2016-01-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '2019-01-01 00:00:00+01',
-                                'from_included': True,
-                                'to': 'infinity',
                                 'to_included': False,
                             },
                         },
@@ -928,15 +1004,6 @@ class TestWritingIntegration(util.LoRATestCase):
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': '2017-03-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '-infinity',
-                                'from_included': True,
-                                'to': '2016-01-01 00:00:00+01',
                                 'to_included': False,
                             },
                         },
@@ -1014,15 +1081,6 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'gyldighed': 'Inaktiv',
                 'virkning': {
-                    'from': '-infinity',
-                    'from_included': True,
-                    'to': '2016-01-01 00:00:00+01',
-                    'to_included': False
-                }
-            },
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': {
                     'from': '2017-03-01 00:00:00+01',
                     'from_included': True,
                     'to': 'infinity',
@@ -1053,15 +1111,6 @@ class TestWritingIntegration(util.LoRATestCase):
                     'from': '2016-01-01 00:00:00+01',
                     'from_included': True,
                     'to': '2017-03-14 00:00:00+01',
-                    'to_included': False
-                }
-            },
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': {
-                    'from': '-infinity',
-                    'from_included': True,
-                    'to': '2016-01-01 00:00:00+01',
                     'to_included': False
                 }
             },
@@ -1155,16 +1204,24 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'parent-object': None,
-                            'type': {'name': 'Fakultet'},
+                            'type': {
+                                'name': 'Fakultet',
+                                'user-key': 'fak',
+                                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                            },
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                             'valid-from': '01-01-2017',
                             'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Institut'},
+                        'type': {
+                            'name': 'Institut',
+                            'user-key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        },
                         'user-key': 'hum',
                         'uuid': org_unit,
-                        'valid-from': '01-01-2016',
+                        'valid-from': '01-05-2017',
                         'valid-to': 'infinity',
                     },
                 ],
@@ -1185,13 +1242,21 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'valid-from': '01-01-2016',
-                            'valid-to': '01-05-2017',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Institut'},
+                        'type': {
+                            'name': 'Institut',
+                            'user-key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        },
                         'user-key': 'hum',
                         'uuid': org_unit,
                         'valid-from': '01-01-2016',
@@ -1278,54 +1343,56 @@ class TestWritingIntegration(util.LoRATestCase):
         unitid = r.json['uuid']
         unitpath = '/o/{}/org-unit/{}/'.format(org, unitid)
 
-        self.assertRequestResponse(unitpath + 'role-types/contact-channel/', [
-            {
-                'contact-info': '1337',
-                'location': {
-                    "name": "Åbovej 5, Åbo, 8260 Viby J",
-                    'user-key': '07519659___5_______',
-                    'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
-                    'valid-from': '2000-02-05T15:27:05+00:00',
+        self.assertRequestFails(unitpath + 'role-types/contact-channel/', 404)
+        self.assertRequestResponse(
+            unitpath + 'role-types/contact-channel/?validity=future', [
+                {
+                    'contact-info': '1337',
+                    'location': {
+                        "name": "Åbovej 5, Åbo, 8260 Viby J",
+                        'user-key': '07519659___5_______',
+                        'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
+                        'valid-from': '2000-02-05T15:27:05+00:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    },
+                    'type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
+                    'valid-from': '01-08-2017',
                     'valid-to': 'infinity',
-                    'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    'visibility': {
+                        'name': 'Må vises eksternt',
+                        'user-key': 'external',
+                        'uuid': 'c67d7315-a0a2-4238-a883-f33aa7ddabc2',
+                    },
                 },
-                'type': {
-                    'name': 'Telefonnummer',
-                    'prefix': 'urn:magenta.dk:telefon:',
-                    'user-key': 'Telephone_number',
-                },
-                'valid-from': '-infinity',
-                'valid-to': 'infinity',
-                'visibility': {
-                    'name': 'Må vises eksternt',
-                    'user-key': 'external',
-                    'uuid': 'c67d7315-a0a2-4238-a883-f33aa7ddabc2',
-                },
-            },
-            {
-                'contact-info': '42',
-                'location': {
-                    "name": "Åbovej 5, Åbo, 8260 Viby J",
-                    'user-key': '07519659___5_______',
-                    'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
-                    'valid-from': '2000-02-05T15:27:05+00:00',
+                {
+                    'contact-info': '42',
+                    'location': {
+                        "name": "Åbovej 5, Åbo, 8260 Viby J",
+                        'user-key': '07519659___5_______',
+                        'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
+                        'valid-from': '2000-02-05T15:27:05+00:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    },
+                    'type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
+                    'valid-from': '01-08-2017',
                     'valid-to': 'infinity',
-                    'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    'visibility': {
+                        'name': 'Hemmeligt',
+                        'user-key': 'secret',
+                        'uuid': '8d37a1ec-3d58-461f-821f-c2a7bb6bc861',
+                    },
                 },
-                'type': {
-                    'name': 'Telefonnummer',
-                    'prefix': 'urn:magenta.dk:telefon:',
-                    'user-key': 'Telephone_number',
-                },
-                'valid-from': '-infinity',
-                'valid-to': 'infinity',
-                'visibility': {
-                    'name': 'Hemmeligt',
-                    'user-key': 'secret',
-                    'uuid': '8d37a1ec-3d58-461f-821f-c2a7bb6bc861',
-                },
-            },
-        ])
+            ])
 
     @freezegun.freeze_time('2017-08-01', tz_offset=+1)
     def test_should_new_add_past_and_future_locations_correctly(self):
@@ -1368,7 +1435,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
                     'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
@@ -1378,7 +1445,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
                     'notetekst': 'v0:external:b1f1817d-5f02-'
                                  '4331-b8b3-97330a5d3197',
@@ -1437,7 +1504,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
                     'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
@@ -1447,7 +1514,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
                     'notetekst': 'v0:external:b1f1817d-5f02-'
                                  '4331-b8b3-97330a5d3197',
