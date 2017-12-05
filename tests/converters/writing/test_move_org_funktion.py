@@ -30,7 +30,7 @@ class TestMoveOrgFunktion(unittest.TestCase):
                     }
                 }]
             },
-            'note': 'Oprettet i MO',
+            'note': 'Flyt engagement',
             'relationer': {
                 'tilknyttedeenheder': [{
                     'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
@@ -105,7 +105,7 @@ class TestMoveOrgFunktion(unittest.TestCase):
                     }
                 }]
             },
-            'note': 'Oprettet i MO',
+            'note': 'Flyt engagement',
             'relationer': {
                 'tilknyttedeenheder': [{
                     'uuid': 'a1d4dabc-3fa3-496f-9b09-c19748547c37',

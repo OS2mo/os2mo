@@ -260,6 +260,7 @@ def create_org_funktion(req: dict) -> dict:
 
 def move_org_funktion(orgfunk, org_unit_uuid, startdate, enddate):
     orgfunk['relationer']['tilknyttedeenheder'][0]['uuid'] = org_unit_uuid
+    orgfunk['note'] = 'Flyt engagement'
     new_virkning = _create_virkning(startdate, enddate)
     return _set_virkning(orgfunk, new_virkning, True)
 

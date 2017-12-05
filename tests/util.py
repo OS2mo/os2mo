@@ -96,6 +96,10 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
         'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
     }
 
+    functions = {
+        'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
+    }
+
     if not minimal:
         units.update({
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -122,6 +126,13 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
             'organisation/organisationenhed',
             'create_organisationenhed_{}.json'.format(unitkey),
             unitid,
+        ))
+
+    for funckey, funcid in functions.items():
+        fixtures.append((
+            'organisation/organisationfunktion',
+            'create_organisationfunktion_{}.json'.format(funckey),
+            funcid,
         ))
 
     for path, fixture_name, uuid in fixtures:
