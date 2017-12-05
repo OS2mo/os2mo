@@ -1434,12 +1434,6 @@ class TestWritingIntegration(util.LoRATestCase):
 
         new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
 
-        # Check that the GET requests made to MORa by the frontend
-        # before the actual POST request are working
-
-        # Convert 'now' (from freezegun) to epoch seconds
-        now = datetime.datetime.today().strftime('%s') + '000'
-
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -1468,7 +1462,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         expected_old = util.jsonfile_to_dict(
             'tests/integration_test_data/'
-            'should_move_engagement_correctly_old.json',
+            'should_move_engagement_correctly_present_old.json',
         )
 
         actual_old = c.organisationfunktion.get(engagementid)
@@ -1483,7 +1477,133 @@ class TestWritingIntegration(util.LoRATestCase):
         # with the new org unit associated
         expected_new = util.jsonfile_to_dict(
             'tests/integration_test_data/'
-            'should_move_engagement_correctly_new.json',
+            'should_move_engagement_correctly_present_new.json',
+        )
+
+        # Find the new engagement
+        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        assert (len(engagements) == 2)
+        new_engagement = list(
+            filter(lambda x: x != engagementid, engagements))[-1]
+        actual_new = c.organisationfunktion.get(new_engagement)
+
+        del actual_new['fratidspunkt'], actual_new['tiltidspunkt'], actual_new[
+            'brugerref']
+
+        self.assertDictEqual(actual_new, expected_new)
+
+    def test_should_move_employee_correctly_future_no_overwrite(self):
+        self.load_sample_structures()
+
+        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
+
+        # Check the POST request
+        c = lora.Connector(effective_date='2002-01-01',
+                           virkningfra='-infinity', virkningtil='infinity')
+
+        engagementid = 'd000591f-8705-4324-897a-075e3623f37b'
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        self.assertRequestResponse(
+            '/e/{}/actions/move?date={}&org-unit={}'.format(
+                userid,
+                '01-01-2002',
+                new_org_unit),
+            [],
+            json={
+                "presentEngagementIds": [],
+                "futureEngagementIds": [{
+                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "overwrite": 0
+                }],
+                "presentRoleIds": [],
+                "futureRoleIds": []
+            }
+        )
+
+        # We expect the existing engagement to remain unchanged
+        expected_old = util.jsonfile_to_dict(
+            'tests/integration_test_data/'
+            'should_move_engagement_correctly_future_old.json',
+        )
+
+        actual_old = c.organisationfunktion.get(engagementid)
+
+        # drop lora-generated timestamps & users
+        del actual_old['fratidspunkt'], actual_old['tiltidspunkt'], actual_old[
+            'brugerref']
+
+        self.assertDictEqual(actual_old, expected_old)
+
+        # We expect a new engagement to have been created with the new org
+        # unit, active from the supplied date to the start date of the
+        # existing engagement
+        expected_new = util.jsonfile_to_dict(
+            'tests/integration_test_data/'
+            'should_move_engagement_correctly_future_new.json',
+        )
+
+        # Find the new engagement
+        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        assert (len(engagements) == 2)
+        new_engagement = list(
+            filter(lambda x: x != engagementid, engagements))[-1]
+        actual_new = c.organisationfunktion.get(new_engagement)
+
+        del actual_new['fratidspunkt'], actual_new['tiltidspunkt'], actual_new[
+            'brugerref']
+
+        self.assertDictEqual(actual_new, expected_new)
+
+    def test_should_move_employee_correctly_future_overwrite(self):
+        self.load_sample_structures()
+
+        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
+
+        # Check the POST request
+        c = lora.Connector(effective_date='2002-01-01',
+                           virkningfra='-infinity', virkningtil='infinity')
+
+        engagementid = 'd000591f-8705-4324-897a-075e3623f37b'
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        self.assertRequestResponse(
+            '/e/{}/actions/move?date={}&org-unit={}'.format(
+                userid,
+                '01-01-2002',
+                new_org_unit),
+            [],
+            json={
+                "presentEngagementIds": [],
+                "futureEngagementIds": [{
+                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "overwrite": 1
+                }],
+                "presentRoleIds": [],
+                "futureRoleIds": []
+            }
+        )
+
+        # We expect the existing engagement to be completely inactive
+        expected_old = util.jsonfile_to_dict(
+            'tests/integration_test_data/'
+            'should_move_engagement_correctly_future_old_overwrite.json',
+        )
+
+        actual_old = c.organisationfunktion.get(engagementid)
+
+        # drop lora-generated timestamps & users
+        del actual_old['fratidspunkt'], actual_old['tiltidspunkt'], actual_old[
+            'brugerref']
+
+        self.assertDictEqual(actual_old, expected_old)
+
+        # We expect a new engagement to have been created with the new org
+        # unit, active from the supplied date to the start date of the
+        # existing engagement
+        expected_new = util.jsonfile_to_dict(
+            'tests/integration_test_data/'
+            'should_move_engagement_correctly_future_new_overwrite.json',
         )
 
         # Find the new engagement
