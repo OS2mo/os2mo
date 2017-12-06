@@ -1,0 +1,89 @@
+{
+    "tilstande": {
+        "organisationfunktiongyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from_included": true,
+                    "from": "2010-01-01 00:00:00+01",
+                    "to_included": false,
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "livscykluskode": "Importeret",
+    "attributter": {
+        "organisationfunktionegenskaber": [
+            {
+                "brugervendtnoegle": "973f5b52-0ce1-421e-bc0a-c2d7b7946f79",
+                "virkning": {
+                    "to_included": false,
+                    "from": "2010-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity"
+                },
+                "funktionsnavn": "Name"
+            }
+        ]
+    },
+    "relationer": {
+        "tilknyttedebrugere": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "from": "2010-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity"
+                },
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+            }
+        ],
+        "opgaver": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "from": "2010-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity"
+                },
+                "uuid": "d67949ed-fa49-4d96-89f0-afd4d1be8324"
+            }
+        ],
+        "organisatoriskfunktionstype": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "from": "2010-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity"
+                },
+                "uuid": "d67949ed-fa49-4d96-89f0-afd4d1be8324"
+            }
+        ],
+        "tilknyttedeorganisationer": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "from": "2010-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity"
+                },
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        ],
+        "tilknyttedeenheder": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "from": "2010-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity"
+                },
+                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning"
+}
+

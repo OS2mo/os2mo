@@ -453,6 +453,7 @@ class IntegrationTests(util.LoRATestCase):
                             'type': {
                                 'name': 'Kontor',
                                 'user-key': 'Kontor',
+                                'userKey': 'Kontor',
                                 'uuid': '333b3660-438b-4a5a-9982-2790ed4626d8',
                             },
                             'user-key': 'MAGENTA-HQ',
@@ -495,6 +496,7 @@ class IntegrationTests(util.LoRATestCase):
                             "type": {
                                 "name": "Kontor",
                                 "user-key": "Kontor",
+                                "userKey": "Kontor",
                                 "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8",
                             },
                             "user-key": "MAGENTA-AAR",

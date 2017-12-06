@@ -1,0 +1,89 @@
+{
+    "tilstande": {
+        "organisationfunktiongyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                }
+            }
+        ]
+    },
+    "livscykluskode": "Opstaaet",
+    "attributter": {
+        "organisationfunktionegenskaber": [
+            {
+                "brugervendtnoegle": "973f5b52-0ce1-421e-bc0a-c2d7b7946f79",
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                },
+                "funktionsnavn": "Name"
+            }
+        ]
+    },
+    "relationer": {
+        "tilknyttedebrugere": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                },
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+            }
+        ],
+        "opgaver": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                },
+                "uuid": "d67949ed-fa49-4d96-89f0-afd4d1be8324"
+            }
+        ],
+        "organisatoriskfunktionstype": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                },
+                "uuid": "d67949ed-fa49-4d96-89f0-afd4d1be8324"
+            }
+        ],
+        "tilknyttedeorganisationer": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                },
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        ],
+        "tilknyttedeenheder": [
+            {
+                "virkning": {
+                    "to_included": false,
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2002-01-01 00:00:00+01"
+                },
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
+            }
+        ]
+    },
+    "note": "Flyt engagement"
+}
+

@@ -87,6 +87,147 @@ def get_employee(id):
 
 
 # --- Writing to LoRa --- #
+@app.route('/e/<uuid:employee_uuid>/actions/move', methods=['POST'])
+def move_employee(employee_uuid):
+    org_unit_uuid = flask.request.args.get('org-unit')
+    date = flask.request.args.get('date')
+
+    req = flask.request.get_json()
+
+    present_engagements = req.get('presentEngagementIds')
+    future_engagements = req.get('futureEngagementIds')
+    # TODO: Handle tilknytning
+
+    c = lora.Connector(effective_date=date)
+    for engagement in present_engagements:
+        engagement_uuid = engagement.get('uuid')
+
+        # Fetch current orgfunk
+        orgfunk = c.organisationfunktion.get(engagement_uuid)
+
+        # Fetch current engagement start and end
+        virkning = get_orgfunk_virkning(orgfunk)
+        startdate = virkning.get('from')
+        enddate = virkning.get('to')
+
+        # Inactivate the current orgfunk at the move date
+        inactivate_payload = writing.inactivate_org_funktion(startdate,
+                                                             date)
+        c.organisationfunktion.update(inactivate_payload, engagement_uuid)
+
+        # Create new orgfunk active from the move date, with new org unit
+        new_orgfunk_payload = writing.move_org_funktion(orgfunk, org_unit_uuid,
+                                                        date, enddate)
+        c.organisationfunktion.create(new_orgfunk_payload)
+
+    c = lora.Connector(effective_date=date, validity='future')
+    for engagement in future_engagements:
+        engagement_uuid = engagement.get('uuid')
+
+        orgfunk = c.organisationfunktion.get(engagement_uuid)
+
+        virkning = get_orgfunk_virkning(orgfunk)
+        startdate = virkning.get('from')
+        enddate = virkning.get('to')
+
+        if engagement.get('overwrite') == 1:
+            # Inactivate original orgfunk
+            inactivate_payload = writing.fully_inactivate_org_funktion(
+                startdate, enddate)
+            c.organisationfunktion.update(inactivate_payload, engagement_uuid)
+            # Create new orgfunk with new enhed from move date
+            new_orgfunk_payload = writing.move_org_funktion(orgfunk,
+                                                            org_unit_uuid,
+                                                            date, enddate)
+            c.organisationfunktion.create(new_orgfunk_payload)
+        elif engagement.get('overwrite') == 0:
+            # Create new orgfunk active from the move date, to the start of
+            # the original orgfunk
+            new_orgfunk_payload = writing.move_org_funktion(orgfunk,
+                                                            org_unit_uuid,
+                                                            date, startdate)
+            c.organisationfunktion.create(new_orgfunk_payload)
+
+    return flask.jsonify([]), 200
+
+
+def get_orgfunk_virkning(orgfunk):
+    return [
+        g['virkning'] for g in
+        orgfunk['tilstande']['organisationfunktiongyldighed']
+        if g['gyldighed'] == 'Aktiv'
+    ][0]
+
+
+@app.route('/e/<uuid:employee_uuid>/actions/terminate', methods=['POST'])
+def terminate_employee(employee_uuid):
+    date = flask.request.args.get('date')
+
+    engagements = reading.get_engagements(employee_uuid, effective_date=date)
+    for engagement in engagements:
+        engagement_uuid = engagement.get('uuid')
+        terminate_engagement(engagement_uuid, date)
+
+    # TODO: Terminate Tilknytning
+    # TODO: Terminate IT
+    # TODO: Terminate Kontakt
+    # TODO: Terminate Rolle
+    # TODO: Terminate Leder
+    # TODO: Terminate Orlov
+
+    return flask.jsonify(employee_uuid), 200
+
+
+def terminate_engagement(engagement_uuid, enddate):
+    c = lora.Connector(effective_date=enddate)
+
+    orgfunk = c.organisationfunktion.get(engagement_uuid)
+
+    # Create inactivation object
+    virkning = get_orgfunk_virkning(orgfunk)
+    startdate = virkning.get('from')
+
+    payload = writing.inactivate_org_funktion(startdate, enddate)
+    c.organisationfunktion.update(payload, engagement_uuid)
+
+
+@app.route('/mo/e/<uuid:brugerid>/actions/role', methods=['POST'])
+def create_employee_role(brugerid):
+    """
+    Catch-all function for creating Employees roles
+
+    :param brugerid:  BrugerID from MO. Not used.
+    :return:
+    """
+    reqs = flask.request.get_json()
+
+    for req in reqs:
+        c = lora.Connector()
+        role_type = req.get('role-type')
+
+        handlers = {
+            'engagement': create_engagement,
+            # 'association': create_association,
+            # 'it': create_it,
+            # 'contact': create_contact,
+            # 'leader': create_leader,
+        }
+
+        handler = handlers.get(role_type)
+
+        if not handler:
+            return flask.jsonify(
+                {'message': 'unsupported role type {}'.format(role_type)}), 400
+
+        handler(req, c)
+
+    return flask.jsonify('Success'), 200
+
+
+def create_engagement(req, c):
+    # TODO: Validation
+    engagement = writing.create_org_funktion(req)
+    c.organisationfunktion.create(engagement)
 
 
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])

@@ -313,3 +313,72 @@ class TestSetVirkning(unittest.TestCase):
         self.assertEqual(writing._set_virkning(input_org_unit, self.virkning),
                          output_org_unit,
                          'Virkning not added correctly for full org unit')
+
+    def test_should_add_or_overwrite_virkning_correctly(self):
+        input_obj = {
+            'attributter': {
+                'organisationenhedegenskaber': [
+                    {
+                        'enhedsnavn': 'test unit',
+                        'brugervendtnoegle': 'test bvn',
+                        'virkning': {
+                            'from': '2015-11-30T00:00:00+01:00',
+                            'to': '2016-11-30T00:00:00+01:00'
+                        },
+                    },
+                ],
+            },
+            'tilstande': {
+                'organisationenhedgyldighed': [
+                    {
+                        'gyldighed': 'Aktiv',
+                    },
+                ],
+            },
+            'enhedstype': [
+                {
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                    'virkning': {
+                        'from': '2011-11-30T00:00:00+01:00',
+                        'to': '2012-11-30T00:00:00+01:00'
+                    },
+                }
+            ]
+        }
+        output_obj = {
+            'attributter': {
+                'organisationenhedegenskaber': [
+                    {
+                        'enhedsnavn': 'test unit',
+                        'brugervendtnoegle': 'test bvn',
+                        'virkning': {
+                            'from': '2017-11-30T00:00:00+01:00',
+                            'to': '2018-11-30T00:00:00+01:00'
+                        },
+                    },
+                ],
+            },
+            'tilstande': {
+                'organisationenhedgyldighed': [
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2017-11-30T00:00:00+01:00',
+                            'to': '2018-11-30T00:00:00+01:00'
+                        },
+                    },
+                ],
+            },
+            'enhedstype': [
+                {
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                    'virkning': {
+                        'from': '2017-11-30T00:00:00+01:00',
+                        'to': '2018-11-30T00:00:00+01:00'
+                    },
+                }
+            ]
+        }
+        self.assertEqual(
+            writing._set_virkning(input_obj, self.virkning, True), output_obj,
+            'Virkning not added and overwritten correctly')

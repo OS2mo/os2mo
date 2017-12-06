@@ -38,7 +38,7 @@ class CodeStyleTests(unittest.TestCase):
         for dirpath, dirs, fns in os.walk(self.rootdir):
             reldirpath = os.path.relpath(dirpath, self.rootdir)
 
-            if 'pip-selfcheck.json' in fns:
+            if 'pip-selfcheck.json' in fns or 'pyvenv.cfg' in fns:
                 dirs[:] = []
                 continue
 

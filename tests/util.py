@@ -102,6 +102,10 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
 
     # TODO: add classifications, etc.
 
+    functions = {
+        'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
+    }
+
     if not minimal:
         units.update({
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -135,6 +139,13 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
             'organisation/organisationenhed',
             'create_organisationenhed_{}.json'.format(unitkey),
             unitid,
+        ))
+
+    for funckey, funcid in functions.items():
+        fixtures.append((
+            'organisation/organisationfunktion',
+            'create_organisationfunktion_{}.json'.format(funckey),
+            funcid,
         ))
 
     for path, fixture_name, uuid in fixtures:
@@ -327,7 +338,9 @@ class LoRATestCaseMixin(TestCaseMixin):
         # delete all objects in the test instance; this does 'leak'
         # information in that they continue to exist as registrations,
         # but it's faster than recreating the database fully
-        for t in lora.organisation, lora.organisationenhed, lora.klasse:
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        for t in map(c.__getattr__, c.scope_map):
             for objid in t(bvn='%'):
                 t.delete(objid)
 

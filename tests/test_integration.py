@@ -107,6 +107,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'type': {
                                 'name': 'Institut',
+                                'userKey': 'inst',
                                 'user-key': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
@@ -123,6 +124,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'type': {
                                 'name': 'Fakultet',
+                                'userKey': 'fak',
                                 'user-key': 'fak',
                                 'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                             },
@@ -142,6 +144,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Afdeling',
                         'user-key': 'afd',
+                        'userKey': 'afd',
                         'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
                     'valid-to': 'infinity'},
@@ -169,6 +172,7 @@ class IntegrationTests(util.LoRATestCase):
                             'valid-to': 'infinity',
                             'type': {
                                 'name': 'Institut',
+                                'userKey': 'inst',
                                 'user-key': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
@@ -185,6 +189,7 @@ class IntegrationTests(util.LoRATestCase):
                             'valid-to': 'infinity',
                             'type': {
                                 'name': 'Fakultet',
+                                'userKey': 'fak',
                                 'user-key': 'fak',
                                 'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                             },
@@ -200,6 +205,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Afdeling',
                         'user-key': 'afd',
+                        'userKey': 'afd',
                         'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
                     'valid-to': 'infinity'},
@@ -223,6 +229,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Institut',
                         'user-key': 'inst',
+                        'userKey': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                     },
                     'user-key': 'hum',
@@ -239,6 +246,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Fakultet',
                         'user-key': 'fak',
+                        'userKey': 'fak',
                         'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                     },
                     'user-key': 'samf',
@@ -274,6 +282,7 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': 'infinity',
                         'type': {
                             'name': 'Afdeling',
+                            'userKey': 'afd',
                             'user-key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
@@ -285,6 +294,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Institut',
                         'user-key': 'inst',
+                        'userKey': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                     },
                 }
@@ -312,6 +322,7 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': 'infinity',
                         'type': {
                             'name': 'Afdeling',
+                            'userKey': 'afd',
                             'user-key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
@@ -323,6 +334,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Institut',
                         'user-key': 'inst',
+                        'userKey': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                     },
                 }
@@ -349,6 +361,7 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': 'infinity',
                         'type': {
                             'name': 'Afdeling',
+                            'userKey': 'afd',
                             'user-key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
@@ -360,6 +373,7 @@ class IntegrationTests(util.LoRATestCase):
                     'type': {
                         'name': 'Institut',
                         'user-key': 'inst',
+                        'userKey': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                     },
                 }
@@ -421,6 +435,7 @@ class IntegrationTests(util.LoRATestCase):
                             'parent-object': None,
                             'type': {
                                 'name': 'Institut',
+                                'userKey': 'inst',
                                 'user-key': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
@@ -431,6 +446,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'type': {
                             'name': 'Afdeling',
+                            'userKey': 'afd',
                             'user-key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
@@ -473,6 +489,7 @@ class IntegrationTests(util.LoRATestCase):
                             'valid-to': '01-01-2019',
                             'type': {
                                 'name': 'Institut',
+                                'userKey': 'inst',
                                 'user-key': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
@@ -483,6 +500,7 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-to': '01-01-2018',
                         'type': {
                             'name': 'Afdeling',
+                            'userKey': 'afd',
                             'user-key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
@@ -512,12 +530,14 @@ class IntegrationTests(util.LoRATestCase):
                             'valid-to': '01-01-2019',
                             'type': {
                                 'name': 'Institut',
+                                'userKey': 'inst',
                                 'user-key': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
                         },
                         'type': {
                             'name': 'Afdeling',
+                            'userKey': 'afd',
                             'user-key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
@@ -568,6 +588,7 @@ class IntegrationTests(util.LoRATestCase):
                     'parent-object': None,
                     'type': {
                         'name': 'Afdeling',
+                        'userKey': 'afd',
                         'user-key': 'afd',
                         'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },

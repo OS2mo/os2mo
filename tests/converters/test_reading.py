@@ -350,6 +350,7 @@ class TemporalTests(test_util.TestCase):
                         'type': {
                             'name': 'Institut',
                             'user-key': 'inst',
+                            'userKey': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                         },
                         'user-key': 'hist',
@@ -360,6 +361,7 @@ class TemporalTests(test_util.TestCase):
                     'type': {
                         'name': 'Afdeling',
                         'user-key': 'afd',
+                        'userKey': 'afd',
                         'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
                     'user-key': 'frem',
@@ -391,6 +393,7 @@ class TemporalTests(test_util.TestCase):
                             'type': {
                                 'name': 'Institut',
                                 'user-key': 'inst',
+                                'userKey': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
                             'user-key': 'hist',
@@ -401,6 +404,7 @@ class TemporalTests(test_util.TestCase):
                         'type': {
                             'name': 'Afdeling',
                             'user-key': 'afd',
+                            'userKey': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
                         'user-key': 'frem',
@@ -432,6 +436,7 @@ class TemporalTests(test_util.TestCase):
                             'type': {
                                 'name': 'Institut',
                                 'user-key': 'inst',
+                                'userKey': 'inst',
                                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                             },
                             'user-key': 'hist',
@@ -442,6 +447,7 @@ class TemporalTests(test_util.TestCase):
                         'type': {
                             'name': 'Afdeling',
                             'user-key': 'afd',
+                            'userKey': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                         },
                         'user-key': 'frem',

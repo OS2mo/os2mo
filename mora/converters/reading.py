@@ -8,7 +8,7 @@
 
 import itertools
 import operator
-
+import json
 import uuid
 
 from . import addr
@@ -78,6 +78,7 @@ def get_unit_type(typerel) -> dict:
     return {
         'name': props.get('titel') or props['brugervendtnoegle'],
         'user-key': props['brugervendtnoegle'],
+        'userKey': props['brugervendtnoegle'],
         'uuid': typeid,
     }
 
@@ -521,6 +522,7 @@ def get_employees(uuids, **loraparams):
 
 
 def _convert_engagement(funcid, start, end, effect):
+    print('clucking bell', funcid, start, end, json.dumps(effect, indent=2))
     props = effect['attributter']['organisationfunktionegenskaber'][0]
     rels = effect['relationer']
 
@@ -530,12 +532,18 @@ def _convert_engagement(funcid, start, end, effect):
     unitid = rels['tilknyttedeenheder'][-1]['uuid']
     orgid = rels['tilknyttedeorganisationer'][-1]['uuid']
 
+    titleid = rels['opgaver'][-1].get('uuid') if rels.get('opgaver') else None
+
     r = {
-        "job-title": {
-            "uuid": funcid,
-            "user-key": props['brugervendtnoegle'],
-            "name": props['funktionsnavn']
-        },
+        "job-title": (
+            get_class(titleid)
+            if titleid
+            else {
+                "uuid": funcid,
+                "user-key": props['brugervendtnoegle'],
+                "name": props['funktionsnavn']
+            }
+        ),
         "type": get_class(
             rels['organisatoriskfunktionstype'][-1].get('uuid'),
         ),
@@ -574,8 +582,8 @@ def get_engagements(orgid=None, unitid=None, userid=None, **loraparams):
         for start, end, effect in c.organisationfunktion.get_effects(
             funcid,
             {
-                'relationer': (
-                    'tilknyttedebrugere',
+                'tilstande': (
+                    'organisationfunktiongyldighed',
                 ),
             },
             {
@@ -583,11 +591,16 @@ def get_engagements(orgid=None, unitid=None, userid=None, **loraparams):
                     'organisationfunktionegenskaber',
                 ),
                 'relationer': (
+                    'opgaver',
                     'organisatoriskfunktionstype',
+                    'tilhoerer',
+                    'tilknyttedebrugere',
                     'tilknyttedeenheder',
                     'tilknyttedeorganisationer',
-                    'tilhoerer',
                 ),
             },
         )
+        if effect.get('tilstande')
+                 .get('organisationfunktiongyldighed')[0]
+                 .get('gyldighed') == 'Aktiv'
     ]
