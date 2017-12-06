@@ -6,12 +6,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import os
+from os import path as _path
 
-from . import util
+from . import util as _util
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
+BASE_DIR = _path.dirname(_path.dirname(_path.abspath(__file__)))
+CONFIG_FILE = _path.join(BASE_DIR, 'config.json')
 
 LORA_URL = 'http://mox/'
 CA_BUNDLE = None
@@ -21,4 +21,4 @@ SAML_IDP_URL = None
 SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = True
 
-util.update_config(globals(), CONFIG_FILE)
+_util.update_config(globals(), CONFIG_FILE)

@@ -177,14 +177,23 @@ def update_config(mapping, config_path):
     within the mapping.
 
     '''
+
+    keys = {
+        k
+        for k, v in mapping.items()
+        if not k.startswith('_')
+    }
+
     try:
         with open(config_path) as fp:
             overrides = json.load(fp)
-    except IOError:
-        return
 
-    for key in mapping.keys() & overrides.keys():
-        mapping[key] = overrides[key]
+        for key in keys & overrides.keys():
+            mapping[key] = overrides[key]
+
+    except IOError:
+        pass
+
 
 
 def splitlist(xs, size):
