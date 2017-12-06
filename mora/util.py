@@ -9,6 +9,8 @@
 import datetime
 import functools
 import json
+import os
+import sys
 import typing
 import uuid
 
@@ -170,7 +172,7 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     return wrap
 
 
-def update_config(mapping, config_path):
+def update_config(mapping, config_path, allow_environment=True):
     '''load the JSON configuration at the given path
 
     We disregard all entries in the configuration that lack a default
@@ -194,6 +196,17 @@ def update_config(mapping, config_path):
     except IOError:
         pass
 
+    if allow_environment:
+        overrides = {
+            k[5:]: v
+            for k, v in os.environ.items()
+            if k.startswith('MORA_')
+        }
+
+        for key in keys & overrides.keys():
+            print(' * Using override MORA_{}={!r}'.format(key, overrides[key]),
+                  file=sys.stderr)
+            mapping[key] = overrides[key]
 
 
 def splitlist(xs, size):
