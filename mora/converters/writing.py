@@ -213,7 +213,8 @@ def create_org_funktion(req: dict) -> dict:
                 {
                     'funktionsnavn': "{} {}".format(funktionstype_name,
                                                     org_enhed_uuid),
-                    'brugervendtnoegle': str(uuid.uuid4())
+                    'brugervendtnoegle': "{} {}".format(bruger_uuid,
+                                                        org_enhed_uuid)
                 },
             ],
         },

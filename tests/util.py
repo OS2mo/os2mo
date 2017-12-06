@@ -326,7 +326,9 @@ class LoRATestCaseMixin(TestCaseMixin):
         # delete all objects in the test instance; this does 'leak'
         # information in that they continue to exist as registrations,
         # but it's faster than recreating the database fully
-        for t in lora.organisation, lora.organisationenhed, lora.klasse:
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        for t in map(c.__getattr__, c.scope_map):
             for objid in t(bvn='%'):
                 t.delete(objid)
 

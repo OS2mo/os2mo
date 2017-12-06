@@ -15,10 +15,7 @@ from mora.converters import writing
 class TestCreateOrgFunktion(unittest.TestCase):
     maxDiff = None
 
-    @patch('mora.converters.writing.uuid.uuid4')
-    def test_should_create_org_funktion_correctly(self, mock_uuid4):
-        mock_uuid4.return_value = "deadbeef-dead-beef-dead-deadbeefdead"
-
+    def test_should_create_org_funktion_correctly(self):
         frontend_req = {
             "valid-from": "01-12-2017",
             "valid-to": "22-12-2017",
@@ -54,8 +51,9 @@ class TestCreateOrgFunktion(unittest.TestCase):
                 'organisationfunktionegenskaber': [{
                     'funktionsnavn': 'job-title 1 b688513d-11f7-'
                                      '4efc-b679-ab082a2055d0',
-                    'brugervendtnoegle': "deadbeef-dead-beef-"
-                                         "dead-deadbeefdead",
+                    'brugervendtnoegle': '2f9a3e4f-5f91-40a4-'
+                                         '904c-68a376b7320f b688513d-11f7-'
+                                         '4efc-b679-ab082a2055d0',
                     'virkning': {
                         'to_included': False,
                         'from_included': True,
