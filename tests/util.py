@@ -106,6 +106,10 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
         'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
     }
 
+    users = {
+        'andersand': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+    }
+
     if not minimal:
         units.update({
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -146,6 +150,13 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
             'organisation/organisationfunktion',
             'create_organisationfunktion_{}.json'.format(funckey),
             funcid,
+        ))
+
+    for userkey, userid in users.items():
+        fixtures.append((
+            'organisation/bruger',
+            'create_bruger_{}.json'.format(userkey),
+            userid,
         ))
 
     for path, fixture_name, uuid in fixtures:

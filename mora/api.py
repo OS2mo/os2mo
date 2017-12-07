@@ -163,7 +163,8 @@ def get_orgfunk_virkning(orgfunk):
 def terminate_employee(employee_uuid):
     date = flask.request.args.get('date')
 
-    engagements = reading.get_engagements(employee_uuid, effective_date=date)
+    engagements = reading.get_engagements(userid=employee_uuid,
+                                          effective_date=date)
     for engagement in engagements:
         engagement_uuid = engagement.get('uuid')
         terminate_engagement(engagement_uuid, date)

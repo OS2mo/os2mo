@@ -7,7 +7,7 @@
                     "to_included": false,
                     "to": "infinity",
                     "from_included": true,
-                    "from": "2017-01-01 00:00:00+01"
+                    "from": "2018-01-01 00:00:00+01"
                 }
             }
         ]
@@ -19,7 +19,7 @@
                 "brugervendtnoegle": "973f5b52-0ce1-421e-bc0a-c2d7b7946f79",
                 "virkning": {
                     "to_included": false,
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2018-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity"
                 },
@@ -32,7 +32,7 @@
             {
                 "virkning": {
                     "to_included": false,
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2018-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity"
                 },
@@ -43,29 +43,29 @@
             {
                 "virkning": {
                     "to_included": false,
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2018-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity"
                 },
-                "uuid": "d67949ed-fa49-4d96-89f0-afd4d1be8324"
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
             }
         ],
         "organisatoriskfunktionstype": [
             {
                 "virkning": {
                     "to_included": false,
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2018-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity"
                 },
-                "uuid": "d67949ed-fa49-4d96-89f0-afd4d1be8324"
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
             }
         ],
         "tilknyttedeorganisationer": [
             {
                 "virkning": {
                     "to_included": false,
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2018-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity"
                 },
@@ -76,7 +76,7 @@
             {
                 "virkning": {
                     "to_included": false,
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2018-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity"
                 },
