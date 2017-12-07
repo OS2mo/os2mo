@@ -522,7 +522,6 @@ def get_employees(uuids, **loraparams):
 
 
 def _convert_engagement(funcid, start, end, effect):
-    print('clucking bell', funcid, start, end, json.dumps(effect, indent=2))
     props = effect['attributter']['organisationfunktionegenskaber'][0]
     rels = effect['relationer']
 
