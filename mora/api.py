@@ -454,6 +454,8 @@ def get_orgunit_history(orgid, unitid):
 ROLE_TYPES = {
     'engagement': reading.get_engagements,
     'contact-channel': reading.get_contact_channels,
+    # XXX: Hack to handle inconsistencies in API
+    'contact': reading.get_contact_channels,
     'location': reading.get_locations,
 }
 ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
@@ -471,7 +473,8 @@ def get_role(role, **kwargs):
                          effective_date=effective_date,
                          **kwargs)
 
-    if r:
+    # XXX: Hack to handle inconsistencies in API
+    if 'userid' in kwargs or r:
         return flask.jsonify(r)
     else:
         return '', 404
