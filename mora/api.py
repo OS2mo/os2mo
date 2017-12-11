@@ -518,6 +518,7 @@ def list_orgunits(orgid):
     r = reading.get_orgunits(
         str(orgid), unitids,
         validity=flask.request.args.get('validity', None),
+        include_parents=False,
     )
 
     return flask.jsonify(r) if r else ('', 404)
