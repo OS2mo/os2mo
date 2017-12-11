@@ -519,10 +519,10 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
-            self.assertRequestFails(
+            self.assertRequestResponse(
                 '/e/f715a2c9-a425-4cc9-b69b-7d89aaedece4'
                 '/role-types/engagement/',
-                404,
+                [],
             )
 
         with self.subTest('get user contact channels'):
@@ -552,8 +552,8 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('get user locations'):
             # FIXME: add some user locations to the import
-            self.assertRequestFails(
+            self.assertRequestResponse(
                 '/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
                 '/role-types/location/',
-                404,
+                [],
             )

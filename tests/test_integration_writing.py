@@ -1781,7 +1781,7 @@ class TestWritingIntegration(util.LoRATestCase):
         }]
 
         self.assertRequestResponse('/mo/e/{}/actions/role'.format(userid),
-                                   "Success", json=payload)
+                                   userid, json=payload)
 
         # We expect the existing engagement to be completely inactive
         expected_old = util.jsonfile_to_dict(
