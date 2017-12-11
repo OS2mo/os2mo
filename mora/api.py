@@ -573,8 +573,6 @@ def get_engagement_classes(facet):
         "job-title": "Stillingsbetegnelse",
     }[facet]))
 
-    return flask.jsonify(reading.get_contact_types())
-
 
 @app.route('/addressws/geographical-location')
 @util.restrictargs('local', required=['vejnavn'])

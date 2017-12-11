@@ -242,16 +242,7 @@ class TestCaseMixin(object):
         '''
         message = message or 'request {!r} failed'.format(path)
 
-        if 'json' in kwargs:
-            # "In the face of ambiguity, refuse the temptation to guess."
-            # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
-
-            kwargs['method'] = 'POST'
-            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
-            kwargs['headers'] = {'Content-Type': 'application/json'}
-
-        r = self.client.open(path, **kwargs)
+        r = self._perform_request(path, **kwargs)
 
         if status_code is None:
             self.assertLess(r.status_code, 300, message)
@@ -269,15 +260,33 @@ class TestCaseMixin(object):
 
         self.assertEqual(expected, actual, message)
 
-    def assertRequestFails(self, path, code, message=None):
+    def assertRequestFails(self, path, code, message=None, **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
+
+        **kwargs is passed directly to the test client -- see the
+        documentation for werkzeug.test.EnvironBuilder for details.
+
+        One addition is that we support a 'json' argument that
+        automatically posts the given JSON data.
         '''
         message = message or "request {!r} didn't fail properly".format(path)
 
-        r = self.client.get(path)
+        r = self._perform_request(path, **kwargs)
 
         self.assertEqual(r.status_code, code, message)
+
+    def _perform_request(self, path, **kwargs):
+        if 'json' in kwargs:
+            # "In the face of ambiguity, refuse the temptation to guess."
+            # ...so check that the arguments we override don't exist
+            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
+
+            kwargs['method'] = 'POST'
+            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
+            kwargs['headers'] = {'Content-Type': 'application/json'}
+
+        return self.client.open(path, **kwargs)
 
 
 class LoRATestCaseMixin(TestCaseMixin):
