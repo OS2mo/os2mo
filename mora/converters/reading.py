@@ -65,22 +65,8 @@ def get_unit_type(typerel) -> dict:
     assert typerel[0]['uuid']
 
     typeid = typerel[0]['uuid']
-    obj = lora.klasse.get(uuid=typeid)
 
-    if not obj:
-        return None
-
-    props = obj['attributter']['klasseegenskaber'][0]
-
-    if not props:
-        return None
-
-    return {
-        'name': props.get('titel') or props['brugervendtnoegle'],
-        'user-key': props['brugervendtnoegle'],
-        'userKey': props['brugervendtnoegle'],
-        'uuid': typeid,
-    }
+    return get_class(typeid)
 
 
 def full_hierarchies(orgid: str, parentid: str,
@@ -223,7 +209,8 @@ def _convert_class(classid, clazz):
         'uuid': classid,
         'name': (attrs.get('titel') or attrs.get('beskrivelse') or
                  attrs['brugervendtnoegle']),
-        'userKey': attrs['brugervendtnoegle']
+        'userKey': attrs['brugervendtnoegle'],
+        'user-key': attrs['brugervendtnoegle'],
     }
 
 
@@ -466,16 +453,11 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
     return r
 
 
-def list_orgunits(query, **loraparams):
-    if isinstance(query, uuid.UUID):
-        return [str(query)]
-
-    try:
-        return [str(uuid.UUID(query))]
-    except (ValueError, TypeError):
-        pass
-
-    return lora.organisationenhed(enhedsnavn=query or '%', **loraparams)
+def list_orgunits(*, limit=1000, start=0, **loraparams):
+    return lora.Connector().organisationenhed(
+        maximalantalresultater=start + limit,
+        **loraparams,
+    )[-limit:]
 
 
 def get_orgunits(orgid, unitids, **loraparams):

@@ -10,6 +10,7 @@ import datetime
 import functools
 import json
 import os
+import re
 import sys
 import typing
 import uuid
@@ -227,3 +228,11 @@ def is_uuid(v):
         return True
     except Exception:
         return False
+
+
+# TODO: more thorough checking?
+_cpr_re = re.compile(r'\d{10}')
+
+
+def is_cpr_number(v):
+    return isinstance(v, str) and _cpr_re.fullmatch(v)

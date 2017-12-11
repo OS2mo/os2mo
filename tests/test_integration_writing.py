@@ -259,6 +259,7 @@ class TestWritingIntegration(util.LoRATestCase):
             "parent": root,
             "type": {
                 "name": "Afdeling",
+                "user-key": "Afdeling",
                 "userKey": "Afdeling",
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
             },
@@ -717,6 +718,7 @@ class TestWritingIntegration(util.LoRATestCase):
             "parent": root,
             "type": {
                 "name": "Afdeling",
+                "user-key": "Afdeling",
                 "userKey": "Afdeling",
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
             },
@@ -1315,6 +1317,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                 "type": {
                     "name": "Afdeling",
+                    "user-key": "afd",
                     "userKey": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
@@ -1856,6 +1859,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'job-title': {
                     'name': 'Fakultet',
+                    'user-key': 'fak',
                     'userKey': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
                 },
@@ -1882,6 +1886,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 'role-type': 'engagement',
                 'type': {
                     'name': 'Afdeling',
+                    'user-key': 'afd',
                     'userKey': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -1904,6 +1909,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'job-title': {
                     'name': 'Fakultet',
+                    'user-key': 'fak',
                     'userKey': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
                 },
@@ -1930,6 +1936,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 'role-type': 'engagement',
                 'type': {
                     'name': 'Afdeling',
+                    'user-key': 'afd',
                     'userKey': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },

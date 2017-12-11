@@ -32,24 +32,27 @@ class IntegrationTests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertEqual(
-            self.client.get('/org-unit/type').json,
             [
                 {
                     'name': 'Afdeling',
                     'userKey': 'afd',
+                    'user-key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 {
                     'name': 'Fakultet',
                     'userKey': 'fak',
+                    'user-key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
                 {
                     'name': 'Institut',
                     'userKey': 'inst',
+                    'user-key': 'inst',
                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                 }
             ],
+            self.client.get('/org-unit/type').json,
         )
 
     def test_organisation(self):
@@ -657,16 +660,19 @@ class IntegrationTests(util.LoRATestCase):
                 {
                     'name': 'Afdeling',
                     'userKey': 'afd',
+                    'user-key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 {
                     'name': 'Fakultet',
                     'userKey': 'fak',
+                    'user-key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
                 {
                     'name': 'Institut',
                     'userKey': 'inst',
+                    'user-key': 'inst',
                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                 },
             ],

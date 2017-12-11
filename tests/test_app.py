@@ -51,7 +51,7 @@ class MoraTestCase(TestSetup):
             '/o/00000000-0000-0000-0000-000000000000'
             '/org-unit/00000000-0000-0000-0000-000000000000/?query=fail',
             {
-                'message': 'unitid and query cannot both be set!',
+                'message': 'sub-tree searching not supported!',
                 'status': 400,
             },
             status_code=400,

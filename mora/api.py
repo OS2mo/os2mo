@@ -39,10 +39,16 @@ def list_employees():
     start = int(flask.request.args.get('start', 0))
     query = flask.request.args.get('query')
 
-    if query:
+    if util.is_cpr_number(query):
+        search = {
+            'tilknyttedepersoner': 'urn:dk:cpr:person:' + query,
+        }
+
+    elif query:
         search = {
             'vilkaarligattr': '%{}%'.format(query),
         }
+
     else:
         search = {
             'bvn': '%',
@@ -54,11 +60,9 @@ def list_employees():
         **search,
     )
 
-    return flask.jsonify(
-        reading.get_employees(
-            ids,
-        )
-    )
+    r = reading.get_employees(ids[-limit:])
+
+    return flask.jsonify(r) if r else ('', 404)
 
 
 @app.route('/e/<int(fixed_digits=10):cpr_number>/')
@@ -479,26 +483,60 @@ def full_hierarchy(orgid):
 
 
 @app.route('/o/<uuid:orgid>/org-unit/')
-@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start',
                    't')
-def get_orgunit(orgid, unitid=None):
+def list_orgunits(orgid):
     # TODO: we are not actually using the 't' parameter - we should
     # probably remove this from the frontend calls later on...
 
+    limit = int(flask.request.args.get('limit', 100))
+    start = int(flask.request.args.get('start', 0))
     query = flask.request.args.get('query')
 
-    if bool(unitid) is bool(query) is True:
-        raise ValueError('unitid and query cannot both be set!')
+    if util.is_uuid(query):
+        search = {
+            'uuid': query,
+            'tilhoerer': orgid,
+        }
+    elif query:
+        search = {
+            'vilkaarligattr': '%{}%'.format(query),
+            'tilhoerer': orgid,
+        }
+    else:
+        search = {
+            'tilhoerer': orgid,
+        }
 
     unitids = reading.list_orgunits(
-        unitid or query,
-        tilhoerer=str(orgid),
+        limit=limit,
+        start=start,
+        **search,
         effective_date=flask.request.args.get('effective-date', None),
     )
 
     r = reading.get_orgunits(
         str(orgid), unitids,
+        validity=flask.request.args.get('validity', None),
+    )
+
+    return flask.jsonify(r) if r else ('', 404)
+
+
+@app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
+@util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start',
+                   't')
+def get_orgunit(orgid, unitid):
+    # TODO: we are not actually using the 't' parameter - we should
+    # probably remove this from the frontend calls later on...
+
+    query = flask.request.args.get('query')
+
+    if query:
+        raise ValueError('sub-tree searching not supported!')
+
+    r = reading.get_orgunits(
+        str(orgid), [str(unitid)],
         validity=flask.request.args.get('validity', None),
     )
 
