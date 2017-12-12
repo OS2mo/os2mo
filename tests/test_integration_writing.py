@@ -1744,6 +1744,42 @@ class TestWritingIntegration(util.LoRATestCase):
 
         self.assertEqual(actual_new, expected_new)
 
+    def test_create_role_returns_400_if_role_type_unknown(self):
+        self.load_sample_structures()
+
+        userid = "2f9a3e4f-5f91-40a4-904c-68a376b7320f"
+
+        payload = [{
+            "valid-from": "01-12-2017",
+            "valid-to": "02-12-2017",
+            "org-unit": {
+                "children": [],
+                "hasChildren": False,
+                "name": "Samfundsvidenskabelige fakultet",
+                "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "type": {"name": "Fakultet"},
+                "user-key": "samf",
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                "valid-from": "2016-12-31T23:00:00+00:00",
+                "valid-to": "infinity"
+            },
+            "job-title": {
+                "name": "Skorstensfejer",
+                "uuid": "a294c42b-3c9d-4a31-bf78-1e1684d2e206"
+            },
+            "type": {
+                "name": "Ansat",
+                "uuid": "2c49130e-1446-4aee-874f-819d3358de20"
+            },
+            "person": "2f9a3e4f-5f91-40a4-904c-68a376b7320f",
+            "role-type": "NOT VALID",
+            "user-key": "NULL"
+        }]
+
+        self.assertRequestFails('/mo/e/{}/actions/role'.format(userid),
+                                400, json=payload)
+
     def test_should_create_new_engagement_correctly(self):
         self.load_sample_structures()
 
@@ -1781,7 +1817,7 @@ class TestWritingIntegration(util.LoRATestCase):
         }]
 
         self.assertRequestResponse('/mo/e/{}/actions/role'.format(userid),
-                                   "Success", json=payload)
+                                   userid, json=payload)
 
         # We expect the existing engagement to be completely inactive
         expected_old = util.jsonfile_to_dict(

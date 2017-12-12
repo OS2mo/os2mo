@@ -89,6 +89,15 @@ def get_employee(id):
 # --- Writing to LoRa --- #
 @app.route('/e/<uuid:employee_uuid>/actions/move', methods=['POST'])
 def move_employee(employee_uuid):
+    """
+    Moves an employee given an a move date, a uuid of the
+    org unit the employee should be moved to, and lists of the various
+    engagements and associations that should be moved for the given employee.
+
+    :param employee_uuid: A UUID of an employee in MO, corresponding to a
+    Bruger object in LoRa
+    :return
+    """
     org_unit_uuid = flask.request.args.get('org-unit')
     date = flask.request.args.get('date')
 
@@ -98,8 +107,26 @@ def move_employee(employee_uuid):
     future_engagements = req.get('futureEngagementIds')
     # TODO: Handle tilknytning
 
+    move_present_engagements(present_engagements, org_unit_uuid, date)
+    move_future_engagements(future_engagements, org_unit_uuid, date)
+
+    return flask.jsonify([]), 200
+
+
+def move_present_engagements(engagements, org_unit_uuid, date):
+    """
+    Move a list of present engagements to the given org unit on the given date
+
+    As we are moving 'present' engagmeents, the engagements should be active
+    on the given date.
+
+    :param engagements: A list of engagements on the form:
+                        {'uuid' <UUID>, 'overwrite' [0|1]}
+    :param org_unit_uuid: A UUID of the org unit to move to
+    :param date: The date of the move
+    """
     c = lora.Connector(effective_date=date)
-    for engagement in present_engagements:
+    for engagement in engagements:
         engagement_uuid = engagement.get('uuid')
 
         # Fetch current orgfunk
@@ -120,8 +147,32 @@ def move_employee(employee_uuid):
                                                         date, enddate)
         c.organisationfunktion.create(new_orgfunk_payload)
 
+
+def move_future_engagements(engagements, org_unit_uuid, date):
+    """
+    Move a list of future engagements to the given org unit on the given date
+
+    As we are moving 'future' engagmeents, the engagements should not be active
+    on the given date, but only at some point in the future.
+
+    For each engagement we have the option of overwriting the previous
+    engagement or not.
+
+    If overwrite == 1, we inactivate the given
+    engagement, and create a new engagement active from the move date,
+    with the new org unit.
+
+    If overwrite == 0, we create an additional
+    engagement active from the move up until the start date of the given
+    engagement.
+
+    :param engagements: A list of engagements on the form:
+                        {'uuid' <UUID>, 'overwrite' [0|1]}
+    :param org_unit_uuid: A UUID of the org unit to move to
+    :param date: The date of the move
+    """
     c = lora.Connector(effective_date=date, validity='future')
-    for engagement in future_engagements:
+    for engagement in engagements:
         engagement_uuid = engagement.get('uuid')
 
         orgfunk = c.organisationfunktion.get(engagement_uuid)
@@ -140,15 +191,13 @@ def move_employee(employee_uuid):
                                                             org_unit_uuid,
                                                             date, enddate)
             c.organisationfunktion.create(new_orgfunk_payload)
-        elif engagement.get('overwrite') == 0:
+        else:
             # Create new orgfunk active from the move date, to the start of
             # the original orgfunk
             new_orgfunk_payload = writing.move_org_funktion(orgfunk,
                                                             org_unit_uuid,
                                                             date, startdate)
             c.organisationfunktion.create(new_orgfunk_payload)
-
-    return flask.jsonify([]), 200
 
 
 def get_orgfunk_virkning(orgfunk):
@@ -161,6 +210,14 @@ def get_orgfunk_virkning(orgfunk):
 
 @app.route('/e/<uuid:employee_uuid>/actions/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
+    """
+    Terminate the employee with the given UUID, on the given date.
+    Each of the employees roles will have their virknings will have their end
+    date changed to the date of termination
+
+    :param employee_uuid: A UUID on an employee in MO
+    :return: The employee UUID and a HTTP status code.
+    """
     date = flask.request.args.get('date')
 
     engagements = reading.get_engagements(userid=employee_uuid,
@@ -180,6 +237,12 @@ def terminate_employee(employee_uuid):
 
 
 def terminate_engagement(engagement_uuid, enddate):
+    """
+    Terminate the given engagement at the given date
+
+    :param engagement_uuid: An engagement UUID
+    :param enddate: The date of termination
+    """
     c = lora.Connector(effective_date=enddate)
 
     orgfunk = c.organisationfunktion.get(engagement_uuid)
@@ -192,13 +255,15 @@ def terminate_engagement(engagement_uuid, enddate):
     c.organisationfunktion.update(payload, engagement_uuid)
 
 
-@app.route('/mo/e/<uuid:brugerid>/actions/role', methods=['POST'])
-def create_employee_role(brugerid):
+@app.route('/e/<uuid:employeeid>/actions/role', methods=['POST'])
+# XXX: Hack to handle inconsistencies in API
+@app.route('/mo/e/<uuid:employeeid>/actions/role', methods=['POST'])
+def create_employee_role(employeeid):
     """
     Catch-all function for creating Employees roles
 
-    :param brugerid:  BrugerID from MO. Not used.
-    :return:
+    :param employeeid:  Employee ID from MO. Not used.
+    :return: The uuid of the employee and a HTTP status code.
     """
     reqs = flask.request.get_json()
 
@@ -222,7 +287,7 @@ def create_employee_role(brugerid):
 
         handler(req, c)
 
-    return flask.jsonify('Success'), 200
+    return flask.jsonify(employeeid), 200
 
 
 def create_engagement(req, c):
@@ -454,12 +519,17 @@ def get_orgunit_history(orgid, unitid):
 ROLE_TYPES = {
     'engagement': reading.get_engagements,
     'contact-channel': reading.get_contact_channels,
+    # XXX: Hack to handle inconsistencies in API
+    'contact': reading.get_contact_channels,
     'location': reading.get_locations,
 }
 ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
 
 
 @app.route('/e/<uuid:userid>/role-types/' + ROLE_TYPE_SUFFIX)
+# XXX: Hack to handle inconsistencies in API
+@app.route('/mo/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
+           ROLE_TYPE_SUFFIX)
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
 @util.restrictargs('effective-date', 'validity', 't')
@@ -471,7 +541,8 @@ def get_role(role, **kwargs):
                          effective_date=effective_date,
                          **kwargs)
 
-    if r:
+    # XXX: Hack to handle inconsistencies in API
+    if 'userid' in kwargs or r:
         return flask.jsonify(r)
     else:
         return '', 404
@@ -501,8 +572,6 @@ def get_engagement_classes(facet):
         "type": "Funktionstype",
         "job-title": "Stillingsbetegnelse",
     }[facet]))
-
-    return flask.jsonify(reading.get_contact_types())
 
 
 @app.route('/addressws/geographical-location')
