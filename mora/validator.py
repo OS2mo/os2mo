@@ -176,9 +176,9 @@ def _get_org_unit_endpoint_date(org_unit: dict,
         if g['gyldighed'] == 'Aktiv':
             virkning = g['virkning']
             if enddate:
-                return lora.util.parsedatetime(virkning['to'])
+                return util.parsedatetime(virkning['to'])
             else:
-                return lora.util.parsedatetime(virkning['from'])
+                return util.parsedatetime(virkning['from'])
 
 
 def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
