@@ -294,7 +294,10 @@ class Connector:
         except KeyError:
             raise AttributeError(attr)
 
-        return Scope(self, path)
+        scope = Scope(self, path)
+        setattr(self, attr, scope)
+
+        return scope
 
     def override(self, overrides):
         new_overrides = self.__overrides.copy()
