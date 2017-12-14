@@ -69,47 +69,9 @@ def get_unit_type(typerel) -> dict:
     return get_class(typeid)
 
 
-def full_hierarchies(orgid: str, parentid: str,
-                     include_children=True,
-                     **loraparams):
-    assert isinstance(parentid, str), parentid
-
-    kwargs = dict(
-        include_children=include_children,
-        **loraparams,
-    )
-
-    unitids = lora.Connector(**loraparams).organisationenhed(
-        tilhoerer=orgid,
-        overordnet=parentid,
-        gyldighed='Aktiv',
-    )
-
-    return sorted(
-        filter(None, (full_hierarchy(orgid, unitid, **kwargs)
-                      for unitid in unitids)),
-        key=lambda r: r['name'].lower(),
-    )
-
-
-def full_hierarchy(orgid: str, unitid: str,
-                   include_children=True,
-                   **loraparams):
-    assert isinstance(orgid, str)
-    assert isinstance(unitid, str)
-
-    kwargs = dict(
-        include_children=False,
-        **loraparams,
-    )
-
-    c = lora.Connector(**loraparams)
-    orgunit = c.organisationenhed.get(unitid)
-
+def _convert_unit(c, unitid, orgunit, levels):
     if not orgunit:
         return None
-
-    assert c.validity == 'present'
 
     try:
         attrs = orgunit['attributter']['organisationenhedegenskaber'][0]
@@ -123,17 +85,32 @@ def full_hierarchy(orgid: str, unitid: str,
         orgunit['tilstande']['organisationenhedgyldighed'][0]['virkning']
     )
 
-    children = c.organisationenhed(tilhoerer=orgid, overordnet=unitid,
-                                   gyldighed='Aktiv',
-                                   **loraparams)
-
     if c.validity == 'present':
         parent = rels['overordnet'][0]['uuid']
         orgid = rels['tilhoerer'][0]['uuid']
     else:
         parent = None
+        orgid = None
 
-    r = {
+    if levels > 0:
+        childobjs = sorted(
+            filter(None, (
+                _convert_unit(c, childid, childunit, levels - 1)
+                for childid, childunit in
+                c.organisationenhed.get_all(tilhoerer=orgid,
+                                            overordnet=unitid,
+                                            gyldighed='Aktiv')
+            )),
+            key=lambda r: r['name'].lower(),
+        )
+        has_children = bool(childobjs)
+    else:
+        childobjs = []
+        has_children = bool(c.organisationenhed(tilhoerer=orgid,
+                                                overordnet=unitid,
+                                                gyldighed='Aktiv'))
+
+    return {
         'name': attrs['enhedsnavn'],
         'user-key': attrs['brugervendtnoegle'],
         'uuid': unitid,
@@ -144,16 +121,45 @@ def full_hierarchy(orgid: str, unitid: str,
         'valid-to': util.to_frontend_time(
             orgunit_validity['to'],
         ),
-        'hasChildren': bool(children),
-        'children': (
-            full_hierarchies(orgid, unitid, **kwargs)
-            if include_children else []
-        ),
+        'hasChildren': has_children,
+        'children': childobjs,
         'org': str(orgid),
         'parent': parent if parent and parent != orgid else None,
     }
 
-    return r
+
+def full_hierarchies(orgid: str, parentid: str,
+                     include_children=True,
+                     **loraparams):
+    assert isinstance(parentid, str), parentid
+
+    search = dict(
+        tilhoerer=orgid,
+        overordnet=parentid,
+        gyldighed='Aktiv',
+    )
+
+    c = lora.Connector(**loraparams)
+
+    return sorted(
+        (
+            _convert_unit(c, unitid, orgunit, 1)
+            for unitid, orgunit in c.organisationenhed.get_all(**search)
+        ),
+        key=lambda r: r['name'].lower(),
+    )
+
+
+def full_hierarchy(orgid: str, unitid: str,
+                   include_children=True,
+                   **loraparams):
+    assert isinstance(orgid, str)
+    assert isinstance(unitid, str)
+
+    c = lora.Connector(**loraparams)
+    orgunit = c.organisationenhed.get(unitid)
+
+    return _convert_unit(c, unitid, orgunit, 1)
 
 
 def wrap_in_org(connector, orgid, value, org=None):
