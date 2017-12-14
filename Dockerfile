@@ -24,5 +24,6 @@ RUN ["pip", "install", "gunicorn"]
 ADD . /app
 
 EXPOSE 5000
+ENV MORA_LORA_URL=http://mox:5000/
 
 CMD ["gunicorn", "--worker-class=gevent", "--workers=4", "--enable-stdio-inheritance", "--access-logfile", "-", "--bind", "[::]:5000", "mora.app:app"]
