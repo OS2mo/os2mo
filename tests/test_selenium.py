@@ -14,6 +14,11 @@ from . import util
 
 try:
     import selenium.webdriver
+
+    from selenium.webdriver.support import ui
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.common.action_chains import ActionChains as AC
+    from selenium.webdriver.common.by import By
 except ImportError:
     selenium = None
 
@@ -65,10 +70,6 @@ class RightsTests(util.LiveLoRATestCase):
         self.browser.delete_all_cookies()
         self.browser.get(self.get_server_url())
 
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from selenium.webdriver.common.by import By
-
         self.browser.implicitly_wait(1)
         self.browser.find_element_by_id("organisationLogin").click()
 
@@ -77,16 +78,11 @@ class RightsTests(util.LiveLoRATestCase):
         self.browser.find_element_by_id("elLoginPass").send_keys('secret')
         self.browser.find_element_by_id("elLoginSubmit").click()
 
-        WebDriverWait(self.browser, 1).until(
+        ui.WebDriverWait(self.browser, 1).until(
             EC.invisibility_of_element_located((By.ID, 'loginForm')),
         )
 
     def test_autocomplete(self):
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from selenium.webdriver.common.action_chains import ActionChains as AC
-        from selenium.webdriver.common.by import By
-
         self.load_sample_structures()
         self.test_login()
 
@@ -103,12 +99,12 @@ class RightsTests(util.LiveLoRATestCase):
             succeeded
 
             '''
-            WebDriverWait(self.browser, 15).until(
+            ui.WebDriverWait(self.browser, 15).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR,
                                                   '#sys-search .refresh')),
             )
 
-            WebDriverWait(self.browser, 15).until(
+            ui.WebDriverWait(self.browser, 15).until(
                 EC.invisibility_of_element_located((By.CSS_SELECTOR,
                                                     '#sys-search .refresh')),
             )
@@ -163,11 +159,6 @@ class RightsTests(util.LiveLoRATestCase):
         self.assertEqual(get_result_count(), 20)
 
     def test_unit_view(self):
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from selenium.webdriver.common.action_chains import ActionChains as AC  # noqa
-        from selenium.webdriver.common.by import By
-
         self.load_sample_structures()
         self.test_login()
 
@@ -175,12 +166,12 @@ class RightsTests(util.LiveLoRATestCase):
         def wait(id='loading-bar-spinner'):
             'wait for the action spinner to appear, then disappear'
 
-            WebDriverWait(self.browser, 5).until(
+            ui.WebDriverWait(self.browser, 5).until(
                 EC.presence_of_element_located((By.ID, id)),
             )
 
             el = self.browser.find_element_by_id(id)
-            WebDriverWait(self.browser, 5).until(EC.staleness_of(el))
+            ui.WebDriverWait(self.browser, 5).until(EC.staleness_of(el))
 
         self.browser.implicitly_wait(5)
         self.browser.find_element_by_css_selector('treecontrol span').click()
