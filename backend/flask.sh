@@ -3,6 +3,13 @@
 DIR=$(cd $(dirname $0); pwd)
 VENV="$DIR"/venv
 
+if test -n "$VIRTUAL_ENV"
+then
+    export PYTHONPATH="$DIR/backend:$PYTHONPATH"
+
+    exec python -m mora.cli "$0" "$@"
+fi
+
 if ! test -d "$VENV"
 then
     echo "Creating virtual environment!" >&2

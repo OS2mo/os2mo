@@ -1,0 +1,33 @@
+language: python
+os: linux
+dist: xenial
+
+addons:
+  firefox: latest
+
+notification:
+  webhooks:
+    secure: "BncbJDfkRTL5FWKdWmyuz/zrJogyHkNIC8jLFY6EyDQ0GYn6SbqgWWDyAoxAYrsdUL8wiD7uNUfeMoyS1F7ucZq0Q2IfFBnXCB51VkWAeerh9efL8IJzpafizkG/Bb54A2CTtDl5yIE3g6ipSqkbmH0VK1Fk8IhpHukIqPoZGXAxw5CmCzelyXBbTwS6sDOg0UbV2mSANoC+ha9PLC6D4MEE7gu4yXb9lpmzPIOg1b8GAcWmSF9qjDixeQspRjWCt683WsP/2k82CbVNlWVAyQCJT2pHrxQX68BDi9Q4t1Jt1YAoxlAZiDVi1ULlb9yC1MpviGjCXF3ApMyNXMiNbtggTPkM1CGQ+162dQySW6JckMd9Vm5WSEGQlDg/51JG/erZTa2GO6/mOLtq2WX6x1rnFg8S8TZh1bwGO9ftV/zb5jWcWfzjzZxLD+PGX4rVw0hmeNsktK8qvSj3YWRngCx72I0qc3jrTa8NwuctAQOqqF6FisnDasLfdvmIb32Fsxzp8n9px4F9VC2lV6i6zWMWmQI7GmADTppIRoIbJGQN2szqArxT1LSUAguExbMKQxCi4V0/LvcKL+h5qpD3E9S7yYvm18mYYkxt8JL96wWZWDJ1SZDBkyKOk5eFvMcoozntylLMdFB8oHyUyuDlH+1P73SFx+kEhb5CRE1VTKs="
+
+python:
+  - "3.5"
+
+install:
+  - pip install -r backend/requirements-test.txt
+  - pip install -e backend
+
+script:
+  # - pytest # or py.test for Python versions 3.5 and below
+  - ./backend/flask.sh test -v
+
+before_install:
+  - sudo service postgresql stop
+  - sudo apt-get -qq update
+  - |
+    sudo apt-get -qq install \
+      postgresql-contrib \
+      postgresql-server-dev-all \
+      libxmlsec1-openssl \
+      libxmlsec1-dev \
+      libxml2-dev
+
