@@ -57,6 +57,9 @@ class RightsTests(util.LiveLoRATestCase):
         except Exception as exc:
             raise unittest.SkipTest(exc.args[0])
 
+        # 1280x720 is about as small as it gets nowadays...
+        cls.browser.set_window_size(1200, 700)
+
         super().setUpClass()
 
     @classmethod
