@@ -115,8 +115,7 @@ def create_org_unit(req: dict) -> dict:
                     'objekttype': str(meta.PhoneNumber(
                         location=location['location']
                         ['UUID_EnhedsAdresse'],
-                        visibility=channel['visibility'][
-                        'user-key'],
+                        visibility=channel['visibility']['user-key'],
                     )),
                     'virkning': virkning,
                 }
