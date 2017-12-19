@@ -112,7 +112,7 @@ class MockTests(util.TestCase):
                 },
             )
 
-            with self.subTest('raw'):
+            with self.subTest('raw'), self.app.app_context():
                 self.assertEquals(
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/wso2-assertion.xml', 'rb'),
@@ -137,10 +137,11 @@ class MockTests(util.TestCase):
                 },
             )
 
-            self.assertEquals(
-                tokens.get_token('X', 'Y', raw=True),
-                util.get_mock_text('auth/adfs-assertion.xml', 'rb')
-            )
+            with self.subTest('raw'), self.app.app_context():
+                self.assertEquals(
+                    tokens.get_token('X', 'Y', raw=True),
+                    util.get_mock_text('auth/adfs-assertion.xml', 'rb')
+                )
 
     @util.mock()
     def test_disabled_login(self, mock):
