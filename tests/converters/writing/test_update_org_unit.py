@@ -87,15 +87,15 @@ class TestExtendAddressesWithContactChannels(TestSetup):
                                    'to': 'infinity',
                                    'to_included': False}},
                      {'urn': 'urn:magenta.dk:telefon:12345678',
+                      'objekttype': 'v0:N/A:1337',
                       'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                    'from_included': True,
-                                   'notetekst': 'v0:N/A:1337',
                                    'to': 'infinity',
                                    'to_included': False}},
                      {'urn': 'urn:magenta.dk:telefon:87654321',
+                      'objekttype': 'v0:N/A:1337',
                       'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                    'from_included': True,
-                                   'notetekst': 'v0:N/A:1337',
                                    'to': 'infinity',
                                    'to_included': False}}]
         self.assertEqual(
@@ -138,10 +138,10 @@ class TestUpdateExistingAddressesForLocations(TestSetup):
             primary=True,
         )
         expected_addresses = [{'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                               'objekttype': 'v0:1:The name',
                                'virkning': {
                                    'from': '2017-01-01T00:00:00+01:00',
                                    'from_included': True,
-                                   'notetekst': 'v0:1:The name',
                                    'to': 'infinity',
                                    'to_included': False}},
                               {'urn': 'urn:magenta.dk:telefon:12345678',
@@ -176,9 +176,9 @@ class TestAddNewLocations(TestSetup):
                           'to': 'infinity',
                           'to_included': False}},
             {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+             'objekttype': 'v0:1:The name',
              'virkning': {'from': '2020-01-01T00:00:00+01:00',
                           'from_included': True,
-                          'notetekst': 'v0:1:The name',
                           'to': 'infinity',
                           'to_included': False}},
         ]
@@ -250,15 +250,15 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                                            'to': 'infinity',
                                            'to_included': False}},
                              {'urn': 'urn:magenta.dk:telefon:12345678',
+                              'objekttype': 'v0:N/A:1337',
                               'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                            'from_included': True,
-                                           'notetekst': 'v0:N/A:1337',
                                            'to': 'infinity',
                                            'to_included': False}},
                              {'urn': 'urn:magenta.dk:telefon:87654321',
+                              'objekttype': 'v0:N/A:1337',
                               'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                            'from_included': True,
-                                           'notetekst': 'v0:N/A:1337',
                                            'to': 'infinity',
                                            'to_included': False}}]
             }
@@ -296,10 +296,10 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'relationer': {
                 'adresser': [
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                     'objekttype': 'v0:1:Null Location',
                      'virkning': {
                          'from': '2016-12-31T00:00:00+01:00',
                          'from_included': True,
-                         'notetekst': 'v0:1:Null Location',
                          'to': 'infinity',
                          'to_included': False}},
                     {'urn': 'urn:magenta.dk:telefon:12345678',
@@ -341,9 +341,9 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                                   'to': 'infinity',
                                   'to_included': False}},
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                     'objekttype': 'v0:0:Null Location',
                      'virkning': {'from': '2020-01-01T00:00:00+01:00',
                                   'from_included': True,
-                                  'notetekst': 'v0:0:Null Location',
                                   'to': 'infinity',
                                   'to_included': False}},
                 ]

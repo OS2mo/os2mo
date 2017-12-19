@@ -253,7 +253,7 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
 
     def convert_address(obj):
         info = meta.PhoneNumber.fromstring(
-            obj['virkning'].get('notetekst'),
+            obj.get('objekttype'),
         )
 
         return {
@@ -329,10 +329,10 @@ def get_locations(userid: str=None, orgid: str=None, unitid: str=None,
         the function converts an object like this:
         {
             "uuid": "0a3f50c3-5556-32b8-e044-0003ba298018",
+            "objekttype": "v0:0:j",
             "virkning": {
                 "from": "2017-07-10 22:00:00+00",
                 "from_included": true,
-                "notetekst": "v0:0:j",
                 "to": "2017-07-18 22:00:00+00",
                 "to_included": false
             }
@@ -341,7 +341,7 @@ def get_locations(userid: str=None, orgid: str=None, unitid: str=None,
         :return: Address object in frontend format
         """
         addrmeta = meta.Address.fromstring(
-            addrobj['virkning'].get('notetekst'),
+            addrobj.get('objekttype'),
         )
 
         location = _get_location(addrobj['uuid'], addrmeta.name)

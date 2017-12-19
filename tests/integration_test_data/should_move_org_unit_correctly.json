@@ -43,22 +43,22 @@
     "adresser": [
       {
         "virkning": {
-          "notetekst": "v0:1:Kontor",
           "to": "infinity",
           "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
+        "objekttype": "v0:1:Kontor",
         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
       },
       {
         "virkning": {
-          "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
           "to": "infinity",
           "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
+        "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
         "urn": "urn:magenta.dk:telefon:+4587150000"
       }
     ],

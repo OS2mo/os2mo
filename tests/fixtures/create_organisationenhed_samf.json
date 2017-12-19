@@ -53,17 +53,17 @@
         "adresser": [
             {
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "objekttype": "v0:1:Kontor",
                 "virkning": {
-                    "notetekst": "v0:1:Kontor",
                     "from": "2017-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             },
             {
                 "urn": "urn:magenta.dk:telefon:+4587150000",
+                "objekttype":
+                "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "virkning": {
-                    "notetekst":
-                    "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "from": "2017-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }

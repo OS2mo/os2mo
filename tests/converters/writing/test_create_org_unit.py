@@ -95,10 +95,10 @@ class TestCreateOrgUnit(unittest.TestCase):
                 'adresser': [
                     {
                         'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                        'objekttype': 'v0:1:locationname',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'notetekst': 'v0:1:locationname',
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -106,11 +106,11 @@ class TestCreateOrgUnit(unittest.TestCase):
                     },
                     {
                         'urn': 'urn:magenta.dk:telefon:12345678',
+                        'objekttype':
+                        'v0:N/A:98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'notetekst':
-                            'v0:N/A:98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -244,10 +244,10 @@ class TestCreateOrgUnit(unittest.TestCase):
                 'adresser': [
                     {
                         'uuid': '98001816-a7cc-4115-a9e6-2c5c06c79e5d',
+                        'objekttype': 'v0:0:locationname',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'notetekst': 'v0:0:locationname',
                             'to': 'infinity',
                             'to_included': False,
                         },
@@ -255,22 +255,22 @@ class TestCreateOrgUnit(unittest.TestCase):
                     },
                     {
                         'urn': 'urn:magenta.dk:telefon:12345678',
+                        'objekttype':
+                        'v0:N/A:98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'notetekst':
-                            'v0:N/A:98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                             'to': 'infinity',
                             'to_included': False,
                         },
                     },
                     {
                         'urn': 'urn:magenta.dk:telefon:87654321',
+                        'objekttype':
+                        'v0:N/A:98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                         'virkning': {
                             'from': '2017-11-30T00:00:00+01:00',
                             'from_included': True,
-                            'notetekst':
-                            'v0:N/A:98001816-a7cc-4115-a9e6-2c5c06c79e5d',
                             'to': 'infinity',
                             'to_included': False,
                         },

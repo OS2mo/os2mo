@@ -1453,31 +1453,31 @@ class TestWritingIntegration(util.LoRATestCase):
         expected_addresses = [
             {
                 'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'objekttype': 'v0:0:fortid',
                 'virkning': {
                     'from': '2017-07-01 00:00:00+02',
                     'from_included': True,
-                    'notetekst': 'v0:0:fortid',
                     'to': '2017-07-19 00:00:00+02',
                     'to_included': False
                 }
             },
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'objekttype': 'v0:1:Kontor',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
                     'to_included': False
                 }
             },
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'objekttype': 'v0:external:b1f1817d-5f02-'
+                '4331-b8b3-97330a5d3197',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:external:b1f1817d-5f02-'
-                                 '4331-b8b3-97330a5d3197',
                     'to': 'infinity',
                     'to_included': False
                 }
@@ -1512,41 +1512,41 @@ class TestWritingIntegration(util.LoRATestCase):
         expected_addresses = [
             {
                 'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'objekttype': 'v0:0:fremtid',
                 'virkning': {
                     'from': '2017-09-01 00:00:00+02',
                     'from_included': True,
-                    'notetekst': 'v0:0:fremtid',
                     'to': '2017-09-19 00:00:00+02',
                     'to_included': False
                 }
             },
             {
                 'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'objekttype': 'v0:0:fortid',
                 'virkning': {
                     'from': '2017-07-01 00:00:00+02',
                     'from_included': True,
-                    'notetekst': 'v0:0:fortid',
                     'to': '2017-07-19 00:00:00+02',
                     'to_included': False
                 }
             },
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'objekttype': 'v0:1:Kontor',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
                     'to_included': False
                 }
             },
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'objekttype': 'v0:external:b1f1817d-5f02-'
+                '4331-b8b3-97330a5d3197',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:external:b1f1817d-5f02-'
-                                 '4331-b8b3-97330a5d3197',
                     'to': 'infinity',
                     'to_included': False
                 }

@@ -256,10 +256,10 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -353,10 +353,10 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -460,10 +460,10 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -557,20 +557,20 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
                   },
                   {
                     "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -664,20 +664,20 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
                   },
                   {
                     "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -771,20 +771,20 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
                   },
                   {
                     "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -878,20 +878,20 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
                   },
                   {
                     "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -985,20 +985,20 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
                   },
                   {
                     "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
@@ -1092,20 +1092,20 @@
                 "adresser": [
                   {
                     "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:1:Kontor",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }
                   },
                   {
                     "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                     "virkning": {
                       "from": "2016-01-01 00:00:00+01",
                       "from_included": true,
-                      "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                       "to": "2019-01-01 00:00:00+01",
                       "to_included": false
                     }

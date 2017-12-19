@@ -23,20 +23,20 @@
         "virkning": {
           "from": "2016-02-01 00:00:00+01",
           "from_included": true,
-          "notetekst": "v0:1:lnavn",
           "to_included": false,
           "to": "infinity"
         },
+        "objekttype": "v0:1:lnavn",
         "uuid": "98001816-a7cc-4115-a9e6-2c5c06c79e5d"
       },
       {
         "virkning": {
           "from": "2016-02-01 00:00:00+01",
           "from_included": true,
-          "notetekst": "v0:blyf:98001816-a7cc-4115-a9e6-2c5c06c79e5d",
           "to_included": false,
           "to": "infinity"
         },
+        "objekttype": "v0:blyf:98001816-a7cc-4115-a9e6-2c5c06c79e5d",
         "urn": "urn:magenta.dk:telefon:12345678"
       }
     ],

@@ -40,7 +40,7 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
 
 
 def _create_virkning(From: str, to: str, from_included=True,
-                     to_included=False, note=None) -> dict:
+                     to_included=False) -> dict:
     """
     Create virkning from frontend request.
 
@@ -50,15 +50,12 @@ def _create_virkning(From: str, to: str, from_included=True,
     :param to_included: Specify if the to-date should be included or not.
     :return: The virkning object.
     """
-    d = {
+    return {
         'from': util.to_lora_time(From),
         'to': util.to_lora_time(to),
         'from_included': from_included if not From == '-infinity' else False,
         'to_included': to_included if not to == 'infinity' else False
     }
-    if note:
-        d['notetekst'] = str(note)
-    return d
 
 
 def create_org_unit(req: dict) -> dict:
@@ -101,11 +98,8 @@ def create_org_unit(req: dict) -> dict:
                 {
                     'uuid': location['location'][
                         'UUID_EnhedsAdresse'],
-                    'virkning': dict(
-                        **virkning,
-                        notetekst=str(
-                            meta.Address.fromdict(location)),
-                    ),
+                    'objekttype': str(meta.Address.fromdict(location)),
+                    'virkning': virkning,
                 }
 
                 # TODO: will we ever have more than one location?
@@ -118,15 +112,13 @@ def create_org_unit(req: dict) -> dict:
                     'urn': 'urn:magenta.dk:telefon:{}'.format(
                         channel['contact-info'],
                     ),
-                    'virkning': dict(
-                        **virkning,
-                        notetekst=str(meta.PhoneNumber(
-                            location=location['location']
-                            ['UUID_EnhedsAdresse'],
-                            visibility=channel['visibility'][
-                                'user-key'],
-                        )),
-                    ),
+                    'objekttype': str(meta.PhoneNumber(
+                        location=location['location']
+                        ['UUID_EnhedsAdresse'],
+                        visibility=channel['visibility'][
+                        'user-key'],
+                    )),
+                    'virkning': virkning,
                 }
                 for location in req.get('locations', [])
                 for channel in location.get('contact-channels', [])
@@ -463,13 +455,13 @@ def _add_contact_channels(org_unit: dict, location: dict,
         addresses.extend([
             {
                 'urn': info['type']['prefix'] + info['contact-info'],
+                'objekttype': str(meta.PhoneNumber(
+                    location=location['uuid'],
+                    visibility=info['visibility']['user-key'],
+                )),
                 'virkning': _create_virkning(
                     info['valid-from'],
                     info['valid-to'],
-                    note=meta.PhoneNumber(
-                        location=location['uuid'],
-                        visibility=info['visibility']['user-key'],
-                    ),
                 ),
             }
             for info in contact_channels
@@ -501,9 +493,10 @@ def _update_existing_address(org_unit: dict,
 
     addresses = [
         address if address.get('uuid') != address_uuid else {
-            'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
-            'virkning': _create_virkning(From, to,
-                                         note=meta.Address(**kwargs)),
+            'uuid': (location.get('UUID_EnhedsAdresse') or
+                     location['uuid']),
+            'objekttype': str(meta.Address(**kwargs)),
+            'virkning': _create_virkning(From, to),
         }
         for address in org_unit['relationer']['adresser']
     ]
@@ -531,8 +524,8 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
 
     new_addr = {
         'uuid': location['UUID_EnhedsAdresse'],
-        'virkning': _create_virkning(From, to,
-                                     note=meta.Address(**kwargs)),
+        'objekttype': str(meta.Address(**kwargs)),
+        'virkning': _create_virkning(From, to),
     }
 
     addresses = org_unit['relationer']['adresser'].copy()
