@@ -571,7 +571,7 @@ ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
            ROLE_TYPE_SUFFIX)
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
-@util.restrictargs('effective-date', 'validity', 't')
+@util.restrictargs('effective-date', 'validity', 'unique', 't')
 def get_role(role, **kwargs):
     validity = flask.request.args.get('validity')
     effective_date = flask.request.args.get('effective-date')
