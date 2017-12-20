@@ -108,6 +108,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
 
     users = {
         'andersand': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+        'fedtmule': '6ee24785-ee9a-4502-81c2-7697009c9053',
     }
 
     if not minimal:

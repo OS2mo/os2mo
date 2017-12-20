@@ -581,6 +581,11 @@ def get_engagements(orgid=None, unitid=None, userid=None, **loraparams):
         for start, end, effect in c.organisationfunktion.get_effects(
             funcid,
             {
+                'relationer': (
+                    'opgaver',
+                    'organisatoriskfunktionstype',
+                    'tilknyttedeenheder',
+                ),
                 'tilstande': (
                     'organisationfunktiongyldighed',
                 ),
@@ -590,11 +595,8 @@ def get_engagements(orgid=None, unitid=None, userid=None, **loraparams):
                     'organisationfunktionegenskaber',
                 ),
                 'relationer': (
-                    'opgaver',
-                    'organisatoriskfunktionstype',
                     'tilhoerer',
                     'tilknyttedebrugere',
-                    'tilknyttedeenheder',
                     'tilknyttedeorganisationer',
                 ),
             },
