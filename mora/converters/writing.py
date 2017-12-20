@@ -448,7 +448,7 @@ def _add_contact_channels(org_unit: dict, location: dict,
     :param contact_channels: List of contact channels to add.
     :return: The updated list of addresses.
     """
-    addresses = org_unit['relationer']['adresser'].copy()
+    addresses = org_unit['relationer'].get('adresser', []).copy()
 
     if contact_channels:
         addresses.extend([
@@ -527,7 +527,7 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
         'virkning': _create_virkning(From, to),
     }
 
-    addresses = org_unit['relationer']['adresser'].copy()
+    addresses = org_unit['relationer'].get('adresser', []).copy()
     addresses.append(new_addr)
 
     return addresses

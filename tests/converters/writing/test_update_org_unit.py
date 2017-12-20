@@ -380,3 +380,134 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'contact-channel',
             location=None,
         ))
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=2)
+    @util.mock()
+    def test_should_add_first_location(self, mock):
+        org = {
+            "attributter": {
+                "organisationenhedegenskaber": [
+                    {
+                        "brugervendtnoegle": "MAGENTA",
+                        "enhedsnavn": "Magenta ApS",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+                "graenseindikator": True,
+                "tidsstempeldatotid": "2017-12-06T13:05:37.03371+01:00"
+            },
+            "livscykluskode": "Importeret",
+            "note": "Dette er en note.",
+            "relationer": {
+                "enhedstype": [
+                    {
+                        "uuid": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ],
+                "overordnet": [
+                    {
+                        "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ],
+                "tilhoerer": [
+                    {
+                        "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ]
+            },
+            "tilstande": {
+                "organisationenhedgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ]
+            },
+            "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+            }
+        }
+
+        mock.get('http://mox/organisation/organisationenhed?'
+                 'uuid=01e479c4-66ef-42aa-877e-15f0512f792c&'
+                 'virkningtil=infinity&virkningfra=-infinity',
+                 json={
+                     "results": [
+                         [
+                             {
+                                 "id": "01e479c4-66ef-42aa-877e-15f0512f792c",
+                                 "registreringer": [
+                                     org
+                                 ]
+                             }
+                         ]
+                     ]
+                 })
+        mock.put('http://mox/organisation/organisationenhed'
+                 '/01e479c4-66ef-42aa-877e-15f0512f792c',
+                 json={
+                     'uuid': '01e479c4-66ef-42aa-877e-15f0512f792c',
+                 })
+
+        self.assertRequestResponse(
+            '/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566/org-unit'
+            '/01e479c4-66ef-42aa-877e-15f0512f792c/role-types/location',
+            {
+                'uuid': '01e479c4-66ef-42aa-877e-15f0512f792c',
+            },
+            json={
+                "valid-from": "10-04-2017",
+                "location": {
+                    "UUID_EnhedsAdresse":
+                    "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                    "postdistrikt": "København K",
+                    "postnr": "1112",
+                    "vejnavn": "Pilestræde 43, 3., 1112 København K"
+                },
+                "primaer": True,
+                "name": "Hovedkontoret",
+                "valid-to": "infinity",
+                "$$hashKey": "1TG"
+            },
+        )
