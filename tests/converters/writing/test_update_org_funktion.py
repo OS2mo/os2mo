@@ -119,6 +119,17 @@ class TestUpdateOrgFunktion(TestCase):
                         }
                     }
                 ]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'from_included': True,
+                        'to': '2018-01-01T00:00:00+01:00',
+                        'to_included': False
+                    }
+                }]
             }
         }
 

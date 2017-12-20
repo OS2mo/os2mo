@@ -286,16 +286,6 @@ def inactivate_org_funktion(startdate, enddate):
     return payload
 
 
-def fully_inactivate_org_funktion(startdate, enddate):
-    obj_path = ['tilstande', 'organisationfunktiongyldighed']
-    props_inactive = {'gyldighed': 'Inaktiv'}
-
-    payload = _create_payload(startdate, enddate, obj_path, props_inactive,
-                              'Afslut funktion')
-
-    return payload
-
-
 def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     """
     Inactivate an org unit.
@@ -695,6 +685,14 @@ def update_org_funktion(req, original):
         ['relationer', 'organisatoriskfunktionstype'],
         {
             'uuid': req.get('type').get('uuid')
+        },
+        'Ret engagement',
+        payload)
+    payload = _create_payload(
+        from_time, to_time,
+        ['tilstande', 'organisationfunktiongyldighed'],
+        {
+            'gyldighed': "Aktiv"
         },
         'Ret engagement',
         payload)
