@@ -658,21 +658,21 @@ class IntegrationTests(util.LoRATestCase):
                 '/role-types/contact-channel/',
                 [
                     {
-                        # FIXME: this is horribly wrong...
-                        'contact-info': 'le.com',
+                        'contact-info': 'bruger@example.com',
                         'location': {'name': '—'},
+                        'name': 'Mail',
+                        'phone-type': {
+                            'name': 'Mail',
+                            'prefix': 'urn:mailto:',
+                            'user-key': 'Email',
+                        },
                         'type': {
-                            'name': 'Telefonnummer',
-                            'prefix': 'urn:magenta.dk:telefon:',
-                            'user-key': 'Telephone_number',
+                            'name': 'Mail',
+                            'prefix': 'urn:mailto:',
+                            'user-key': 'Email',
                         },
                         'valid-from': '14-02-2016',
                         'valid-to': 'infinity',
-                        'visibility': {
-                            'name': 'Må vises internt',
-                            'user-key': 'internal',
-                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
-                        },
                     },
                 ],
             )

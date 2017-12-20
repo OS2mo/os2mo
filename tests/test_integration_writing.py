@@ -283,7 +283,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -742,7 +742,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -1341,7 +1341,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "uuid": "N/A",
                                 },
                                 "type": {
-                                    "name": "Phone Number",
+                                    "name": "Telefonnummer",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
                                         "b7ccfb21-f623-4e8f-80ce-89731f726224",
@@ -1355,7 +1355,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "uuid": "N/A",
                                 },
                                 "type": {
-                                    "name": "Phone Number",
+                                    "name": "Telefonnummer",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
                                         "b7ccfb21-f623-4e8f-80ce-89731f726224",
@@ -1385,6 +1385,12 @@ class TestWritingIntegration(util.LoRATestCase):
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
                     },
+                    'name': 'Telefonnummer',
+                    'phone-type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
                     'type': {
                         'name': 'Telefonnummer',
                         'prefix': 'urn:magenta.dk:telefon:',
@@ -1407,6 +1413,12 @@ class TestWritingIntegration(util.LoRATestCase):
                         'valid-from': '2000-02-05T15:27:05+00:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    },
+                    'name': 'Telefonnummer',
+                    'phone-type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
                     },
                     'type': {
                         'name': 'Telefonnummer',

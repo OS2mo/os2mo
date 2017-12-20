@@ -39,6 +39,9 @@ class Address(collections.namedtuple('Address', ['name', 'primary'])):
         return 'v0:{:d}:{:s}'.format(self.primary, self.name)
 
 
+MAIL_PREFIX = 'urn:mailto:'
+MAIL_ADDRESS_DESC = 'Mail'
+
 PHONE_PREFIX = 'urn:magenta.dk:telefon:'
 PHONE_NUMBER_DESC = 'Telefonnummer'
 

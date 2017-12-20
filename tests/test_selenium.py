@@ -259,7 +259,7 @@ class RightsTests(util.LiveLoRATestCase):
 
         ui.Select(self.browser.find_element_by_css_selector(
             'form[name=contactChannelForm] select[name=type]',
-        )).select_by_visible_text('Phone Number')
+        )).select_by_visible_text('Telefonnummer')
 
         ui.Select(self.browser.find_element_by_css_selector(
             'form[name=contactChannelForm] select[name=visibility]',
@@ -404,7 +404,7 @@ class RightsTests(util.LiveLoRATestCase):
 
         ui.Select(self.browser.find_element_by_css_selector(
             'form[name=contactChannelForm] select[name=type]',
-        )).select_by_visible_text('Phone Number')
+        )).select_by_visible_text('Telefonnummer')
 
         ui.Select(self.browser.find_element_by_css_selector(
             'form[name=contactChannelForm] select[name=visibility]',

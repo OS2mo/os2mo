@@ -252,31 +252,54 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
         objid = unitid
 
     def convert_address(obj):
-        info = meta.PhoneNumber.fromstring(
-            obj.get('objekttype'),
-        )
-
-        return {
-            "contact-info": obj['urn'][len(meta.PHONE_PREFIX):],
-            # "name": "telefon 12345678",
-            'location': _get_location(info.location),
-            'visibility': {
-                'user-key': info.visibility,
-                'uuid': meta.PHONE_VISIBILITY_UUIDS[info.visibility],
-                'name': meta.PHONE_VISIBILITIES[info.visibility],
-            },
-            "type": {
+        if obj['urn'].startswith(meta.PHONE_PREFIX):
+            info = meta.PhoneNumber.fromstring(
+                obj.get('objekttype'),
+            )
+            t = {
                 "name": meta.PHONE_NUMBER_DESC,
                 "prefix": meta.PHONE_PREFIX,
                 "user-key": 'Telephone_number',
-            },
-            "valid-from": util.to_frontend_time(
-                obj['virkning']['from'],
-            ),
-            "valid-to": util.to_frontend_time(
-                obj['virkning']['to'],
-            ),
-        }
+            }
+
+            return {
+                "contact-info": obj['urn'][len(meta.PHONE_PREFIX):],
+                "name": meta.PHONE_NUMBER_DESC,
+                'location': _get_location(info.location),
+                'visibility': {
+                    'user-key': info.visibility,
+                    'uuid': meta.PHONE_VISIBILITY_UUIDS[info.visibility],
+                    'name': meta.PHONE_VISIBILITIES[info.visibility],
+                },
+                "type": t,
+                "phone-type": t,
+                "valid-from": util.to_frontend_time(
+                    obj['virkning']['from'],
+                ),
+                "valid-to": util.to_frontend_time(
+                    obj['virkning']['to'],
+                ),
+            }
+        elif obj['urn'].startswith(meta.MAIL_PREFIX):
+            t = {
+                "name": meta.MAIL_ADDRESS_DESC,
+                "prefix": meta.MAIL_PREFIX,
+                "user-key": 'Email',
+            }
+
+            return {
+                "contact-info": obj['urn'][len(meta.MAIL_PREFIX):],
+                "name": meta.MAIL_ADDRESS_DESC,
+                "location": _get_location(None),
+                "phone-type": t,
+                "type": t,
+                "valid-from": util.to_frontend_time(
+                    obj['virkning']['from'],
+                ),
+                "valid-to": util.to_frontend_time(
+                    obj['virkning']['to'],
+                ),
+            }
 
     return [
         convert_address(addr)
@@ -388,9 +411,14 @@ def get_contact_properties() -> list:
 def get_contact_types() -> list:
     return [
         {
-            "name": "Phone Number",
-            "prefix": "urn:magenta.dk:telefon:",
+            "name": meta.PHONE_NUMBER_DESC,
+            "prefix": meta.PHONE_PREFIX,
             "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+        },
+        {
+            "name": meta.MAIL_ADDRESS_DESC,
+            "prefix": meta.MAIL_PREFIX,
+            "uuid": "c88aca96-eab9-42e9-ba6d-4f3868234573"
         },
     ]
 

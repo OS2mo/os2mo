@@ -248,6 +248,12 @@ class LoRATest(test_util.TestCase):
                     "location": {
                         "name": "—",
                     },
+                    "name": "Telefonnummer",
+                    "phone-type": {
+                        "name": "Telefonnummer",
+                        "prefix": "urn:magenta.dk:telefon:",
+                        "user-key": "Telephone_number",
+                    },
                     "type": {
                         "name": "Telefonnummer",
                         "prefix": "urn:magenta.dk:telefon:",
@@ -594,6 +600,12 @@ class TemporalTests(test_util.TestCase):
                             "valid-from": "2014-05-05T19:07:48.577000+00:00",
                             "valid-to": "infinity",
                             "vejnavn": "Nordre Ringgade 1, 8000 Aarhus C"
+                        },
+                        "name": "Telefonnummer",
+                        "phone-type": {
+                            "name": "Telefonnummer",
+                            "prefix": "urn:magenta.dk:telefon:",
+                            "user-key": "Telephone_number",
                         },
                         "type": {
                             "name": "Telefonnummer",

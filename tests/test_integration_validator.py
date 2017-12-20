@@ -150,7 +150,7 @@ class TestIntegrationCreateOrgUnitValidator(TestHelper):
                                 "uuid": "external"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -197,7 +197,7 @@ class TestIntegrationCreateOrgUnitValidator(TestHelper):
                                 "uuid": "external"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -241,7 +241,7 @@ class TestIntegrationCreateOrgUnitValidator(TestHelper):
                                 "uuid": "external"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -288,7 +288,7 @@ class TestIntegrationCreateOrgUnitValidator(TestHelper):
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }

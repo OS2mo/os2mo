@@ -48,7 +48,7 @@ class TestExtendAddressesWithContactChannels(TestSetup):
             {
                 'contact-info': '12345678',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': 'b7ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -63,7 +63,7 @@ class TestExtendAddressesWithContactChannels(TestSetup):
             {
                 'contact-info': '87654321',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': '00ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -208,7 +208,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             {
                 'contact-info': '12345678',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': 'b7ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -223,7 +223,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             {
                 'contact-info': '87654321',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': '00ccfb21-f623-4e8f-80ce-89731f726224'
                 },
