@@ -622,14 +622,14 @@ def get_geographical_addresses():
     )
 
 
-@util.restrictargs()
 @app.route('/role-types/contact/facets/properties/classes/')
+@util.restrictargs()
 def get_contact_facet_properties_classes():
     return flask.jsonify(reading.get_contact_properties())
 
 
-@util.restrictargs(required=['facetKey'])
 @app.route('/role-types/contact/facets/type/classes/')
+@util.restrictargs('facetKey')
 def get_contact_facet_types_classes():
     key = flask.request.args['facetKey']
     assert key == 'Contact_channel_location', 'unknown key: ' + key
