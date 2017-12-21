@@ -10,12 +10,8 @@ import os
 
 import flask
 
-from . import lora
-from . import util
-from . import validator
-from .converters import addr
-from .converters import reading
-from .converters import writing
+from . import lora, util, validator
+from .converters import addr, reading, writing
 
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
@@ -107,32 +103,10 @@ def move_employee(employee_uuid):
     future_engagements = req.get('futureEngagementIds')
     # TODO: Handle tilknytning
 
-    move_engagements(present_engagements, org_unit_uuid, date)
-    move_engagements(future_engagements, org_unit_uuid, date)
+    writing.move_engagements(present_engagements, org_unit_uuid, date)
+    writing.move_engagements(future_engagements, org_unit_uuid, date)
 
     return flask.jsonify([]), 200
-
-
-def move_engagements(engagements, org_unit_uuid, from_date):
-    """
-    Move a list of engagements to the given org unit on the given date
-
-    :param engagements: A list of engagements on the form:
-                        {'uuid': <UUID>, 'overwrite': [0|1]}
-    :param org_unit_uuid: A UUID of the org unit to move to
-    :param from_date: The date of the move
-    """
-    c = lora.Connector(effective_date=from_date)
-    for engagement in engagements:
-        engagement_uuid = engagement.get('uuid')
-
-        # Fetch current orgfunk
-        orgfunk = c.organisationfunktion.get(engagement_uuid)
-
-        # Create new orgfunk active from the move date, with new org unit
-        payload = writing.move_org_funktion(org_unit_uuid, from_date, orgfunk)
-
-        c.organisationfunktion.update(payload, engagement_uuid)
 
 
 @app.route(
@@ -140,7 +114,7 @@ def move_engagements(engagements, org_unit_uuid, from_date):
     methods=['POST'])
 def edit_employee_role(employee_uuid, role_type, role_uuid):
     handlers = {
-        'engagement': edit_engagement
+        'engagement': writing.edit_engagement
         # 'association': edit_association,
         # 'it': edit_it,
         # 'contact': edit_contact,
@@ -155,14 +129,6 @@ def edit_employee_role(employee_uuid, role_type, role_uuid):
     handler(req, employee_uuid, role_uuid)
 
     return flask.jsonify(role_uuid), 200
-
-
-def edit_engagement(req, employee_uuid, engagement_uuid):
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    # Get the current org-funktion which the user wants to change
-    original = c.organisationfunktion.get(uuid=engagement_uuid)
-    payload = writing.update_org_funktion(req, original)
-    c.organisationfunktion.update(payload, engagement_uuid)
 
 
 @app.route('/e/<uuid:employee_uuid>/actions/terminate', methods=['POST'])
@@ -181,7 +147,7 @@ def terminate_employee(employee_uuid):
                                           effective_date=date)
     for engagement in engagements:
         engagement_uuid = engagement.get('uuid')
-        terminate_engagement(engagement_uuid, date)
+        writing.terminate_engagement(engagement_uuid, date)
 
     # TODO: Terminate Tilknytning
     # TODO: Terminate IT
@@ -191,28 +157,6 @@ def terminate_employee(employee_uuid):
     # TODO: Terminate Orlov
 
     return flask.jsonify(employee_uuid), 200
-
-
-def terminate_engagement(engagement_uuid, enddate):
-    """
-    Terminate the given engagement at the given date
-
-    :param engagement_uuid: An engagement UUID
-    :param enddate: The date of termination
-    """
-    c = lora.Connector(effective_date=enddate)
-
-    orgfunk = c.organisationfunktion.get(engagement_uuid)
-
-    # Create inactivation object
-    startdate = [
-        g['virkning']['from'] for g in
-        orgfunk['tilstande']['organisationfunktiongyldighed']
-        if g['gyldighed'] == 'Aktiv'
-    ][0]
-
-    payload = writing.inactivate_org_funktion(startdate, enddate)
-    c.organisationfunktion.update(payload, engagement_uuid)
 
 
 @app.route('/e/<uuid:employeeid>/actions/role', methods=['POST'])
@@ -232,7 +176,7 @@ def create_employee_role(employeeid):
         role_type = req.get('role-type')
 
         handlers = {
-            'engagement': create_engagement,
+            'engagement': writing.create_engagement,
             # 'association': create_association,
             # 'it': create_it,
             # 'contact': create_contact,
@@ -248,11 +192,6 @@ def create_employee_role(employeeid):
         handler(req, c)
 
     return flask.jsonify(employeeid), 200
-
-
-def create_engagement(req, c):
-    engagement = writing.create_org_funktion(req)
-    c.organisationfunktion.create(engagement)
 
 
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])

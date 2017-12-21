@@ -754,3 +754,61 @@ def merge_obj_effects(orig_objs, new):
                 result.append(new_obj_after)
 
     return sorted(result, key=lambda x: x['virkning']['from'])
+
+
+# Engagements
+def move_engagements(engagements, org_unit_uuid, from_date):
+    """
+    Move a list of engagements to the given org unit on the given date
+
+    :param engagements: A list of engagements on the form:
+                        {'uuid': <UUID>, 'overwrite': [0|1]}
+    :param org_unit_uuid: A UUID of the org unit to move to
+    :param from_date: The date of the move
+    """
+    c = lora.Connector(effective_date=from_date)
+    for engagement in engagements:
+        engagement_uuid = engagement.get('uuid')
+
+        # Fetch current orgfunk
+        orgfunk = c.organisationfunktion.get(engagement_uuid)
+
+        # Create new orgfunk active from the move date, with new org unit
+        payload = move_org_funktion(org_unit_uuid, from_date, orgfunk)
+
+        c.organisationfunktion.update(payload, engagement_uuid)
+
+
+def edit_engagement(req, employee_uuid, engagement_uuid):
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    # Get the current org-funktion which the user wants to change
+    original = c.organisationfunktion.get(uuid=engagement_uuid)
+    payload = update_org_funktion(req, original)
+    c.organisationfunktion.update(payload, engagement_uuid)
+
+
+def terminate_engagement(engagement_uuid, enddate):
+    """
+    Terminate the given engagement at the given date
+
+    :param engagement_uuid: An engagement UUID
+    :param enddate: The date of termination
+    """
+    c = lora.Connector(effective_date=enddate)
+
+    orgfunk = c.organisationfunktion.get(engagement_uuid)
+
+    # Create inactivation object
+    startdate = [
+        g['virkning']['from'] for g in
+        orgfunk['tilstande']['organisationfunktiongyldighed']
+        if g['gyldighed'] == 'Aktiv'
+    ][0]
+
+    payload = inactivate_org_funktion(startdate, enddate)
+    c.organisationfunktion.update(payload, engagement_uuid)
+
+
+def create_engagement(req, c):
+    engagement = create_org_funktion(req)
+    c.organisationfunktion.create(engagement)
