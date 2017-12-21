@@ -335,7 +335,7 @@ class LoRATestCaseMixin(TestCaseMixin):
         atexit.unregister(cls.minimox.send_signal)
 
         # second, terminate our child process
-        cls.minimox.send_signal(signal.SIGTERM)
+        cls.minimox.send_signal(signal.SIGINT)
 
         # read output from the server process
         print(cls.minimox.stdout.read())
