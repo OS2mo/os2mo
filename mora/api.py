@@ -532,7 +532,7 @@ def get_contact_facet_properties_classes():
 @app.route('/role-types/contact/facets/type/classes/')
 @util.restrictargs('facetKey')
 def get_contact_facet_types_classes():
-    key = flask.request.args['facetKey']
-    assert key == 'Contact_channel_location', 'unknown key: ' + key
+    key = flask.request.args.get('facetKey')
+    assert not key or key == 'Contact_channel_location', 'unknown key: ' + repr(key)
 
     return flask.jsonify(reading.get_contact_types())
