@@ -1910,6 +1910,7 @@ class TestWritingIntegration(util.LoRATestCase):
             {
                 'job-title': {
                     'name': 'Institut',
+                    'user-key': 'inst',
                     'userKey': 'inst',
                     "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
@@ -1936,6 +1937,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 'role-type': 'engagement',
                 'type': {
                     'name': 'Fakultet',
+                    'user-key': 'fak',
                     'userKey': 'fak',
                     "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                 },
