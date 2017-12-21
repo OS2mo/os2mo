@@ -859,9 +859,6 @@ def create_contact(req):
     # TODO: Validation
     kwargs = create_update_kwargs(req)
 
-    # not set when modifying a contact
-    kwargs['roletype'] = 'contact'
-
     payload = update_employee_addresses(**kwargs)
 
     if payload['relationer']['adresser']:

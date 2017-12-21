@@ -202,6 +202,12 @@ def create_employee_role(employeeid, role=None):
         handler(req)
 
     if role:
+        req = flask.request.get_json()
+
+        # set variables for consistency
+        req.setdefault('role-type', role)
+        req.setdefault('person', str(employeeid))
+
         handle_request(role, flask.request.get_json())
 
     else:
