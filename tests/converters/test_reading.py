@@ -49,8 +49,10 @@ class SimpleTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             meta.PhoneNumber.fromstring('v1337:::::::')
 
-        with self.assertRaises(ValueError):
-            meta.PhoneNumber.fromstring('asdasdasd')
+        self.assertEquals(
+            meta.PhoneNumber.fromstring('asdasdasd'),
+            meta.PhoneNumber(location=None, visibility='asdasdasd'),
+        )
 
     @test_util.mock()
     @freezegun.freeze_time('2001-01-01', tz_offset=1)

@@ -7,7 +7,6 @@
 #
 
 import unittest
-from unittest.mock import patch
 
 from mora.converters import writing
 

@@ -71,10 +71,15 @@ class PhoneNumber(collections.namedtuple(
             visibility, location = DEFAULT_PHONE_VISIBILITY, None
         elif s.startswith('v0:'):
             visibility, location = s.split(':', 2)[1:]
+        elif ':' not in s:
+            visibility, location = s, None
         else:
             raise ValueError('unsupported PhoneNumber version: ' + s)
 
         return cls(location, visibility)
 
     def __str__(self):
-        return 'v0:{:s}:{:s}'.format(self.visibility, self.location)
+        if self.location:
+            return 'v0:{:s}:{:s}'.format(self.visibility, self.location)
+        else:
+            return self.visibility

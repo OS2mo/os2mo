@@ -8,8 +8,6 @@
 
 import itertools
 import operator
-import json
-import uuid
 
 from . import addr
 from . import meta
@@ -280,7 +278,11 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
                     obj['virkning']['to'],
                 ),
             }
+
         elif obj['urn'].startswith(meta.MAIL_PREFIX):
+            info = meta.PhoneNumber.fromstring(
+                obj.get('objekttype'),
+            )
             t = {
                 "name": meta.MAIL_ADDRESS_DESC,
                 "prefix": meta.MAIL_PREFIX,
@@ -290,7 +292,12 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
             return {
                 "contact-info": obj['urn'][len(meta.MAIL_PREFIX):],
                 "name": meta.MAIL_ADDRESS_DESC,
-                "location": _get_location(None),
+                "location": _get_location(info.location),
+                'visibility': {
+                    'user-key': info.visibility,
+                    'uuid': meta.PHONE_VISIBILITY_UUIDS[info.visibility],
+                    'name': meta.PHONE_VISIBILITIES[info.visibility],
+                },
                 "phone-type": t,
                 "type": t,
                 "valid-from": util.to_frontend_time(
@@ -300,6 +307,9 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
                     obj['virkning']['to'],
                 ),
             }
+
+        else:
+            raise NotImplementedError(obj['urn'])
 
     return [
         convert_address(addr)

@@ -18,6 +18,15 @@ staticdir = os.path.join(basedir, 'static')
 
 blueprint = app = flask.Blueprint('api', __name__, static_url_path='')
 
+ROLE_TYPES = {
+    'engagement': reading.get_engagements,
+    'contact-channel': reading.get_contact_channels,
+    # XXX: Hack to handle inconsistencies in API
+    'contact': reading.get_contact_channels,
+    'location': reading.get_locations,
+}
+ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
+
 
 @app.route('/o/')
 def list_organisations():
@@ -166,34 +175,38 @@ def terminate_employee(employee_uuid):
 @app.route('/e/<uuid:employeeid>/actions/role', methods=['POST'])
 # XXX: Hack to handle inconsistencies in API
 @app.route('/mo/e/<uuid:employeeid>/actions/role', methods=['POST'])
-def create_employee_role(employeeid):
+@app.route('/e/<uuid:employeeid>/role-types/' +
+           ROLE_TYPE_SUFFIX.rstrip('/'), methods=['POST'])
+def create_employee_role(employeeid, role=None):
     """
     Catch-all function for creating Employees roles
 
     :param employeeid:  Employee ID from MO. Not used.
     :return: The uuid of the employee and a HTTP status code.
     """
-    reqs = flask.request.get_json()
 
-    c = lora.Connector()
-    for req in reqs:
-        role_type = req.get('role-type')
-
+    def handle_request(role_type, req):
         handlers = {
             'engagement': writing.create_engagement,
             # 'association': create_association,
             # 'it': create_it,
-            # 'contact': create_contact,
+            'contact': writing.create_contact,
             # 'leader': create_leader,
         }
 
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify(
-                {'message': 'unsupported role type {}'.format(role_type)}), 400
+            raise ValueError('unsupported role type {}'.format(role_type))
 
-        handler(req, c)
+        handler(req)
+
+    if role:
+        handle_request(role, flask.request.get_json())
+
+    else:
+        for req in flask.request.get_json():
+            handle_request(req.get('role-type'), req)
 
     return flask.jsonify(employeeid), 200
 
@@ -451,16 +464,6 @@ def get_orgunit_history(orgid, unitid):
     r = reading.unit_history(str(orgid), str(unitid))
 
     return flask.jsonify(list(r)) if r else ('', 404)
-
-
-ROLE_TYPES = {
-    'engagement': reading.get_engagements,
-    'contact-channel': reading.get_contact_channels,
-    # XXX: Hack to handle inconsistencies in API
-    'contact': reading.get_contact_channels,
-    'location': reading.get_locations,
-}
-ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
 
 
 @app.route('/e/<uuid:userid>/role-types/' + ROLE_TYPE_SUFFIX)

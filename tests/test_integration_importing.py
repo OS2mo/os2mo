@@ -673,6 +673,11 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'valid-from': '14-02-2016',
                         'valid-to': 'infinity',
+                        'visibility': {
+                            'name': 'Må vises internt',
+                            'user-key': 'internal',
+                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
+                        }
                     },
                 ],
             )

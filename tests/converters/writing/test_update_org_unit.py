@@ -33,13 +33,17 @@ class TestExtendAddressesWithContactChannels(TestSetup):
     def test_should_add_zero_contact_channels_correctly(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._add_contact_channels(self.org_unit, None, []),
+            writing._add_contact_channels(self.org_unit,
+                                          location=None,
+                                          contact_channels=[]),
             'Extending incorrectly with an empty list of channels')
 
     def test_should_handle_contact_channels_is_none(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._add_contact_channels(self.org_unit, None, None),
+            writing._add_contact_channels(self.org_unit,
+                                          location=None,
+                                          contact_channels=None),
             'Extending incorrectly when contact channels is None')
 
     @freezegun.freeze_time('2017-01-01', tz_offset=2)
@@ -102,10 +106,10 @@ class TestExtendAddressesWithContactChannels(TestSetup):
             addresses,
             writing._add_contact_channels(
                 self.org_unit,
-                {
+                location={
                     'uuid': '1337',
                 },
-                contact_channels
+                contact_channels=contact_channels
             ),
             'Extending incorrectly with two contact channels',
         )

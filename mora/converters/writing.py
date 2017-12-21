@@ -448,29 +448,35 @@ def _create_merged_list(obj_path, props, obj):
 # ---- Handling of role types: contact-channel, location and None ---- #
 
 
-def _add_contact_channels(org_unit: dict, location: dict,
-                          contact_channels: list) -> dict:
+def _add_contact_channels(obj: dict, *, location: dict=None,
+                          contact_channels: list=None) -> dict:
     """
     Adds new contact channels to the address list.
 
-    :param org_unit: The org unit to update.
+    :param obj: The org unit to update.
     :param location: The location to attach the contact channel to.
     :param contact_channels: List of contact channels to add.
     :return: The updated list of addresses.
     """
-    addresses = org_unit['relationer'].get('adresser', []).copy()
+    addresses = obj['relationer'].get('adresser', []).copy()
 
     if contact_channels:
         addresses.extend([
             {
-                'urn': info['type']['prefix'] + info['contact-info'],
+                'urn': (
+                    (info.get('type') or info['phone-type'])['prefix'] +
+                    info['contact-info']
+                ),
                 'objekttype': str(meta.PhoneNumber(
-                    location=location['uuid'],
-                    visibility=info['visibility']['user-key'],
+                    location=location and location['uuid'],
+                    visibility=(
+                        (info.get('visibility') or info['properties'])
+                        ['user-key']
+                    ),
                 )),
                 'virkning': _create_virkning(
                     info['valid-from'],
-                    info['valid-to'],
+                    info.get('valid-to', 'infinity'),
                 ),
             }
             for info in contact_channels
@@ -582,6 +588,14 @@ def create_update_kwargs(req: dict) -> dict:
             kwargs = {
                 'roletype': roletype,
             }
+    # NB: consistency - employees use contact, not contact-channe
+    elif roletype == 'contact':
+        kwargs = {
+            'contact_channels': [req],
+            'roletype': roletype,
+            'emplid': req['person'],
+            'location': None,
+        }
     elif roletype == 'location':
         kwargs = {
             'roletype': roletype,
@@ -605,6 +619,35 @@ def create_update_kwargs(req: dict) -> dict:
         }
 
     return kwargs
+
+
+def update_employee_addresses(emplid: str, roletype: str, **kwargs):
+    assert roletype == 'contact', roletype
+
+    c = lora.Connector()
+    employee = c.bruger.get(emplid)
+
+    if roletype == 'contact':
+        if 'contact_channels' in kwargs:
+            # Adding contact channels
+            note = 'Tilføj kontaktkanal'
+            updated_addresses = _add_contact_channels(
+                employee, **kwargs)
+        else:
+            # Contact channel already exists
+            note = 'Tilføj eksisterende kontaktkanal'
+            updated_addresses = []
+    else:
+        raise NotImplementedError(roletype)
+
+    payload = {
+        'note': note,
+        'relationer': {
+            'adresser': updated_addresses
+        }
+    }
+
+    return payload
 
 
 def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
@@ -634,6 +677,11 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
             # Contact channel already exists
             note = 'Tilføj eksisterende kontaktkanal'
             updated_addresses = []
+    elif roletype == 'contact':
+        # Adding contact channels
+        note = 'Tilføj kontaktoplysninger'
+        updated_addresses = _add_contact_channels(
+            org_unit, **kwargs)
     elif roletype == 'location':
         # Updating an existing address
         _check_arguments(['address_uuid', 'location', 'From', 'to',
@@ -801,6 +849,20 @@ def terminate_engagement(engagement_uuid, enddate):
     c.organisationfunktion.update(payload, engagement_uuid)
 
 
-def create_engagement(req, c):
+def create_engagement(req):
+    # TODO: Validation
     engagement = create_org_funktion(req)
-    c.organisationfunktion.create(engagement)
+    lora.Connector().organisationfunktion.create(engagement)
+
+
+def create_contact(req):
+    # TODO: Validation
+    kwargs = create_update_kwargs(req)
+
+    # not set when modifying a contact
+    kwargs['roletype'] = 'contact'
+
+    payload = update_employee_addresses(**kwargs)
+
+    if payload['relationer']['adresser']:
+        lora.update('organisation/bruger/%s' % req['person'], payload)
