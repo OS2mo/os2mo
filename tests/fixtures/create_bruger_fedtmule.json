@@ -2,10 +2,10 @@
     "attributter": {
         "brugeregenskaber": [
             {
-                "brugernavn": "Anders And",
-                "brugervendtnoegle": "andersand",
+                "brugernavn": "Fedtmule",
+                "brugervendtnoegle": "fedtmule",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2002-02-14T00:00:00+01:00",
                     "from_included": true,
                     "to": "infinity",
                     "to_included": false
@@ -54,7 +54,7 @@
         "tilknyttedepersoner": [
             {
                 "objekttype": null,
-                "urn": "urn:dk:cpr:person:1111111111",
+                "urn": "urn:dk:cpr:person:2222222222",
                 "virkning": {
                     "from": "2002-02-14T00:00:00+01:00",
                     "from_included": true,

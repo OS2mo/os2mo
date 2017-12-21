@@ -34,7 +34,7 @@
                     "from_included": true,
                     "from": "2017-12-01 00:00:00+01"
                 },
-                "uuid": "2f9a3e4f-5f91-40a4-904c-68a376b7320f"
+                "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
             }
         ],
         "opgaver": [
@@ -80,7 +80,7 @@
                     "from_included": true,
                     "from": "2017-12-01 00:00:00+01"
                 },
-                "brugervendtnoegle": "2f9a3e4f-5f91-40a4-904c-68a376b7320f b688513d-11f7-4efc-b679-ab082a2055d0",
+                "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-7697009c9053 b688513d-11f7-4efc-b679-ab082a2055d0",
                 "funktionsnavn": "Skorstensfejer b688513d-11f7-4efc-b679-ab082a2055d0"
             }
         ]
