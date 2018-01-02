@@ -18,7 +18,9 @@
       <unit-type-select v-model="orgUnit.type"/>
     </div>
 
-    <organisation-unit-picker/>
+    <organisation-unit-picker v-model="superUnit"/>
+
+    {{superUnit}}
 
     <address-search v-model="orgUnit.locations[0]"/>
     
@@ -77,6 +79,7 @@
         channels: ['ContactChannel'],
         contactChannels: [],
         dateStartEnd: {},
+        superUnit: {},
         orgUnit: {
           'valid-to': '',
           'valid-from': '',
@@ -94,7 +97,7 @@
     },
     updated () {
       this.orgUnit['valid-from'] = this.dateStartEnd.startDate
-      this.orgUnit['valid-to'] = this.dateStartEnd.endDate
+      this.orgUnit['valid-to'] = this.dateStartEnd.endDate !== '' ? this.dateStartEnd.endDate : 'infinity'
     },
     created () {},
     methods: {
@@ -102,8 +105,8 @@
         this.channels.push('ContactChannel')
       },
       createOrganisationUnit: function () {
-        this.orgUnit.org = '456362c4-0ee4-4e5e-a72c-751239745e62'
-        this.orgUnit.parent = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        this.orgUnit.org = this.superUnit.org
+        this.orgUnit.parent = this.superUnit.parent
         this.orgUnit['user-key'] = 'NULL'
         this.orgUnit.locations[0].primaer = true
         this.orgUnit.locations[0]['contact-channels'] = this.contactChannels

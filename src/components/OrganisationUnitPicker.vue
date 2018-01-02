@@ -1,28 +1,35 @@
 <template>
-  <div class="form-group">
+  <div class="form-group">      
       <label for="">{{ label }}</label>
       <input 
         type="text" 
         class="form-control" 
-        placeholder="Kommer senere..."
+        placeholder="Vælg enhed"
         ref="orgUnitPicker"
         :value="selectedSuperUnit.name"
-        @focus="show"
+        @click.stop="show"
       >
-      <div class="mo-input-group" v-show="showTree">
-        <tree-view v-model="selectedSuperUnit" :orgUuid="org.uuid"/>
+      <div class="mo-input-group" v-show="showTree" v-click-outside="hide">
+        <tree-view 
+          v-model="selectedSuperUnit" 
+          v-click-outside="hide"
+          :orgUuid="org.uuid" 
+        />
       </div>
   </div>
 </template>
 
 <script>
   import Organisation from '../api/Organisation'
+  import ClickOutside from '../directives/ClickOutside'
   import TreeView from '../components/Treeview'
+
   export default {
     components: {
       TreeView
     },
     props: {
+      value: Object,
       label: {
         default: 'Angiv overenhed',
         type: String
@@ -35,9 +42,14 @@
         showTree: false
       }
     },
+    directives: {
+      ClickOutside
+    },
     watch: {
       selectedSuperUnit (newVal, oldVal) {
         this.$refs.orgUnitPicker.blur()
+        console.log(newVal)
+        this.$emit('input', newVal)
         this.hide()
       }
     },
@@ -47,6 +59,11 @@
     methods: {
       getSelectedOrganisation () {
         this.org = Organisation.getSelectedOrganisation()
+      },
+
+      updateSuperUnit () {
+        console.log('update event')
+        this.$emit('input', this.selectedSuperUnit)
       },
 
       show () {
@@ -75,5 +92,4 @@
     border-radius: 0 0 0.25rem;
     transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
   }
-
 </style>
