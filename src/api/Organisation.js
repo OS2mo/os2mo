@@ -162,6 +162,19 @@ export default {
     })
   },
 
+  /**
+   * End an organisation
+   * @param {Object} orgUnit - the organisation unit to end
+   * @param {String} endDate - the date on which the organisation unit shall end
+   * @return {Object} the uuid of the organisation unit
+   */
+  endOrganisationUnit (orgUnit, endDate) {
+    return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
+    .then(response => {
+      return response
+    })
+  },
+
   getOrganisationUnit (orgUuid, unitUuid) {
     return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
     .then(function (response) {

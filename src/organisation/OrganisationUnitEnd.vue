@@ -1,17 +1,29 @@
 <template>
   <div>
     <div class="form-row">
-      <organisation-unit-picker label="Enhed" class="col"/>
-      <date-picker label="Slutdato"/>
+      <organisation-unit-picker 
+        label="Enhed" 
+        class="col"
+        v-model="orgUnit"
+      />
+      <date-picker 
+        label="Slutdato"
+        v-model="endDate"
+      />
     </div>
 
+    {{orgUnit}}
+
+    {{endDate}}
+
     <div class="float-right">
-      <button-submit/>
+      <button-submit @click.native="endOrganisationUnit"/>
     </div>
   </div>
 </template>
 
 <script>
+  import Organisation from '../api/Organisation'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -23,10 +35,17 @@
       ButtonSubmit
     },
     data () {
-      return {}
+      return {
+        orgUnit: {},
+        endDate: ''
+      }
     },
     created: function () {},
-    methods: {}
+    methods: {
+      endOrganisationUnit () {
+        Organisation.endOrganisationUnit(this.orgUnit, this.endDate)
+      }
+    }
   }
 </script>
 
