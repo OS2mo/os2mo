@@ -1,7 +1,11 @@
 <template>
   <div>
     <div class="form-row">
-      <organisation-unit-picker label="Enhed" class="col"/>
+      <organisation-unit-picker 
+        label="Enhed" 
+        class="col"
+        v-model="orgUnit"
+      />
     </div>
 
     <div class="form-row">
@@ -11,7 +15,7 @@
           type="text" 
           class="form-control" 
           id="" 
-          v-model="name"
+          v-model="newName"
         >
       </div>
     </div>
@@ -24,11 +28,11 @@
     </div>
 
     <div class="float-right">
-      <button-submit/>
+      <button-submit @click.native="renameOrganisationUnit"/>
     </div> 
 
     {{dateStartEnd}}
-    {{name}}
+    {{newName}}
     {{orgUnit}}
   </div>
 </template>
@@ -48,17 +52,13 @@
     data () {
       return {
         orgUnit: {},
-        name: '',
+        newName: '',
         dateStartEnd: {}
       }
     },
-    beforeUpdate: function () {
-      this.getOrganisationUnit()
-    },
     methods: {
-      getOrganisationUnit () {
-        this.orgUnit = Organisation.getSelectedOrganisationUnit()
-        this.name = this.orgUnit.name
+      renameOrganisationUnit () {
+        Organisation.renameOrganisationUnit(this.orgUnit, this.newName)
       }
     }
   }

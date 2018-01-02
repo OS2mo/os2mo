@@ -141,7 +141,8 @@ export default {
       })
   },
 
-  renameOrganisationUnit (orgUnit) {
+  renameOrganisationUnit (orgUnit, newName) {
+    orgUnit.name = newName
     return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
     .then(function (response) {
       return response.data
