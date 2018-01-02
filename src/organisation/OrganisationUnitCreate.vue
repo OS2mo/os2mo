@@ -106,7 +106,7 @@
       },
       createOrganisationUnit: function () {
         this.orgUnit.org = this.superUnit.org
-        this.orgUnit.parent = this.superUnit.parent
+        this.orgUnit.parent = this.superUnit.uuid
         this.orgUnit['user-key'] = 'NULL'
         this.orgUnit.locations[0].primaer = true
         this.orgUnit.locations[0]['contact-channels'] = this.contactChannels
