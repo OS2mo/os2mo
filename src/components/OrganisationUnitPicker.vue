@@ -29,6 +29,7 @@
       TreeView
     },
     props: {
+      value: Object,
       label: {
         default: 'Angiv overenhed',
         type: String
@@ -47,6 +48,8 @@
     watch: {
       selectedSuperUnit (newVal, oldVal) {
         this.$refs.orgUnitPicker.blur()
+        console.log(newVal)
+        this.$emit('input', newVal)
         this.hide()
       }
     },
@@ -56,6 +59,11 @@
     methods: {
       getSelectedOrganisation () {
         this.org = Organisation.getSelectedOrganisation()
+      },
+
+      updateSuperUnit () {
+        console.log('update event')
+        this.$emit('input', this.selectedSuperUnit)
       },
 
       show () {
