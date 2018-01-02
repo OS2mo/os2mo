@@ -3,7 +3,7 @@
     <div id="workflows">
       <workflow-button label="Opret enhed" icon="plus-circle" target="OrgUnitCreate"/> <!--v-b-modal.orgUnitCreate/>-->
       <workflow-button label="Omdøb enhed" icon="pencil-square-o" v-b-modal.orgUnitRename/>
-      <workflow-button label="Flyt enhed" icon="share-square-o" target="OrgUnitMove"/> <!--v-b-modal.orgUnitMove/>-->
+      <workflow-button label="Flyt enhed" icon="share-square-o" v-b-modal.orgUnitMove/>
       <workflow-button label="Afslut enhed" icon="ban" v-b-modal.orgUnitEnd/>
     </div>
   <!-- Modal Component -->
