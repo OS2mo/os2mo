@@ -1,29 +1,45 @@
 <template>
   <div>
-    <h1>{{ msg }}</h1>
     <div class="form-row">
-      <date-picker label="Dato for flytning"></date-picker>
+      <date-picker 
+      label="Dato for flytning"
+      v-model="date"
+      />
     </div>
 
     <div class="form-row">
       <div class="col">
-        <organisation-unit-picker label="Fremsøg enhed"/>
+        <organisation-unit-picker 
+          label="Fremsøg enhed"
+          v-model="unit"
+        />
       </div>
+
       <div class="form-group col">
-        <label for="exampleFormControlInput1">Nuværende overenhed</label>
-        <input type="email" class="form-control" id="" placeholder="" disabled>
+        <label for="">Nuværende overenhed</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          id="" 
+          :value="currentSuperUnit.name" 
+          disabled
+        >
       </div>
     </div>
 
-    <organisation-unit-picker label="Angiv ny overenhed"/>
+    <organisation-unit-picker 
+      label="Angiv ny overenhed"
+      v-model="newSuperUnit"
+    />
 
     <div class="float-right">
-      <button-submit/>
+      <button-submit @click.native="moveUnit"/>
     </div> 
   </div>
 </template>
 
 <script>
+  import Organisation from '../api/Organisation'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import DatePicker from '../components/DatePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -36,11 +52,37 @@
     },
     data () {
       return {
-        msg: 'Flyt enhed'
+        unit: {},
+        date: '',
+        newSuperUnit: {},
+        currentSuperUnit: {}
+      }
+    },
+    watch: {
+      unit (newVal, oldVal) {
+        this.getCurrentSuperUnit(newVal.org, newVal.parent)
       }
     },
     created: function () {},
-    methods: {}
+    methods: {
+      moveUnit () {
+        let vm = this
+        Organisation.moveOrganisationUnit(vm.unit, vm.newSuperUnit.uuid, vm.date)
+        .then(response => {
+          console.log(response)
+        })
+      },
+
+      getCurrentSuperUnit (orgUuid, unitUuid) {
+        let vm = this
+        if (unitUuid === null) return
+
+        return Organisation.getUnitDetails(orgUuid, unitUuid)
+        .then(response => {
+          vm.currentSuperUnit = response[0]
+        })
+      }
+    }
   }
 </script>
 

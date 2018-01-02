@@ -148,15 +148,16 @@ export default {
     })
   },
 
-  moveOrganisationUnit (orgUuid, fromUuid, toUuid, date) {
+  moveOrganisationUnit (orgUnit, toUuid, date) {
     var obj = {
       'moveDate': date,
       'newParentOrgUnitUUID': toUuid
     }
 
-    HTTP.post('/o/' + orgUuid + '/org-unit/' + fromUuid + '/actions/move', obj)
+    HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
       console.log('it worked!')
+      return response
     })
   },
 

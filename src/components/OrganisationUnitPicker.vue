@@ -48,7 +48,6 @@
     watch: {
       selectedSuperUnit (newVal, oldVal) {
         this.$refs.orgUnitPicker.blur()
-        console.log(newVal)
         this.$emit('input', newVal)
         this.hide()
       }
@@ -62,7 +61,6 @@
       },
 
       updateSuperUnit () {
-        console.log('update event')
         this.$emit('input', this.selectedSuperUnit)
       },
 
