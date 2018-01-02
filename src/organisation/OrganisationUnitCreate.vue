@@ -20,8 +20,6 @@
 
     <organisation-unit-picker v-model="superUnit"/>
 
-    {{superUnit}}
-
     <address-search v-model="orgUnit.locations[0]"/>
     
     <component 
