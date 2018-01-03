@@ -8,6 +8,7 @@ import OrganisationDetailUnit from '@/organisation/OrganisationDetailUnit'
 import OrganisationDetailLocation from '@/organisation/OrganisationDetailLocation'
 import OrganisationDetailContact from '@/organisation/OrganisationDetailContact'
 import Employee from '@/employee/Employee'
+import EmployeeList from '@/employee/EmployeeList'
 import EmployeeDetail from '@/employee/EmployeeDetail'
 import EmployeeDetailEngagement from '@/employee/EmployeeDetailEngagement'
 import EmployeeDetailContact from '@/employee/EmployeeDetailContact'
@@ -71,13 +72,19 @@ export default new Router({
       path: '/medarbejder',
       name: 'employee',
       component: Employee,
-      redirect: { name: 'EmployeeDetail', params: { 'uuid': '3ecea419-7ee4-4923-bd34-c2bdca67a99e' } },
+      redirect: { name: 'EmployeeList' },
 
       children: [
+        {
+          path: 'liste',
+          name: 'EmployeeList',
+          component: EmployeeList
+        },
         {
           path: ':uuid',
           name: 'EmployeeDetail',
           component: EmployeeDetail,
+          redirect: { name: 'EmployeeDetailEngagement' },
 
           children: [
             {
