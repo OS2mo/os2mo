@@ -27,12 +27,7 @@
       OrganisationDetailContact
     },
     data () {
-      return {
-        details: []
-      }
-    },
-    created: function () {
-      this.getDetails()
+      return {}
     },
     methods: {}
   }
