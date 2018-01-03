@@ -2,10 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import HelloWorld from '@/components/HelloWorld'
 import LoginPage from '@/login/LoginPage'
-import OrganisationUnitCreate from '@/organisation/OrganisationUnitCreate'
-import OrganisationUnitRename from '@/organisation/OrganisationUnitRename'
-import OrganisationUnitMove from '@/organisation/OrganisationUnitMove'
-import OrganisationUnitEnd from '@/organisation/OrganisationUnitEnd'
 import Organisation from '@/organisation/Organisation'
 import OrganisationDetail from '@/organisation/OrganisationDetail'
 import OrganisationDetailUnit from '@/organisation/OrganisationDetailUnit'
@@ -66,26 +62,6 @@ export default new Router({
               path: 'kontakt-kanal',
               name: 'OrganisationDetailContact',
               component: OrganisationDetailContact
-            },
-            {
-              path: 'opret-enhed',
-              name: 'OrgUnitCreate',
-              component: OrganisationUnitCreate
-            },
-            {
-              path: 'omdoeb-enhed',
-              name: 'OrgUnitRename',
-              component: OrganisationUnitRename
-            },
-            {
-              path: 'flyt-enhed',
-              name: 'OrgUnitMove',
-              component: OrganisationUnitMove
-            },
-            {
-              path: 'afslut-enhed',
-              name: 'OrgUnitEnd',
-              component: OrganisationUnitEnd
             }
           ]
         }

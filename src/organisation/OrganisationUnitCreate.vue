@@ -1,7 +1,5 @@
 <template>
-  <div>
-    <h1>Opret enhed</h1>
-    
+  <div>    
     <date-picker-start-end v-model="dateStartEnd"/>
 
     <div class="form-row">
@@ -40,16 +38,10 @@
     >
       <icon name="plus"/>
     </button>
-
+    
     <div class="float-right">
-      <button type="button" class="btn btn-primary" v-on:click="createOrganisationUnit()">
-        <icon name="check"/>
-      </button>
-    </div>
-
-    <!-- <div class="float-right">
-        <button-submit v-on:click="createOrganisationUnit()"/>
-      </div> -->
+        <button-submit @click.native="createOrganisationUnit"/>
+      </div>
   </div>
 
 </template>

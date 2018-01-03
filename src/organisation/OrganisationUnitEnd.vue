@@ -11,11 +11,6 @@
         v-model="endDate"
       />
     </div>
-
-    {{orgUnit}}
-
-    {{endDate}}
-
     <div class="float-right">
       <button-submit @click.native="endOrganisationUnit"/>
     </div>
