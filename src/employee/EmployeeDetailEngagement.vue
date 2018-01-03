@@ -15,7 +15,11 @@
         <tr v-for="d in details" v-bind:key="d.uuid">
           <td>{{d['org-unit'].name}}</td>
           <td>{{d['job-title'].name}}</td>
-          <td>{{d.type}}</td>
+          <td>
+            <span v-if="d.type">
+              {{d.type.name}}
+            </span>
+          </td>
           <td>{{d['valid-from']}}</td>
           <td>{{d['valid-to']}}</td>
         </tr>
