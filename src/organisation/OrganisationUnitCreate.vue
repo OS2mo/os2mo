@@ -20,7 +20,10 @@
 
     <organisation-unit-picker v-model="superUnit"/>
 
-    <address-search v-model="orgUnit.locations[0]"/>
+    <address-search 
+    v-model="orgUnit.locations[0]"
+    :localUuid="superUnit.org"
+    />
     
     <component 
       v-for="(channel, key) in channels" 
