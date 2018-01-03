@@ -15,9 +15,15 @@
           <button class="btn btn-outline-primary">
             <icon name="edit" />
           </button>
+          <button class="btn btn-outline-primary" v-b-modal.viewUnit>
+            <icon name="eye" />
+          </button>
           <button class="btn btn-outline-primary" v-b-modal.theHistory>
             <icon name="book" />
           </button>
+          <b-modal id="viewUnit" size="lg" hide-footer title="Vis enhed">
+            <organisation-detail-view/>
+          </b-modal>
           <b-modal id="theHistory" size="lg" hide-footer title="Historik">
             <the-history/>
           </b-modal>
@@ -50,12 +56,12 @@
 
 <script>
   import Organisation from '../api/Organisation'
-  import OrganisationDetailContact from './OrganisationDetailContact'
-  import TheHistory from '../components/TheHistory'
+  import OrganisationDetailView from './OrganisationDetailView.vue'
+  import TheHistory from '../components/TheHistory.vue'
 
   export default {
     components: {
-      OrganisationDetailContact,
+      OrganisationDetailView,
       TheHistory
     },
     data () {

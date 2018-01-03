@@ -29,11 +29,7 @@
 
     <div class="float-right">
       <button-submit @click.native="renameOrganisationUnit"/>
-    </div> 
-
-    {{dateStartEnd}}
-    {{newName}}
-    {{orgUnit}}
+    </div>
   </div>
 </template>
 
