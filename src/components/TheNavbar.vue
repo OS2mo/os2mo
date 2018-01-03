@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-    <img src="/src/assets/logo/os2_small.svg" width="60px">
+    <div class="logo col-1"/>
     
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
       aria-expanded="false" aria-label="Toggle navigation">
@@ -55,6 +55,16 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
+  .logo {
+    background-image: url('../assets/logo/os2_small.svg');
+    background-repeat: no-repeat; /*Prevent showing multiple background images*/
+    background-position: center;
+    background-color:#002f5d;
+    background-size: 60px;
+    width: 60px;
+    height: 50px;
+    margin-left: -1em;
+  }
   nav {
     height: 50px;
   }
