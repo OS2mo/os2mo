@@ -15,7 +15,12 @@
 
     <div class="form-check col">
       <label class="form-check-label">
-        <input class="form-check-input" type="checkbox" value=""> Søg i hele landet
+        <input 
+          class="form-check-input" 
+          type="checkbox" 
+          v-model="searchCountry"
+        > 
+        Søg i hele landet
       </label>
     </div>
 
@@ -43,6 +48,12 @@
     components: {
       VAutocomplete
     },
+    props: {
+      localUuid: {
+        type: String,
+        default: ''
+      }
+    },
     data () {
       return {
         location: {
@@ -50,7 +61,8 @@
           name: ''
         },
         addressSuggestions: [],
-        template: template
+        template: template,
+        searchCountry: false
       }
     },
     methods: {
@@ -63,8 +75,9 @@
         }
       },
       getGeographicalLocation: function (text) {
-        var vm = this
-        Property.getGeographicalLocation(text, '').then(function (response) {
+        let vm = this
+        let local = this.localUuid !== '' && !this.searchCountry ? this.localUuid : ''
+        Property.getGeographicalLocation(text, local).then(function (response) {
           vm.addressSuggestions = response
         })
       },
