@@ -110,7 +110,12 @@ def load_cli(app):
         'Build the frontend application.'
         from subprocess import check_call
 
-        pass
+        check_call(['yarn'], cwd=topdir)
+        check_call(['yarn', 'build'], cwd=topdir)
+
+        if target:
+            check_call(['yarn', 'run'] +
+                       ([target] if target else []), cwd=topdir)
 
     @app.cli.command()
     @click.argument('args', nargs=-1)
