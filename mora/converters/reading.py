@@ -16,10 +16,13 @@ from .. import lora
 from .. import util
 
 
-def list_organisations():
+def get_organisations(*orgids):
     c = lora.Connector()
 
-    orgs = c.organisation(uuid=c.organisation(bvn='%'))
+    if not orgids:
+        orgids = c.organisation(bvn='%')
+
+    orgs = c.organisation(uuid=orgids)
 
     def convert(org):
         rootids = c.organisationenhed(overordnet=org['id'])

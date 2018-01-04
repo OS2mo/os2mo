@@ -30,7 +30,13 @@ ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
 
 @app.route('/o/')
 def list_organisations():
-    return flask.jsonify(reading.list_organisations())
+    return flask.jsonify(reading.get_organisations())
+
+
+@app.route('/o/<uuid:id>/')
+@util.restrictargs()
+def get_organisation(id):
+    return flask.jsonify(reading.get_organisations(str(id))[0])
 
 
 #
