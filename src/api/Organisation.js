@@ -17,13 +17,22 @@ export default {
       })
   },
 
-  getSelectedOrganisation () {
-    return selectedOrganisation
-  },
-
   setSelectedOrganisation (org) {
     selectedOrganisation = org
     EventBus.$emit('organisation-changed', selectedOrganisation)
+  },
+
+  getOrganisation (orgUuid) {
+    let vm = this
+    HTTP.get('o/' + orgUuid)
+      .then(response => {
+        console.log(response.data)
+        vm.setSelectedOrganisation(response.data)
+      })
+  },
+
+  getSelectedOrganisation () {
+    return selectedOrganisation
   },
 
   getSelectedOrganisationUnit () {
@@ -179,9 +188,15 @@ export default {
 
   getOrganisationUnit (unitUuid) {
     let orgUuid = '00000000-0000-0000-0000-000000000000'
+    let vm = this
     return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]
+
+      if (selectedOrganisation === '') {
+        vm.getOrganisation(selectedOrgUnit.org)
+      }
+
       return response.data[0]
     })
   }

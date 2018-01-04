@@ -5,11 +5,12 @@
       v-model="selectedOrganisation"
       @change="updateOrganisation()"
     >
-      <option disabled selected>Vælg organisation</option>
+      <option disabled>Vælg organisation</option>
       <option 
         v-for="org in orgs" 
         :key="org.uuid"
-        :value="org">
+        :value="org"
+      >
         {{org.name}}
       </option>
     </select>
@@ -17,6 +18,7 @@
 
 <script>
 import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
 
 export default {
   name: 'OrganisationPicker',
@@ -28,7 +30,12 @@ export default {
   },
   created () {
     this.getAll()
-    this.selectedOrganisation = Organisation.getSelectedOrganisation()
+    this.getSelectedOrganisation()
+  },
+  mounted () {
+    EventBus.$on('organisation-changed', newOrg => {
+      this.selectedOrganisation = newOrg
+    })
   },
   methods: {
     getAll () {
@@ -37,6 +44,11 @@ export default {
       .then(response => {
         vm.orgs = response
       })
+    },
+
+    getSelectedOrganisation () {
+      this.selectedOrganisation = Organisation.getSelectedOrganisation()
+      console.log(this.selectedOrganisation)
     },
 
     updateOrganisation () {
