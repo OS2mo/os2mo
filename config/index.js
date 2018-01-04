@@ -11,11 +11,7 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/o/': 'http://localhost:5100/',
-      '/e/': 'http://localhost:5100/',
-      '/org-unit': 'http://localhost:5100/',
-      '/role-types': 'http://localhost:5100/',
-      '/addressws': 'http://localhost:5100/'
+      '/mo/': 'http://localhost:5100/',
     },
 
     // Various Dev Server settings

@@ -25,7 +25,7 @@ class TestWritingIntegration(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         LOCATION_URL = (
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
             '/role-types/location/'
         )
@@ -105,7 +105,7 @@ class TestWritingIntegration(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         LOCATION_URL = (
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
             '/role-types/location/'
         )
@@ -215,7 +215,7 @@ class TestWritingIntegration(util.LoRATestCase):
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
         self.assertEquals(
-            self.client.get('/o/{}/org-unit/{}/'.format(org, root)).json[0],
+            self.client.get('/mo/o/{}/org-unit/{}/'.format(org, root)).json[0],
             {
                 'activeName': 'Overordnet Enhed',
                 'name': 'Overordnet Enhed',
@@ -239,15 +239,18 @@ class TestWritingIntegration(util.LoRATestCase):
         # before the actual POST request are working
 
         self.assert200(
-            self.client.get('/role-types/contact/facets/type/classes/'
+            self.client.get('/mo/role-types/contact/facets/type/classes/'
                             '?facetKey=Contact_channel_location'))
         self.assert200(
-            self.client.get('/role-types/contact/facets/properties/classes/'))
+            self.client.get(
+                '/mo/role-types/contact/facets/properties/classes/',
+            ),
+        )
         self.assert200(
-            self.client.get('/o/%s/full-hierarchy?effective-date='
+            self.client.get('/mo/o/%s/full-hierarchy?effective-date='
                             '01-06-2016&query=&treeType=treeType' % org))
         self.assert200(self.client.get(
-            '/addressws/geographical-location?local=%s&vejnavn=pile' % org))
+            '/mo/addressws/geographical-location?local=%s&vejnavn=pile' % org))
 
         # Check POST request
 
@@ -292,7 +295,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 }
             ]
         }
-        r = self.client.post('/o/' + org + '/org-unit',
+        r = self.client.post('/mo/o/' + org + '/org-unit',
                              data=json.dumps(payload),
                              content_type='application/json')
         self.assertEqual(201, r.status_code)
@@ -316,19 +319,19 @@ class TestWritingIntegration(util.LoRATestCase):
         now = datetime.datetime.today().strftime('%s') + '000'
 
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=treeType&t=%s' % (org, now)))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
         with self.subTest('rename'):
             self.assertRequestFails(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 404,
             )
 
-            r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid), )
+            r = self.client.get('/mo/o/{}/org-unit/{}/'.format(org, uuid), )
 
             self.assert200(r)
 
@@ -378,7 +381,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}?rename=true'.format(org, uuid),
                 {
                     'uuid': uuid,
                 },
@@ -386,8 +389,9 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             with self.subTest('history'):
-                r = self.client.get('/o/{}/org-unit/{}/history/'.format(org,
-                                                                        uuid))
+                r = self.client.get(
+                    '/mo/o/{}/org-unit/{}/history/'.format(org, uuid),
+                )
                 self.assertEqual(r.status_code, 200)
 
                 entries = r.json
@@ -411,11 +415,11 @@ class TestWritingIntegration(util.LoRATestCase):
                     },
                 ])
 
-            r = self.client.get('/o/{}/org-unit/{}/?validity=past'
+            r = self.client.get('/mo/o/{}/org-unit/{}/?validity=past'
                                 .format(org, uuid))
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 [
                     {
                         'activeName': 'NyEnhed',
@@ -459,7 +463,7 @@ class TestWritingIntegration(util.LoRATestCase):
             postdata["valid-to"] = "infinity"
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}?rename=true'.format(org, uuid),
                 {
                     'uuid': uuid,
                 },
@@ -467,7 +471,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 [
                     {
                         'activeName': 'NyEnhed',
@@ -538,14 +542,14 @@ class TestWritingIntegration(util.LoRATestCase):
                 ]
             )
 
-            r = self.client.get('/o/{}/org-unit/{}/?validity=past'
+            r = self.client.get('/mo/o/{}/org-unit/{}/?validity=past'
                                 .format(org, uuid))
 
             postdata["name"] = "KommendeEnhed"
             postdata["valid-from"] = "1-10-2016"
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}?rename=true'.format(org, uuid),
                 {
                     'uuid': uuid,
                 },
@@ -553,7 +557,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 [
                     {
                         'activeName': 'NyEnhed',
@@ -625,7 +629,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=present'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=present'.format(org, uuid),
                 [
                     {
                         'activeName': 'EndnuMindreNyEnhed',
@@ -664,7 +668,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=future'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=future'.format(org, uuid),
                 [
                     {
                         'activeName': 'KommendeEnhed',
@@ -751,7 +755,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 }
             ]
         }
-        r = self.client.post('/o/' + org + '/org-unit',
+        r = self.client.post('/mo/o/' + org + '/org-unit',
                              data=json.dumps(payload),
                              content_type='application/json')
         self.assertEqual(201, r.status_code)
@@ -782,9 +786,9 @@ class TestWritingIntegration(util.LoRATestCase):
         # before the actual POST request are working
 
         self.assert200(self.client.get(
-            '/o/%s/org-unit/?query=Humanistisk+fakultet' % ORGID))
+            '/mo/o/%s/org-unit/?query=Humanistisk+fakultet' % ORGID))
         self.assert200(self.client.get(
-            '/o/%s/org-unit/?query=%s&effective-date='
+            '/mo/o/%s/org-unit/?query=%s&effective-date='
             '2017-01-01T12:00:00+00:00' % (ORGID, UNITID)))
 
         expected = {
@@ -822,7 +826,7 @@ class TestWritingIntegration(util.LoRATestCase):
         }
 
         self.assertRequestResponse(
-            '/o/{}/org-unit/{}/'.format(ORGID, UNITID),
+            '/mo/o/{}/org-unit/{}/'.format(ORGID, UNITID),
             [expected],
         )
 
@@ -832,7 +836,7 @@ class TestWritingIntegration(util.LoRATestCase):
         del postdata["valid-to"]
 
         r = self.client.post(
-            '/o/{}/org-unit/{}?rename=true'.format(ORGID, UNITID),
+            '/mo/o/{}/org-unit/{}?rename=true'.format(ORGID, UNITID),
             data=json.dumps(postdata),
             content_type='application/json',
         )
@@ -847,10 +851,10 @@ class TestWritingIntegration(util.LoRATestCase):
         now = datetime.datetime.today().strftime('%s') + '000'
 
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=treeType&t=%s' % (ORGID, now)))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (ORGID, PARENTID, now)))
 
     @freezegun.freeze_time('2017-07-01', tz_offset=+1)
@@ -861,7 +865,7 @@ class TestWritingIntegration(util.LoRATestCase):
         ORG_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?rename=true' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s?rename=true' % (ORG, ORG_UNIT),
             {'uuid': ORG_UNIT},
             json={
                 "activeName": "Samfundsvidenskabelige fakultet",
@@ -941,26 +945,29 @@ class TestWritingIntegration(util.LoRATestCase):
             now = datetime.datetime.today().strftime('%s') + '000'
 
             self.assert200(self.client.get(
-                '/o/%s/org-unit/?query=Afdeling+for+Samtidshistorik' % ORGID))
+                '/mo/o/%s/org-unit/?query=Afdeling+for+Samtidshistorik' % (
+                    ORGID,
+                ),
+            ))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/?query=%s'
+                '/mo/o/%s/org-unit/?query=%s'
                 '&effective-date=2017-07-01T12:00:00+00:00' % (ORGID, UNITID)))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/%s/?validity='
+                '/mo/o/%s/org-unit/%s/?validity='
                 '&effective-date=01-03-2017&t=%s' % (ORGID, UNITID, now)))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/%s/role-types/location/'
+                '/mo/o/%s/org-unit/%s/role-types/location/'
                 '?validity=&effective-date=01-03-2017&t=%s' % (
                     ORGID, UNITID, now)))
 
             hierarchy_path = (
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
                 'treeType=specific'
                 '&orgUnitId=da77153e-30f3-4dc2-a611-ee912a28d8aa'
             )
 
             orgunit_path = (
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
             )
 
@@ -1066,13 +1073,13 @@ class TestWritingIntegration(util.LoRATestCase):
 
         with freezegun.freeze_time('2017-08-03'):
             self.assert404(self.client.get(
-                '/o/%s/org-unit/%s/?validity=present&effective-date='
+                '/mo/o/%s/org-unit/%s/?validity=present&effective-date='
                 '&t=1501766568577' % (ORGID, UNITID)))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/%s/role-types/location/?validity=present'
+                '/mo/o/%s/org-unit/%s/role-types/location/?validity=present'
                 '&effective-date=&t=1501766568577' % (ORGID, UNITID)))
             self.assert200(self.client.get(
-                '/o/%s/full-hierarchy?effective-date=&query='
+                '/mo/o/%s/full-hierarchy?effective-date=&query='
                 '&treeType=treeType&t=1501766568624' % ORGID))
 
     @freezegun.freeze_time('2016-01-01', tz_offset=+1)
@@ -1085,7 +1092,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Expire the unit at 1 March 2017
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=01-03-2017' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s?endDate=01-03-2017' % (ORG, ORG_UNIT),
             {
                 'uuid': ORG_UNIT,
             },
@@ -1121,7 +1128,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # ... and then again on 14 March 2017
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=14-03-2017' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s?endDate=14-03-2017' % (ORG, ORG_UNIT),
             {
                 'uuid': ORG_UNIT,
             },
@@ -1170,20 +1177,20 @@ class TestWritingIntegration(util.LoRATestCase):
         now = datetime.datetime.today().strftime('%s') + '000'
 
         self.assert200(
-            self.client.get('/o/%s/full-hierarchy?effective-date='
+            self.client.get('/mo/o/%s/full-hierarchy?effective-date='
                             '01-06-2017&query=&treeType=treeType' % org))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
         self.assert200(
             self.client.get(
-                '/o/%s/org-unit/?query=%s&effective-date=01-06-2016' % (
+                '/mo/o/%s/org-unit/?query=%s&effective-date=01-06-2016' % (
                     org, root)))
 
         # Check the POST request
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/actions/move' % (org, org_unit),
+            '/mo/o/%s/org-unit/%s/actions/move' % (org, org_unit),
             {'uuid': org_unit},
             json={
                 'moveDate': '01-05-2017',
@@ -1195,10 +1202,10 @@ class TestWritingIntegration(util.LoRATestCase):
         # after the actual POST request are working
 
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date='
+            '/mo/o/%s/full-hierarchy?effective-date='
             '&query=&treeType=treeType&t=%s' % (org, now)))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
         entry = lora.get_org_unit(org_unit)
@@ -1215,7 +1222,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         with self.subTest('present'):
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=present'.format(org, org_unit),
+                '/mo/o/{}/org-unit/{}/?validity=present'.format(org, org_unit),
                 [
                     {
                         'activeName': 'Humanistisk fakultet',
@@ -1255,7 +1262,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         with self.subTest('past'):
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, org_unit),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, org_unit),
                 [
                     {
                         'activeName': 'Humanistisk fakultet',
@@ -1296,7 +1303,9 @@ class TestWritingIntegration(util.LoRATestCase):
         with self.subTest('future'):
             self.assert404(
                 self.client.get(
-                    '/o/{}/org-unit/{}/?validity=future'.format(org, org_unit),
+                    '/mo/o/{}/org-unit/{}/?validity=future'.format(
+                        org, org_unit,
+                    ),
                 ),
             )
 
@@ -1307,7 +1316,7 @@ class TestWritingIntegration(util.LoRATestCase):
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
         r = self.client.post(
-            '/o/{}/org-unit'.format(org),
+            '/mo/o/{}/org-unit'.format(org),
             content_type='application/json',
             data=json.dumps({
                 "user-key": "NULL",
@@ -1370,7 +1379,7 @@ class TestWritingIntegration(util.LoRATestCase):
         self.assertEqual(r.status_code, 201)
 
         unitid = r.json['uuid']
-        unitpath = '/o/{}/org-unit/{}/'.format(org, unitid)
+        unitpath = '/mo/o/{}/org-unit/{}/'.format(org, unitid)
 
         self.assertRequestFails(unitpath + 'role-types/contact-channel/', 404)
         self.assertRequestResponse(
@@ -1445,7 +1454,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # First add an address in the past
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
             {'uuid': ORG_UNIT},
             json={
                 "valid-from": "01-07-2017",
@@ -1504,7 +1513,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Then add an address in the future
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
             {'uuid': ORG_UNIT},
             json={
                 "valid-from": "01-09-2017",
@@ -1582,7 +1591,7 @@ class TestWritingIntegration(util.LoRATestCase):
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
-            '/e/{}/actions/move?date={}&org-unit={}'.format(
+            '/mo/e/{}/actions/move?date={}&org-unit={}'.format(
                 userid,
                 '01-01-2018',
                 new_org_unit),
@@ -1704,7 +1713,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         self.assertEqual(actual_engagement, expected)
 
-    def test_create_role_returns_400_if_role_type_unknown(self):
+    def test_create_role_returns_400_if_role_type_unknown_0(self):
         self.load_sample_structures()
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -1795,13 +1804,13 @@ class TestWritingIntegration(util.LoRATestCase):
             }
         ]
         self.assertRequestResponse(
-            '/e/{}/role-types/engagement/?validity=present'
+            '/mo/e/{}/role-types/engagement/?validity=present'
             '&effective-date={}'.format(userid, date),
             engagement_before
         )
 
         self.assertRequestResponse(
-            '/e/{}/actions/terminate?date={}'.format(userid, date),
+            '/mo/e/{}/actions/terminate?date={}'.format(userid, date),
             userid, method='POST')
 
         engagement_after = [
@@ -1846,7 +1855,7 @@ class TestWritingIntegration(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/e/{}/role-types/engagement/?validity=present'
+            '/mo/e/{}/role-types/engagement/?validity=present'
             '&effective-date={}'.format(userid, date),
             engagement_after
         )
@@ -1856,9 +1865,6 @@ class TestWritingIntegration(util.LoRATestCase):
 
         # Check the POST request
         date = '2019-01-01'
-
-        c = lora.Connector(effective_date=date, virkningfra='-infinity',
-                           virkningtil='infinity')
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -1903,7 +1909,7 @@ class TestWritingIntegration(util.LoRATestCase):
         }
 
         self.assertRequestResponse(
-            '/e/{}/role-types/engagement/{}'.format(userid, engagement_id),
+            '/mo/e/{}/role-types/engagement/{}'.format(userid, engagement_id),
             engagement_id, json=req)
 
         engagement_after = [
@@ -1948,7 +1954,7 @@ class TestWritingIntegration(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/e/{}/role-types/engagement/?validity=present'
+            '/mo/e/{}/role-types/engagement/?validity=present'
             '&effective-date={}'.format(userid, date),
             engagement_after
         )

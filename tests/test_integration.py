@@ -52,21 +52,21 @@ class IntegrationTests(util.LoRATestCase):
                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                 }
             ],
-            self.client.get('/org-unit/type').json,
+            self.client.get('/mo/org-unit/type').json,
         )
 
     def test_organisation(self):
         'Test getting the organisation'
 
-        self.assertRequestResponse('/o/', [])
+        self.assertRequestResponse('/mo/o/', [])
 
-        r = self.client.get('/o/')
+        r = self.client.get('/mo/o/')
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json, [])
 
         self.load_sample_structures()
 
-        self.assertRequestResponse('/o/', [
+        self.assertRequestResponse('/mo/o/', [
             {
                 'hierarchy': {
                     'user-key': 'root',
@@ -88,7 +88,7 @@ class IntegrationTests(util.LoRATestCase):
 
     def test_organisation_empty(self):
         'Handle no organisations'
-        self.assertRequestResponse('/o/', [])
+        self.assertRequestResponse('/mo/o/', [])
 
     def test_hierarchies(self):
         'Test the full-hierarchy listing'
@@ -97,7 +97,7 @@ class IntegrationTests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy'
             '?treeType=treeType',
             {
                 'hierarchy': {
@@ -159,7 +159,7 @@ class IntegrationTests(util.LoRATestCase):
             })
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy',
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy',
             {
                 'hierarchy': {
                     'children': [
@@ -220,7 +220,7 @@ class IntegrationTests(util.LoRATestCase):
             })
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
             'treeType=specific&orgUnitId=2874e1dc-85e6-4269-823a-e1125484dfd3',
             [
                 {
@@ -301,13 +301,13 @@ class IntegrationTests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
             expected,
         )
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
             expected,
         )
@@ -315,13 +315,13 @@ class IntegrationTests(util.LoRATestCase):
         # ensure that we disregard the organisation, and that doing so
         # doesn't affect the output
         self.assertRequestResponse(
-            '/o/00000000-0000-0000-0000-000000000000/org-unit/'
+            '/mo/o/00000000-0000-0000-0000-000000000000/org-unit/'
             '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
             expected,
         )
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '?query=Hum%',
             [
                 {
@@ -344,7 +344,7 @@ class IntegrationTests(util.LoRATestCase):
             ]
         )
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '?query=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
             [
                 {
@@ -368,7 +368,7 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
             '/role-types/location/?validity=present',
             [
@@ -395,7 +395,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('invalid validity'):
             self.assert400(self.client.get(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3/'
                 '?validity=kaflaflibob',
             ))
@@ -406,7 +406,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('past'):
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
                 '04c78fc2-72d2-4d02-b55f-807af19eac48/?validity=past',
                 [
                     {
@@ -448,7 +448,7 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('empty past'):
             self.assert404(
                 self.client.get(
-                    '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                     '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
                     '/role-types/contact-channel/?validity=past'
                 )
@@ -456,7 +456,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('present'):
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
                 '04c78fc2-72d2-4d02-b55f-807af19eac48/?validity=present',
                 [
                     {
@@ -497,7 +497,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('future'):
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
                 '04c78fc2-72d2-4d02-b55f-807af19eac48/?validity=future',
                 [
                     {
@@ -538,7 +538,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('empty future'):
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
                 '/role-types/contact-channel/?validity=future',
                 404,
@@ -548,7 +548,7 @@ class IntegrationTests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             'b688513d-11f7-4efc-b679-ab082a2055d0/role-types/location/'
             '00000000-0000-0000-0000-000000000000',
             {'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0'},
@@ -563,7 +563,7 @@ class IntegrationTests(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
             '?query=2874e1dc-85e6-4269-823a-e1125484dfd3'
             '&effective-date=2017-07-31T22:00:00+00:00',
             [
@@ -616,7 +616,7 @@ class IntegrationTests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/org-unit/type',
+            '/mo/org-unit/type',
             [
                 {
                     'name': 'Afdeling',
@@ -652,7 +652,7 @@ class HistoryTest(util.LoRATestCase):
 
         # Expire the unit in order to get some more data in the history log
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=01-01-2018' % (ORG, SAMF_UNIT),
+            '/mo/o/%s/org-unit/%s?endDate=01-01-2018' % (ORG, SAMF_UNIT),
             {
                 'uuid': SAMF_UNIT,
             },
@@ -661,7 +661,7 @@ class HistoryTest(util.LoRATestCase):
 
         # Easier than using self.assertRequestResponse due to timestamps
         r = self.client.get(
-            '/o/%s/org-unit/%s/history/?t=notUsed' % (ORG, SAMF_UNIT)
+            '/mo/o/%s/org-unit/%s/history/?t=notUsed' % (ORG, SAMF_UNIT)
         )
 
         self.assert200(r)
@@ -698,6 +698,6 @@ class HistoryTest(util.LoRATestCase):
 
         # Now ensure that we disregard the organisation ID
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/history/' % (DUMMY, SAMF_UNIT),
+            '/mo/o/%s/org-unit/%s/history/' % (DUMMY, SAMF_UNIT),
             d,
         )

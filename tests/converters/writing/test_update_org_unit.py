@@ -495,7 +495,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                  })
 
         self.assertRequestResponse(
-            '/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566/org-unit'
+            '/mo/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566/org-unit'
             '/01e479c4-66ef-42aa-877e-15f0512f792c/role-types/location',
             {
                 'uuid': '01e479c4-66ef-42aa-877e-15f0512f792c',

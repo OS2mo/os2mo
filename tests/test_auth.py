@@ -33,7 +33,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL='http://idp'):
             self.assertRequestResponse(
-                '/o/',
+                '/mo/o/',
                 {
                     'message': 'No Authorization header present',
                     'status': 401,
@@ -53,7 +53,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {
                     'message': (
                         'The security token could not be authenticated or '
@@ -79,7 +79,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {
                     'message': (
                         'ID3242: The security token could not be '
@@ -105,7 +105,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'password': 's3cr1t!',
@@ -130,7 +130,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'password': 's3cr1t!',
@@ -148,7 +148,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE=None,
                                     SAML_IDP_URL=None):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'password': 's3cr1t!',

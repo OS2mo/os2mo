@@ -49,7 +49,7 @@ class TestSetup(util.TestCase):
         )
 
         self.assertRequestResponse(
-            '/addressws/geographical-location'
+            '/mo/addressws/geographical-location'
             '?vejnavn=42&local=00000000-0000-0000-0000-000000000000',
             {
                 'message': 'No local municipality found!',
@@ -102,7 +102,7 @@ class TestSetup(util.TestCase):
         )
 
         self.assertRequestResponse(
-            '/addressws/geographical-location'
+            '/mo/addressws/geographical-location'
             '?vejnavn=42&local=00000000-0000-0000-0000-000000000000',
             {
                 'message': 'No local municipality found!',

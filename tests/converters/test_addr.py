@@ -28,10 +28,11 @@ class AddrTests(util.TestCase):
 
     @util.mock()
     def test_fetch_address_invalid_args(self, m):
-        self.assertRequestFails('/addressws/geographical-location', 501)
-        self.assertRequestFails('/addressws/geographical-location?asd', 501)
-        self.assertRequestFails('/addressws/geographical-location?asd=42', 501)
-        self.assertRequestFails('/addressws/geographical-location?vejnavn=',
+        self.assertRequestFails('/mo/addressws/geographical-location', 501)
+        self.assertRequestFails('/mo/addressws/geographical-location?asd', 501)
+        self.assertRequestFails('/mo/addressws/geographical-location?asd=42',
+                                501)
+        self.assertRequestFails('/mo/addressws/geographical-location?vejnavn=',
                                 501)
 
     @freezegun.freeze_time('2017-01-01')
@@ -40,12 +41,12 @@ class AddrTests(util.TestCase):
         aarhus_road = urllib.parse.quote_plus('Åbogade 15')
 
         self.assertRequestResponse(
-            '/addressws/geographical-location?vejnavn=' + aarhus_road,
+            '/mo/addressws/geographical-location?vejnavn=' + aarhus_road,
             util.get_fixture('addressws/aabogade.json'),
         )
 
         self.assertRequestResponse(
-            '/addressws/geographical-location?'
+            '/mo/addressws/geographical-location?'
             'local=456362c4-0ee4-4e5e-a72c-751239745e62'
             '&vejnavn=' + aarhus_road,
             util.get_fixture('addressws/aabogade.json'),
@@ -54,12 +55,12 @@ class AddrTests(util.TestCase):
         cph_road = urllib.parse.quote_plus('Pilestræde 43')
 
         self.assertRequestResponse(
-            '/addressws/geographical-location?vejnavn=' + cph_road,
+            '/mo/addressws/geographical-location?vejnavn=' + cph_road,
             util.get_fixture('addressws/pilestraede.json'),
         )
 
         self.assertRequestResponse(
-            '/addressws/geographical-location?'
+            '/mo/addressws/geographical-location?'
             'local=456362c4-0ee4-4e5e-a72c-751239745e62'
             '&vejnavn=' + cph_road,
             []

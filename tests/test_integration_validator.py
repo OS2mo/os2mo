@@ -25,7 +25,7 @@ class TestHelper(util.LoRATestCase):
     def expire_org_unit(self, org_unit):
         # Expire the parent from 2018-01-01
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=01-01-2018' % (self.ORG, org_unit),
+            '/mo/o/%s/org-unit/%s?endDate=01-01-2018' % (self.ORG, org_unit),
             {
                 'uuid': org_unit,
             },
@@ -297,7 +297,7 @@ class TestIntegrationCreateOrgUnitValidator(TestHelper):
                 }
             ]
         }
-        r = self.client.post('/o/%s/org-unit' % self.ORG,
+        r = self.client.post('/mo/o/%s/org-unit' % self.ORG,
                              data=json.dumps(payload),
                              content_type='application/json')
         self.assertEqual(400, r.status_code)
@@ -387,7 +387,8 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         }
 
         r = self.client.post(
-            '/o/%s/org-unit/%s/actions/move' % (self.ORG, self.UNIT_TO_MOVE),
+            '/mo/o/%s/org-unit/%s/actions/move' % (self.ORG,
+                                                   self.UNIT_TO_MOVE),
             data=json.dumps(frontend_req),
             content_type='application/json')
 
@@ -424,7 +425,7 @@ class TestInactivateOrgUnitValidation(TestHelper):
 
     def test_should_return_status_400_when_enddate_invalid(self):
         r = self.client.delete(
-            '/o/%s/org-unit/%s?endDate=01-01-2018' %
+            '/mo/o/%s/org-unit/%s?endDate=01-01-2018' %
             (self.ORG, self.HIST_UNIT))
         self.assertEqual(400, r.status_code)
 
@@ -439,7 +440,7 @@ class TestUpdateLocationValidator(TestHelper):
         }
 
         r = self.client.post(
-            '/o/%s/org-unit/%s/role-types/location/'
+            '/mo/o/%s/org-unit/%s/role-types/location/'
             '0a3f50c3-df6f-32b8-e044-0003ba298018' %
             (self.ORG, self.SAMF_UNIT),
             data=json.dumps(frontend_req),
@@ -458,7 +459,7 @@ class TestUpdateLocationValidator(TestHelper):
         }
 
         r = self.client.post(
-            '/o/%s/org-unit/%s/role-types/location/'
+            '/mo/o/%s/org-unit/%s/role-types/location/'
             '0a3f50c3-df6f-32b8-e044-0003ba298018' %
             (self.ORG, self.SAMF_UNIT),
             data=json.dumps(frontend_req),

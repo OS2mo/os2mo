@@ -38,7 +38,7 @@ class MoraTestCase(TestSetup):
         return self.lora_url + self.lora_urls[key]
 
     def test_acl(self):
-        rv = self.client.get('/acl/')
+        rv = self.client.get('/mo/acl/')
         self.assertEqual(b'[]\n', rv.data,
                          'Acl route should return empty list')
 
@@ -48,7 +48,7 @@ class MoraTestCase(TestSetup):
         # verifies that
 
         self.assertRequestResponse(
-            '/o/00000000-0000-0000-0000-000000000000'
+            '/mo/o/00000000-0000-0000-0000-000000000000'
             '/org-unit/00000000-0000-0000-0000-000000000000/?query=fail',
             {
                 'message': 'sub-tree searching not supported!',
@@ -58,14 +58,14 @@ class MoraTestCase(TestSetup):
         )
 
         self.assertRequestFails(
-            '/o/00000000-0000-0000-0000-000000000000'
+            '/mo/o/00000000-0000-0000-0000-000000000000'
             '/org-unit/00000000-0000-0000-0000-000000000000/'
             'role-types/fail/',
             404,
         )
 
         self.assertRequestResponse(
-            '/o/00000000-0000-0000-0000-000000000000'
+            '/mo/o/00000000-0000-0000-0000-000000000000'
             '/full-hierarchy?query=fail',
             {
                 'message': 'sub-tree searching is unsupported!',
@@ -115,7 +115,7 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
             '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
             json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
         r = self.client.post(
-            '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
+            '/mo/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
                 'uuid'] + '?rename=true',
             data=json.dumps(frontend_req),
             content_type='application/json')
@@ -133,7 +133,7 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
             '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe',
             json={'uuid': '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe'})
         r = self.client.post(
-            '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
+            '/mo/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
                 'uuid'], data=json.dumps(frontend_req),
             content_type='application/json')
         actual_response = json.loads(r.data.decode())

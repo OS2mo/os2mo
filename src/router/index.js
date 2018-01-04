@@ -25,7 +25,6 @@ import TimeMachine from '@/timeMachine/TimeMachine'
 Vue.use(Router)
 
 export default new Router({
-  mode: 'history',
   routes: [
     {
       path: '/',

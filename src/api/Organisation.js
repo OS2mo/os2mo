@@ -11,7 +11,7 @@ export default {
    * @returns {Array} List of all organisations
    */
   getAll () {
-    return HTTP.get('o/')
+    return HTTP.get('/mo/o/')
       .then(response => {
         return response.data
       })
@@ -36,7 +36,7 @@ export default {
    * @returns {Array} List of organisation units within the organisation
    */
   getFullHierachy (orgUuid) {
-    return HTTP.get('o/' + orgUuid + '/full-hierarchy')
+    return HTTP.get('/mo/o/' + orgUuid + '/full-hierarchy')
       .then(response => {
         return response.data
       })
@@ -113,7 +113,7 @@ export default {
     detail = detail === 'unit' ? '' : '/role-types/' + detail
     validity = validity || 'present'
     let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + detail + '/?validity=' + validity)
+    return HTTP.get('/mo/o/' + orgUuid + '/org-unit/' + unitUuid + detail + '/?validity=' + validity)
     .then(response => {
       return response.data
     })
@@ -130,7 +130,7 @@ export default {
    */
   getHistory (unitUuid) {
     let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + '/history/')
+    return HTTP.get('/mo/o/' + orgUuid + '/org-unit/' + unitUuid + '/history/')
     .then(response => {
       return response.data
     })
@@ -179,7 +179,7 @@ export default {
 
   getOrganisationUnit (unitUuid) {
     let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
+    return HTTP.get('/mo/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]
       return response.data[0]

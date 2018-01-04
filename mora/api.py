@@ -16,7 +16,8 @@ from .converters import addr, reading, writing
 basedir = os.path.dirname(__file__)
 staticdir = os.path.join(basedir, 'static')
 
-blueprint = app = flask.Blueprint('api', __name__, static_url_path='')
+blueprint = app = flask.Blueprint('api', __name__, static_url_path='',
+                                  url_prefix='/mo')
 
 ROLE_TYPES = {
     'engagement': reading.get_engagements,

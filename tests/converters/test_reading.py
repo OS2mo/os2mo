@@ -241,7 +241,7 @@ class LoRATest(test_util.TestCase):
     @test_util.mock('role-type-contact-channel.json')
     def test_role_type_contact(self, mock):
         self.assertRequestResponse(
-            '/o/59141156-ed0b-457c-9535-884447c5220b'
+            '/mo/o/59141156-ed0b-457c-9535-884447c5220b'
             '/org-unit/4b8fa170-d30e-43ff-aff3-b9792acfaa7d'
             '/role-types/contact-channel/',
             [
@@ -293,25 +293,27 @@ class LoRATest(test_util.TestCase):
             'valid-to': 'infinity',
         }
 
-        self.assertRequestResponse('/o/', [org])
-        self.assertRequestResponse('/o/456362c4-0ee4-4e5e-a72c-751239745e62/',
-                                   org)
+        self.assertRequestResponse('/mo/o/', [org])
+        self.assertRequestResponse(
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/',
+            org,
+        )
 
     @freezegun.freeze_time('2017-07-28')
     @test_util.mock('reading-organisation-rootless.json')
     def test_organisation_without_root(self, mock):
-        self.assertRequestResponse('/o/', [])
+        self.assertRequestResponse('/mo/o/', [])
 
     @freezegun.freeze_time('2017-07-28')
     @test_util.mock('reading-organisation-multiple-roots.json')
     def test_organisation_multiple_roots(self, mock):
-        self.assertRequestResponse('/o/', [])
+        self.assertRequestResponse('/mo/o/', [])
 
     @freezegun.freeze_time('2017-07-28')
     @test_util.mock('reading-organisation-combined.json')
     def test_organisation_combined(self, mock):
         self.assertRequestResponse(
-            '/o/',
+            '/mo/o/',
             [
                 {
                     'hierarchy': {
@@ -339,7 +341,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_orgunit_past(self, mock):
         self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
             '/?validity=past',
             [
@@ -382,7 +384,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_orgunit_present(self, mock):
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/?validity=present',
                 [
@@ -425,7 +427,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_orgunit_future(self, mock):
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/?validity=future',
                 [
@@ -469,7 +471,7 @@ class TemporalTests(test_util.TestCase):
     def test_location_past(self, mock):
         with self.subTest('location'):
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/role-types/location'
                 '/?validity=past',
@@ -477,7 +479,7 @@ class TemporalTests(test_util.TestCase):
             )
 
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/role-types/location'
                 '/?validity=past',
@@ -487,7 +489,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_location_present(self, mock):
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/role-types/location'
                 '/?validity=present',
@@ -514,7 +516,7 @@ class TemporalTests(test_util.TestCase):
             )
 
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/role-types/location'
                 '/?validity=present',
@@ -543,7 +545,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_location_future(self, mock):
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/role-types/location'
                 '/?validity=future',
@@ -551,7 +553,7 @@ class TemporalTests(test_util.TestCase):
             )
 
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/role-types/location'
                 '/?validity=future',
@@ -561,7 +563,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_contact_channel_past(self, mock):
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/role-types/contact-channel'
                 '/?validity=past',
@@ -569,7 +571,7 @@ class TemporalTests(test_util.TestCase):
             )
 
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/role-types/contact-channel'
                 '/?validity=past',
@@ -579,7 +581,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_contact_channel_present(self, mock):
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/role-types/contact-channel'
                 '/?validity=present',
@@ -587,7 +589,7 @@ class TemporalTests(test_util.TestCase):
             )
 
             self.assertRequestResponse(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/role-types/contact-channel'
                 '/?validity=present',
@@ -627,7 +629,7 @@ class TemporalTests(test_util.TestCase):
     @test_util.mock('reading_orgunit.json')
     def test_contact_channel_future(self, mock):
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/role-types/contact-channel'
                 '/?validity=future',
@@ -635,7 +637,7 @@ class TemporalTests(test_util.TestCase):
             )
 
             self.assertRequestFails(
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/role-types/contact-channel'
                 '/?validity=future',

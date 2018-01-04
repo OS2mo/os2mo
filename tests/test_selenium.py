@@ -89,7 +89,7 @@ class RightsTests(util.LiveLoRATestCase):
     def test_login(self):
         # logout
         self.browser.delete_all_cookies()
-        self.browser.get(self.get_server_url())
+        self.browser.get(self.get_server_url() + '/mo')
 
         self.browser.implicitly_wait(1)
         self.browser.find_element_by_id("organisationLogin").click()

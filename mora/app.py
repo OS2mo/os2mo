@@ -16,9 +16,11 @@ from . import auth
 from . import cli
 
 basedir = os.path.dirname(__file__)
+templatedir = os.path.join(basedir, 'templates')
 staticdir = os.path.join(basedir, 'static')
+distdir = os.path.join(basedir, '..', 'dist')
 
-app = flask.Flask(__name__, static_url_path='')
+app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
 cli.load_cli(app)
 app.register_blueprint(api.blueprint)
@@ -69,30 +71,35 @@ def handle_invalid_usage(error):
 
 
 @app.route('/')
+def v2_root():
+    return flask.send_file('index.html')
+
+
+@app.route('/mo/')
 def root():
     return flask.send_from_directory(staticdir, 'index.html')
 
 
-@app.route('/scripts/<path:path>')
+@app.route('/mo/<path:path>')
 def send_scripts(path):
-    return flask.send_from_directory(staticdir, os.path.join('scripts', path))
+    return flask.send_from_directory(staticdir, path)
 
 
-@app.route('/styles/<path:path>')
+@app.route('/mo/styles/<path:path>')
 def send_styles(path):
     return flask.send_from_directory(staticdir, os.path.join('styles', path))
 
 
-@app.route('/service/user/<user>/login', methods=['POST'])
+@app.route('/mo/service/user/<user>/login', methods=['POST'])
 def login(user):
     return auth.login(user)
 
 
-@app.route('/service/user/<user>/logout', methods=['POST'])
+@app.route('/mo/service/user/<user>/logout', methods=['POST'])
 def logout(user):
     return auth.logout()
 
 
-@app.route('/acl/', methods=['POST', 'GET'])
+@app.route('/mo/acl/', methods=['POST', 'GET'])
 def acl():
     return flask.jsonify([])

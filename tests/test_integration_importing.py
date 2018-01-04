@@ -31,7 +31,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('org unit types'):
                 self.assertRequestResponse(
-                    '/org-unit/type',
+                    '/mo/org-unit/type',
                     [
                         {
                             "name": "Afdeling",
@@ -86,7 +86,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('engagement types'):
             self.assertRequestResponse(
-                '/role-types/engagement/facets/type/classes/',
+                '/mo/role-types/engagement/facets/type/classes/',
                 [
                     {
                         "name": "Abonnent",
@@ -333,7 +333,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('job titles'):
             self.assertRequestResponse(
-                '/role-types/engagement/facets/job-title/classes/',
+                '/mo/role-types/engagement/facets/job-title/classes/',
                 [
                     {
                         "name": "Ceremonimester",
@@ -352,7 +352,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('organisations'):
             self.assertRequestResponse(
-                '/o/',
+                '/mo/o/',
                 [
                     {
                         'hierarchy': {
@@ -392,11 +392,11 @@ class IntegrationTests(util.LoRATestCase):
             )
 
         with self.subTest('users'):
-            for user in self.client.get('/e/').json:
+            for user in self.client.get('/mo/e/').json:
                 self.assertRegex(user['user-key'], r'\A\d{10}\Z')
 
             self.assertRequestResponse(
-                '/e/',
+                '/mo/e/',
                 [
                     {
                         "name": "Hans Bruger",
@@ -422,7 +422,7 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('get user by cpr'):
 
             self.assertRequestResponse(
-                '/e/1011101010/',
+                '/mo/e/1011101010/',
                 {
                     "name": "Hans Bruger",
                     "nick-name": "bruger",
@@ -432,7 +432,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/0101001010/',
+                '/mo/e/0101001010/',
                 {
                     "name": "Joe User",
                     "nick-name": "user",
@@ -442,7 +442,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/1402840002/',
+                '/mo/e/1402840002/',
                 {
                     "name": "MAAAAAM",
                     "nick-name": "mam",
@@ -454,7 +454,7 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('searches'):
             # searching must work
             self.assertRequestResponse(
-                '/e/?query=Hans',
+                '/mo/e/?query=Hans',
                 [
                     {
                         "name": "Hans Bruger",
@@ -466,7 +466,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/?query=MAAAAAM',
+                '/mo/e/?query=MAAAAAM',
                 [
                     {
                         "name": "MAAAAAM",
@@ -478,7 +478,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/?query=maaaaam',
+                '/mo/e/?query=maaaaam',
                 [
                     {
                         "name": "MAAAAAM",
@@ -491,7 +491,7 @@ class IntegrationTests(util.LoRATestCase):
 
             # we must also match the bvn
             self.assertRequestResponse(
-                '/e/?query=mam',
+                '/mo/e/?query=mam',
                 [
                     {
                         "name": "MAAAAAM",
@@ -504,7 +504,7 @@ class IntegrationTests(util.LoRATestCase):
 
             # 10 digits means a CPR number
             self.assertRequestResponse(
-                '/e/?query=1011101010',
+                '/mo/e/?query=1011101010',
                 [
                     {
                         "name": "Hans Bruger",
@@ -517,18 +517,18 @@ class IntegrationTests(util.LoRATestCase):
 
             # ...but partial matches must not work
             self.assertRequestFails(
-                '/e/?query=101110101',
+                '/mo/e/?query=101110101',
                 404,
             )
 
             self.assertRequestFails(
-                '/e/?query=0000000000',
+                '/mo/e/?query=0000000000',
                 404,
             )
 
         with self.subTest('get user by uuid'):
             self.assertRequestResponse(
-                '/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3/',
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3/',
                 {
                     "name": "Hans Bruger",
                     "nick-name": "bruger",
@@ -538,7 +538,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/cd2dcfad-6d34-4553-9fee-a7023139a9e8/',
+                '/mo/e/cd2dcfad-6d34-4553-9fee-a7023139a9e8/',
                 {
                     "name": "Joe User",
                     "nick-name": "user",
@@ -548,7 +548,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/f715a2c9-a425-4cc9-b69b-7d89aaedece4/',
+                '/mo/e/f715a2c9-a425-4cc9-b69b-7d89aaedece4/',
                 {
                     "name": "MAAAAAM",
                     "nick-name": "mam",
@@ -559,7 +559,7 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('get user engagements'):
             self.assertRequestResponse(
-                '/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
                 '/role-types/engagement/',
                 [
                     {
@@ -603,7 +603,7 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/cd2dcfad-6d34-4553-9fee-a7023139a9e8'
+                '/mo/e/cd2dcfad-6d34-4553-9fee-a7023139a9e8'
                 '/role-types/engagement/',
                 [
                     {
@@ -647,14 +647,14 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/e/f715a2c9-a425-4cc9-b69b-7d89aaedece4'
+                '/mo/e/f715a2c9-a425-4cc9-b69b-7d89aaedece4'
                 '/role-types/engagement/',
                 [],
             )
 
         with self.subTest('get user contact channels'):
             self.assertRequestResponse(
-                '/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
                 '/role-types/contact-channel/',
                 [
                     {
@@ -685,7 +685,7 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('get user locations'):
             # FIXME: add some user locations to the import
             self.assertRequestResponse(
-                '/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
                 '/role-types/location/',
                 [],
             )
