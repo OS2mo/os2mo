@@ -30,6 +30,12 @@
   import Employee from '../api/Employee'
 
   export default {
+    props: {
+      unitUuid: {
+        type: String,
+        default: 'hello'
+      }
+    },
     data () {
       return {
         history: []
@@ -41,7 +47,7 @@
     methods: {
       getHistory () {
         var vm = this
-        Organisation.getHistory(this.$route.params.uuid)
+        Organisation.getHistory(this.unitUuid)
         .then(function (response) {
           vm.history = response
         })
