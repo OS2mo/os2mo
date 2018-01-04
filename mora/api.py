@@ -413,7 +413,7 @@ def list_orgunits(orgid):
     if util.is_uuid(query):
         search = {
             'uuid': query,
-            'tilhoerer': orgid,
+            # 'tilhoerer': orgid,
         }
     elif query:
         search = {
