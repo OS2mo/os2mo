@@ -46,7 +46,7 @@
     data () {
       return {
         locations: [],
-        locationssPast: [],
+        locationsPast: [],
         locationsFuture: []
       }
     },
@@ -61,7 +61,7 @@
           vm.locations = response
         })
         Organisation.getLocationDetails(this.$route.params.uuid, 'past')
-        .then(response =>{
+        .then(response => {
           vm.locationsPast = response
         })
         Organisation.getLocationDetails(this.$route.params.uuid, 'future')
