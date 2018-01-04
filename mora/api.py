@@ -369,7 +369,6 @@ def full_hierarchy(orgid):
 
     params = dict(
         effective_date=args.get('effective-date', None),
-        include_children=True,
     )
 
     if args.get('query'):
@@ -379,7 +378,7 @@ def full_hierarchy(orgid):
         raise ValueError('sub-tree searching is unsupported!')
 
     if args.get('treeType', None) == 'specific':
-        r = reading.full_hierarchy(str(orgid), args['orgUnitId'], **params)
+        r = reading.full_hierarchy(args['orgUnitId'], **params)
 
         if r:
             return flask.jsonify(

@@ -129,6 +129,7 @@ def _convert_unit(c, unitid, orgunit, levels):
 def full_hierarchies(orgid: str, parentid: str,
                      include_children=True,
                      **loraparams):
+    assert isinstance(orgid, str)
     assert isinstance(parentid, str), parentid
 
     search = dict(
@@ -148,10 +149,9 @@ def full_hierarchies(orgid: str, parentid: str,
     )
 
 
-def full_hierarchy(orgid: str, unitid: str,
+def full_hierarchy(unitid: str,
                    include_children=True,
                    **loraparams):
-    assert isinstance(orgid, str)
     assert isinstance(unitid, str)
 
     c = lora.Connector(**loraparams)
