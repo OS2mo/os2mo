@@ -9,8 +9,25 @@
           <th scope="col">Slutdato</th>
         </tr>
       </thead>
+
       <tbody>
-        <tr v-for="location in details" v-bind:key="location.uuid">
+        <tr v-for="location in locationsFuture" v-bind:key="location.uuid" style="color:#bbb">
+          <td>{{location.location.vejnavn}}</td>
+          <td>{{location.location.name}}</td>
+          <td>{{location.primaer}}</td>
+          <td>{{location['valid-from']}}</td>
+          <td>{{location['valid-to']}}</td>
+        </tr>
+
+        <tr v-for="location in locations" v-bind:key="location.uuid">
+          <td>{{location.location.vejnavn}}</td>
+          <td>{{location.location.name}}</td>
+          <td>{{location.primaer}}</td>
+          <td>{{location['valid-from']}}</td>
+          <td>{{location['valid-to']}}</td>
+        </tr>
+        
+        <tr v-for="location in locationsPast" v-bind:key="location.uuid" style="color:#bbb">
           <td>{{location.location.vejnavn}}</td>
           <td>{{location.location.name}}</td>
           <td>{{location.primaer}}</td>
@@ -28,20 +45,28 @@
     components: {},
     data () {
       return {
-        details: [],
-        detailsPast: [],
-        detailsFuture: []
+        locations: [],
+        locationssPast: [],
+        locationsFuture: []
       }
     },
     created: function () {
-      this.getDetails()
+      this.getLocations()
     },
     methods: {
-      getDetails: function () {
+      getLocations: function () {
         var vm = this
         Organisation.getLocationDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
         .then(function (response) {
-          vm.details = response
+          vm.locations = response
+        })
+        Organisation.getLocationDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'past')
+        .then(function (response) {
+          vm.locationsPast = response
+        })
+        Organisation.getLocationDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'future')
+        .then(function (response) {
+          vm.locationsFuture = response
         })
       }
     }
