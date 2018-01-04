@@ -433,7 +433,7 @@ def list_orgunits(orgid):
     )
 
     r = reading.get_orgunits(
-        str(orgid), unitids,
+        unitids,
         validity=flask.request.args.get('validity', None),
         include_parents=False,
     )
@@ -454,7 +454,7 @@ def get_orgunit(orgid, unitid):
         raise ValueError('sub-tree searching not supported!')
 
     r = reading.get_orgunits(
-        str(orgid), [str(unitid)],
+        [str(unitid)],
         validity=flask.request.args.get('validity', None),
     )
 

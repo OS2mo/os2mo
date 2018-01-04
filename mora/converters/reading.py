@@ -433,8 +433,7 @@ def get_contact_types() -> list:
     ]
 
 
-def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
-    assert isinstance(orgid, str)
+def get_orgunit(unitid: str, include_parents=True, **loraparams):
     assert isinstance(unitid, str)
 
     c = lora.Connector(**loraparams)
@@ -473,6 +472,11 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
         except IndexError:
             parentid = None
 
+        try:
+            orgid = rels['tilhoerer'][0]['uuid']
+        except IndexError:
+            orgid = None
+
         r.append({
             'activeName': props['enhedsnavn'],
             'name': props['enhedsnavn'],
@@ -484,7 +488,7 @@ def get_orgunit(orgid: str, unitid: str, include_parents=True, **loraparams):
             'parent': parentid if parentid and parentid != orgid else None,
             'parent-object': (
                 get_orgunit(
-                    orgid, parentid,
+                    parentid,
                     include_parents=False,
                     virkningfra=util.to_lora_time(start),
                     virkningtil=util.to_lora_time(end),
@@ -504,9 +508,9 @@ def list_orgunits(*, limit=1000, start=0, **loraparams):
     )[-limit:]
 
 
-def get_orgunits(orgid, unitids, **loraparams):
+def get_orgunits(unitids, **loraparams):
     def _get(unitid):
-        yield from get_orgunit(orgid, unitid, **loraparams)
+        yield from get_orgunit(unitid, **loraparams)
 
     return list(filter(None, itertools.chain.from_iterable(map(
         _get,
@@ -572,7 +576,7 @@ def _convert_engagement(funcid, start, end, effect):
         "type": get_class(
             rels['organisatoriskfunktionstype'][-1].get('uuid'),
         ),
-        "org-unit": get_orgunit(orgid, unitid,
+        "org-unit": get_orgunit(unitid,
                                 include_parents=False,
                                 virkningfra=util.to_lora_time(start),
                                 virkningtil=util.to_lora_time(end))[-1],

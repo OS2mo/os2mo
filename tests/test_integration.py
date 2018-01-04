@@ -264,44 +264,60 @@ class IntegrationTests(util.LoRATestCase):
     def test_org_units(self):
         self.load_sample_structures()
 
-        self.assertRequestResponse(
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
-            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
-            [
-                {
-                    'activeName': 'Humanistisk fakultet',
-                    'name': 'Humanistisk fakultet',
+        expected = [
+            {
+                'activeName': 'Humanistisk fakultet',
+                'name': 'Humanistisk fakultet',
+                'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'parent-object': {
+                    'activeName': 'Overordnet Enhed',
+                    'name': 'Overordnet Enhed',
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'parent-object': {
-                        'activeName': 'Overordnet Enhed',
-                        'name': 'Overordnet Enhed',
-                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'parent': None,
-                        'parent-object': None,
-                        'user-key': 'root',
-                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'valid-from': '01-01-2016',
-                        'valid-to': 'infinity',
-                        'type': {
-                            'name': 'Afdeling',
-                            'userKey': 'afd',
-                            'user-key': 'afd',
-                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-                        },
-                    },
-                    'user-key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'parent': None,
+                    'parent-object': None,
+                    'user-key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
                     'type': {
-                        'name': 'Institut',
-                        'user-key': 'inst',
-                        'userKey': 'inst',
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        'name': 'Afdeling',
+                        'userKey': 'afd',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
-                }
-            ]
+                },
+                'user-key': 'hum',
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'valid-from': '01-01-2016',
+                'valid-to': 'infinity',
+                'type': {
+                    'name': 'Institut',
+                    'user-key': 'inst',
+                    'userKey': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
+            expected,
+        )
+
+        self.assertRequestResponse(
+            '/o/456362c4-0ee4-4e5e-a72c-751239745e62/org-unit/'
+            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
+            expected,
+        )
+
+        # ensure that we disregard the organisation, and that doing so
+        # doesn't affect the output
+        self.assertRequestResponse(
+            '/o/00000000-0000-0000-0000-000000000000/org-unit/'
+            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/',
+            expected,
         )
 
         self.assertRequestResponse(
