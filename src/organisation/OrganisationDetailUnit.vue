@@ -59,15 +59,15 @@
     methods: {
       getDetails: function () {
         var vm = this
-        Organisation.getUnitDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
+        Organisation.getUnitDetails(this.$route.params.uuid)
         .then(function (response) {
           vm.details = response
         })
-        Organisation.getUnitDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'past')
+        Organisation.getUnitDetails(this.$route.params.uuid, 'past')
         .then(function (response) {
           vm.detailsPast = response
         })
-        Organisation.getUnitDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'future')
+        Organisation.getUnitDetails(this.$route.params.uuid, 'future')
         .then(function (response) {
           vm.detailsFuture = response
         })

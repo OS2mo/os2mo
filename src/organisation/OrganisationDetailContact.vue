@@ -59,15 +59,15 @@
     methods: {
       getContactChannels: function () {
         var vm = this
-        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
+        Organisation.getContactDetails(this.$route.params.uuid)
         .then(response => {
           vm.contacts = response
         })
-        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'past')
+        Organisation.getContactDetails(this.$route.params.uuid, 'past')
         .then(response => {
           vm.contactsPast = response
         })
-        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'future')
+        Organisation.getContactDetails(this.$route.params.uuid, 'future')
         .then(response => {
           vm.contactsFuture = response
         })

@@ -75,7 +75,7 @@
     methods: {
       updateDetails: function () {
         var vm = this
-        Organisation.getOrganisationUnit('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
+        Organisation.getOrganisationUnit(this.$route.params.uuid)
         .then(function (response) {
           vm.orgUnit = response
         })
