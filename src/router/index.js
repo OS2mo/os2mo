@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import HelloWorld from '@/components/HelloWorld'
 import LoginPage from '@/login/LoginPage'
 import Organisation from '@/organisation/Organisation'
+import OrganisationLandingPage from '@/organisation/OrganisationLandingPage'
 import OrganisationDetail from '@/organisation/OrganisationDetail'
 import OrganisationDetailUnit from '@/organisation/OrganisationDetailUnit'
 import OrganisationDetailLocation from '@/organisation/OrganisationDetailLocation'
@@ -40,8 +41,14 @@ export default new Router({
       path: '/organisation',
       name: 'organisation',
       component: Organisation,
+      redirect: { name: 'OrganisationLandingPage' },
 
       children: [
+        {
+          path: '',
+          name: 'OrganisationLandingPage',
+          component: OrganisationLandingPage
+        },
         {
           path: ':uuid',
           name: 'OrganisationDetail',
