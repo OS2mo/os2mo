@@ -48,7 +48,7 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   #workflows {
-    position: absolute;
+    position: fixed;
     right: -240px;
     top: 100px;
     z-index: 1;
