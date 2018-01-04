@@ -110,9 +110,7 @@ def load_cli(app):
         'Build the frontend application.'
         from subprocess import check_call
 
-        check_call(['npm', 'install'], cwd=topdir)
-        check_call(['npm', 'run', 'grunt'] +
-                   ([target] if target else []), cwd=topdir)
+        pass
 
     @app.cli.command()
     @click.argument('args', nargs=-1)
