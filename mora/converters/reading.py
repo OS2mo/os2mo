@@ -181,9 +181,7 @@ def wrap_in_org(connector, orgid, value, org=None):
     }
 
 
-def unit_history(orgid, unitid):
-    # TODO: verify orgid?
-
+def unit_history(unitid):
     c = lora.Connector()
     regs = c.organisationenhed.get(unitid, registreretfra='-infinity',
                                    registrerettil='infinity')

@@ -695,3 +695,9 @@ class HistoryTest(util.LoRATestCase):
                 for entry in d
             ],
         )
+
+        # Now ensure that we disregard the organisation ID
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s/history/' % (DUMMY, SAMF_UNIT),
+            d,
+        )

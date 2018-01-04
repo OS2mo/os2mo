@@ -466,7 +466,7 @@ def get_orgunit_history(orgid, unitid):
     # TODO: we are not actually using the 't' parameter - we should
     # probably remove this from the frontend calls later on...
 
-    r = reading.unit_history(str(orgid), str(unitid))
+    r = reading.unit_history(str(unitid))
 
     return flask.jsonify(list(r)) if r else ('', 404)
 
