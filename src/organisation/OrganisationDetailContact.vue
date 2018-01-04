@@ -11,7 +11,25 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="contact in details" v-bind:key="contact.uuid">
+        <tr v-for="contact in contactsFuture" v-bind:key="contact.uuid" style="color:#bbb">
+          <td>{{contact.type.name}}</td>
+          <td>{{contact['contact-info']}}</td>
+          <td>{{contact.visibility.name}}</td>
+          <td>{{contact.location.vejnavn}}</td>
+          <td>{{contact['valid-from']}}</td>
+          <td>{{contact['valid-to']}}</td>
+        </tr>
+
+        <tr v-for="contact in contacts" v-bind:key="contact.uuid">
+          <td>{{contact.type.name}}</td>
+          <td>{{contact['contact-info']}}</td>
+          <td>{{contact.visibility.name}}</td>
+          <td>{{contact.location.vejnavn}}</td>
+          <td>{{contact['valid-from']}}</td>
+          <td>{{contact['valid-to']}}</td>
+        </tr>
+
+        <tr v-for="contact in contactsPast" v-bind:key="contact.uuid" style="color:#bbb">
           <td>{{contact.type.name}}</td>
           <td>{{contact['contact-info']}}</td>
           <td>{{contact.visibility.name}}</td>
@@ -30,17 +48,28 @@
     components: {},
     data () {
       return {
-        details: []
+        contacts: [],
+        contactsPast: [],
+        contactsFuture: []
       }
     },
     created: function () {
-      this.getDetails()
+      this.getContactChannels()
     },
     methods: {
-      getDetails: function () {
+      getContactChannels: function () {
         var vm = this
-        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid).then(function (response) {
-          vm.details = response
+        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
+        .then(response => {
+          vm.contacts = response
+        })
+        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'past')
+        .then(response => {
+          vm.contactsPast = response
+        })
+        Organisation.getContactDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'future')
+        .then(response => {
+          vm.contactsFuture = response
         })
       }
     }
