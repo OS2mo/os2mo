@@ -1,0 +1,21 @@
+html {
+  height: 100vh;
+}
+
+body {
+  background-color: #f2efed;
+  background-image: url('../logo/os2_logo_white.svg');
+  background-position: right 1em bottom 1em; /*Positioning*/
+  background-repeat: no-repeat; /*Prevent showing multiple background images*/
+  background-attachment: fixed; /*Make background image sticky*/
+  background-size: 320px;
+  overflow-x:hidden; /*Keeps workflow buttons from overflowing the page*/
+}
+
+table {
+  margin-top: 1rem;
+}
+
+table th {
+  border-top: 0 !important;
+}
