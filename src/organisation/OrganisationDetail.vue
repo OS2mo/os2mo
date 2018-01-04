@@ -25,7 +25,7 @@
             <organisation-detail-view/>
           </b-modal>
           <b-modal id="theHistory" size="lg" hide-footer title="Historik">
-            <the-history/>
+            <the-history :unit-uuid="$route.params.uuid"/>
           </b-modal>
         </div>
       </div>
