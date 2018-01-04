@@ -57,15 +57,15 @@
       getLocations: function () {
         var vm = this
         Organisation.getLocationDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
-        .then(function (response) {
+        .then(response => {
           vm.locations = response
         })
         Organisation.getLocationDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'past')
-        .then(function (response) {
+        .then(response =>{
           vm.locationsPast = response
         })
         Organisation.getLocationDetails('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid, 'future')
-        .then(function (response) {
+        .then(response => {
           vm.locationsFuture = response
         })
       }
