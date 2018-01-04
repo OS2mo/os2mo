@@ -587,29 +587,6 @@ class IntegrationTests(util.LoRATestCase):
             ],
         )
 
-    def test_history_for_org_unit(self):
-        self.load_sample_structures()
-
-        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
-        SAMF_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
-
-        # Expire the unit in order to get some more data in the history log
-        self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=01-01-2018' % (ORG, SAMF_UNIT),
-            {
-                'uuid': SAMF_UNIT,
-            },
-            method='DELETE',
-        )
-
-        # Easier than using self.assertRequestResponse due to timestamps
-        r = self.client.get(
-            '/o/%s/org-unit/%s/history/?t=notUsed' % (ORG, SAMF_UNIT)
-        )
-
-        # TODO: check more than just the status code
-        self.assertEqual(200, r.status_code)
-
     def test_verify_relation_names(self):
         '''Verify that our list of relation names is correct.'''
         attrs = set()
@@ -659,5 +636,62 @@ class IntegrationTests(util.LoRATestCase):
                     'user-key': 'inst',
                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                 },
+            ],
+        )
+
+
+class HistoryTest(util.LoRATestCase):
+    '''Due to testing registration times, this test needs a clean database'''
+
+    def test_history_for_org_unit(self):
+        self.load_sample_structures()
+
+        DUMMY = '00000000-0000-0000-0000-000000000000'
+        ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
+        SAMF_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        # Expire the unit in order to get some more data in the history log
+        self.assertRequestResponse(
+            '/o/%s/org-unit/%s?endDate=01-01-2018' % (ORG, SAMF_UNIT),
+            {
+                'uuid': SAMF_UNIT,
+            },
+            method='DELETE',
+        )
+
+        # Easier than using self.assertRequestResponse due to timestamps
+        r = self.client.get(
+            '/o/%s/org-unit/%s/history/?t=notUsed' % (ORG, SAMF_UNIT)
+        )
+
+        self.assert200(r)
+
+        d = r.json
+
+        self.assertEquals(len(d), 3)
+        self.assertEquals(type(d), list)
+
+        self.assertEquals(
+            [
+                {
+                    'action': 'Afslut enhed',
+                    'object': SAMF_UNIT,
+                    'section': 'Rettet',
+                },
+                {
+                    'action': None,
+                    'object': SAMF_UNIT,
+                    'section': 'Rettet',
+                },
+                {
+                    'action': 'Automatisk indlæsning',
+                    'object': SAMF_UNIT,
+                    'section': 'Importeret',
+                },
+            ],
+            [
+                dict((k, v) for k, v in entry.items()
+                     if k in ('action', 'object', 'section'))
+                for entry in d
             ],
         )
