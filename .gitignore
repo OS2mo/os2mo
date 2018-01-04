@@ -109,4 +109,4 @@ selenium-debug.log
 *.sln
 
 # configuration
-config.json
+config/mora.json

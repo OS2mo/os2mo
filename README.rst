@@ -308,7 +308,7 @@ Aktivér modulet ``proxy_http``, og genstart Apache::
   sudo a2enmod proxy_http
   sudo apache2ctl graceful
 
-Til sidst kopieres ``config-example.json`` til ``config.json`` og
+Til sidst kopieres ``config/mora-example.json`` til ``config/mora.json`` og
 ``LORA_URL`` justeres til at pege der hvor du har LoRa kørende::
 
   {
