@@ -60,7 +60,8 @@
     },
     watch: {
       unit (newVal, oldVal) {
-        this.getCurrentSuperUnit(newVal.org, newVal.parent)
+        console.log(newVal)
+        this.getCurrentSuperUnit(newVal.parent)
       }
     },
     created: function () {},
@@ -73,11 +74,10 @@
         })
       },
 
-      getCurrentSuperUnit (orgUuid, unitUuid) {
+      getCurrentSuperUnit (unitUuid) {
         let vm = this
         if (unitUuid === null) return
-
-        return Organisation.getUnitDetails(orgUuid, unitUuid)
+        return Organisation.getUnitDetails(unitUuid)
         .then(response => {
           vm.currentSuperUnit = response[0]
         })

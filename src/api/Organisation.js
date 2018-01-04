@@ -46,56 +46,56 @@ export default {
    * Get organisation unit details
    * @see getDetail
    */
-  getUnitDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'unit', validity)
+  getUnitDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'unit', validity)
   },
 
   /**
    * Get location details
    * @see getDetail
    */
-  getLocationDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'location', validity)
+  getLocationDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'location', validity)
   },
 
   /**
    * Get contact channel details
    * @see getDetail
    */
-  getContactDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'contact-channel', validity)
+  getContactDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'contact-channel', validity)
   },
 
   /**
    * Get leader details
    * @see getDetail
    */
-  getLeaderDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'leader', validity)
+  getLeaderDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'leader', validity)
   },
 
   /**
    * Get engagement details
    * @see getDetail
    */
-  getEngagementDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'engagement', validity)
+  getEngagementDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'engagement', validity)
   },
 
   /**
    * Get associaion details
    * @see getDetail
    */
-  getAssociationDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'association', validity)
+  getAssociationDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'association', validity)
   },
 
   /**
    * Get job function details
    * @see getDetail
    */
-  getJobFunctionDetails (orgUuid, unitUuid, validity) {
-    return this.getDetail(orgUuid, unitUuid, 'job-function', validity)
+  getJobFunctionDetails (unitUuid, validity) {
+    return this.getDetail(unitUuid, 'job-function', validity)
   },
 
   /**
@@ -109,9 +109,10 @@ export default {
    * @param {String} validity - Can be 'past', 'present' or 'future'
    * @returns {Array} A list of options for the specififed detail
    */
-  getDetail (orgUuid, unitUuid, detail, validity) {
+  getDetail (unitUuid, detail, validity) {
     detail = detail === 'unit' ? '' : '/role-types/' + detail
     validity = validity || 'present'
+    let orgUuid = '00000000-0000-0000-0000-000000000000'
     return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + detail + '/?validity=' + validity)
     .then(response => {
       return response.data
@@ -127,7 +128,8 @@ export default {
    * @param {String} unitUuid - Uuid for the current organisation unit
    * @returns {Array} A list of historical events for the organisation unit
    */
-  getHistory (orgUuid, unitUuid) {
+  getHistory (unitUuid) {
+    let orgUuid = '00000000-0000-0000-0000-000000000000'
     return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + '/history/')
     .then(response => {
       return response.data
@@ -175,7 +177,8 @@ export default {
     })
   },
 
-  getOrganisationUnit (orgUuid, unitUuid) {
+  getOrganisationUnit (unitUuid) {
+    let orgUuid = '00000000-0000-0000-0000-000000000000'
     return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]

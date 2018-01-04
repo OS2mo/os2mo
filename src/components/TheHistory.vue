@@ -41,7 +41,7 @@
     methods: {
       getHistory () {
         var vm = this
-        Organisation.getHistory('456362c4-0ee4-4e5e-a72c-751239745e62', this.$route.params.uuid)
+        Organisation.getHistory(this.$route.params.uuid)
         .then(function (response) {
           vm.history = response
         })
