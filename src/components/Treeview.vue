@@ -3,7 +3,8 @@
     <ul v-if="tree">
       <item
       v-model="selectedOrgUnit"
-      :model="tree"/>
+      :model="tree"
+      :firstOpen="true"/>
     </ul>
     <loading v-show="!tree"/>
   </div>
