@@ -15,8 +15,9 @@
     <div class="form-row">
       <div class="col">
         <organisation-unit-picker 
-          label="Fremsøg enhed"
           v-model="unit"
+          label="Fremsøg enhed"
+          :preselected="unit"
         />
       </div>
 
@@ -33,8 +34,8 @@
     </div>
 
     <organisation-unit-picker 
-      label="Angiv ny overenhed"
       v-model="newSuperUnit"
+      label="Angiv ny overenhed"
     />
 
     <div class="float-right">
@@ -48,6 +49,7 @@
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import DatePicker from '../components/DatePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
+  import { EventBus } from '../EventBus'
 
   export default {
     components: {
@@ -68,7 +70,11 @@
         this.getCurrentSuperUnit(newVal.parent)
       }
     },
-    created: function () {},
+    mounted () {
+      EventBus.$on('organisation-unit-changed', selectedUnit => {
+        this.unit = selectedUnit
+      })
+    },
     methods: {
       moveUnit () {
         let vm = this

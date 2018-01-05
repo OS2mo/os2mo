@@ -1,21 +1,25 @@
 <template>
-  <div class="form-group">      
-      <label for="">{{ label }}</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        placeholder="Vælg enhed"
-        ref="orgUnitPicker"
-        :value="selectedSuperUnit.name"
-        @click.stop="show"
-      >
-      <div class="mo-input-group" v-show="showTree" v-click-outside="hide">
-        <tree-view 
-          v-model="selectedSuperUnit" 
-          v-click-outside="hide"
-          :orgUuid="org.uuid" 
-        />
-      </div>
+  <div class="form-group">
+    <label for="">{{ label }}</label>
+    <input 
+      type="text" 
+      class="form-control" 
+      placeholder="Vælg enhed"
+      ref="orgUnitPicker"
+      :value="selectedSuperUnit.name"
+      @click.stop="show"
+    >
+    <div 
+      class="mo-input-group" 
+      v-show="showTree" 
+      v-click-outside="hide"
+    >
+      <tree-view 
+        v-model="selectedSuperUnit" 
+        v-click-outside="hide"
+        :orgUuid="org.uuid" 
+      />
+    </div>
   </div>
 </template>
 
@@ -34,6 +38,10 @@
       label: {
         default: 'Angiv overenhed',
         type: String
+      },
+      preselected: {
+        type: Object,
+        default: null
       }
     },
     data () {
@@ -51,6 +59,9 @@
         this.$refs.orgUnitPicker.blur()
         this.$emit('input', newVal)
         this.hide()
+      },
+      preselected (newVal, oldVal) {
+        this.selectedSuperUnit = newVal
       }
     },
     created () {
