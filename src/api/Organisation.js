@@ -148,7 +148,7 @@ export default {
   },
 
   createOrganisationUnit (orgUnit) {
-    return HTTP.post('/o/' + orgUnit.org + '/org-unit', orgUnit)
+    return HTTP.post('/mo/o/' + orgUnit.org + '/org-unit', orgUnit)
       .then(response => {
         return response
       })
@@ -156,7 +156,7 @@ export default {
 
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
-    return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
+    return HTTP.post('/mo/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
     .then(function (response) {
       return response.data
     })
@@ -168,7 +168,7 @@ export default {
       'newParentOrgUnitUUID': toUuid
     }
 
-    HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
+    HTTP.post('/mo/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
       console.log('it worked!')
       return response
@@ -182,7 +182,7 @@ export default {
    * @return {Object} the uuid of the organisation unit
    */
   endOrganisationUnit (orgUnit, endDate) {
-    return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
+    return HTTP.delete('/mo/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
     .then(response => {
       return response
     })
