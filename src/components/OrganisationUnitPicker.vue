@@ -23,6 +23,7 @@
   import Organisation from '../api/Organisation'
   import ClickOutside from '../directives/ClickOutside'
   import TreeView from '../components/Treeview'
+  import { EventBus } from '../EventBus'
 
   export default {
     components: {
@@ -54,6 +55,11 @@
     },
     created () {
       this.getSelectedOrganisation()
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', newOrg => {
+        this.org = newOrg
+      })
     },
     methods: {
       getSelectedOrganisation () {

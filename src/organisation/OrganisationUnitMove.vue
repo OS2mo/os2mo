@@ -1,5 +1,10 @@
 <template>
-  <div>
+  <b-modal 
+    id="orgUnitMove"
+    ref="orgUnitMove"
+    size="lg" 
+    hide-footer 
+    title="Flyt enhed">
     <div class="form-row">
       <date-picker 
       label="Dato for flytning"
@@ -35,7 +40,7 @@
     <div class="float-right">
       <button-submit @click.native="moveUnit"/>
     </div> 
-  </div>
+  </b-modal>
 </template>
 
 <script>
@@ -69,6 +74,7 @@
         let vm = this
         Organisation.moveOrganisationUnit(vm.unit, vm.newSuperUnit.uuid, vm.date)
         .then(response => {
+          vm.$refs.orgUnitMove.hide()
           console.log(response)
         })
       },
