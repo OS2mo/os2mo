@@ -1,5 +1,6 @@
 <template>
-    <table class="table table-striped">
+  <div>
+    <table class="table table-striped" v-show="!isLoading">
       <thead>
         <tr>
           <th scope="col">Kontaktkanal</th>
@@ -39,18 +40,25 @@
         </tr>
       </tbody>
     </table>
+
+    <loading v-show="isLoading"/>
+  </div>
 </template>
 
 <script>
   import Organisation from '../api/Organisation'
+  import Loading from '../components/Loading'
 
   export default {
-    components: {},
+    components: {
+      Loading
+    },
     data () {
       return {
         contacts: [],
         contactsPast: [],
-        contactsFuture: []
+        contactsFuture: [],
+        isLoading: true
       }
     },
     created: function () {
@@ -62,6 +70,7 @@
         Organisation.getContactDetails(this.$route.params.uuid)
         .then(response => {
           vm.contacts = response
+          vm.isLoading = false
         })
         Organisation.getContactDetails(this.$route.params.uuid, 'past')
         .then(response => {
