@@ -49,7 +49,8 @@
           vm.tree = {}
           return
         }
-        Organisation.getFullHierachy(uuid).then(function (response) {
+        Organisation.getFullHierachy(uuid)
+        .then(response => {
           vm.tree = response.hierarchy
         })
       }

@@ -44,8 +44,10 @@ export default {
    * @param {String} orgUuid - Uuid for current organisation
    * @returns {Array} List of organisation units within the organisation
    */
-  getFullHierachy (orgUuid) {
-    return HTTP.get('/mo/o/' + orgUuid + '/full-hierarchy')
+  getFullHierachy (orgUuid, unitUuid) {
+    unitUuid = unitUuid || ''
+    let append = unitUuid ? '?treeType=specific&orgUnitId=' + unitUuid : ''
+    return HTTP.get('/mo/o/' + orgUuid + '/full-hierarchy' + append)
       .then(response => {
         return response.data
       })
