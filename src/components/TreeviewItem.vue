@@ -13,6 +13,7 @@
       </div>
 
       <ul v-show="open" v-if="isFolder">
+        <loading v-show="model.children.length === 0"/>
         <tree-view-item
           class="item"
           v-for="model in model.children"
@@ -26,8 +27,14 @@
 </template>
 
 <script>
+  import Organisation from '../api/Organisation'
+  import Loading from './Loading'
+
   export default {
     name: 'treeViewItem',
+    components: {
+      Loading
+    },
     props: {
       value: Object,
       model: Object
@@ -52,11 +59,22 @@
       toggle () {
         if (this.isFolder) {
           this.open = !this.open
+          this.loadChildren()
         }
       },
 
       selectOrgUnit (org) {
         this.$emit('input', org)
+      },
+
+      loadChildren () {
+        if (this.model.children.length === 0) {
+          let vm = this
+          Organisation.getFullHierachy(vm.model.org, vm.model.uuid)
+          .then(response => {
+            vm.model.children = response
+          })
+        }
       }
     }
   }
