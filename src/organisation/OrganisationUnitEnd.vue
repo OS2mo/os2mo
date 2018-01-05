@@ -1,5 +1,10 @@
 <template>
-  <div>
+  <b-modal 
+    id="orgUnitEnd"
+    ref="orgUnitEnd"  
+    size="lg" 
+    hide-footer 
+    title="Afslut enhed">
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
@@ -14,7 +19,7 @@
     <div class="float-right">
       <button-submit @click.native="endOrganisationUnit"/>
     </div>
-  </div>
+  </b-modal>
 </template>
 
 <script>
@@ -38,7 +43,11 @@
     created: function () {},
     methods: {
       endOrganisationUnit () {
+        let vm = this
         Organisation.endOrganisationUnit(this.orgUnit, this.endDate)
+        .then(response => {
+          vm.$refs.orgUnitEnd.hide()
+        })
       }
     }
   }
