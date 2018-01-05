@@ -11,7 +11,7 @@ export default {
    * @returns {Array} List of all organisations
    */
   getAll () {
-    return HTTP.get('/mo/o/')
+    return HTTP.get('/o/')
       .then(response => {
         return response.data
       })
@@ -24,7 +24,7 @@ export default {
 
   getOrganisation (orgUuid) {
     let vm = this
-    HTTP.get('/mo/o/' + orgUuid)
+    HTTP.get('/o/' + orgUuid)
       .then(response => {
         console.log(response.data)
         vm.setSelectedOrganisation(response.data)
@@ -47,7 +47,7 @@ export default {
   getFullHierachy (orgUuid, unitUuid) {
     unitUuid = unitUuid || ''
     let append = unitUuid ? '?treeType=specific&orgUnitId=' + unitUuid : ''
-    return HTTP.get('/mo/o/' + orgUuid + '/full-hierarchy' + append)
+    return HTTP.get('/o/' + orgUuid + '/full-hierarchy' + append)
       .then(response => {
         return response.data
       })
@@ -124,7 +124,7 @@ export default {
     detail = detail === 'unit' ? '' : '/role-types/' + detail
     validity = validity || 'present'
     let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/mo/o/' + orgUuid + '/org-unit/' + unitUuid + detail + '/?validity=' + validity)
+    return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + detail + '/?validity=' + validity)
     .then(response => {
       return response.data
     })
@@ -141,14 +141,14 @@ export default {
    */
   getHistory (unitUuid) {
     let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/mo/o/' + orgUuid + '/org-unit/' + unitUuid + '/history/')
+    return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + '/history/')
     .then(response => {
       return response.data
     })
   },
 
   createOrganisationUnit (orgUnit) {
-    return HTTP.post('/mo/o/' + orgUnit.org + '/org-unit', orgUnit)
+    return HTTP.post('/o/' + orgUnit.org + '/org-unit', orgUnit)
       .then(response => {
         return response
       })
@@ -156,7 +156,7 @@ export default {
 
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
-    return HTTP.post('/mo/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
+    return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
     .then(function (response) {
       return response.data
     })
@@ -168,7 +168,7 @@ export default {
       'newParentOrgUnitUUID': toUuid
     }
 
-    HTTP.post('/mo/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
+    HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
       console.log('it worked!')
       return response
@@ -182,7 +182,7 @@ export default {
    * @return {Object} the uuid of the organisation unit
    */
   endOrganisationUnit (orgUnit, endDate) {
-    return HTTP.delete('/mo/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
+    return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
     .then(response => {
       return response
     })
@@ -191,7 +191,7 @@ export default {
   getOrganisationUnit (unitUuid) {
     let orgUuid = '00000000-0000-0000-0000-000000000000'
     let vm = this
-    return HTTP.get('/mo/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
+    return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]
 

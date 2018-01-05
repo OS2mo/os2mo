@@ -7,7 +7,7 @@ export default {
    * @returns {Array} A list of the different organisation unit types
    */
   getOrganisationUnitTypes () {
-    return HTTP.get('/mo/org-unit/type')
+    return HTTP.get('/org-unit/type')
     .then(response => {
       return response.data
     })
@@ -18,7 +18,7 @@ export default {
    * @returns {Array} A list of the different contact channel types
    */
   getContactChannels () {
-    return HTTP.get('/mo/role-types/contact/facets/type/classes/?facetKey=Contact_channel_location')
+    return HTTP.get('/role-types/contact/facets/type/classes/?facetKey=Contact_channel_location')
     .then(response => {
       return response.data
     })
@@ -31,7 +31,7 @@ export default {
    * @returns {Array} A list of address suggestions based on search query
    */
   getGeographicalLocation (query, local) {
-    return HTTP.get('/mo/addressws/geographical-location?local=' + local + '&vejnavn=' + query)
+    return HTTP.get('/addressws/geographical-location?local=' + local + '&vejnavn=' + query)
     .then(response => {
       return response.data
     })
@@ -72,7 +72,7 @@ export default {
    * @returns A list of requested properties
    */
   getProperty (roleType, facet) {
-    return HTTP.get('/mo/role-types/' + roleType + '/facets/' + facet + '/classes/')
+    return HTTP.get('/role-types/' + roleType + '/facets/' + facet + '/classes/')
     .then(response => {
       return response.data
     })
