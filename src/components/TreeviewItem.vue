@@ -38,7 +38,11 @@
     },
     props: {
       value: Object,
-      model: Object
+      model: Object,
+      firstOpen: {
+        type: Boolean,
+        default: false
+      }
     },
     data () {
       return {
@@ -55,6 +59,9 @@
       selected: function (newVal, oldVal) {
         this.selectOrgUnit(newVal)
       }
+    },
+    created () {
+      this.open = this.firstOpen
     },
     methods: {
       toggle () {
