@@ -1,15 +1,16 @@
 <template>
     <li>
-      <div class="" :class="{bold: isFolder}">
-        <span 
-          v-if="model.uuid" 
-          @click="selectOrgUnit(model)"
-        >
-          <icon v-if="isFolder" :name="open ? 'folder-open' : 'folder'"/>
-          <icon v-if="!isFolder" name="file"/>
+      <div 
+        v-if="model.uuid"
+        :class="{bold: isFolder}"
+      >
+        <span @click="toggle">
+          <icon @click="toggle" v-if="isFolder" :name="open ? 'folder-open' : 'folder'"/>
+        </span>
+        <icon v-if="!isFolder" name="file"/>
+        <span @click="selectOrgUnit(model)">
           {{model.name}}
         </span>
-        <span @click="toggle" v-if="isFolder">[{{open ? '-' : '+'}}]</span>
       </div>
 
       <ul v-show="open" v-if="isFolder">
