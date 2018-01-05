@@ -224,8 +224,9 @@ def create_employee_role(employeeid, role=None):
     return flask.jsonify(employeeid), 200
 
 
+@app.route('/org-unit', methods=['POST'])
 @app.route('/o/<uuid:orgid>/org-unit', methods=['POST'])
-def create_organisation_unit(orgid):
+def create_organisation_unit(orgid=None):
     """
     Create a new org unit.
 
@@ -245,9 +246,10 @@ def create_organisation_unit(orgid):
     return flask.jsonify({'uuid': uuid}), 201
 
 
+@app.route('/org-unit/<uuid:unitid>', methods=['DELETE'])
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['DELETE'])
 @util.restrictargs('endDate')
-def inactivate_org_unit(orgid, unitid):
+def inactivate_org_unit(unitid, orgid=None):
     """
     Inactivate an org unit.
 
@@ -283,10 +285,11 @@ def inactivate_org_unit(orgid, unitid):
     return flask.jsonify({'uuid': unitid}), 200
 
 
+@app.route('/org-unit/<uuid:unitid>/actions/move', methods=['POST'])
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/actions/move',
            methods=['POST'])
 @util.restrictargs()
-def move_org_unit(orgid, unitid):
+def move_org_unit(unitid, orgid=None):
     """
     Move an org unit.
 
@@ -308,9 +311,10 @@ def move_org_unit(orgid, unitid):
     return flask.jsonify({'uuid': unitid}), 200
 
 
+@app.route('/org-unit/<uuid:unitid>', methods=['POST'])
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>', methods=['POST'])
 @util.restrictargs('rename')
-def rename_or_retype_org_unit(orgid, unitid):
+def rename_or_retype_org_unit(unitid, orgid=None):
     """
     Change the name or the type of an org unit.
 
@@ -336,6 +340,7 @@ def rename_or_retype_org_unit(orgid, unitid):
     return flask.jsonify({'uuid': unitid}), 200
 
 
+@app.route('org-unit/<uuid:unitid>/role-types/location', methods=['POST'])
 @app.route(
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
     methods=['POST'],
@@ -344,7 +349,7 @@ def rename_or_retype_org_unit(orgid, unitid):
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location/<uuid:locid>',
     methods=['POST'],
 )
-def update_organisation_unit_location(orgid, unitid, locid=None):
+def update_organisation_unit_location(orgid=None, unitid=None, locid=None):
     """
     Add a location or contact channel or update existing ones.
 
@@ -447,10 +452,11 @@ def list_orgunits(orgid):
     return flask.jsonify(r) if r else ('', 404)
 
 
+@app.route('/org-unit/<uuid:unitid>/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/')
 @util.restrictargs('query', 'validity', 'effective-date', 'limit', 'start',
                    't')
-def get_orgunit(orgid, unitid):
+def get_orgunit(unitid, orgid=None):
     # TODO: we are not actually using the 't' parameter - we should
     # probably remove this from the frontend calls later on...
 
@@ -467,9 +473,10 @@ def get_orgunit(orgid, unitid):
     return flask.jsonify(r) if r else ('', 404)
 
 
+@app.route('/org-unit/<uuid:unitid>/history/')
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/history/')
 @util.restrictargs('t')
-def get_orgunit_history(orgid, unitid):
+def get_orgunit_history(unitid, orgid=None):
     # TODO: we are not actually using the 't' parameter - we should
     # probably remove this from the frontend calls later on...
 
@@ -482,6 +489,7 @@ def get_orgunit_history(orgid, unitid):
 # XXX: Hack to handle inconsistencies in API
 @app.route('/mo/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
+@app.route('/org-unit/<uuid:unitid>/role-types/' + ROLE_TYPE_SUFFIX)
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
 @util.restrictargs('effective-date', 'validity', 'unique', 't')
