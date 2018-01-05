@@ -10,6 +10,7 @@
         label="Enhed" 
         class="col"
         v-model="orgUnit"
+        :preselected="preselectedUnit"
       />
       <date-picker 
         label="Slutdato"
@@ -24,6 +25,7 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -37,10 +39,15 @@
     data () {
       return {
         orgUnit: {},
+        preselectedUnit: {},
         endDate: ''
       }
     },
-    created: function () {},
+    mounted () {
+      EventBus.$on('organisation-unit-changed', selectedUnit => {
+        this.preselectedUnit = selectedUnit
+      })
+    },
     methods: {
       endOrganisationUnit () {
         let vm = this

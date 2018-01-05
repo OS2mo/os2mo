@@ -26,7 +26,6 @@ export default {
     let vm = this
     HTTP.get('o/' + orgUuid)
       .then(response => {
-        console.log(response.data)
         vm.setSelectedOrganisation(response.data)
       })
   },
@@ -170,7 +169,6 @@ export default {
 
     HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
-      console.log('it worked!')
       return response
     })
   },
@@ -194,6 +192,7 @@ export default {
     return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]
+      EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
 
       if (selectedOrganisation === '') {
         vm.getOrganisation(selectedOrgUnit.org)
