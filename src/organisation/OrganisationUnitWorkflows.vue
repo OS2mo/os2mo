@@ -7,18 +7,10 @@
       <workflow-button label="Afslut enhed" icon="ban" v-b-modal.orgUnitEnd/>
     </div>
   <!-- Modal Component -->
-  <b-modal id="orgUnitCreate" size="lg" hide-footer title="Opret enhed">
-    <unit-create/>
-  </b-modal>
-  <b-modal id="orgUnitRename" size="lg" hide-footer title="Omdøb enhed">
-    <unit-rename/>
-  </b-modal>
-  <b-modal id="orgUnitMove" size="lg" hide-footer title="Flyt enhed">
-    <unit-move/>
-  </b-modal>
-  <b-modal id="orgUnitEnd" size="lg" hide-footer title="Afslut enhed">
-    <unit-end/>
-  </b-modal>
+  <unit-create/>
+  <unit-rename/>
+  <unit-move/>
+  <unit-end/>
   </div>
 </template>
 

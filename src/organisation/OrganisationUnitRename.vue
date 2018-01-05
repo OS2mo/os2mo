@@ -1,5 +1,10 @@
 <template>
-  <div>
+  <b-modal 
+    id="orgUnitRename"
+    ref="orgUnitRename"  
+    size="lg" 
+    hide-footer 
+    title="Omdøb enhed">
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
@@ -30,7 +35,7 @@
     <div class="float-right">
       <button-submit @click.native="renameOrganisationUnit"/>
     </div>
-  </div>
+  </b-modal>
 </template>
 
 <script>
@@ -54,7 +59,11 @@
     },
     methods: {
       renameOrganisationUnit () {
+        let vm = this
         Organisation.renameOrganisationUnit(this.orgUnit, this.newName)
+        .then(response => {
+          vm.$refs.orgUnitRename.hide()
+        })
       }
     }
   }

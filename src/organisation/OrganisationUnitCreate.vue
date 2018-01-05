@@ -1,5 +1,11 @@
 <template>
-  <div>    
+  <b-modal 
+    id="orgUnitCreate" 
+    size="lg" 
+    hide-footer 
+    title="Opret enhed"
+    ref="orgUnitCreate"
+  >
     <date-picker-start-end v-model="dateStartEnd"/>
 
     <div class="form-row">
@@ -38,11 +44,11 @@
     >
       <icon name="plus"/>
     </button>
-    
+
     <div class="float-right">
         <button-submit @click.native="createOrganisationUnit"/>
       </div>
-  </div>
+  </b-modal>
 
 </template>
 
@@ -104,7 +110,10 @@
         this.orgUnit.locations[0].primaer = true
         this.orgUnit.locations[0]['contact-channels'] = this.contactChannels
 
-        Organisation.createOrganisationUnit(this.orgUnit).then(function (response) {
+        let vm = this
+        Organisation.createOrganisationUnit(this.orgUnit)
+        .then(response => {
+          vm.$refs.orgUnitCreate.hide()
           console.log(response)
         })
       }
