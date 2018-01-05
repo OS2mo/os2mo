@@ -48,7 +48,6 @@ export default {
 
     getSelectedOrganisation () {
       this.selectedOrganisation = Organisation.getSelectedOrganisation()
-      console.log(this.selectedOrganisation)
     },
 
     updateOrganisation () {

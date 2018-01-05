@@ -60,7 +60,6 @@
     },
     watch: {
       unit (newVal, oldVal) {
-        console.log(newVal)
         this.getCurrentSuperUnit(newVal.parent)
       }
     },
