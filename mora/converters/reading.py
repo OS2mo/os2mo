@@ -320,7 +320,7 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
             )
         })
         for addr in obj['relationer'].get('adresser', [])
-        if addr.get('urn', '')
+        if addr.get('urn', '') and c.is_effect_relevant(addr['virkning'])
     ]
 
 

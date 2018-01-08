@@ -151,45 +151,6 @@ def create_org_unit(req: dict) -> dict:
     return org_unit
 
 
-def create_bruger(name: str, cpr: dict) -> dict:
-    virkning = _create_virkning("-infinity", "infinity")
-
-    bruger = {
-        "attributter": {
-            "brugeregenskaber": [
-                {
-                    "brugernavn": name,
-                    "brugervendtnoegle": str(uuid.uuid4())
-                }
-            ]
-        },
-        "relationer": {
-            "tilhoerer": [
-                {
-                    # TODO: How do we find the org uuid?
-                    "uuid": "3ad316d4-1222-427f-b406-96295b4b20bd",
-                }
-            ],
-            "tilknyttedepersoner": [
-                {
-                    "urn": "urn:dk:cpr:person:{}".format(cpr)
-                }
-            ]
-        },
-        "tilstande": {
-            "brugergyldighed": [
-                {
-                    "gyldighed": "Aktiv",
-                }
-            ]
-        }
-    }
-
-    bruger = _set_virkning(bruger, virkning)
-
-    return bruger
-
-
 def create_org_funktion(req: dict) -> dict:
     virkning = _create_virkning(req.get('valid-from'),
                                 req.get('valid-to', 'infinity'))

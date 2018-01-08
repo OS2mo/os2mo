@@ -426,46 +426,46 @@ class TemporalTests(test_util.TestCase):
 
     @test_util.mock('reading_orgunit.json')
     def test_orgunit_future(self, mock):
-            self.assertRequestResponse(
-                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '/?validity=future',
-                [
-                    {
-                        'activeName': 'Afdeling for Fortidshistorik',
-                        'name': 'Afdeling for Fortidshistorik',
+        self.assertRequestResponse(
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/?validity=future',
+            [
+                {
+                    'activeName': 'Afdeling for Fortidshistorik',
+                    'name': 'Afdeling for Fortidshistorik',
+                    'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'parent-object': {
+                        'activeName': 'Historisk Institut',
+                        'name': 'Historisk Institut',
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'parent-object': {
-                            'activeName': 'Historisk Institut',
-                            'name': 'Historisk Institut',
-                            'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                            'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'parent-object': None,
-                            'type': {
-                                'name': 'Institut',
-                                'user-key': 'inst',
-                                'userKey': 'inst',
-                                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                            },
-                            'user-key': 'hist',
-                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                            'valid-from': '01-01-2016',
-                            'valid-to': '01-01-2019',
-                        },
+                        'parent': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'parent-object': None,
                         'type': {
-                            'name': 'Afdeling',
-                            'user-key': 'afd',
-                            'userKey': 'afd',
-                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            'name': 'Institut',
+                            'user-key': 'inst',
+                            'userKey': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                         },
-                        'user-key': 'frem',
-                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                        'valid-from': '01-01-2018',
+                        'user-key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'valid-from': '01-01-2016',
                         'valid-to': '01-01-2019',
                     },
-                ]
-            )
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'userKey': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'user-key': 'frem',
+                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    'valid-from': '01-01-2018',
+                    'valid-to': '01-01-2019',
+                },
+            ]
+        )
 
     @test_util.mock('reading_orgunit.json')
     def test_location_past(self, mock):

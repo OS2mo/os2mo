@@ -682,10 +682,174 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=past',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=future',
+                [],
+            )
+
         with self.subTest('get user locations'):
             # FIXME: add some user locations to the import
             self.assertRequestResponse(
                 '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
                 '/role-types/location/',
+                [],
+            )
+
+        with self.subTest('write user contact channel'):
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact',
+                '9917e91c-e3ee-41bf-9a60-b024c23b5fe3',
+                json={
+                    "phone-type": {
+                        "name": "Mail",
+                        "prefix": "urn:mailto:",
+                        "uuid": "c88aca96-eab9-42e9-ba6d-4f3868234573"
+                    },
+                    "contact-info": "test@example.com",
+                    "properties": {
+                        "name": "Må vises internt",
+                        "user-key": "internal",
+                        "uuid": "internal"
+                    },
+                    "valid-from": "01-01-2018",
+                    "person": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
+                    "role-type": "contact",
+                    "user-key": "NULL",
+                    "$$hashKey": "1L5"
+                }
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=present',
+                [
+                    {
+                        'contact-info': 'bruger@example.com',
+                        'location': {'name': '—'},
+                        'name': 'Mail',
+                        'phone-type': {
+                            'name': 'Mail',
+                            'prefix': 'urn:mailto:',
+                            'user-key': 'Email',
+                        },
+                        'type': {
+                            'name': 'Mail',
+                            'prefix': 'urn:mailto:',
+                            'user-key': 'Email',
+                        },
+                        'valid-from': '14-02-2016',
+                        'valid-to': 'infinity',
+                        'visibility': {
+                            'name': 'Må vises internt',
+                            'user-key': 'internal',
+                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
+                        }
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=past',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact',
+                '9917e91c-e3ee-41bf-9a60-b024c23b5fe3',
+                json={
+                    "valid-from": "01-01-2017",
+                    "valid-to": "01-05-2017",
+                    "phone-type": {
+                        "name": "Telefonnummer",
+                        "prefix": "urn:magenta.dk:telefon:",
+                        "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
+                    },
+                    "contact-info": "88888888",
+                    "properties": {
+                        "name": "Må vises eksternt",
+                        "user-key": "external",
+                        "uuid": "external"
+                    },
+                    "person": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
+                    "role-type": "contact",
+                    "user-key": "NULL",
+                    "$$hashKey": "1KF"
+                },
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=past',
+                [
+                    {
+                        'contact-info': '88888888',
+                        'location': {
+                            'name': '—',
+                        },
+                        'name': 'Telefonnummer',
+                        'phone-type': {
+                            'name': 'Telefonnummer',
+                            'prefix': 'urn:magenta.dk:telefon:',
+                            'user-key': 'Telephone_number',
+                        },
+                        'type': {
+                            'name': 'Telefonnummer',
+                            'prefix': 'urn:magenta.dk:telefon:',
+                            'user-key': 'Telephone_number',
+                        },
+                        'valid-from': '01-01-2017',
+                        'valid-to': '01-05-2017',
+                        'visibility': {
+                            'name': 'Må vises eksternt',
+                            'user-key': 'external',
+                            'uuid': 'c67d7315-a0a2-4238-a883-f33aa7ddabc2',
+                        },
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=present',
+                [
+                    {
+                        'contact-info': 'bruger@example.com',
+                        'location': {'name': '—'},
+                        'name': 'Mail',
+                        'phone-type': {
+                            'name': 'Mail',
+                            'prefix': 'urn:mailto:',
+                            'user-key': 'Email',
+                        },
+                        'type': {
+                            'name': 'Mail',
+                            'prefix': 'urn:mailto:',
+                            'user-key': 'Email',
+                        },
+                        'valid-from': '14-02-2016',
+                        'valid-to': 'infinity',
+                        'visibility': {
+                            'name': 'Må vises internt',
+                            'user-key': 'internal',
+                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
+                        }
+                    },
+                ],
+            )
+
+            # FIXME: adding an old address deletes future ones?!
+            self.assertRequestResponse(
+                '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
+                '/role-types/contact-channel/?validity=future',
                 [],
             )
