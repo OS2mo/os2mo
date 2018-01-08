@@ -10,6 +10,7 @@
         label="Enhed" 
         class="col"
         v-model="orgUnit"
+        :preselected="preselectedUnit"
       />
     </div>
 
@@ -40,6 +41,7 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import DatePickerStartEnd from '../components/DatePickerStartEnd'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -53,9 +55,15 @@
     data () {
       return {
         orgUnit: {},
+        preselectedUnit: {},
         newName: '',
         dateStartEnd: {}
       }
+    },
+    mounted () {
+      EventBus.$on('organisation-unit-changed', selectedUnit => {
+        this.preselectedUnit = selectedUnit
+      })
     },
     methods: {
       renameOrganisationUnit () {

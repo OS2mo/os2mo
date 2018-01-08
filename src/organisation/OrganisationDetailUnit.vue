@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table class="table table-striped">
+    <table class="table table-striped" v-show="!isLoading">
       <thead>
         <tr>
           <th scope="col">Enhedsnavn</th>
@@ -37,20 +37,27 @@
         </tr>
       </tbody>
     </table>
+
+    <loading v-show="isLoading"/>
+
   </div>
 </template>
 
 
 <script>
   import Organisation from '../api/Organisation'
+  import Loading from '../components/Loading'
 
   export default {
-    components: {},
+    components: {
+      Loading
+    },
     data () {
       return {
         details: [],
         detailsPast: [],
-        detailsFuture: []
+        detailsFuture: [],
+        isLoading: true
       }
     },
     created: function () {
@@ -62,6 +69,7 @@
         Organisation.getUnitDetails(this.$route.params.uuid)
         .then(function (response) {
           vm.details = response
+          vm.isLoading = false
         })
         Organisation.getUnitDetails(this.$route.params.uuid, 'past')
         .then(function (response) {
