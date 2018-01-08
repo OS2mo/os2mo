@@ -61,6 +61,10 @@ export default {
     return this.getProperty('engagement', 'type')
   },
 
+  /**
+  * Get a list of absence types
+  * @returns A list of absence types
+  */
   getAbsenceTypes () {
     return this.getProperty('absence', 'type')
   },

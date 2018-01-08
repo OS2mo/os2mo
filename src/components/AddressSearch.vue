@@ -44,11 +44,19 @@
   import template from './AddressSearchTemplate.vue'
   import Property from '../api/Property'
 
+  /**
+   * An address search component
+   * @author Anders Jepsen
+   */
+
   export default {
     components: {
       VAutocomplete
     },
     props: {
+      /**
+       * The organisation uuid used to search locally
+       */
       localUuid: {
         type: String,
         default: ''

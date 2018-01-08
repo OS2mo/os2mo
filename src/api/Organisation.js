@@ -17,11 +17,20 @@ export default {
       })
   },
 
+  /**
+   * Set the selected organisation
+   * @param {Object} org - the organisation to set
+   */
   setSelectedOrganisation (org) {
     selectedOrganisation = org
     EventBus.$emit('organisation-changed', selectedOrganisation)
   },
 
+  /**
+   * Get an organisation
+   * @param {String} OrgUuid - Uuid for the organisation to get
+   * @returns {Object} an organisation object
+   */
   getOrganisation (orgUuid) {
     let vm = this
     HTTP.get('/o/' + orgUuid)
@@ -30,10 +39,39 @@ export default {
       })
   },
 
+  /**
+   * Get an orgaisation unit
+   * @param {String} unitUuid - Uuid for the organisation unit
+   * @returns {Object} an organisation unit object
+   */
+  getOrganisationUnit (unitUuid) {
+    let orgUuid = '00000000-0000-0000-0000-000000000000'
+    let vm = this
+    return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
+    .then(function (response) {
+      selectedOrgUnit = response.data[0]
+      EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
+
+      if (selectedOrganisation === '') {
+        vm.getOrganisation(selectedOrgUnit.org)
+      }
+
+      return response.data[0]
+    })
+  },
+
+  /**
+   * Get the selected organisation
+   * @returns {Object} an organisation object
+   */
   getSelectedOrganisation () {
     return selectedOrganisation
   },
 
+  /**
+   * Get the selected organisation unit
+   * @returns {Object} an organisation unit object
+   */
   getSelectedOrganisationUnit () {
     return selectedOrgUnit
   },
@@ -146,6 +184,11 @@ export default {
     })
   },
 
+  /**
+   * Create a new organisation unit
+   * @param {Object} orgUnit - new organisation unit
+   * @returns Not sure
+   */
   createOrganisationUnit (orgUnit) {
     return HTTP.post('/o/' + orgUnit.org + '/org-unit', orgUnit)
       .then(response => {
@@ -153,6 +196,12 @@ export default {
       })
   },
 
+  /**
+   * Rename an organisation unit
+   * @param {Object} orgUnit - organisation unit to rename
+   * @param {String} newName - new name of the organisation unit
+   * @returns Not sure
+   */
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
     return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
@@ -161,13 +210,20 @@ export default {
     })
   },
 
+  /**
+   * Move an organisation unit
+   * @param {Object} orgUnit - organisation unit to move
+   * @param {String} toUuid - uuid for the new parent organisation unit
+   * @param {String} date - the move date
+   * @returns Not sure
+   */
   moveOrganisationUnit (orgUnit, toUuid, date) {
     var obj = {
       'moveDate': date,
       'newParentOrgUnitUUID': toUuid
     }
 
-    HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
+    return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
       return response
     })
@@ -183,22 +239,6 @@ export default {
     return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
     .then(response => {
       return response
-    })
-  },
-
-  getOrganisationUnit (unitUuid) {
-    let orgUuid = '00000000-0000-0000-0000-000000000000'
-    let vm = this
-    return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
-    .then(function (response) {
-      selectedOrgUnit = response.data[0]
-      EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
-
-      if (selectedOrganisation === '') {
-        vm.getOrganisation(selectedOrgUnit.org)
-      }
-
-      return response.data[0]
     })
   }
 }
