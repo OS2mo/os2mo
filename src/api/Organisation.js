@@ -223,7 +223,7 @@ export default {
       'newParentOrgUnitUUID': toUuid
     }
 
-    HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
+    return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
       return response
     })
