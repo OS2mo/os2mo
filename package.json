@@ -11,9 +11,11 @@
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
-    "build": "node build/build.js"
+    "build": "node build/build.js",
+    "docs": "vuedoc.md src/components/*.vue --output docs/"
   },
   "dependencies": {
+    "@vuedoc/md": "^1.0.1",
     "axios": "^0.17.1",
     "bootstrap": "4.0.0-beta.2",
     "bootstrap-vue": "^1.3.0",
@@ -60,7 +62,7 @@
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^3.0.1",
     "eventsource-polyfill": "^0.9.6",
-    "extract-text-webpack-plugin": "^3.0.0",
+    "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^2.30.1",

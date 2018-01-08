@@ -28,6 +28,11 @@ export default {
     })
   },
 
+  /**
+   * find an employee
+   * @param {String} query -  search query
+   * @return {Object}
+   */
   searchForEmployee (query) {
     return HTTP.get('/e/?limit=200&query=' + query + '&start=0')
     .then(response => {
@@ -35,19 +40,30 @@ export default {
     })
   },
 
+  /**
+   * Get engagement details for employee
+   * @param {String} uuid - employee uuid
+   * @see getDetails
+   */
   getEngagementDetails (uuid) {
     return this.getDetails(uuid, 'engagement')
   },
 
+  /**
+   * Get contacts details for employee
+   * @param {String} uuid - Employee uuid
+   * @see getDetails
+   */
   getContactDetails (uuid) {
     return this.getDetails(uuid, 'contact')
   },
 
   /**
    * Base call for getting details about an employee.
-   * @param {String} uuid - Uuid for employee
+   * @param {String} uuid - Employee uuid
    * @param {String} detail - Name of the detail to get
    * @param {String} validity - Can be 'past', 'present' or 'future'
+   * @returns {Object} Detail data
    */
   getDetails (uuid, detail, validity) {
     validity = validity || 'present'
