@@ -1,5 +1,8 @@
 import axios from 'axios'
 
+/**
+ * Defines the base url and headers for http calls
+ */
 export const HTTP = axios.create({
   // baseURL: 'http://localhost:8080',
   baseURL: '/',
