@@ -46,7 +46,6 @@
 
   /**
    * An address search component
-   * 
    * @author Anders Jepsen
    */
 

@@ -38,7 +38,7 @@
 
 <script>
     export default {
-        name: 'login-modal'
+      name: 'login-modal'
     }
 </script>
 
