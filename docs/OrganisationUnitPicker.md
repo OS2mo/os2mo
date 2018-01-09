@@ -1,11 +1,18 @@
 # organisation-unit-picker 
+The Organisation Unit Picker component 
 
 
 
 ## props 
-- `value` ***Object*** (*optional*) 
+- `v-model` ***Object*** (*optional*) 
+The Organisation Unit model 
+
 - `label` ***String*** (*optional*) `default: 'Angiv overenhed'` 
+The label 
+
 - `preselected` ***Object*** (*optional*) `default: null` 
+A preselected organisation unit 
+
 
 ## data 
 - `org` 
@@ -14,20 +21,10 @@
 - `selectedSuperUnit` 
  *initial value:* `[object Object]` 
 
-- `showTree` 
- *initial value:* `false` 
 
-
-## events 
-- `input` undefined 
 
 ## methods 
 - `getSelectedOrganisation()` 
-
-- `updateSuperUnit()` 
-
-- `show()` 
-
-- `hide()` 
+Get selected organisation 
 
 
