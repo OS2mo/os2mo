@@ -21,6 +21,10 @@ import EmployeeEnd from '@/employee/EmployeeEnd'
 import PageNotFound from '@/components/PageNotFound'
 import TheHelp from '@/help/TheHelp'
 import TimeMachine from '@/timeMachine/TimeMachine'
+import WorkLog from '@/components/WorkLog'
+import WorkLogDetail from '@/components/WorkLogDetail'
+import WorkLogDetailEvents from '@/components/WorkLogDetailEvents'
+import WorkLogDetailError from '@/components/WorkLogDetailError'
 
 Vue.use(Router)
 
@@ -146,6 +150,44 @@ export default new Router({
       path: '*',
       name: 'PageNotFound',
       component: PageNotFound
+    },
+    {
+      path: '/WorkLog',
+      name: 'WorkLog',
+      component: WorkLog,
+      redirect: { name: 'WorkLog' },
+
+      children: [
+        {
+          path: '',
+          name: 'WorkLog',
+          component: WorkLog
+        },
+        {
+          path: ':uuid',
+          name: 'WorkLogDetail',
+          component: WorkLogDetail,
+          redirect: { name: 'WorkLogDetail' },
+
+          children: [
+            {
+              path: 'arbejdslog',
+              name: 'WorkLogDetail',
+              component: WorkLogDetail
+            },
+            {
+              path: 'begivenheder',
+              name: 'WorkLogDetailEvents',
+              component: WorkLogDetailEvents
+            },
+            {
+              path: 'fejl',
+              name: 'WorkLogDetailError',
+              component: WorkLogDetailError
+            }
+          ]
+        }
+      ]
     }
   ]
 })
