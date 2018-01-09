@@ -187,7 +187,7 @@ export default {
   /**
    * Create a new organisation unit
    * @param {Object} orgUnit - new organisation unit
-   * @returns Not sure
+   * @returns {Object} organisation unit uuid
    */
   createOrganisationUnit (orgUnit) {
     return HTTP.post('/o/' + orgUnit.org + '/org-unit', orgUnit)
@@ -200,7 +200,7 @@ export default {
    * Rename an organisation unit
    * @param {Object} orgUnit - organisation unit to rename
    * @param {String} newName - new name of the organisation unit
-   * @returns Not sure
+   * @returns {Object} organisation unit uuid
    */
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
@@ -215,7 +215,7 @@ export default {
    * @param {Object} orgUnit - organisation unit to move
    * @param {String} toUuid - uuid for the new parent organisation unit
    * @param {String} date - the move date
-   * @returns Not sure
+   * @returns {Object} organisation unit uuid
    */
   moveOrganisationUnit (orgUnit, toUuid, date) {
     var obj = {
@@ -233,7 +233,7 @@ export default {
    * End an organisation
    * @param {Object} orgUnit - the organisation unit to end
    * @param {String} endDate - the date on which the organisation unit shall end
-   * @return {Object} the uuid of the organisation unit
+   * @returns {Object} organisation unit uuid
    */
   endOrganisationUnit (orgUnit, endDate) {
     return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)

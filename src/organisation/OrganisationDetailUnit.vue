@@ -14,7 +14,7 @@
       <tbody>
         <tr v-for="unit in detailsFuture" v-bind:key="unit.uuid" style="color:#bbb">
           <td>{{unit.name}}</td>
-          <td>{{unit.type.name}}</td>
+          <td><span v-if="unit.type">{{unit.type.name}}</span></td>
           <td><span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span></td>
           <td>{{unit['valid-from']}}</td>
           <td>{{unit['valid-to']}}</td>
@@ -22,7 +22,7 @@
 
         <tr v-for="unit in details" v-bind:key="unit.uuid">
           <td>{{unit.name}}</td>
-          <td>{{unit.type.name}}</td>
+          <td><span v-if="unit.type">{{unit.type.name}}</span></td>
           <td><span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span></td>
           <td>{{unit['valid-from']}}</td>
           <td>{{unit['valid-to']}}</td>
@@ -30,7 +30,7 @@
 
         <tr v-for="unit in detailsPast" v-bind:key="unit.uuid" style="color:#bbb">
           <td>{{unit.name}}</td>
-          <td>{{unit.type.name}}</td>
+          <td><span v-if="unit.type">{{unit.type.name}}</span></td>
           <td><span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span></td>
           <td>{{unit['valid-from']}}</td>
           <td>{{unit['valid-to']}}</td>
