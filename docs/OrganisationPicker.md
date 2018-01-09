@@ -1,5 +1,9 @@
 # organisation-picker 
+The Organisation picker component 
 
+
+- **author** - Anders Jepsen 
+- **input** -  
 
 
 
@@ -15,9 +19,12 @@
 
 ## methods 
 - `getAll()` 
+Get all organisations 
 
 - `getSelectedOrganisation()` 
+Get selected organisation 
 
-- `updateOrganisation()` 
+- `setSelectedOrganisation()` 
+Set selected organisation 
 
 

@@ -1,8 +1,9 @@
 # address-search 
-An address search component 
+The address search component 
 
 
 - **author** - Anders Jepsen 
+- **input** -  
 
 
 ## props 
@@ -11,27 +12,27 @@ The organisation uuid used to search locally
 
 
 ## data 
-- `location` 
+- `location` The initial component values. 
  *initial value:* `[object Object]` 
 
 - `addressSuggestions` 
  *initial value:* `[object Object]` 
 
 - `template` 
- *initial value:* `'template'` 
+ *initial value:* `'AddressSearchTemplate'` 
 
 - `searchCountry` 
  *initial value:* `false` 
 
 
 ## events 
-- `input` undefined 
+- `updateAddress` Fired when the address is changed 
 
 ## methods 
 - `getLabel(item)` 
+Return the street name of an item and set the location 
 
-- `getGeographicalLocation(text)` 
-
-- `updateAddress()` 
+- `getGeographicalLocation(query)` 
+Update address suggestions based on search query 
 
 

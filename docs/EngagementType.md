@@ -1,17 +1,11 @@
 # engagement-type 
+Engagement Type Picker component 
 
 
 
 ## props 
-- `value` ***String*** (*optional*) 
-
-## data 
-- `engagementTypes` 
- *initial value:* `[object Object]` 
+- `v-model` ***String*** (*optional*) 
 
 
-
-## methods 
-- `getEngagementTypes()` 
 
 
