@@ -25,10 +25,16 @@ yarn e2e
 
 # run all tests
 yarn test
+```
 
-# generate documentation
+## Documentation
+
+``` bash
+# Install vuedoc globally to use in commandline
+npm install --global @vuedoc/md
+
+# generate documentation into docs/ folder
 yarn docs
-
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
