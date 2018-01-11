@@ -8,10 +8,12 @@
 
 import base64
 import functools
+import glob
 import json
 import os
 import posixpath
 import ssl
+import subprocess
 import sys
 import traceback
 import unittest
@@ -89,6 +91,24 @@ def load_cli(app):
         '''Build documentation'''
         import sphinx.cmdline
 
+        frontend_doc_path = os.path.join(topdir,
+                                         'docs/modules-to-doc/frontend.md')
+
+        with open(frontend_doc_path, 'w') as fp:
+            fp.write('''# Frontend''')
+
+        subprocess.check_call(['yarn'], cwd=topdir)
+        subprocess.check_call(
+            [
+                './node_modules/.bin/vuedoc.md',
+                '--level', '2',
+                '--section', 'Frontend',
+                '--output', 'docs/modules-to-doc/frontend.md',
+            ] + sorted(
+                glob.glob(os.path.join(topdir, 'src/components/*.vue')),
+            ),
+            cwd=topdir)
+
         if args:
             args = list(args)
         else:
@@ -108,14 +128,14 @@ def load_cli(app):
     @click.argument('target', required=False)
     def build(target=None):
         'Build the frontend application.'
-        from subprocess import check_call
 
-        check_call(['yarn'], cwd=topdir)
-        check_call(['yarn', 'build'], cwd=topdir)
+        subprocess.check_call(['yarn'], cwd=topdir)
+        subprocess.check_call(['yarn', 'build'], cwd=topdir)
 
         if target:
-            check_call(['yarn', 'run'] +
-                       ([target] if target else []), cwd=topdir)
+            subprocess.check_call(
+                ['yarn', 'run'] + ([target] if target else []),
+                cwd=topdir)
 
     @app.cli.command()
     @click.argument('args', nargs=-1)

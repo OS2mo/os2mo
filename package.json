@@ -11,8 +11,7 @@
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
-    "build": "node build/build.js",
-    "docs": "vuedoc.md src/components/*.vue --output docs/"
+    "build": "node build/build.js"
   },
   "dependencies": {
     "@vuedoc/md": "^1.0.1",
