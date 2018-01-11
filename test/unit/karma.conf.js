@@ -13,8 +13,8 @@ module.exports = function (config) {
     // 2. add it to the `browsers` array below.
     browsers: ['PhantomJS'],
     frameworks: ['mocha', 'sinon-chai', 'phantomjs-shim', 'polyfill'],
-    reporters: ['spec', 'coverage'],
     files: ['./index.js'],
+    reporters: ['spec', 'coverage', 'junit'],
     preprocessors: {
       './index.js': ['webpack', 'sourcemap']
     },
@@ -23,10 +23,16 @@ module.exports = function (config) {
     webpackMiddleware: {
       noInfo: true
     },
+    junitReporter: {
+      outputDir: '../../build/reports',
+      outputFile: 'junit-karma.xml',
+      useBrowserName: true, // add browser name to report and classes names
+    },
     coverageReporter: {
-      dir: './coverage',
+      dir: '../../build/coverage',
       reporters: [
-        { type: 'lcov', subdir: '.' },
+        { type: 'lcov' },
+        { type: 'cobertura', file: 'cobertura-karma.xml', useBrowserName: true },
         { type: 'text-summary' }
       ]
     }
