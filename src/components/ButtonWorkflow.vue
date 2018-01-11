@@ -1,10 +1,10 @@
 <template>
-  <router-link :to="{ name: target}">
+  <!-- <router-link :to="{ name: target}"> -->
     <button type="button" class="btn btn-primary btn-workflow">
       <icon class="btn-icon" :name="icon"/>
       <label class="btn-label">{{label}}</label>
     </button>
-  </router-link>
+  <!-- </router-link> -->
 </template>
 
 <script>
@@ -16,6 +16,10 @@
       },
       icon: {
         default: 'plus-circle',
+        type: String
+      },
+      target: {
+        default: '',
         type: String
       }
     }

@@ -34,10 +34,6 @@
       TreeView
     },
     props: {
-      /**
-       * The Organisation Unit model
-       * @model
-       */
       value: Object,
       label: {
         default: 'Angiv overenhed',
@@ -62,7 +58,7 @@
       selectedSuperUnit (newVal, oldVal) {
         this.$refs.orgUnitPicker.blur()
 
-        this.$emit('selected-super-unit', newVal)
+        this.$emit('input', newVal)
         this.hide()
       },
       preselected (newVal, oldVal) {
@@ -78,7 +74,6 @@
       })
     },
     methods: {
-
       getSelectedOrganisation () {
         this.org = Organisation.getSelectedOrganisation()
       },
