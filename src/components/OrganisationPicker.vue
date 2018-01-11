@@ -3,7 +3,7 @@
       class="form-control" 
       id="organisation-picker"
       v-model="selectedOrganisation"
-      @change="setSelectedOrganisation()"
+      @change="setSelectedOrganisation(selectedOrganisation)"
     >
       <option disabled>Vælg organisation</option>
       <option 
@@ -44,6 +44,8 @@ export default {
       return Organisation.getAll()
       .then(response => {
         vm.orgs = response
+        vm.selectedOrganisation = response[0]
+        EventBus.$emit('organisation-changed', response[0])
       })
     },
 
@@ -51,8 +53,8 @@ export default {
       this.selectedOrganisation = Organisation.getSelectedOrganisation()
     },
 
-    setSelectedOrganisation () {
-      Organisation.setSelectedOrganisation(this.selectedOrganisation)
+    setSelectedOrganisation (selOrg) {
+      Organisation.setSelectedOrganisation(selOrg)
     }
   }
 }
