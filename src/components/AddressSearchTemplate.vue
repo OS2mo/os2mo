@@ -1,14 +1,13 @@
 <template>
   <div>
-    <span>{{ item.vejnavn }}</span>
+    <label>{{ item.vejnavn }}</label>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    item: { required: true },
-    searchText: { required: true }
+    item: { required: true }
   }
 }
 </script>
