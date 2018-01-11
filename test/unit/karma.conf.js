@@ -32,7 +32,7 @@ module.exports = function (config) {
       dir: '../../build/coverage',
       reporters: [
         { type: 'lcov' },
-        { type: 'cobertura', file: 'cobertura-karma.xml', useBrowserName: true },
+        // { type: 'cobertura', file: 'cobertura-karma.xml', useBrowserName: true },
         { type: 'text-summary' }
       ]
     }
