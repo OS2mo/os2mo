@@ -20,12 +20,6 @@
 import Organisation from '../api/Organisation'
 import { EventBus } from '../EventBus'
 
-/**
- * The Organisation picker component
- * @author Anders Jepsen
- * @input
- */
-
 export default {
   name: 'OrganisationPicker',
   data () {
@@ -39,18 +33,12 @@ export default {
     this.getSelectedOrganisation()
   },
   mounted () {
-    /**
-     * Fired when organisation is changed
-     */
     EventBus.$on('organisation-changed', newOrg => {
       this.selectedOrganisation = newOrg
     })
   },
   methods: {
 
-    /**
-     * Get all organisations
-     */
     getAll () {
       let vm = this
       return Organisation.getAll()
@@ -59,16 +47,10 @@ export default {
       })
     },
 
-    /**
-     * Get selected organisation
-     */
     getSelectedOrganisation () {
       this.selectedOrganisation = Organisation.getSelectedOrganisation()
     },
 
-    /**
-     * Set selected organisation
-     */
     setSelectedOrganisation () {
       Organisation.setSelectedOrganisation(this.selectedOrganisation)
     }
