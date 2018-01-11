@@ -45,9 +45,8 @@ export default {
    * @returns {Object} an organisation unit object
    */
   getOrganisationUnit (unitUuid) {
-    let orgUuid = '00000000-0000-0000-0000-000000000000'
     let vm = this
-    return HTTP.get('/o/' + orgUuid + '/org-unit/?query=' + unitUuid)
+    return HTTP.get('/org-unit/?query=' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]
       EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
@@ -151,7 +150,6 @@ export default {
    * @todo Need a fix to the api so the current handling of detail is not needed
    * @todo validity could maybe get a better name
    * @todo maybe create an enum for validity
-   * @param {String} orgUuid - Uuid for the current organisation
    * @param {String} unitUuid - Uuid for the current organisation unit
    * @param {String} detail - Name of the detail to get
    * @param {String} validity - Can be 'past', 'present' or 'future'
@@ -160,8 +158,7 @@ export default {
   getDetail (unitUuid, detail, validity) {
     detail = detail === 'unit' ? '' : '/role-types/' + detail
     validity = validity || 'present'
-    let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + detail + '/?validity=' + validity)
+    return HTTP.get('/org-unit/' + unitUuid + detail + '/?validity=' + validity)
     .then(response => {
       return response.data
     })
@@ -172,13 +169,11 @@ export default {
 
   /**
    * Get the history of all changes made to an organisation unit
-   * @param {String} orgUuid - Uuid for the current organisation
    * @param {String} unitUuid - Uuid for the current organisation unit
    * @returns {Array} A list of historical events for the organisation unit
    */
   getHistory (unitUuid) {
-    let orgUuid = '00000000-0000-0000-0000-000000000000'
-    return HTTP.get('/o/' + orgUuid + '/org-unit/' + unitUuid + '/history/')
+    return HTTP.get('/org-unit/' + unitUuid + '/history/')
     .then(response => {
       return response.data
     })
@@ -190,7 +185,7 @@ export default {
    * @returns {Object} organisation unit uuid
    */
   createOrganisationUnit (orgUnit) {
-    return HTTP.post('/o/' + orgUnit.org + '/org-unit', orgUnit)
+    return HTTP.post('/org-unit', orgUnit)
       .then(response => {
         return response
       })
@@ -204,7 +199,7 @@ export default {
    */
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
-    return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
+    return HTTP.post('/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
     .then(function (response) {
       return response.data
     })
@@ -223,7 +218,7 @@ export default {
       'newParentOrgUnitUUID': toUuid
     }
 
-    return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
+    return HTTP.post('/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
       return response
     })
@@ -236,7 +231,7 @@ export default {
    * @returns {Object} organisation unit uuid
    */
   endOrganisationUnit (orgUnit, endDate) {
-    return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
+    return HTTP.delete('/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
     .then(response => {
       return response
     })

@@ -2,7 +2,7 @@
   <div id="not-found">
     <h1>Siden blev ikke fundet</h1>
     <!-- <img src="/src/assets/logo/os2_logo_black.svg"> -->
-    <img class="gif" src="/src/assets/404.gif">
+    <img class="gif" src="/static/404.gif">
   </div>
 
 </template>
