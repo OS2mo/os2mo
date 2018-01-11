@@ -528,10 +528,12 @@ def list_classes():
 def get_engagement_classes(facet):
     # TODO: require a unit or organisation parameter?
 
-    return flask.jsonify(reading.get_classes({
+    facet_name = {
         "type": "Funktionstype",
         "job-title": "Stillingsbetegnelse",
-    }[facet]))
+    }[facet]
+
+    return flask.jsonify(reading.get_classes(facet_name))
 
 
 @app.route('/addressws/geographical-location')
