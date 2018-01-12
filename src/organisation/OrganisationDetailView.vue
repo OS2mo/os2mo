@@ -12,6 +12,10 @@
       Kontaktkanal
     </div>
     <organisation-detail-contact/>
+    <div class="headline">
+      Engagementer
+    </div>
+    <organisation-detail-engagement/>
   </div>
 </template>
 
@@ -19,12 +23,14 @@
   import OrganisationDetailUnit from './OrganisationDetailUnit.vue'
   import OrganisationDetailLocation from './OrganisationDetailLocation.vue'
   import OrganisationDetailContact from './OrganisationDetailContact.vue'
+  import OrganisationDetailEngagement from './OrganisationDetailEngagement.vue'
 
   export default {
     components: {
       OrganisationDetailUnit,
       OrganisationDetailLocation,
-      OrganisationDetailContact
+      OrganisationDetailContact,
+      OrganisationDetailEngagement
     },
     data () {
       return {}
