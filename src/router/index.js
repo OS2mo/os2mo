@@ -5,14 +5,15 @@ import LoginPage from '@/login/LoginPage'
 import Organisation from '@/organisation/Organisation'
 import OrganisationLandingPage from '@/organisation/OrganisationLandingPage'
 import OrganisationDetail from '@/organisation/OrganisationDetail'
-import OrganisationDetailUnit from '@/organisation/OrganisationDetailUnit'
-import OrganisationDetailLocation from '@/organisation/OrganisationDetailLocation'
 import OrganisationDetailContact from '@/organisation/OrganisationDetailContact'
+import OrganisationDetailEngagement from '@/organisation/OrganisationDetailEngagement'
+import OrganisationDetailLocation from '@/organisation/OrganisationDetailLocation'
+import OrganisationDetailUnit from '@/organisation/OrganisationDetailUnit'
 import Employee from '@/employee/Employee'
 import EmployeeList from '@/employee/EmployeeList'
 import EmployeeDetail from '@/employee/EmployeeDetail'
-import EmployeeDetailEngagement from '@/employee/EmployeeDetailEngagement'
 import EmployeeDetailContact from '@/employee/EmployeeDetailContact'
+import EmployeeDetailEngagement from '@/employee/EmployeeDetailEngagement'
 import EmployeeCreate from '@/employee/EmployeeCreate'
 import EmployeeLeave from '@/employee/EmployeeLeave'
 import EmployeeMove from '@/employee/EmployeeMove'
@@ -69,6 +70,11 @@ export default new Router({
               path: 'kontakt-kanal',
               name: 'OrganisationDetailContact',
               component: OrganisationDetailContact
+            },
+            {
+              path: 'engagement',
+              name: 'OrganisationDetailEngagement',
+              component: OrganisationDetailEngagement
             }
           ]
         }
