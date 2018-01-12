@@ -17,6 +17,7 @@ det sprog anvendes i al koden.
    modules-to-doc/writing
    modules-to-doc/validator
    modules-to-doc/util
+   modules-to-doc/frontend
 
 
 .. Indices and tables

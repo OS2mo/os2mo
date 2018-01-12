@@ -41,12 +41,13 @@
 <script>
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
-  import template from './AddressSearchTemplate.vue'
+  import AddressSearchTemplate from './AddressSearchTemplate.vue'
   import Property from '../api/Property'
 
   /**
-   * An address search component
+   * The address search component
    * @author Anders Jepsen
+   * @input
    */
 
   export default {
@@ -64,39 +65,57 @@
     },
     data () {
       return {
+        /**
+         * The initial component values.
+         */
         location: {
           location: '',
           name: ''
         },
         addressSuggestions: [],
-        template: template,
+        template: AddressSearchTemplate,
         searchCountry: false
       }
     },
     methods: {
+      /**
+       * Return the street name of an item and set the location
+       * @input item
+       */
       getLabel (item) {
         try {
           this.location.location = item
           return item.vejnavn
         } catch (e) {
-          // console.log(e)
+          console.log(e)
         }
       },
-      getGeographicalLocation: function (text) {
+
+      /**
+       * Update address suggestions based on search query
+       */
+      getGeographicalLocation: function (query) {
         let vm = this
         let local = this.localUuid !== '' && !this.searchCountry ? this.localUuid : ''
-        Property.getGeographicalLocation(text, local).then(function (response) {
+        Property.getGeographicalLocation(query, local).then(function (response) {
           vm.addressSuggestions = response
         })
       },
+
+      /**
+       * @private
+       */
       updateAddress: function () {
         try {
-          this.$emit('input', {
+        /**
+         * Fired when the address is changed
+         */
+          this.$emit('updateAddress', {
             location: this.location.location,
             name: this.location.name
           })
         } catch (e) {
-          // console.log(e)
+          console.log(e)
         }
       }
     }

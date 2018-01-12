@@ -57,6 +57,7 @@
     watch: {
       selectedSuperUnit (newVal, oldVal) {
         this.$refs.orgUnitPicker.blur()
+
         this.$emit('input', newVal)
         this.hide()
       },
@@ -75,10 +76,6 @@
     methods: {
       getSelectedOrganisation () {
         this.org = Organisation.getSelectedOrganisation()
-      },
-
-      updateSuperUnit () {
-        this.$emit('input', this.selectedSuperUnit)
       },
 
       show () {

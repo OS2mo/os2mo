@@ -1,10 +1,10 @@
 <template>
   <div>
     <div id="workflows">
-      <workflow-button label="Opret enhed" icon="plus-circle" v-b-modal.orgUnitCreate/>
-      <workflow-button label="Omdøb enhed" icon="pencil-square-o" v-b-modal.orgUnitRename/>
-      <workflow-button label="Flyt enhed" icon="share-square-o" v-b-modal.orgUnitMove/>
-      <workflow-button label="Afslut enhed" icon="ban" v-b-modal.orgUnitEnd/>
+      <button-workflow label="Opret enhed" icon="plus-circle" v-b-modal.orgUnitCreate/>
+      <button-workflow label="Omdøb enhed" icon="pencil-square-o" v-b-modal.orgUnitRename/>
+      <button-workflow label="Flyt enhed" icon="share-square-o" v-b-modal.orgUnitMove/>
+      <button-workflow label="Afslut enhed" icon="ban" v-b-modal.orgUnitEnd/>
     </div>
   <!-- Modal Component -->
   <unit-create/>
@@ -15,7 +15,7 @@
 </template>
 
 <script>
-  import WorkflowButton from '../components/WorkflowButton'
+  import ButtonWorkflow from '../components/ButtonWorkflow'
   import UnitCreate from './OrganisationUnitCreate'
   import UnitRename from './OrganisationUnitRename'
   import UnitMove from './OrganisationUnitMove'
@@ -23,7 +23,7 @@
 
   export default {
     components: {
-      WorkflowButton,
+      ButtonWorkflow,
       UnitCreate,
       UnitRename,
       UnitMove,

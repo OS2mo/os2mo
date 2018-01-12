@@ -1,25 +1,28 @@
 <template>
-  <router-link :to="{ name: target}">
+  <!-- <router-link :to="{ name: target}"> -->
     <button type="button" class="btn btn-primary btn-workflow">
       <icon class="btn-icon" :name="icon"/>
-      <span class="btn-label">{{label}}</span>
+      <label class="btn-label">{{label}}</label>
     </button>
-  </router-link>
+  <!-- </router-link> -->
 </template>
 
 <script>
   export default {
-    components: {},
     props: {
-      label: String,
-      icon: String,
-      target: String
-    },
-    data () {
-      return {}
-    },
-    created: function () {},
-    methods: {}
+      label: {
+        default: 'New Workflow',
+        type: String
+      },
+      icon: {
+        default: 'plus-circle',
+        type: String
+      },
+      target: {
+        default: '',
+        type: String
+      }
+    }
   }
 </script>
 

@@ -1,7 +1,10 @@
 <template>
     <div class="form-group col">
-      <label>{{label}}</label>
-      <div class="input-group">
+      <label for="date-picker">{{label}}</label>
+      <div 
+        class="input-group" 
+        name="date-picker"
+      >
         <date-time-picker 
           v-model="date" 
           :config="config" 
