@@ -652,6 +652,60 @@ class IntegrationTests(util.LoRATestCase):
                 [],
             )
 
+        with self.subTest('get unit engagements'):
+            expected = [
+                {
+                    'job-title': {
+                        'name': 'Hest',
+                        'user-key': '398538',
+                        'uuid': 'a0324d15-5317-45b0-a320-7466670463b1',
+                    },
+                    'org': None,
+                    'org-unit': {
+                        'activeName': 'Aarhuskontoret',
+                        'name': 'Aarhuskontoret',
+                        'org': '8efbd074-ad2a-4e6a-afec-1d0b1891f566',
+                        'parent': '01e479c4-66ef-42aa-877e-15f0512f792c',
+                        'parent-object': None,
+                        'type': {
+                            'name': 'Kontor',
+                            'user-key': 'Kontor',
+                            'userKey': 'Kontor',
+                            'uuid': '333b3660-438b-4a5a-9982-2790ed4626d8',
+                        },
+                        'user-key': 'MAGENTA-AAR',
+                        'uuid': '8a32549b-458e-4ff3-814d-9155963c519a',
+                        'valid-from': '07-08-2014',
+                        'valid-to': 'infinity',
+                    },
+                    'person': 'cd2dcfad-6d34-4553-9fee-a7023139a9e8',
+                    'person-name': 'Joe User',
+                    'role-type': 'engagement',
+                    'type': {
+                        'name': 'Ceremonimester',
+                        'user-key': 'Ceremonimester',
+                        'userKey': 'Ceremonimester',
+                        'uuid': '66ba8830-9faa-467e-8723-0c256c196273',
+                    },
+                    'uuid': 'a0324d15-5317-45b0-a320-7466670463b1',
+                    'valid-from': '15-02-2016',
+                    'valid-to': 'infinity',
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/mo/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566'
+                '/org-unit/8a32549b-458e-4ff3-814d-9155963c519a'
+                '/role-types/engagement/',
+                expected,
+            )
+
+            self.assertRequestResponse(
+                '/mo/org-unit/8a32549b-458e-4ff3-814d-9155963c519a'
+                '/role-types/engagement/',
+                expected,
+            )
+
         with self.subTest('get user contact channels'):
             self.assertRequestResponse(
                 '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
