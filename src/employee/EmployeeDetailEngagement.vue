@@ -13,7 +13,7 @@
 
       <tbody>
         <tr v-for="d in details" v-bind:key="d.uuid">
-          <td>{{d['org-unit'].name}}</td>
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.uuid} }">{{d['org-unit'].name}}</router-link></td>
           <td>{{d['job-title'].name}}</td>
           <td>
             <span v-if="d.type">

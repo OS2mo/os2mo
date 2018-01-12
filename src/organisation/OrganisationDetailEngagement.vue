@@ -20,7 +20,7 @@
         </tr>
 
         <tr v-for="e in engagements" v-bind:key="e.uuid">
-          <td>{{e['person-name']}}</td>
+          <td><router-link :to="{ name: 'EmployeeDetail', params: {'uuid': e.person} }">{{e['person-name']}}</router-link></td>
           <td>{{e['job-title'].name}}</td>
           <td><span v-if="e.type">{{e.type.name}}</span></td>
           <td>{{e['valid-from']}}</td>
