@@ -26,7 +26,7 @@ module.exports = function (config) {
     junitReporter: {
       outputDir: '../../build/reports',
       outputFile: 'junit-karma.xml',
-      useBrowserName: true, // add browser name to report and classes names
+      useBrowserName: true // add browser name to report and classes names
     },
     coverageReporter: {
       dir: '../../build/coverage',

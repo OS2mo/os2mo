@@ -46,7 +46,7 @@ export default {
    */
   getOrganisationUnit (unitUuid) {
     let vm = this
-    return HTTP.get('/org-unit/?query=' + unitUuid)
+    return HTTP.get('/org-unit/' + unitUuid)
     .then(function (response) {
       selectedOrgUnit = response.data[0]
       EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
@@ -200,7 +200,7 @@ export default {
    */
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
-    return HTTP.post('/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
+    return HTTP.post(`/org-unit/${orgUnit.uuid}?rename=true`, orgUnit)
     .then(function (response) {
       EventBus.$emit('org-unit-rename', response.data)
       return response.data
