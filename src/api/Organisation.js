@@ -191,8 +191,9 @@ export default {
    */
   createOrganisationUnit (orgUnit) {
     return HTTP.post('/o/' + orgUnit.org + '/org-unit', orgUnit)
-      .then(response => {
-        return response
+      .then(function (response) {
+        EventBus.$emit('org-unit-create', response.data)
+        return response.data
       })
   },
 
@@ -206,6 +207,7 @@ export default {
     orgUnit.name = newName
     return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?rename=true', orgUnit)
     .then(function (response) {
+      EventBus.$emit('org-unit-rename', response.data)
       return response.data
     })
   },
@@ -225,7 +227,8 @@ export default {
 
     return HTTP.post('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '/actions/move', obj)
     .then(function (response) {
-      return response
+      EventBus.$emit('org-unit-move', response.data)
+      return response.data
     })
   },
 
@@ -237,8 +240,9 @@ export default {
    */
   endOrganisationUnit (orgUnit, endDate) {
     return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
-    .then(response => {
-      return response
+    .then(function (response) {
+      EventBus.$emit('org-unit-end-date', response.data)
+      return response.data
     })
   }
 }

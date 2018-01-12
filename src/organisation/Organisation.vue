@@ -14,7 +14,7 @@
 <script>
   import TheLeftMenu from '../components/TheLeftMenu'
   import UnitWorkflows from './OrganisationUnitWorkflows'
-  import WorkLog from '../components/Worklog'
+  import WorkLog from '../components/WorkLog'
 
   export default {
     components: {
