@@ -46,8 +46,8 @@ export default {
    */
   getOrganisationUnit (unitUuid) {
     let vm = this
-    return HTTP.get('/org-unit/' + unitUuid)
-    .then(function (response) {
+    return HTTP.get(`/org-unit/${unitUuid}`)
+    .then(response => {
       selectedOrgUnit = response.data[0]
       EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
 
@@ -82,8 +82,8 @@ export default {
    */
   getFullHierachy (orgUuid, unitUuid) {
     unitUuid = unitUuid || ''
-    let append = unitUuid ? '?treeType=specific&orgUnitId=' + unitUuid : ''
-    return HTTP.get('/o/' + orgUuid + '/full-hierarchy' + append)
+    let append = unitUuid ? 'treeType=specific&orgUnitId=' + unitUuid : ''
+    return HTTP.get(`/o/${orgUuid}/full-hierarchy?${append}`)
       .then(response => {
         return response.data
       })
@@ -158,7 +158,7 @@ export default {
   getDetail (unitUuid, detail, validity) {
     detail = detail === 'unit' ? '' : '/role-types/' + detail
     validity = validity || 'present'
-    return HTTP.get('/org-unit/' + unitUuid + detail + '/?validity=' + validity)
+    return HTTP.get(`/org-unit/${unitUuid}${detail}/?validity=${validity}`)
     .then(response => {
       return response.data
     })
@@ -173,7 +173,7 @@ export default {
    * @returns {Array} A list of historical events for the organisation unit
    */
   getHistory (unitUuid) {
-    return HTTP.get('/org-unit/' + unitUuid + '/history/')
+    return HTTP.get(`/org-unit/${unitUuid}/history/`)
     .then(response => {
       return response.data
     })
@@ -186,10 +186,10 @@ export default {
    */
   createOrganisationUnit (orgUnit) {
     return HTTP.post('/org-unit', orgUnit)
-      .then(response => {
-        EventBus.$emit('org-unit-create', response.data)
-        return response.data
-      })
+    .then(response => {
+      EventBus.$emit('org-unit-create', response.data)
+      return response.data
+    })
   },
 
   /**
@@ -201,7 +201,7 @@ export default {
   renameOrganisationUnit (orgUnit, newName) {
     orgUnit.name = newName
     return HTTP.post(`/org-unit/${orgUnit.uuid}?rename=true`, orgUnit)
-    .then(function (response) {
+    .then(response => {
       EventBus.$emit('org-unit-rename', response.data)
       return response.data
     })
@@ -220,8 +220,8 @@ export default {
       'newParentOrgUnitUUID': toUuid
     }
 
-    return HTTP.post('/org-unit/' + orgUnit.uuid + '/actions/move', obj)
-    .then(function (response) {
+    return HTTP.post(`/org-unit/${orgUnit.uuid}/actions/move`, obj)
+    .then(response => {
       EventBus.$emit('org-unit-move', response.data)
       return response.data
     })
@@ -234,8 +234,7 @@ export default {
    * @returns {Object} organisation unit uuid
    */
   endOrganisationUnit (orgUnit, endDate) {
-    // return HTTP.delete('/o/' + orgUnit.org + '/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
-    return HTTP.delete('/org-unit/' + orgUnit.uuid + '?endDate=' + endDate)
+    return HTTP.delete(`/org-unit/${orgUnit.uuid}?endDate=${endDate}`)
     .then(response => {
       EventBus.$emit('org-unit-end-date', response.data)
       return response.data

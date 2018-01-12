@@ -19,7 +19,7 @@ export default {
    * @returns {Object} employee object
    */
   getEmployee (uuid) {
-    return HTTP.get('/e/' + uuid)
+    return HTTP.get(`/e/${uuid}`)
     .then(response => {
       return response.data
     })
@@ -34,7 +34,7 @@ export default {
    * @return {Object}
    */
   searchForEmployee (query) {
-    return HTTP.get('/e/?limit=200&query=' + query + '&start=0')
+    return HTTP.get(`/e/?limit=200&query=${query}&start=0`)
     .then(response => {
       return response.data
     })
@@ -67,7 +67,7 @@ export default {
    */
   getDetails (uuid, detail, validity) {
     validity = validity || 'present'
-    return HTTP.get('/e/' + uuid + '/role-types/' + detail + '/?validity=' + validity)
+    return HTTP.get(`/e/${uuid}/role-types/${detail}/?validity=${validity}`)
     .then(response => {
       return response.data
     })
