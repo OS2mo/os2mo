@@ -340,7 +340,7 @@ def rename_or_retype_org_unit(unitid, orgid=None):
     return flask.jsonify({'uuid': unitid}), 200
 
 
-@app.route('org-unit/<uuid:unitid>/role-types/location', methods=['POST'])
+@app.route('/org-unit/<uuid:unitid>/role-types/location', methods=['POST'])
 @app.route(
     '/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/location',
     methods=['POST'],
@@ -486,9 +486,6 @@ def get_orgunit_history(unitid, orgid=None):
 
 
 @app.route('/e/<uuid:userid>/role-types/' + ROLE_TYPE_SUFFIX)
-# XXX: Hack to handle inconsistencies in API
-@app.route('/mo/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
-           ROLE_TYPE_SUFFIX)
 @app.route('/org-unit/<uuid:unitid>/role-types/' + ROLE_TYPE_SUFFIX)
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
