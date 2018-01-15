@@ -105,4 +105,6 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
     return assertion if raw else _pack(assertion)
 
 
-__all__ = ('get_token')
+__all__ = (
+    'get_token',
+)
