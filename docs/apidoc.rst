@@ -8,6 +8,7 @@ det sprog anvendes i al koden.
    :maxdepth: 2
    :caption: Contents:
 
+   modules-to-doc/rest-api
    modules-to-doc/addr
    modules-to-doc/importing
    modules-to-doc/app
