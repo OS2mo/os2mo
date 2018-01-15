@@ -24,6 +24,7 @@ app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
 cli.load_cli(app)
 app.register_blueprint(api.blueprint)
+app.register_blueprint(auth.blueprint)
 
 
 @app.errorhandler(Exception)
@@ -88,18 +89,3 @@ def send_scripts(path):
 @app.route('/mo/styles/<path:path>')
 def send_styles(path):
     return flask.send_from_directory(staticdir, os.path.join('styles', path))
-
-
-@app.route('/mo/service/user/<user>/login', methods=['POST'])
-def login(user):
-    return auth.login(user)
-
-
-@app.route('/mo/service/user/<user>/logout', methods=['POST'])
-def logout(user):
-    return auth.logout()
-
-
-@app.route('/mo/acl/', methods=['POST', 'GET'])
-def acl():
-    return flask.jsonify([])
