@@ -1,9 +1,17 @@
 <template>
   <div class="form-group col">
     <label>Stillingsbetegnelse</label>
-    <select class="form-control col" id="">
-      <option>Stillingsbetegnelse</option>
-      <option v-for="title in engagementTitles" v-bind:key="title.uuid">{{title.name}}</option>
+    <select 
+      class="form-control col" 
+      v-model="selectedTitle"
+      @change="updateSelectedTitle()">
+      <option disabled>Stillingsbetegnelse</option>
+      <option 
+        v-for="title in engagementTitles" 
+        v-bind:key="title.uuid"
+        :value="title.uuid">
+          {{title.name}}
+      </option>
     </select>
   </div>
 </template>
@@ -16,6 +24,7 @@ export default {
   },
   data () {
     return {
+      selectedTitle: '',
       engagementTitles: []
     }
   },
@@ -23,11 +32,15 @@ export default {
     this.getEngagementTitles()
   },
   methods: {
-    getEngagementTitles: function () {
+    getEngagementTitles () {
       var vm = this
       Property.getEngagementTitles().then(function (response) {
         vm.engagementTitles = response
       })
+    },
+
+    updateSelectedTitle () {
+      this.$emit('input', this.selectedTitle)
     }
   }
 }
