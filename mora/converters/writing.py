@@ -912,16 +912,16 @@ def edit_engagement(req, employee_uuid, engagement_uuid):
 
 def update_engagement_payload(req, original):
     # TODO: New API
-    old_from = req.get('oldvalidfrom')
-    old_to = req.get('oldvalidto')
-    new_from = req.get('newvalidfrom')
-    new_to = req.get('newvalidto')
+    old_from = req.get('oldValidFrom')
+    old_to = req.get('oldValidTo')
+    new_from = req.get('newValidFrom')
+    new_to = req.get('newValidTo')
 
     note = 'Rediger engagement'
 
     fields = [
         (['relationer', 'opgaver'],
-         {'uuid': req.get('jobtitle')}),
+         {'uuid': req.get('jobTitle')}),
 
         (['relationer', 'organisatoriskfunktionstype'],
          {'uuid': req.get('type')}),

@@ -9,6 +9,7 @@
 import copy
 import datetime
 import json
+import unittest
 
 import freezegun
 
@@ -1606,7 +1607,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "overwrite": True,
                 "engagements": [{
                     "uuid": engagementid,
-                    "from": "2017-01-01 00:00:00+01:00",
+                    "from": "2017-01-01T00:00:00+01:00",
                     "to": "infinity"
                 }],
                 "associations": []
@@ -1639,7 +1640,6 @@ class TestWritingIntegration(util.LoRATestCase):
             'create_organisationfunktion_engagement.json',
             engagementid)
 
-
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -1654,7 +1654,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "overwrite": True,
                 "engagements": [{
                     "uuid": engagementid,
-                    "from": "2017-01-01 00:00:00+01:00",
+                    "from": "2017-01-01T00:00:00+01:00",
                     "to": "infinity"
                 }],
                 "associations": []
@@ -1701,7 +1701,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "overwrite": False,
                 "engagements": [{
                     "uuid": engagementid,
-                    "from": "2017-01-01 00:00:00+01:00",
+                    "from": "2017-01-01T00:00:00+01:00",
                     "to": "infinity"
                 }],
                 "associations": []
@@ -1961,6 +1961,8 @@ class TestWritingIntegration(util.LoRATestCase):
             engagement_after
         )
 
+    # FIXME - skipped until new API is defined
+    @unittest.SkipTest
     def test_should_update_employee_correctly(self):
         self.load_sample_structures()
 

@@ -167,13 +167,12 @@ class TestMoveOrgFunktion(unittest.TestCase):
         }
 
         org_unit = "a1d4dabc-3fa3-496f-9b09-c19748547c37"
-        old_from = '2017-12-01T00:00:00+00:00'
-        old_to = '2017-12-22T00:00:00+00:00'
-        new_from = '2016-01-01T00:00:00+00:00'
-        new_to = '2017-12-22T00:00:00+00:00'
+        from_time = '2017-12-01T00:00:00+00:00'
+        to_time = '2017-12-22T00:00:00+00:00'
+        move_date = '2016-01-01T00:00:00+00:00'
 
         actual_output = writing.move_org_funktion_payload(
-            old_from, old_to, new_from, new_to, True, org_unit, orgfunk
+            move_date, from_time, to_time, True, org_unit, orgfunk
         )
 
         self.assertDictEqual(
@@ -345,13 +344,12 @@ class TestMoveOrgFunktion(unittest.TestCase):
         }
 
         org_unit = "a1d4dabc-3fa3-496f-9b09-c19748547c37"
-        old_from = '2017-12-01T00:00:00+00:00'
-        old_to = '2017-12-22T00:00:00+00:00'
-        new_from = '2016-01-01T00:00:00+00:00'
-        new_to = '2017-12-22T00:00:00+00:00'
+        from_time = '2017-12-01T00:00:00+00:00'
+        to_time = '2017-12-22T00:00:00+00:00'
+        move_date = '2016-01-01T00:00:00+00:00'
 
         actual_output = writing.move_org_funktion_payload(
-            old_from, old_to, new_from, new_to, False, org_unit, orgfunk
+            move_date, from_time, to_time, False, org_unit, orgfunk
         )
 
         self.assertDictEqual(

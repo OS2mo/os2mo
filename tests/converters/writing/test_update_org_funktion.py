@@ -17,11 +17,11 @@ class TestUpdateOrgFunktion(TestCase):
     def test_update_org_funktion_diminishing(self):
         # Arrange
         req = {
-            "oldvalidfrom": "2017-01-01T00:00:00+01:00",
-            "oldvalidto": "infinity",
-            "newvalidfrom": "2017-01-01T00:00:00+01:00",
-            "newvalidto": "2018-01-01T00:00:00+01:00",
-            "jobtitle": "da8dc037-810d-41d4-a456-0c34906fe366",
+            "oldValidFrom": "2017-01-01T00:00:00+01:00",
+            "oldValidTo": "infinity",
+            "newValidFrom": "2017-01-01T00:00:00+01:00",
+            "newValidTo": "2018-01-01T00:00:00+01:00",
+            "jobTitle": "da8dc037-810d-41d4-a456-0c34906fe366",
             "type": "4fa10174-776f-4246-8ae5-d0fff3c680dd",
         }
 
@@ -180,11 +180,11 @@ class TestUpdateOrgFunktion(TestCase):
     def test_update_org_expanding(self):
         # Arrange
         req = {
-            "oldvalidfrom": "2017-01-01T00:00:00+01:00",
-            "oldvalidto": "2018-01-01T00:00:00+01:00",
-            "newvalidfrom": "2017-01-01T00:00:00+01:00",
-            "newvalidto": "2019-01-01T00:00:00+01:00",
-            "jobtitle": "da8dc037-810d-41d4-a456-0c34906fe366",
+            "oldValidFrom": "2017-01-01T00:00:00+01:00",
+            "oldValidTo": "2018-01-01T00:00:00+01:00",
+            "newValidFrom": "2017-01-01T00:00:00+01:00",
+            "newValidTo": "2019-01-01T00:00:00+01:00",
+            "jobTitle": "da8dc037-810d-41d4-a456-0c34906fe366",
             "type": "4fa10174-776f-4246-8ae5-d0fff3c680dd",
         }
 
