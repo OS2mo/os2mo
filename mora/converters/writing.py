@@ -251,7 +251,7 @@ def get_remaining_org_funk_fields(obj_paths: List[List[str]]):
     return [list(x) for x in diff]
 
 
-def move_org_funktion_payload(old_from, old_to, new_from, new_to,
+def move_org_funktion_payload(move_date, from_time, to_time,
                               overwrite, org_unit_uuid, orgfunk):
     note = "Flyt engagement"
     fields = [(
@@ -262,10 +262,10 @@ def move_org_funktion_payload(old_from, old_to, new_from, new_to,
     payload = {}
 
     if overwrite:
-        return update_org_funktion_payload(new_from, new_to, note, fields,
+        return update_org_funktion_payload(move_date, to_time, note, fields,
                                            orgfunk, payload)
     else:
-        return update_org_funktion_payload(new_from, old_from, note, fields,
+        return update_org_funktion_payload(move_date, from_time, note, fields,
                                            orgfunk, payload)
 
 
@@ -876,25 +876,27 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
 
 
 # Engagements
-def move_engagements(old_from, old_to, new_from, new_to, overwrite,
-                     engagements, org_unit_uuid):
+def move_engagements(move_date, overwrite, engagements, org_unit_uuid):
     """
     Move a list of engagements to the given org unit on the given date
 
+    :param move_date: The date of the move
+    :param overwrite: Whether the move should overwrite the existing engagement
     :param engagements: A list of engagements on the form:
-                        {'uuid': <UUID>, 'overwrite': [0|1]}
+                        {'uuid': <UUID>, 'from': <date>, 'to': <date>}
     :param org_unit_uuid: A UUID of the org unit to move to
-    :param from_date: The date of the move
     """
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     for engagement in engagements:
         engagement_uuid = engagement.get('uuid')
+        from_time = engagement.get('from')
+        to_time = engagement.get('to')
 
         # Fetch current orgfunk
         orgfunk = c.organisationfunktion.get(engagement_uuid)
 
         # Create new orgfunk active from the move date, with new org unit
-        payload = move_org_funktion_payload(old_from, old_to, new_from, new_to,
+        payload = move_org_funktion_payload(move_date, from_time, to_time,
                                             overwrite, org_unit_uuid, orgfunk)
 
         c.organisationfunktion.update(payload, engagement_uuid)

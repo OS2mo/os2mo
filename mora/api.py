@@ -103,33 +103,69 @@ def get_employee(id):
 
 
 # --- Writing to LoRa --- #
-@app.route('/e/<uuid:employee_uuid>/actions/move', methods=['POST'])
+@app.route('/e/<uuid:employee_uuid>/move', methods=['POST'])
 def move_employee(employee_uuid):
-    """
-    Moves an employee given an a move date, a uuid of the
-    org unit the employee should be moved to, and lists of the various
-    engagements and associations that should be moved for the given employee.
+    """Moves the engagements and associations related to an employee to a
+    different org unit
 
-    :param employee_uuid: A UUID of an employee in MO, corresponding to a
-    Bruger object in LoRa
-    :return
-    """
-    org_unit_uuid = flask.request.args.get('org-unit')
-    date = flask.request.args.get('date')
+    .. :quickref: Employee; Move employee
 
+    :statuscode 200: The move succeeded.
+
+    **Example Request**:
+
+    .. sourcecode:: json
+
+        {
+            "orgUnit": "281d97fe-130f-4179-b22a-f2298caee431",
+            "moveDate": "2014-01-01T00:00:00+00:00",
+            "overwrite": false,
+            "engagements": [
+                {
+                    "uuid": "ae12e4a9-4044-4b24-8e26-768d79549471",
+                    "from": "2012-01-01T00:00:00+00:00",
+                    "to": "infinity"
+                }
+            ],
+            "associations": [
+                {
+                    "uuid": "ae12e4a9-4044-4b24-8e26-768d79549471",
+                    "from": "2013-01-01T00:00:00+00:00",
+                    "to": "2018-01-01T00:00:00+00:00"
+                }
+            ]
+        }
+
+    :query employee_uuid: The UUID of the employee to be moved.
+
+    :<json string orgUnit: The UUID of the org unit to move to.
+    :<json string moveDate: The date on which the move should occur,
+        in ISO 8601.
+    :<json boolean overwrite: Whether or not the move should overwrite existing
+        data.
+    :<json List[dict] engagements: A list of engagement objects, described
+        below.
+    :<json List[dict] associations: A list of association objects, described
+        below.
+
+    **Engagements and associations**:
+
+    :<jsonarr string uuid: The UUID of the engagement or association
+    :<jsonarr string from: The original from date of the selected object,
+        in ISO 8601.
+    :<jsonarr string to: The original to-date of the selected object in,
+        ISO 8601.
+    """
     req = flask.request.get_json()
 
-    old_from = req.get('oldvalidfrom')
-    old_to = req.get('oldvalidto')
-    new_from = req.get('newvalidfrom')
-    new_to = req.get('newvalidto')
+    org_unit_uuid = req.get('orgUnit')
+    move_date = req.get('moveDate')
     overwrite = req.get('overwrite')
-
-    engagements = req.get('engagementids')
+    engagements = req.get('engagements', [])
     # TODO: Handle tilknytning
+    associations = req.get('associations', [])
 
-    writing.move_engagements(old_from, old_to, new_from, new_to, overwrite,
-                             engagements, org_unit_uuid)
+    writing.move_engagements(move_date, overwrite, engagements, org_unit_uuid)
 
     return flask.jsonify([]), 200
 
@@ -145,6 +181,7 @@ def edit_employee_role(employee_uuid, role_type, role_uuid):
         # 'contact': edit_contact,
         # 'leader': edit_leader,
     }
+
     handler = handlers.get(role_type)
     if not handler:
         return flask.jsonify('Unknown role type'), 400
