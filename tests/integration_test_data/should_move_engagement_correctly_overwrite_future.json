@@ -1,0 +1,89 @@
+{
+    "attributter": {
+        "organisationfunktionegenskaber": [
+            {
+                "brugervendtnoegle": "973f5b52-0ce1-421e-bc0a-c2d7b7946f79",
+                "funktionsnavn": "Name",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "note": "Flyt engagement",
+    "livscykluskode": "Rettet",
+    "relationer": {
+        "organisatoriskfunktionstype": [
+            {
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ],
+        "opgaver": [
+            {
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ],
+        "tilknyttedebrugere": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ],
+        "tilknyttedeenheder": [
+            {
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ],
+        "tilknyttedeorganisationer": [
+            {
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "organisationfunktiongyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}
+
