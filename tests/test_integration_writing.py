@@ -1582,12 +1582,19 @@ class TestWritingIntegration(util.LoRATestCase):
     def test_should_move_employee_correctly(self):
         self.load_sample_structures()
 
-        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
+        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        engagementid = '4e724fc7-0754-4a62-a280-4530161257cb'
+
+        # Insert the org funk as a new unique object
+        util.load_fixture(
+            'organisation/organisationfunktion',
+            'create_organisationfunktion_engagement.json',
+            engagementid)
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        engagementid = 'd000591f-8705-4324-897a-075e3623f37b'
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
@@ -1598,7 +1605,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "moveDate": "2018-01-01T00:00:00+01:00",
                 "overwrite": True,
                 "engagements": [{
-                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "uuid": engagementid,
                     "from": "2017-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }],
@@ -1622,12 +1629,20 @@ class TestWritingIntegration(util.LoRATestCase):
     def test_should_move_employee_correctly_overwrite_future(self):
         self.load_sample_structures()
 
-        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
+        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        engagementid = '23f07606-f337-403f-b78e-0c2f7c6f4f6c'
+
+        # Insert the org funk as a new unique object
+        util.load_fixture(
+            'organisation/organisationfunktion',
+            'create_organisationfunktion_engagement.json',
+            engagementid)
+
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        engagementid = 'd000591f-8705-4324-897a-075e3623f37b'
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
@@ -1638,7 +1653,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "moveDate": "2016-01-01T00:00:00+01:00",
                 "overwrite": True,
                 "engagements": [{
-                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "uuid": engagementid,
                     "from": "2017-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }],
@@ -1662,12 +1677,19 @@ class TestWritingIntegration(util.LoRATestCase):
     def test_should_move_employee_correctly_no_overwrite_future(self):
         self.load_sample_structures()
 
-        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # samf
+        new_org_unit = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        engagementid = '8850cc54-12fc-4513-b680-7101a24166a6'
+
+        # Insert the org funk as a new unique object
+        util.load_fixture(
+            'organisation/organisationfunktion',
+            'create_organisationfunktion_engagement.json',
+            engagementid)
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        engagementid = 'd000591f-8705-4324-897a-075e3623f37b'
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
@@ -1678,7 +1700,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "moveDate": "2016-01-01T00:00:00+01:00",
                 "overwrite": False,
                 "engagements": [{
-                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "uuid": engagementid,
                     "from": "2017-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }],
