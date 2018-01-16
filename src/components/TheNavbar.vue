@@ -27,7 +27,7 @@
         <template slot="button-content">
           <icon name="user"/> Admin
         </template>
-        <b-dropdown-item>
+        <b-dropdown-item @click="logout()">
           <icon name="sign-out"/> Log ud
         </b-dropdown-item>
       </b-dropdown>
@@ -48,6 +48,13 @@
     },
     data () {
       return {
+      }
+    },
+    methods: {
+      logout () {
+        this.$router.push({
+            name: 'login',
+          })
       }
     }
   }

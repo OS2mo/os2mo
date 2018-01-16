@@ -1,15 +1,23 @@
 <template>
-  <div id="login-wrapper" class="col">
-    <button class="btn btn-primary btn-bg" v-b-modal.login>
-      <icon name="user" scale="1.8"/>
-      <span class="btn-text">Medarbejder</span>
-    </button>
-      <br>
-    <button class="btn btn-success btn-bg-2" v-b-modal.login>
-      <icon name="share-alt" scale="1.8"/>
-      <span class="btn-text">Organisation</span>
-    </button>
-    <login-modal/>
+  <div>
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+      <div class="col text-center">
+        <h1>Velkommen til MO</h1>
+        <h4>Medarbejder|Organisation</h4>
+      </div>
+    </nav>
+    <div id="login-wrapper" class="col">
+      <button class="btn btn-primary btn-bg" v-b-modal.login>
+        <icon name="user" scale="1.8"/>
+        <span class="btn-text">Medarbejder</span>
+      </button>
+        <br>
+      <button class="btn btn-success btn-bg-2" v-b-modal.login>
+        <icon name="share-alt" scale="1.8"/>
+        <span class="btn-text">Organisation</span>
+      </button>
+      <login-modal/>
+    </div>
   </div>
 
 </template>
@@ -53,6 +61,10 @@
 
   .btn-bg:hover{
     background-color: #002f5d;
+  }
+
+  h1,h4 {
+    color: white;
   }
 
 </style>
