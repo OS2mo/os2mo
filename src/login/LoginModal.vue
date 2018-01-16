@@ -11,7 +11,8 @@
         <b-form-input
           name="username"
           type="text"
-          placeholder="Brugernavn"/>
+          placeholder="Brugernavn"
+          v-model="user.username"/>
       </div>
       <div class="form-group col">
         <b-form-input
@@ -35,16 +36,29 @@
 </template>
 
 <script>
-    export default {
-      name: 'login-modal',
-      methods: {
-        gotoMo () {
-          this.$router.push({
-            name: 'home',
-          })
+  import Auth from '../api/Auth'
+
+  export default {
+    name: 'login-modal',
+    data () {
+      return {
+        user: {
+          username: ''
         }
       }
+    },
+    methods: {
+      gotoMo () {
+        let vm = this
+        Auth.setUser(vm.user)
+        .then(response => {
+          vm.$router.push({
+            name: 'home'
+          })
+        })
+      }
     }
+  }
 </script>
 
 <style scoped>
