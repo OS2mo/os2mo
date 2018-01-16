@@ -119,12 +119,17 @@ def move_employee(employee_uuid):
 
     req = flask.request.get_json()
 
-    present_engagements = req.get('presentEngagementIds')
-    future_engagements = req.get('futureEngagementIds')
+    old_from = req.get('oldvalidfrom')
+    old_to = req.get('oldvalidto')
+    new_from = req.get('newvalidfrom')
+    new_to = req.get('newvalidto')
+    overwrite = req.get('overwrite')
+
+    engagements = req.get('engagementids')
     # TODO: Handle tilknytning
 
-    writing.move_engagements(present_engagements, org_unit_uuid, date)
-    writing.move_engagements(future_engagements, org_unit_uuid, date)
+    writing.move_engagements(old_from, old_to, new_from, new_to, overwrite,
+                             engagements, org_unit_uuid)
 
     return flask.jsonify([]), 200
 
