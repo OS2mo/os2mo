@@ -2,16 +2,16 @@
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">
-        <icon name="share-alt" /> Organisationer
+        <icon name="share-alt" /> {{orgUnit.name}}
       </h4>
 
       <div class="row">
         <div class="mr-auto">
           <p class="card-text">
-            Enhed: {{orgUnit.name}} Enhedsnr.: {{orgUnit['user-key']}}
+            Enhedsnr.: {{orgUnit['user-key']}}
           </p>
         </div>
-        <div class="">
+        <div>
           <button class="btn btn-outline-primary">
             <icon name="edit" />
           </button>
