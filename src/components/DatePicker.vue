@@ -6,14 +6,17 @@
         name="date-picker"
       >
         <date-time-picker 
+          name="date"
           v-model="date" 
           :config="config" 
           @input="updateDate()"
+          v-validate="{ required: true }" 
         />
         <span class="input-group-addon">
           <icon name="calendar"/>
           </span>
       </div>
+      <span v-show="errors.has('date')" class="text-danger">{{ errors.first('date') }}</span>
     </div>
 </template>
 

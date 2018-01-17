@@ -18,7 +18,10 @@
       />
     </div>
     <div class="float-right">
-      <button-submit @click.native="endOrganisationUnit"/>
+      <button-submit 
+      :disabled="errors.any() || !isCompleted" 
+      @click.native="endOrganisationUnit"
+      />
     </div>
   </b-modal>
 </template>
@@ -35,6 +38,11 @@
       DatePicker,
       OrganisationUnitPicker,
       ButtonSubmit
+    },
+    computed: {
+      isCompleted () {
+        return this.orgUnit && this.endDate
+      }
     },
     data () {
       return {

@@ -4,13 +4,15 @@
       <label for="exampleFormControlInput1">Adressesøg</label>
       <v-autocomplete 
         :items="addressSuggestions"
-        
+        name="address"
         :get-label="getLabel" 
         :component-item="template" 
         @update-items="getGeographicalLocation"
         @blur="addressSuggestions=[]"
         @input="updateAddress"
+        v-validate="{ required: true }"
       />
+      <span v-show="errors.has('address')" class="text-danger">{{ errors.first('address') }}</span>
     </div>
 
     <div class="form-check col">
@@ -18,7 +20,7 @@
         <input 
           class="form-check-input" 
           type="checkbox" 
-          v-model="searchCountry"
+          v-model="searchCountry" 
         > 
         Søg i hele landet
       </label>
@@ -27,12 +29,16 @@
     <div class="form-group col">
       <label for="exampleFormControlInput1">Lokationsnavn</label>
       <input 
+        name="location"
         type="text" 
         class="form-control" 
         id="" 
         placeholder="" 
         v-model="location.name"  
-        @input="updateAddress">
+        @input="updateAddress"
+        v-validate="{ required: true }"
+      >
+      <span v-show="errors.has('location')" class="text-danger">{{ errors.first('location') }}</span>
     </div>
   </div>
 </template>

@@ -2,13 +2,16 @@
   <div class="form-group">
     <label for="">{{ label }}</label>
     <input 
+      name="unit"
       type="text" 
       class="form-control" 
       placeholder="Vælg enhed"
       ref="orgUnitPicker"
       :value="selectedSuperUnit.name"
       @click.stop="show"
+      v-validate="{ required: true }" 
     >
+    <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
     <div 
       class="mo-input-group" 
       v-show="showTree" 
