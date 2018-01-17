@@ -111,6 +111,11 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
         'fedtmule': '6ee24785-ee9a-4502-81c2-7697009c9053',
     }
 
+    itsystems = {
+        'ad': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+        'lora': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+    }
+
     if not minimal:
         units.update({
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -158,6 +163,13 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
             'organisation/bruger',
             'create_bruger_{}.json'.format(userkey),
             userid,
+        ))
+
+    for itsystemkey, itsystemid in itsystems.items():
+        fixtures.append((
+            'organisation/itsystem',
+            'create_itsystem_{}.json'.format(itsystemkey),
+            itsystemid,
         ))
 
     for path, fixture_name, uuid in fixtures:

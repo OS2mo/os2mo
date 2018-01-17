@@ -24,6 +24,7 @@ ROLE_TYPES = {
     'contact-channel': reading.get_contact_channels,
     # XXX: Hack to handle inconsistencies in API
     'contact': reading.get_contact_channels,
+    'it': reading.get_it_systems,
     'location': reading.get_locations,
 }
 ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
@@ -598,3 +599,29 @@ def get_contact_facet_types_classes():
         'unknown key: ' + repr(key)
 
     return flask.jsonify(reading.get_contact_types())
+
+
+@app.route('/o/<uuid:orgid>/it/')
+# used when creating new "IT Systems"
+@app.route('/it-system/')
+# used when editing existing entries...
+@app.route('/it/')
+@util.restrictargs()
+def list_itsystems(orgid=None):
+    '''List the available IT systems.
+
+    .. :quickref: IT systems; List
+
+    :param string orgid: optional organisation UUID restricting the
+                         search
+
+    :>jsonarr string name: user-friendly name
+    :>jsonarr string userKey: unique, human-readable identifyer
+    :>jsonarr string uuid: unique, machine-friendly identifyer
+
+    :status 200: Always, even if nothing found.
+    :status 404: Not used.
+
+    '''
+
+    return flask.jsonify(reading.list_it_systems(orgid))

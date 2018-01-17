@@ -639,6 +639,150 @@ class IntegrationTests(util.LoRATestCase):
             ],
         )
 
+    @freezegun.freeze_time('2017-06-01')
+    def test_itsystems(self):
+        self.load_sample_structures()
+
+        expected_lora = {
+            "it-system": {
+                "name": "Lokal Rammearkitektur",
+                "userKey": "LoRa",
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "valid-from": "01-01-2016",
+                "valid-to": "01-01-2018",
+            },
+            'name': 'Fedtmule',
+            'person': '6ee24785-ee9a-4502-81c2-7697009c9053',
+            'role-type': 'it',
+            'state': 1,
+            'user-key': '<unused>',
+            'user-name': 'fedtmule',
+            'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+            "valid-from": "01-01-2016",
+            "valid-to": "01-01-2018",
+        }
+
+        expected_ad = {
+            'it-system': {
+                'name': 'Active Directory',
+                'userKey': 'AD',
+                'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                'valid-from': '14-02-2002',
+                'valid-to': 'infinity',
+            },
+            'name': 'Fedtmule',
+            'person': '6ee24785-ee9a-4502-81c2-7697009c9053',
+            'role-type': 'it',
+            'state': 1,
+            'user-key': '<unused>',
+            'user-name': 'fedtmule',
+            'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+            'valid-from': '14-02-2002',
+            'valid-to': 'infinity',
+        }
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/it/?validity=present',
+            [
+                expected_lora,
+                expected_ad,
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/it/?validity=past',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/it/?validity=future',
+            [],
+        )
+
+        with freezegun.freeze_time('2018-06-01', tz_offset=2):
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=present',
+                [
+                    expected_ad,
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=past',
+                [
+                    expected_lora,
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=future',
+                [],
+            )
+
+        with freezegun.freeze_time('2015-06-01', tz_offset=2):
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=present',
+                [
+                    expected_ad,
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=past',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=future',
+                [
+                    expected_lora,
+                ],
+            )
+
+        self.assertRequestResponse(
+            '/mo/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/role-types/it/',
+            [],
+        )
+
+        expected_list = [
+            {
+                'name': 'Active Directory',
+                'userKey': 'AD',
+                'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+            },
+            {
+                'name': 'Lokal Rammearkitektur',
+                'userKey': 'LoRa',
+                'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+            },
+        ]
+
+        for url in (
+            '/mo/it/',
+            '/mo/it-system/',
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/',
+        ):
+            self.assertRequestResponse(
+                url,
+                expected_list,
+                message='list failed for ' + url
+            )
+
+        self.assertRequestResponse(
+            '/mo/o/00000000-0000-0000-0000-000000000000/it/',
+            [],
+            message='list not filtered for organisation!'
+        )
+
 
 class HistoryTest(util.LoRATestCase):
     '''Due to testing registration times, this test needs a clean database'''

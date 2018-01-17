@@ -307,7 +307,6 @@ class Connector:
 
     def is_effect_relevant(self, effect):
         if self.validity == 'future':
-            return True
             return util.parsedatetime(effect['from']) >= self.tomorrow
         elif self.validity == 'past':
             return util.parsedatetime(effect['to']) <= self.today
