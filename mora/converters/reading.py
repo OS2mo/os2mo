@@ -636,3 +636,74 @@ def get_engagements(orgid=None, unitid=None, userid=None, **loraparams):
                  .get('organisationfunktiongyldighed')[0]
                  .get('gyldighed') == 'Aktiv'
     ]
+
+
+def list_it_systems(orgid: str=None) -> list:
+    '''
+    List all it systems.
+    '''
+
+    c = lora.Connector()
+
+    search = dict(tilhoerer=orgid) if orgid else {}
+
+    def convert_itsystem(systemid, system):
+        attrs = system['attributter']['itsystemegenskaber'][0]
+        return {
+            "name": attrs['itsystemnavn'],
+            "userKey": attrs['brugervendtnoegle'],
+            "uuid": systemid,
+        }
+
+    return sorted(
+        itertools.starmap(convert_itsystem, c.itsystem.get_all(**search)),
+        key=operator.itemgetter('name')
+    )
+
+
+def get_it_systems(userid: str=None, **loraparams) -> list:
+    c = lora.Connector(**loraparams)
+
+    user = c.bruger.get(userid)
+
+    userrels = user['relationer']
+    userattrs = user['attributter']['brugeregenskaber'][0]
+
+    def convert(relation: dict):
+        systemid = relation['uuid']
+        system = c.itsystem.get(systemid,
+                                virkningfra=relation['virkning']['from'],
+                                virkningtil=relation['virkning']['to'])
+
+        systemattrs = system['attributter']['itsystemegenskaber'][0]
+        # systemrels = system['relationer']
+
+        start = util.to_frontend_time(relation['virkning']['from'])
+        end = util.to_frontend_time(relation['virkning']['to'])
+
+        return {
+            "it-system": {
+                "name": systemattrs['itsystemnavn'],
+                "userKey": systemattrs['brugervendtnoegle'],
+                "uuid": systemid,
+                # we duplicate these so that we have previous state when
+                # changing the entry
+                "valid-from": util.to_frontend_time(start),
+                "valid-to": util.to_frontend_time(end),
+            },
+            "user-name": userattrs['brugervendtnoegle'],
+            "name": userattrs['brugernavn'],
+            "person": userid,
+            "role-type": "it",
+            "state": 1,
+            "user-key": "<unused>",
+            "uuid": systemid,
+            "valid-from": util.to_frontend_time(start),
+            "valid-to": util.to_frontend_time(end),
+        }
+
+    return [
+        convert(rel)
+        for rel in userrels.get('tilknyttedeitsystemer', [])
+        if c.is_effect_relevant(rel['virkning'])
+    ]

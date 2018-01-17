@@ -24,6 +24,7 @@ ROLE_TYPES = {
     'contact-channel': reading.get_contact_channels,
     # XXX: Hack to handle inconsistencies in API
     'contact': reading.get_contact_channels,
+    'it': reading.get_it_systems,
     'location': reading.get_locations,
 }
 ROLE_TYPE_SUFFIX = '<any({}):role>/'.format(','.join(map(repr, ROLE_TYPES)))
@@ -103,28 +104,69 @@ def get_employee(id):
 
 
 # --- Writing to LoRa --- #
-@app.route('/e/<uuid:employee_uuid>/actions/move', methods=['POST'])
+@app.route('/e/<uuid:employee_uuid>/move', methods=['POST'])
 def move_employee(employee_uuid):
-    """
-    Moves an employee given an a move date, a uuid of the
-    org unit the employee should be moved to, and lists of the various
-    engagements and associations that should be moved for the given employee.
+    """Moves the engagements and associations related to an employee to a
+    different org unit
 
-    :param employee_uuid: A UUID of an employee in MO, corresponding to a
-    Bruger object in LoRa
-    :return
-    """
-    org_unit_uuid = flask.request.args.get('org-unit')
-    date = flask.request.args.get('date')
+    .. :quickref: Employee; Move employee
 
+    :statuscode 200: The move succeeded.
+
+    **Example Request**:
+
+    .. sourcecode:: json
+
+        {
+            "orgUnit": "281d97fe-130f-4179-b22a-f2298caee431",
+            "moveDate": "2014-01-01T00:00:00+00:00",
+            "overwrite": false,
+            "engagements": [
+                {
+                    "uuid": "ae12e4a9-4044-4b24-8e26-768d79549471",
+                    "from": "2012-01-01T00:00:00+00:00",
+                    "to": "infinity"
+                }
+            ],
+            "associations": [
+                {
+                    "uuid": "ae12e4a9-4044-4b24-8e26-768d79549471",
+                    "from": "2013-01-01T00:00:00+00:00",
+                    "to": "2018-01-01T00:00:00+00:00"
+                }
+            ]
+        }
+
+    :query employee_uuid: The UUID of the employee to be moved.
+
+    :<json string orgUnit: The UUID of the org unit to move to.
+    :<json string moveDate: The date on which the move should occur,
+        in ISO 8601.
+    :<json boolean overwrite: Whether or not the move should overwrite existing
+        data.
+    :<json List[dict] engagements: A list of engagement objects, described
+        below.
+    :<json List[dict] associations: A list of association objects, described
+        below.
+
+    **Engagements and associations**:
+
+    :<jsonarr string uuid: The UUID of the engagement or association
+    :<jsonarr string from: The original from date of the selected object,
+        in ISO 8601.
+    :<jsonarr string to: The original to-date of the selected object in,
+        ISO 8601.
+    """
     req = flask.request.get_json()
 
-    present_engagements = req.get('presentEngagementIds')
-    future_engagements = req.get('futureEngagementIds')
+    org_unit_uuid = req.get('orgUnit')
+    move_date = req.get('moveDate')
+    overwrite = req.get('overwrite')
+    engagements = req.get('engagements', [])
     # TODO: Handle tilknytning
+    associations = req.get('associations', [])
 
-    writing.move_engagements(present_engagements, org_unit_uuid, date)
-    writing.move_engagements(future_engagements, org_unit_uuid, date)
+    writing.move_engagements(move_date, overwrite, engagements, org_unit_uuid)
 
     return flask.jsonify([]), 200
 
@@ -140,6 +182,7 @@ def edit_employee_role(employee_uuid, role_type, role_uuid):
         # 'contact': edit_contact,
         # 'leader': edit_leader,
     }
+
     handler = handlers.get(role_type)
     if not handler:
         return flask.jsonify('Unknown role type'), 400
@@ -485,12 +528,41 @@ def get_orgunit_history(unitid, orgid=None):
     return flask.jsonify(list(r)) if r else ('', 404)
 
 
+@app.route('/role-types/')
+@util.restrictargs()
+def list_roles():
+    '''List the supported role types.
+
+    .. :quickref: Roles; Available roles
+    '''
+    return flask.jsonify(sorted(ROLE_TYPES))
+
+
 @app.route('/e/<uuid:userid>/role-types/' + ROLE_TYPE_SUFFIX)
 @app.route('/org-unit/<uuid:unitid>/role-types/' + ROLE_TYPE_SUFFIX)
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
 @util.restrictargs('effective-date', 'validity', 'unique', 't')
 def get_role(role, **kwargs):
+    '''Get the roles of an employee or organisational unit.
+
+    :queryparam string validity: Only yield entries relevant to the
+                                 past, present or future.
+    :queryparam date effective-date: Set the "current" date for the
+                                     time machine.
+    :queryparam boolean unique: Retained for compatibility with original UI.
+    :queryparam int t: Retained for compatibility with original UI.
+
+    :param string role: The relevant role type, see :http:get:`/mo/role-types/`
+    :param uuid userid: Optional employee UUID.
+    :param uuid unitid: Optional unit UUID.
+    :param uuid orgid: Optional organisation UUID, retained for compatibility
+                       with original UI.
+
+    .. :quickref: Roles; Get
+
+    '''
+
     validity = flask.request.args.get('validity')
     effective_date = flask.request.args.get('effective-date')
 
@@ -556,3 +628,29 @@ def get_contact_facet_types_classes():
         'unknown key: ' + repr(key)
 
     return flask.jsonify(reading.get_contact_types())
+
+
+@app.route('/o/<uuid:orgid>/it/')
+# used when creating new "IT Systems"
+@app.route('/it-system/')
+# used when editing existing entries...
+@app.route('/it/')
+@util.restrictargs()
+def list_itsystems(orgid=None):
+    '''List the available IT systems.
+
+    .. :quickref: IT systems; List
+
+    :param string orgid: optional organisation UUID restricting the
+                         search
+
+    :>jsonarr string name: user-friendly name
+    :>jsonarr string userKey: unique, human-readable identifyer
+    :>jsonarr string uuid: unique, machine-friendly identifyer
+
+    :status 200: Always, even if nothing found.
+    :status 404: Not used.
+
+    '''
+
+    return flask.jsonify(reading.list_it_systems(orgid))

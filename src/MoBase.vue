@@ -1,6 +1,6 @@
 <template>
-  <div id="app">
-    <!-- <the-navbar/> -->
+  <div>
+    <the-navbar/>
 
     <div class="container-fluid container-top-margin">
       <router-view/>
@@ -15,16 +15,11 @@
     components: {
       TheNavbar
     },
-    name: 'app'
+    name: 'MoBase'
   }
 </script>
 
 <style>
-  #app {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
   .container-top-margin {
     margin-top: 4em;
   }

@@ -46,6 +46,7 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import Loading from '../components/Loading'
 
   export default {
@@ -60,23 +61,28 @@
         isLoading: true
       }
     },
-    created: function () {
+    created () {
       this.getDetails()
     },
+    mounted () {
+      EventBus.$on('org-unit-rename', () => {
+        this.getDetails()
+      })
+    },
     methods: {
-      getDetails: function () {
+      getDetails () {
         var vm = this
         Organisation.getUnitDetails(this.$route.params.uuid)
-        .then(function (response) {
+        .then(response => {
           vm.details = response
           vm.isLoading = false
         })
         Organisation.getUnitDetails(this.$route.params.uuid, 'past')
-        .then(function (response) {
+        .then(response => {
           vm.detailsPast = response
         })
         Organisation.getUnitDetails(this.$route.params.uuid, 'future')
-        .then(function (response) {
+        .then(response => {
           vm.detailsFuture = response
         })
       }

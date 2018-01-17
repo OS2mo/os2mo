@@ -5,62 +5,62 @@
     hide-footer
     title="Log ind">
 
-    <br>
-    <b-form >
-      <b-form-input
-        class="col-8 input-center"
-        name="username"
-        type="text"
-        placeholder="Brugernavn">
-      </b-form-input>
-      <br>
-      <b-form-input
-        class="col-8 input-center"
-        name="password"
-        type="password"
-        placeholder="Adgangskode">
-      </b-form-input>
-      <br>
-      <b-form-checkbox
-        class="checkbox-input"
-        id="checkbox1"
-        value="accepted">
-        Husk mig
-      </b-form-checkbox>
-      <br>
-      <button class="btn btn-primary col-8 btn-bg" v-b-modal.login>
+    <!-- <b-form> -->
+
+      <div class="form-group col">
+        <b-form-input
+          name="username"
+          type="text"
+          placeholder="Brugernavn"
+          v-model="user.username"/>
+      </div>
+      <div class="form-group col">
+        <b-form-input
+          name="password"
+          type="password"
+          placeholder="Adgangskode"/>
+      </div>
+      <div class="form-group col">
+        <b-form-checkbox
+          id="checkbox1"
+          value="accepted">
+          Husk mig
+        </b-form-checkbox>
+      </div>
+
+      <button class="btn btn-primary col" @click="gotoMo">
         Log ind
       </button>
-    </b-form>
-    <br>
+    <!-- </b-form> -->
   </b-modal>
 </template>
 
 <script>
-    export default {
-      name: 'login-modal'
+  import Auth from '../api/Auth'
+
+  export default {
+    name: 'login-modal',
+    data () {
+      return {
+        user: {
+          username: ''
+        }
+      }
+    },
+    methods: {
+      gotoMo () {
+        let vm = this
+        Auth.setUser(vm.user)
+        .then(response => {
+          vm.$router.push({
+            name: 'home'
+          })
+        })
+      }
     }
+  }
 </script>
 
 <style scoped>
-
-  .input-center{
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .checkbox-input{
-    margin-right: 215px;
-    margin-bottom: 20px;
-  }
-
-  .btn-bg{
-    background-color: #4a5a79;
-    cursor: pointer;
-  }
-
-  .btn-bg:hover{
-    background-color: #002f5d;
-  }
 
 </style>

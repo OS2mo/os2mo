@@ -3,14 +3,21 @@
     <div class="card-body">
       <h4 class="card-title">
         <icon name="user-o"/>
-        Medarbejder
+        {{employee.name}} <span class="cpr">({{employee['user-key'] | CPRNumber}})</span>
       </h4>
       <div class="row">
-        <div class="col">
-          <p class="card-text">
-            Navn: {{employee.name}}
-            Cpr. nr.: {{employee['user-key']}}
-          </p>
+        <div class="mr-auto">
+        </div>
+        <div>
+          <button class="btn btn-outline-primary">
+            <icon name="edit" />
+          </button>
+          <button class="btn btn-outline-primary">
+            <icon name="eye" />
+          </button>
+          <button class="btn btn-outline-primary">
+            <icon name="book" />
+          </button>
         </div>
       </div>
 
@@ -34,6 +41,7 @@
 
 <script>
   import Employee from '../api/Employee'
+  import '../filters/CPRNumber'
 
   export default {
     components: {
@@ -64,6 +72,10 @@
   color: #495057;
   background-color: #fff;
   border-color: #ddd #ddd #fff;
+}
+
+.cpr {
+  color: #aaa
 }
 
 </style>

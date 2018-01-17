@@ -79,7 +79,7 @@ class TestMergeObj(TestCase):
         ]
 
         # Act
-        actual_result = writing.merge_obj_effects(orig_objs, new)
+        actual_result = writing._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -143,7 +143,7 @@ class TestMergeObj(TestCase):
         ]
 
         # Act
-        actual_result = writing.merge_obj_effects(orig_objs, new)
+        actual_result = writing._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -216,7 +216,7 @@ class TestMergeObj(TestCase):
         ]
 
         # Act
-        actual_result = writing.merge_obj_effects(orig_objs, new)
+        actual_result = writing._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -271,7 +271,7 @@ class TestMergeObj(TestCase):
         ]
 
         # Act
-        actual_result = writing.merge_obj_effects(orig_objs, new)
+        actual_result = writing._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -326,7 +326,7 @@ class TestMergeObj(TestCase):
         ]
 
         # Act
-        actual_result = writing.merge_obj_effects(orig_objs, new)
+        actual_result = writing._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -372,7 +372,7 @@ class TestMergeObj(TestCase):
         ]
 
         # Act
-        actual_result = writing.merge_obj_effects(orig_objs, new)
+        actual_result = writing._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
