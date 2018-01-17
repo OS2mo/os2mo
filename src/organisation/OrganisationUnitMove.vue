@@ -39,7 +39,10 @@
     />
 
     <div class="float-right">
-      <button-submit @click.native="moveUnit"/>
+      <button-submit 
+      :disabled="errors.any() || !isCompleted"
+      @click.native="moveUnit"
+      />
     </div> 
   </b-modal>
 </template>
@@ -63,6 +66,11 @@
         date: '',
         newSuperUnit: {},
         currentSuperUnit: {}
+      }
+    },
+    computed: {
+      isCompleted () {
+        return this.date && this.unit && this.newSuperUnit
       }
     },
     watch: {

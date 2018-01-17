@@ -18,11 +18,14 @@
       <div class="form-group col">
         <label for="exampleFormControlInput1">Nyt navn</label>
         <input 
+          name="name"
           type="text" 
           class="form-control" 
           id="" 
           v-model="newName"
+          v-validate="{ required: true }" 
         >
+        <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
       </div>
     </div>
 
@@ -34,7 +37,10 @@
     </div>
 
     <div class="float-right">
-      <button-submit @click.native="renameOrganisationUnit"/>
+      <button-submit 
+      :disabled="errors.any() || !isCompleted"
+      @click.native="renameOrganisationUnit"
+      />
     </div>
   </b-modal>
 </template>
@@ -58,6 +64,11 @@
         preselectedUnit: {},
         newName: '',
         dateStartEnd: {}
+      }
+    },
+    computed: {
+      isCompleted () {
+        return this.orgUnit && this.newName && this.dateStartEnd.startDate
       }
     },
     mounted () {

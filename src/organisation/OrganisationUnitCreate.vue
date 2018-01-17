@@ -12,11 +12,15 @@
       <div class="form-group col">
         <label for="">Navn</label>
         <input 
+          name="name"
           v-model="orgUnit.name" 
           type="text" 
           class="form-control" 
           id="" 
-          placeholder="">
+          placeholder=""
+          v-validate="{ required: true }" 
+        >
+        <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
       </div>
 
       <unit-type-select v-model="orgUnit.type"/>
@@ -46,7 +50,10 @@
     </button>
 
     <div class="float-right">
-        <button-submit @click.native="createOrganisationUnit"/>
+        <button-submit
+        :disabled="errors.any() || !isCompleted" 
+        @click.native="createOrganisationUnit"
+        />
       </div>
   </b-modal>
 
@@ -92,6 +99,11 @@
             'contact-channels': []
           }]
         }
+      }
+    },
+    computed: {
+      isCompleted () {
+        return this.dateStartEnd.startDate && this.orgUnit.name && this.superUnit
       }
     },
     updated () {
