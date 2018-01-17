@@ -58,7 +58,7 @@ def login(username):
     :param username: The user ID to login as.
 
     :<json string password: The password of the user.
-    :<json boolean rememberme: Whether to persist the login --
+    :<json boolean rememberme: Whether to persist the login ---
         currently ignored.
 
     :>json string user: The name of the user.
@@ -106,7 +106,7 @@ def logout(user=None):
     :param username: The user ID to logout as.
     :return: Nothing.
 
-    :statuscode 200: The logout succeeded -- which it almost always does.
+    :statuscode 200: The logout succeeded --- which it almost always does.
     '''
 
     response = flask.make_response()
@@ -117,6 +117,13 @@ def logout(user=None):
 
 @blueprint.route('/acl/', methods=['POST', 'GET'])
 def acl():
-    ''':deprecated: Retained for compatibility with original UI.'''
+    '''Obtain the access control lists of the user --- of which we have
+    none.
+
+    .. :quickref: Authentication; Deprecated.
+
+    :deprecated: Retained for compatibility with original UI.
+
+    '''
 
     return flask.jsonify([])
