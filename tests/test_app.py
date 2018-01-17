@@ -42,6 +42,18 @@ class MoraTestCase(TestSetup):
         self.assertEqual(b'[]\n', rv.data,
                          'Acl route should return empty list')
 
+    def test_list_role_types(self):
+        self.assertRequestResponse(
+            '/mo/role-types/',
+            [
+                "contact",
+                "contact-channel",
+                "engagement",
+                "it",
+                "location",
+            ],
+        )
+
     @util.mock()
     def test_invalid_operations(self, mock):
         # we should do network I/O in the test, and 'empty' mocking

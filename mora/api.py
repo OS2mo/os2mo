@@ -528,12 +528,41 @@ def get_orgunit_history(unitid, orgid=None):
     return flask.jsonify(list(r)) if r else ('', 404)
 
 
+@app.route('/role-types/')
+@util.restrictargs()
+def list_roles():
+    '''List the supported role types.
+
+    .. :quickref: Roles; Available roles
+    '''
+    return flask.jsonify(sorted(ROLE_TYPES))
+
+
 @app.route('/e/<uuid:userid>/role-types/' + ROLE_TYPE_SUFFIX)
 @app.route('/org-unit/<uuid:unitid>/role-types/' + ROLE_TYPE_SUFFIX)
 @app.route('/o/<uuid:orgid>/org-unit/<uuid:unitid>/role-types/' +
            ROLE_TYPE_SUFFIX)
 @util.restrictargs('effective-date', 'validity', 'unique', 't')
 def get_role(role, **kwargs):
+    '''Get the roles of an employee or organisational unit.
+
+    :queryparam string validity: Only yield entries relevant to the
+                                 past, present or future.
+    :queryparam date effective-date: Set the "current" date for the
+                                     time machine.
+    :queryparam boolean unique: Retained for compatibility with original UI.
+    :queryparam int t: Retained for compatibility with original UI.
+
+    :param string role: The relevant role type, see :http:get:`/mo/role-types/`
+    :param uuid userid: Optional employee UUID.
+    :param uuid unitid: Optional unit UUID.
+    :param uuid orgid: Optional organisation UUID, retained for compatibility
+                       with original UI.
+
+    .. :quickref: Roles; Get
+
+    '''
+
     validity = flask.request.args.get('validity')
     effective_date = flask.request.args.get('effective-date')
 
