@@ -15,6 +15,7 @@ import EmployeeList from '@/employee/EmployeeList'
 import EmployeeDetail from '@/employee/EmployeeDetail'
 import EmployeeDetailContact from '@/employee/EmployeeDetailContact'
 import EmployeeDetailEngagement from '@/employee/EmployeeDetailEngagement'
+import EmployeeDetailIt from '@/employee/EmployeeDetailIt'
 import EmployeeCreate from '@/employee/EmployeeCreate'
 import EmployeeLeave from '@/employee/EmployeeLeave'
 import EmployeeMove from '@/employee/EmployeeMove'
@@ -115,6 +116,11 @@ export default new Router({
                   path: 'kontakt',
                   name: 'EmployeeDetailContact',
                   component: EmployeeDetailContact
+                },
+                {
+                  path: 'it',
+                  name: 'EmployeeDetailIt',
+                  component: EmployeeDetailIt
                 }
               ]
             },
