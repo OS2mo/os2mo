@@ -11,7 +11,6 @@ MedarbejderOrganisation + LoRa. Indholdet er opdelt i følgende sektioner:
    README
    docs/manual-test-lib.rst
    docs/apidoc.rst
-   docs/api.md
 
 
 .. Indices and tables

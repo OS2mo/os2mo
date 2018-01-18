@@ -12,9 +12,11 @@ import glob
 import json
 import os
 import posixpath
+import signal
 import ssl
 import subprocess
 import sys
+import threading
 import traceback
 import unittest
 import warnings
@@ -91,23 +93,15 @@ def load_cli(app):
         '''Build documentation'''
         import sphinx.cmdline
 
-        frontend_doc_path = os.path.join(topdir,
-                                         'docs/modules-to-doc/frontend.md')
+        docdir = os.path.join(topdir, 'docs')
 
-        with open(frontend_doc_path, 'w') as fp:
-            fp.write('''# Frontend''')
+        with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
+            title = 'Server-side codebase'
+            fp.writelines([title, '\n', '=' * len(title), '\n\n'])
 
-        subprocess.check_call(['yarn'], cwd=topdir)
-        subprocess.check_call(
-            [
-                './node_modules/.bin/vuedoc.md',
-                '--level', '2',
-                '--section', 'Frontend',
-                '--output', 'docs/modules-to-doc/frontend.md',
-            ] + sorted(
-                glob.glob(os.path.join(topdir, 'src/components/*.vue')),
-            ),
-            cwd=topdir)
+            for mod in sorted(sys.modules):
+                if mod.split('.', 1)[0] == 'mora':
+                    fp.write('.. automodule:: {}\n\n'.format(mod))
 
         if args:
             args = list(args)
@@ -119,6 +113,11 @@ def load_cli(app):
             ]
 
         args += ['-v'] * verbose
+
+        os.environ['PATH'] = os.pathsep.join((
+            subprocess.check_output(['npm', 'bin']).decode()[:-1],
+            os.environ['PATH'],
+        ))
 
         r = sphinx.cmdline.main(['sphinx-build'] + args)
         if r:
@@ -136,6 +135,19 @@ def load_cli(app):
             subprocess.check_call(
                 ['yarn', 'run'] + ([target] if target else []),
                 cwd=topdir)
+
+    @app.cli.command()
+    def develop():
+        'Run for development.'
+
+        with subprocess.Popen(['yarn', 'start'],
+                              close_fds=True,
+                              cwd=topdir) as proc:
+            try:
+                app.run()
+            finally:
+                proc.send_signal(signal.SIGINT)
+                proc.wait()
 
     @app.cli.command()
     @click.argument('args', nargs=-1)

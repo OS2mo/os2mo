@@ -8,17 +8,9 @@ det sprog anvendes i al koden.
    :maxdepth: 2
    :caption: Contents:
 
-   modules-to-doc/rest-api
-   modules-to-doc/addr
-   modules-to-doc/importing
-   modules-to-doc/app
-   modules-to-doc/auth
-   modules-to-doc/lora
-   modules-to-doc/reading
-   modules-to-doc/writing
-   modules-to-doc/validator
-   modules-to-doc/util
-   modules-to-doc/frontend
+   rest-api
+   backend
+   api.md
 
 
 .. Indices and tables
@@ -27,5 +19,3 @@ det sprog anvendes i al koden.
    * :ref:`genindex`
    * :ref:`modindex`
    * :ref:`search`
-
-
