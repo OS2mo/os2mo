@@ -1,4 +1,7 @@
-#Overview
+Proposal for new API
+====================
+
+# Overview
 
 `/o`
 
@@ -48,9 +51,9 @@
 
 `/auth/logout`
 
-#Organisation
+# Organisation
 
-##Get all organisations
+## Get all organisations
 
 `GET /o`
 
@@ -58,7 +61,7 @@ Return a list of all organisations
 
 **RESPONSE**
 
-```json
+```js
 [
 	{
 		uuid:  <uuid>
@@ -69,7 +72,7 @@ Return a list of all organisations
 ]
 ```
 
-##Get organisation
+## Get organisation
 
 `GET /o/<uuid>`
 
@@ -77,7 +80,7 @@ Return stats about the organisation
 
 **RESPONSE**
 
-```json
+```js
 {
 	uuid: <uuid>
 	name: <String>
@@ -87,7 +90,7 @@ Return stats about the organisation
 }
 ```
 
-##Get organisation children
+## Get organisation children
 
 `GET /o/<uuid>/children`
 
@@ -95,7 +98,7 @@ Return a list of children for an organisation
 
 **RESPONSE**
 
-```json
+```js
 {
 	uuid:  <uuid>
 	name: <String>
@@ -110,9 +113,9 @@ Return a list of children for an organisation
 }
 ```
 
-#Organisation unit
+# Organisation unit
 
-##Get organisation unit
+## Get organisation unit
 
 `GET /ou/<uuid>`
 
@@ -120,7 +123,7 @@ Return basic info about an organisation unit
 
 **RESPONSE**
 
-```json
+```js
 {
 	uuid: <uuid>
 	name: <String>
@@ -132,7 +135,7 @@ Return basic info about an organisation unit
 }
 ```
 
-##Get organisation unit children
+## Get organisation unit children
 
 `GET /ou/<uuid>/children`
 
@@ -140,7 +143,7 @@ Return a list of children for an organisation unit
 
 **RESPONSE**
 
-```json
+```js
 {
 	uuid:  <uuid>
 	name: <String>
@@ -155,7 +158,7 @@ Return a list of children for an organisation unit
 }
 ```
 
-##Get organisation unit history
+## Get organisation unit history
 
 `GET /ou/<uuid>/history`
 
@@ -163,7 +166,7 @@ Return a list of all changes on the organisation unit
 
 **RESPONSE**
 
-```json
+```js
 [
 	{
 		uuid:  <uuid>
@@ -181,11 +184,11 @@ Return a list of all changes on the organisation unit
 ]
 ```
 
-##Get available organisation unit details
+## Get available organisation unit details
 
 `GET /ou/<uuid>/details`
 
-```json
+```js
 {
 	unit: <Boolean>
 	location: <Boolean>
@@ -195,13 +198,13 @@ Return a list of all changes on the organisation unit
 }
 ```
 
-##Get organisation unit unit details
+## Get organisation unit unit details
 
 `GET /ou/<uuid>/details/unit`
 
 **RESPONSE**
 
-```json
+```js
 {
 	present: [
 		{
@@ -219,7 +222,7 @@ Return a list of all changes on the organisation unit
 }
 ```
 
-##Get organisation unit `type` details
+## Get organisation unit `type` details
 
 `GET /ou/<uuid>/details/location`
 
@@ -227,7 +230,7 @@ Return a list of all changes on the organisation unit
 
 `GET /ou/<uuid>/details/engagements`
 
-##Create a new organisation unit
+## Create a new organisation unit
 
 `POST /ou/create`
 
@@ -235,7 +238,7 @@ Create a new organisation unit
 
 **REQUEST OBJECT**
 
-```json
+```js
 {
 	//to be determined
 }
@@ -243,13 +246,13 @@ Create a new organisation unit
 
 **RESPONSE**
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-#Edit an organisation unit
+# Edit an organisation unit
 
 `POST /ou/<uuid>/edit`
 
@@ -257,7 +260,7 @@ Edit an organisation unit
 
 **REQUEST OBJECT**
 
-```json
+```js
 {
 	//to be determined
 }
@@ -265,19 +268,19 @@ Edit an organisation unit
 
 **RESPONSE**
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-#Terminate an organisation unit
+# Terminate an organisation unit
 
 `DELETE /ou/<uuid>/terminate`
 
 **REQUEST OBJECT**
 
-```json
+```js
 {
 	valid_from: <ISO8601>
 }
@@ -285,21 +288,21 @@ Edit an organisation unit
 
 **RESPONSE**
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-#Employees
+# Employees
 
-##Get all employees
+## Get all employees
 
 `GET /e`
 
 Return a list of all employees
 
-```json
+```js
 [
 	{
 		uuid: <uuid>
@@ -309,13 +312,13 @@ Return a list of all employees
 ]
 ```
 
-##Get employee
+## Get employee
 
 `GET /e/<uuid>`
 
 Return an employee
 
-```json
+```js
 {
 	uuid: <uuid>
 	name: <String>
@@ -323,13 +326,13 @@ Return an employee
 }
 ```
 
-##Get available employee details
+## Get available employee details
 
 `GET /e/<uuid>/details`
 
 Return a list of details available for an employee
 
-```json
+```js
 {
 	engagement: <Boolean>
 	association: <Boolean>
@@ -339,13 +342,13 @@ Return a list of details available for an employee
 }
 ```
 
-##Get employee engagement details
+## Get employee engagement details
 
 `GET /e/<uuid>/details/engagement`
 
 Get a list of all engagement details for an employee
 
-```json
+```js
 {
 	present: [
 		{
@@ -363,7 +366,7 @@ Get a list of all engagement details for an employee
 }
 ```
 
-##Get employee `type` details
+## Get employee `type` details
 
 `GET /e/<uuid>/details/association`
 
@@ -371,13 +374,13 @@ Get a list of all engagement details for an employee
 
 `GET /e/<uuid>/details/contact`
 
-##Get employee history
+## Get employee history
 
 `GET /e/<uuid>/history`
 
 Return a list of all changes on the employee
 
-```json
+```js
 [
 	{
 		uuid: <uuid>
@@ -395,14 +398,14 @@ Return a list of all changes on the employee
 ]
 ```
 
-##Create a new employee employment
+## Create a new employee employment
 `POST /e/<uuid>/create`
 
 Create a new employment
 
 **REQUEST OBJECT**
 
-```json
+```js
 [
 	{
 		type: engagement
@@ -426,13 +429,13 @@ Create a new employment
 
 **RESPONSE**
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-##Edit employee details
+## Edit employee details
 
 `POST /e/<uuid>/edit`
 
@@ -440,7 +443,7 @@ Edit an employee
 
 *REQUEST OBJECT*
 
-```json
+```js
 [
 	{
 		type: engagement
@@ -464,13 +467,13 @@ Edit an employee
 
 *RESPONSE*
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-##Terminate an employee
+## Terminate an employee
 
 
 `DELETE /e/<uuid>/terminate`
@@ -479,7 +482,7 @@ Terminate an employee
 
 *REQUEST OBJECT*
 
-```json
+```js
 {
 	valid_from: <ISO8601>
 }
@@ -487,15 +490,15 @@ Terminate an employee
 
 *RESPONSE*
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-#Facets
+# Facets
 
-##Get a list of all facets
+## Get a list of all facets
 
 `GET /f`
 
@@ -503,7 +506,7 @@ Get a list of all facets
 
 *RESPONSE*
 
-```json
+```js
 [
 	{
 		name: org_unit_types
@@ -515,7 +518,7 @@ Get a list of all facets
 ]
 ```
 
-##Get `facet_name` facets
+## Get `facet_name` facets
 
 `GET /f/<facet_name>`
 
@@ -523,7 +526,7 @@ Get a list containing the facet values
 
 *RESPONSE*
 
-```json
+```js
 [
 	{
 		name: <String>
@@ -533,7 +536,7 @@ Get a list containing the facet values
 ]
 ```
 
-#Search
+# Search
 
 `GET /search?q=<query>`
 
@@ -541,7 +544,7 @@ Return a list of results based on the query
 
 It should be able to return both organisations and employees
 
-```json
+```js
 [
 	{
 		type: employee
@@ -556,15 +559,15 @@ It should be able to return both organisations and employees
 ]
 ```
 
-#Authentication
+# Authentication
 
-##Login
+## Login
 
 `POST /auth/login`
 
 **POST OBJECT**
 
-```json
+```js
 {
 	username: <String>
 	password: <String>
@@ -574,19 +577,19 @@ It should be able to return both organisations and employees
 
 **RESPONSE**
 
-```json
+```js
 {
 	//to be determined
 }
 ```
 
-##Logout
+## Logout
 
 `POST /auth/logout`
 
 **POST PBJECT**
 
-```json
+```js
 {
 	username: <String>
 }
@@ -594,7 +597,7 @@ It should be able to return both organisations and employees
 
 **RESPONSE**
 
-```json
+```js
 {
 	//to be determined
 }
