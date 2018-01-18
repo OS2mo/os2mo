@@ -1,5 +1,5 @@
-HTTP REST API
-=============
+REST API
+========
 
 
 .. qrefflask:: mora.app:app

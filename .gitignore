@@ -62,7 +62,7 @@ instance/
 
 # Sphinx documentation
 /docs/out/
-/docs/modules-to-doc/frontend.md
+/docs/backend.rst
 
 # PyBuilder
 target/

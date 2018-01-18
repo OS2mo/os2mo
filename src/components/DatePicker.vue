@@ -1,6 +1,6 @@
 <template>
     <div class="form-group col">
-      <label for="date-picker">{{label}}</label>
+      <label id="date-label" for="date-picker">{{label}}</label>
       <div 
         class="input-group" 
         name="date-picker"
@@ -16,7 +16,12 @@
           <icon name="calendar"/>
           </span>
       </div>
-      <span v-show="errors.has('date')" class="text-danger">{{ errors.first('date') }}</span>
+      <!-- <span 
+        v-show="errors.has('date')" 
+        class="text-danger"
+      >
+        {{ errors.first('date') }}
+      </span> -->
     </div>
 </template>
 

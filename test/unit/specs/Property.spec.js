@@ -1,4 +1,4 @@
-import axios from 'axios'
+// import axios from 'axios'
 import moxios from 'moxios'
 import sinon from 'sinon'
 import HTTP from '@/api/HttpCommon'
