@@ -20,7 +20,7 @@
       }
     },
     created () {
-      this.getOrganisation()
+      this.org = Organisation.getSelectedOrganisation()
     },
     mounted () {
       EventBus.$on('organisation-changed', newOrg => {
@@ -28,13 +28,6 @@
       })
     },
     methods: {
-      getOrganisation () {
-        let vm = this
-        Organisation.getSelectedOrganisation()
-        .then(response => {
-          vm.org = response
-        })
-      }
     }
   }
 </script>
