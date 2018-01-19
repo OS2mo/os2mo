@@ -59,6 +59,15 @@ export default {
   },
 
   /**
+   * Get it details for employee
+   * @param {String} uuid - Employee uuid
+   * @see getDetails
+   */
+  getItDetails (uuid) {
+    return this.getDetails(uuid, 'it')
+  },
+
+  /**
    * Base call for getting details about an employee.
    * @param {String} uuid - Employee uuid
    * @param {String} detail - Name of the detail to get

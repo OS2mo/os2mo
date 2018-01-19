@@ -32,6 +32,11 @@
             Kontakt
           </router-link>
         </li>
+        <li class="nav-item">
+          <router-link class="nav-link" :to="{ name: 'EmployeeDetailIt' }">
+            It
+          </router-link>
+        </li>
       </ul>
 
       <router-view/>
