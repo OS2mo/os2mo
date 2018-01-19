@@ -25,21 +25,6 @@
         Søg i hele landet
       </label>
     </div>
-
-    <div class="form-group col">
-      <label for="exampleFormControlInput1">Lokationsnavn</label>
-      <input 
-        name="location"
-        type="text" 
-        class="form-control" 
-        id="" 
-        placeholder="" 
-        v-model="location.name"  
-        @input="updateAddress"
-        v-validate="{ required: true }"
-      >
-      <span v-show="errors.has('location')" class="text-danger">{{ errors.first('location') }}</span>
-    </div>
   </div>
 </template>
 
@@ -64,7 +49,7 @@
       /**
        * The organisation uuid used to search locally
        */
-      localUuid: {
+      orgUuid: {
         type: String,
         default: ''
       }
@@ -102,7 +87,7 @@
        */
       getGeographicalLocation: function (query) {
         let vm = this
-        let local = this.localUuid !== '' && !this.searchCountry ? this.localUuid : ''
+        let local = this.orgUuid !== '' && !this.searchCountry ? this.orgUuid : ''
         Property.getGeographicalLocation(query, local).then(function (response) {
           vm.addressSuggestions = response
         })

@@ -7,12 +7,13 @@
       >
         <date-time-picker 
           name="date"
+          ref="date"
           v-model="date" 
           :config="config" 
           @input="updateDate()"
           v-validate="{ required: true }" 
         />
-        <span class="input-group-addon">
+        <span class="input-group-addon" @click="$refs.date.native.focus()">
           <icon name="calendar"/>
           </span>
       </div>
