@@ -14,8 +14,12 @@
   </div>
   <b-collapse :id="id" :visible="visible">
     <loading v-show="isLoading"/>
-    <span v-show="!isLoading && content === undefined">Intet at vise</span>
-    <table class="table table-striped" v-show="!isLoading && content !== undefined">
+    <span v-show="!isLoading && content === undefined">
+      Intet at vise
+    </span>
+    <table 
+      class="table table-striped" 
+      v-show="!isLoading && content !== undefined">
       <thead>
         <tr>
           <th 
@@ -66,6 +70,10 @@
       visible: Boolean
     },
     watch: {
+      open: function (newVal, oldVal) {
+        this.isLoading = true
+      },
+
       content: function (newVal, oldVal) {
         this.isLoading = false
       }

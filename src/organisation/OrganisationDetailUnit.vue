@@ -1,17 +1,17 @@
 <template>
   <div>
     <mo-table 
-      title="Fremtiden"
+      title="Fremtid"
       :labels="labels" 
       :content="detailsFuture"
       @click.native="getDetailsFuture()"
     />
     <mo-table 
-      title="Nutidig"
+      title="Nutid"
       :labels="labels" 
       :content="details"
       visible
-      @click.native="getDetailsPast()"
+      @click.native="getDetails()"
     />
     <mo-table 
       title="Fortid"
