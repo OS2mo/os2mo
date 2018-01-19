@@ -14,6 +14,7 @@ import flask
 from . import api
 from . import auth
 from . import cli
+from . import service
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -25,6 +26,7 @@ app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 cli.load_cli(app)
 app.register_blueprint(api.blueprint)
 app.register_blueprint(auth.blueprint)
+app.register_blueprint(service.blueprint)
 
 
 @app.errorhandler(Exception)
