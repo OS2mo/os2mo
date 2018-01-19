@@ -1,45 +1,24 @@
 <template>
   <div>
-    <table class="table table-striped" v-show="!isLoading">
-      <thead>
-        <tr>
-          <th scope="col">Enhedsnavn</th>
-          <th scope="col">Enhedstype</th>
-          <th scope="col">Overenhed</th>
-          <th scope="col">Startdato</th>
-          <th scope="col">Slutdato</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr v-for="unit in detailsFuture" v-bind:key="unit.uuid" style="color:#bbb">
-          <td>{{unit.name}}</td>
-          <td><span v-if="unit.type">{{unit.type.name}}</span></td>
-          <td><span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span></td>
-          <td>{{unit['valid-from']}}</td>
-          <td>{{unit['valid-to']}}</td>
-        </tr>
-
-        <tr v-for="unit in details" v-bind:key="unit.uuid">
-          <td>{{unit.name}}</td>
-          <td><span v-if="unit.type">{{unit.type.name}}</span></td>
-          <td><span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span></td>
-          <td>{{unit['valid-from']}}</td>
-          <td>{{unit['valid-to']}}</td>
-        </tr>
-
-        <tr v-for="unit in detailsPast" v-bind:key="unit.uuid" style="color:#bbb">
-          <td>{{unit.name}}</td>
-          <td><span v-if="unit.type">{{unit.type.name}}</span></td>
-          <td><span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span></td>
-          <td>{{unit['valid-from']}}</td>
-          <td>{{unit['valid-to']}}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <loading v-show="isLoading"/>
-
+    <mo-table 
+      title="Fremtiden"
+      :labels="labels" 
+      :content="detailsFuture"
+      @click.native="getDetailsFuture()"
+    />
+    <mo-table 
+      title="Nutidig"
+      :labels="labels" 
+      :content="details"
+      visible
+      @click.native="getDetailsPast()"
+    />
+    <mo-table 
+      title="Fortid"
+      :labels="labels" 
+      :content="detailsPast"
+      @click.native="getDetailsPast()"
+    />
   </div>
 </template>
 
@@ -47,18 +26,18 @@
 <script>
   import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
-  import Loading from '../components/Loading'
+  import MoTable from '../components/MoTable'
 
   export default {
     components: {
-      Loading
+      MoTable
     },
     data () {
       return {
         details: [],
         detailsPast: [],
         detailsFuture: [],
-        isLoading: true
+        labels: ['Enhedsnavn', 'Enhedstype', 'Overenhed', 'Startdato', 'Slutdato']
       }
     },
     created () {
@@ -71,16 +50,23 @@
     },
     methods: {
       getDetails () {
-        var vm = this
+        let vm = this
         Organisation.getUnitDetails(this.$route.params.uuid)
         .then(response => {
           vm.details = response
-          vm.isLoading = false
         })
+      },
+
+      getDetailsPast () {
+        let vm = this
         Organisation.getUnitDetails(this.$route.params.uuid, 'past')
         .then(response => {
           vm.detailsPast = response
         })
+      },
+
+      getDetailsFuture () {
+        let vm = this
         Organisation.getUnitDetails(this.$route.params.uuid, 'future')
         .then(response => {
           vm.detailsFuture = response
