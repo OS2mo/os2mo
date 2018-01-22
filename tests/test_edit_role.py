@@ -21,11 +21,11 @@ class TestEditRole(unittest.TestCase):
         req = {
             "type": "engagement",
             "uuid": "f23c61d1-4eee-45e0-854f-47a0adb112d0",
-            "original": {
+            "overwrite": {
                 "valid_from": "2017-01-01T00:00:00+00:00",
                 "valid_to": "infinity",
             },
-            "updated": {
+            "data": {
                 "valid_from": "2017-01-01T00:00:00+00:00",
                 "valid_to": "2018-01-01T00:00:00+00:00",
                 "job_title_uuid": "da8dc037-810d-41d4-a456-0c34906fe366",
@@ -190,11 +190,11 @@ class TestEditRole(unittest.TestCase):
         req = {
             "type": "engagement",
             "uuid": "f23c61d1-4eee-45e0-854f-47a0adb112d0",
-            "original": {
+            "overwrite": {
                 "valid_from": "2017-01-01T00:00:00+00:00",
                 "valid_to": "2018-01-01T00:00:00+00:00",
             },
-            "updated": {
+            "data": {
                 "valid_from": "2017-01-01T00:00:00+00:00",
                 "valid_to": "2019-01-01T00:00:00+00:00",
                 "job_title_uuid": "da8dc037-810d-41d4-a456-0c34906fe366",
@@ -389,7 +389,7 @@ class TestEditRole(unittest.TestCase):
         req = {
             "type": "engagement",
             "uuid": "f23c61d1-4eee-45e0-854f-47a0adb112d0",
-            "updated": {
+            "data": {
                 "valid_from": "2017-07-01T00:00:00+00:00",
                 "valid_to": "2019-01-01T00:00:00+00:00",
                 "org_unit_uuid": "da8dc037-810d-41d4-a456-0c34906fe366"
