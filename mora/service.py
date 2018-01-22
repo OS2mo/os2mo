@@ -418,7 +418,7 @@ def list_orgunits(orgid):
     ])
 
 
-@blueprint.route('/e/<uuid:employee_uuid>/create')
+@blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
 def create_employee_role(employee_uuid):
     """Creates new roles for the given employee.
 
@@ -513,15 +513,16 @@ def edit_employee_role(employee_uuid):
 
     :<json string type: engagement,
     :<json string uuid: The UUID of the engagement,
-    :<json object original: An optional object containing the original state
-        of the engagement. If supplied, the change will modify the existing
-        registration on the engagement object. Detailed below.
-    :<json object updated: An object containing the changes to be made to the
+    :<json object overwrite: An optional object containing the original state
+        of the engagement to be overwritten. If supplied, the change will
+        modify the existing registration on the engagement object.
+        Detailed below.
+    :<json object data: An object containing the changes to be made to the
         engagement. Detailed below.
 
     The **original** and **updated** objects follow the same structure.
     Every field in **original** is required, whereas **updated** only needs
-    to contain fields that need to change.
+    to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string valid_from: The from date, in ISO 8601.
     :<jsonarr string valid_to: The to date, in ISO 8601.
@@ -535,14 +536,14 @@ def edit_employee_role(employee_uuid):
         {
             "type": "engagement",
             "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
-            "original": {
+            "overwrite": {
                 "valid_from": "2016-01-01T00:00:00+00:00",
                 "valid_to": "2018-01-01T00:00:00+00:00",
                 "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
                 "engagement_type_uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee",
                 "org_unit_uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
-            "updated": {
+            "data": {
                 "valid_from": "2016-01-01T00:00:00+00:00",
                 "valid_to": "2019-01-01T00:00:00+00:00",
                 "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
@@ -697,17 +698,17 @@ def edit_engagement_payload(req, original):
 
     payload = {}
 
-    updated = req.get('updated')
-    new_from = updated.get('valid_from')
-    new_to = updated.get('valid_to')
+    data = req.get('data')
+    new_from = data.get('valid_from')
+    new_to = data.get('valid_to')
 
     note = 'Rediger engagement'
 
-    old_values = req.get('original')
-    if old_values:
+    overwrite = req.get('overwrite')
+    if overwrite:
         # We are performing an update
-        old_from = old_values.get('valid_from')
-        old_to = old_values.get('valid_to')
+        old_from = overwrite.get('valid_from')
+        old_to = overwrite.get('valid_to')
         payload = _inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ['tilstande', 'organisationfunktiongyldighed']
@@ -719,22 +720,22 @@ def edit_engagement_payload(req, original):
          {'gyldighed': "Aktiv"}),
     ]
 
-    if 'job_title_uuid' in updated.keys():
+    if 'job_title_uuid' in data.keys():
         fields.append(
             (['relationer', 'opgaver'],
-             {'uuid': updated.get('job_title_uuid')}),
+             {'uuid': data.get('job_title_uuid')}),
         )
 
-    if 'engagement_type_uuid' in updated.keys():
+    if 'engagement_type_uuid' in data.keys():
         fields.append(
             (['relationer', 'organisatoriskfunktionstype'],
-             {'uuid': updated.get('engagement_type_uuid')}),
+             {'uuid': data.get('engagement_type_uuid')}),
         )
 
-    if 'org_unit_uuid' in updated.keys():
+    if 'org_unit_uuid' in data.keys():
         fields.append(
             (['relationer', 'tilknyttedeenheder'],
-             {'uuid': updated.get('org_unit_uuid')}),
+             {'uuid': data.get('org_unit_uuid')}),
         )
 
     payload = update_org_funktion_payload(new_from, new_to, note,
