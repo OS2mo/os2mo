@@ -62,6 +62,8 @@ def parsedatetime(s: str,
                   default: datetime.datetime=None) -> datetime.datetime:
     if default is not None and not s:
         return default
+    elif isinstance(s, datetime.datetime):
+        return s
     elif isinstance(s, datetime.date):
         if s in (positive_infinity, negative_infinity):
             return s
@@ -69,8 +71,6 @@ def parsedatetime(s: str,
             return tzlocal.get_localzone().localize(
                 datetime.datetime.combine(s, datetime.time())
             )
-    elif isinstance(s, datetime.datetime):
-        return s
 
     for parser in DATETIME_PARSERS:
         try:
