@@ -518,8 +518,8 @@ def edit_employee_role(employee_uuid):
     :<json object data: An object containing the changes to be made to the
         engagement. Detailed below.
 
-    The **original** and **updated** objects follow the same structure.
-    Every field in **original** is required, whereas **updated** only needs
+    The **overwrite** and **data** objects follow the same structure.
+    Every field in **overwrite** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string valid_from: The from date, in ISO 8601.

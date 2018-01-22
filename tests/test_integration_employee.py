@@ -16,6 +16,133 @@ from tests import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
+    def test_create_employee(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "engagement",
+                "org_unit_uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
+                "org_uuid": "f494ad89-039d-478e-91f2-a63566554bd6",
+                "job_title_uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
+                "engagement_type_uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                "valid_from": "2017-12-01T00:00:00+01",
+                "valid_to": "2017-12-02T00:00:00+01",
+            }
+        ]
+
+        self.assertRequestResponse('/service/e/{}/create'.format(userid),
+                                   userid, json=payload)
+
+        expected = {
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                    }
+                ],
+                "opgaver": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
+                                             "7697009c9053 a30f5f68-9c0d-"
+                                             "44e9-afc9-04e58f52dfec",
+                        "funktionsnavn": "Engagement"
+                    }
+                ]
+            }
+        }
+
+        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(engagements), 1)
+        engagementid = engagements[0]
+
+        actual_engagement = c.organisationfunktion.get(engagementid)
+
+        # drop lora-generated timestamps & users
+        del actual_engagement['fratidspunkt'], actual_engagement[
+            'tiltidspunkt'], actual_engagement[
+            'brugerref']
+
+        self.assertEqual(actual_engagement, expected)
+
     def test_edit_employee_no_overwrite(self):
         self.load_sample_structures()
 
@@ -467,3 +594,127 @@ class Tests(util.LoRATestCase):
             'brugerref']
 
         self.assertEqual(expected_engagement, actual_engagement)
+
+    def test_terminate_employee(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        payload = {"valid_from": "2017-12-01T00:00:00+01"}
+
+        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
+                                   userid, json=payload)
+
+        expected = {
+            "note": "Afslut engagement",
+            "relationer": {
+                "opgaver": [
+                    {
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Engagement"
+                    }
+                ]
+            },
+        }
+
+        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(engagements), 1)
+        engagementid = engagements[0]
+
+        actual_engagement = c.organisationfunktion.get(engagementid)
+
+        # drop lora-generated timestamps & users
+        del actual_engagement['fratidspunkt'], actual_engagement[
+            'tiltidspunkt'], actual_engagement[
+            'brugerref']
+
+        self.assertEqual(actual_engagement, expected)
