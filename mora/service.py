@@ -486,9 +486,7 @@ def create_employee_role(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type'), 400
 
-        req = flask.request.json
-
-        handler(req, employee_uuid)
+        handler(str(employee_uuid), req)
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
@@ -559,7 +557,7 @@ def edit_employee_role(employee_uuid):
         # 'leader': edit_leader,
     }
 
-    reqs = flask.request.json
+    reqs = flask.request.get_json()
 
     for req in reqs:
         role_type = req.get('type')
@@ -567,7 +565,7 @@ def edit_employee_role(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type'), 400
 
-        handler(req, employee_uuid)
+        handler(str(employee_uuid), req)
 
     # TODO: Figure out the response
     return flask.jsonify(employee_uuid), 200
@@ -594,7 +592,7 @@ def terminate_employee(employee_uuid):
             "valid_from": "2016-01-01T00:00:00+00:00"
         }
     """
-    date = flask.request.args.get('valid_from')
+    date = flask.request.get_json().get('valid_from')
 
     engagements = reading.get_engagements(userid=employee_uuid,
                                           effective_date=date)
@@ -784,19 +782,19 @@ def terminate_engagement(engagement_uuid, enddate):
         if g['gyldighed'] == 'Aktiv'
     ][0]
 
-    payload = inactivate_org_funktion(startdate, enddate)
+    payload = inactivate_org_funktion(startdate, enddate, "Afslut engagement")
     c.organisationfunktion.update(payload, engagement_uuid)
 
 
-def inactivate_org_funktion(startdate, enddate):
+def inactivate_org_funktion(startdate, enddate, note):
     obj_path = ['tilstande', 'organisationfunktiongyldighed']
     props_active = {'gyldighed': 'Aktiv'}
     props_inactive = {'gyldighed': 'Inaktiv'}
 
     payload = _create_payload(startdate, enddate, obj_path, props_active,
-                              'Afslut funktion')
+                              note)
     payload = _create_payload(enddate, 'infinity', obj_path, props_inactive,
-                              'Afslut funktion', payload)
+                              note, payload)
 
     return payload
 
