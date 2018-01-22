@@ -23,9 +23,14 @@ require('moment/locale/da')
 
 Vue.config.productionTip = false
 
+const veeConfig = {
+  delay: 200,
+  locale: 'da'
+}
+
 Vue.use(BootstrapVue)
 Vue.use(VueI18n)
-Vue.use(VeeValidate)
+Vue.use(VeeValidate, veeConfig)
 Vue.use(require('vue-moment'), {
   moment
 })

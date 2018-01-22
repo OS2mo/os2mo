@@ -35,15 +35,9 @@
   import AddressSearchTemplate from './AddressSearchTemplate.vue'
   import Property from '../api/Property'
 
-  /**
-   * The address search component
-   * @author Anders Jepsen
-   * @input
-   */
-
   export default {
     components: {
-      VAutocomplete
+      VAutocomplete,
     },
     props: {
       /**
@@ -56,9 +50,6 @@
     },
     data () {
       return {
-        /**
-         * The initial component values.
-         */
         location: {
           location: '',
           name: ''
@@ -93,9 +84,6 @@
         })
       },
 
-      /**
-       * @private
-       */
       updateAddress: function () {
         try {
         /**
@@ -140,9 +128,6 @@
       border: 1px solid #ced4da;
       border-radius: 0 0 0.25rem;
       transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-      .v-autocomplete-list-item {
-        height: 30px;
-      }
     }
   }
 </style>
