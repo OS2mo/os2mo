@@ -25,21 +25,6 @@
         Søg i hele landet
       </label>
     </div>
-
-    <div class="form-group col">
-      <label for="exampleFormControlInput1">Lokationsnavn</label>
-      <input 
-        name="location"
-        type="text" 
-        class="form-control" 
-        id="" 
-        placeholder="" 
-        v-model="location.name"  
-        @input="updateAddress"
-        v-validate="{ required: true }"
-      >
-      <span v-show="errors.has('location')" class="text-danger">{{ errors.first('location') }}</span>
-    </div>
   </div>
 </template>
 
@@ -50,30 +35,21 @@
   import AddressSearchTemplate from './AddressSearchTemplate.vue'
   import Property from '../api/Property'
 
-  /**
-   * The address search component
-   * @author Anders Jepsen
-   * @input
-   */
-
   export default {
     components: {
-      VAutocomplete
+      VAutocomplete,
     },
     props: {
       /**
        * The organisation uuid used to search locally
        */
-      localUuid: {
+      orgUuid: {
         type: String,
         default: ''
       }
     },
     data () {
       return {
-        /**
-         * The initial component values.
-         */
         location: {
           location: '',
           name: ''
@@ -102,15 +78,12 @@
        */
       getGeographicalLocation: function (query) {
         let vm = this
-        let local = this.localUuid !== '' && !this.searchCountry ? this.localUuid : ''
+        let local = this.orgUuid !== '' && !this.searchCountry ? this.orgUuid : ''
         Property.getGeographicalLocation(query, local).then(function (response) {
           vm.addressSuggestions = response
         })
       },
 
-      /**
-       * @private
-       */
       updateAddress: function () {
         try {
         /**
@@ -155,9 +128,6 @@
       border: 1px solid #ced4da;
       border-radius: 0 0 0.25rem;
       transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-      .v-autocomplete-list-item {
-        height: 30px;
-      }
     }
   }
 </style>

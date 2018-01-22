@@ -10,19 +10,27 @@ import VeeValidate from 'vee-validate'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
 
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import 'bootstrap/dist/css/bootstrap.css'
+// import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import './assets/css/global.css'
 
-import './assets/css/global.css'
+require('../node_modules/bootstrap/dist/css/bootstrap.css')
+require('../node_modules/bootstrap-vue/dist/bootstrap-vue')
+require('./assets/css/global.css')
 
 const moment = require('moment')
 require('moment/locale/da')
 
 Vue.config.productionTip = false
 
+const veeConfig = {
+  delay: 200,
+  locale: 'da'
+}
+
 Vue.use(BootstrapVue)
 Vue.use(VueI18n)
-Vue.use(VeeValidate)
+Vue.use(VeeValidate, veeConfig)
 Vue.use(require('vue-moment'), {
   moment
 })

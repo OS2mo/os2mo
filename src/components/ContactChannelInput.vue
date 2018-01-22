@@ -32,7 +32,7 @@
         <span v-show="errors.has('phone')" class="text-danger">{{ errors.first('phone') }}</span>
       </div>
 
-      <div class="form-group col">
+      <!-- <div class="form-group col">
         <label for="">Egenskaber</label>
         <select 
           class="form-control" 
@@ -50,12 +50,6 @@
             {{property.name}}
           </option>
         </select>
-      </div>
-
-      <!-- <div class="form-group">
-        <button class="btn btn-primary">
-          <icon name="minus"/>
-        </button>
       </div> -->
     </div>
 </template>

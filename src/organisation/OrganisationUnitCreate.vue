@@ -30,7 +30,7 @@
 
     <address-search 
     v-model="orgUnit.locations[0]"
-    :localUuid="superUnit.org"
+    :orgUuid="org.uuid"
     />
     
     <component 
@@ -61,6 +61,7 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import DatePicker from '../components/DatePicker'
   import DatePickerStartEnd from '../components/DatePickerStartEnd'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -86,6 +87,7 @@
         contactChannels: [],
         dateStartEnd: {},
         superUnit: {},
+        org: {},
         orgUnit: {
           'valid-to': '',
           'valid-from': '',
@@ -110,12 +112,24 @@
       this.orgUnit['valid-from'] = this.dateStartEnd.startDate
       this.orgUnit['valid-to'] = this.dateStartEnd.endDate !== '' ? this.dateStartEnd.endDate : 'infinity'
     },
-    created () {},
+    created () {
+      this.org = Organisation.getSelectedOrganisation()
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', newOrg => {
+        this.org = newOrg
+      })
+    },
     methods: {
-      addContactChannel: function () {
+      addContactChannel () {
         this.channels.push('ContactChannel')
       },
-      createOrganisationUnit: function () {
+
+      getOrganisation () {
+        Organisation.getOrganisation()
+      },
+
+      createOrganisationUnit () {
         this.orgUnit.org = this.superUnit.org
         this.orgUnit.parent = this.superUnit.uuid
         this.orgUnit['user-key'] = 'NULL'

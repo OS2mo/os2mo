@@ -12,3 +12,12 @@ export const HTTP = axios.create({
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
   }
 })
+
+export const Service = axios.create({
+  baseURL: '/service',
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
+  }
+})

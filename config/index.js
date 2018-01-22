@@ -12,6 +12,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/mo/': 'http://localhost:5000/',
+      '/service/': 'http://localhost:5000/',
     },
 
     // Various Dev Server settings
