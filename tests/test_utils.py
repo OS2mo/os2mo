@@ -132,6 +132,11 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(util.is_uuid('42'))
         self.assertFalse(util.is_uuid(None))
 
+    def test_is_cpr_number(self):
+        self.assertTrue(util.is_cpr_number('0101011000'))
+        self.assertFalse(util.is_cpr_number('42'))
+        self.assertFalse(util.is_cpr_number(None))
+
 
 class TestAppUtils(unittest.TestCase):
     def test_restrictargs(self):
