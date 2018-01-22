@@ -4,7 +4,9 @@
       <item
       v-model="selectedOrgUnit"
       :model="tree"
-      :firstOpen="true"/>
+      :link-able="linkAble"
+      firstOpen
+      />
     </ul>
     <loading v-show="!tree"/>
   </div>
@@ -22,7 +24,11 @@
     },
     props: {
       value: Object,
-      orgUuid: String
+      orgUuid: String,
+      linkAble: {
+        type: Boolean,
+        default: false
+      }
     },
     data () {
       return {
