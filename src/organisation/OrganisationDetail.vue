@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">
-        <icon name="share-alt" /> {{orgUnit.name}}
+        <icon name="users" /> {{orgUnit.name}}
       </h4>
 
       <div class="row">

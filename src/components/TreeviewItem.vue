@@ -2,13 +2,24 @@
     <li>
       <div 
         v-if="model.uuid"
-        :class="{bold: isFolder}"
       >
-        <span @click="toggle">
-          <icon @click="toggle" v-if="isFolder" :name="open ? 'folder-open' : 'folder'"/>
+        <span class="item" @click="toggle">
+          <icon class="icon-color" v-if="isFolder" :name="open ? 'caret-down' : 'caret-right'"/>
         </span>
-        <icon v-if="!isFolder" name="file"/>
-        <span @click="selectOrgUnit(model)">
+        <router-link 
+          v-if="linkAble"
+          class="link-color" 
+          :to="{ name: 'OrganisationDetail', params: { uuid: model.uuid } }"
+        >
+          <icon class="icon-color" name="users"/>
+          {{model.name}}
+        </router-link>
+
+        <span 
+        class="link-color"
+        v-if="!linkAble"
+        @click="selectOrgUnit(model)">
+          <icon class="icon-color" name="users"/>
           {{model.name}}
         </span>
       </div>
@@ -21,7 +32,8 @@
           v-bind:key="model.uuid"
           v-model="selected"
           @click="selectOrgUnit(selected)"
-          :model="model">
+          :model="model"
+          :link-able="linkAble">
         </tree-view-item>
       </ul>
     </li>
@@ -40,6 +52,10 @@
       value: Object,
       model: Object,
       firstOpen: {
+        type: Boolean,
+        default: false
+      },
+      linkAble: {
         type: Boolean,
         default: false
       }
@@ -102,5 +118,19 @@
   }
   .bold {
     font-weight: bold;
+  }
+  .icon-color{
+    color: #343a40;
+    width: 1.5em;
+  }
+  .link-color{
+    color: #212529;
+    text-decoration: none;
+  }
+  .link-color:hover{
+    color: #007bff;
+  }
+  .router-link-active{
+    color:#007bff;
   }
 </style>

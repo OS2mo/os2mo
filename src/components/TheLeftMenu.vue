@@ -6,7 +6,7 @@
         Overblik
       </h4>
       <organisation-picker />
-      <tree-view v-model="selectedOrgUnit" :orgUuid="org.uuid"/>
+      <tree-view v-model="selectedOrgUnit" :orgUuid="org.uuid" link-able/>
     </div>
   </div>
 </template>
@@ -30,10 +30,10 @@
     },
     watch: {
       selectedOrgUnit (newVal, oldVal) {
-        this.$router.push({
-          name: 'OrganisationDetail',
-          params: { uuid: newVal.uuid }
-        })
+        // this.$router.push({
+        //   name: 'OrganisationDetail',
+        //   params: { uuid: newVal.uuid }
+        // })
       }
     },
     created () {
