@@ -4,19 +4,20 @@
       <date-time-picker 
         name="date"
         :data-vv-as="label"
-        v-model="date" 
+        v-model="selectedDate" 
         format="dd-MM-yyyy"
         language="da" 
         monday-first
         bootstrapStyling
         clear-button
         :disabled="disabled"
-        @input="updateDate()"
+       
         v-validate="{ 
           date_format: 'dd-MM-yyyy', 
           required: required 
         }"
       />
+
       <span
         v-show="errors.has('date')" 
         class="text-danger"
@@ -48,7 +49,7 @@ export default {
   },
   data () {
     return {
-      date: null,
+      selectedDate: null,
       disabled: {
         to: null,
         from: null
@@ -56,14 +57,14 @@ export default {
     }
   },
   watch: {
+    selectedDate (newVal, oldVal) {
+      this.$emit('input', new Date(newVal))
+    },
     disabledTo (newVal, oldVal) {
       this.disabled.to = new Date(newVal)
     }
   },
   methods: {
-    updateDate () {
-      this.$emit('input', new Date(this.date))
-    }
   }
 }
 </script>
