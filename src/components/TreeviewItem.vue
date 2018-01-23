@@ -1,10 +1,7 @@
 <template>
-    <li>
-      <div 
-        v-if="model.uuid"
-      >
-        <span class="item" @click="toggle">
-          <icon class="icon-color" v-if="isFolder" :name="open ? 'caret-down' : 'caret-right'"/>
+    <li class="item" v-if="model.uuid">
+        <span @click="toggle">
+          <icon class="icon" v-if="isFolder" :name="open ? 'caret-down' : 'caret-right'"/>
         </span>
         <router-link 
           v-if="linkAble"
@@ -18,16 +15,15 @@
         <span 
         class="link-color"
         v-if="!linkAble"
+        
         @click="selectOrgUnit(model)">
-          <icon class="icon-color" name="users"/>
+          <icon class="icon" name="users"/>
           {{model.name}}
         </span>
-      </div>
 
       <ul v-show="open" v-if="isFolder">
         <loading v-show="model.children.length === 0"/>
         <tree-view-item
-          class="item"
           v-for="model in model.children"
           v-bind:key="model.uuid"
           v-model="selected"
@@ -107,7 +103,10 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   ul {
-    padding-left: 1rem;
+    padding-left: 1.25rem;
+  }
+  .extra-padding {
+    padding-left: 0.05rem;
   }
   .item {
     cursor: pointer;
@@ -116,12 +115,9 @@
   .nav-link {
     display: inline-block;
   }
-  .bold {
-    font-weight: bold;
-  }
-  .icon-color{
+  .icon {
     color: #343a40;
-    width: 1.5em;
+    width: 1rem;
   }
   .link-color{
     color: #212529;
