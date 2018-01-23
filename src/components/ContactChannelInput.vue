@@ -19,38 +19,18 @@
       </div>
 
       <div class="form-group col">
-        <label for="">Telefonnr</label>
+        <label for="">Telefonnr.</label>
         <input 
           type="text" 
           class="form-control"
           name="phone" 
-          placeholder=""
+          data-vv-as="Telefonnr."
           v-model="channel['contact-info']"
           @input="updateContactChannel()"
           v-validate="{ required: true, digits: 8}" 
         >
         <span v-show="errors.has('phone')" class="text-danger">{{ errors.first('phone') }}</span>
       </div>
-
-      <!-- <div class="form-group col">
-        <label for="">Egenskaber</label>
-        <select 
-          class="form-control" 
-          id="" 
-          v-model="channel.visibility"
-          @change="updateContactChannel()"
-          required>
-          <option 
-            disabled 
-            value="">Vælg egenskaber</option>
-          <option
-            v-for="property in contactChannelProperties" 
-            :key="property.uuid"
-            :value="property">
-            {{property.name}}
-          </option>
-        </select>
-      </div> -->
     </div>
 </template>
 
