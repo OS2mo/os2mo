@@ -58,18 +58,19 @@ def unparsedate(d: datetime.date) -> str:
     return d.strftime('%d-%m-%Y')
 
 
-def parsedatetime(s: str,
-                  default: datetime.datetime=None) -> datetime.datetime:
-    if default is not None and not s:
-        return default
-    elif isinstance(s, datetime.date):
+def parsedatetime(s: str) -> datetime.datetime:
+    if isinstance(s, datetime.date):
         if s in (positive_infinity, negative_infinity):
             return s
-        else:
-            return tzlocal.get_localzone().localize(
-                datetime.datetime.combine(s, datetime.time())
+
+        if not isinstance(s, datetime.datetime):
+            s = datetime.datetime.combine(
+                s, datetime.time(),
             )
-    elif isinstance(s, datetime.datetime):
+
+        if not s.tzinfo:
+            s = tzlocal.get_localzone().localize(s)
+
         return s
 
     for parser in DATETIME_PARSERS:
@@ -107,18 +108,16 @@ def to_frontend_time(s):
 
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
-    return datetime.datetime.now(tzlocal.get_localzone())
+    return tzlocal.get_localzone().localize(datetime.datetime.now())
 
 
 def today() -> datetime.datetime:
     '''Get midnight of current date, localized to the current time zone.'''
     dt = now()
-    t = datetime.time(tzinfo=dt.tzinfo)
-    return datetime.datetime.combine(dt.date(), t)
 
-
-def fromtimestamp(t: int) -> datetime.datetime:
-    return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
+    return dt.tzinfo.localize(
+        datetime.datetime.combine(dt.date(), datetime.time()),
+    )
 
 
 def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):

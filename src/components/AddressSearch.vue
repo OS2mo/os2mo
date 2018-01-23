@@ -4,13 +4,15 @@
       <label for="exampleFormControlInput1">Adressesøg</label>
       <v-autocomplete 
         :items="addressSuggestions"
-        
+        name="address"
         :get-label="getLabel" 
         :component-item="template" 
         @update-items="getGeographicalLocation"
-        @blur="addressSuggestions=[]"
+        @untouched="addressSuggestions=[]"
         @input="updateAddress"
+        v-validate="{ required: true }"
       />
+      <span v-show="errors.has('address')" class="text-danger">{{ errors.first('address') }}</span>
     </div>
 
     <div class="form-check col">
@@ -18,21 +20,10 @@
         <input 
           class="form-check-input" 
           type="checkbox" 
-          v-model="searchCountry"
+          v-model="searchCountry" 
         > 
         Søg i hele landet
       </label>
-    </div>
-
-    <div class="form-group col">
-      <label for="exampleFormControlInput1">Lokationsnavn</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        id="" 
-        placeholder="" 
-        v-model="location.name"  
-        @input="updateAddress">
     </div>
   </div>
 </template>
@@ -44,12 +35,6 @@
   import AddressSearchTemplate from './AddressSearchTemplate.vue'
   import Property from '../api/Property'
 
-  /**
-   * The address search component
-   * @author Anders Jepsen
-   * @input
-   */
-
   export default {
     components: {
       VAutocomplete
@@ -58,16 +43,13 @@
       /**
        * The organisation uuid used to search locally
        */
-      localUuid: {
+      orgUuid: {
         type: String,
         default: ''
       }
     },
     data () {
       return {
-        /**
-         * The initial component values.
-         */
         location: {
           location: '',
           name: ''
@@ -96,15 +78,12 @@
        */
       getGeographicalLocation: function (query) {
         let vm = this
-        let local = this.localUuid !== '' && !this.searchCountry ? this.localUuid : ''
+        let local = this.orgUuid !== '' && !this.searchCountry ? this.orgUuid : ''
         Property.getGeographicalLocation(query, local).then(function (response) {
           vm.addressSuggestions = response
         })
       },
 
-      /**
-       * @private
-       */
       updateAddress: function () {
         try {
         /**
@@ -149,9 +128,6 @@
       border: 1px solid #ced4da;
       border-radius: 0 0 0.25rem;
       transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-      .v-autocomplete-list-item {
-        height: 30px;
-      }
     }
   }
 </style>

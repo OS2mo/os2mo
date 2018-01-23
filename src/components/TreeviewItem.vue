@@ -1,27 +1,35 @@
 <template>
-    <li>
-      <div 
-        v-if="model.uuid"
-        :class="{bold: isFolder}"
-      >
+    <li class="item" v-if="model.uuid">
         <span @click="toggle">
-          <icon @click="toggle" v-if="isFolder" :name="open ? 'folder-open' : 'folder'"/>
+          <icon class="icon" v-if="isFolder" :name="open ? 'caret-down' : 'caret-right'"/>
         </span>
-        <icon v-if="!isFolder" name="file"/>
-        <span @click="selectOrgUnit(model)">
+        <router-link 
+          v-if="linkAble"
+          class="link-color" 
+          :to="{ name: 'OrganisationDetail', params: { uuid: model.uuid } }"
+        >
+          <icon class="icon-color" name="users"/>
+          {{model.name}}
+        </router-link>
+
+        <span 
+        class="link-color"
+        v-if="!linkAble"
+        
+        @click="selectOrgUnit(model)">
+          <icon class="icon" name="users"/>
           {{model.name}}
         </span>
-      </div>
 
       <ul v-show="open" v-if="isFolder">
         <loading v-show="model.children.length === 0"/>
         <tree-view-item
-          class="item"
           v-for="model in model.children"
           v-bind:key="model.uuid"
           v-model="selected"
           @click="selectOrgUnit(selected)"
-          :model="model">
+          :model="model"
+          :link-able="linkAble">
         </tree-view-item>
       </ul>
     </li>
@@ -40,6 +48,10 @@
       value: Object,
       model: Object,
       firstOpen: {
+        type: Boolean,
+        default: false
+      },
+      linkAble: {
         type: Boolean,
         default: false
       }
@@ -91,7 +103,10 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   ul {
-    padding-left: 1rem;
+    padding-left: 1.25rem;
+  }
+  .extra-padding {
+    padding-left: 0.05rem;
   }
   .item {
     cursor: pointer;
@@ -100,7 +115,18 @@
   .nav-link {
     display: inline-block;
   }
-  .bold {
-    font-weight: bold;
+  .icon {
+    color: #343a40;
+    width: 1rem;
+  }
+  .link-color{
+    color: #212529;
+    text-decoration: none;
+  }
+  .link-color:hover{
+    color: #007bff;
+  }
+  .router-link-active{
+    color:#007bff;
   }
 </style>

@@ -7,20 +7,9 @@
       @input="updateDate()"
     />
 
-    <div class="col" v-show="!showEndDate">
-      <button 
-        type="button" 
-        class="btn btn-link"
-        v-on:click="showEndDate=true"
-      >
-        Tilføj slutdato
-      </button>
-    </div>
-
     <date-picker 
       label="Slutdato"
       v-model="endDate"
-      v-show="showEndDate"
       @input="updateDate()"
     />
   </div>
@@ -38,8 +27,7 @@
     data () {
       return {
         startDate: '',
-        endDate: '',
-        showEndDate: false
+        endDate: ''
       }
     },
     created: function () {},

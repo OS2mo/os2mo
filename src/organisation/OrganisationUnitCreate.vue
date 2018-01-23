@@ -12,11 +12,15 @@
       <div class="form-group col">
         <label for="">Navn</label>
         <input 
+          name="name"
           v-model="orgUnit.name" 
           type="text" 
           class="form-control" 
           id="" 
-          placeholder="">
+          placeholder=""
+          v-validate="{ required: true }" 
+        >
+        <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
       </div>
 
       <unit-type-select v-model="orgUnit.type"/>
@@ -26,7 +30,7 @@
 
     <address-search 
     v-model="orgUnit.locations[0]"
-    :localUuid="superUnit.org"
+    :orgUuid="org.uuid"
     />
     
     <component 
@@ -46,7 +50,10 @@
     </button>
 
     <div class="float-right">
-        <button-submit @click.native="createOrganisationUnit"/>
+        <button-submit
+        :disabled="errors.any() || !isCompleted" 
+        @click.native="createOrganisationUnit"
+        />
       </div>
   </b-modal>
 
@@ -54,6 +61,7 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import DatePicker from '../components/DatePicker'
   import DatePickerStartEnd from '../components/DatePickerStartEnd'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -79,6 +87,7 @@
         contactChannels: [],
         dateStartEnd: {},
         superUnit: {},
+        org: {},
         orgUnit: {
           'valid-to': '',
           'valid-from': '',
@@ -94,16 +103,33 @@
         }
       }
     },
+    computed: {
+      isCompleted () {
+        return this.dateStartEnd.startDate && this.orgUnit.name && this.superUnit
+      }
+    },
     updated () {
       this.orgUnit['valid-from'] = this.dateStartEnd.startDate
       this.orgUnit['valid-to'] = this.dateStartEnd.endDate !== '' ? this.dateStartEnd.endDate : 'infinity'
     },
-    created () {},
+    created () {
+      this.org = Organisation.getSelectedOrganisation()
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', newOrg => {
+        this.org = newOrg
+      })
+    },
     methods: {
-      addContactChannel: function () {
+      addContactChannel () {
         this.channels.push('ContactChannel')
       },
-      createOrganisationUnit: function () {
+
+      getOrganisation () {
+        Organisation.getOrganisation()
+      },
+
+      createOrganisationUnit () {
         this.orgUnit.org = this.superUnit.org
         this.orgUnit.parent = this.superUnit.uuid
         this.orgUnit['user-key'] = 'NULL'

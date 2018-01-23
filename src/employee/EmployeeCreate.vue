@@ -1,5 +1,5 @@
 <template>
-  <b-modal 
+    <b-modal 
     id="employeeCreate" 
     size="lg" 
     hide-footer 
@@ -26,8 +26,6 @@
         </div>
       </div>
     </div>
-
-    {{engagement}}
 
     <!-- <div>
       <h4>Tilknytning</h4>
@@ -145,7 +143,7 @@
     <div class="float-right">
       <button-submit @click.native="createEngagement()"/>
     </div>
-  </b-modal>
+    </b-modal>
 
 </template>
 

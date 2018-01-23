@@ -25,9 +25,9 @@
 
       <b-dropdown id="ddown1" variant="primary">
         <template slot="button-content">
-          <icon name="user"/> Admin
+          <icon name="user"/> {{user.username}}
         </template>
-        <b-dropdown-item>
+        <b-dropdown-item @click="logout()">
           <icon name="sign-out"/> Log ud
         </b-dropdown-item>
       </b-dropdown>
@@ -36,6 +36,8 @@
 </template>
 
 <script>
+  import Auth from '../api/Auth'
+  import { EventBus } from '../EventBus'
   import HelpButton from '../help/TheHelpButton'
   import TimeMachineButton from '../timeMachine/TimeMachineButton'
   import SearchBar from './TheSearchBar'
@@ -48,6 +50,22 @@
     },
     data () {
       return {
+        user: {}
+      }
+    },
+    created () {
+      this.user = Auth.getUser()
+    },
+    mounted () {
+      EventBus.$on('login-success', login => {
+        this.user = login
+      })
+    },
+    methods: {
+      logout () {
+        this.$router.push({
+          name: 'login'
+        })
       }
     }
   }

@@ -316,7 +316,7 @@ Til sidst kopieres ``config/mora-example.json`` til ``config/mora.json`` og
   }
 
 Bemærk venligst at anvendelse af HTTPS kræver et betroet certifikat på
-serveren, og at MORa ikke understøtter autentificering med SAML endnu.
+serveren, og at autentificering med SAML kræver yderligere konfiguration.
 
 Dokumentation
 -------------

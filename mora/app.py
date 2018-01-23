@@ -14,6 +14,7 @@ import flask
 from . import api
 from . import auth
 from . import cli
+from . import service
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -24,6 +25,8 @@ app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
 cli.load_cli(app)
 app.register_blueprint(api.blueprint)
+app.register_blueprint(auth.blueprint)
+app.register_blueprint(service.blueprint)
 
 
 @app.errorhandler(Exception)
@@ -71,8 +74,12 @@ def handle_invalid_usage(error):
 
 
 @app.route('/')
-def v2_root():
+def v2_root(path=None):
     return flask.send_file('index.html')
+
+
+for prefix in 'organisation', 'medarbejder', 'login', 'hjaelp', 'tidsmaskine':
+    app.add_url_rule('/{}/<path:path>'.format(prefix), 'v2_root')
 
 
 @app.route('/mo/')
@@ -88,18 +95,3 @@ def send_scripts(path):
 @app.route('/mo/styles/<path:path>')
 def send_styles(path):
     return flask.send_from_directory(staticdir, os.path.join('styles', path))
-
-
-@app.route('/mo/service/user/<user>/login', methods=['POST'])
-def login(user):
-    return auth.login(user)
-
-
-@app.route('/mo/service/user/<user>/logout', methods=['POST'])
-def logout(user):
-    return auth.logout()
-
-
-@app.route('/mo/acl/', methods=['POST', 'GET'])
-def acl():
-    return flask.jsonify([])

@@ -1,8 +1,8 @@
 import { HTTP } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
-var selectedOrganisation = ''
-var selectedOrgUnit = ''
+let selectedOrganisation = ''
+let selectedOrgUnit = ''
 
 export default {
 

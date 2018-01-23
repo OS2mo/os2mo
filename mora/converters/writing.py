@@ -7,18 +7,14 @@
 #
 
 import collections
-import datetime
-import uuid
-
-import functools
-
 import copy
-
-from .. import lora
-from .. import util
-from .. import exceptions
+import datetime
+import functools
+import uuid
+from typing import List
 
 from . import meta
+from .. import exceptions, lora, util
 
 
 def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
@@ -215,14 +211,62 @@ def create_org_funktion(req: dict) -> dict:
     return org_funk
 
 
-def move_org_funktion(org_unit_uuid, from_date, orgfunk):
-    # Fetch current engagement end
-    to_date = orgfunk['relationer']['tilknyttedeenheder'][-1]['virkning']['to']
+def update_org_funktion_payload(from_time, to_time, note, fields, original,
+                                payload):
+    for field in fields:
+        payload = _create_payload(
+            from_time, to_time,
+            field[0],
+            field[1],
+            note,
+            payload,
+            original)
 
-    obj_path = ['relationer', 'tilknyttedeenheder']
-    props = {'uuid': org_unit_uuid}
-    return _create_payload(from_date, to_date, obj_path, props,
-                           "Flyt engagement", merge_obj=orgfunk)
+    paths = [field[0] for field in fields]
+
+    payload = _ensure_object_effect_bounds(
+        from_time, to_time,
+        original, payload,
+        get_remaining_org_funk_fields(paths)
+    )
+
+    return payload
+
+
+def get_remaining_org_funk_fields(obj_paths: List[List[str]]):
+    # TODO: Maybe fetch this information dynamically from LoRa?
+    fields = {
+        ('attributter', 'organisationfunktionegenskaber'),
+        ('tilstande', 'organisationfunktiongyldighed'),
+        ('relationer', 'organisatoriskfunktionstype'),
+        ('relationer', 'opgaver'),
+        ('relationer', 'tilknyttedebrugere'),
+        ('relationer', 'tilknyttedeenheder'),
+        ('relationer', 'tilknyttedeorganisationer'),
+    }
+
+    tupled_set = {tuple(x) for x in obj_paths}
+    diff = fields.difference(tupled_set)
+
+    return [list(x) for x in diff]
+
+
+def move_org_funktion_payload(move_date, from_time, to_time,
+                              overwrite, org_unit_uuid, orgfunk):
+    note = "Flyt engagement"
+    fields = [(
+        ['relationer', 'tilknyttedeenheder'],
+        {'uuid': org_unit_uuid}
+    )]
+
+    payload = {}
+
+    if overwrite:
+        return update_org_funktion_payload(move_date, to_time, note, fields,
+                                           orgfunk, payload)
+    else:
+        return update_org_funktion_payload(move_date, from_time, note, fields,
+                                           orgfunk, payload)
 
 
 def inactivate_org_funktion(startdate, enddate):
@@ -324,9 +368,23 @@ def retype_org_unit(req: dict) -> dict:
     return payload
 
 
+def _zero_to_many_rels() -> List[str]:
+    # TODO: Load and cache from LoRa
+    return [
+        "adresser",
+        "opgaver",
+        "tilknyttedebrugere",
+        "tilknyttedeenheder",
+        "tilknyttedeorganisationer",
+        "tilknyttedeitsystemer",
+        "tilknyttedeinteressefaellesskaber",
+        "tilknyttedepersoner"
+    ]
+
+
 def _create_payload(From: str, to: str, obj_path: list,
                     props: dict, note: str, payload: dict = None,
-                    merge_obj: dict = None) -> dict:
+                    original: dict = None) -> dict:
     """
     Generate payload to send to LoRa when updating or writing new data. See
     the example below.
@@ -338,7 +396,7 @@ def _create_payload(From: str, to: str, obj_path: list,
     :param note: Note to add to the payload.
     :param payload: An already existing payload that should have extra
         properties added.
-    :param merge_obj: An optional, existing object containing properties on
+    :param original: An optional, existing object containing properties on
         "obj_path" which should be merged with props, in case of adding props
         to a zero-to-many relation.
     :return: The resulting payload (see example below).
@@ -387,10 +445,14 @@ def _create_payload(From: str, to: str, obj_path: list,
             current_value = current_value[key]
         else:
             props_copy['virkning'] = _create_virkning(From, to)
-
-            if merge_obj:
-                current_value[key] = _create_merged_list(obj_path, props_copy,
-                                                         merge_obj)
+            if key in _zero_to_many_rels() and original:
+                if key in current_value.keys():
+                    merge_obj = payload
+                else:
+                    merge_obj = original
+                orig_list = functools.reduce(lambda x, y: x.get(y),
+                                             obj_path, merge_obj)
+                current_value[key] = _merge_obj_effects(orig_list, props_copy)
             elif key in current_value.keys():
                 current_value[key].append(props_copy)
             else:
@@ -399,10 +461,156 @@ def _create_payload(From: str, to: str, obj_path: list,
     return payload
 
 
-def _create_merged_list(obj_path, props, obj):
-    orig_list = functools.reduce(lambda x, y: x.get(y), obj_path, obj)
-    return merge_obj_effects(orig_list, props)
+def _ensure_object_effect_bounds(lower_bound: str, upper_bound: str,
+                                 original: dict, payload: dict,
+                                 paths: List[List[str]]) -> dict:
+    """
+    Given an original object and a set of time bounds from a prospective
+    update, ensure that ranges on object validities are sane, when the
+    update is performed. Operates under the assumption that we do not have
+    any overlapping intervals in validity ranges
 
+    :param lower_bound: The lower bound, in ISO-8601
+    :param upper_bound: The upper bound, in ISO-8601
+    :param original: The original object, as it exists in LoRa
+    :param payload: An existing payload to add the updates to
+    :param paths: A list of paths to be checked on the original object
+    :return: The payload with the additional updates applied, if relevant
+    """
+
+    note = payload.get('note')
+
+    for path in paths:
+        # Get list of original relevant properties, sorted by start_date
+        orig_list = functools.reduce(lambda x, y: x.get(y, {}), path, original)
+        if not orig_list:
+            continue
+        sorted_rel = sorted(orig_list, key=lambda x: x['virkning']['from'])
+        first = sorted_rel[0]
+        last = sorted_rel[-1]
+
+        # Handle lower bound
+        if lower_bound < first['virkning']['from']:
+            props = copy.deepcopy(first)
+            del props['virkning']
+            payload = _create_payload(
+                lower_bound,
+                first['virkning']['to'],
+                path,
+                props,
+                note,
+                payload,
+                original
+            )
+
+        # Handle upper bound
+        if last['virkning']['to'] < upper_bound:
+            props = copy.deepcopy(last)
+            del props['virkning']
+            payload = _create_payload(
+                last['virkning']['from'],
+                upper_bound,
+                path,
+                props,
+                note,
+                payload,
+                original
+            )
+
+    return payload
+
+
+def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
+    """
+    Performs LoRa-like merging of a relation object, with a current list of
+    relation objects, with regards to virkningstider,
+    producing a merged list of relation to be inserted into LoRa, similar to
+    how LoRa performs merging of zero-to-one relations.
+
+    We assume that the list of objects satisfy the same contraints as a list
+    of objects from a zero-to-one relation, i.e. no overlapping time periods
+
+    :param orig_objs: A list of objects with virkningstider
+    :param new: A new object with virkningstid, to be merged
+                into the original list.
+    :return: A list of merged objects
+    """
+    # TODO: Implement merging of two lists?
+
+    sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
+
+    result = [new]
+    new_from = util.parsedatetime(new['virkning']['from'])
+    new_to = util.parsedatetime(new['virkning']['to'])
+
+    for orig in sorted_orig:
+        orig_from = util.parsedatetime(orig['virkning']['from'])
+        orig_to = util.parsedatetime(orig['virkning']['to'])
+
+        if new_to <= orig_from or orig_to <= new_from:
+            # Not affected, add orig as-is
+            result.append(orig)
+            continue
+
+        if new_from <= orig_from:
+            if orig_to <= new_to:
+                # Orig is completely contained in new, ignore
+                continue
+            else:
+                # New end overlaps orig beginning
+                new_rel = copy.deepcopy(orig)
+                new_rel['virkning']['from'] = util.to_lora_time(new_to)
+                result.append(new_rel)
+        elif new_from < orig_to:
+            # New beginning overlaps with orig end
+            new_obj_before = copy.deepcopy(orig)
+            new_obj_before['virkning']['to'] = util.to_lora_time(new_from)
+            result.append(new_obj_before)
+            if new_to < orig_to:
+                # New is contained in orig
+                new_obj_after = copy.deepcopy(orig)
+                new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
+                result.append(new_obj_after)
+
+    return sorted(result, key=lambda x: x['virkning']['from'])
+
+
+def _inactivate_old_interval(old_from: str, old_to: str, new_from: str,
+                             new_to: str, payload: dict,
+                             path: List[str]) -> dict:
+    """
+    Create 'inactivation' updates based on two sets of from/to dates
+    :param old_from: The old 'from' time, in ISO-8601
+    :param old_to: The old 'to' time, in ISO-8601
+    :param new_from: The new 'from' time, in ISO-8601
+    :param new_to: The new 'to' time, in ISO-8601
+    :param payload: An existing payload to add the updates to
+    :param path: The path to where the object's 'gyldighed' is located
+    :return: The payload with the inactivation updates added, if relevant
+    """
+    if old_from < new_from:
+        payload = _create_payload(
+            old_from,
+            new_from,
+            path,
+            {
+                'gyldighed': "Inaktiv"
+            },
+            payload.get('note'),
+            payload
+        )
+    if new_to < old_to:
+        payload = _create_payload(
+            new_to,
+            old_to,
+            path,
+            {
+                'gyldighed': "Inaktiv"
+            },
+            payload.get('note'),
+            payload
+        )
+    return payload
 
 # ---------------------------- Updating addresses -------------------------- #
 
@@ -667,125 +875,71 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     return payload
 
 
-def update_org_funktion(req, original):
-    from_time = req.get('valid-from')
-    to_time = req.get('valid-to')
-
-    payload = {}
-    payload = _create_payload(
-        from_time, to_time,
-        ['relationer', 'opgaver'],
-        {
-            'uuid': req.get('job-title').get('uuid')
-        },
-        'Ret engagement',
-        payload,
-        original)
-    payload = _create_payload(
-        from_time, to_time,
-        ['relationer', 'organisatoriskfunktionstype'],
-        {
-            'uuid': req.get('type').get('uuid')
-        },
-        'Ret engagement',
-        payload)
-    payload = _create_payload(
-        from_time, to_time,
-        ['tilstande', 'organisationfunktiongyldighed'],
-        {
-            'gyldighed': "Aktiv"
-        },
-        'Ret engagement',
-        payload)
-
-    return payload
-
-
-def merge_obj_effects(orig_objs, new):
-    """
-    Performs LoRa-like merging of a given list of relation objects,
-    with a current list of relation objects, with regards to virkningstider,
-    producing a merged list of relation to be inserted into LoRa, similar to
-    how LoRa performs merging of zero-to-one relations.
-
-    We assume that the list of objects are under the same contraints as a
-    list of objects from a zero-to-one relation,
-    i.e. no overlapping time periods
-
-    :param orig_objs: A list of objects with virkningstider
-    :param new: A new object with virkningstid, to be merged
-                into the original list.
-    :return: A list of merged objects
-    """
-    # TODO: Implement merging of two lists?
-
-    sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
-
-    result = [new]
-    new_from = util.parsedatetime(new['virkning']['from'])
-    new_to = util.parsedatetime(new['virkning']['to'])
-
-    for orig in sorted_orig:
-        orig_from = util.parsedatetime(orig['virkning']['from'])
-        orig_to = util.parsedatetime(orig['virkning']['to'])
-
-        if new_to <= orig_from or orig_to <= new_from:
-            # Not affected, add orig as-is
-            result.append(orig)
-            continue
-
-        if new_from <= orig_from:
-            if orig_to <= new_to:
-                # Orig is completely contained in new, ignore
-                continue
-            else:
-                # New end overlaps orig beginning
-                new_rel = copy.deepcopy(orig)
-                new_rel['virkning']['from'] = util.to_lora_time(new_to)
-                result.append(new_rel)
-        elif new_from < orig_to:
-            # New beginning overlaps with orig end
-            new_obj_before = copy.deepcopy(orig)
-            new_obj_before['virkning']['to'] = util.to_lora_time(new_from)
-            result.append(new_obj_before)
-            if new_to < orig_to:
-                # New is contained in orig
-                new_obj_after = copy.deepcopy(orig)
-                new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
-                result.append(new_obj_after)
-
-    return sorted(result, key=lambda x: x['virkning']['from'])
-
-
 # Engagements
-def move_engagements(engagements, org_unit_uuid, from_date):
+def move_engagements(move_date, overwrite, engagements, org_unit_uuid):
     """
     Move a list of engagements to the given org unit on the given date
 
+    :param move_date: The date of the move
+    :param overwrite: Whether the move should overwrite the existing engagement
     :param engagements: A list of engagements on the form:
-                        {'uuid': <UUID>, 'overwrite': [0|1]}
+                        {'uuid': <UUID>, 'from': <date>, 'to': <date>}
     :param org_unit_uuid: A UUID of the org unit to move to
-    :param from_date: The date of the move
     """
-    c = lora.Connector(effective_date=from_date)
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     for engagement in engagements:
         engagement_uuid = engagement.get('uuid')
+        from_time = engagement.get('from')
+        to_time = engagement.get('to')
 
         # Fetch current orgfunk
         orgfunk = c.organisationfunktion.get(engagement_uuid)
 
         # Create new orgfunk active from the move date, with new org unit
-        payload = move_org_funktion(org_unit_uuid, from_date, orgfunk)
+        payload = move_org_funktion_payload(move_date, from_time, to_time,
+                                            overwrite, org_unit_uuid, orgfunk)
 
         c.organisationfunktion.update(payload, engagement_uuid)
 
 
 def edit_engagement(req, employee_uuid, engagement_uuid):
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     # Get the current org-funktion which the user wants to change
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.organisationfunktion.get(uuid=engagement_uuid)
-    payload = update_org_funktion(req, original)
+    payload = update_engagement_payload(req, original)
     c.organisationfunktion.update(payload, engagement_uuid)
+
+
+def update_engagement_payload(req, original):
+    # TODO: New API
+    old_from = req.get('oldValidFrom')
+    old_to = req.get('oldValidTo')
+    new_from = req.get('newValidFrom')
+    new_to = req.get('newValidTo')
+
+    note = 'Rediger engagement'
+
+    fields = [
+        (['relationer', 'opgaver'],
+         {'uuid': req.get('jobTitle')}),
+
+        (['relationer', 'organisatoriskfunktionstype'],
+         {'uuid': req.get('type')}),
+
+        (['tilstande', 'organisationfunktiongyldighed'],
+         {'gyldighed': "Aktiv"}),
+    ]
+
+    payload = {}
+    payload = _inactivate_old_interval(
+        old_from, old_to, new_from, new_to, payload,
+        ['tilstande', 'organisationfunktiongyldighed']
+    )
+
+    payload = update_org_funktion_payload(new_from, new_to, note,
+                                          fields, original, payload)
+
+    return payload
 
 
 def terminate_engagement(engagement_uuid, enddate):

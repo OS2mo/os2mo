@@ -6,6 +6,7 @@ iso8601~=0.1.12
 lxml~=4.0.0
 Sphinx~=1.6.3
 sphinx_rtd_theme>=0.2.4
+sphinxcontrib-httpdomain>=1.6.0
 recommonmark>=0.4.0
 grequests~=0.3.0
 openpyxl>=2.4.7

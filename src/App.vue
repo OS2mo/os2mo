@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <the-navbar/>
+    <!-- <the-navbar/> -->
 
     <div class="container-fluid container-top-margin">
       <router-view/>

@@ -639,6 +639,204 @@ class IntegrationTests(util.LoRATestCase):
             ],
         )
 
+    def test_engagements(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/engagement/',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            '/role-types/engagement/',
+            [
+                {
+                    'org-unit': {
+                        'name': 'Humanistisk fakultet',
+                        'activeName': 'Humanistisk fakultet',
+                        'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                        'user-key': 'hum',
+                        'parent-object': None,
+                        'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'valid-to': 'infinity',
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'valid-from': '01-01-2016',
+                        'type': {
+                            'name': 'Institut',
+                            'user-key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                            'userKey': 'inst',
+                        },
+                    },
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'userKey': 'afd',
+                    },
+                    'org': None,
+                    'person-name': 'Anders And',
+                    'job-title': {
+                        'name': 'Fakultet',
+                        'user-key': 'fak',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                        'userKey': 'fak',
+                    },
+                    'valid-from': '01-01-2017',
+                    'role-type': 'engagement',
+                    'valid-to': 'infinity',
+                    'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
+                    'person': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+            ],
+        )
+
+    @freezegun.freeze_time('2017-06-01')
+    def test_itsystems(self):
+        self.load_sample_structures()
+
+        expected_lora = {
+            "it-system": {
+                "name": "Lokal Rammearkitektur",
+                "userKey": "LoRa",
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "valid-from": "01-01-2016",
+                "valid-to": "01-01-2018",
+            },
+            'name': 'Fedtmule',
+            'person': '6ee24785-ee9a-4502-81c2-7697009c9053',
+            'role-type': 'it',
+            'state': 1,
+            'user-key': '<unused>',
+            'user-name': 'fedtmule',
+            'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+            "valid-from": "01-01-2016",
+            "valid-to": "01-01-2018",
+        }
+
+        expected_ad = {
+            'it-system': {
+                'name': 'Active Directory',
+                'userKey': 'AD',
+                'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                'valid-from': '14-02-2002',
+                'valid-to': 'infinity',
+            },
+            'name': 'Fedtmule',
+            'person': '6ee24785-ee9a-4502-81c2-7697009c9053',
+            'role-type': 'it',
+            'state': 1,
+            'user-key': '<unused>',
+            'user-name': 'fedtmule',
+            'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+            'valid-from': '14-02-2002',
+            'valid-to': 'infinity',
+        }
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/it/?validity=present',
+            [
+                expected_lora,
+                expected_ad,
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/it/?validity=past',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/role-types/it/?validity=future',
+            [],
+        )
+
+        with freezegun.freeze_time('2018-06-01', tz_offset=2):
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=present',
+                [
+                    expected_ad,
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=past',
+                [
+                    expected_lora,
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=future',
+                [],
+            )
+
+        with freezegun.freeze_time('2015-06-01', tz_offset=2):
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=present',
+                [
+                    expected_ad,
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=past',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/mo/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/role-types/it/?validity=future',
+                [
+                    expected_lora,
+                ],
+            )
+
+        self.assertRequestResponse(
+            '/mo/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/role-types/it/',
+            [],
+        )
+
+        expected_list = [
+            {
+                'name': 'Active Directory',
+                'userKey': 'AD',
+                'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+            },
+            {
+                'name': 'Lokal Rammearkitektur',
+                'userKey': 'LoRa',
+                'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+            },
+        ]
+
+        for url in (
+            '/mo/it/',
+            '/mo/it-system/',
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/',
+        ):
+            self.assertRequestResponse(
+                url,
+                expected_list,
+                message='list failed for ' + url
+            )
+
+        self.assertRequestResponse(
+            '/mo/o/00000000-0000-0000-0000-000000000000/it/',
+            [],
+            message='list not filtered for organisation!'
+        )
+
 
 class HistoryTest(util.LoRATestCase):
     '''Due to testing registration times, this test needs a clean database'''

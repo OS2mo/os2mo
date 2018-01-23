@@ -29,8 +29,6 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
   .btn-workflow {
-    // background-color: #186847;
-    // color: white;
     display: block;
     height: 38px;
     margin-bottom: 4px;

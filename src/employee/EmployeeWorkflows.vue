@@ -7,7 +7,6 @@
       <button-workflow label="Flyt mange engagementer" icon="share-square-o" target="EmployeeMoveMany"/>
       <button-workflow label="Afslut medarbejder" icon="user-times" target="EmployeeEnd"/>
     </div>
-    <!-- Modal Component -->
     <employee-create/>
   </div>
 </template>

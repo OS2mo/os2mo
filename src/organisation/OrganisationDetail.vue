@@ -2,28 +2,28 @@
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">
-        <icon name="share-alt" /> Organisationer
+        <icon name="users" /> {{orgUnit.name}}
       </h4>
 
       <div class="row">
         <div class="mr-auto">
           <p class="card-text">
-            Enhed: {{orgUnit.name}} Enhedsnr.: {{orgUnit['user-key']}}
+            Enhedsnr.: {{orgUnit['user-key']}}
           </p>
         </div>
-        <div class="">
+        <div>
           <button class="btn btn-outline-primary">
             <icon name="edit" />
           </button>
-          <button class="btn btn-outline-primary" v-b-modal.viewUnit>
+          <!-- <button class="btn btn-outline-primary" v-b-modal.viewUnit>
             <icon name="eye" />
-          </button>
+          </button> -->
           <button class="btn btn-outline-primary" v-b-modal.theHistory>
             <icon name="book" />
           </button>
-          <b-modal id="viewUnit" size="lg" hide-footer title="Vis enhed">
+          <!-- <b-modal id="viewUnit" size="lg" hide-footer title="Vis enhed">
             <organisation-detail-view/>
-          </b-modal>
+          </b-modal> -->
           <b-modal id="theHistory" size="lg" hide-footer title="Historik">
             <the-history :unit-uuid="$route.params.uuid"/>
           </b-modal>
@@ -61,12 +61,12 @@
 
 <script>
   import Organisation from '../api/Organisation'
-  import OrganisationDetailView from './OrganisationDetailView.vue'
+  // import OrganisationDetailView from './OrganisationDetailView.vue'
   import TheHistory from '../components/TheHistory.vue'
 
   export default {
     components: {
-      OrganisationDetailView,
+      // OrganisationDetailView,
       TheHistory
     },
     data () {

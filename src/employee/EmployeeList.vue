@@ -19,7 +19,7 @@
           <router-link class="nav-link" :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }">
               {{employee.name}}
             </router-link></td>
-          <td>{{employee['user-key']}}</td>
+          <td>{{employee['user-key'] | CPRNumber}}</td>
           <td>{{employee['nick-name']}}</td>
         </tr>
       </tbody>
@@ -31,6 +31,7 @@
 
 <script>
   import Employee from '../api/Employee'
+  import '../filters/CPRNumber'
 
   export default {
     components: {},
