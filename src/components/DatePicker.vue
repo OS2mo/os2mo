@@ -15,7 +15,7 @@
         />
         <span class="input-group-addon" @click="$refs.date.native.focus()">
           <icon name="calendar"/>
-          </span>
+        </span>
       </div>
       <!-- <span 
         v-show="errors.has('date')" 

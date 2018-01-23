@@ -8,7 +8,7 @@
         :get-label="getLabel" 
         :component-item="template" 
         @update-items="getGeographicalLocation"
-        @blur="addressSuggestions=[]"
+        @untouched="addressSuggestions=[]"
         @input="updateAddress"
         v-validate="{ required: true }"
       />
@@ -37,7 +37,7 @@
 
   export default {
     components: {
-      VAutocomplete,
+      VAutocomplete
     },
     props: {
       /**
