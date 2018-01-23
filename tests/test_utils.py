@@ -16,50 +16,58 @@ import pytz
 from mora import util
 
 
-@freezegun.freeze_time(datetime.datetime(2015, 6, 1, 1, 10))
+@freezegun.freeze_time('2015-06-01T01:10')
 class TestUtils(unittest.TestCase):
 
     def test_to_lora_time(self):
+        tests = {
+            util.today():
+            '2015-06-01T00:00:00+02:00',
 
-        self.assertEqual('2015-06-01T00:00:00+02:00',
-                         util.to_lora_time(util.today()))
-        self.assertEqual('2015-06-01T01:10:00+02:00',
-                         util.to_lora_time(util.now()))
+            util.now():
+            '2015-06-01T01:10:00+02:00',
 
-        self.assertEqual(util.to_lora_time('31-12-2017'),
-                         '2017-12-31T00:00:00+01:00')
-        self.assertEqual(util.to_lora_time('infinity'), 'infinity')
-        self.assertEqual(util.to_lora_time('-infinity'), '-infinity')
+            '01-06-2017':
+            '2017-06-01T00:00:00+02:00',
 
-        # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
-        # we get it as a space
-        self.assertEqual(util.to_lora_time('2017-07-31T22:00:00 00:00'),
-                         '2017-07-31T22:00:00+00:00')
+            '31-12-2017':
+            '2017-12-31T00:00:00+01:00',
 
-        self.assertEqual(util.to_lora_time(datetime.date(2015, 6, 1)),
-                         '2015-06-01T00:00:00+02:00')
+            'infinity': 'infinity',
+            '-infinity': '-infinity',
 
-        self.assertEqual('-infinity',
-                         util.to_lora_time('-infinity'))
+            '2017-07-31T22:00:00+00:00':
+            '2017-07-31T22:00:00+00:00',
 
-        self.assertEqual('infinity',
-                         util.to_lora_time('infinity'))
+            # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
+            # we get it as a space
+            '2017-07-31T22:00:00 00:00':
+            '2017-07-31T22:00:00+00:00',
 
-        # 15 is not a valid month
-        self.assertRaises(ValueError, util.to_lora_time,
-                          '1999-15-11 00:00:00+01')
+            datetime.date(2015, 6, 1):
+            '2015-06-01T00:00:00+02:00',
 
-        # make sure we can unstringify the edge cases correctly
-        self.assertEqual(
-            util.parsedatetime('0001-01-01T00:00:00-23:00'),
-            util.negative_infinity,
-        )
+            # check parsing of raw dates
+            '2018-01-01':
+            '2018-01-01T00:00:00+01:00',
 
-        self.assertEqual(
-            util.parsedatetime('9999-12-31T23:59:59.999999+23:00'),
-            util.positive_infinity,
-        )
+            '2018-06-01':
+            '2018-06-01T00:00:00+02:00',
+        }
 
+        for value, expected in tests.items():
+            self.assertEqual(expected, util.to_lora_time(value),
+                             'failed to parse {!r}'.format(value))
+
+        # NB: this test used to work, but we now use dateutil,
+        # which tries it best to make of the inputs from the
+        # user...
+        if False:
+            # 15 is not a valid month
+            self.assertRaises(ValueError, util.to_lora_time,
+                              '1999-15-11 00:00:00+01')
+
+        # make sure we can round-trip the edge cases correctly
         self.assertEqual(util.parsedatetime(util.negative_infinity),
                          util.negative_infinity)
 

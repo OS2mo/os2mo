@@ -380,7 +380,7 @@ class IntegrationTests(util.LoRATestCase):
                         'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                     },
                     'name': 'Kontor',
