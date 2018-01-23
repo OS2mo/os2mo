@@ -15,8 +15,8 @@ import flask
 import iso8601
 import werkzeug
 
-from mora.converters import reading, writing
-from . import lora, util
+from ..converters import reading, writing
+from .. import lora, util
 
 blueprint = flask.Blueprint('service', __name__, static_url_path='',
                             url_prefix='/service')
