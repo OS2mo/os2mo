@@ -6,6 +6,7 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
+  
     <div>
       <h4>Engagement</h4>
       <date-start-end v-model="dateStartEnd"/>
