@@ -1,5 +1,5 @@
 <template>
-    <b-modal 
+  <b-modal 
     id="employeeCreate" 
     size="lg" 
     hide-footer 
@@ -8,14 +8,14 @@
   >
     <div>
       <h4>Engagement</h4>
-      <date-start-end/>
-      
+      <date-start-end v-model="dateStartEnd"/>
       <div class="form-row">
-        <organisation-unit-picker class="col"/>
-
-        <engagement-title/>
-
-        <engagement-type/>
+        <organisation-unit-picker 
+          class="col" 
+          label="Vælg enhed"
+          v-model="orgUnit"/>
+        <engagement-title v-model="engagement.jobtitle"/>
+        <engagement-type v-model="engagement.type"/>
       </div>
       
       <div class="form-row">
@@ -63,9 +63,9 @@
           </select>
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div>
+    <!-- <div>
       <h4>IT</h4>
       <date-start-end/>
 
@@ -77,16 +77,16 @@
           </select>
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div>
+    <!-- <div>
       <h4>Kontakt</h4>
       <date-start-end/>
 
       <contact-channel/>     
-    </div>
+    </div> -->
 
-    <div>
+    <!-- <div>
       <h4>Leder</h4>
       <date-start-end/>
 
@@ -141,13 +141,14 @@
     </div> -->
 
     <div class="float-right">
-      <button-submit/>
+      <button-submit @click.native="createEngagement()"/>
     </div>
-    </b-modal>
+  </b-modal>
 
 </template>
 
 <script>
+  import Employee from '../api/Employee'
   import DateStartEnd from '../components/DatePickerStartEnd'
   import AddressSearch from '../components/AddressSearch'
   import ContactChannel from '../components/ContactChannelInput'
@@ -169,10 +170,35 @@
       ButtonSubmit
     },
     data () {
-      return {}
+      return {
+        orgUnit: {},
+        dateStartEnd: {},
+        engagement: {
+          validfrom: '',
+          validto: '',
+          orgunit: '',
+          org: '',
+          type: '',
+          jobtitle: ''
+        }
+      }
     },
     created: function () {},
-    methods: {}
+    methods: {
+      createNewEmployee () {
+      },
+
+      createEngagement () {
+        this.engagement.orgunit = this.orgUnit.uuid
+        this.engagement.org = this.orgUnit.org
+        this.engagement.validfrom = this.dateStartEnd.startDate
+        this.engagement.validto = this.dateStartEnd.endDate
+
+        let uuid = '1f67e646-0306-43c1-aba7-86af8c1c6b14'
+
+        Employee.createEngagement(uuid, this.engagement)
+      }
+    }
   }
 </script>
 

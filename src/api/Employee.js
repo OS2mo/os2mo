@@ -80,5 +80,18 @@ export default {
     .then(response => {
       return response.data
     })
+  },
+
+  /**
+   * Create a new engagement for an employee
+   * @param {String} uuid - Employee uuid
+   * @param {Object} engagement - New engagement
+   */
+  createEngagement (uuid, engagement) {
+    return HTTP.post(`/e/${uuid}/roles/engagement`, engagement)
+    .then(response => {
+      console.log(response)
+      return response
+    })
   }
 }
