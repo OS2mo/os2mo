@@ -1,6 +1,12 @@
 <template>
+<b-modal 
+    id="employeeEnd" 
+    size="lg" 
+    hide-footer 
+    title="Afslut medarbejder"
+    ref="employeeEnd"
+  >
   <div class="col">
-      <h1>{{ msg }}</h1>
       <div class="form-row">
         <date-picker label="Slutdato"/>
       </div>
@@ -8,6 +14,7 @@
         <button-submit/>
       </div>
   </div>
+</b-modal>
 </template>
 
 <script>
@@ -21,7 +28,6 @@
     },
     data () {
       return {
-        msg: 'Afslut medarbejder'
       }
     },
     created: function () {},

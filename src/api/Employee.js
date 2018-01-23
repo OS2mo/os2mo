@@ -69,11 +69,11 @@ export default {
 
   /**
    * Create a new employee
-   * @param {Object} uuid - new Employee uuid
+   * @param {Object} engagement - new Employee uuid
    * @returns {Object} employee uuid
    */
-  createEmployee (uuid) {
-    return Service.post(`/e/${uuid}/create`, uuid)
+  createEmployee (uuid, engagement) {
+    return Service.post(`/e/${uuid}/create`, engagement)
     .then(response => {
       return response.data
     })
