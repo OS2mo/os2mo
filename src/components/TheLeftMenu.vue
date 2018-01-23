@@ -6,7 +6,7 @@
         Overblik
       </h4>
       <organisation-picker />
-      <tree-view v-model="selectedOrgUnit" :orgUuid="org.uuid" link-able/>
+      <tree-view v-model="selectedOrgUnit" :orgUuid="org.uuid" linkable/>
     </div>
   </div>
 </template>

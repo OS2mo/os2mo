@@ -1,4 +1,4 @@
-import {HTTP} from './HttpCommon'
+import { HTTP, Service} from './HttpCommon'
 
 export default {
 
@@ -8,7 +8,7 @@ export default {
    * @returns {Object} organisation unit object
    */
   getOrganisationUnit (uuid) {
-    return HTTP.get(`/ou/${uuid}`)
+    return Service.get(`/ou/${uuid}`)
     .then(response => {
       return response.data
     })
@@ -22,8 +22,8 @@ export default {
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getOrganisationUnitChildren (uuid) {
-    return HTTP.get(`/ou/${uuid}/children`)
+  getChildren (uuid) {
+    return Service.get(`/ou/${uuid}/children`)
     .then(response => {
       return response.data
     })

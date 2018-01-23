@@ -1,44 +1,46 @@
 <template>
   <div>
-    <ul v-if="tree">
-      <item
+    <ul>
+      <tree-item
+      v-for="c in children"
+      v-bind:key="c.uuid"
       v-model="selectedOrgUnit"
-      :model="tree"
-      :link-able="linkAble"
-      firstOpen
+      :model="c"
+      :linkable="linkable"
+      first-open
       />
     </ul>
-    <loading v-show="!tree"/>
+    <loading v-show="!children"/>
   </div>
 </template>
 
 <script>
   import Organisation from '../api/Organisation'
-  import Item from './TreeviewItem'
+  import TreeItem from './TreeviewItem'
   import Loading from './Loading'
 
   export default {
     components: {
-      Item,
+      TreeItem,
       Loading
     },
     props: {
       value: Object,
       orgUuid: String,
-      linkAble: {
+      linkable: {
         type: Boolean,
         default: false
       }
     },
     data () {
       return {
-        tree: null,
+        children: null,
         selectedOrgUnit: {}
       }
     },
     watch: {
       orgUuid (newVal, oldVal) {
-        this.tree = null
+        this.children = null
         this.getTree(newVal)
       },
 
@@ -53,12 +55,12 @@
       getTree (uuid) {
         var vm = this
         if (!uuid) {
-          vm.tree = {}
+          vm.children = {}
           return
         }
-        Organisation.getFullHierachy(uuid)
+        Organisation.getChildren(uuid)
         .then(response => {
-          vm.tree = response.hierarchy
+          vm.children = response
         })
       }
     }

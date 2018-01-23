@@ -1,4 +1,4 @@
-import { HTTP } from './HttpCommon'
+import { HTTP, Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 let selectedOrganisation = ''
@@ -11,7 +11,32 @@ export default {
    * @returns {Array} List of all organisations
    */
   getAll () {
-    return HTTP.get('/o/')
+    return Service.get('/o')
+      .then(response => {
+        return response.data
+      })
+  },
+
+  /**
+   * Get an organisation
+   * @param {String} OrgUuid - Uuid for the organisation to get
+   * @returns {Object} an organisation object
+   */
+  getOrganisation (orgUuid) {
+    let vm = this
+    Service.get('/o/' + orgUuid)
+      .then(response => {
+        vm.setSelectedOrganisation(response.data)
+      })
+  },
+
+    /**
+   * Get the children of an organisation
+   * @param {String} orgUuid - Uuid for current organisation
+   * @returns {Array} List of organisation units within the organisation
+   */
+  getChildren (orgUuid) {
+    return Service.get(`/o/${orgUuid}/children`)
       .then(response => {
         return response.data
       })
@@ -27,18 +52,14 @@ export default {
   },
 
   /**
-   * Get an organisation
-   * @param {String} OrgUuid - Uuid for the organisation to get
+   * Get the selected organisation
    * @returns {Object} an organisation object
    */
-  getOrganisation (orgUuid) {
-    let vm = this
-    HTTP.get('/o/' + orgUuid)
-      .then(response => {
-        vm.setSelectedOrganisation(response.data)
-      })
+  getSelectedOrganisation () {
+    return selectedOrganisation
   },
 
+  /** REFACTOR FROM HERE, THIS SHOULD BE ORGANISATION UNIT */
   /**
    * Get an orgaisation unit
    * @param {String} unitUuid - Uuid for the organisation unit
@@ -57,14 +78,6 @@ export default {
 
       return response.data[0]
     })
-  },
-
-  /**
-   * Get the selected organisation
-   * @returns {Object} an organisation object
-   */
-  getSelectedOrganisation () {
-    return selectedOrganisation
   },
 
   /**
