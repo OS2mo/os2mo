@@ -1,4 +1,4 @@
-import {HTTP} from './HttpCommon'
+import {HTTP, Service} from './HttpCommon'
 
 export default {
 
@@ -65,6 +65,18 @@ export default {
    */
   getItDetails (uuid) {
     return this.getDetails(uuid, 'it')
+  },
+
+  /**
+   * Create a new employee
+   * @param {Object} uuid - new Employee uuid
+   * @returns {Object} employee uuid
+   */
+  createEmployee (uuid) {
+    return Service.post(`/e/${uuid}/create`, uuid)
+    .then(response => {
+      return response.data
+    })
   },
 
   /**

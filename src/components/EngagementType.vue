@@ -38,10 +38,6 @@ export default {
     this.getEngagementTypes()
   },
   methods: {
-    /**
-     * Get engagement types
-     * @private
-     */
     getEngagementTypes: function () {
       var vm = this
       Property.getEngagementTypes()

@@ -8,14 +8,16 @@
   >
     <div>
       <h4>Engagement</h4>
-      <date-start-end/>
+      <date-start-end v-model="dateStartEnd"/>
       
       <div class="form-row">
-        <organisation-unit-picker class="col"/>
+        <organisation-unit-picker class="col" v-model="superUnit"/>
 
-        <engagement-title/>
+        <engagement-title v-model="jobTitle"/>
 
-        <engagement-type/>
+        <engagement-type v-model="engagementType"/>
+
+        {{engagementType}}
       </div>
       
       <div class="form-row">
@@ -27,127 +29,15 @@
       </div>
     </div>
 
-    <!-- <div>
-      <h4>Tilknytning</h4>
-      <date-start-end/>
-
-      <div class="form-row">
-        <organisation-unit-picker class="col"/>
-
-        <div class="form-group col">
-          <label>Stillingsbetegnelse</label>
-          <select class="form-control col" id="" >
-            <option>Stillingsbetegnelse</option>
-          </select>
-        </div>
-
-        <div class="form-group col">
-          <label>Fysisk placering</label>
-          <select class="form-control col" id="" disabled>
-            <option>Fysisk placering</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group col">
-          <label>Tilknytningstype</label>
-          <select class="form-control col" id="" >
-            <option>Tilknytningstype</option>
-          </select>
-        </div>
-        <div class="form-group col">
-          <label>Relateret engagement</label>
-          <select class="form-control col" id="" >
-            <option>Relateret engagement</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <h4>IT</h4>
-      <date-start-end/>
-
-      <div class="form-row">
-        <div class="form-group col">
-          <label>IT system</label>
-          <select class="form-control col" id="" >
-            <option>IT system</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <h4>Kontakt</h4>
-      <date-start-end/>
-
-      <contact-channel/>     
-    </div>
-
-    <div>
-      <h4>Leder</h4>
-      <date-start-end/>
-
-      <div class="form-row">
-        <organisation-unit-picker class="col"/>
-
-        <div class="form-group col">
-          <label>Stillingsbetegnelse</label>
-          <select class="form-control col" id="" >
-            <option>Stillingsbetegnelse</option>
-          </select>
-        </div>
-
-        <div class="form-group col">
-          <label>Lederfunktion</label>
-          <select class="form-control col" id="">
-            <option>Lederfunktion</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group col">
-          <label>Lederniveau</label>
-          <select class="form-control col" id="" >
-            <option>Lederniveau</option>
-          </select>
-        </div>
-
-        <div class="form-group col">
-          <label>Lederansvar</label>
-          <select class="form-control col" id="" >
-            <option>Lederansvar</option>
-          </select>
-        </div>
-
-        <div class="form-group col">
-          <label>Tilknyttet adresse</label>
-          <select class="form-control col" id="" disabled>
-            <option>Tilknyttet adresse</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col">
-          <label>Relateret engagement</label>
-          <select class="form-control col" id="" >
-            <option>Relateret engagement</option>
-          </select>
-        </div>
-      </div>
-    </div> -->
-
     <div class="float-right">
-      <button-submit/>
+      <button-submit @click.native="createEmployee"/>
     </div>
     </b-modal>
 
 </template>
 
 <script>
+  import Employee from '../api/Employee'
   import DateStartEnd from '../components/DatePickerStartEnd'
   import AddressSearch from '../components/AddressSearch'
   import ContactChannel from '../components/ContactChannelInput'
@@ -169,10 +59,36 @@
       ButtonSubmit
     },
     data () {
-      return {}
+      return {
+        dateStartEnd: {},
+        superUnit: {},
+        type: '',
+        engagement: {},
+        org_unit_uuid: '',
+        org_uuid: '',
+        jobTitle: '',
+        engagementType: '',
+        parent: '',
+        'valid-to': '',
+        'valid-from': ''
+      }
     },
     created: function () {},
-    methods: {}
+    methods: {
+      createEmployee () {
+        this.engagement.org_uuid = this.superUnit.org
+        this.engagement.org_unit_uuid = this.superUnit.uuid
+        this.engagement.engagement_type_uuid = this.engagementType
+        this.engagement.job_title_uuid = this.jobTitle
+
+        let vm = this
+        Employee.createEmployee(this.engagement)
+        .then(response => {
+          vm.$refs.employeeCreate.hide()
+          console.log(response)
+        })
+      }
+    }
   }
 </script>
 
