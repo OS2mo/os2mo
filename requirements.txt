@@ -11,3 +11,4 @@ recommonmark>=0.4.0
 grequests~=0.3.0
 openpyxl>=2.4.7
 gevent~=1.2.2
+python-dateutil>=2.6.1
