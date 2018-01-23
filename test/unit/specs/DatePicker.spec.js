@@ -9,13 +9,13 @@ describe('DatePicker.vue', () => {
     Constructor = Vue.extend(DatePicker)
   })
 
-  it('should render its default label', () => {
+  xit('should render its default label', () => {
     const vm = new Constructor().$mount()
     expect(vm.$el.querySelector('label#date-label').textContent)
     .to.equal('Dato')
   })
 
-  it('should render a custom label', () => {
+  xit('should render a custom label', () => {
     let customLabel = 'Custom Label'
 
     const vm = new Constructor({

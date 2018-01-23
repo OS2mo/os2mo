@@ -5,14 +5,11 @@ import BootstrapVue from 'bootstrap-vue'
 import App from './App'
 import router from './router'
 import VueI18n from 'vue-i18n'
-import VeeValidate from 'vee-validate'
+import VeeValidate, { Validator } from 'vee-validate'
+import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
-
-// import 'bootstrap/dist/css/bootstrap.css'
-// import 'bootstrap-vue/dist/bootstrap-vue.css'
-// import './assets/css/global.css'
 
 require('../node_modules/bootstrap/dist/css/bootstrap.css')
 require('../node_modules/bootstrap-vue/dist/bootstrap-vue')
@@ -24,9 +21,10 @@ require('moment/locale/da')
 Vue.config.productionTip = false
 
 const veeConfig = {
-  delay: 200,
-  locale: 'da'
+  delay: 200
 }
+
+Validator.localize('da', messagesDA)
 
 Vue.use(BootstrapVue)
 Vue.use(VueI18n)

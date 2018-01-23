@@ -1,14 +1,14 @@
 <template>
     <div class="form-row">
       <div class="form-group col">
-        <label for="">Kontaktkanal</label>
+        <label :for="'contactchannel' + _uid">Kontaktkanal</label>
         <select 
-          class="form-control" 
-          id="" 
+          class="form-control"
+          :id="'contactchannel' + _uid"
           v-model="channel.type"
           @change="updateContactChannel()"
           required>
-          <option disabled value="">Vælg kontaktkanal</option>
+          <option disabled value="Vælg kontaktkanal">Vælg kontaktkanal</option>
           <option 
             v-for="channel in contactChannels" 
             :key="channel.uuid"
@@ -19,38 +19,19 @@
       </div>
 
       <div class="form-group col">
-        <label for="">Telefonnr</label>
+        <label :for="'phoneno' + _uid">Telefonnr.</label>
         <input 
           type="text" 
+          :id="'phoneno' + _uid"
           class="form-control"
           name="phone" 
-          placeholder=""
+          data-vv-as="Telefonnr."
           v-model="channel['contact-info']"
           @input="updateContactChannel()"
           v-validate="{ required: true, digits: 8}" 
         >
         <span v-show="errors.has('phone')" class="text-danger">{{ errors.first('phone') }}</span>
       </div>
-
-      <!-- <div class="form-group col">
-        <label for="">Egenskaber</label>
-        <select 
-          class="form-control" 
-          id="" 
-          v-model="channel.visibility"
-          @change="updateContactChannel()"
-          required>
-          <option 
-            disabled 
-            value="">Vælg egenskaber</option>
-          <option
-            v-for="property in contactChannelProperties" 
-            :key="property.uuid"
-            :value="property">
-            {{property.name}}
-          </option>
-        </select>
-      </div> -->
     </div>
 </template>
 

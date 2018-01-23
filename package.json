@@ -32,7 +32,8 @@
     "vue-bootstrap-datetimepicker": "^4.1.0",
     "vue-i18n": "^7.3.2",
     "vue-moment": "^3.1.0",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vuejs-datepicker": "^0.9.24"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

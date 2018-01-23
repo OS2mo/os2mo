@@ -13,11 +13,10 @@
         <label for="">Navn</label>
         <input 
           name="name"
+          data-vv-as="Navn"
           v-model="orgUnit.name" 
           type="text" 
           class="form-control" 
-          id="" 
-          placeholder=""
           v-validate="{ required: true }" 
         >
         <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
@@ -29,8 +28,8 @@
     <organisation-unit-picker v-model="superUnit"/>
 
     <address-search 
-    v-model="orgUnit.locations[0]"
-    :orgUuid="org.uuid"
+      v-model="orgUnit.locations[0]"
+      :orgUuid="org.uuid"
     />
     
     <component 

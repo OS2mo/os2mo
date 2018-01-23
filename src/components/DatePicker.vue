@@ -1,74 +1,70 @@
 <template>
     <div class="form-group col">
-      <label id="date-label" for="date-picker">{{label}}</label>
-      <div 
-        class="input-group" 
-        name="date-picker"
-      >
-        <date-time-picker 
-          name="date"
-          ref="date"
-          v-model="date" 
-          :config="config" 
-          @input="updateDate()"
-          v-validate="{ required: true }" 
-        />
-        <span class="input-group-addon" @click="$refs.date.native.focus()">
-          <icon name="calendar"/>
-        </span>
-      </div>
-      <!-- <span 
+      <label id="date-label" for="date">{{label}}</label>
+      <date-time-picker 
+        name="date"
+        :data-vv-as="label"
+        v-model="selectedDate" 
+        format="dd-MM-yyyy"
+        language="da" 
+        monday-first
+        bootstrapStyling
+        clear-button
+        :disabled="disabled"
+       
+        v-validate="{ 
+          date_format: 'dd-MM-yyyy', 
+          required: required 
+        }"
+      />
+
+      <span
         v-show="errors.has('date')" 
         class="text-danger"
       >
         {{ errors.first('date') }}
-      </span> -->
+      </span>
     </div>
 </template>
 
 <script>
 
-import DateTimePicker from 'vue-bootstrap-datetimepicker'
-import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
+import DateTimePicker from 'vuejs-datepicker'
 
 export default {
   components: {
     DateTimePicker
   },
   props: {
-    value: String,
+    value: Date,
+    required: Boolean,
     label: {
       default: 'Dato',
       type: String
     },
-    minDate: {
+    disabledTo: {
       default: null,
-      type: String
+      type: Date
     }
   },
   data () {
     return {
-      date: '',
-      config: {
-        format: 'DD-MM-YYYY',
-        useCurrent: true,
-        locale: 'da'
+      selectedDate: null,
+      disabled: {
+        to: null,
+        from: null
       }
     }
   },
-  beforeUpdate () {
-    this.setMinDate()
+  watch: {
+    selectedDate (newVal, oldVal) {
+      this.$emit('input', new Date(newVal))
+    },
+    disabledTo (newVal, oldVal) {
+      this.disabled.to = new Date(newVal)
+    }
   },
   methods: {
-    setMinDate () {
-      if (this.minDate) {
-        this.config.minDate = this.minDate
-      }
-    },
-
-    updateDate () {
-      this.$emit('input', this.date)
-    }
   }
 }
 </script>
