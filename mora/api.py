@@ -119,7 +119,6 @@ def create_employee_role(employeeid, role=None):
 
     def handle_request(role_type, req):
         handlers = {
-            'engagement': writing.create_engagement,
             # 'association': create_association,
             # 'it': create_it,
             'contact': writing.create_contact,
