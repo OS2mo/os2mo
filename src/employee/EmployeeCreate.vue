@@ -1,6 +1,11 @@
 <template>
-  <div>
-    <h1>Ny medarbejder</h1>
+    <b-modal 
+    id="employeeCreate" 
+    size="lg" 
+    hide-footer 
+    title="Ny medarbejder"
+    ref="employeeCreate"
+  >
     <div>
       <h4>Engagement</h4>
       <date-start-end/>
@@ -22,7 +27,7 @@
       </div>
     </div>
 
-    <div>
+    <!-- <div>
       <h4>Tilknytning</h4>
       <date-start-end/>
 
@@ -133,12 +138,12 @@
           </select>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div class="float-right">
       <button-submit/>
     </div>
-  </div>
+    </b-modal>
 
 </template>
 
