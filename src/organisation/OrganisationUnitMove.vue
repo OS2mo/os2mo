@@ -63,7 +63,7 @@
     data () {
       return {
         unit: {},
-        date: '',
+        date: null,
         newSuperUnit: {},
         currentSuperUnit: {}
       }

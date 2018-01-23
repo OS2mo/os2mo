@@ -4,12 +4,14 @@
       class="col"
       label="Startdato"
       v-model="startDate"
+      required
       @input="updateDate()"
     />
 
     <date-picker 
       label="Slutdato"
       v-model="endDate"
+      :disabled-to="startDate"
       @input="updateDate()"
     />
   </div>
@@ -26,8 +28,8 @@
     props: ['value'],
     data () {
       return {
-        startDate: '',
-        endDate: ''
+        startDate: null,
+        endDate: null
       }
     },
     created: function () {},

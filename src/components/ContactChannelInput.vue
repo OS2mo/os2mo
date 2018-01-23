@@ -1,14 +1,14 @@
 <template>
     <div class="form-row">
       <div class="form-group col">
-        <label for="">Kontaktkanal</label>
+        <label :for="'contactchannel' + _uid">Kontaktkanal</label>
         <select 
-          class="form-control" 
-          id="" 
+          class="form-control"
+          :id="'contactchannel' + _uid"
           v-model="channel.type"
           @change="updateContactChannel()"
           required>
-          <option disabled value="">Vælg kontaktkanal</option>
+          <option disabled value="Vælg kontaktkanal">Vælg kontaktkanal</option>
           <option 
             v-for="channel in contactChannels" 
             :key="channel.uuid"
@@ -19,9 +19,10 @@
       </div>
 
       <div class="form-group col">
-        <label for="">Telefonnr.</label>
+        <label :for="'phoneno' + _uid">Telefonnr.</label>
         <input 
           type="text" 
+          :id="'phoneno' + _uid"
           class="form-control"
           name="phone" 
           data-vv-as="Telefonnr."
