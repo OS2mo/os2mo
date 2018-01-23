@@ -1,11 +1,16 @@
 <template>
   <div class="form-group col">
     <label>Engagementstype</label>
-    <select class="form-control col" id="">
-      <option>Engagementstype</option>
+    <select 
+      class="form-control col" 
+      v-model="selectedType"
+      @change="updateEngagementType()"
+    >
+      <option disabled>Engagementstype</option>
       <option 
         v-for="etype in engagementTypes" 
         v-bind:key="etype.uuid"
+        :value="etype.uuid"
       >
         {{etype.name}}
       </option>
@@ -15,22 +20,14 @@
 
 <script>
 import Property from '../api/Property'
-/**
- * Engagement Type Picker component
- */
+
 export default {
   props: {
-    /**
-     * @model
-     */
     value: String
   },
   data () {
     return {
-      /**
-       * The engagement types
-       * @private
-       */
+      selectedType: {},
       engagementTypes: []
     }
   },
@@ -38,16 +35,16 @@ export default {
     this.getEngagementTypes()
   },
   methods: {
-    /**
-     * Get engagement types
-     * @private
-     */
     getEngagementTypes: function () {
       var vm = this
       Property.getEngagementTypes()
       .then(response => {
         vm.engagementTypes = response
       })
+    },
+
+    updateEngagementType () {
+      this.$emit('input', this.selectedType)
     }
   }
 }

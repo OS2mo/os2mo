@@ -1,4 +1,4 @@
-import {HTTP} from './HttpCommon'
+import {HTTP, Service} from './HttpCommon'
 
 export default {
 
@@ -68,6 +68,18 @@ export default {
   },
 
   /**
+   * Create a new employee
+   * @param {Object} uuid - new Employee uuid
+   * @returns {Object} employee uuid
+   */
+  createEmployee (uuid) {
+    return Service.post(`/e/${uuid}/create`, uuid)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  /**
    * Base call for getting details about an employee.
    * @param {String} uuid - Employee uuid
    * @param {String} detail - Name of the detail to get
@@ -79,6 +91,19 @@ export default {
     return HTTP.get(`/e/${uuid}/role-types/${detail}/?validity=${validity}`)
     .then(response => {
       return response.data
+    })
+  },
+
+  /**
+   * Create a new engagement for an employee
+   * @param {String} uuid - Employee uuid
+   * @param {Object} engagement - New engagement
+   */
+  createEngagement (uuid, engagement) {
+    return HTTP.post(`/e/${uuid}/roles/engagement`, engagement)
+    .then(response => {
+      console.log(response)
+      return response
     })
   }
 }
