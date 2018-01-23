@@ -8,7 +8,7 @@
 
 import unittest
 
-from mora.service import create_engagement_payload
+from mora.service.engagement import create_engagement_payload
 
 
 class TestCreateRole(unittest.TestCase):

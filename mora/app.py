@@ -26,7 +26,9 @@ app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 cli.load_cli(app)
 app.register_blueprint(api.blueprint)
 app.register_blueprint(auth.blueprint)
-app.register_blueprint(service.blueprint)
+
+for blueprint in service.blueprints:
+    app.register_blueprint(blueprint)
 
 
 @app.errorhandler(Exception)
