@@ -92,7 +92,7 @@ def get_employee_by_cpr(cpr_number):
     elif len(ids) > 1:
         return flask.jsonify({
             'message': 'multiple users found',
-        }), 404
+        }), 409
 
     return flask.jsonify(reading.get_employees(ids)[0])
 
