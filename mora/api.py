@@ -6,6 +6,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+'''
+Legacy service layer
+--------------------
+
+This is the legacy service API retained for compatibility with the
+original UI.
+
+'''
+
+
 import os
 
 import flask

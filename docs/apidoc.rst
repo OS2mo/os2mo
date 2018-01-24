@@ -12,15 +12,3 @@ det sprog anvendes i al koden.
    blueprints/*
    backend
    api.md
-
-.. qrefflask:: mora.app:app
-   :undoc-blueprints: api
-   :undoc-static:
-   :order: path
-
-.. Indices and tables
-   ==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`
