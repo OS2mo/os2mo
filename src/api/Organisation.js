@@ -2,7 +2,6 @@ import { HTTP, Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 let selectedOrganisation = ''
-let selectedOrgUnit = ''
 
 export default {
 
@@ -11,7 +10,7 @@ export default {
    * @returns {Array} List of all organisations
    */
   getAll () {
-    return Service.get('/o')
+    return Service.get('/o/')
       .then(response => {
         return response.data
       })
@@ -49,6 +48,7 @@ export default {
   setSelectedOrganisation (org) {
     selectedOrganisation = org
     EventBus.$emit('organisation-changed', selectedOrganisation)
+    console.log('organisation-changed')
   },
 
   /**
@@ -59,48 +59,29 @@ export default {
     return selectedOrganisation
   },
 
+  /** **************************************************** */
   /** REFACTOR FROM HERE, THIS SHOULD BE ORGANISATION UNIT */
+  /** **************************************************** */
+
   /**
    * Get an orgaisation unit
    * @param {String} unitUuid - Uuid for the organisation unit
    * @returns {Object} an organisation unit object
    */
-  getOrganisationUnit (unitUuid) {
-    let vm = this
-    return HTTP.get(`/org-unit/${unitUuid}`)
-    .then(response => {
-      selectedOrgUnit = response.data[0]
-      EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
+  // getOrganisationUnit (unitUuid) {
+  //   let vm = this
+  //   return HTTP.get(`/org-unit/${unitUuid}`)
+  //   .then(response => {
+  //     selectedOrgUnit = response.data[0]
+  //     EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
 
-      if (selectedOrganisation === '') {
-        vm.getOrganisation(selectedOrgUnit.org)
-      }
+  //     if (selectedOrganisation === '') {
+  //       vm.getOrganisation(selectedOrgUnit.org)
+  //     }
 
-      return response.data[0]
-    })
-  },
-
-  /**
-   * Get the selected organisation unit
-   * @returns {Object} an organisation unit object
-   */
-  getSelectedOrganisationUnit () {
-    return selectedOrgUnit
-  },
-
-  /**
-   * Get the hierachy of an organisation
-   * @param {String} orgUuid - Uuid for current organisation
-   * @returns {Array} List of organisation units within the organisation
-   */
-  getFullHierachy (orgUuid, unitUuid) {
-    unitUuid = unitUuid || ''
-    let append = unitUuid ? 'treeType=specific&orgUnitId=' + unitUuid : ''
-    return HTTP.get(`/o/${orgUuid}/full-hierarchy?${append}`)
-      .then(response => {
-        return response.data
-      })
-  },
+  //     return response.data[0]
+  //   })
+  // },
 
   /**
    * Get organisation unit details
@@ -127,35 +108,11 @@ export default {
   },
 
   /**
-   * Get leader details
-   * @see getDetail
-   */
-  getLeaderDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'leader', validity)
-  },
-
-  /**
    * Get engagement details
    * @see getDetail
    */
   getEngagementDetails (unitUuid, validity) {
     return this.getDetail(unitUuid, 'engagement', validity)
-  },
-
-  /**
-   * Get associaion details
-   * @see getDetail
-   */
-  getAssociationDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'association', validity)
-  },
-
-  /**
-   * Get job function details
-   * @see getDetail
-   */
-  getJobFunctionDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'job-function', validity)
   },
 
   /**
@@ -188,68 +145,6 @@ export default {
   getHistory (unitUuid) {
     return HTTP.get(`/org-unit/${unitUuid}/history/`)
     .then(response => {
-      return response.data
-    })
-  },
-
-  /**
-   * Create a new organisation unit
-   * @param {Object} orgUnit - new organisation unit
-   * @returns {Object} organisation unit uuid
-   */
-  createOrganisationUnit (orgUnit) {
-    return HTTP.post('/org-unit', orgUnit)
-    .then(response => {
-      EventBus.$emit('org-unit-create', response.data)
-      return response.data
-    })
-  },
-
-  /**
-   * Rename an organisation unit
-   * @param {Object} orgUnit - organisation unit to rename
-   * @param {String} newName - new name of the organisation unit
-   * @returns {Object} organisation unit uuid
-   */
-  renameOrganisationUnit (orgUnit, newName) {
-    orgUnit.name = newName
-    return HTTP.post(`/org-unit/${orgUnit.uuid}?rename=true`, orgUnit)
-    .then(response => {
-      EventBus.$emit('org-unit-rename', response.data)
-      return response.data
-    })
-  },
-
-  /**
-   * Move an organisation unit
-   * @param {Object} orgUnit - organisation unit to move
-   * @param {String} toUuid - uuid for the new parent organisation unit
-   * @param {String} date - the move date
-   * @returns {Object} organisation unit uuid
-   */
-  moveOrganisationUnit (orgUnit, toUuid, date) {
-    var obj = {
-      'moveDate': date,
-      'newParentOrgUnitUUID': toUuid
-    }
-
-    return HTTP.post(`/org-unit/${orgUnit.uuid}/actions/move`, obj)
-    .then(response => {
-      EventBus.$emit('org-unit-move', response.data)
-      return response.data
-    })
-  },
-
-  /**
-   * End an organisation
-   * @param {Object} orgUnit - the organisation unit to end
-   * @param {String} endDate - the date on which the organisation unit shall end
-   * @returns {Object} organisation unit uuid
-   */
-  endOrganisationUnit (orgUnit, endDate) {
-    return HTTP.delete(`/org-unit/${orgUnit.uuid}?endDate=${endDate}`)
-    .then(response => {
-      EventBus.$emit('org-unit-end-date', response.data)
       return response.data
     })
   }

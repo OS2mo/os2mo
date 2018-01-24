@@ -30,7 +30,6 @@ export default {
   },
   created () {
     this.getAll()
-    this.getSelectedOrganisation()
   },
   mounted () {
     EventBus.$on('organisation-changed', newOrg => {
@@ -45,12 +44,8 @@ export default {
       .then(response => {
         vm.orgs = response
         vm.selectedOrganisation = response[0]
-        EventBus.$emit('organisation-changed', response[0])
+        vm.setSelectedOrganisation(vm.selectedOrganisation)
       })
-    },
-
-    getSelectedOrganisation () {
-      this.selectedOrganisation = Organisation.getSelectedOrganisation()
     },
 
     setSelectedOrganisation (selOrg) {

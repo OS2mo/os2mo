@@ -60,6 +60,7 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
   import DatePicker from '../components/DatePicker'
   import DatePickerStartEnd from '../components/DatePickerStartEnd'
@@ -136,7 +137,7 @@
         this.orgUnit.locations[0]['contact-channels'] = this.contactChannels
 
         let vm = this
-        Organisation.createOrganisationUnit(this.orgUnit)
+        OrganisationUnit.create(this.orgUnit)
         .then(response => {
           vm.$refs.orgUnitCreate.hide()
           console.log(response)

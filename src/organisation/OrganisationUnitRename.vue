@@ -46,7 +46,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
   import DatePickerStartEnd from '../components/DatePickerStartEnd'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
@@ -79,7 +79,7 @@
     methods: {
       renameOrganisationUnit () {
         let vm = this
-        Organisation.renameOrganisationUnit(this.orgUnit, this.newName)
+        OrganisationUnit.rename(this.orgUnit, this.newName)
         .then(response => {
           vm.$refs.orgUnitRename.hide()
         })

@@ -39,7 +39,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  // import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
 
@@ -69,7 +69,7 @@
     },
     computed: {
       hasChildren () {
-        return this.model.child_count > 0 ? true : false
+        return this.model.child_count > 0
       }
     },
     watch: {
@@ -78,7 +78,7 @@
       }
     },
     created () {
-      if(this.firstOpen) {
+      if (this.firstOpen) {
         this.loadChildren()
       }
       this.open = this.firstOpen
@@ -95,6 +95,7 @@
 
       loadChildren () {
         let vm = this
+        console.log('load children')
         OrganisationUnit.getChildren(vm.model.uuid)
         .then(response => {
           vm.model.children = response
