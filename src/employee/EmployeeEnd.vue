@@ -38,7 +38,7 @@
       endEmployee () {
         let vm = this
         let terminate = {
-          valid_from: '2018-10-25T18:14:20Z'
+          valid_from: this.endDate
         }
         Employee.endEmployee(this.$route.params.uuid, terminate)
         .then(response => {
