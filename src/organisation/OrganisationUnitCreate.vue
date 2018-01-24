@@ -125,10 +125,6 @@
         this.channels.push('ContactChannel')
       },
 
-      getOrganisation () {
-        Organisation.getOrganisation()
-      },
-
       createOrganisationUnit () {
         this.orgUnit.org = this.superUnit.org
         this.orgUnit.parent = this.superUnit.uuid

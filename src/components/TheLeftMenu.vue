@@ -28,16 +28,8 @@
         org: {}
       }
     },
-    watch: {
-      selectedOrgUnit (newVal, oldVal) {
-        // this.$router.push({
-        //   name: 'OrganisationDetail',
-        //   params: { uuid: newVal.uuid }
-        // })
-      }
-    },
     created () {
-      this.getSelectedOrganisation()
+      this.org = Organisation.getSelectedOrganisation()
     },
     mounted () {
       EventBus.$on('organisation-changed', newOrg => {
@@ -45,9 +37,6 @@
       })
     },
     methods: {
-      getSelectedOrganisation () {
-        this.org = Organisation.getSelectedOrganisation()
-      }
     }
   }
 </script>

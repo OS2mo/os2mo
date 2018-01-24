@@ -1,4 +1,4 @@
-import { HTTP, Service } from './HttpCommon'
+import { Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 let selectedOrganisation = ''
@@ -21,21 +21,20 @@ export default {
    * @param {String} OrgUuid - Uuid for the organisation to get
    * @returns {Object} an organisation object
    */
-  getOrganisation (orgUuid) {
-    let vm = this
-    Service.get('/o/' + orgUuid)
+  get (uuid) {
+    Service.get('/o/' + uuid)
       .then(response => {
-        vm.setSelectedOrganisation(response.data)
+        return response.data
       })
   },
 
     /**
    * Get the children of an organisation
-   * @param {String} orgUuid - Uuid for current organisation
+   * @param {String} uuid - Uuid for current organisation
    * @returns {Array} List of organisation units within the organisation
    */
-  getChildren (orgUuid) {
-    return Service.get(`/o/${orgUuid}/children`)
+  getChildren (uuid) {
+    return Service.get(`/o/${uuid}/children`)
       .then(response => {
         return response.data
       })
@@ -57,7 +56,7 @@ export default {
    */
   getSelectedOrganisation () {
     return selectedOrganisation
-  },
+  }
 
   /** **************************************************** */
   /** REFACTOR FROM HERE, THIS SHOULD BE ORGANISATION UNIT */
@@ -82,70 +81,4 @@ export default {
   //     return response.data[0]
   //   })
   // },
-
-  /**
-   * Get organisation unit details
-   * @see getDetail
-   */
-  getUnitDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'unit', validity)
-  },
-
-  /**
-   * Get location details
-   * @see getDetail
-   */
-  getLocationDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'location', validity)
-  },
-
-  /**
-   * Get contact channel details
-   * @see getDetail
-   */
-  getContactDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'contact-channel', validity)
-  },
-
-  /**
-   * Get engagement details
-   * @see getDetail
-   */
-  getEngagementDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'engagement', validity)
-  },
-
-  /**
-   * Base call for getting details.
-   * @todo Need a fix to the api so the current handling of detail is not needed
-   * @todo validity could maybe get a better name
-   * @todo maybe create an enum for validity
-   * @param {String} unitUuid - Uuid for the current organisation unit
-   * @param {String} detail - Name of the detail to get
-   * @param {String} validity - Can be 'past', 'present' or 'future'
-   * @returns {Array} A list of options for the specififed detail
-   */
-  getDetail (unitUuid, detail, validity) {
-    detail = detail === 'unit' ? '' : '/role-types/' + detail
-    validity = validity || 'present'
-    return HTTP.get(`/org-unit/${unitUuid}${detail}/?validity=${validity}`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
-  },
-
-  /**
-   * Get the history of all changes made to an organisation unit
-   * @param {String} unitUuid - Uuid for the current organisation unit
-   * @returns {Array} A list of historical events for the organisation unit
-   */
-  getHistory (unitUuid) {
-    return HTTP.get(`/org-unit/${unitUuid}/history/`)
-    .then(response => {
-      return response.data
-    })
-  }
 }

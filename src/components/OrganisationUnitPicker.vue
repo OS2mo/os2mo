@@ -69,7 +69,7 @@
       }
     },
     created () {
-      this.getSelectedOrganisation()
+      this.org = Organisation.getSelectedOrganisation()
     },
     mounted () {
       EventBus.$on('organisation-changed', newOrg => {
@@ -77,10 +77,6 @@
       })
     },
     methods: {
-      getSelectedOrganisation () {
-        this.org = Organisation.getSelectedOrganisation()
-      },
-
       show () {
         this.showTree = true
       },
