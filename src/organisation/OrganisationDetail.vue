@@ -8,7 +8,7 @@
       <div class="row">
         <div class="mr-auto">
           <p class="card-text">
-            Enhedsnr.: {{orgUnit['user-key']}}
+            Enhedsnr.: {{orgUnit.user_key}}
           </p>
         </div>
         <div>
@@ -60,13 +60,11 @@
 
 
 <script>
-  import Organisation from '../api/Organisation'
-  // import OrganisationDetailView from './OrganisationDetailView.vue'
-  import TheHistory from '../components/TheHistory.vue'
+  import OrganisationUnit from '../api/OrganisationUnit'
+  import TheHistory from '../components/TheHistory'
 
   export default {
     components: {
-      // OrganisationDetailView,
       TheHistory
     },
     data () {
@@ -74,14 +72,14 @@
         orgUnit: {}
       }
     },
-    created: function () {
+    created () {
       this.updateDetails()
     },
     methods: {
-      updateDetails: function () {
+      updateDetails () {
         var vm = this
-        Organisation.getOrganisationUnit(this.$route.params.uuid)
-        .then(function (response) {
+        OrganisationUnit.get(this.$route.params.uuid)
+        .then(response => {
           vm.orgUnit = response
         })
       }

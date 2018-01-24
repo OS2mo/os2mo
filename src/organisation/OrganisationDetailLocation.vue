@@ -43,7 +43,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from '../components/Loading'
 
   export default {
@@ -64,16 +64,16 @@
     methods: {
       getLocations: function () {
         var vm = this
-        Organisation.getLocationDetails(this.$route.params.uuid)
+        OrganisationUnit.getLocationDetails(this.$route.params.uuid)
         .then(response => {
           vm.locations = response
           vm.isLoading = false
         })
-        Organisation.getLocationDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getLocationDetails(this.$route.params.uuid, 'past')
         .then(response => {
           vm.locationsPast = response
         })
-        Organisation.getLocationDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getLocationDetails(this.$route.params.uuid, 'future')
         .then(response => {
           vm.locationsFuture = response
         })

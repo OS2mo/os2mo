@@ -27,7 +27,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
@@ -59,7 +59,7 @@
     methods: {
       endOrganisationUnit () {
         let vm = this
-        Organisation.endOrganisationUnit(this.orgUnit, this.endDate)
+        OrganisationUnit.terminate(this.orgUnit, this.endDate)
         .then(response => {
           vm.$refs.orgUnitEnd.hide()
         })

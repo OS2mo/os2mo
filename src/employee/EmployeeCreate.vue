@@ -60,6 +60,7 @@
     },
     data () {
       return {
+        orgUnit: {},
         dateStartEnd: {},
         orgUnit: {},
         engagement: {},
