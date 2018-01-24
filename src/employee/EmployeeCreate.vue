@@ -15,8 +15,9 @@
           class="col" 
           label="Vælg enhed"
           v-model="orgUnit"/>
-        <engagement-title v-model="engagement.jobtitle"/>
-        <engagement-type v-model="engagement.type"/>
+        <engagement-title v-model="engagement.job_title_uuid"/>
+        <engagement-type v-model="engagement.engagement_type_uuid"/>
+
       </div>
       
       <div class="form-row">
@@ -61,28 +62,25 @@
       return {
         orgUnit: {},
         dateStartEnd: {},
-        superUnit: {},
-        type: '',
+        orgUnit: {},
         engagement: {},
-        org_unit_uuid: '',
-        org_uuid: '',
         jobTitle: '',
-        engagementType: '',
-        parent: '',
-        'valid-to': '',
-        'valid-from': ''
+        engagementType: ''
       }
     },
     created: function () {},
     methods: {
       createEmployee () {
-        this.engagement.org_uuid = this.superUnit.org
-        this.engagement.org_unit_uuid = this.superUnit.uuid
-        this.engagement.engagement_type_uuid = this.engagementType
-        this.engagement.job_title_uuid = this.jobTitle
+        this.engagement.type = 'engagement'
+        this.engagement.org_uuid = this.orgUnit.org
+        this.engagement.org_unit_uuid = this.orgUnit.uuid
+        // this.engagement.valid_from = this.dateStartEnd.startDate
+        // this.engagement.valid_to = this.dateStartEnd.endDate
+        this.engagement.valid_from = '2018-01-01T18:14:20Z'
+        this.engagement.valid_to = '2018-12-22T18:14:20Z'
 
         let vm = this
-        Employee.createEmployee(this.engagement)
+        Employee.createEmployee(this.$route.params.uuid, [this.engagement])
         .then(response => {
           vm.$refs.employeeCreate.hide()
           console.log(response)

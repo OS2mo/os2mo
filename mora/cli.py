@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,7 @@ import unittest
 import warnings
 
 import click
+import flask
 import requests
 import urllib3
 
@@ -96,12 +97,10 @@ def load_cli(app):
         docdir = os.path.join(topdir, 'docs')
 
         with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
-            title = 'Server-side codebase'
-            fp.writelines([title, '\n', '=' * len(title), '\n\n'])
-
-            for mod in sorted(sys.modules):
-                if mod.split('.', 1)[0] == 'mora':
-                    fp.write('.. automodule:: {}\n\n'.format(mod))
+            modules = sorted(m for m in sys.modules
+                             if m.split('.', 1)[0] == 'mora')
+            fp.write(flask.render_template('backend.rst',
+                                           modules=modules))
 
         if args:
             args = list(args)

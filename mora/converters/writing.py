@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -145,70 +145,6 @@ def create_org_unit(req: dict) -> dict:
     org_unit = _set_virkning(org_unit, virkning)
 
     return org_unit
-
-
-def create_org_funktion(req: dict) -> dict:
-    virkning = _create_virkning(req.get('valid-from'),
-                                req.get('valid-to', 'infinity'))
-
-    funktionstype_name = req.get('job-title').get('name')
-    funktionstype_uuid = req.get('job-title').get('uuid')
-    engagementstype_uuid = req.get('type').get('uuid')
-    bruger_uuid = req.get('person')
-    org_enhed_uuid = req.get('org-unit').get('uuid')
-    org_uuid = req.get('org-unit').get('org')
-
-    org_funk = {
-        'note': 'Oprettet i MO',
-        'attributter': {
-            'organisationfunktionegenskaber': [
-                {
-                    'funktionsnavn': "{} {}".format(funktionstype_name,
-                                                    org_enhed_uuid),
-                    'brugervendtnoegle': "{} {}".format(bruger_uuid,
-                                                        org_enhed_uuid)
-                },
-            ],
-        },
-        'tilstande': {
-            'organisationfunktiongyldighed': [
-                {
-                    'gyldighed': 'Aktiv',
-                },
-            ],
-        },
-        'relationer': {
-            'organisatoriskfunktionstype': [
-                {
-                    'uuid': engagementstype_uuid
-                }
-            ],
-            'tilknyttedebrugere': [
-                {
-                    'uuid': bruger_uuid
-                }
-            ],
-            'tilknyttedeorganisationer': [
-                {
-                    'uuid': org_uuid
-                }
-            ],
-            'tilknyttedeenheder': [
-                {
-                    'uuid': org_enhed_uuid
-                }
-            ],
-            'opgaver': [
-                {
-                    'uuid': funktionstype_uuid
-                }
-            ]
-        }
-    }
-
-    org_funk = _set_virkning(org_funk, virkning)
-
-    return org_funk
 
 
 def update_org_funktion_payload(from_time, to_time, note, fields, original,
@@ -873,101 +809,6 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     }
 
     return payload
-
-
-# Engagements
-def move_engagements(move_date, overwrite, engagements, org_unit_uuid):
-    """
-    Move a list of engagements to the given org unit on the given date
-
-    :param move_date: The date of the move
-    :param overwrite: Whether the move should overwrite the existing engagement
-    :param engagements: A list of engagements on the form:
-                        {'uuid': <UUID>, 'from': <date>, 'to': <date>}
-    :param org_unit_uuid: A UUID of the org unit to move to
-    """
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    for engagement in engagements:
-        engagement_uuid = engagement.get('uuid')
-        from_time = engagement.get('from')
-        to_time = engagement.get('to')
-
-        # Fetch current orgfunk
-        orgfunk = c.organisationfunktion.get(engagement_uuid)
-
-        # Create new orgfunk active from the move date, with new org unit
-        payload = move_org_funktion_payload(move_date, from_time, to_time,
-                                            overwrite, org_unit_uuid, orgfunk)
-
-        c.organisationfunktion.update(payload, engagement_uuid)
-
-
-def edit_engagement(req, employee_uuid, engagement_uuid):
-    # Get the current org-funktion which the user wants to change
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.organisationfunktion.get(uuid=engagement_uuid)
-    payload = update_engagement_payload(req, original)
-    c.organisationfunktion.update(payload, engagement_uuid)
-
-
-def update_engagement_payload(req, original):
-    # TODO: New API
-    old_from = req.get('oldValidFrom')
-    old_to = req.get('oldValidTo')
-    new_from = req.get('newValidFrom')
-    new_to = req.get('newValidTo')
-
-    note = 'Rediger engagement'
-
-    fields = [
-        (['relationer', 'opgaver'],
-         {'uuid': req.get('jobTitle')}),
-
-        (['relationer', 'organisatoriskfunktionstype'],
-         {'uuid': req.get('type')}),
-
-        (['tilstande', 'organisationfunktiongyldighed'],
-         {'gyldighed': "Aktiv"}),
-    ]
-
-    payload = {}
-    payload = _inactivate_old_interval(
-        old_from, old_to, new_from, new_to, payload,
-        ['tilstande', 'organisationfunktiongyldighed']
-    )
-
-    payload = update_org_funktion_payload(new_from, new_to, note,
-                                          fields, original, payload)
-
-    return payload
-
-
-def terminate_engagement(engagement_uuid, enddate):
-    """
-    Terminate the given engagement at the given date
-
-    :param engagement_uuid: An engagement UUID
-    :param enddate: The date of termination
-    """
-    c = lora.Connector(effective_date=enddate)
-
-    orgfunk = c.organisationfunktion.get(engagement_uuid)
-
-    # Create inactivation object
-    startdate = [
-        g['virkning']['from'] for g in
-        orgfunk['tilstande']['organisationfunktiongyldighed']
-        if g['gyldighed'] == 'Aktiv'
-    ][0]
-
-    payload = inactivate_org_funktion(startdate, enddate)
-    c.organisationfunktion.update(payload, engagement_uuid)
-
-
-def create_engagement(req):
-    # TODO: Validation
-    engagement = create_org_funktion(req)
-    lora.Connector().organisationfunktion.create(engagement)
 
 
 def create_contact(req):

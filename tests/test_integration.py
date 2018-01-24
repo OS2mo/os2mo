@@ -1,10 +1,12 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+import uuid
 
 import freezegun
 import requests
@@ -378,7 +380,7 @@ class IntegrationTests(util.LoRATestCase):
                         'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                     },
                     'name': 'Kontor',
@@ -638,6 +640,78 @@ class IntegrationTests(util.LoRATestCase):
                 },
             ],
         )
+
+    def test_employee(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/mo/e/',
+            [
+                {
+                    'name': 'Anders And',
+                    'nick-name': 'andersand',
+                    'user-key': '1111111111',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                {
+                    'name': 'Fedtmule',
+                    'nick-name': 'fedtmule',
+                    'user-key': '2222222222',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/',
+            {
+                'name': 'Anders And',
+                'nick-name': 'andersand',
+                'user-key': '1111111111',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+            },
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/1111111111/',
+            {
+                'name': 'Anders And',
+                'nick-name': 'andersand',
+                'user-key': '1111111111',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+            },
+        )
+
+        self.assertRequestResponse(
+            '/mo/e/2222222222/',
+            {
+                'name': 'Fedtmule',
+                'nick-name': 'fedtmule',
+                'user-key': '2222222222',
+                'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+            },
+        )
+
+        self.assertRequestFails('/mo/e/0000000000/', 404)
+
+        # test that duplicating a user causes an error...
+        random_id = uuid.uuid4()
+
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersand.json',
+                          random_id)
+
+        self.assertRequestResponse(
+            '/mo/e/{}/'.format(random_id),
+            {
+                'name': 'Anders And',
+                'nick-name': 'andersand',
+                'user-key': '1111111111',
+                'uuid': str(random_id),
+            },
+        )
+
+        self.assertRequestFails('/mo/e/1111111111/', 409)
 
     def test_engagements(self):
         self.load_sample_structures()

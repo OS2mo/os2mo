@@ -69,11 +69,24 @@ export default {
 
   /**
    * Create a new employee
-   * @param {Object} uuid - new Employee uuid
+   * @param {Object} engagement - new Employee uuid
    * @returns {Object} employee uuid
    */
-  createEmployee (uuid) {
-    return Service.post(`/e/${uuid}/create`, uuid)
+  createEmployee (uuid, engagement) {
+    return Service.post(`/e/${uuid}/create`, engagement)
+    .then(response => {
+      return response.data
+    })
+  },
+
+   /**
+   * End an employee
+   * @param {Object} engagement - the employee to end
+   * @param {String} endDate - the date on which the employee shall end
+   * @returns {Object} employee uuid
+   */
+  endEmployee (uuid, engagement) {
+    return Service.post(`/e/${uuid}/terminate`, engagement)
     .then(response => {
       return response.data
     })

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'Kontor',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                     },
@@ -85,7 +85,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         'name': 'Kontor',
                         'user-key': '07519651__15_______',
                         'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbogade 15, 8200 Aarhus N',
                     },
@@ -120,7 +120,7 @@ class TestWritingIntegration(util.LoRATestCase):
                             'name': name,
                             'user-key': '07515902___1_______',
                             'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                            'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                            'valid-from': '2014-05-05T19:07:48.577000+02:00',
                             'valid-to': 'infinity',
                             'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         },
@@ -887,7 +887,7 @@ class TestWritingIntegration(util.LoRATestCase):
                     },
                     "user-key": "root",
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "valid-from": "2015-12-31T23:00:00+00:00",
+                    "valid-from": "2015-12-31T23:00:00+01:00",
                     "valid-to": "infinity"
                 },
                 'type': {
@@ -1391,7 +1391,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         "name": "Åbovej 5, Åbo, 8260 Viby J",
                         'user-key': '07519659___5_______',
                         'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
-                        'valid-from': '2000-02-05T15:27:05+00:00',
+                        'valid-from': '2000-02-05T15:27:05+01:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
                     },
@@ -1420,7 +1420,7 @@ class TestWritingIntegration(util.LoRATestCase):
                         "name": "Åbovej 5, Åbo, 8260 Viby J",
                         'user-key': '07519659___5_______',
                         'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
-                        'valid-from': '2000-02-05T15:27:05+00:00',
+                        'valid-from': '2000-02-05T15:27:05+01:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
                     },

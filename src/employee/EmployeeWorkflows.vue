@@ -5,21 +5,24 @@
       <button-workflow label="Orlov" icon="user-md" target="EmployeeLeave"/>
       <button-workflow label="Flyt engagement" icon="share-square-o" target="EmployeeMove"/>
       <button-workflow label="Flyt mange engagementer" icon="share-square-o" target="EmployeeMoveMany"/>
-      <button-workflow label="Afslut medarbejder" icon="user-times" target="EmployeeEnd"/>
+      <button-workflow label="Afslut medarbejder" icon="user-times" target="EmployeeEnd" v-b-modal.employeeEnd/>
     </div>
     <!-- Modal Component -->
     <employee-create/>
+    <employee-end/>
   </div>
 </template>
 
 <script>
   import ButtonWorkflow from '../components/ButtonWorkflow'
   import EmployeeCreate from './EmployeeCreate'
+  import EmployeeEnd from './EmployeeEnd'
 
   export default {
     components: {
       ButtonWorkflow,
-      EmployeeCreate
+      EmployeeCreate,
+      EmployeeEnd
     }
   }
 </script>

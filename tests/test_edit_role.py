@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@ import unittest
 
 import freezegun
 
-from mora.service import edit_engagement_payload
+from mora.service.engagement import edit_engagement_payload
 
 
 class TestEditRole(unittest.TestCase):

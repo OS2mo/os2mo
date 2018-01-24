@@ -225,7 +225,7 @@
             "beskrivelse": null,
             "brugervendtnoegle": "Stillingsbetegnelse",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -240,7 +240,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -252,7 +252,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -264,7 +264,7 @@
             "objekttype": "klassifikation",
             "uuid": "b92d5668-7085-4cdb-a64a-82953b1b1ac6",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -277,7 +277,7 @@
           {
             "publiceret": "Publiceret",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2622,7 +2622,7 @@
             "omfang": null,
             "titel": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2637,7 +2637,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2649,7 +2649,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2661,7 +2661,7 @@
             "objekttype": "facet",
             "uuid": "7469cc0f-d42f-4d94-b6ee-de005c321bb7",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2673,7 +2673,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2685,7 +2685,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -2698,7 +2698,7 @@
           {
             "publiceret": "Publiceret",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3810,7 +3810,7 @@
             "omfang": null,
             "titel": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3825,7 +3825,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3837,7 +3837,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3849,7 +3849,7 @@
             "objekttype": "facet",
             "uuid": "7469cc0f-d42f-4d94-b6ee-de005c321bb7",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3861,7 +3861,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3873,7 +3873,7 @@
             "objekttype": null,
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -3886,7 +3886,7 @@
           {
             "publiceret": "Publiceret",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -6443,7 +6443,7 @@
             "kaldenavn": null,
             "ophavsret": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -6457,7 +6457,7 @@
           {
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -6468,7 +6468,7 @@
           {
             "uuid": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -6481,7 +6481,7 @@
           {
             "publiceret": "Publiceret",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7145,7 +7145,7 @@
             "brugervendtnoegle": "\u00c5RHUS",
             "enhedsnavn": "Aarhus Kommune",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7160,7 +7160,7 @@
             "objekttype": "DAR",
             "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7171,7 +7171,7 @@
           {
             "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7182,7 +7182,7 @@
           {
             "uuid": "59141156-ed0b-457c-9535-884447c5220b",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7193,7 +7193,7 @@
           {
             "uuid": "59141156-ed0b-457c-9535-884447c5220b",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7204,7 +7204,7 @@
           {
             "urn": "urn:kmd.dk:administrativenhedsid:325",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7217,7 +7217,7 @@
           {
             "gyldighed": "Aktiv",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7339,7 +7339,7 @@
             "brugervendtnoegle": "AARHUS-ENHED",
             "enhedsnavn": "Aarhus Enhed",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7354,7 +7354,7 @@
             "objekttype": "DAR",
             "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7365,7 +7365,7 @@
           {
             "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7376,7 +7376,7 @@
           {
             "uuid": "746eeba3-30a9-4c0a-8d22-c6f34af1095f",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7387,7 +7387,7 @@
           {
             "uuid": "59141156-ed0b-457c-9535-884447c5220b",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7398,7 +7398,7 @@
           {
             "urn": null,
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
@@ -7411,7 +7411,7 @@
           {
             "gyldighed": "Aktiv",
             "virkning": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01T00:00:00+01:00",
               "from_included": true,
               "to": "infinity",
               "to_included": false
