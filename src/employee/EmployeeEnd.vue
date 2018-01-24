@@ -8,10 +8,10 @@
   >
   <div class="col">
       <div class="form-row">
-        <date-picker label="Slutdato"/>
+        <date-picker label="Slutdato" v-model="endDate"/>
       </div>
       <div class="float-right">
-        <button-submit/>
+        <button-submit @click.native="endEmployee"/>
       </div>
   </div>
 </b-modal>
@@ -20,6 +20,7 @@
 <script>
   import DatePicker from '../components/DatePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
+  import Employee from '../api/Employee'
 
   export default {
     components: {
@@ -28,10 +29,23 @@
     },
     data () {
       return {
+        endDate: '',
+        engagement: {}
       }
     },
     created: function () {},
-    methods: {}
+    methods: {
+      endEmployee () {
+        let vm = this
+        let terminate = {
+          valid_from: '2018-12-20T18:14:20Z'
+        }
+        Employee.endEmployee(this.$route.params.uuid, terminate)
+        .then(response => {
+          vm.$refs.employeeEnd.hide()
+        })
+      }
+    }
   }
 </script>
 

@@ -79,6 +79,19 @@ export default {
     })
   },
 
+   /**
+   * End an employee
+   * @param {Object} engagement - the employee to end
+   * @param {String} endDate - the date on which the employee shall end
+   * @returns {Object} employee uuid
+   */
+  endEmployee (uuid, engagement) {
+    return Service.post(`/e/${uuid}/terminate`, engagement)
+    .then(response => {
+      return response.data
+    })
+  },
+
   /**
    * Base call for getting details about an employee.
    * @param {String} uuid - Employee uuid
