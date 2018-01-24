@@ -29,7 +29,7 @@
     },
     data () {
       return {
-        endDate: '',
+        endDate: null,
         engagement: {}
       }
     },
@@ -38,7 +38,7 @@
       endEmployee () {
         let vm = this
         let terminate = {
-          valid_from: '2018-12-20T18:14:20Z'
+          valid_from: '2018-10-25T18:14:20Z'
         }
         Employee.endEmployee(this.$route.params.uuid, terminate)
         .then(response => {
