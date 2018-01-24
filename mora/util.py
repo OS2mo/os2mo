@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,39 +19,28 @@ import flask
 import iso8601
 import pytz
 import tzlocal
+import dateutil.parser
 
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
 
 # timezone-aware versions of min/max
-positive_infinity = datetime.datetime.max.replace(
-    tzinfo=datetime.timezone(datetime.timedelta(hours=23)),
+positive_infinity = pytz.FixedOffset(23 * 60).localize(
+    datetime.datetime.max,
 )
-negative_infinity = datetime.datetime.min.replace(
-    tzinfo=datetime.timezone(datetime.timedelta(hours=-23)),
+negative_infinity = pytz.FixedOffset(-23 * 60).localize(
+    datetime.datetime.min,
 )
 
-DATETIME_PARSERS = (
-    # limits
-    lambda s: {
-        'infinity': positive_infinity,
-        '-infinity': negative_infinity,
-    }[s],
-    # ISO 8601
-    iso8601.parse_date,
-    lambda s: iso8601.parse_date(s.replace(' ', '+')),
-    # DD/MM/YYYY w/o time -- sent by the frontend
-    lambda s: tzlocal.get_localzone().localize(
-        datetime.datetime.strptime(s, '%d-%m-%Y')
-    ),
-    lambda s: tzlocal.get_localzone().localize(
-        datetime.datetime.strptime(s, '%Y-%m-%d')
-    ),
-    lambda s: datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S%z'),
-    # handle PG two-digit offsets
-    lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
-)
+default_timezone = dateutil.tz.gettz('Europe/Copenhagen')
+
+tzinfos = {
+    None: default_timezone,
+    0: dateutil.tz.tzutc,
+    1 * 60**2: default_timezone,
+    2 * 60**2: default_timezone,
+}
 
 
 def unparsedate(d: datetime.date) -> str:
@@ -60,26 +49,39 @@ def unparsedate(d: datetime.date) -> str:
 
 def parsedatetime(s: str) -> datetime.datetime:
     if isinstance(s, datetime.date):
-        if s in (positive_infinity, negative_infinity):
-            return s
+        dt = s
 
-        if not isinstance(s, datetime.datetime):
-            s = datetime.datetime.combine(
-                s, datetime.time(),
+        if dt in (positive_infinity, negative_infinity):
+            return dt
+
+        if not isinstance(dt, datetime.datetime):
+            dt = datetime.datetime.combine(
+                dt, datetime.time(),
             )
 
-        if not s.tzinfo:
-            s = tzlocal.get_localzone().localize(s)
+        if not dt.tzinfo:
+            dt = dt.replace(tzinfo=default_timezone)
 
-        return s
+        return dt
 
-    for parser in DATETIME_PARSERS:
-        try:
-            return parser(s)
-        except (ValueError, KeyError, iso8601.ParseError):
-            pass
+    elif s == 'infinity':
+        return positive_infinity
+    elif s == '-infinity':
+        return negative_infinity
 
-    raise ValueError('unparsable date {!r}'.format(s))
+    if ' ' in s:
+        # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
+        # we get it as a space
+        s = re.sub(r' (?=\d\d:\d\d$)', '+', s)
+
+    try:
+        return iso8601.parse_date(s, default_timezone=default_timezone)
+    except iso8601.ParseError:
+        pass
+
+    dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
+
+    return dt
 
 
 def to_lora_time(s):
@@ -108,16 +110,13 @@ def to_frontend_time(s):
 
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
-    return tzlocal.get_localzone().localize(datetime.datetime.now())
+    return datetime.datetime.now().replace(tzinfo=default_timezone)
 
 
 def today() -> datetime.datetime:
     '''Get midnight of current date, localized to the current time zone.'''
-    dt = now()
-
-    return dt.tzinfo.localize(
-        datetime.datetime.combine(dt.date(), datetime.time()),
-    )
+    return datetime.datetime.combine(datetime.date.today(),
+                                     datetime.time(tzinfo=default_timezone))
 
 
 def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):

@@ -48,7 +48,7 @@
       return {
         orgUnit: {},
         preselectedUnit: {},
-        endDate: ''
+        endDate: null
       }
     },
     mounted () {

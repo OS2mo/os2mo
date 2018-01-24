@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -362,7 +362,7 @@ class IntegrationTests(util.LoRATestCase):
                             'org': '59141156-ed0b-457c-9535-884447c5220b',
                             'user-key': 'ÅRHUS',
                             'uuid': '746eeba3-30a9-4c0a-8d22-c6f34af1095f',
-                            'valid-from': '2016-01-01T01:00:00+01:00',
+                            'valid-from': '01-01-2016',
                             'valid-to': 'infinity',
                         },
                         'name': 'Aarhus Kommune',

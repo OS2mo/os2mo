@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -92,7 +92,7 @@ def get_employee_by_cpr(cpr_number):
     elif len(ids) > 1:
         return flask.jsonify({
             'message': 'multiple users found',
-        }), 404
+        }), 409
 
     return flask.jsonify(reading.get_employees(ids)[0])
 
@@ -119,7 +119,6 @@ def create_employee_role(employeeid, role=None):
 
     def handle_request(role_type, req):
         handlers = {
-            'engagement': writing.create_engagement,
             # 'association': create_association,
             # 'it': create_it,
             'contact': writing.create_contact,

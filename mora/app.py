@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,7 +26,9 @@ app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 cli.load_cli(app)
 app.register_blueprint(api.blueprint)
 app.register_blueprint(auth.blueprint)
-app.register_blueprint(service.blueprint)
+
+for blueprint in service.blueprints:
+    app.register_blueprint(blueprint)
 
 
 @app.errorhandler(Exception)
