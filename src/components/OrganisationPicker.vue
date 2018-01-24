@@ -3,7 +3,6 @@
       class="form-control" 
       id="organisation-picker"
       v-model="selectedOrganisation"
-      @change="setSelectedOrganisation(selectedOrganisation)"
     >
       <option disabled>Vælg organisation</option>
       <option 
@@ -18,10 +17,12 @@
 
 <script>
 import Organisation from '../api/Organisation'
-import { EventBus } from '../EventBus'
 
 export default {
   name: 'OrganisationPicker',
+  props: {
+    value: null
+  },
   data () {
     return {
       selectedOrganisation: null,
@@ -31,25 +32,20 @@ export default {
   created () {
     this.getAll()
   },
-  mounted () {
-    EventBus.$on('organisation-changed', newOrg => {
-      this.selectedOrganisation = newOrg
-    })
+  watch: {
+    selectedOrganisation (newVal, oldVal) {
+      Organisation.setSelectedOrganisation(newVal)
+      this.$emit('input', newVal)
+    }
   },
   methods: {
-
     getAll () {
       let vm = this
-      return Organisation.getAll()
+      Organisation.getAll()
       .then(response => {
         vm.orgs = response
         vm.selectedOrganisation = response[0]
-        vm.setSelectedOrganisation(vm.selectedOrganisation)
       })
-    },
-
-    setSelectedOrganisation (selOrg) {
-      Organisation.setSelectedOrganisation(selOrg)
     }
   }
 }

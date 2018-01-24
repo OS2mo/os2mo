@@ -59,6 +59,7 @@
     },
     data () {
       return {
+        orgUnit: {},
         dateStartEnd: {},
         superUnit: {},
         type: '',

@@ -9,6 +9,7 @@
       ref="orgUnitPicker"
       :value="selectedSuperUnit.name"
       @click.stop="show"
+      @focus="getSelectedOrganisation()"
       v-validate="{ required: true }" 
     >
     <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
@@ -28,9 +29,9 @@
 
 <script>
   import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import ClickOutside from '../directives/ClickOutside'
   import TreeView from '../components/Treeview'
-  import { EventBus } from '../EventBus'
 
   export default {
     components: {
@@ -68,15 +69,15 @@
         this.selectedSuperUnit = newVal
       }
     },
-    created () {
-      this.org = Organisation.getSelectedOrganisation()
-    },
-    mounted () {
-      EventBus.$on('organisation-changed', newOrg => {
-        this.org = newOrg
-      })
-    },
     methods: {
+      getSelectedOrganisation () {
+        this.org = Organisation.getSelectedOrganisation()
+      },
+
+      getSelectedOrganistionUnit () {
+        this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
+      },
+
       show () {
         this.showTree = true
       },

@@ -1,8 +1,6 @@
 import { HTTP, Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
-// let selectedOrgUnit = null
-
 export default {
 
   /**
@@ -26,7 +24,6 @@ export default {
    * @returns {Array} organisation unit children
    */
   getChildren (uuid) {
-    console.log('organisation unit get children')
     return Service.get(`/ou/${uuid}/children`)
     .then(response => {
       return response.data

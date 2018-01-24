@@ -40,24 +40,18 @@
     },
     watch: {
       orgUuid (newVal, oldVal) {
-        this.children = null
-        this.getTree(newVal)
+        this.getChildren(newVal)
       },
 
       selectedOrgUnit (newVal, oldVal) {
         this.$emit('input', newVal)
       }
     },
-    created () {
-      this.getTree(this.orgUuid)
-    },
     methods: {
-      getTree (uuid) {
-        var vm = this
-        if (!uuid) {
-          vm.children = {}
-          return
-        }
+      getChildren (uuid) {
+        if (!uuid) return
+
+        let vm = this
         Organisation.getChildren(uuid)
         .then(response => {
           vm.children = response

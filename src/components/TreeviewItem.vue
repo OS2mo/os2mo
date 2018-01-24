@@ -95,7 +95,6 @@
 
       loadChildren () {
         let vm = this
-        console.log('load children')
         OrganisationUnit.getChildren(vm.model.uuid)
         .then(response => {
           vm.model.children = response

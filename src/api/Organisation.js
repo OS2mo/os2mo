@@ -1,7 +1,7 @@
 import { Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
-let selectedOrganisation = ''
+let selectedOrganisation = {}
 
 export default {
 
@@ -47,7 +47,6 @@ export default {
   setSelectedOrganisation (org) {
     selectedOrganisation = org
     EventBus.$emit('organisation-changed', selectedOrganisation)
-    console.log('organisation-changed')
   },
 
   /**
