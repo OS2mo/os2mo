@@ -85,7 +85,7 @@ export default {
    * @param {String} engagement - uuid for the new employee
    * @returns {Object} employeee uuid
    */
-  moveEmployee (uuid, engagement) {
+  editEmployee (uuid, engagement) {
     return Service.post(`/e/${uuid}/edit`, engagement)
     .then(response => {
       return response.data

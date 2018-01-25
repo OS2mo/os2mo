@@ -57,7 +57,7 @@
             org_unit_uuid: this.orgUnit.uuid
           }
         }
-        Employee.moveEmployee(this.$route.params.uuid, edit)
+        Employee.editEmployee(this.$route.params.uuid, edit)
         .then(response => {
           vm.$refs.employeeMove.hide()
         })
