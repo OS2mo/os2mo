@@ -592,7 +592,7 @@ class Tests(util.LoRATestCase):
                 },
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'valid_from': '2017-01-01T00:00:00+01:00',
-                'valid_to': '2017-01-01T00:00:00+01:00',
+                'valid_to': None,
             },
         ]
 

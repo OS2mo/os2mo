@@ -98,6 +98,16 @@ def to_lora_time(s):
         return dt.isoformat()
 
 
+def to_iso_time(s):
+    dt = parsedatetime(s)
+
+    return (
+        dt.isoformat()
+        if dt not in (positive_infinity, negative_infinity)
+        else None
+    )
+
+
 def to_frontend_time(s):
     dt = parsedatetime(s)
 

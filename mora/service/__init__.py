@@ -8,10 +8,12 @@
 
 from . import org
 from . import employee
+from . import engagement
 from . import facet
 
 blueprints = (
     org.blueprint,
     employee.blueprint,
     facet.blueprint,
+    engagement.blueprint,
 )

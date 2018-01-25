@@ -265,7 +265,7 @@ def get_children(type, parentid):
 
 @blueprint.route('/ou/<uuid:unitid>/')
 @util.restrictargs('at')
-def get_orgunit(unitid, details=UnitDetails.NCHILDREN):
+def get_orgunit(unitid, details=UnitDetails.NCHILDREN, raw=False):
     '''Retrieve an organisational unit.
 
     .. :quickref: Unit; Get
@@ -296,7 +296,9 @@ def get_orgunit(unitid, details=UnitDetails.NCHILDREN):
 
     r = _convert_unit(c, unitid, details=details)
 
-    if not r:
+    if raw:
+        return r
+    elif not r:
         return '', 404
     else:
         return flask.jsonify(r)
