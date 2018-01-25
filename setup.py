@@ -15,6 +15,7 @@ import subprocess
 import sys
 
 from distutils.command.build import build
+from distutils import log
 
 import setuptools
 
@@ -29,10 +30,13 @@ class build_frontend(build):
 
     def run(self):
         if not shutil.which('yarn'):
-            sys.stderr.write('WARNING: skipping frontend build!\n')
+            log.warn('skipping frontend build!')
             return
 
+        log.info('running "yarn"')
         subprocess.check_call(['yarn'], cwd=BASEDIR)
+
+        log.info('running "yarn build"')
         subprocess.check_call(['yarn', 'build'], cwd=BASEDIR)
 
 
@@ -51,12 +55,17 @@ class build_data(build):
 
         with app.app.app_context():
             for blueprint in app.app.iter_blueprints():
-                with open(os.path.join(blueprintdir,
-                                       blueprint.name + '.rst'), 'w') as fp:
+                destfile = os.path.join(blueprintdir, blueprint.name + '.rst')
+                log.info('generating ' + destfile)
+
+                with open(destfile, 'w') as fp:
                     fp.write(flask.render_template('blueprint.rst',
                                                    blueprint=blueprint))
 
-            with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
+            destfile = os.path.join(docdir, 'backend.rst')
+            log.info('generating ' + destfile)
+
+            with open(destfile, 'w') as fp:
                 modules = sorted(m for m in sys.modules
                                  if m.split('.', 1)[0] == 'mora')
                 fp.write(flask.render_template('backend.rst',
