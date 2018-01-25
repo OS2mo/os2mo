@@ -79,7 +79,10 @@ def parsedatetime(s: str) -> datetime.datetime:
     except iso8601.ParseError:
         pass
 
-    dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
+    try:
+        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
+    except ValueError:
+        raise ValueError('cannot parse {!r}'.format(s))
 
     return dt
 
