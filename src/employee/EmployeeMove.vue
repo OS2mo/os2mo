@@ -34,7 +34,6 @@
         </select>
         </div>
         </div>
-        {{selectedEngagement}}
         <!-- HOPEFULLY IT IS DEAD NOW. OTHERWISE GO BACK AND KILL IT AGAIN -->
 
       <div class="form-row">
