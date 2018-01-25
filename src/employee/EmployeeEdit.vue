@@ -6,8 +6,18 @@
     title="Rediger Medarbejder"
     ref="employeeEdit"
   >
-  <date-start-end v-model="dateStartEnd" :preselected="dates.startDate"/>
-
+    <div>
+      <h4>Engagement</h4>
+      <date-start-end v-model="dateStartEnd" :preselected="dates.startDate"/>
+      <div class="form-row">
+        <organisation-unit-picker 
+          class="col" 
+          label="Vælg enhed"
+          v-model="orgUnit"/>
+        <engagement-title v-model="engagement.job_title_uuid"/>
+        <engagement-type v-model="engagement.engagement_type_uuid"/>
+      </div>
+    </div>
     <div class="float-right">
       <button-submit @click.native="editEmployee"/>
     </div>
@@ -46,14 +56,15 @@
         engagementType: ''
       }
     },
-    created: function () {
+    created () {
+      this.getEngagements()
     },
     methods: {
-      getEngagementDetails: function (uuid) {
+      getEngagements () {
         var vm = this
-        Employee.getEngagementDetails(uuid)
+        Employee.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
-          vm.engagement = response
+          vm.engagements = response
         })
       }
     }
