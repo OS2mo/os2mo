@@ -15,6 +15,7 @@ import subprocess
 import sys
 
 from distutils.command.build import build
+from distutils.command.install import install
 from distutils import log
 
 import setuptools
@@ -23,6 +24,7 @@ BASEDIR = os.path.dirname(__file__)
 
 with open(os.path.join(BASEDIR, 'package.json')) as fp:
     node_data = json.load(fp)
+
 
 class build_frontend(build):
 
@@ -78,6 +80,13 @@ class mobuild(build):
         ('build_frontend', None),
     ]
 
+
+class moinstall(install):
+    sub_commands = install.sub_commands + [
+        ('build_data', None),
+    ]
+
+
 setuptools.setup(
     name=node_data['name'],
     author='Magenta ApS',
@@ -90,6 +99,7 @@ setuptools.setup(
         'build_frontend': build_frontend,
         'build_data': build_data,
         'build': mobuild,
+        'install': moinstall,
     },
     packages=setuptools.find_packages(exclude=['tests']),
 
