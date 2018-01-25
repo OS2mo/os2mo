@@ -49,14 +49,14 @@
     methods: {
       moveEmployee () {
         let vm = this
-        let edit = {
+        let edit = [{
           type: 'engagement',
           uuid: this.$route.params.uuid,
           data: {
             valid_from: this.selectedDate,
             org_unit_uuid: this.orgUnit.uuid
           }
-        }
+        }]
         Employee.editEmployee(this.$route.params.uuid, edit)
         .then(response => {
           vm.$refs.employeeMove.hide()
