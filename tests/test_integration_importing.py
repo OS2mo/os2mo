@@ -9,10 +9,6 @@
 import os
 
 import freezegun
-import requests
-
-from mora.converters import importing
-from mora import settings
 
 from . import util
 
@@ -22,12 +18,7 @@ class IntegrationTests(util.LoRATestCase):
 
     @freezegun.freeze_time('2017-06-01')
     def test_with_import(self):
-        for method, path, obj in importing.convert([
-            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
-        ]):
-            r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
-                                 json=obj)
-            r.raise_for_status()
+        util.import_fixture('MAGENTA_01.json')
 
         with self.subTest('org unit types'):
                 self.assertRequestResponse(

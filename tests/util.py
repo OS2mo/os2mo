@@ -21,10 +21,12 @@ import time
 import unittest
 
 import flask_testing
+import requests
 import requests_mock
 import werkzeug.serving
 
 from mora import lora, app, settings
+from mora.converters import importing
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -81,6 +83,15 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
         print('creating', path, uuid, file=sys.stderr)
     r = lora.create(path, get_fixture(fixture_name), uuid)
     return r
+
+
+def import_fixture(fixture_name):
+    for method, path, obj in importing.convert([
+            os.path.join(FIXTURE_DIR, fixture_name),
+    ]):
+        r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
+                             json=obj)
+        r.raise_for_status()
 
 
 def load_sample_structures(*, verbose=False, minimal=False, check=False):
