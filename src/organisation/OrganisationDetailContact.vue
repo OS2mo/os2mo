@@ -46,7 +46,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from '../components/Loading'
 
   export default {
@@ -67,16 +67,16 @@
     methods: {
       getContactChannels: function () {
         var vm = this
-        Organisation.getContactDetails(this.$route.params.uuid)
+        OrganisationUnit.getContactDetails(this.$route.params.uuid)
         .then(response => {
           vm.contacts = response
           vm.isLoading = false
         })
-        Organisation.getContactDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getContactDetails(this.$route.params.uuid, 'past')
         .then(response => {
           vm.contactsPast = response
         })
-        Organisation.getContactDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getContactDetails(this.$route.params.uuid, 'future')
         .then(response => {
           vm.contactsFuture = response
         })

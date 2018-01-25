@@ -26,7 +26,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import Employee from '../api/Employee'
 
   export default {
@@ -47,7 +47,7 @@
     methods: {
       getHistory () {
         var vm = this
-        Organisation.getHistory(this.unitUuid)
+        OrganisationUnit.getHistory(this.unitUuid)
         .then(function (response) {
           vm.history = response
         })

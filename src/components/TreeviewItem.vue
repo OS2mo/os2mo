@@ -1,10 +1,12 @@
 <template>
-    <li class="item" v-if="model.uuid">
+  <div>
+    <li class="item">
         <span @click="toggle">
-          <icon class="icon" v-if="isFolder" :name="open ? 'caret-down' : 'caret-right'"/>
+          <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
         </span>
+
         <router-link 
-          v-if="linkAble"
+          v-if="linkable"
           class="link-color" 
           :to="{ name: 'OrganisationDetail', params: { uuid: model.uuid } }"
         >
@@ -14,29 +16,31 @@
 
         <span 
         class="link-color"
-        v-if="!linkAble"
+        v-if="!linkable"
         
         @click="selectOrgUnit(model)">
           <icon class="icon" name="users"/>
           {{model.name}}
         </span>
 
-      <ul v-show="open" v-if="isFolder">
-        <loading v-show="model.children.length === 0"/>
+      <ul v-show="open">
+        <loading v-show="loading"/>
         <tree-view-item
           v-for="model in model.children"
           v-bind:key="model.uuid"
           v-model="selected"
           @click="selectOrgUnit(selected)"
           :model="model"
-          :link-able="linkAble">
+          :linkable="linkable">
         </tree-view-item>
       </ul>
     </li>
+  </div>
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  // import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
 
   export default {
@@ -51,7 +55,7 @@
         type: Boolean,
         default: false
       },
-      linkAble: {
+      linkable: {
         type: Boolean,
         default: false
       }
@@ -59,12 +63,13 @@
     data () {
       return {
         selected: {},
-        open: false
+        open: false,
+        loading: true
       }
     },
     computed: {
-      isFolder () {
-        return this.model.hasChildren
+      hasChildren () {
+        return this.model.child_count > 0
       }
     },
     watch: {
@@ -73,14 +78,15 @@
       }
     },
     created () {
+      if (this.firstOpen) {
+        this.loadChildren()
+      }
       this.open = this.firstOpen
     },
     methods: {
       toggle () {
-        if (this.isFolder) {
-          this.open = !this.open
-          this.loadChildren()
-        }
+        this.open = !this.open
+        this.loadChildren()
       },
 
       selectOrgUnit (org) {
@@ -88,13 +94,12 @@
       },
 
       loadChildren () {
-        if (this.model.children.length === 0) {
-          let vm = this
-          Organisation.getFullHierachy(vm.model.org, vm.model.uuid)
-          .then(response => {
-            vm.model.children = response
-          })
-        }
+        let vm = this
+        OrganisationUnit.getChildren(vm.model.uuid)
+        .then(response => {
+          vm.model.children = response
+          vm.loading = false
+        })
       }
     }
   }

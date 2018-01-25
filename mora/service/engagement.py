@@ -83,6 +83,11 @@ def create_employee_role(employee_uuid):
     for req in reqs:
         role_type = req.get('type')
         handler = handlers.get(role_type)
+
+        # TODO: Find a better way to handle this, probably
+        if not req.get('valid_to'):
+            req['valid_to'] = 'infinity'
+
         if not handler:
             return flask.jsonify('Unknown role type'), 400
 
@@ -162,6 +167,11 @@ def edit_employee_role(employee_uuid):
     for req in reqs:
         role_type = req.get('type')
         handler = handlers.get(role_type)
+
+        # TODO: Find a better way to handle this, probably
+        if not req.get('data').get('valid_to'):
+            req['data']['valid_to'] = 'infinity'
+
         if not handler:
             return flask.jsonify('Unknown role type'), 400
 

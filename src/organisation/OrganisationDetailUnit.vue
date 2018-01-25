@@ -24,7 +24,7 @@
 
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
   import MoTable from '../components/MoTable'
 
@@ -51,7 +51,7 @@
     methods: {
       getDetails () {
         let vm = this
-        Organisation.getUnitDetails(this.$route.params.uuid)
+        OrganisationUnit.getUnitDetails(this.$route.params.uuid)
         .then(response => {
           vm.details = response
         })
@@ -59,7 +59,7 @@
 
       getDetailsPast () {
         let vm = this
-        Organisation.getUnitDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getUnitDetails(this.$route.params.uuid, 'past')
         .then(response => {
           vm.detailsPast = response
         })
@@ -67,7 +67,7 @@
 
       getDetailsFuture () {
         let vm = this
-        Organisation.getUnitDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getUnitDetails(this.$route.params.uuid, 'future')
         .then(response => {
           vm.detailsFuture = response
         })

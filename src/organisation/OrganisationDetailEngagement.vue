@@ -42,7 +42,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from '../components/Loading'
 
   export default {
@@ -63,16 +63,16 @@
     methods: {
       getEngagements: function () {
         var vm = this
-        Organisation.getEngagementDetails(this.$route.params.uuid)
+        OrganisationUnit.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
           vm.engagements = response
           vm.isLoading = false
         })
-        Organisation.getEngagementDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getEngagementDetails(this.$route.params.uuid, 'past')
         .then(response => {
           vm.engagementsPast = response
         })
-        Organisation.getEngagementDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getEngagementDetails(this.$route.params.uuid, 'future')
         .then(response => {
           vm.engagementsFuture = response
         })

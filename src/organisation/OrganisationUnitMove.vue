@@ -48,7 +48,7 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import OrganisationUnit from '../api/OrganisationUnit'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import DatePicker from '../components/DatePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -86,19 +86,19 @@
     methods: {
       moveUnit () {
         let vm = this
-        Organisation.moveOrganisationUnit(vm.unit, vm.newSuperUnit.uuid, vm.date)
+        OrganisationUnit.move(vm.unit, vm.newSuperUnit.uuid, vm.date)
         .then(response => {
           vm.$refs.orgUnitMove.hide()
-          console.log(response)
         })
       },
 
       getCurrentSuperUnit (unitUuid) {
         let vm = this
-        if (unitUuid === null) return
-        return Organisation.getUnitDetails(unitUuid)
+        if (!unitUuid) return
+        OrganisationUnit.get(unitUuid)
         .then(response => {
-          vm.currentSuperUnit = response[0]
+          console.log(response)
+          vm.currentSuperUnit = response
         })
       }
     }
