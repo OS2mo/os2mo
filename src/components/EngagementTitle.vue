@@ -20,7 +20,8 @@
 import Property from '../api/Property'
 export default {
   props: {
-    value: String
+    model: String,
+    preselected: String
   },
   data () {
     return {

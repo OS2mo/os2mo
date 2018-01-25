@@ -9,12 +9,19 @@
     <div>
       <h4>Engagement</h4>
       <date-start-end v-model="dateStartEnd" :preselected="dates.startDate"/>
-      <div class="form-row">
+      <div class="form-row"  
+       
+      >
         <organisation-unit-picker 
           class="col" 
           label="Vælg enhed"
           v-model="orgUnit"/>
-        <engagement-title v-model="engagement.job_title_uuid"/>
+        <engagement-title 
+          v-model="engagement.selectedTitle"
+          
+        />
+        {{employeeEngagement['job-title']}}
+        {{engagement.job_title_uuid}}
         <engagement-type v-model="engagement.engagement_type_uuid"/>
       </div>
     </div>
@@ -51,9 +58,12 @@
           startDate: '2018-08-02T12:13:00+00:00',
           startEnd: '2018-09-12T12:13:00+00:00'
         },
-        engagement: {},
+        engagement: {
+          job_title_uuid: ''
+        },
         jobTitle: '',
-        engagementType: ''
+        engagementType: '',
+        employeeEngagement: {}
       }
     },
     created () {
@@ -64,7 +74,7 @@
         var vm = this
         Employee.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
-          vm.engagements = response
+          vm.employeeEngagement = response
         })
       }
     }
