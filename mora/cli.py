@@ -95,6 +95,15 @@ def load_cli(app):
         import sphinx.cmdline
 
         docdir = os.path.join(topdir, 'docs')
+        blueprintdir = os.path.join(docdir, 'blueprints')
+
+        os.makedirs(blueprintdir, exist_ok=True)
+
+        for blueprint in app.iter_blueprints():
+            with open(os.path.join(blueprintdir,
+                                   blueprint.name + '.rst'), 'w') as fp:
+                fp.write(flask.render_template('blueprint.rst',
+                                               blueprint=blueprint))
 
         with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
             modules = sorted(m for m in sys.modules

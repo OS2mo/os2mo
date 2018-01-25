@@ -10,7 +10,7 @@ import unittest
 
 import freezegun
 
-from mora.service.engagement import edit_engagement_payload
+from mora.service.employee import edit_engagement_payload
 
 
 class TestEditRole(unittest.TestCase):
