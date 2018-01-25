@@ -62,7 +62,6 @@
       return {
         orgUnit: {},
         dateStartEnd: {},
-        orgUnit: {},
         engagement: {},
         jobTitle: '',
         engagementType: ''

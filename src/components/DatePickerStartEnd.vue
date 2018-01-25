@@ -4,6 +4,7 @@
       class="col"
       label="Startdato"
       v-model="startDate"
+      :value="startDate"
       required
       @input="updateDate()"
     />
@@ -25,14 +26,18 @@
     components: {
       DatePicker
     },
-    props: ['value'],
+    props: {
+      value: null,
+      preselected: {}
+    },
     data () {
       return {
         startDate: null,
         endDate: null
       }
     },
-    created: function () {},
+    created () {
+    },
     methods: {
       updateDate () {
         this.$emit('input', {

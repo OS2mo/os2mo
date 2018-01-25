@@ -9,7 +9,7 @@
         <div class="mr-auto">
         </div>
         <div>
-          <button class="btn btn-outline-primary">
+          <button class="btn btn-outline-primary" v-b-modal.employeeEdit>
             <icon name="edit" />
           </button>
           <button class="btn btn-outline-primary">
@@ -20,6 +20,8 @@
           </button>
         </div>
       </div>
+      <!-- Modal Component -->
+      <employee-edit/>
 
       <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -47,9 +49,11 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/CPRNumber'
+  import EmployeeEdit from './EmployeeEdit'
 
   export default {
     components: {
+      EmployeeEdit
     },
     data () {
       return {
