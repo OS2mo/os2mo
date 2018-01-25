@@ -61,6 +61,11 @@ def get_mock_text(mock_name, mode='r'):
 def get_unused_port():
     '''Obtain an unused port suitable for connecting to a server.
 
+    Please note that due to not returning the allocated socket, this
+    function is vulnerable to a race condition: in the time between
+    call and port use, something else might acquire the port in
+    question. However, this rarely happens in practice.
+
     '''
     with socket.socket() as sock:
         sock.bind(('', 0))

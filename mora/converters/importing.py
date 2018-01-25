@@ -170,6 +170,9 @@ def load_data(sheets, exact=False):
         headers = [c.value.lower() for c in sheet[1]]
         headers = [remap.get(v, v) for v in headers]
 
+        assert len(set(headers)) == len(headers), \
+            'duplicate headers in ' + sheet.title
+
         for i, row in enumerate(sheet.iter_rows(min_row=2), 2):
             if not i % 5000:
                 print(i, file=sys.stderr)
@@ -181,8 +184,9 @@ def load_data(sheets, exact=False):
 
             out.append(dict(map(lambda h, c: (h, c), headers, row)))
 
-    # optionally generate a CPR number in a reproducible way, for test & dev
     if not exact:
+        # optionally generate a CPR number in a reproducible way, for
+        # test & dev
         for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
             # leave some users without a CPR number
             if not i % 100:
@@ -199,10 +203,10 @@ def load_data(sheets, exact=False):
                     i % 10000,
                 ))
 
-    # ensure that all objects have an ID
-    for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
-        if not obj['objektid']:
-            obj['objektid'] = str(uuid.uuid4())
+        # ensure that all objects have an ID
+        for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
+            if not obj['objektid']:
+                obj['objektid'] = str(uuid.uuid4())
 
     # coerce all dates to strings
     for obj in itertools.chain.from_iterable(dest.values()):
@@ -316,13 +320,14 @@ def convert_klasse(obj):
                     for k in (
                         "brugervendtnoegle",
                         "beskrivelse",
-                        # "eksempel",
+                        "eksempel",
                         "omfang",
                         "titel",
-                        # "retskilde",
+                        "retskilde",
                         "aendringsnotat",
-                        # "soegeord",
+                        "soegeord",
                     )
+                    if k in obj
                 }),
             ],
         },
@@ -334,13 +339,14 @@ def convert_klasse(obj):
                 "ansvarlig",
                 "overordnetklasse",
                 "facet",
-                # "redaktoerer",
-                # "sideordnede",
+                "redaktoerer",
+                "sideordnede",
                 "mapninger",
-                # "tilfoejelser",
-                # "erstatter",
-                # "lovligekombinationer",
+                "tilfoejelser",
+                "erstatter",
+                "lovligekombinationer",
             )
+            if k in obj
         },
 
         "tilstande": {
@@ -417,26 +423,27 @@ def convert_organisation(obj):
             'relationer': {
                 k: _make_relation(obj, k)
                 for k in (
-                    # "adresser",
-                    # "ansatte",
-                    # "branche",
+                    "adresser",
+                    "ansatte",
+                    "branche",
                     "myndighed",
                     "myndighedstype",
-                    # "opgaver",
-                    # "overordnet",
-                    # "produktionsenhed",
-                    # "skatteenhed",
-                    # "tilhoerer",
-                    # "tilknyttedebrugere",
-                    # "tilknyttedeenheder",
-                    # "tilknyttedefunktioner",
-                    # "tilknyttedeinteressefaellesskaber",
-                    # "tilknyttedeitsystemer"
-                    # "tilknyttedeorganisationer",
-                    # "tilknyttedepersoner",
+                    "opgaver",
+                    "overordnet",
+                    "produktionsenhed",
+                    "skatteenhed",
+                    "tilhoerer",
+                    "tilknyttedebrugere",
+                    "tilknyttedeenheder",
+                    "tilknyttedefunktioner",
+                    "tilknyttedeinteressefaellesskaber",
+                    "tilknyttedeitsystemer"
+                    "tilknyttedeorganisationer",
+                    "tilknyttedepersoner",
                     "virksomhed",
-                    # "virksomhedstype",
+                    "virksomhedstype",
                 )
+                if k in obj
             },
         }
 
@@ -532,6 +539,7 @@ def convert_itsystem(obj):
                         "itsystemtype",
                         "konfigurationreference",
                     )
+                    if k in obj
                 }),
             ],
         },
@@ -541,16 +549,17 @@ def convert_itsystem(obj):
             for k in (
                 "tilhoerer",
                 "tilknyttedeorganisationer",
-                # "tilknyttedeenheder",
-                # "tilknyttedefunktioner",
-                # "tilknyttedebrugere",
-                # "tilknyttedeinteressefaellesskaber",
-                # "tilknyttedeitsystemer",
-                # "tilknyttedepersoner",
-                # "systemtyper",
-                # "opgaver",
-                # "adresser"
+                "tilknyttedeenheder",
+                "tilknyttedefunktioner",
+                "tilknyttedebrugere",
+                "tilknyttedeinteressefaellesskaber",
+                "tilknyttedeitsystemer",
+                "tilknyttedepersoner",
+                "systemtyper",
+                "opgaver",
+                "adresser"
             )
+            if k in obj
         },
 
         "tilstande": {
@@ -576,12 +585,13 @@ def convert_facet(obj):
                     for k in (
                         "brugervendtnoegle",
                         "beskrivelse",
-                        # "opbygning",
-                        # "ophavsret",
-                        # "plan",
-                        # "supplement",
-                        # "retskilde",
+                        "opbygning",
+                        "ophavsret",
+                        "plan",
+                        "supplement",
+                        "retskilde",
                     )
+                    if k in obj
                 }),
             ],
         },
@@ -592,8 +602,9 @@ def convert_facet(obj):
                 "ejer",
                 "ansvarlig",
                 "facettilhoerer",
-                # "redaktoerer",
+                "redaktoerer",
             )
+            if k in obj
         },
 
         "tilstande": {
@@ -626,6 +637,7 @@ def convert_bruger(obj):
                         "brugernavn",
                         "brugertype",
                     )
+                    if k in obj
                 }),
             ],
         },
@@ -636,14 +648,15 @@ def convert_bruger(obj):
                 "tilhoerer",
                 "adresser",
                 "brugertyper",
-                # "opgaver",
-                # "tilknyttedeenheder",
-                # "tilknyttedefunktioner",
-                # "tilknyttedeinteressefaellesskaber",
-                # "tilknyttedeorganisationer",
+                "opgaver",
+                "tilknyttedeenheder",
+                "tilknyttedefunktioner",
+                "tilknyttedeinteressefaellesskaber",
+                "tilknyttedeorganisationer",
                 "tilknyttedepersoner",
-                # "tilknyttedeitsystemer",
+                "tilknyttedeitsystemer",
             )
+            if k in obj
         },
 
         "tilstande": {
@@ -670,6 +683,7 @@ def convert_organisationfunktion(obj):
                         "brugervendtnoegle",
                         "funktionsnavn",
                     )
+                    if k in obj
                 }),
             ],
         },
@@ -678,15 +692,16 @@ def convert_organisationfunktion(obj):
             k: _make_relation(obj, k)
             for k in (
                 "organisatoriskfunktionstype",
-                # "adresser",
-                # "opgaver",
+                "adresser",
+                "opgaver",
                 "tilknyttedebrugere",
                 "tilknyttedeenheder",
                 "tilknyttedeorganisationer",
-                # "tilknyttedeitsystemer",
-                # "tilknyttedeinteressefaellesskaber",
-                # "tilknyttedepersoner",
+                "tilknyttedeitsystemer",
+                "tilknyttedeinteressefaellesskaber",
+                "tilknyttedepersoner",
             )
+            if k in obj
         },
 
         "tilstande": {

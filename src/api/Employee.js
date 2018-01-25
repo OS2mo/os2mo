@@ -79,6 +79,19 @@ export default {
     })
   },
 
+  /**
+   * Move an employee
+   * @param {Object} uuid - employee to move
+   * @param {String} engagement - uuid for the new employee
+   * @returns {Object} employeee uuid
+   */
+  editEmployee (uuid, engagement) {
+    return Service.post(`/e/${uuid}/edit`, engagement)
+    .then(response => {
+      return response.data
+    })
+  },
+
    /**
    * End an employee
    * @param {Object} engagement - the employee to end

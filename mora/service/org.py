@@ -6,6 +6,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+'''
+Organisation
+------------
+
+This section describes how to interact with organisations and
+organisational units.
+
+'''
+
 import enum
 import operator
 

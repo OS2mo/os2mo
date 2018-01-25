@@ -5,6 +5,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+
+'''
+Employees
+---------
+
+This section describes how to interact with employees.
+
+'''
+
+
 import copy
 import functools
 from typing import List
@@ -14,7 +25,7 @@ import flask
 from ..converters import reading, writing
 from .. import lora, util
 
-blueprint = flask.Blueprint('engagement', __name__, static_url_path='',
+blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 

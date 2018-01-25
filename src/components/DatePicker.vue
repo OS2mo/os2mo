@@ -58,13 +58,11 @@ export default {
   },
   watch: {
     selectedDate (newVal, oldVal) {
-      this.$emit('input', new Date(newVal))
+      this.$emit('input', newVal)
     },
     disabledTo (newVal, oldVal) {
-      this.disabled.to = new Date(newVal)
+      this.disabled.to = newVal
     }
-  },
-  methods: {
   }
 }
 </script>

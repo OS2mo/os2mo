@@ -60,9 +60,10 @@
     },
     data () {
       return {
-        orgUnit: {},
         dateStartEnd: {},
-        engagement: {},
+        orgUnit: {},
+        engagement: {
+        },
         jobTitle: '',
         engagementType: ''
       }
@@ -73,10 +74,8 @@
         this.engagement.type = 'engagement'
         this.engagement.org_uuid = this.orgUnit.org
         this.engagement.org_unit_uuid = this.orgUnit.uuid
-        // this.engagement.valid_from = this.dateStartEnd.startDate
-        // this.engagement.valid_to = this.dateStartEnd.endDate
-        this.engagement.valid_from = '2018-01-01T18:14:20Z'
-        this.engagement.valid_to = '2018-12-22T18:14:20Z'
+        this.engagement.valid_from = this.dateStartEnd.startDate
+        this.engagement.valid_to = this.dateStartEnd.endDate
 
         let vm = this
         Employee.createEmployee(this.$route.params.uuid, [this.engagement])

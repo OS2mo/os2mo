@@ -6,6 +6,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+'''
+Authentication
+--------------
+
+This section describes how to authenticate with MO. The API is work in
+progress.
+
+'''
+
 import os
 
 import flask
