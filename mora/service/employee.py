@@ -25,8 +25,127 @@ import flask
 from ..converters import reading, writing
 from .. import lora, util
 
+from . import common
+
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+@blueprint.route('/o/<uuid:orgid>/e/')
+@util.restrictargs('at', 'start', 'limit', 'query')
+def list_employees(orgid):
+    '''Query employees in an organisation.
+
+    .. :quickref: Employee; List & search
+
+    :param uuid orgid: UUID of the organisation to search.
+
+    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam int start: Index of first unit for paging.
+    :queryparam int limit: Maximum items
+    :queryparam string query: Filter by employees matching this string.
+        Please note that this only applies to attributes of the user, not the
+        relations or engagements they have.
+
+    :<jsonarr string name: Human-readable name.
+    :<jsonarr string uuid: Machine-friendly UUID.
+
+    :status 200: Always.
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "name": "Hans Bruger",
+          "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+        },
+        {
+          "name": "Joe User",
+          "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
+        }
+      ]
+
+    '''
+
+    # TODO: share code with list_orgunits?
+
+    c = common.get_connector()
+
+    args = flask.request.args
+
+    kwargs = dict(
+        limit=int(args.get('limit', 0)) or 20,
+        start=int(args.get('start', 0)) or 0,
+        tilhoerer=str(orgid),
+
+        # this makes the search go slow :(
+        gyldighed='Aktiv',
+    )
+
+    if 'query' in args:
+        kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+
+    return flask.jsonify([
+        {
+            'name': bruger['attributter']['brugeregenskaber'][0]['brugernavn'],
+            'uuid': brugerid,
+        }
+        for brugerid, bruger in c.bruger.get_all(**kwargs)
+    ])
+
+
+@blueprint.route('/e/<uuid:id>/')
+@util.restrictargs('at')
+def get_employee(id, raw=False):
+    '''Retrieve an employee.
+
+    .. :quickref: Employee; Get
+
+    :queryparam date at: Current time in ISO-8601 format.
+
+    :<json string name: Human-readable name.
+    :<json string uuid: Machine-friendly UUID.
+    :<json string cpr_no: CPR number of for the corresponding person.
+
+    :status 200: Whenever the user ID is valid and corresponds to an
+        existing user.
+    :status 404: Otherwise.
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+      {
+        "cpr_no": "1011101010",
+        "name": "Hans Bruger",
+        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+      }
+
+    '''
+    c = common.get_connector()
+
+    user = c.bruger.get(id)
+
+    r = {
+        'uuid': id,
+
+        'name':
+        user['attributter']
+        ['brugeregenskaber'][0]
+        ['brugernavn'],
+
+        'cpr_no':
+        user['relationer']
+        ['tilknyttedepersoner'][0]
+        ['urn'].rsplit(':', 1)[-1],
+    }
+
+    if raw:
+        return r
+    else:
+        return flask.jsonify(r)
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
