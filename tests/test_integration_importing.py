@@ -343,6 +343,16 @@ class IntegrationTests(util.LoRATestCase):
 
         with self.subTest('organisations'):
             self.assertRequestResponse(
+                '/service/o/',
+                [{'name': 'Aarhus Kommune',
+                  'user_key': 'Aarhus Kommune',
+                  'uuid': '59141156-ed0b-457c-9535-884447c5220b'},
+                 {'name': 'Magenta ApS',
+                  'user_key': 'Magenta ApS',
+                  'uuid': '8efbd074-ad2a-4e6a-afec-1d0b1891f566'}],
+            )
+
+            self.assertRequestResponse(
                 '/mo/o/',
                 [
                     {
@@ -385,6 +395,16 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('users'):
             for user in self.client.get('/mo/e/').json:
                 self.assertRegex(user['user-key'], r'\A\d{10}\Z')
+
+            self.assertRequestResponse(
+                '/service/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566/e/',
+                [{'name': 'Hans Bruger',
+                  'uuid': '9917e91c-e3ee-41bf-9a60-b024c23b5fe3'},
+                 {'name': 'Joe User',
+                  'uuid': 'cd2dcfad-6d34-4553-9fee-a7023139a9e8'},
+                 {'name': 'MAAAAAM',
+                  'uuid': 'f715a2c9-a425-4cc9-b69b-7d89aaedece4'}],
+            )
 
             self.assertRequestResponse(
                 '/mo/e/',
