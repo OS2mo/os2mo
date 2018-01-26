@@ -9,10 +9,8 @@
 import datetime
 
 import freezegun
-import dateutil
 
 from mora import lora
-from mora import util as mora_util
 
 from . import util
 

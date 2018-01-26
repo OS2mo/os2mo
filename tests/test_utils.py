@@ -11,7 +11,6 @@ import unittest
 import flask
 import freezegun
 import datetime
-import pytz
 
 from mora import util
 

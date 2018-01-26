@@ -9,7 +9,6 @@
 import copy
 import datetime
 import json
-import unittest
 
 import freezegun
 

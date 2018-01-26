@@ -18,7 +18,6 @@ import uuid
 import flask
 import iso8601
 import pytz
-import tzlocal
 import dateutil.parser
 
 

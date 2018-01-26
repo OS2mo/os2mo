@@ -8,8 +8,6 @@
 
 import unittest
 
-import freezegun
-
 from mora.service.employee import edit_engagement_payload
 
 
