@@ -11,6 +11,7 @@ import contextlib
 import functools
 import json
 import os
+import pprint
 import select
 import signal
 import socket
@@ -86,8 +87,9 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
 
 
 def import_fixture(fixture_name):
+    print(fixture_name, os.path.join(FIXTURE_DIR, fixture_name))
     for method, path, obj in importing.convert([
-            os.path.join(FIXTURE_DIR, fixture_name),
+        os.path.join(FIXTURE_DIR, fixture_name),
     ]):
         r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
                              json=obj)
@@ -278,19 +280,26 @@ class TestCaseMixin(object):
 
         r = self._perform_request(path, **kwargs)
 
-        if status_code is None:
-            self.assertLess(r.status_code, 300, message)
-            self.assertGreaterEqual(r.status_code, 200, message)
-        else:
-            self.assertEqual(r.status_code, status_code, message)
-
-        actual = r.json
+        actual = (
+            json.loads(r.get_data(True))
+            if r.mimetype == 'application/json'
+            else r.get_data(True)
+        )
 
         for k in drop_keys:
             try:
                 actual.pop(k)
             except (IndexError, KeyError, TypeError):
                 pass
+
+        if actual != expected:
+            pprint.pprint(actual)
+
+        if status_code is None:
+            self.assertLess(r.status_code, 300, message)
+            self.assertGreaterEqual(r.status_code, 200, message)
+        else:
+            self.assertEqual(r.status_code, status_code, message)
 
         self.assertEqual(expected, actual, message)
 
