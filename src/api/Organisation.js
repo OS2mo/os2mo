@@ -9,8 +9,9 @@ export default {
    * Get a list of all organisations
    * @returns {Array} List of all organisations
    */
-  getAll () {
-    return Service.get('/o/')
+  getAll (atDate) {
+    atDate = atDate || ''
+    return Service.get(`/o/?at=${atDate}`)
       .then(response => {
         return response.data
       })

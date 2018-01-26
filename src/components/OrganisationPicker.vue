@@ -21,7 +21,8 @@ import Organisation from '../api/Organisation'
 export default {
   name: 'OrganisationPicker',
   props: {
-    value: null
+    value: null,
+    atDate: null
   },
   data () {
     return {
@@ -41,7 +42,7 @@ export default {
   methods: {
     getAll () {
       let vm = this
-      Organisation.getAll()
+      Organisation.getAll(this.atDate)
       .then(response => {
         vm.orgs = response
         vm.selectedOrganisation = response[0]
