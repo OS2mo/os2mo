@@ -6,14 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from . import org
 from . import employee
 from . import engagement
 from . import facet
+from . import org
 
 blueprints = (
-    org.blueprint,
     employee.blueprint,
-    facet.blueprint,
     engagement.blueprint,
+    facet.blueprint,
+    org.blueprint,
 )
