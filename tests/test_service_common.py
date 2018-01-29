@@ -1,36 +1,21 @@
-import copy
+#
+# Copyright (c) 2017-2018, Magenta ApS
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
 from unittest import TestCase
 
-from mora.service.employee import (ensure_path_and_get_value, update_payload,
-                                   PropTuple, PropTypes,
-                                   merge_objs)
+from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
+                                 update_payload)
 
 
 class TestClass(TestCase):
     maxDiff = None
 
-    def test_get_and_set_path_new_path(self):
-        # Arrange
-        obj = {}
-        original_obj = copy.deepcopy(obj)
-        path = ('test1', 'test2')
-
-        expected_props = []
-        expected_obj = {
-            'test1': {
-                'test2': []
-            }
-        }
-
-        # Act
-        actual_obj, actual_props = ensure_path_and_get_value(obj, path)
-
-        # Assert
-        self.assertEqual(expected_props, actual_props)
-        self.assertEqual(expected_obj, actual_obj)
-        self.assertEqual(original_obj, obj)
-
-    def test_get_and_set_path_existing_path(self):
+    def test_get_obj_path(self):
         # Arrange
         obj = {
             'whatever': 'no',
@@ -40,34 +25,23 @@ class TestClass(TestCase):
             }
         }
 
-        original_obj = copy.deepcopy(obj)
-
         path = ('test1', 'test2')
 
         expected_props = ['something']
-        expected_obj = {
-            'whatever': 'no',
-            'test1': {
-                'garbage': 'there is some stuff here already',
-                'test2': ['something']
-            }
-        }
 
         # Act
-        actual_obj, actual_props = ensure_path_and_get_value(obj, path)
+        actual_props = get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
-        self.assertEqual(expected_obj, actual_obj)
-        self.assertEqual(original_obj, obj)
 
     def test_update_payload_complex(self):
         # Arrange
         fields = [
             (
-                PropTuple(
+                FieldTuple(
                     ('test1', 'prop1'),
-                    PropTypes.ADAPTED_ZERO_TO_MANY,
+                    FieldTypes.ADAPTED_ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -75,9 +49,9 @@ class TestClass(TestCase):
                 }
             ),
             (
-                PropTuple(
+                FieldTuple(
                     ('test1', 'prop2'),
-                    PropTypes.ZERO_TO_MANY,
+                    FieldTypes.ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -85,9 +59,9 @@ class TestClass(TestCase):
                 }
             ),
             (
-                PropTuple(
+                FieldTuple(
                     ('test2', 'prop3'),
-                    PropTypes.ZERO_TO_ONE,
+                    FieldTypes.ZERO_TO_ONE,
                     lambda x: True,
                 ),
                 {
@@ -207,50 +181,3 @@ class TestClass(TestCase):
 
         # Assert
         self.assertEqual(expected_payload, actual_payload)
-
-    def test_merge_objs(self):
-        # Arrange
-        obj1 = {
-            'rels': {
-                'rel1': [
-                    {'whatever': 'val'}
-                ],
-                'rel2': [
-                    {'whatever': 'val'}
-                ]
-            }
-        }
-
-        obj2 = {
-            'attr': {
-                'egenskaber': [{'bla1': 'val1'}, {'bla2': 'val2'}]
-            },
-            'rels': {
-                'rel2': [
-                    {'new': 'val'}
-                ]
-            }
-        }
-
-        expected_result = {
-            'attr': {
-                'egenskaber': [{'bla1': 'val1'}, {'bla2': 'val2'}]
-            },
-            'rels': {
-                'rel1': [
-                    {'whatever': 'val'}
-                ],
-                'rel2': [
-                    {'new': 'val'},
-                    {'whatever': 'val'},
-                ]
-            }
-        }
-
-        # Act
-        # actual_result_1 = merge_objs(dict(obj1), dict(obj2))
-        actual_result_2 = merge_objs(dict(obj2), dict(obj1))
-
-        # Assert
-        # self.assertEqual(expected_result, actual_result_1)
-        self.assertEqual(expected_result, actual_result_2)
