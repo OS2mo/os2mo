@@ -39,7 +39,6 @@
 </template>
 
 <script>
-  // import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
 
@@ -85,7 +84,7 @@
     methods: {
       toggle () {
         this.open = !this.open
-        if (this.open && this.model.children===undefined) this.loadChildren()
+        if (this.open && this.model.children === undefined) this.loadChildren()
       },
 
       selectOrgUnit (org) {
