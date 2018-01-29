@@ -23,8 +23,9 @@ export default {
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getChildren (uuid) {
-    return Service.get(`/ou/${uuid}/children`)
+  getChildren (uuid, atDate) {
+    atDate = atDate || new Date()
+    return Service.get(`/ou/${uuid}/children?at=${atDate.toISOString()}`)
     .then(response => {
       return response.data
     })

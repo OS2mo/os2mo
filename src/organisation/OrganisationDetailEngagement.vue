@@ -49,6 +49,9 @@
     components: {
       Loading
     },
+    props: {
+      uuid: String
+    },
     data () {
       return {
         engagements: [],
@@ -60,19 +63,24 @@
     created: function () {
       this.getEngagements()
     },
+    watch: {
+      uuid (newVal, oldVal) {
+        this.getEngagements()
+      }
+    },
     methods: {
       getEngagements: function () {
         var vm = this
-        OrganisationUnit.getEngagementDetails(this.$route.params.uuid)
+        OrganisationUnit.getEngagementDetails(this.uuid)
         .then(response => {
           vm.engagements = response
           vm.isLoading = false
         })
-        OrganisationUnit.getEngagementDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getEngagementDetails(this.uuid, 'past')
         .then(response => {
           vm.engagementsPast = response
         })
-        OrganisationUnit.getEngagementDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getEngagementDetails(this.uuid, 'future')
         .then(response => {
           vm.engagementsFuture = response
         })

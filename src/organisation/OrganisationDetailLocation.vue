@@ -50,6 +50,9 @@
     components: {
       Loading
     },
+    props: {
+      uuid: String
+    },
     data () {
       return {
         locations: [],
@@ -61,19 +64,24 @@
     created: function () {
       this.getLocations()
     },
+    watch: {
+      uuid (newVal, oldVal) {
+        this.getLocations()
+      }
+    },
     methods: {
       getLocations: function () {
         var vm = this
-        OrganisationUnit.getLocationDetails(this.$route.params.uuid)
+        OrganisationUnit.getLocationDetails(this.uuid)
         .then(response => {
           vm.locations = response
           vm.isLoading = false
         })
-        OrganisationUnit.getLocationDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getLocationDetails(this.uuid, 'past')
         .then(response => {
           vm.locationsPast = response
         })
-        OrganisationUnit.getLocationDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getLocationDetails(this.uuid, 'future')
         .then(response => {
           vm.locationsFuture = response
         })

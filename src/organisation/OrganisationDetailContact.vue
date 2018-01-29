@@ -53,6 +53,9 @@
     components: {
       Loading
     },
+    props: {
+      uuid: String
+    },
     data () {
       return {
         contacts: [],
@@ -64,19 +67,24 @@
     created: function () {
       this.getContactChannels()
     },
+    watch: {
+      uuid (newVal, oldVal) {
+        this.getContactChannels()
+      }
+    },
     methods: {
       getContactChannels: function () {
         var vm = this
-        OrganisationUnit.getContactDetails(this.$route.params.uuid)
+        OrganisationUnit.getContactDetails(this.uuid)
         .then(response => {
           vm.contacts = response
           vm.isLoading = false
         })
-        OrganisationUnit.getContactDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getContactDetails(this.uuid, 'past')
         .then(response => {
           vm.contactsPast = response
         })
-        OrganisationUnit.getContactDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getContactDetails(this.uuid, 'future')
         .then(response => {
           vm.contactsFuture = response
         })

@@ -1,4 +1,5 @@
 <template>
+  <div>
     <select 
       class="form-control" 
       id="organisation-picker"
@@ -13,6 +14,7 @@
         {{org.name}}
       </option>
     </select>
+  </div>
 </template>
 
 <script>
@@ -21,7 +23,8 @@ import Organisation from '../api/Organisation'
 export default {
   name: 'OrganisationPicker',
   props: {
-    value: null
+    value: null,
+    atDate: Date
   },
   data () {
     return {
@@ -36,12 +39,16 @@ export default {
     selectedOrganisation (newVal, oldVal) {
       Organisation.setSelectedOrganisation(newVal)
       this.$emit('input', newVal)
+    },
+
+    atDate () {
+      this.getAll()
     }
   },
   methods: {
     getAll () {
       let vm = this
-      Organisation.getAll()
+      Organisation.getAll(this.atDate)
       .then(response => {
         vm.orgs = response
         vm.selectedOrganisation = response[0]
