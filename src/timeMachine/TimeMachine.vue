@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>{{ msg }}</h1>
+    <h1>Tidsmaskinen</h1>
   <div class="row">
       <div class="col">
         <div class="card">
@@ -15,8 +15,9 @@
             :orgUuid="orgLeft.uuid"
             v-model="orgUnitLeft"
           />
-          {{orgUnitLeft}}
-          <!-- <organisation-detail :orgUnit="orgUnitLeft"/> -->
+
+          Navn: {{orgUnitLeft.name}}
+          <organisation-detail-tabs :uuid="orgUnitLeft.uuid"/>
         </div>
       </div>
       <div class="col">
@@ -29,8 +30,8 @@
             :orgUuid="orgRight.uuid"
             v-model="orgUnitRight"
           />
-          {{orgUnitRight}}
-          <!-- <organisation-detail :orgUnit="orgUnitRight"/> -->
+           Navn: {{orgUnitRight.name}}
+          <organisation-detail-tabs :uuid="orgUnitRight.uuid"/>
         </div>
       </div>
   </div>
@@ -41,18 +42,17 @@
   import DatePicker from '../components/DatePicker'
   import OrganisationPicker from '../components/OrganisationPicker'
   import Treeview from '../components/Treeview'
-  import OrganisationDetail from '../organisation/OrganisationDetail'
+  import OrganisationDetailTabs from '../organisation/OrganisationDetailTabs'
 
   export default {
     components: {
       DatePicker,
       OrganisationPicker,
       Treeview,
-      OrganisationDetail
+      OrganisationDetailTabs
     },
     data () {
       return {
-        msg: 'Her kommer tidsmaskinen',
         dateLeft: null,
         dateRight: null,
         orgLeft: {},
