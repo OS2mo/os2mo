@@ -29,7 +29,7 @@ blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/engagement')
-@util.restrictargs('at')
+@util.restrictargs('at', 'validity')
 def get_engagement(type, id):
     '''Obtain the list of engagements corresponding to a user or
     organisational unit.
@@ -37,6 +37,9 @@ def get_engagement(type, id):
     .. :quickref: Engagement; List
 
     :queryparam date at: Current time in ISO-8601 format.
+    :queryparam string validity: Only show *past*, *present* or
+        *future* values -- which the default being to show *present*
+        values.
 
     :param type: 'ou' for querying a unit; 'e' for querying an
         employee.

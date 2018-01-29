@@ -601,6 +601,26 @@ class Tests(util.LoRATestCase):
                 func,
             )
 
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/engagement?validity=past',
+                [],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/engagement?validity=future',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/engagement?at=2016-01-01&validity=future',
+                func,
+            )
+
         self.assertRequestResponse(
             '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
             '/details/engagement',

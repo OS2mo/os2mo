@@ -23,6 +23,9 @@ def get_connector():
     if args.get('at'):
         loraparams['effective_date'] = iso8601.parse_date(args['at'])
 
+    if args.get('validity'):
+        loraparams['validity'] = args['validity']
+
     return lora.Connector(**loraparams)
 
 
