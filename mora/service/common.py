@@ -145,7 +145,7 @@ def ensure_bounds(valid_from: str,
             last = sorted_props[-1]
             if valid_from < first['virkning']['from']:
                 first['virkning']['from'] = valid_from
-            if valid_to < last['virkning']['to']:
+            if last['virkning']['to'] < valid_to:
                 last['virkning']['to'] = valid_to
             updated_props = [first]
             if last is not first:

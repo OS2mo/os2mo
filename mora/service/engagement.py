@@ -195,13 +195,12 @@ def get_engagement(type, id):
 def create_engagement(employee_uuid, req):
     # TODO: Validation
 
-    print(ORG_UNIT)
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
     org_uuid = req.get(ORG).get('uuid')
     job_title_uuid = req.get(JOB_TITLE).get('uuid')
     engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
     valid_from = req.get('valid_from')
-    valid_to = req.get('valid_to')
+    valid_to = req.get('valid_to', 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
 
@@ -228,7 +227,7 @@ def edit_engagement(employee_uuid, req):
 
     data = req.get('data')
     new_from = data.get('valid_from')
-    new_to = data.get('valid_to')
+    new_to = data.get('valid_to', 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
@@ -273,7 +272,7 @@ def edit_engagement(employee_uuid, req):
                              payload)
 
     bounds_fields = list(
-        {x[0] for x in update_fields}.difference(ENGAGEMENT_FIELDS))
+        ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
     c.organisationfunktion.update(payload, engagement_uuid)

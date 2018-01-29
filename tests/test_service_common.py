@@ -9,7 +9,8 @@
 from unittest import TestCase
 
 from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
-                                 update_payload)
+                                 update_payload, inactivate_old_interval,
+                                 ensure_bounds)
 
 
 class TestClass(TestCase):
@@ -181,3 +182,453 @@ class TestClass(TestCase):
 
         # Assert
         self.assertEqual(expected_payload, actual_payload)
+
+    def test_inactivates_correctly_when_diminishing_bounds(self):
+        # Arrange
+        old_from = '2013-01-01T00:00:00+00:00'
+        old_to = '2016-01-01T00:00:00+00:00'
+        new_from = '2014-01-01T00:00:00+00:00'
+        new_to = '2015-01-01T00:00:00+00:00'
+        payload = {
+            'whatever': ['Should remain untouched'],
+            'note': 'NOTE'
+        }
+        path = ('hest', 'hestgyldighed')
+
+        expected_result = {
+            'whatever': ['Should remain untouched'],
+            'hest': {
+                'hestgyldighed': [
+                    {
+                        'gyldighed': 'Inaktiv',
+                        'virkning': {
+                            'from': '2013-01-01T00:00:00+00:00',
+                            'to': '2014-01-01T00:00:00+00:00',
+                        }
+                    },
+                    {
+                        'gyldighed': 'Inaktiv',
+                        'virkning': {
+                            'from': '2015-01-01T00:00:00+00:00',
+                            'to': '2016-01-01T00:00:00+00:00',
+                        }
+                    }
+                ]
+            },
+            'note': 'NOTE'
+        }
+
+        # Act
+        actual_result = inactivate_old_interval(old_from, old_to, new_from,
+                                                new_to, payload, path)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_does_not_inactivate_when_expanding_bounds(self):
+        # Arrange
+        old_from = '2014-01-01T00:00:00+00:00'
+        old_to = '2015-01-01T00:00:00+00:00'
+        new_from = '2013-01-01T00:00:00+00:00'
+        new_to = '2016-01-01T00:00:00+00:00'
+        payload = {
+            'whatever': ['Should remain untouched'],
+            'note': 'NOTE'
+        }
+        path = ('hest', 'hestgyldighed')
+
+        expected_result = {
+            'whatever': ['Should remain untouched'],
+            'note': 'NOTE'
+        }
+
+        # Act
+        actual_result = inactivate_old_interval(old_from, old_to, new_from,
+                                                new_to, payload, path)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_does_not_inactivate_when_bounds_do_not_move(self):
+        # Arrange
+        old_from = '2014-01-01T00:00:00+00:00'
+        old_to = '2015-01-01T00:00:00+00:00'
+        new_from = '2014-01-01T00:00:00+00:00'
+        new_to = '2015-01-01T00:00:00+00:00'
+        payload = {
+            'whatever': ['Should remain untouched'],
+            'note': 'NOTE'
+        }
+        path = ('hest', 'hestgyldighed')
+
+        expected_result = {
+            'whatever': ['Should remain untouched'],
+            'note': 'NOTE'
+        }
+
+        # Act
+        actual_result = inactivate_old_interval(old_from, old_to, new_from,
+                                                new_to, payload, path)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_ensure_bounds_times_are_inside_bounds(self):
+        # Arrange
+        new_from = '2013-01-01T00:00:00+00:00'
+        new_to = '2015-01-01T00:00:00+00:00'
+
+        original = {
+            'test1': {
+                'test2': [
+                    {
+                        'uuid': 'HEJ2',
+                        'virkning': {
+                            'from': '2013-01-01T00:00:00+00:00',
+                            'to': '2014-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ1',
+                        'virkning': {
+                            'from': '2012-01-01T00:00:00+00:00',
+                            'to': '2013-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ3',
+                        'virkning': {
+                            'from': '2014-01-01T00:00:00+00:00',
+                            'to': '2015-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                ]
+            }
+        }
+
+        payload = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        paths = [
+            ['test1', 'test2']
+        ]
+
+        expected_result = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        # Act
+        actual_result = ensure_bounds(new_from, new_to, paths, original,
+                                      payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_ensure_bounds_expanding_from_time(self):
+        # Arrange
+        new_from = '2010-01-01T00:00:00+00:00'
+        new_to = '2014-01-01T00:00:00+00:00'
+
+        original = {
+            'test1': {
+                'test2': [
+                    {
+                        'uuid': 'HEJ2',
+                        'virkning': {
+                            'from': '2013-01-01T00:00:00+00:00',
+                            'to': '2014-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ1',
+                        'virkning': {
+                            'from': '2012-01-01T00:00:00+00:00',
+                            'to': '2013-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ3',
+                        'virkning': {
+                            'from': '2014-01-01T00:00:00+00:00',
+                            'to': '2015-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                ]
+            }
+        }
+
+        payload = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        paths = [
+            ['test1', 'test2']
+        ]
+
+        expected_result = {
+            'whatever': ['I should remain untouched, please'],
+            'note': 'NOTE',
+            'test1': {
+                'no': [
+                    'Me too'
+                ],
+                'test2': [
+                    {
+                        'uuid': 'HEJ1',
+                        'virkning': {
+                            'from': '2010-01-01T00:00:00+00:00',
+                            'to': '2013-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    }
+                ]
+            }
+        }
+
+        # Act
+        actual_result = ensure_bounds(new_from, new_to, paths, original,
+                                      payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_ensure_bounds_diminishing_from_time(self):
+        # Arrange
+        new_from = '2012-07-01T00:00:00+00:00'
+        new_to = '2015-01-01T00:00:00+00:00'
+
+        original = {
+            'test1': {
+                'test2': [
+                    {
+                        'uuid': 'HEJ2',
+                        'virkning': {
+                            'from': '2013-01-01T00:00:00+00:00',
+                            'to': '2014-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ1',
+                        'virkning': {
+                            'from': '2012-01-01T00:00:00+00:00',
+                            'to': '2013-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ3',
+                        'virkning': {
+                            'from': '2014-01-01T00:00:00+00:00',
+                            'to': '2015-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                ]
+            }
+        }
+
+        payload = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        paths = [
+            ['test1', 'test2']
+        ]
+
+        expected_result = {
+            'whatever': ['I should remain untouched, please'],
+            'note': 'NOTE',
+            'test1': {
+                'no': [
+                    'Me too'
+                ]
+            }
+        }
+
+        # Act
+        actual_result = ensure_bounds(new_from, new_to, paths, original,
+                                      payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_ensure_bounds_expanding_to_time(self):
+        # Arrange
+        new_from = '2012-01-01T00:00:00+00:00'
+        new_to = '2017-01-01T00:00:00+00:00'
+
+        original = {
+            'test1': {
+                'test2': [
+                    {
+                        'uuid': 'HEJ2',
+                        'virkning': {
+                            'from': '2013-01-01T00:00:00+00:00',
+                            'to': '2014-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ1',
+                        'virkning': {
+                            'from': '2012-01-01T00:00:00+00:00',
+                            'to': '2013-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ3',
+                        'virkning': {
+                            'from': '2014-01-01T00:00:00+00:00',
+                            'to': '2015-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                ]
+            }
+        }
+
+        payload = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        paths = [
+            ['test1', 'test2']
+        ]
+
+        expected_result = {
+            'whatever': ['I should remain untouched, please'],
+            'note': 'NOTE',
+            'test1': {
+                'no': [
+                    'Me too'
+                ],
+                'test2': [
+                    {
+                        'uuid': 'HEJ3',
+                        'virkning': {
+                            'from': '2014-01-01T00:00:00+00:00',
+                            'to': '2017-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                ]
+            }
+        }
+
+        # Act
+        actual_result = ensure_bounds(new_from, new_to, paths, original,
+                                      payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_ensure_bounds_diminishing_to_time(self):
+        # Arrange
+        new_from = '2012-01-01T00:00:00+00:00'
+        new_to = '2014-07-01T00:00:00+00:00'
+
+        original = {
+            'test1': {
+                'test2': [
+                    {
+                        'uuid': 'HEJ2',
+                        'virkning': {
+                            'from': '2013-01-01T00:00:00+00:00',
+                            'to': '2014-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ1',
+                        'virkning': {
+                            'from': '2012-01-01T00:00:00+00:00',
+                            'to': '2013-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                    {
+                        'uuid': 'HEJ3',
+                        'virkning': {
+                            'from': '2014-01-01T00:00:00+00:00',
+                            'to': '2015-01-01T00:00:00+00:00',
+                            'from_included': True,
+                            'to_included': False,
+                        }
+                    },
+                ]
+            }
+        }
+
+        payload = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        paths = [
+            ['test1', 'test2']
+        ]
+
+        expected_result = {
+            'whatever': ['I should remain untouched, please'],
+            'note': 'NOTE',
+            'test1': {
+                'no': [
+                    'Me too'
+                ]
+            }
+        }
+
+        # Act
+        actual_result = ensure_bounds(new_from, new_to, paths, original,
+                                      payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)

@@ -293,7 +293,6 @@ class Tests(util.LoRATestCase):
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "valid_from": "2018-04-01T00:00:00+02",
-                "valid_to": "infinity",
             },
         }]
 
@@ -454,7 +453,6 @@ class Tests(util.LoRATestCase):
                 "engagement_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                 "valid_from": "2018-04-01T00:00:00+02",
-                "valid_to": "infinity",
             },
         }]
 
