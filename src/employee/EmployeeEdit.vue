@@ -3,28 +3,27 @@
     id="employeeEdit" 
     size="lg" 
     hide-footer 
-    title="Rediger Medarbejder"
+    title="Rediger medarbejder"
     ref="employeeEdit"
   >
-    <div>
+    <div v-for="e in employeeEngagement" v-bind:key="e.uuid">
       <h4>Engagement</h4>
-      <date-start-end v-model="dateStartEnd" :preselected="dates.startDate"/>
-      <div class="form-row"  
-       
-      >
+      {{e['valid-from']}} {{e['valid-to']}}
+      <date-start-end v-model="dateStartEnd" :preselected="dates.startDateEnd"/>
+      <div class="form-row">
         <organisation-unit-picker 
+          id="unit"
           class="col" 
           label="Vælg enhed"
-          v-model="orgUnit"/>
-        <engagement-title 
-          v-model="engagement.selectedTitle"
-          
+          v-model="orgUnit"
         />
-        {{employeeEngagement['job-title']}}
-        {{engagement.job_title_uuid}}
+        {{e['org-unit'].name}}
+        <engagement-title v-model="engagement.selectedTitle"/>
+        {{e['job-title'].name}}
         <engagement-type v-model="engagement.engagement_type_uuid"/>
+        {{e['type'].name}}
       </div>
-    </div>
+    </div>{{employeeEngagement}}
     <div class="float-right">
       <button-submit @click.native="editEmployee"/>
     </div>
@@ -55,15 +54,16 @@
         orgUnit: {},
         dateStartEnd: {},
         dates: {
-          startDate: '2018-08-02T12:13:00+00:00',
-          startEnd: '2018-09-12T12:13:00+00:00'
+          startDate: '',
+          startEnd: ''
         },
         engagement: {
+          selectedTitle: '',
           job_title_uuid: ''
         },
-        jobTitle: '',
         engagementType: '',
-        employeeEngagement: {}
+        employeeEngagement: {},
+        selectedEngagement: null
       }
     },
     created () {
@@ -75,6 +75,30 @@
         Employee.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
           vm.employeeEngagement = response
+        })
+      },
+
+      editEmployee () {
+        let vm = this
+        let edit = [{
+          type: 'engagement',
+          uuid: this.selectedEngagement,
+          overwrite: {
+            valid_from: this.dateStartEnd.startDate,
+            valid_to: this.dateStartEnd.endDate,
+            job_title_uuid: this.engagement.selectedTitle,
+            engagement_type_uuid: this.engagement.engagement_type_uuid,
+            org_unit_uuid: this.engagement.orgUnit
+          },
+          data: {
+            valid_from: this.dateStartEnd.startDate,
+            valid_to: this.dateStartEnd.endDate,
+            org_unit_uuid: this.engagement.orgUnit
+          }
+        }]
+        Employee.editEmployee(this.$route.params.uuid, edit)
+        .then(response => {
+          vm.$refs.employeeEdit.hide()
         })
       }
     }
