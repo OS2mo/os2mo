@@ -159,13 +159,33 @@ class TestAppUtils(unittest.TestCase):
         with app.app_context():
             self.assertEquals(client.get('/').status,
                               '200 OK')
+
+        with app.app_context():
             self.assertEquals(client.get('/?hest=').status,
                               '200 OK')
+
+        with app.app_context():
             self.assertEquals(client.get('/?hest=42').status,
                               '200 OK')
+
+        with app.app_context():
             self.assertEquals(client.get('/?HeSt=42').status,
                               '200 OK')
+
+        with app.app_context():
             self.assertEquals(client.get('/?fest=').status,
                               '200 OK')
+
+        with app.app_context():
             self.assertEquals(client.get('/?fest=42').status,
                               '501 NOT IMPLEMENTED')
+
+        with app.app_context():
+            self.assertEquals(client.get('/?hest=42').status,
+                              '200 OK')
+
+            # verify that we only perform the check once -- normally,
+            # this will only happen if a request invokes another
+            # request
+            self.assertEquals(client.get('/?fest=42').status,
+                              '200 OK')

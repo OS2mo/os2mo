@@ -145,6 +145,9 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     def wrap(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
+            if flask.g.get('are_args_valid'):
+                return f(*args, **kwargs)
+
             invalidargs = {
                 k for k, v in flask.request.args.items()
                 if v and k.lower() not in allallowed
@@ -154,7 +157,9 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
                 if not flask.request.args.get(k, None)
             }
 
-            if missing or invalidargs:
+            flask.g.are_args_valid = not (missing or invalidargs)
+
+            if not flask.g.are_args_valid:
                 msg = '\n'.join((
                     'Unsupported request arguments:',
                     'URL: {}',
