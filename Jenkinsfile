@@ -5,6 +5,7 @@ pipeline {
 
   environment {
     MINIMOX_DIR = '/srv/minimox'
+    BROWSER = 'Firefox'
   }
 
   stages {
@@ -12,9 +13,9 @@ pipeline {
       steps {
         echo 'Building...'
 
-        sh './manage.py build'
-        sh './manage.py sphinx'
-        sh './manage.py python -- -m pip install -r requirements-test.txt'
+        timeout(5) {
+          sh './build/run-build.sh'
+        }
       }
     }
 
@@ -22,34 +23,37 @@ pipeline {
       steps {
         echo 'Testing..'
 
-        sh 'mkdir -p build/coverage build/reports'
-        sh 'yarn unit'
-        sh './manage.py python -- -m pytest --verbose --cov=mora --cov-report=xml:build/coverage/python.xml --cov-config=.coveragerc --junitxml=build/reports/python.xml tests mora'
+        timeout(5) {
+          sh './build/run-tests.sh'
+        }
       }
     }
 
     stage('Deploy') {
       steps {
         echo 'Deploying....'
+
+        timeout(5) {
+          sh './build/run-deploy.sh'
+        }
       }
     }
   }
 
   post {
-        always {
-            junit 'build/reports/*.xml'
-            step([
-                 $class: 'CoberturaPublisher',
-                 autoUpdateHealth: true,
-                 autoUpdateStability: true,
-                 coberturaReportFile: 'build/coverage/*.xml',
-                 failUnhealthy: true,
-                 failUnstable: true,
-                 maxNumberOfBuilds: 0,
-                 onlyStable: false,
-                 sourceEncoding: 'ASCII',
-                 zoomCoverageChart: true,
-                 ])
-        }
+    always {
+      junit healthScaleFactor: 200.0,           \
+        testResults: 'build/reports/*.xml'
+
+      warnings canRunOnFailed: true, consoleParsers: [
+        [parserName: 'Sphinx-build'],
+        [parserName: 'Pep8']
+      ]
+
+      cobertura coberturaReportFile: 'build/coverage/*.xml',    \
+        conditionalCoverageTargets: '90, 0, 0',                 \
+        lineCoverageTargets: '95, 0, 0',                        \
+        maxNumberOfBuilds: 0
     }
+  }
 }
