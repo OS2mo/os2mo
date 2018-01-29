@@ -63,9 +63,16 @@ def list_facets(orgid):
 
       [
         {
-          "desc": "List available address types.",
           "name": "address",
-          "path": "/service/f/address/"
+          "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address/",
+          "user_key": "Adressetype",
+          "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
+        },
+        {
+          "name": "ou",
+          "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/ou/",
+          "user_key": "Enhedstype",
+          "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280"
         }
       ]
 
@@ -89,7 +96,7 @@ def list_facets(orgid):
                 ['brugervendtnoegle'],
 
                 'path': flask.url_for('facet.get_classes', orgid=orgid,
-                                      facet=facetid),
+                                      facet=facet_name),
 
             })
 
