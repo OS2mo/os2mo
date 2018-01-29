@@ -13,7 +13,7 @@ pipeline {
       steps {
         echo 'Building...'
 
-        timeout(5) {
+        timeout(10) {
           sh './build/run-build.sh'
         }
       }
@@ -23,7 +23,7 @@ pipeline {
       steps {
         echo 'Testing..'
 
-        timeout(5) {
+        timeout(10) {
           sh './build/run-tests.sh'
         }
       }
@@ -33,7 +33,7 @@ pipeline {
       steps {
         echo 'Deploying....'
 
-        timeout(5) {
+        timeout(1) {
           sh './build/run-deploy.sh'
         }
       }
