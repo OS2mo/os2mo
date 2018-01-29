@@ -30,30 +30,7 @@
         </div>
       </div>
 
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'OrganisationDetailUnit' }">
-            Enhed
-          </router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'OrganisationDetailLocation' }">
-            Lokation
-          </router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'OrganisationDetailContact' }">
-            Kontaktkanal
-          </router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'OrganisationDetailEngagement' }">
-            Engagementer
-          </router-link>
-        </li>
-      </ul>
-
-      <router-view/>
+      <organisation-detail-tabs :uuid="$route.params.uuid"/>
     </div>
   </div>
 </template>
@@ -62,10 +39,12 @@
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
   import TheHistory from '../components/TheHistory'
+  import OrganisationDetailTabs from './OrganisationDetailTabs'
 
   export default {
     components: {
-      TheHistory
+      TheHistory,
+      OrganisationDetailTabs
     },
     data () {
       return {
