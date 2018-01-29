@@ -1,4 +1,5 @@
 <template>
+  <div>
     <select 
       class="form-control" 
       id="organisation-picker"
@@ -13,6 +14,7 @@
         {{org.name}}
       </option>
     </select>
+  </div>
 </template>
 
 <script>
@@ -22,7 +24,7 @@ export default {
   name: 'OrganisationPicker',
   props: {
     value: null,
-    atDate: null
+    atDate: Date
   },
   data () {
     return {
@@ -37,6 +39,10 @@ export default {
     selectedOrganisation (newVal, oldVal) {
       Organisation.setSelectedOrganisation(newVal)
       this.$emit('input', newVal)
+    },
+
+    atDate () {
+      this.getAll()
     }
   },
   methods: {

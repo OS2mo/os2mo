@@ -7,11 +7,13 @@ export default {
 
   /**
    * Get a list of all organisations
+   * @param {Date} atDate - the date
    * @returns {Array} List of all organisations
    */
   getAll (atDate) {
-    atDate = atDate || ''
-    return Service.get(`/o/?at=${atDate}`)
+    atDate = atDate || new Date()
+
+    return Service.get(`/o/?at=${atDate.toISOString()}`)
       .then(response => {
         return response.data
       })
