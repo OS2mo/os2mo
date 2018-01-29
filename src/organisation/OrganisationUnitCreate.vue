@@ -22,7 +22,10 @@
         <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
       </div>
 
-      <unit-type-select v-model="orgUnit.type"/>
+      <unit-type-select 
+        v-model="orgUnit.type" 
+        :orgUuid="org.uuid"
+      />
     </div>
 
     <organisation-unit-picker v-model="superUnit"/>
@@ -37,6 +40,7 @@
       v-bind:is="channel" 
       v-bind:key="key" 
       v-model="contactChannels[key]"
+      :orgUuid="org.uuid"
     />
 
     <button 

@@ -1,19 +1,19 @@
 <template>
     <div class="form-row">
       <div class="form-group col">
-        <label :for="'contactchannel' + _uid">Kontaktkanal</label>
+        <label :for="'contactchannel' + _uid">Adressetype</label>
         <select 
           class="form-control"
           :id="'contactchannel' + _uid"
           v-model="channel.type"
           @change="updateContactChannel()"
           required>
-          <option disabled value="Vælg kontaktkanal">Vælg kontaktkanal</option>
+          <option disabled value="Vælg kontaktkanal">Vælg adressetype</option>
           <option 
-            v-for="channel in contactChannels" 
-            :key="channel.uuid"
-            :value="channel">
-            {{channel.name}}
+            v-for="at in addressTypes" 
+            :key="at.uuid"
+            :value="at.uuid">
+            {{at.name}}
           </option>
         </select>
       </div>
@@ -36,41 +36,40 @@
 </template>
 
 <script>
-  import Property from '../api/Property'
+  import Facet from '../api/Facet'
 
   export default {
-    props: ['value'],
+    props: {
+      model: Object,
+      orgUuid: String
+    },
     data () {
       return {
         channel: {
           type: {},
-          'contact-info': '',
-          visibility: {}
+          'contact-info': ''
         },
-        contactChannels: [],
-        contactChannelProperties: []
+        addressTypes: []
       }
     },
-    created: function () {
-      this.getContactChannels()
-      this.getContactChannelProperties()
+    watch: {
+      orgUuid () {
+        this.getAddressTypes()
+      }
+    },
+    created () {
+      if (this.orgUuid) this.getAddressTypes()
     },
     methods: {
-      getContactChannels: function () {
-        var vm = this
-        Property.getContactChannels().then(function (response) {
-          vm.contactChannels = response
+      getAddressTypes () {
+        let vm = this
+        Facet.addressTypes(this.orgUuid)
+        .then(response => {
+          vm.addressTypes = response
         })
       },
 
-      getContactChannelProperties: function () {
-        var vm = this
-        Property.getContactChannelProperties().then(function (response) {
-          vm.contactChannelProperties = response
-        })
-      },
-
-      updateContactChannel: function () {
+      updateContactChannel () {
         this.$emit('input', this.channel)
       }
     }

@@ -20,10 +20,10 @@
 </template>
 
 <script>
-  import Property from '../api/Property'
+  import Facet from '../api/Facet'
 
   export default {
-    components: {},
+    name: 'OrganisationUnitTypeSelect',
     props: {
       value: {
         default: {},
@@ -32,7 +32,8 @@
       label: {
         default: 'Angiv overenhed',
         type: String
-      }
+      },
+      orgUuid: String
     },
     data () {
       return {
@@ -40,13 +41,16 @@
         orgUnitTypes: []
       }
     },
-    created: function () {
-      this.getOrgUnitTypes()
+    watch: {
+      orgUuid () {
+        this.getOrgUnitTypes()
+      }
     },
     methods: {
       getOrgUnitTypes: function () {
-        var vm = this
-        Property.getOrganisationUnitTypes().then(function (response) {
+        let vm = this
+        Facet.organisationUnitTypes(this.orgUuid)
+        .then(response => {
           vm.orgUnitTypes = response
         })
       },
