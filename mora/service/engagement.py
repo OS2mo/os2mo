@@ -43,9 +43,12 @@ def get_engagement(type, id):
     :param uuid id: The UUID to query, i.e. the ID of the employee or
         unit.
 
-    :<jsonarr object job_function: See :http:`/(facet)/`.
-    :<jsonarr object type: See :http:`/(facet)/`.
-    :<jsonarr object org_unit: See :http:`/(facet)/`.
+    :<jsonarr object job_function:
+        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr object type:
+        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr object org_unit:
+        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<json string uuid: Machine-friendly UUID.
     :<json string user_key: Short, unique key identifying the unit.
     :<json int child_count: The number of child units within this unit.
@@ -58,34 +61,34 @@ def get_engagement(type, id):
 
       [
             {
-                'job_function': {
-                    'example': None,
-                    'name': 'Fakultet',
-                    'scope': None,
-                    'user_key': 'fak',
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                "job_function": {
+                    "example": null,
+                    "name": "Fakultet",
+                    "scope": null,
+                    "user_key": "fak",
+                    "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                 },
-                'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                "org_unit": {
+                    "name": "Humanistisk fakultet",
+                    "user_key": "hum",
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
-                'person': {
-                    'cpr_no': '1111111111',
-                    'name': 'Anders And',
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                "person": {
+                    "cpr_no": "1111111111",
+                    "name": "Anders And",
+                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
                 },
-                'type': {
-                    'example': None,
-                    'name': 'Afdeling',
-                    'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                "type": {
+                    "example": null,
+                    "name": "Afdeling",
+                    "scope": null,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
-                'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
-                'valid_from': '2017-01-01T00:00:00+01:00',
-                'valid_to': null,
-            },
+                "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                "valid_from": "2017-01-01T00:00:00+01:00",
+                "valid_to": null
+            }
         ]
 
     '''

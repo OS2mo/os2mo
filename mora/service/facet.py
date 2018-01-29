@@ -114,14 +114,14 @@ def _convert_class(classid, clazz):
 
 @blueprint.route('/o/<uuid:orgid>/f/<facet>/')
 @util.restrictargs('limit', 'start')
-def get_classes(orgid: uuid.UUID, facet: uuid.UUID):
+def get_classes(orgid: uuid.UUID, facet: str):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
 
     :param uuid orgid: Restrict search to this organisation.
     :param string facet: One of the facet names listed by
-        :http:get:`/service/f/`
+        :http:get:`/service/o/(uuid:orgid)/f/`
 
     :queryparam int start: Index of first item for paging.
     :queryparam int limit: Maximum items.
