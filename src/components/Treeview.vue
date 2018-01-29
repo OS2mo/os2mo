@@ -7,6 +7,7 @@
       v-model="selectedOrgUnit"
       :model="c"
       :linkable="linkable"
+      :at-date="atDate"
       first-open
       />
     </ul>
@@ -27,10 +28,8 @@
     props: {
       value: Object,
       orgUuid: String,
-      linkable: {
-        type: Boolean,
-        default: false
-      }
+      linkable: Boolean,
+      atDate: Date
     },
     data () {
       return {
@@ -39,8 +38,12 @@
       }
     },
     watch: {
-      orgUuid (newVal, oldVal) {
-        this.getChildren(newVal)
+      orgUuid () {
+        this.getChildren()
+      },
+
+      atDate () {
+        this.getChildren()
       },
 
       selectedOrgUnit (newVal, oldVal) {
@@ -48,11 +51,11 @@
       }
     },
     methods: {
-      getChildren (uuid) {
-        if (!uuid) return
+      getChildren () {
+        if (!this.orgUuid) return
 
         let vm = this
-        Organisation.getChildren(uuid)
+        Organisation.getChildren(this.orgUuid, this.atDate)
         .then(response => {
           vm.children = response
         })

@@ -34,10 +34,12 @@ export default {
     /**
    * Get the children of an organisation
    * @param {String} uuid - Uuid for current organisation
+   * @param {Date} atDate - Date
    * @returns {Array} List of organisation units within the organisation
    */
-  getChildren (uuid) {
-    return Service.get(`/o/${uuid}/children`)
+  getChildren (uuid, atDate) {
+    atDate = atDate || new Date()
+    return Service.get(`/o/${uuid}/children?at=${atDate.toISOString()}`)
       .then(response => {
         return response.data
       })

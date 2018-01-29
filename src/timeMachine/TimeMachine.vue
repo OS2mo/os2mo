@@ -11,10 +11,12 @@
             <organisation-picker
               v-model="orgLeft"
               :at-date="dateLeft"
-              />
+            />
+            
             <treeview 
               v-model="orgUnitLeft"
               :org-uuid="orgLeft.uuid"
+              :at-date="dateLeft"
             />
           </div>
           <div class="card" v-if="orgUnitLeft">

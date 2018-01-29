@@ -51,14 +51,9 @@
     props: {
       value: Object,
       model: Object,
-      firstOpen: {
-        type: Boolean,
-        default: false
-      },
-      linkable: {
-        type: Boolean,
-        default: false
-      }
+      firstOpen: Boolean,
+      linkable: Boolean,
+      atDate: Date
     },
     data () {
       return {
@@ -95,7 +90,7 @@
 
       loadChildren () {
         let vm = this
-        OrganisationUnit.getChildren(vm.model.uuid)
+        OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
         .then(response => {
           vm.model.children = response
           vm.loading = false
