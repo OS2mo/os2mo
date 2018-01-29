@@ -410,3 +410,289 @@ class Tests(util.LoRATestCase):
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
             },
         )
+
+    def test_employee(self):
+        with self.subTest('empty'):
+            self.assertRequestResponse(
+                '/service/o/00000000-0000-0000-0000-000000000000/e/',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
+                [],
+            )
+
+        self.load_sample_structures(minimal=True)
+
+        self.assertRequestResponse(
+            '/service/o/00000000-0000-0000-0000-000000000000/e/',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
+            [
+                {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/',
+            {
+                'name': 'Anders And',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                'cpr_no': '1111111111',
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/',
+            {
+                'name': 'Fedtmule',
+                'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                'cpr_no': '2222222222',
+            },
+        )
+
+        with freezegun.freeze_time('1950-01-01'):
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
+                [],
+            )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?at=1950-01-01T00%3A00%3A00%2B01%3A00',
+            [],
+        )
+
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersine.json',
+                          'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24')
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
+            [
+                {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                {
+                    'name': 'Andersine And',
+                    'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?limit=1',
+            [
+                {
+                    'name': 'Andersine And',
+                    'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?limit=1&start=1',
+            [
+                {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?at=2005-01-01T00%3A00%3A00%2B01%3A00',
+            [
+                {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=Anders',
+            [
+                {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                {
+                    'name': 'Andersine And',
+                    'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?at=2005-01-01T00%3A00%3A00%2B01%3A00&query=Anders',
+            [
+                {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+            ],
+        )
+
+    def test_engagement(self):
+        self.load_sample_structures()
+
+        func = [
+            {
+                'job_function': {
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'cpr_no': '1111111111',
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
+                'valid_from': '2017-01-01T00:00:00+01:00',
+                'valid_to': None,
+            },
+        ]
+
+        with self.subTest('user'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/engagement',
+                func,
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+            '/details/engagement',
+            func,
+        )
+
+    def test_facet(self):
+        self.assertRequestResponse(
+            '/service/o/00000000-0000-0000-0000-000000000000/f/',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/00000000-0000-0000-0000-000000000000/f/address/',
+            [],
+        )
+
+        self.assertRequestFails(
+            '/service/o/00000000-0000-0000-0000-000000000000/f/kaflaflibob/',
+            404,
+        )
+
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/o/00000000-0000-0000-0000-000000000000/f/ou/',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/00000000-0000-0000-0000-000000000000/f/address/',
+            [],
+        )
+
+        self.assertRequestFails(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/kaflaflibob/',
+            404,
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
+            [{'name': 'address',
+              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+              '/f/e337bab4-635f-49ce-aa31-b44047a43aa1/',
+              'user_key': 'Adressetype',
+              'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
+             {'name': 'ou',
+              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+              '/f/fc917e7c-fc3b-47c2-8aa5-a0383342a280/',
+              'user_key': 'Enhedstype',
+              'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/ou/',
+            [{'example': None,
+              'name': 'Afdeling',
+              'scope': None,
+              'user_key': 'afd',
+              'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
+             {'example': None,
+              'name': 'Fakultet',
+              'scope': None,
+              'user_key': 'fak',
+              'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'},
+             {'example': None,
+              'name': 'Institut',
+              'scope': None,
+              'user_key': 'inst',
+              'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}],
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address/',
+            [{'example': '<UUID>',
+              'name': 'Adresse',
+              'scope': 'DAR',
+              'user_key': 'Adresse',
+              'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
+             {'example': 'EAN',
+              'name': 'EAN',
+              'scope': 'INTEGER',
+              'user_key': 'EAN',
+              'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
+             {'example': 'test@example.com',
+              'name': 'Emailadresse',
+              'scope': 'EMAIL',
+              'user_key': 'Email',
+              'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'},
+             {'example': '20304060',
+              'name': 'Telefonnummer',
+              'scope': 'PHONE',
+              'user_key': 'Telefon',
+              'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'}],
+        )

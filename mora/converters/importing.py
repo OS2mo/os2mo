@@ -174,13 +174,13 @@ def load_data(sheets, exact=False):
             'duplicate headers in ' + sheet.title
 
         for i, row in enumerate(sheet.iter_rows(min_row=2), 2):
-            if not i % 5000:
-                print(i, file=sys.stderr)
-
             row = [cell.value for cell in row]
 
             if not any(row):
                 continue
+
+            if not i % 5000:
+                print(i, file=sys.stderr)
 
             out.append(dict(map(lambda h, c: (h, c), headers, row)))
 

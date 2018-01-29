@@ -23,7 +23,19 @@
             }
         ]
     },
-     "relationer": {
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
         "facet": [
             {
                 "objekttype": "facet",
@@ -37,5 +49,5 @@
             }
         ]
     },
-   "note": "Automatisk indl\u00e6sning"
+    "note": "Automatisk indl\u00e6sning"
 }

@@ -16,8 +16,6 @@ class TestEnsureObjectEffectBounds(TestCase):
 
     def test_times_are_inside_bounds(self):
         # Arrange
-        old_from = '2013-01-01T00:00:00+00:00'
-        old_to = '2014-01-01T00:00:00+00:00'
         new_from = '2013-01-01T00:00:00+00:00'
         new_to = '2015-01-01T00:00:00+00:00'
 
@@ -85,8 +83,6 @@ class TestEnsureObjectEffectBounds(TestCase):
 
     def test_expanding_from_time(self):
         # Arrange
-        old_from = '2012-01-01T00:00:00+00:00'
-        old_to = '2014-01-01T00:00:00+00:00'
         new_from = '2010-01-01T00:00:00+00:00'
         new_to = '2014-01-01T00:00:00+00:00'
 
@@ -167,9 +163,7 @@ class TestEnsureObjectEffectBounds(TestCase):
 
     def test_diminishing_from_time(self):
         # Arrange
-        old_from = '2012-01-01T00:00:00+00:00'
         new_from = '2012-07-01T00:00:00+00:00'
-        old_to = '2015-01-01T00:00:00+00:00'
         new_to = '2015-01-01T00:00:00+00:00'
 
         original = {
@@ -238,8 +232,6 @@ class TestEnsureObjectEffectBounds(TestCase):
 
     def test_expanding_to_time(self):
         # Arrange
-        old_from = '2012-01-01T00:00:00+00:00'
-        old_to = '2015-01-01T00:00:00+00:00'
         new_from = '2012-01-01T00:00:00+00:00'
         new_to = '2017-01-01T00:00:00+00:00'
 
@@ -320,9 +312,7 @@ class TestEnsureObjectEffectBounds(TestCase):
 
     def test_diminishing_to_time(self):
         # Arrange
-        old_from = '2012-01-01T00:00:00+00:00'
         new_from = '2012-01-01T00:00:00+00:00'
-        old_to = '2015-01-01T00:00:00+00:00'
         new_to = '2014-07-01T00:00:00+00:00'
 
         original = {

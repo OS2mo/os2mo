@@ -11,6 +11,7 @@ import contextlib
 import functools
 import json
 import os
+import pprint
 import select
 import signal
 import socket
@@ -21,10 +22,12 @@ import time
 import unittest
 
 import flask_testing
+import requests
 import requests_mock
 import werkzeug.serving
 
 from mora import lora, app, settings
+from mora.converters import importing
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -83,6 +86,16 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
     return r
 
 
+def import_fixture(fixture_name):
+    print(fixture_name, os.path.join(FIXTURE_DIR, fixture_name))
+    for method, path, obj in importing.convert([
+        os.path.join(FIXTURE_DIR, fixture_name),
+    ]):
+        r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
+                             json=obj)
+        r.raise_for_status()
+
+
 def load_sample_structures(*, verbose=False, minimal=False, check=False):
     '''Inject our test data into LoRA.
 
@@ -103,6 +116,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
 
     facets = {
         'enhedstype': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
+        'adressetype': 'e337bab4-635f-49ce-aa31-b44047a43aa1',
     }
 
     # TODO: add classifications, etc.
@@ -133,6 +147,10 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
         classes.update({
             'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
+            'email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            'telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+            'adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+            'ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
         })
 
     for facetkey, facetid in facets.items():
@@ -262,19 +280,26 @@ class TestCaseMixin(object):
 
         r = self._perform_request(path, **kwargs)
 
-        if status_code is None:
-            self.assertLess(r.status_code, 300, message)
-            self.assertGreaterEqual(r.status_code, 200, message)
-        else:
-            self.assertEqual(r.status_code, status_code, message)
-
-        actual = r.json
+        actual = (
+            json.loads(r.get_data(True))
+            if r.mimetype == 'application/json'
+            else r.get_data(True)
+        )
 
         for k in drop_keys:
             try:
                 actual.pop(k)
             except (IndexError, KeyError, TypeError):
                 pass
+
+        if actual != expected:
+            pprint.pprint(actual)
+
+        if status_code is None:
+            self.assertLess(r.status_code, 300, message)
+            self.assertGreaterEqual(r.status_code, 200, message)
+        else:
+            self.assertEqual(r.status_code, status_code, message)
 
         self.assertEqual(expected, actual, message)
 

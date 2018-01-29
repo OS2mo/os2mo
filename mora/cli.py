@@ -8,7 +8,6 @@
 
 import base64
 import functools
-import glob
 import json
 import os
 import posixpath
@@ -16,7 +15,6 @@ import signal
 import ssl
 import subprocess
 import sys
-import threading
 import traceback
 import unittest
 import warnings

@@ -10,7 +10,7 @@ import collections
 import copy
 import datetime
 import functools
-import uuid
+
 from typing import List
 
 from . import meta
