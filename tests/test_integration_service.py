@@ -644,12 +644,12 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
             [{'name': 'address',
               'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-              '/f/e337bab4-635f-49ce-aa31-b44047a43aa1/',
+              '/f/address/',
               'user_key': 'Adressetype',
               'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
              {'name': 'ou',
               'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-              '/f/fc917e7c-fc3b-47c2-8aa5-a0383342a280/',
+              '/f/ou/',
               'user_key': 'Enhedstype',
               'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
         )

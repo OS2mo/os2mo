@@ -924,18 +924,18 @@ class IntegrationTests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/',
             [{'name': 'address',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/'
-              '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2/',
+              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+              '/f/address/',
               'user_key': 'Adressetype',
               'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2'},
              {'name': 'job-title',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/'
-              '51774dde-bf2c-4100-9059-70d1a1fb1d1f/',
+              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+              '/f/job-title/',
               'user_key': 'Stillingsbetegnelse',
               'uuid': '51774dde-bf2c-4100-9059-70d1a1fb1d1f'},
              {'name': 'ou',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/'
-              'd2a8b57a-5913-47c9-8ead-99b9822e27fa/',
+              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+              '/f/ou/',
               'user_key': 'Enhedstype',
               'uuid': 'd2a8b57a-5913-47c9-8ead-99b9822e27fa'}],
         )
