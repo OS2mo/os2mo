@@ -5,6 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import collections
+from enum import Enum
 
 import collections
 import functools
@@ -13,6 +15,21 @@ import flask
 import iso8601
 
 from .. import lora
+
+PropTuple = collections.namedtuple(
+    'PropTuple',
+    [
+        'path',
+        'type',
+        'filter_fn',
+    ]
+)
+
+
+class PropTypes(Enum):
+    ZERO_TO_ONE = 0,
+    ZERO_TO_MANY = 1,
+    ADAPTED_ZERO_TO_MANY = 2,
 
 
 def get_connector():

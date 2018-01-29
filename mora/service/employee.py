@@ -18,18 +18,21 @@ This section describes how to interact with employees.
 
 import copy
 import functools
-from typing import List
+from typing import List, Tuple
 
 import flask
 
-from ..converters import reading, writing
-from .. import lora, util
-
+import mora.mapping.engagement as engagement
+from mora.service.common import PropTuple, PropTypes
 from . import common
+from .. import lora, util
+from ..converters import reading, writing
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
+ENGAGEMENT_KEY = 'Engagement'
+ASSOCIATION_KEY = 'Tilknytning'
 
 @blueprint.route('/o/<uuid:orgid>/e/')
 @util.restrictargs('at', 'start', 'limit', 'query')
@@ -147,27 +150,24 @@ def get_employee(id, raw=False):
     else:
         return flask.jsonify(r)
 
-
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
-def create_employee_role(employee_uuid):
-    """Creates new roles for the given employee.
+def create_employee(employee_uuid):
+    """Creates new mapping relations
 
     .. :quickref: Employee; Create
 
     :statuscode 200: Creation succeeded.
+
+    :param employee_uuid: The UUID of the mapping.
 
     **Example Request**:
 
     Request payload contains a list of creation objects, each differentiated
     by the attribute 'type'. Each of these object types are detailed below:
 
-
-
     **Engagement**:
 
-    :param employee_uuid: The UUID of the employee to be moved.
-
-    :<jsonarr string type: engagement
+    :<jsonarr string type: **"engagement"**
     :<jsonarr string org_unit_uuid: The UUID of the associated org unit
     :<jsonarr string org_uuid: The UUID of the associated organisation
     :<jsonarr string job_title_uuid: The UUID of the job title of the engagment
@@ -179,19 +179,44 @@ def create_employee_role(employee_uuid):
 
     .. sourcecode:: json
 
-        [
-            {
-                "type": "engagement",
-                "org_unit_uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
-                "org_uuid": "f494ad89-039d-478e-91f2-a63566554bd6",
-                "job_title_uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
-                "engagement_type_uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                "valid_from": "2016-01-01T00:00:00+00:00",
-                "valid_to": "2018-01-01T00:00:00+00:00",
-            }
-        ]
+      [
+        {
+          "type": "engagement",
+          "org_unit_uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
+          "org_uuid": "f494ad89-039d-478e-91f2-a63566554bd6",
+          "job_title_uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
+          "engagement_type_uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2018-01-01T00:00:00+00:00",
+        }
+      ]
 
     **Association**:
+
+    :<jsonarr string type: **"association"**
+    :<jsonarr string org_unit_uuid: The UUID of the associated org unit
+    :<jsonarr string org_uuid: The UUID of the associated organisation
+    :<jsonarr string job_title_uuid: The UUID of the job title of the
+        association
+    :<jsonarr string association_type_uuid: The UUID of the association type
+    :<jsonarr string valid_from: The date from which the role should be valid,
+        in ISO 8601.
+    :<jsonarr string valid_to: The date which the role should be valid to,
+        in ISO 8601.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "association",
+          "org_unit_uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
+          "org_uuid": "f494ad89-039d-478e-91f2-a63566554bd6",
+          "job_title_uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
+          "association_type_uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2018-01-01T00:00:00+00:00",
+        }
+      ]
 
     **IT**:
 
@@ -203,10 +228,12 @@ def create_employee_role(employee_uuid):
 
     handlers = {
         'engagement': create_engagement,
-        # 'association': create_association,
+        'association': create_association,
         # 'it': create_it,
+        # 'role': create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
+        # 'absence': create_absence,
     }
 
     reqs = flask.request.get_json()
@@ -221,6 +248,10 @@ def create_employee_role(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type'), 400
 
+        # TODO: Find a better way to handle this...
+        if not req.get('valid_to'):
+            req['valid_to'] = 'infinity'
+
         handler(str(employee_uuid), req)
 
     # TODO:
@@ -228,10 +259,10 @@ def create_employee_role(employee_uuid):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/edit', methods=['POST'])
-def edit_employee_role(employee_uuid):
-    """Edits an employee
+def edit_employee(employee_uuid):
+    """Edits an mapping
 
-    .. :quickref: Employee; Edit employee
+    .. :quickref: Employee; Edit mapping
 
     :statuscode 200: The edit succeeded.
 
@@ -242,12 +273,55 @@ def edit_employee_role(employee_uuid):
 
     **Engagement**:
 
-    :param employee_uuid: The UUID of the employee to be moved.
+    :param employee_uuid: The UUID of the mapping to be moved.
 
-    :<json string type: engagement,
+    :<json string type: **"engagement"**
     :<json string uuid: The UUID of the engagement,
-    :<json object overwrite: An optional object containing the original state
-        of the engagement to be overwritten. If supplied, the change will
+    :<json object overwrite: An **optional** object containing the original
+        state of the engagement to be overwritten. If supplied, the change
+        will modify the existing registration on the engagement object.
+        Detailed below. Note, this object is only optional for *engagement*.
+    :<json object data: An object containing the changes to be made to the
+        engagement. Detailed below.
+
+    The **overwrite** and **data** objects follow the same structure.
+    Every field in **overwrite** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string valid_from: The from date, in ISO 8601.
+    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr string org_unit_uuid: The UUID of the associated org unit
+    :<jsonarr string job_title_uuid: The UUID of the job title of the
+        engagement
+    :<jsonarr string engagement_type_uuid: The UUID of the engagement type
+
+    .. sourcecode:: json
+
+      {
+        "type": "engagement",
+        "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
+        "overwrite": {
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2018-01-01T00:00:00+00:00",
+          "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
+          "engagement_type_uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee",
+          "org_unit_uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
+        },
+        "data": {
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2019-01-01T00:00:00+00:00",
+          "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
+        }
+      }
+
+    **Association**:
+
+    :param employee_uuid: The UUID of the mapping to be moved.
+
+    :<json string type: **"association"**
+    :<json string uuid: The UUID of the association,
+    :<json object overwrite: An object containing the original state
+        of the association to be overwritten. If supplied, the change will
         modify the existing registration on the engagement object.
         Detailed below.
     :<json object data: An object containing the changes to be made to the
@@ -266,22 +340,22 @@ def edit_employee_role(employee_uuid):
 
     .. sourcecode:: json
 
-        {
-            "type": "engagement",
-            "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
-            "overwrite": {
-                "valid_from": "2016-01-01T00:00:00+00:00",
-                "valid_to": "2018-01-01T00:00:00+00:00",
-                "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
-                "engagement_type_uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee",
-                "org_unit_uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
-            },
-            "data": {
-                "valid_from": "2016-01-01T00:00:00+00:00",
-                "valid_to": "2019-01-01T00:00:00+00:00",
-                "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
-            }
+      {
+        "type": "engagement",
+        "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
+        "overwrite": {
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2018-01-01T00:00:00+00:00",
+          "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
+          "engagement_type_uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee",
+          "org_unit_uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
+        },
+        "data": {
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2019-01-01T00:00:00+00:00",
+          "job_title_uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b",
         }
+      }
     """
 
     handlers = {
@@ -313,13 +387,13 @@ def edit_employee_role(employee_uuid):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
-    """Terminates an employee and all of his roles from a specified date.
+    """Terminates an mapping and all of his roles from a specified date.
 
     .. :quickref: Employee; Terminate
 
     :statuscode 200: The termination succeeded.
 
-    :param employee_uuid: The UUID of the employee to be terminated.
+    :param employee_uuid: The UUID of the mapping to be terminated.
 
     :<json string valid_from: The date on which the termination should happen,
                               in ISO 8601.
@@ -328,9 +402,9 @@ def terminate_employee(employee_uuid):
 
     .. sourcecode:: json
 
-        {
-            "valid_from": "2016-01-01T00:00:00+00:00"
-        }
+      {
+        "valid_from": "2016-01-01T00:00:00+00:00"
+      }
     """
     date = flask.request.get_json().get('valid_from')
 
@@ -354,21 +428,67 @@ def terminate_employee(employee_uuid):
 def create_engagement(employee_uuid, req):
     # TODO: Validation
 
-    engagement = create_engagement_payload(
-        employee_uuid, req
-    )
-
-    lora.Connector().organisationfunktion.create(engagement)
-
-
-def create_engagement_payload(employee_uuid, req) -> dict:
-
     org_unit_uuid = req.get('org_unit_uuid')
     org_uuid = req.get('org_uuid')
     job_title_uuid = req.get('job_title_uuid')
     engagement_type_uuid = req.get('engagement_type_uuid')
     valid_from = req.get('valid_from')
     valid_to = req.get('valid_to')
+
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
+
+    engagement = create_organisationsfunktion_payload(
+        funktionsnavn=ENGAGEMENT_KEY,
+        valid_from=valid_from,
+        valid_to=valid_to,
+        brugervendtnoegle=bvn,
+        tilknyttedebrugere=[employee_uuid],
+        tilknyttedeorganisationer=[org_uuid],
+        tilknyttedeenheder=[org_unit_uuid],
+        funktionstype=engagement_type_uuid,
+        opgaver=[job_title_uuid]
+    )
+
+    lora.Connector().organisationfunktion.create(engagement)
+
+
+def create_association(employee_uuid, req):
+    # TODO: Validation
+
+    org_unit_uuid = req.get('org_unit_uuid')
+    org_uuid = req.get('org_uuid')
+    job_title_uuid = req.get('job_title_uuid')
+    association_type_uuid = req.get('association_type_uuid')
+    valid_from = req.get('valid_from')
+    valid_to = req.get('valid_to')
+
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ASSOCIATION_KEY)
+
+    association = create_organisationsfunktion_payload(
+        funktionsnavn=ASSOCIATION_KEY,
+        valid_from=valid_from,
+        valid_to=valid_to,
+        brugervendtnoegle=bvn,
+        tilknyttedebrugere=[employee_uuid],
+        tilknyttedeorganisationer=[org_uuid],
+        tilknyttedeenheder=[org_unit_uuid],
+        funktionstype=association_type_uuid,
+        opgaver=[job_title_uuid]
+    )
+
+    lora.Connector().organisationfunktion.create(association)
+
+
+def create_organisationsfunktion_payload(
+    funktionsnavn: str,
+    valid_from: str,
+    valid_to: str,
+    brugervendtnoegle: str,
+    tilknyttedebrugere: List[str],
+    tilknyttedeorganisationer: List[str],
+    tilknyttedeenheder: List[str] = None,
+    funktionstype: str = None,
+    opgaver: List[str] = None) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
     org_funk = {
@@ -376,9 +496,8 @@ def create_engagement_payload(employee_uuid, req) -> dict:
         'attributter': {
             'organisationfunktionegenskaber': [
                 {
-                    'funktionsnavn': 'Engagement',
-                    'brugervendtnoegle': "{} {}".format(employee_uuid,
-                                                        org_unit_uuid)
+                    'funktionsnavn': funktionsnavn,
+                    'brugervendtnoegle': brugervendtnoegle
                 },
             ],
         },
@@ -390,33 +509,33 @@ def create_engagement_payload(employee_uuid, req) -> dict:
             ],
         },
         'relationer': {
-            'organisatoriskfunktionstype': [
-                {
-                    'uuid': engagement_type_uuid
-                }
-            ],
             'tilknyttedebrugere': [
                 {
-                    'uuid': employee_uuid
-                }
+                    'uuid': uuid
+                } for uuid in tilknyttedebrugere
             ],
             'tilknyttedeorganisationer': [
                 {
-                    'uuid': org_uuid
-                }
-            ],
-            'tilknyttedeenheder': [
-                {
-                    'uuid': org_unit_uuid
-                }
-            ],
-            'opgaver': [
-                {
-                    'uuid': job_title_uuid
-                }
+                    'uuid': uuid
+                } for uuid in tilknyttedeorganisationer
             ]
         }
     }
+
+    if tilknyttedeenheder:
+        org_funk['relationer']['tilknyttedeenheder'] = [{
+            'uuid': uuid
+        } for uuid in tilknyttedeenheder]
+
+    if funktionstype:
+        org_funk['relationer']['organisatoriskfunktionstype'] = [{
+            'uuid': funktionstype
+        }]
+
+    if opgaver:
+        org_funk['relationer']['opgaver'] = [{
+            'uuid': uuid
+        } for uuid in opgaver]
 
     org_funk = _set_virkning(org_funk, virkning)
 
@@ -428,80 +547,210 @@ def edit_engagement(employee_uuid, req):
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.organisationfunktion.get(uuid=engagement_uuid)
-    payload = edit_engagement_payload(req, original)
-    c.organisationfunktion.update(payload, engagement_uuid)
-
-
-def edit_engagement_payload(req, original):
-
-    payload = {}
 
     data = req.get('data')
     new_from = data.get('valid_from')
     new_to = data.get('valid_to')
 
-    note = 'Rediger engagement'
+    payload = dict()
+    payload['note'] = 'Rediger engagement'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
-        # We are performing an update
-        old_from = overwrite.get('valid_from')
-        old_to = overwrite.get('valid_to')
-        payload = _inactivate_old_interval(
-            old_from, old_to, new_from, new_to, payload,
-            ['tilstande', 'organisationfunktiongyldighed']
-        )
+    # overwrite = req.get('overwrite')
+    # if overwrite:
+    #     # We are performing an update
+    #     old_from = overwrite.get('valid_from')
+    #     old_to = overwrite.get('valid_to')
+    #     payload = _inactivate_old_interval(
+    #         old_from, old_to, new_from, new_to, payload,
+    #         ['tilstande', 'organisationfunktiongyldighed']
+    #     )
+
+    update_fields = list()
 
     # Always update gyldighed
-    fields = [
-        (['tilstande', 'organisationfunktiongyldighed'],
-         {'gyldighed': "Aktiv"}),
-    ]
+    update_fields.append((
+        engagement.gyldighed,
+        {'gyldighed': "Aktiv"}
+    ))
 
     if 'job_title_uuid' in data.keys():
-        fields.append(
-            (['relationer', 'opgaver'],
-             {'uuid': data.get('job_title_uuid')}),
-        )
+        update_fields.append((
+            engagement.job_title,
+            {'uuid': data.get('job_title_uuid')}
+        ))
 
     if 'engagement_type_uuid' in data.keys():
-        fields.append(
-            (['relationer', 'organisatoriskfunktionstype'],
-             {'uuid': data.get('engagement_type_uuid')}),
-        )
+        update_fields.append((
+            engagement.engagement_type,
+            {'uuid': data.get('engagement_type_uuid')},
+        ))
 
     if 'org_unit_uuid' in data.keys():
-        fields.append(
-            (['relationer', 'tilknyttedeenheder'],
-             {'uuid': data.get('org_unit_uuid')}),
-        )
+        update_fields.append((
+            engagement.org_unit,
+            {'uuid': data.get('org_unit_uuid')},
+        ))
 
-    payload = update_org_funktion_payload(new_from, new_to, note,
-                                          fields, original, payload)
+    payload = update_payload(new_from, new_to, update_fields, original, payload)
+
+    bounds_props = list(set(map(lambda x: x[0], update_fields)).difference(
+        engagement.props))
+    payload = ensure_bounds(new_from, new_to, bounds_props, original, payload)
+
+    c.organisationfunktion.update(payload, engagement_uuid)
+
+
+def edit_association(employee_uuid, req):
+    pass
+
+
+def update_payload(valid_from: str,
+                   valid_to: str,
+                   relevant_props_tuples: List[Tuple[PropTuple, dict]],
+                   obj: dict,
+                   payload: dict):
+    remainder = copy.deepcopy(obj)
+
+    for prop_tuple in relevant_props_tuples:
+        field = prop_tuple[0]
+        val = prop_tuple[1]
+        val.setdefault('virkning', {})
+        val['virkning']['from'] = valid_from
+        val['virkning']['to'] = valid_to
+
+        # Split original object in relevant values, and remainder
+        props, remainder = split_object(remainder, field.path, field.filter_fn)
+
+        if field.type == PropTypes.ADAPTED_ZERO_TO_MANY:
+            # 'Fake' zero-to-one relation. Merge into existing list.
+            updated_props = _merge_obj_effects(props, val)
+        elif field.type == PropTypes.ZERO_TO_MANY:
+            # Actual zero-to-many relation. Just append.
+            updated_props = props + [val]
+        else:
+            # Zero-to-one relation - LoRa does the merging for us,
+            # so disregard existing props
+            updated_props = [val]
+
+        update = set_object_value({}, field.path, updated_props)
+
+        # Add to existing update object
+        payload = merge_objs(payload, update)
 
     return payload
 
 
-def update_org_funktion_payload(from_time, to_time, note, fields, original,
-                                payload):
-    for field in fields:
-        payload = _create_payload(
-            from_time, to_time,
-            field[0],
-            field[1],
-            note,
-            payload,
-            original)
+def ensure_bounds(valid_from: str,
+                  valid_to: str,
+                  props: List[PropTuple],
+                  obj: dict,
+                  payload: dict):
+    remainder = copy.deepcopy(obj)
 
-    paths = [field[0] for field in fields]
+    for field in props:
+        props, remainder = split_object(remainder, field.path, field.filter_fn)
+        if not props:
+            continue
+        if field.type == PropTypes.ADAPTED_ZERO_TO_MANY:
+            # If adapted zero-to-many, move first and last, and merge
+            updated_props = sorted(props, key=lambda x: x['virkning']['from'])
+            first = updated_props[0]
+            last = updated_props[-1]
+            # Check bounds on first
+            if valid_from < first['virkning']['from']:
+                first['virkning']['from'] = valid_from
+            if last['virkning']['to'] < valid_to:
+                last['virkning']['to'] = valid_to
 
-    payload = _ensure_object_effect_bounds(
-        from_time, to_time,
-        original, payload,
-        get_remaining_org_funk_fields(paths)
-    )
+        elif field.type == PropTypes.ZERO_TO_MANY:
+            # Don't touch virkninger on zero-to-many
+            updated_props = props
+
+        else:
+            # Zero-to-one. Move first and last. LoRa does the merging.
+            sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
+            first = sorted_props[0]
+            last = sorted_props[-1]
+            if valid_from < first['virkning']['from']:
+                first['virkning']['from'] = valid_from
+            if valid_to < last['virkning']['to']:
+                last['virkning']['to'] = valid_to
+            updated_props = [first]
+            if last is not first:
+                updated_props.append(last)
+
+        update = set_object_value({}, field.path, updated_props)
+
+        # Add to existing update object
+        payload = merge_objs(payload, update)
 
     return payload
+
+
+def merge_objs(a, b):
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict):
+                merge_objs(a[key], b[key])
+            elif isinstance(a[key], list):
+                a[key].extend(b[key])
+        else:
+            a[key] = b[key]
+    return a
+
+
+def split_object(obj, path, filter_fn):
+    """
+    Splits object based on a path and a filter function
+    Returns a list of properties from 'path' on object, satisfying 'filter_fn'
+    and a modified version of obj, no longer containing said properties.
+
+    :param obj: The object to split
+    :param path: The path containing properties to extract
+    :param filter_fn: A function used to filter relevant values
+    """
+    remainder, remainder_props = ensure_path_and_get_value(obj, path)
+    relevant_props = []
+    new_remainder_props = []
+
+    for prop in remainder_props:
+        if filter_fn(prop):
+            relevant_props.append(prop)
+        else:
+            new_remainder_props.append(prop)
+    set_object_value(remainder, path, new_remainder_props)
+
+    return relevant_props, remainder
+
+
+def ensure_path_and_get_value(obj, path: tuple):
+    path_list = list(path)
+    obj_copy = copy.deepcopy(obj)
+
+    current_value = obj_copy
+    while path_list:
+        key = path_list.pop(0)
+        if path_list:
+            current_value = current_value.setdefault(key, {})
+        else:
+            current_value = current_value.setdefault(key, [])
+
+    return obj_copy, current_value
+
+
+def set_object_value(obj, path: tuple, val):
+    path_list = list(path)
+    obj_copy = copy.deepcopy(obj)
+
+    current_value = obj_copy
+    while path_list:
+        key = path_list.pop(0)
+        if path_list:
+            current_value = current_value.setdefault(key, {})
+        else:
+            current_value[key] = val
+
+    return obj_copy
 
 
 def terminate_engagement(engagement_uuid, enddate):
@@ -637,65 +886,6 @@ def _create_payload(From: str, to: str, obj_path: list,
     return payload
 
 
-def _ensure_object_effect_bounds(lower_bound: str, upper_bound: str,
-                                 original: dict, payload: dict,
-                                 paths: List[List[str]]) -> dict:
-    """
-    Given an original object and a set of time bounds from a prospective
-    update, ensure that ranges on object validities are sane, when the
-    update is performed. Operates under the assumption that we do not have
-    any overlapping intervals in validity ranges
-
-    :param lower_bound: The lower bound, in ISO-8601
-    :param upper_bound: The upper bound, in ISO-8601
-    :param original: The original object, as it exists in LoRa
-    :param payload: An existing payload to add the updates to
-    :param paths: A list of paths to be checked on the original object
-    :return: The payload with the additional updates applied, if relevant
-    """
-
-    note = payload.get('note')
-
-    for path in paths:
-        # Get list of original relevant properties, sorted by start_date
-        orig_list = functools.reduce(lambda x, y: x.get(y, {}), path, original)
-        if not orig_list:
-            continue
-        sorted_rel = sorted(orig_list, key=lambda x: x['virkning']['from'])
-        first = sorted_rel[0]
-        last = sorted_rel[-1]
-
-        # Handle lower bound
-        if lower_bound < first['virkning']['from']:
-            props = copy.deepcopy(first)
-            del props['virkning']
-            payload = _create_payload(
-                lower_bound,
-                first['virkning']['to'],
-                path,
-                props,
-                note,
-                payload,
-                original
-            )
-
-        # Handle upper bound
-        if last['virkning']['to'] < upper_bound:
-            props = copy.deepcopy(last)
-            del props['virkning']
-            payload = _create_payload(
-                last['virkning']['from'],
-                upper_bound,
-                path,
-                props,
-                note,
-                payload,
-                original
-            )
-
-    return payload
-
-
 def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
     """
     Performs LoRa-like merging of a relation object, with a current list of
@@ -751,44 +941,6 @@ def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
     return sorted(result, key=lambda x: x['virkning']['from'])
 
 
-def _inactivate_old_interval(old_from: str, old_to: str, new_from: str,
-                             new_to: str, payload: dict,
-                             path: List[str]) -> dict:
-    """
-    Create 'inactivation' updates based on two sets of from/to dates
-    :param old_from: The old 'from' time, in ISO-8601
-    :param old_to: The old 'to' time, in ISO-8601
-    :param new_from: The new 'from' time, in ISO-8601
-    :param new_to: The new 'to' time, in ISO-8601
-    :param payload: An existing payload to add the updates to
-    :param path: The path to where the object's 'gyldighed' is located
-    :return: The payload with the inactivation updates added, if relevant
-    """
-    if old_from < new_from:
-        payload = _create_payload(
-            old_from,
-            new_from,
-            path,
-            {
-                'gyldighed': "Inaktiv"
-            },
-            payload.get('note'),
-            payload
-        )
-    if new_to < old_to:
-        payload = _create_payload(
-            new_to,
-            old_to,
-            path,
-            {
-                'gyldighed': "Inaktiv"
-            },
-            payload.get('note'),
-            payload
-        )
-    return payload
-
-
 def _zero_to_many_rels() -> List[str]:
     # TODO: Load and cache from LoRa
     return [
@@ -801,24 +953,6 @@ def _zero_to_many_rels() -> List[str]:
         "tilknyttedeinteressefaellesskaber",
         "tilknyttedepersoner"
     ]
-
-
-def get_remaining_org_funk_fields(obj_paths: List[List[str]]):
-    # TODO: Maybe fetch this information dynamically from LoRa?
-    fields = {
-        ('attributter', 'organisationfunktionegenskaber'),
-        ('tilstande', 'organisationfunktiongyldighed'),
-        ('relationer', 'organisatoriskfunktionstype'),
-        ('relationer', 'opgaver'),
-        ('relationer', 'tilknyttedebrugere'),
-        ('relationer', 'tilknyttedeenheder'),
-        ('relationer', 'tilknyttedeorganisationer'),
-    }
-
-    tupled_set = {tuple(x) for x in obj_paths}
-    diff = fields.difference(tupled_set)
-
-    return [list(x) for x in diff]
 
 
 def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:

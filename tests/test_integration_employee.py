@@ -123,7 +123,8 @@ class Tests(util.LoRATestCase):
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
                                              "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec",
+                                             "44e9-afc9-04e58f52dfec "
+                                             "Engagement",
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -249,7 +250,8 @@ class Tests(util.LoRATestCase):
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
                                              "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec",
+                                             "44e9-afc9-04e58f52dfec "
+                                             "Engagement",
                         "funktionsnavn": "Engagement"
                     }
                 ]
