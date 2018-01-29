@@ -12,18 +12,20 @@
               v-model="orgLeft"
               :at-date="dateLeft"
             />
-            
+
             <treeview 
               v-model="orgUnitLeft"
               :org-uuid="orgLeft.uuid"
               :at-date="dateLeft"
             />
           </div>
-          <div class="card" v-if="orgUnitLeft">
+
+          <div class="card margin-top" v-if="orgUnitLeft">
             Navn: {{orgUnitLeft.name}}
             <organisation-detail-tabs :uuid="orgUnitLeft.uuid"/>
           </div>
         </div>
+
         <div class="col">
           <div class="card">
             <div class="form-row">
@@ -35,7 +37,8 @@
               v-model="orgUnitRight"
             />
           </div>
-          <div class="card" v-if="orgUnitRight">
+
+          <div class="card margin-top" v-if="orgUnitRight">
             Navn: {{orgUnitRight.name}}
             <organisation-detail-tabs :uuid="orgUnitRight.uuid"/>
           </div>
@@ -74,5 +77,7 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+.margin-top {
+  margin-top: 1rem;
+}
 </style>

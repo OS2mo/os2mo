@@ -52,8 +52,6 @@
     },
     methods: {
       getChildren () {
-        if (!this.orgUuid) return
-
         let vm = this
         Organisation.getChildren(this.orgUuid, this.atDate)
         .then(response => {

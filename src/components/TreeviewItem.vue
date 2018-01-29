@@ -70,6 +70,10 @@
     watch: {
       selected: function (newVal, oldVal) {
         this.selectOrgUnit(newVal)
+      },
+
+      atDate () {
+        this.loadChildren()
       }
     },
     created () {
@@ -81,7 +85,7 @@
     methods: {
       toggle () {
         this.open = !this.open
-        this.loadChildren()
+        if (this.open && this.model.children===undefined) this.loadChildren()
       },
 
       selectOrgUnit (org) {
@@ -90,6 +94,8 @@
 
       loadChildren () {
         let vm = this
+        vm.loading = true
+        vm.model.children = undefined
         OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
         .then(response => {
           vm.model.children = response
