@@ -49,9 +49,9 @@ def get_engagement(type, id):
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object org_unit:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<json string uuid: Machine-friendly UUID.
-    :<json string user_key: Short, unique key identifying the unit.
-    :<json int child_count: The number of child units within this unit.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string valid_from: The from date, in ISO 8601.
+    :<jsonarr string valid_to: The to date, in ISO 8601.
 
     :status 200: Always.
 
