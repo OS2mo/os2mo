@@ -64,7 +64,7 @@ export default {
    * @see getDetails
    */
   getItDetails (uuid) {
-    return this.getDetails(uuid, 'it')
+    return this.getDetail(uuid, 'it')
   },
 
   /**
