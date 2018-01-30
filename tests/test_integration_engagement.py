@@ -16,7 +16,7 @@ from tests import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    def test_create_employee(self):
+    def test_create_engagement(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -27,10 +27,11 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
-                "org_unit_uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
-                "org_uuid": "f494ad89-039d-478e-91f2-a63566554bd6",
-                "job_title_uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
-                "engagement_type_uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
+                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "valid_from": "2017-12-01T00:00:00+01",
                 "valid_to": "2017-12-02T00:00:00+01",
             }
@@ -123,7 +124,8 @@ class Tests(util.LoRATestCase):
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
                                              "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec",
+                                             "44e9-afc9-04e58f52dfec "
+                                             "Engagement",
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -143,7 +145,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_engagement, expected)
 
-    def test_create_employee_no_valid_to(self):
+    def test_create_engagement_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -154,10 +156,12 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
-                "org_unit_uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
-                "org_uuid": "f494ad89-039d-478e-91f2-a63566554bd6",
-                "job_title_uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
-                "engagement_type_uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
+                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
                 "valid_from": "2017-12-01T00:00:00+01",
             }
         ]
@@ -249,7 +253,8 @@ class Tests(util.LoRATestCase):
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
                                              "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec",
+                                             "44e9-afc9-04e58f52dfec "
+                                             "Engagement",
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -269,7 +274,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_engagement, expected)
 
-    def test_edit_employee_no_overwrite(self):
+    def test_edit_engagement_no_overwrite(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -283,10 +288,11 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
-                "job_title_uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                "engagement_type_uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
+                "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "engagement_type": {
+                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
+                },
                 "valid_from": "2018-04-01T00:00:00+02",
-                "valid_to": "infinity",
             },
         }]
 
@@ -421,7 +427,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(expected_engagement, actual_engagement)
 
-    def test_edit_employee_overwrite(self):
+    def test_edit_engagement_overwrite(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -437,15 +443,16 @@ class Tests(util.LoRATestCase):
             "overwrite": {
                 "valid_from": "2017-01-01 00:00:00+01",
                 "valid_to": "infinity",
-                "org_unit_uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                "job_title_uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                "engagement_type_uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_title": {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
+                "engagement_type": {
+                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
             },
             "data": {
-                "job_title_uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                "engagement_type_uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
+                "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "engagement_type": {
+                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                 "valid_from": "2018-04-01T00:00:00+02",
-                "valid_to": "infinity",
             },
         }]
 
@@ -580,7 +587,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(expected_engagement, actual_engagement)
 
-    def test_edit_employee_move(self):
+    def test_edit_engagement_move(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -594,7 +601,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
-                "org_unit_uuid": "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b",
+                "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
                 "valid_from": "2018-04-01T00:00:00+02",
                 "valid_to": "2019-04-01T00:00:00+02",
             },
@@ -739,7 +746,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(expected_engagement, actual_engagement)
 
-    def test_edit_employee_move_no_valid_to(self):
+    def test_edit_engagement_move_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -753,7 +760,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
-                "org_unit_uuid": "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b",
+                "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
                 "valid_from": "2018-04-01T00:00:00+02",
             },
         }]
@@ -879,7 +886,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(expected_engagement, actual_engagement)
 
-    def test_terminate_employee(self):
+    def test_terminate_engagement(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -990,11 +997,9 @@ class Tests(util.LoRATestCase):
             },
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
+        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
         # drop lora-generated timestamps & users
         del actual_engagement['fratidspunkt'], actual_engagement[

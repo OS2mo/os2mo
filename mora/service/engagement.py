@@ -17,15 +17,25 @@ This section describes how to interact with employee engagements.
 
 import flask
 
+from mora import lora
+from mora.service.common import (create_organisationsfunktion_payload,
+                                 ensure_bounds, inactivate_old_interval,
+                                 inactivate_org_funktion,
+                                 update_payload)
+from mora.service.mapping import (ENGAGEMENT_FIELDS, ORG_FUNK_TYPE_FIELD,
+                                  JOB_TITLE_FIELD, ORG_FUNK_GYLDIGHED_FIELD,
+                                  ORG_UNIT_FIELD)
+from . import common, employee, facet, org
 from .. import util
-
-from . import common
-from . import employee
-from . import facet
-from . import org
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
                             url_prefix='/service')
+ENGAGEMENT_KEY = 'Engagement'
+
+JOB_TITLE = 'job_title'
+ENGAGEMENT_TYPE = 'engagement_type'
+ORG_UNIT = 'org_unit'
+ORG = 'org'
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/engagement')
@@ -104,7 +114,7 @@ def get_engagement(type, id):
         assert type == 'ou', 'bad type ' + type
         search = dict(tilknyttedeenheder=id)
 
-    search['funktionsnavn'] = 'Engagement'
+    search['funktionsnavn'] = ENGAGEMENT_KEY
 
     # all these caches are overkill when just listing one engagement,
     # but frequently helpful when listing all engagements for a unit
@@ -180,3 +190,111 @@ def get_engagement(type, id):
                  .get('organisationfunktiongyldighed')[0]
                  .get('gyldighed') == 'Aktiv'
     ])
+
+
+def create_engagement(employee_uuid, req):
+    # TODO: Validation
+
+    org_unit_uuid = req.get(ORG_UNIT).get('uuid')
+    org_uuid = req.get(ORG).get('uuid')
+    job_title_uuid = req.get(JOB_TITLE).get('uuid')
+    engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
+    valid_from = req.get('valid_from')
+    valid_to = req.get('valid_to', 'infinity')
+
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
+
+    engagement = create_organisationsfunktion_payload(
+        funktionsnavn=ENGAGEMENT_KEY,
+        valid_from=valid_from,
+        valid_to=valid_to,
+        brugervendtnoegle=bvn,
+        tilknyttedebrugere=[employee_uuid],
+        tilknyttedeorganisationer=[org_uuid],
+        tilknyttedeenheder=[org_unit_uuid],
+        funktionstype=engagement_type_uuid,
+        opgaver=[job_title_uuid]
+    )
+
+    lora.Connector().organisationfunktion.create(engagement)
+
+
+def edit_engagement(employee_uuid, req):
+    engagement_uuid = req.get('uuid')
+    # Get the current org-funktion which the user wants to change
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.organisationfunktion.get(uuid=engagement_uuid)
+
+    data = req.get('data')
+    new_from = data.get('valid_from')
+    new_to = data.get('valid_to', 'infinity')
+
+    payload = dict()
+    payload['note'] = 'Rediger engagement'
+
+    overwrite = req.get('overwrite')
+    if overwrite:
+        # We are performing an update
+        old_from = overwrite.get('valid_from')
+        old_to = overwrite.get('valid_to')
+        payload = inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload,
+            ('tilstande', 'organisationfunktiongyldighed')
+        )
+
+    update_fields = list()
+
+    # Always update gyldighed
+    update_fields.append((
+        ORG_FUNK_GYLDIGHED_FIELD,
+        {'gyldighed': "Aktiv"}
+    ))
+
+    if JOB_TITLE in data.keys():
+        update_fields.append((
+            JOB_TITLE_FIELD,
+            {'uuid': data.get(JOB_TITLE).get('uuid')}
+        ))
+
+    if ENGAGEMENT_TYPE in data.keys():
+        update_fields.append((
+            ORG_FUNK_TYPE_FIELD,
+            {'uuid': data.get(ENGAGEMENT_TYPE).get('uuid')},
+        ))
+
+    if ORG_UNIT in data.keys():
+        update_fields.append((
+            ORG_UNIT_FIELD,
+            {'uuid': data.get(ORG_UNIT).get('uuid')},
+        ))
+
+    payload = update_payload(new_from, new_to, update_fields, original,
+                             payload)
+
+    bounds_fields = list(
+        ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
+    payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
+
+    c.organisationfunktion.update(payload, engagement_uuid)
+
+
+def terminate_engagement(engagement_uuid, enddate):
+    """
+    Terminate the given engagement at the given date
+
+    :param engagement_uuid: An engagement UUID
+    :param enddate: The date of termination
+    """
+    c = lora.Connector(effective_date=enddate)
+
+    orgfunk = c.organisationfunktion.get(engagement_uuid)
+
+    # Create inactivation object
+    startdate = [
+        g['virkning']['from'] for g in
+        orgfunk['tilstande']['organisationfunktiongyldighed']
+        if g['gyldighed'] == 'Aktiv'
+    ][0]
+
+    payload = inactivate_org_funktion(startdate, enddate, "Afslut engagement")
+    c.organisationfunktion.update(payload, engagement_uuid)
