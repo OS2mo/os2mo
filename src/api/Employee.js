@@ -46,7 +46,7 @@ export default {
    * @see getDetails
    */
   getEngagementDetails (uuid) {
-    return this.getDetails(uuid, 'engagement')
+    return this.getDetail(uuid, 'engagement')
   },
 
   /**
@@ -106,11 +106,25 @@ export default {
   },
 
   /**
+   * Base call for getting details.
+   * @param {String} uuid - employee uuid
+   * @param {String} detail - Name of the detail
+   * @returns {Array} A list of options for the detail
+   */
+  getDetail (uuid, detail) {
+    return Service.get(`/e/${uuid}/details/${detail}`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  /**
    * Base call for getting details about an employee.
    * @param {String} uuid - Employee uuid
    * @param {String} detail - Name of the detail to get
    * @param {String} validity - Can be 'past', 'present' or 'future'
    * @returns {Object} Detail data
+   * @deprecated
    */
   getDetails (uuid, detail, validity) {
     validity = validity || 'present'

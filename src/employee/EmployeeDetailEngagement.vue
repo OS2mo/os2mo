@@ -13,15 +13,15 @@
 
       <tbody>
         <tr v-for="d in details" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.uuid} }">{{d['org-unit'].name}}</router-link></td>
-          <td>{{d['job-title'].name}}</td>
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
+          <td>{{d.job_function.name}}</td>
           <td>
             <span v-if="d.type">
               {{d.type.name}}
             </span>
           </td>
-          <td>{{d['valid-from']}}</td>
-          <td>{{d['valid-to']}}</td>
+          <td>{{d.valid_from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.valid_to | moment('DD-MM-YYYY')}}</td>
         </tr>
       </tbody>
     </table>
@@ -48,7 +48,8 @@
       getDetails: function () {
         var vm = this
         Employee.getEngagementDetails(this.$route.params.uuid)
-        .then(function (response) {
+        .then(response => {
+          console.log(response)
           vm.details = response
         })
       }
