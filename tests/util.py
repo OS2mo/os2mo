@@ -124,6 +124,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
     functions = {
         'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
         'tilknytning': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+        'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
     }
 
     users = {

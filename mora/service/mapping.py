@@ -31,7 +31,6 @@ ORG_FUNK_TYPE_FIELD = FieldTuple(
     FieldTypes.ZERO_TO_ONE,
     lambda x: True
 )
-
 ORG_UNIT_FIELD = FieldTuple(
     ('relationer', 'tilknyttedeenheder'),
     FieldTypes.ADAPTED_ZERO_TO_MANY,
@@ -75,4 +74,13 @@ ASSOCIATION_FIELDS = {
     ORG_FIELD,
     USER_FIELD,
     ADDRESSES_FIELD
+}
+
+ROLE_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    ORG_UNIT_FIELD,
+    ORG_FIELD,
+    USER_FIELD,
 }
