@@ -41,7 +41,8 @@ def create_association(employee_uuid, req):
 
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
     org_uuid = req.get(ORG).get('uuid')
-    job_title_uuid = req.get(JOB_TITLE).get('uuid')
+    job_title_uuid = req.get(JOB_TITLE).get('uuid') if req.get(
+        JOB_TITLE) else None
     association_type_uuid = req.get(ASSOCIATION_TYPE).get('uuid')
     location_uuid = req.get(LOCATION).get('uuid')
     valid_from = req.get('valid_from')
@@ -58,7 +59,7 @@ def create_association(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=association_type_uuid,
-        opgaver=[job_title_uuid],
+        opgaver=[job_title_uuid] if job_title_uuid else None,
         adresser=[location_uuid]
     )
 

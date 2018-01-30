@@ -345,10 +345,10 @@ def edit_employee(employee_uuid):
     :<json string uuid: The UUID of the association,
     :<json object overwrite: An object containing the original state
         of the association to be overwritten. If supplied, the change will
-        modify the existing registration on the engagement object.
+        modify the existing registration on the association object.
         Detailed below.
     :<json object data: An object containing the changes to be made to the
-        engagement. Detailed below.
+        association. Detailed below.
 
     The **overwrite** and **data** objects follow the same structure.
     Every field in **overwrite** is required, whereas **data** only needs

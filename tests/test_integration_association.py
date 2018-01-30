@@ -160,6 +160,137 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_association, expected)
 
+    def test_create_association_no_job_title(self):
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "association",
+                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
+                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "association_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "location": {
+                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                },
+                "valid_from": "2017-12-01T00:00:00+01",
+                "valid_to": "2017-12-02T00:00:00+01",
+            }
+        ]
+
+        self.assertRequestResponse('/service/e/{}/create'.format(userid),
+                                   userid, json=payload)
+
+        expected = {
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                    }
+                ],
+                "adresser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                    }
+                ],
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
+                                             "7697009c9053 a30f5f68-9c0d-"
+                                             "44e9-afc9-04e58f52dfec "
+                                             "Tilknytning",
+                        "funktionsnavn": "Tilknytning"
+                    }
+                ]
+            }
+        }
+
+        associations = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(associations), 1)
+        associationid = associations[0]
+
+        actual_association = c.organisationfunktion.get(associationid)
+
+        # drop lora-generated timestamps & users
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
+            'brugerref']
+
+        self.assertEqual(actual_association, expected)
+
     def test_create_association_no_valid_to(self):
         self.load_sample_structures()
 
