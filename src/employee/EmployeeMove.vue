@@ -29,7 +29,7 @@
             :key="e.uuid"
             :value="e.uuid"
           >
-            {{e['job-title'].name}} ({{e['org-unit'].name}})
+            {{e.job_function.name}} ({{e.org_unit.name}})
           </option>
         </select>
         </div>

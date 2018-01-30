@@ -21,24 +21,24 @@
       <tbody>
         <tr v-for="e in employeeEngagement" v-bind:key="e.uuid">
           <td>
-            {{e['org-unit'].name}}
+            {{e.org_unit.name}}
           </td>
           <td> 
             <engagement-title
             v-model="engagement.selectedTitle"
-            :preselected="e['job-title'].uuid"
+            :preselected="e.job_function.uuid"
             />
           </td>
           <td>
             <engagement-type v-model="engagement.engagement_type_uuid"
-            :preselected="e['type'].uuid"
+            :preselected="e.type.uuid"
             />
           </td>
           <td>
             <date-start-end 
             v-model="dateStartEnd" 
-            :selected-valid-from="new Date(e['valid-from'])"
-            :selected-valid-to="new Date(e['valid-to'])"
+            :selected-valid-from="new Date(e.valid_from)"
+            :selected-valid-to="new Date(e.valid_to)"
             />
           </td>
         </tr>
