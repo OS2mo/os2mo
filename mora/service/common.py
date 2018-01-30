@@ -107,7 +107,7 @@ def set_object_value(obj: dict, path: tuple, vals: List[dict],
 
 
 def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
-    props = functools.reduce(lambda x, y: x.get(y), path, obj)
+    props = functools.reduce(lambda x, y: x.get(y, {}), path, obj)
     if filter_fn:
         return list(filter(filter_fn, props))
     else:
@@ -123,35 +123,44 @@ def ensure_bounds(valid_from: str,
         props = get_obj_value(obj, field.path, field.filter_fn)
         if not props:
             continue
+
+        updated_props = []
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
-            updated_props = sorted(props, key=lambda x: x['virkning']['from'])
-            first = updated_props[0]
-            last = updated_props[-1]
+            sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
+            first = sorted_props[0]
+            last = sorted_props[-1]
+
             # Check bounds on first
             if valid_from < first['virkning']['from']:
                 first['virkning']['from'] = valid_from
+                updated_props = sorted_props
             if last['virkning']['to'] < valid_to:
                 last['virkning']['to'] = valid_to
+                updated_props = sorted_props
 
         elif field.type == FieldTypes.ZERO_TO_MANY:
             # Don't touch virkninger on zero-to-many
             updated_props = props
-
         else:
             # Zero-to-one. Move first and last. LoRa does the merging.
             sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
             first = sorted_props[0]
             last = sorted_props[-1]
+
             if valid_from < first['virkning']['from']:
                 first['virkning']['from'] = valid_from
+                updated_props.append(first)
             if last['virkning']['to'] < valid_to:
                 last['virkning']['to'] = valid_to
+                if not updated_props and last is not first:
+                    updated_props.append(last)
             updated_props = [first]
             if last is not first:
                 updated_props.append(last)
 
-        payload = set_object_value(payload, field.path, updated_props)
+        if updated_props:
+            payload = set_object_value(payload, field.path, updated_props)
     return payload
 
 
@@ -301,7 +310,8 @@ def create_organisationsfunktion_payload(
     tilknyttedeorganisationer: List[str],
     tilknyttedeenheder: List[str] = None,
     funktionstype: str = None,
-    opgaver: List[str] = None
+    opgaver: List[str] = None,
+    adresser: List[str] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -350,6 +360,11 @@ def create_organisationsfunktion_payload(
         org_funk['relationer']['opgaver'] = [{
             'uuid': uuid
         } for uuid in opgaver]
+
+    if adresser:
+        org_funk['relationer']['adresser'] = [{
+            'uuid': uuid
+        } for uuid in adresser]
 
     org_funk = _set_virkning(org_funk, virkning)
 

@@ -22,7 +22,7 @@ from mora.service.common import (create_organisationsfunktion_payload,
                                  ensure_bounds, inactivate_old_interval,
                                  inactivate_org_funktion,
                                  update_payload)
-from mora.service.mapping import (ENGAGEMENT_FIELDS, ENGAGEMENT_TYPE_FIELD,
+from mora.service.mapping import (ENGAGEMENT_FIELDS, ORG_FUNK_TYPE_FIELD,
                                   JOB_TITLE_FIELD, ORG_FUNK_GYLDIGHED_FIELD,
                                   ORG_UNIT_FIELD)
 from . import common, employee, facet, org
@@ -258,7 +258,7 @@ def edit_engagement(employee_uuid, req):
 
     if ENGAGEMENT_TYPE in data.keys():
         update_fields.append((
-            ENGAGEMENT_TYPE_FIELD,
+            ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(ENGAGEMENT_TYPE).get('uuid')},
         ))
 

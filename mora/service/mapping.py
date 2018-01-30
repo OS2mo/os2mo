@@ -26,7 +26,7 @@ JOB_TITLE_FIELD = FieldTuple(
     lambda x: True
 )
 
-ENGAGEMENT_TYPE_FIELD = FieldTuple(
+ORG_FUNK_TYPE_FIELD = FieldTuple(
     ('relationer', 'organisatoriskfunktionstype'),
     FieldTypes.ZERO_TO_ONE,
     lambda x: True
@@ -50,12 +50,29 @@ USER_FIELD = FieldTuple(
     lambda x: True
 )
 
+ADDRESSES_FIELD = FieldTuple(
+    ('relationer', 'adresser'),
+    FieldTypes.ADAPTED_ZERO_TO_MANY,
+    lambda x: True
+)
+
 ENGAGEMENT_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,
     ORG_FUNK_GYLDIGHED_FIELD,
     JOB_TITLE_FIELD,
-    ENGAGEMENT_TYPE_FIELD,
+    ORG_FUNK_TYPE_FIELD,
     ORG_UNIT_FIELD,
     ORG_FIELD,
     USER_FIELD
+}
+
+ASSOCIATION_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    JOB_TITLE_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    ORG_UNIT_FIELD,
+    ORG_FIELD,
+    USER_FIELD,
+    ADDRESSES_FIELD
 }

@@ -21,11 +21,13 @@ from typing import Callable, List, Tuple
 
 import flask
 
-from mora.service.association import create_association
+from mora import lora
+from mora.service.association import (create_association, edit_association,
+                                      terminate_association, ASSOCIATION_KEY)
 from mora.service.common import (FieldTuple, FieldTypes, set_object_value,
                                  get_obj_value)
 from mora.service.engagement import (terminate_engagement, create_engagement,
-                                     edit_engagement)
+                                     edit_engagement, ENGAGEMENT_KEY)
 from . import common
 from .. import util
 from ..converters import reading, writing
@@ -388,8 +390,8 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
-        'engagement': edit_engagement
-        # 'association': edit_association,
+        'engagement': edit_engagement,
+        'association': edit_association,
         # 'it': edit_it,
         # 'contact': edit_contact,
         # 'leader': edit_leader,
@@ -433,13 +435,22 @@ def terminate_employee(employee_uuid):
     """
     date = flask.request.get_json().get('valid_from')
 
-    engagements = reading.get_engagements(userid=employee_uuid,
-                                          effective_date=date)
+    c = lora.Connector(effective_date=date)
+
+    engagements = c.organisationfunktion.get_all(
+        tilknyttedebrugere=employee_uuid,
+        funktionsnavn=ENGAGEMENT_KEY)
     for engagement in engagements:
-        engagement_uuid = engagement.get('uuid')
+        engagement_uuid = engagement[0]
         terminate_engagement(engagement_uuid, date)
 
-    # TODO: Terminate Tilknytning
+    associations = c.organisationfunktion.get_all(
+        tilknyttedebrugere=employee_uuid,
+        funktionsnavn=ASSOCIATION_KEY)
+    for association in associations:
+        association_uuid = association[0]
+        terminate_association(association_uuid, date)
+
     # TODO: Terminate IT
     # TODO: Terminate Kontakt
     # TODO: Terminate Rolle

@@ -16,7 +16,7 @@ from tests import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    def test_create_employee(self):
+    def test_create_association(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -26,12 +26,16 @@ class Tests(util.LoRATestCase):
 
         payload = [
             {
-                "type": "engagement",
+                "type": "association",
                 "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
                 "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
                 "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
-                "engagement_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "association_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "location": {
+                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                },
                 "valid_from": "2017-12-01T00:00:00+01",
                 "valid_to": "2017-12-02T00:00:00+01",
             }
@@ -111,7 +115,18 @@ class Tests(util.LoRATestCase):
                         },
                         "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
                     }
-                ]
+                ],
+                "adresser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                    }
+                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -125,27 +140,27 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
                                              "7697009c9053 a30f5f68-9c0d-"
                                              "44e9-afc9-04e58f52dfec "
-                                             "Engagement",
-                        "funktionsnavn": "Engagement"
+                                             "Tilknytning",
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
+        associations = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(associations), 1)
+        associationid = associations[0]
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_association = c.organisationfunktion.get(associationid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(actual_engagement, expected)
+        self.assertEqual(actual_association, expected)
 
-    def test_create_employee_no_valid_to(self):
+    def test_create_association_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -155,12 +170,15 @@ class Tests(util.LoRATestCase):
 
         payload = [
             {
-                "type": "engagement",
+                "type": "association",
                 "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
                 "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
                 "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
-                "engagement_type": {
+                "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "location": {
+                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
                 },
                 "valid_from": "2017-12-01T00:00:00+01",
             }
@@ -240,7 +258,18 @@ class Tests(util.LoRATestCase):
                         },
                         "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
                     }
-                ]
+                ],
+                "adresser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                    }
+                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -254,27 +283,27 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
                                              "7697009c9053 a30f5f68-9c0d-"
                                              "44e9-afc9-04e58f52dfec "
-                                             "Engagement",
-                        "funktionsnavn": "Engagement"
+                                             "Tilknytning",
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
+        associations = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(associations), 1)
+        associationid = associations[0]
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_association = c.organisationfunktion.get(associationid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(actual_engagement, expected)
+        self.assertEqual(actual_association, expected)
 
-    def test_edit_employee_no_overwrite(self):
+    def test_edit_association_no_overwrite(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -282,14 +311,14 @@ class Tests(util.LoRATestCase):
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
+            "type": "association",
+            "uuid": association_uuid,
             "data": {
                 "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
-                "engagement_type": {
+                "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "valid_from": "2018-04-01T00:00:00+02",
@@ -300,10 +329,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_engagement = {
-            "note": "Rediger engagement",
+        expected_association = {
+            "note": "Rediger tilknytning",
             "relationer": {
                 "opgaver": [
+                    {
+                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
                     {
                         "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
                         "virkning": {
@@ -313,15 +351,6 @@ class Tests(util.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02"
                         }
                     },
-                    {
-                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    }
 
                 ],
                 "organisatoriskfunktionstype": [
@@ -369,6 +398,17 @@ class Tests(util.LoRATestCase):
                 "tilknyttedebrugere": [
                     {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "adresser": [
+                    {
+                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -411,23 +451,23 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_association = c.organisationfunktion.get(association_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertEqual(expected_association, actual_association)
 
-    def test_edit_employee_overwrite(self):
+    def test_edit_association_overwrite(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -435,22 +475,24 @@ class Tests(util.LoRATestCase):
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
+            "type": "association",
+            "uuid": association_uuid,
             "overwrite": {
                 "valid_from": "2017-01-01 00:00:00+01",
                 "valid_to": "infinity",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_title": {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
-                "engagement_type": {
-                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
+                "association_type": {
+                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"
+                },
+                "location": {'uuid': "c248af23-06d8-48d2-b84f-0ac65839808b"}
             },
             "data": {
                 "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
-                "engagement_type": {
+                "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                 "valid_from": "2018-04-01T00:00:00+02",
             },
@@ -460,10 +502,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_engagement = {
-            "note": "Rediger engagement",
+        expected_association = {
+            "note": "Rediger tilknytning",
             "relationer": {
                 "opgaver": [
+                    {
+                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
                     {
                         "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
                         "virkning": {
@@ -473,16 +524,6 @@ class Tests(util.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02"
                         }
                     },
-                    {
-                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    }
-
                 ],
                 "organisatoriskfunktionstype": [
                     {
@@ -529,6 +570,17 @@ class Tests(util.LoRATestCase):
                 "tilknyttedebrugere": [
                     {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "adresser": [
+                    {
+                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -571,35 +623,32 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_association = c.organisationfunktion.get(association_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertEqual(expected_association, actual_association)
 
-    def test_edit_employee_move(self):
+    def test_edit_association_move(self):
         self.load_sample_structures()
-
-        # Check the POST request
-        date = '2019-01-01T00:00:00+01'
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
+            "type": "association",
+            "uuid": association_uuid,
             "data": {
                 "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
                 "valid_from": "2018-04-01T00:00:00+02",
@@ -611,8 +660,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_engagement = {
-            "note": "Rediger engagement",
+        expected_association = {
+            "note": "Rediger tilknytning",
             "relationer": {
                 "opgaver": [
                     {
@@ -649,15 +698,6 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2019-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
                         "uuid": "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b",
                         "virkning": {
                             "from_included": True,
@@ -675,10 +715,30 @@ class Tests(util.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02"
                         },
                     },
+                    {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2019-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
                 ],
                 "tilknyttedebrugere": [
                     {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "adresser": [
+                    {
+                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -730,23 +790,23 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_association = c.organisationfunktion.get(association_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertEqual(expected_association, actual_association)
 
-    def test_edit_employee_move_no_valid_to(self):
+    def test_edit_association_move_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -754,11 +814,11 @@ class Tests(util.LoRATestCase):
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
+            "type": "association",
+            "uuid": association_uuid,
             "data": {
                 "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
                 "valid_from": "2018-04-01T00:00:00+02",
@@ -769,8 +829,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_engagement = {
-            "note": "Rediger engagement",
+        expected_association = {
+            "note": "Rediger tilknytning",
             "relationer": {
                 "opgaver": [
                     {
@@ -835,6 +895,17 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         }
                     }
+                ],
+                "adresser": [
+                    {
+                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
                 ]
             },
             "livscykluskode": "Rettet",
@@ -870,23 +941,23 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_association = c.organisationfunktion.get(association_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertEqual(expected_association, actual_association)
 
-    def test_terminate_employee(self):
+    def test_terminate_association(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -900,7 +971,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut engagement",
+            "note": "Afslut tilknytning",
             "relationer": {
                 "opgaver": [
                     {
@@ -949,6 +1020,17 @@ class Tests(util.LoRATestCase):
                 "tilknyttedebrugere": [
                     {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "adresser": [
+                    {
+                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -991,21 +1073,19 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
+                        "funktionsnavn": "Tilknytning"
                     }
                 ]
             },
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_association = c.organisationfunktion.get(association_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
+        del actual_association['fratidspunkt'], actual_association[
+            'tiltidspunkt'], actual_association[
             'brugerref']
 
-        self.assertEqual(actual_engagement, expected)
+        self.assertEqual(actual_association, expected)

@@ -319,9 +319,12 @@ class TestClass(TestCase):
             },
             'note': 'NOTE'
         }
-
         paths = [
-            ['test1', 'test2']
+            FieldTuple(
+                ('test1', 'test2'),
+                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                lambda x: x
+            )
         ]
 
         expected_result = {
@@ -387,29 +390,35 @@ class TestClass(TestCase):
         }
 
         paths = [
-            ['test1', 'test2']
+            FieldTuple(
+                ('test1', 'test2'),
+                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                lambda x: x
+            )
         ]
 
         expected_result = {
-            'whatever': ['I should remain untouched, please'],
             'note': 'NOTE',
-            'test1': {
-                'no': [
-                    'Me too'
-                ],
-                'test2': [
-                    {
-                        'uuid': 'HEJ1',
-                        'virkning': {
-                            'from': '2010-01-01T00:00:00+00:00',
-                            'to': '2013-01-01T00:00:00+00:00',
-                            'from_included': True,
-                            'to_included': False,
-                        }
-                    }
-                ]
-            }
-        }
+            'test1': {'no': ['Me too'],
+                      'test2': [{'uuid': 'HEJ1',
+                                 'virkning': {
+                                     'from': '2010-01-01T00:00:00+00:00',
+                                     'from_included': True,
+                                     'to': '2013-01-01T00:00:00+00:00',
+                                     'to_included': False}},
+                                {'uuid': 'HEJ2',
+                                 'virkning': {
+                                     'from': '2013-01-01T00:00:00+00:00',
+                                     'from_included': True,
+                                     'to': '2014-01-01T00:00:00+00:00',
+                                     'to_included': False}},
+                                {'uuid': 'HEJ3',
+                                 'virkning': {
+                                     'from': '2014-01-01T00:00:00+00:00',
+                                     'from_included': True,
+                                     'to': '2015-01-01T00:00:00+00:00',
+                                     'to_included': False}}]},
+            'whatever': ['I should remain untouched, please']}
 
         # Act
         actual_result = ensure_bounds(new_from, new_to, paths, original,
@@ -466,7 +475,11 @@ class TestClass(TestCase):
         }
 
         paths = [
-            ['test1', 'test2']
+            FieldTuple(
+                ('test1', 'test2'),
+                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                lambda x: x
+            )
         ]
 
         expected_result = {
@@ -534,29 +547,35 @@ class TestClass(TestCase):
         }
 
         paths = [
-            ['test1', 'test2']
+            FieldTuple(
+                ('test1', 'test2'),
+                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                lambda x: x
+            )
         ]
 
         expected_result = {
-            'whatever': ['I should remain untouched, please'],
             'note': 'NOTE',
-            'test1': {
-                'no': [
-                    'Me too'
-                ],
-                'test2': [
-                    {
-                        'uuid': 'HEJ3',
-                        'virkning': {
-                            'from': '2014-01-01T00:00:00+00:00',
-                            'to': '2017-01-01T00:00:00+00:00',
-                            'from_included': True,
-                            'to_included': False,
-                        }
-                    },
-                ]
-            }
-        }
+            'test1': {'no': ['Me too'],
+                      'test2': [{'uuid': 'HEJ1',
+                                 'virkning': {
+                                     'from': '2012-01-01T00:00:00+00:00',
+                                     'from_included': True,
+                                     'to': '2013-01-01T00:00:00+00:00',
+                                     'to_included': False}},
+                                {'uuid': 'HEJ2',
+                                 'virkning': {
+                                     'from': '2013-01-01T00:00:00+00:00',
+                                     'from_included': True,
+                                     'to': '2014-01-01T00:00:00+00:00',
+                                     'to_included': False}},
+                                {'uuid': 'HEJ3',
+                                 'virkning': {
+                                     'from': '2014-01-01T00:00:00+00:00',
+                                     'from_included': True,
+                                     'to': '2017-01-01T00:00:00+00:00',
+                                     'to_included': False}}]},
+            'whatever': ['I should remain untouched, please']}
 
         # Act
         actual_result = ensure_bounds(new_from, new_to, paths, original,
@@ -613,7 +632,11 @@ class TestClass(TestCase):
         }
 
         paths = [
-            ['test1', 'test2']
+            FieldTuple(
+                ('test1', 'test2'),
+                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                lambda x: x
+            )
         ]
 
         expected_result = {

@@ -123,6 +123,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
 
     functions = {
         'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
+        'tilknytning': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
     }
 
     users = {
