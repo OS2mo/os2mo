@@ -321,6 +321,9 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
+                "location": {
+                    'uuid': "47c51ade-cf1c-401c-afb7-a2f7d3455fcd"
+                },
                 "valid_from": "2018-04-01T00:00:00+02",
             },
         }]
@@ -406,6 +409,7 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
+
                 "adresser": [
                     {
                         "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
@@ -413,6 +417,15 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "uuid": "47c51ade-cf1c-401c-afb7-a2f7d3455fcd",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
