@@ -37,7 +37,7 @@ blueprint = flask.Blueprint('facet', __name__, static_url_path='',
 
 FACETS = {
     'address': 'Adressetype',
-    'job-title': 'Stillingsbetegnelse',
+    'job-function': 'Stillingsbetegnelse',
     'ou': 'Enhedstype',
 }
 

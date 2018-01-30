@@ -388,6 +388,9 @@ class Scope:
     def get_effects(self, uuid: str, relevant, also=None, **params):
         reg = self.get(uuid, **params)
 
+        if not reg:
+            return
+
         chunks = set()
 
         everything = collections.defaultdict(tuple)

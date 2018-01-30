@@ -5,6 +5,10 @@ Om MORa
 .. contents:: `Indhold`
    :depth: 2
 
+.. image:: http://lorajenkins.atlas.magenta.dk/buildStatus/icon?job=mora/development
+   :alt: Build Status
+   :target: http://lorajenkins.atlas.magenta.dk/job/mora/job/development/
+
 
 Introduktion
 ------------

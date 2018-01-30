@@ -928,9 +928,9 @@ class IntegrationTests(util.LoRATestCase):
               '/f/address/',
               'user_key': 'Adressetype',
               'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2'},
-             {'name': 'job-title',
+             {'name': 'job-function',
               'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-              '/f/job-title/',
+              '/f/job-function/',
               'user_key': 'Stillingsbetegnelse',
               'uuid': '51774dde-bf2c-4100-9059-70d1a1fb1d1f'},
              {'name': 'ou',
@@ -1030,7 +1030,7 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/job-title/',
+            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/job-function/',
             [{'example': None,
               'name': 'Administrativ leder',
               'scope': None,
