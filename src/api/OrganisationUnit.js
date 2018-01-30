@@ -75,7 +75,20 @@ export default {
    * @see getDetail
    */
   getEngagementDetails (unitUuid, validity) {
-    return this.getDetail(unitUuid, 'engagement', validity)
+    return this.getDetailNew(unitUuid, 'engagement')
+  },
+
+  /**
+   * Base call for getting details.
+   * @param {String} uuid - organisation unit uuid
+   * @param {String} detail - Name of the detail
+   * @returns {Array} A list of options for the detail
+   */
+  getDetailNew (uuid, detail) {
+    return Service.get(`/ou/${uuid}/details/${detail}`)
+    .then(response => {
+      return response.data
+    })
   },
 
   /**

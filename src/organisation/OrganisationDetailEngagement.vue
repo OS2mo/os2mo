@@ -11,29 +11,29 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="e in engagementsFuture" v-bind:key="e.uuid" style="color:#bbb">
+        <!-- <tr v-for="e in engagementsFuture" v-bind:key="e.uuid" style="color:#bbb">
           <td>{{e['person-name']}}</td>
           <td>{{e['job-title'].name}}</td>
           <td><span v-if="e.type">{{e.type.name}}</span></td>
           <td>{{e['valid-from']}}</td>
           <td>{{e['valid-to']}}</td>
-        </tr>
+        </tr> -->
 
         <tr v-for="e in engagements" v-bind:key="e.uuid">
-          <td><router-link :to="{ name: 'EmployeeDetail', params: {'uuid': e.person} }">{{e['person-name']}}</router-link></td>
-          <td>{{e['job-title'].name}}</td>
+          <td><router-link :to="{ name: 'EmployeeDetail', params: {'uuid': e.person.uuid} }">{{e.person.name}}</router-link></td>
+          <td><span v-if="e.job_function">{{e.job_function.name}}</span></td>
           <td><span v-if="e.type">{{e.type.name}}</span></td>
-          <td>{{e['valid-from']}}</td>
-          <td>{{e['valid-to']}}</td>
+          <td><span v-if="e.valid_from">{{e.valid_from | moment("DD-MM-YYYY") }}</span></td>
+          <td><span v-if="e.valid_to">{{e.valid_to | moment("DD-MM-YYYY") }}</span></td>
         </tr>
 
-        <tr v-for="e in engagementsPast" v-bind:key="e.uuid" style="color:#bbb">
+        <!-- <tr v-for="e in engagementsPast" v-bind:key="e.uuid" style="color:#bbb">
           <td>{{e['person-name']}}</td>
           <td>{{e['job-title'].name}}</td>
           <td><span v-if="e.type">{{e.type.name}}</span></td>
           <td>{{e['valid-from']}}</td>
           <td>{{e['valid-to']}}</td>
-        </tr>
+        </tr> -->
       </tbody>
     </table>
 
@@ -76,14 +76,14 @@
           vm.engagements = response
           vm.isLoading = false
         })
-        OrganisationUnit.getEngagementDetails(this.uuid, 'past')
-        .then(response => {
-          vm.engagementsPast = response
-        })
-        OrganisationUnit.getEngagementDetails(this.uuid, 'future')
-        .then(response => {
-          vm.engagementsFuture = response
-        })
+        // OrganisationUnit.getEngagementDetails(this.uuid, 'past')
+        // .then(response => {
+        //   vm.engagementsPast = response
+        // })
+        // OrganisationUnit.getEngagementDetails(this.uuid, 'future')
+        // .then(response => {
+        //   vm.engagementsFuture = response
+        // })
       }
     }
   }
