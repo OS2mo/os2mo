@@ -252,9 +252,6 @@ class Tests(util.LoRATestCase):
     def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
-        # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
@@ -392,11 +389,124 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(expected_role, actual_role)
 
-    def test_edit_role_overwrite(self):
+    def test_edit_role_minimal(self):
         self.load_sample_structures()
 
-        # Check the POST request
-        date = '2019-01-01T00:00:00+01'
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
+
+        req = [{
+            "type": "role",
+            "uuid": role_uuid,
+            "data": {
+                "valid_from": "2018-04-01T00:00:00+02",
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid, json=req)
+
+        expected_role = {
+            "note": "Rediger rolle",
+            "relationer": {
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Rolle"
+                    }
+                ]
+            },
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_role = c.organisationfunktion.get(role_uuid)
+
+        # drop lora-generated timestamps & users
+        del actual_role['fratidspunkt'], actual_role[
+            'tiltidspunkt'], actual_role[
+            'brugerref']
+
+        self.assertEqual(expected_role, actual_role)
+
+    def test_edit_role_overwrite(self):
+        self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
