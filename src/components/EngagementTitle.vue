@@ -31,6 +31,7 @@ export default {
   },
   created () {
     this.getEngagementTitles()
+    this.selectedTitle = this.preselected
   },
   methods: {
     getEngagementTitles () {

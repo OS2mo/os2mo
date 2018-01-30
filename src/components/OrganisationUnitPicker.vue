@@ -43,15 +43,14 @@
         default: 'Angiv overenhed',
         type: String
       },
-      preselected: {
-        type: Object,
-        default: null
-      }
+      preselected: Object
     },
     data () {
       return {
         org: {},
-        selectedSuperUnit: {},
+        selectedSuperUnit: {
+          name: ''
+        },
         showTree: false
       }
     },
@@ -64,10 +63,10 @@
 
         this.$emit('input', newVal)
         this.hide()
-      },
-      preselected (newVal, oldVal) {
-        this.selectedSuperUnit = newVal
       }
+    },
+    created () {
+      this.selectedSuperUnit = this.preselected || this.selectedSuperUnit
     },
     methods: {
       getSelectedOrganisation () {

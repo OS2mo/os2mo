@@ -4,7 +4,7 @@
       class="col"
       label="Startdato"
       v-model="startDate"
-      :value="startDate"
+      :preselectedDate="selectedValidFrom"
       required
       @input="updateDate()"
     />
@@ -13,6 +13,7 @@
       label="Slutdato"
       v-model="endDate"
       :disabled-to="startDate"
+      :preselectedDate="selectedValidTo"
       @input="updateDate()"
     />
   </div>
@@ -28,15 +29,25 @@
     },
     props: {
       value: null,
-      preselected: {}
+      preselectedDate: Date,
+      selectedValidFrom: Date,
+      selectedValidTo: Date
     },
     data () {
       return {
         startDate: null,
-        endDate: null
+        endDate: null,
+        dates: {
+          startDate: null,
+          endDate: null
+        }
       }
     },
     created () {
+      this.dates = {
+        startDate: this.selectedValidFrom,
+        endDate: this.selectedValidTo
+      }
     },
     methods: {
       updateDate () {

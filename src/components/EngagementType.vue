@@ -23,7 +23,8 @@ import Property from '../api/Property'
 
 export default {
   props: {
-    value: String
+    value: String,
+    preselected: String
   },
   data () {
     return {
@@ -33,6 +34,7 @@ export default {
   },
   created () {
     this.getEngagementTypes()
+    this.selectedType = this.preselected
   },
   methods: {
     getEngagementTypes: function () {

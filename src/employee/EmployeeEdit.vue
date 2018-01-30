@@ -1,32 +1,53 @@
 <template>
   <b-modal 
-    id="employeeEdit" 
-    size="lg" 
+    id="employeeEdit"
+    size="lg"
     hide-footer 
     title="Rediger medarbejder"
     ref="employeeEdit"
   >
-    <div v-for="e in employeeEngagement" v-bind:key="e.uuid">
-      <h4>Engagement</h4>
-      {{e['valid-from']}} {{e['valid-to']}}
-      <date-start-end v-model="dateStartEnd" :preselected="dates.startDateEnd"/>
-      <div class="form-row">
-        <organisation-unit-picker 
-          id="unit"
-          class="col" 
-          label="Vælg enhed"
-          v-model="orgUnit"
-        />
-        {{e['org-unit'].name}}
-        <engagement-title v-model="engagement.selectedTitle"/>
-        {{e['job-title'].name}}
-        <engagement-type v-model="engagement.engagement_type_uuid"/>
-        {{e['type'].name}}
-      </div>
-    </div>{{employeeEngagement}}
-    <div class="float-right">
-      <button-submit @click.native="editEmployee"/>
+    <h4>Engagement</h4>
+    <div>
+      <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Enhed</th>
+          <th scope="col">Stillingsbetegnelse</th>
+          <th scope="col">Engagementstype</th>
+          <th scope="col">Dato</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr v-for="e in employeeEngagement" v-bind:key="e.uuid">
+          <td>
+            {{e['org-unit'].name}}
+          </td>
+          <td> 
+            <engagement-title
+            v-model="engagement.selectedTitle"
+            :preselected="e['job-title'].uuid"
+            />
+          </td>
+          <td>
+            <engagement-type v-model="engagement.engagement_type_uuid"
+            :preselected="e['type'].uuid"
+            />
+          </td>
+          <td>
+            <date-start-end 
+            v-model="dateStartEnd" 
+            :selected-valid-from="new Date(e['valid-from'])"
+            :selected-valid-to="new Date(e['valid-to'])"
+            />
+          </td>
+        </tr>
+      </tbody>
+      </table>
     </div>
+      <div class="float-right">
+        <button-submit @click.native="editEmployee"/>
+      </div>
   </b-modal>
 
 </template>
@@ -51,19 +72,20 @@
     },
     data () {
       return {
-        orgUnit: {},
         dateStartEnd: {},
         dates: {
-          startDate: '',
-          startEnd: ''
+          startDate: null,
+          startEnd: null
         },
         engagement: {
           selectedTitle: '',
-          job_title_uuid: ''
+          job_title_uuid: '',
+          uuid: '',
+          orgUnit: ''
         },
+        uuid: '',
         engagementType: '',
-        employeeEngagement: {},
-        selectedEngagement: null
+        employeeEngagement: {}
       }
     },
     created () {
@@ -82,18 +104,18 @@
         let vm = this
         let edit = [{
           type: 'engagement',
-          uuid: this.selectedEngagement,
+          uuid: this.employeeEngagement[0].uuid,
           overwrite: {
             valid_from: this.dateStartEnd.startDate,
             valid_to: this.dateStartEnd.endDate,
             job_title_uuid: this.engagement.selectedTitle,
             engagement_type_uuid: this.engagement.engagement_type_uuid,
-            org_unit_uuid: this.engagement.orgUnit
+            org_unit: this.engagement.orgUnit
           },
           data: {
             valid_from: this.dateStartEnd.startDate,
             valid_to: this.dateStartEnd.endDate,
-            org_unit_uuid: this.engagement.orgUnit
+            job_title_uuid: this.engagement.selectedTitle
           }
         }]
         Employee.editEmployee(this.$route.params.uuid, edit)

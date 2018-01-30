@@ -45,7 +45,8 @@ export default {
     disabledTo: {
       default: null,
       type: Date
-    }
+    },
+    preselectedDate: Date
   },
   data () {
     return {
@@ -63,6 +64,9 @@ export default {
     disabledTo (newVal, oldVal) {
       this.disabled.to = newVal
     }
+  },
+  created () {
+    this.selectedDate = this.preselectedDate
   }
 }
 </script>
