@@ -627,6 +627,18 @@ class Tests(util.LoRATestCase):
             func,
         )
 
+        self.assertRequestResponse(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/details/engagement',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/00000000-0000-0000-0000-000000000000'
+            '/details/engagement',
+            [],
+        )
+
     def test_facet(self):
         self.assertRequestResponse(
             '/service/o/00000000-0000-0000-0000-000000000000/f/',
@@ -788,5 +800,15 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
             '?at=2018-06-01&validity=future',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/00000000-0000-0000-0000-000000000000/details/it',
             [],
         )

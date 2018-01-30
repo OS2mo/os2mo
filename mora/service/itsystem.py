@@ -141,7 +141,7 @@ def get_itsystem(id):
     def convert(start, end, effect):
         attrs = effect['attributter']['brugeregenskaber'][0]
 
-        for systemrel in effect['relationer']['tilknyttedeitsystemer']:
+        for systemrel in effect['relationer'].get('tilknyttedeitsystemer', []):
             if not c.is_effect_relevant(systemrel['virkning']):
                 continue
             systemid = systemrel['uuid']
