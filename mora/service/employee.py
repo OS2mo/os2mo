@@ -155,13 +155,13 @@ def get_employee(id, raw=False):
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
 def create_employee(employee_uuid):
-    """Creates new mapping relations
+    """Creates new employee relations
 
     .. :quickref: Employee; Create
 
     :statuscode 200: Creation succeeded.
 
-    :param employee_uuid: The UUID of the mapping.
+    :param employee_uuid: The UUID of the employee.
 
     **Example Request**:
 
@@ -171,14 +171,14 @@ def create_employee(employee_uuid):
     **Engagement**:
 
     :<jsonarr string type: **"engagement"**
-    :<jsonarr string org_unit_uuid: The UUID of the associated org unit
-    :<jsonarr string org_uuid: The UUID of the associated organisation
-    :<jsonarr string job_title_uuid: The UUID of the job title of the engagment
-    :<jsonarr string engagement_type_uuid: The UUID of the engagement type
-    :<jsonarr string valid_from: The date from which the role should be valid,
-        in ISO 8601.
-    :<jsonarr string valid_to: The date which the role should be valid to,
-        in ISO 8601.
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string org: The associated organisation
+    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string engagement_type: The engagement type
+    :<jsonarr string valid_from: The date from which the engagement should
+        be valid, in ISO 8601.
+    :<jsonarr string valid_to: The date to which the engagement should be
+        valid, in ISO 8601.
 
     .. sourcecode:: json
 
@@ -205,15 +205,15 @@ def create_employee(employee_uuid):
     **Association**:
 
     :<jsonarr string type: **"association"**
-    :<jsonarr string org_unit_uuid: The UUID of the associated org unit
-    :<jsonarr string org_uuid: The UUID of the associated organisation
-    :<jsonarr string job_title_uuid: The UUID of the job title of the
-        association
-    :<jsonarr string association_type_uuid: The UUID of the association type
-    :<jsonarr string valid_from: The date from which the role should be valid,
-        in ISO 8601.
-    :<jsonarr string valid_to: The date which the role should be valid to,
-        in ISO 8601.
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string org: The associated organisation
+    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string association_type: The association type
+    :<jsonarr string location: The associated location.
+    :<jsonarr string valid_from: The date from which the association should
+        be valid, in ISO 8601.
+    :<jsonarr string valid_to: The date to which the association should be
+        valid, in ISO 8601.
 
     .. sourcecode:: json
 
@@ -231,6 +231,9 @@ def create_employee(employee_uuid):
           },
           "engagement_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "location": {
+            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
           },
           "valid_from": "2016-01-01T00:00:00+00:00",
           "valid_to": "2018-01-01T00:00:00+00:00"
@@ -271,9 +274,9 @@ def create_employee(employee_uuid):
 
 @blueprint.route('/e/<uuid:employee_uuid>/edit', methods=['POST'])
 def edit_employee(employee_uuid):
-    """Edits an mapping
+    """Edits an employee
 
-    .. :quickref: Employee; Edit mapping
+    .. :quickref: Employee; Edit employee
 
     :statuscode 200: The edit succeeded.
 
@@ -284,14 +287,14 @@ def edit_employee(employee_uuid):
 
     **Engagement**:
 
-    :param employee_uuid: The UUID of the mapping to be moved.
+    :param employee_uuid: The UUID of the employee to be moved.
 
     :<json string type: **"engagement"**
     :<json string uuid: The UUID of the engagement,
     :<json object overwrite: An **optional** object containing the original
         state of the engagement to be overwritten. If supplied, the change
         will modify the existing registration on the engagement object.
-        Detailed below. Note, this object is only optional for *engagement*.
+        Detailed below.
     :<json object data: An object containing the changes to be made to the
         engagement. Detailed below.
 
@@ -299,12 +302,11 @@ def edit_employee(employee_uuid):
     Every field in **overwrite** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string engagement_type: The engagement type
     :<jsonarr string valid_from: The from date, in ISO 8601.
     :<jsonarr string valid_to: The to date, in ISO 8601.
-    :<jsonarr string org_unit_uuid: The UUID of the associated org unit
-    :<jsonarr string job_title_uuid: The UUID of the job title of the
-        engagement
-    :<jsonarr string engagement_type_uuid: The UUID of the engagement type
 
     .. sourcecode:: json
 
@@ -337,7 +339,7 @@ def edit_employee(employee_uuid):
 
     **Association**:
 
-    :param employee_uuid: The UUID of the mapping to be moved.
+    :param employee_uuid: The UUID of the employee to be moved.
 
     :<json string type: **"association"**
     :<json string uuid: The UUID of the association,
@@ -352,12 +354,13 @@ def edit_employee(employee_uuid):
     Every field in **overwrite** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string org: The associated organisation
+    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string association_type: The association type
+    :<jsonarr string location: The associated location.
     :<jsonarr string valid_from: The from date, in ISO 8601.
     :<jsonarr string valid_to: The to date, in ISO 8601.
-    :<jsonarr string org_unit_uuid: The UUID of the associated org unit
-    :<jsonarr string job_title_uuid: The UUID of the job title of the
-        engagement
-    :<jsonarr string association_type_uuid: The UUID of the association type
 
     .. sourcecode:: json
 
@@ -377,6 +380,9 @@ def edit_employee(employee_uuid):
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             }
+            "location": {
+              "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+            },
           },
           "data": {
             "valid_from": "2016-01-01T00:00:00+00:00",
@@ -414,13 +420,13 @@ def edit_employee(employee_uuid):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
-    """Terminates an mapping and all of his roles from a specified date.
+    """Terminates an employee and all of his roles from a specified date.
 
     .. :quickref: Employee; Terminate
 
     :statuscode 200: The termination succeeded.
 
-    :param employee_uuid: The UUID of the mapping to be terminated.
+    :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string valid_from: The date on which the termination should happen,
                               in ISO 8601.
