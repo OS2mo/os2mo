@@ -39,7 +39,6 @@
 </template>
 
 <script>
-  // import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
 
@@ -51,14 +50,9 @@
     props: {
       value: Object,
       model: Object,
-      firstOpen: {
-        type: Boolean,
-        default: false
-      },
-      linkable: {
-        type: Boolean,
-        default: false
-      }
+      firstOpen: Boolean,
+      linkable: Boolean,
+      atDate: Date
     },
     data () {
       return {
@@ -75,6 +69,10 @@
     watch: {
       selected: function (newVal, oldVal) {
         this.selectOrgUnit(newVal)
+      },
+
+      atDate () {
+        this.loadChildren()
       }
     },
     created () {
@@ -86,7 +84,7 @@
     methods: {
       toggle () {
         this.open = !this.open
-        this.loadChildren()
+        if (this.open && this.model.children === undefined) this.loadChildren()
       },
 
       selectOrgUnit (org) {
@@ -95,7 +93,9 @@
 
       loadChildren () {
         let vm = this
-        OrganisationUnit.getChildren(vm.model.uuid)
+        vm.loading = true
+        vm.model.children = undefined
+        OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
         .then(response => {
           vm.model.children = response
           vm.loading = false

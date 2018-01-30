@@ -29,6 +29,9 @@
   import MoTable from '../components/MoTable'
 
   export default {
+    props: {
+      uuid: String
+    },
     components: {
       MoTable
     },
@@ -48,10 +51,15 @@
         this.getDetails()
       })
     },
+    watch: {
+      uuid (newVal, oldVal) {
+        this.getDetails()
+      }
+    },
     methods: {
       getDetails () {
         let vm = this
-        OrganisationUnit.getUnitDetails(this.$route.params.uuid)
+        OrganisationUnit.getUnitDetails(this.uuid)
         .then(response => {
           vm.details = response
         })
@@ -59,7 +67,7 @@
 
       getDetailsPast () {
         let vm = this
-        OrganisationUnit.getUnitDetails(this.$route.params.uuid, 'past')
+        OrganisationUnit.getUnitDetails(this.uuid, 'past')
         .then(response => {
           vm.detailsPast = response
         })
@@ -67,7 +75,7 @@
 
       getDetailsFuture () {
         let vm = this
-        OrganisationUnit.getUnitDetails(this.$route.params.uuid, 'future')
+        OrganisationUnit.getUnitDetails(this.uuid, 'future')
         .then(response => {
           vm.detailsFuture = response
         })

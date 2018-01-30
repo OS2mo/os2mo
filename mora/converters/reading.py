@@ -560,7 +560,6 @@ def _convert_engagement(funcid, start, end, effect):
     empl = get_employees([emplid], effective_date=start)[-1]
 
     unitid = rels['tilknyttedeenheder'][-1]['uuid']
-    orgid = rels['tilknyttedeorganisationer'][-1]['uuid']
 
     titleid = rels['opgaver'][-1].get('uuid') if rels.get('opgaver') else None
 

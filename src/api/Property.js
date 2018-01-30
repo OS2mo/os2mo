@@ -1,4 +1,4 @@
-import { HTTP } from './HttpCommon'
+import { HTTP, Service } from './HttpCommon'
 
 export default {
 
@@ -18,7 +18,7 @@ export default {
    * @returns {Array} A list of the different contact channel types
    */
   getContactChannels () {
-    return HTTP.get('/role-types/contact/facets/type/classes/?facetKey=Contact_channel_location')
+    return Service.get('/f/address')
     .then(response => {
       return response.data
     })

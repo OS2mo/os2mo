@@ -18,7 +18,6 @@ import uuid
 import flask
 import iso8601
 import pytz
-import tzlocal
 import dateutil.parser
 
 
@@ -98,6 +97,16 @@ def to_lora_time(s):
         return dt.isoformat()
 
 
+def to_iso_time(s):
+    dt = parsedatetime(s)
+
+    return (
+        dt.isoformat()
+        if dt not in (positive_infinity, negative_infinity)
+        else None
+    )
+
+
 def to_frontend_time(s):
     dt = parsedatetime(s)
 
@@ -136,6 +145,9 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     def wrap(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
+            if flask.g.get('are_args_valid'):
+                return f(*args, **kwargs)
+
             invalidargs = {
                 k for k, v in flask.request.args.items()
                 if v and k.lower() not in allallowed
@@ -145,7 +157,9 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
                 if not flask.request.args.get(k, None)
             }
 
-            if missing or invalidargs:
+            flask.g.are_args_valid = not (missing or invalidargs)
+
+            if not flask.g.are_args_valid:
                 msg = '\n'.join((
                     'Unsupported request arguments:',
                     'URL: {}',
