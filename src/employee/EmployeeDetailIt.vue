@@ -12,10 +12,10 @@
 
       <tbody>
         <tr v-for="d in details" v-bind:key="d.uuid">
-          <td>{{d['it-system'].name}}</td>
-          <td>{{d['user-name']}}</td>
-          <td>{{d['valid-from']}}</td>
-          <td>{{d['valid-to']}}</td>
+          <td>{{d.name}}</td>
+          <td>{{d.user_name}}</td>
+          <td>{{d.valid_from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.valid_to | moment('DD-MM-YYYY')}}</td>
         </tr>
       </tbody>
     </table>
@@ -27,22 +27,19 @@
   import Employee from '../api/Employee'
 
   export default {
-    components: {},
     data () {
       return {
-        details: [],
-        detailsPast: [],
-        detailsFuture: []
+        details: []
       }
     },
-    created: function () {
+    created () {
       this.getDetails()
     },
     methods: {
-      getDetails: function () {
+      getDetails () {
         var vm = this
         Employee.getItDetails(this.$route.params.uuid)
-        .then(function (response) {
+        .then(response => {
           vm.details = response
         })
       }
