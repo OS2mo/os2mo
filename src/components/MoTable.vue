@@ -44,8 +44,8 @@
           <td>
             <span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span>
           </td>
-          <td>{{unit['valid-from']}}</td>
-          <td>{{unit['valid-to']}}</td>
+          <td>{{unit['valid-from'] | moment("DD-MM-YYYY")}}</td>
+          <td>{{unit['valid-to'] | moment("DD-MM-YYYY")}}</td>
         </tr>
       </tbody>
     </table>
