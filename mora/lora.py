@@ -339,7 +339,10 @@ class Scope:
     def get_all(self, *, start=0, limit=1000, **params):
         params['maximalantalresultater'] = start + limit
 
-        uuids = self.fetch(**params)[start:start + limit]
+        if 'uuid' in params:
+            uuids = util.uniqueify(params['uuid'])
+        else:
+            uuids = self.fetch(**params)[start:start + limit]
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 
