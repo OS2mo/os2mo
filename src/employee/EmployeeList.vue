@@ -1,12 +1,11 @@
 <template>
   <div class="card">
   <div class="card-body">
-    <table class="table table-striped">
+    <loading v-show="isLoading"/>
+    <table class="table table-striped" v-show="!isLoading">
       <thead>
         <tr>
           <th scope="col">Navn</th>
-          <th scope="col">CPR. Nr.</th>
-          <th scope="col">Brugernavn</th>
         </tr>
       </thead>
 
@@ -16,11 +15,12 @@
           v-bind:key="employee.uuid"
         >
           <td>
-          <router-link class="nav-link" :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }">
+            <router-link 
+              class="nav-link" 
+              :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }"
+            >
               {{employee.name}}
             </router-link></td>
-          <td>{{employee['user-key'] | CPRNumber}}</td>
-          <td>{{employee['nick-name']}}</td>
         </tr>
       </tbody>
     </table>
@@ -31,24 +31,38 @@
 
 <script>
   import Employee from '../api/Employee'
+  import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
+  import Loading from '../components/Loading'
   import '../filters/CPRNumber'
 
   export default {
-    components: {},
+    components: {
+      Loading
+    },
     data () {
       return {
-        employees: []
+        employees: [],
+        isLoading: true
       }
     },
-    created: function () {
+    created () {
       this.getEmployees()
     },
+    mounted () {
+      EventBus.$on('organisation-changed', () => {
+        this.getEmployees()
+      })
+    },
     methods: {
-      getEmployees: function () {
-        var vm = this
-        Employee.getAll()
+      getEmployees () {
+        let vm = this
+        vm.isLoading = true
+        let org = Organisation.getSelectedOrganisation()
+        Employee.getAll(org.uuid)
         .then(response => {
           vm.employees = response
+          vm.isLoading = false
         })
       }
     }

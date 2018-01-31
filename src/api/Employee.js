@@ -6,8 +6,8 @@ export default {
    * Get a list of all employees
    * @returns {Array} List of all employees
    */
-  getAll () {
-    return HTTP.get('/e/')
+  getAll (orgUuid) {
+    return Service.get(`/o/${orgUuid}/e/`)
       .then(response => {
         return response.data
       })
