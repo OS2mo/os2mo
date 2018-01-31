@@ -19,7 +19,7 @@ export default {
    * @returns {Object} employee object
    */
   getEmployee (uuid) {
-    return HTTP.get(`/e/${uuid}`)
+    return Service.get(`/e/${uuid}/`)
     .then(response => {
       return response.data
     })
@@ -138,6 +138,7 @@ export default {
    * Create a new engagement for an employee
    * @param {String} uuid - Employee uuid
    * @param {Object} engagement - New engagement
+   * @deprecated
    */
   createEngagement (uuid, engagement) {
     return HTTP.post(`/e/${uuid}/roles/engagement`, engagement)
