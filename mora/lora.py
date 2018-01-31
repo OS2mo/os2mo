@@ -9,6 +9,7 @@
 import collections
 import datetime
 import functools
+import uuid
 
 import requests
 
@@ -388,8 +389,12 @@ class Scope:
         _check_response(r)
         return r.json()['uuid']
 
-    def get_effects(self, uuid: str, relevant, also=None, **params):
-        reg = self.get(uuid, **params)
+    def get_effects(self, obj, relevant, also=None, **params):
+        reg = (
+            self.get(obj, **params)
+            if isinstance(obj, (str, uuid.UUID))
+            else obj
+        )
 
         if not reg:
             return
