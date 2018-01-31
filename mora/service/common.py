@@ -274,10 +274,7 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
             _set_virkning(v, virkning, overwrite)
         elif isinstance(v, list):
             for d in v:
-                if overwrite:
-                    d['virkning'] = virkning.copy()
-                else:
-                    d.setdefault('virkning', virkning.copy())
+                d.setdefault('virkning', virkning.copy())
     return lora_obj
 
 

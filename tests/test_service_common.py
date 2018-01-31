@@ -10,7 +10,7 @@ from unittest import TestCase
 
 from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
                                  update_payload, inactivate_old_interval,
-                                 ensure_bounds)
+                                 ensure_bounds, _merge_obj_effects)
 
 
 class TestClass(TestCase):
@@ -1152,6 +1152,416 @@ class TestClass(TestCase):
         # Act
         actual_result = ensure_bounds(new_from, new_to, paths, original,
                                       payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_ensure_bounds_handles_unknown_fields(self):
+        # Arrange
+        new_from = '2010-01-01T00:00:00+00:00'
+        new_to = '2020-01-01T00:00:00+00:00'
+
+        original = {
+            'unknown': {
+            }
+        }
+
+        payload = {
+            'whatever': ['I should remain untouched, please'],
+            'test1': {
+                'no': ['Me too']
+            },
+            'note': 'NOTE'
+        }
+
+        paths = [
+            FieldTuple(
+                ('test1', 'test2'),
+
+                FieldTypes.ZERO_TO_ONE,
+                lambda x: x
+            )
+        ]
+
+        expected_result = {
+            'whatever': ['I should remain untouched, please'],
+            'note': 'NOTE',
+            'test1': {
+                'no': [
+                    'Me too'
+                ]
+            }
+        }
+
+        # Act
+        actual_result = ensure_bounds(new_from, new_to, paths, original,
+                                      payload)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_1(self):
+        # New obj overlaps beginning and ending of originals
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2017-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2019-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = {
+            'uuid': 'whatever3',
+            'virkning': {
+                'from': '2016-01-01T00:00:00+01:00',
+                'from_included': True,
+                'to': '2018-01-01T00:00:00+01:00',
+                'to_included': False,
+            }
+        }
+
+        expected_result = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2019-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        # Act
+        actual_result = _merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_2(self):
+        # Original timespan completely contains new timespan
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = {
+            'uuid': 'whatever3',
+            'virkning': {
+                'from': '2016-01-01T00:00:00+01:00',
+                'from_included': True,
+                'to': '2018-01-01T00:00:00+01:00',
+                'to_included': False,
+            }
+        }
+
+        expected_result = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        # Act
+        actual_result = _merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_3(self):
+        # New doesn't overlap with originals
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2019-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = {
+            'uuid': 'whatever3',
+            'virkning': {
+                'from': '2016-01-01T00:00:00+01:00',
+                'from_included': True,
+                'to': '2018-01-01T00:00:00+01:00',
+                'to_included': False,
+            }
+        }
+
+        expected_result = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2019-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        # Act
+        actual_result = _merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_4(self):
+        # New completely overlaps with old
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2019-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = {
+            'uuid': 'whatever3',
+            'virkning': {
+                'from': '2010-01-01T00:00:00+01:00',
+                'from_included': True,
+                'to': '2020-01-01T00:00:00+01:00',
+                'to_included': False,
+            }
+        }
+
+        expected_result = [
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2010-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        # Act
+        actual_result = _merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_5(self):
+        # Handle infinity
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = {
+            'uuid': 'whatever2',
+            'virkning': {
+                'from': '2016-01-01T00:00:00+01:00',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False,
+            }
+        }
+
+        expected_result = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        # Act
+        actual_result = _merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_6(self):
+        # Handle -infinity
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = {
+            'uuid': 'whatever2',
+            'virkning': {
+                'from': '-infinity',
+                'from_included': False,
+                'to': 'infinity',
+                'to_included': False,
+            }
+        }
+
+        expected_result = [
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        # Act
+        actual_result = _merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
