@@ -8,7 +8,7 @@
 
 '''
 Associations
------------
+------------
 
 This section describes how to interact with employee associations.
 

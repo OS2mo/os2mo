@@ -15,23 +15,17 @@ This section describes how to interact with employees.
 
 '''
 
-import copy
-import functools
-from typing import Callable, List, Tuple
-
 import flask
 
 from mora import lora
 from mora.service.association import (create_association, edit_association,
                                       terminate_association, ASSOCIATION_KEY)
-from mora.service.common import (FieldTuple, FieldTypes, set_object_value,
-                                 get_obj_value)
 from mora.service.engagement import (terminate_engagement, create_engagement,
                                      edit_engagement, ENGAGEMENT_KEY)
 from mora.service.role import edit_role, create_role
 from . import common
 from .. import util
-from ..converters import reading, writing
+from ..converters import writing
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')

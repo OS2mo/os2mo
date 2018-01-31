@@ -23,9 +23,6 @@ import flask
 from .. import util
 
 from . import common
-from . import employee
-from . import facet
-from . import org
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
