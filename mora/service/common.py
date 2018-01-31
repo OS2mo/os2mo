@@ -153,11 +153,8 @@ def ensure_bounds(valid_from: str,
                 updated_props.append(first)
             if last['virkning']['to'] < valid_to:
                 last['virkning']['to'] = valid_to
-                if not updated_props and last is not first:
+                if not updated_props or last is not first:
                     updated_props.append(last)
-            updated_props = [first]
-            if last is not first:
-                updated_props.append(last)
 
         if updated_props:
             payload = set_object_value(payload, field.path, updated_props)
