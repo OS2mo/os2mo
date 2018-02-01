@@ -16,7 +16,9 @@ pipeline {
         echo 'Building...'
 
         timeout(10) {
-          sh './build/run-build.sh'
+          ansiColor('xterm') {
+            sh './build/run-build.sh'
+          }
         }
       }
     }
@@ -26,7 +28,9 @@ pipeline {
         echo 'Testing..'
 
         timeout(10) {
-          sh './build/run-tests.sh'
+          ansiColor('xterm') {
+            sh './build/run-tests.sh'
+          }
         }
       }
     }
@@ -36,7 +40,9 @@ pipeline {
         echo 'Deploying....'
 
         timeout(1) {
-          sh './build/run-deploy.sh'
+          ansiColor('xterm') {
+            sh './build/run-deploy.sh'
+          }
         }
       }
     }
