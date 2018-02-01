@@ -6,6 +6,8 @@ pipeline {
   environment {
     MINIMOX_DIR = '/srv/minimox'
     BROWSER = 'Firefox'
+    MOZ_HEADLESS = '1'
+    PYTEST_ADDOPTS = '--color=yes'
   }
 
   stages {
