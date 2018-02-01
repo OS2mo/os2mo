@@ -31,6 +31,25 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+def get_one_employee(c, userid, user=None, with_cpr=False):
+    if not user:
+        user = c.bruger.get(userid)
+
+    r = {
+        'name': user['attributter']['brugeregenskaber'][0]['brugernavn'],
+        'uuid': userid,
+    }
+
+    if with_cpr:
+        r['cpr_no'] = (
+            user['relationer']
+            ['tilknyttedepersoner'][0]
+            ['urn'].rsplit(':', 1)[-1]
+        )
+
+    return r
+
+
 @blueprint.route('/o/<uuid:orgid>/e/')
 @util.restrictargs('at', 'start', 'limit', 'query')
 def list_employees(orgid):
@@ -88,17 +107,14 @@ def list_employees(orgid):
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
     return flask.jsonify([
-        {
-            'name': bruger['attributter']['brugeregenskaber'][0]['brugernavn'],
-            'uuid': brugerid,
-        }
+        get_one_employee(c, brugerid, bruger)
         for brugerid, bruger in c.bruger.get_all(**kwargs)
     ])
 
 
 @blueprint.route('/e/<uuid:id>/')
 @util.restrictargs('at')
-def get_employee(id, raw=False):
+def get_employee(id):
     '''Retrieve an employee.
 
     .. :quickref: Employee; Get
@@ -126,26 +142,7 @@ def get_employee(id, raw=False):
     '''
     c = common.get_connector()
 
-    user = c.bruger.get(id)
-
-    r = {
-        'uuid': id,
-
-        'name':
-            user['attributter']
-            ['brugeregenskaber'][0]
-            ['brugernavn'],
-
-        'cpr_no':
-            user['relationer']
-            ['tilknyttedepersoner'][0]
-            ['urn'].rsplit(':', 1)[-1],
-    }
-
-    if raw:
-        return r
-    else:
-        return flask.jsonify(r)
+    return flask.jsonify(get_one_employee(c, id, with_cpr=True))
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])

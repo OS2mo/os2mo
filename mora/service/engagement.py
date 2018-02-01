@@ -118,13 +118,13 @@ def get_engagement(type, id):
 
     # all these caches are overkill when just listing one engagement,
     # but frequently helpful when listing all engagements for a unit
-    class_cache = common.cache(facet.get_class)
+    class_cache = common.cache(facet.get_one_class, c)
 
-    user_cache = common.cache(employee.get_employee, raw=True)
+    user_cache = common.cache(employee.get_one_employee, c,
+                              with_cpr=True)
 
-    unit_cache = common.cache(org.get_orgunit,
-                              details=org.UnitDetails.MINIMAL,
-                              raw=True)
+    unit_cache = common.cache(org.get_one_orgunit, c,
+                              details=org.UnitDetails.MINIMAL)
 
     def _convert_engagement(funcid, start, end, effect):
         rels = effect['relationer']
