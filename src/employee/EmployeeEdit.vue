@@ -1,5 +1,5 @@
 <template>
-  <b-modal 
+  <b-modal
     id="employeeEdit"
     size="lg"
     hide-footer 
@@ -21,17 +21,17 @@
       <tbody>
         <tr v-for="e in employeeEngagement" v-bind:key="e.uuid">
           <td>
-            {{e.org_unit.name}}
+            {{e.org_unit | getProperty('name')}}
           </td>
           <td> 
             <engagement-title
             v-model="engagement.selectedTitle"
-            :preselected="e.job_function.uuid"
+            :preselected="e.job_function | getProperty('name')"
             />
           </td>
           <td>
             <engagement-type v-model="engagement.engagement_type_uuid"
-            :preselected="e.type.uuid"
+            :preselected="e.type | getProperty('uuid')"
             />
           </td>
           <td>
@@ -54,6 +54,7 @@
 
 <script>
   import Employee from '../api/Employee'
+  import '../filters/GetProperty'
   import DateStartEnd from '../components/DatePickerStartEnd'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
@@ -108,14 +109,22 @@
           overwrite: {
             valid_from: this.dateStartEnd.startDate,
             valid_to: this.dateStartEnd.endDate,
-            job_title_uuid: this.engagement.selectedTitle,
-            engagement_type_uuid: this.engagement.engagement_type_uuid,
-            org_unit: this.engagement.orgUnit
+            job_function: {
+              uuid: this.engagement.selectedTitle
+            },
+            engagement_type: {
+              uuid: this.engagement.engagement_type_uuid
+            },
+            org_unit: {
+              uuid: this.engagement.orgUnit
+            }
           },
           data: {
             valid_from: this.dateStartEnd.startDate,
             valid_to: this.dateStartEnd.endDate,
-            job_title_uuid: this.engagement.selectedTitle
+            job_function: {
+              uuid: this.engagement.selectedTitle
+            }
           }
         }]
         Employee.editEmployee(this.$route.params.uuid, edit)
@@ -129,5 +138,6 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 
 </style> 

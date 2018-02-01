@@ -81,7 +81,6 @@
         Employee.createEmployee(this.$route.params.uuid, [this.engagement])
         .then(response => {
           vm.$refs.employeeCreate.hide()
-          console.log(response)
         })
       }
     }

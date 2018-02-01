@@ -29,13 +29,12 @@
             :key="e.uuid"
             :value="e.uuid"
           >
-            {{e.job_function.name}} ({{e.org_unit.name}})
+            {{e.job_function | getProperty('name')}} ({{e.org_unit | getProperty('name')}})
           </option>
         </select>
         </div>
         </div>
         <!-- HOPEFULLY IT IS DEAD NOW. OTHERWISE GO BACK AND KILL IT AGAIN -->
-
       <div class="form-row">
         <organisation-unit-picker 
           class="col" 
@@ -52,6 +51,7 @@
 
 <script>
   import Employee from '../api/Employee'
+  import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import ButtonSubmit from '../components/ButtonSubmit'
