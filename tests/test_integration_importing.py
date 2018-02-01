@@ -928,6 +928,11 @@ class IntegrationTests(util.LoRATestCase):
               '/f/address/',
               'user_key': 'Adressetype',
               'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2'},
+             {'name': 'association',
+              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+              '/f/association/',
+              'user_key': 'Tilknytningstype',
+              'uuid': '81b80fa7-b71b-4d33-b528-cae038208758'},
              {'name': 'job-function',
               'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
               '/f/job-function/',
