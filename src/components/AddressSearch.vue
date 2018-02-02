@@ -76,7 +76,7 @@
       /**
        * Update address suggestions based on search query
        */
-      getGeographicalLocation: function (query) {
+      getGeographicalLocation (query) {
         let vm = this
         let local = this.orgUuid !== '' && !this.searchCountry ? this.orgUuid : ''
         Property.getGeographicalLocation(query, local).then(function (response) {
@@ -84,11 +84,8 @@
         })
       },
 
-      updateAddress: function () {
+      updateAddress () {
         try {
-        /**
-         * Fired when the address is changed
-         */
           this.$emit('updateAddress', {
             location: this.location.location,
             name: this.location.name
@@ -102,7 +99,7 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="scss">
+<style lang="scss" scoped>
   .v-autocomplete {
     .v-autocomplete-input-group {
       .v-autocomplete-input {
