@@ -15,17 +15,22 @@ This section describes how to interact with IT systems.
 
 '''
 
+import functools
 import itertools
 import uuid
 
 import flask
 
+from .. import lora
 from .. import util
 
 from . import common
+from . import mapping
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
+
+ITSYSTEM = 'itsystem'
 
 
 @blueprint.route('/o/<uuid:orgid>/it/')
@@ -182,3 +187,65 @@ def get_itsystem(id):
             key=(lambda v: util.parsedatetime(v['valid_from']))
         ),
     )
+
+
+def validate_it(func):
+    @functools.wraps(func)
+    def wrapper(employee_uuid, req):
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        errors = []
+
+        # TODO: cache anything from LoRA and reuse it in the actual request?
+
+        if not req.get(ITSYSTEM):
+            errors.append('missing "itsystem"')
+        else:
+            if not util.is_uuid(req[ITSYSTEM].get('uuid')):
+                errors.append('missing or invalid "itsystem" UUID')
+
+            elif not c.itsystem.get(uuid=req[ITSYSTEM]['uuid']):
+                errors.append('no such it system')
+
+        if not req.get('valid_from'):
+            errors.append('missing or invalid start date')
+
+        if not c.bruger.get(uuid=employee_uuid):
+            errors.append('no such user')
+
+        # TODO: ensure effective time is within both user and itsystem
+
+        if errors:
+            # TODO: add granular, consistent and documented error reporting
+            raise ValueError('; '.join(errors))
+
+        return func(employee_uuid, req)
+
+    return wrapper
+
+
+@validate_it
+def create_system(employee_uuid, req):
+    systemid = req[ITSYSTEM].get('uuid')
+    valid_from = req.get('valid_from')
+    valid_to = req.get('valid_to') or 'infinity'
+
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    payload = common.update_payload(
+        valid_from,
+        valid_to,
+        [(
+            mapping.ITSYSTEMS_FIELD,
+            {
+                'uuid': systemid,
+            }
+        )],
+        original,
+        {
+            'note': 'Tilføj IT-system',
+        },
+    )
+
+    c.bruger.update(payload, employee_uuid)
