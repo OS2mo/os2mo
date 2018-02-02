@@ -177,9 +177,17 @@ def get_engagement(type, id, function):
         funktionsnavn=FUNCTION_TYPES[function],
     )
 
-    # all these caches are overkill when just listing one engagement,
-    # but frequently helpful when listing all engagements for a unit
-    functions = dict(c.organisationfunktion.get_all(**search))
+    #
+    # all these caches might be overkill when just listing one
+    # engagement, but they are frequently helpful when listing all
+    # engagements for a unit
+    #
+    # we fetch the types preemptively so that we may rely on
+    # get_all(), and fetch them in as few requests as possible
+    #
+    functions = collections.OrderedDict(
+        c.organisationfunktion.get_all(**search),
+    )
 
     def get_employee_id(effect):
         return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
