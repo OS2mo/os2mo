@@ -11,6 +11,26 @@ pipeline {
   }
 
   stages {
+    stage('Fetch') {
+      steps {
+        timeout(2) {
+          ansiColor('xterm') {
+            sh './build/run-fetch.sh'
+          }
+        }
+      }
+    }
+
+    stage('Check') {
+      steps {
+        timeout(2) {
+          ansiColor('xterm') {
+            sh './build/run-check.sh'
+          }
+        }
+      }
+    }
+
     stage('Build') {
       steps {
         echo 'Building...'
