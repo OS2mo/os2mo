@@ -48,6 +48,23 @@ FUNCTION_TYPES = {
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
 def list_details(type, id):
+    '''List the available 'detail' types under this entry.
+
+    **Example response**:
+
+    .. sourcecode:: json
+
+      {
+        "association": false,
+        "engagement": true
+      }
+
+    The value above informs you that 'association' and 'engagement'
+    are valid for this entry, and that no entry exists at any time for
+    'association', whereas 'engagement' has at least one entry either
+    in the past, present or future.
+
+    '''
     c = common.get_connector()
 
     r = []
