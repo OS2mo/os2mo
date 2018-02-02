@@ -175,10 +175,13 @@ def load_cli(app):
                   'minimox branch of LoRA.')
     @click.option('--browser', help='Specify browser for Selenium tests, '
                   'e.g. "Safari", "Firefox" or "Chrome".')
-    @click.option('--list', '-l', is_flag=True,
-                  help='List all available tests')
+    @click.option('--list', '-l', 'do_list', is_flag=True,
+                  help='List all available tests',)
+    @click.option('--keyword', '-k', 'keywords', multiple=True,
+                  help='Only run or list tests matching the given keyword',)
     @click.argument('tests', nargs=-1)
-    def test(tests, quiet, verbose, minimox_dir, browser, list, **kwargs):
+    def test(tests, quiet, verbose, minimox_dir, browser, do_list,
+             keywords, **kwargs):
         verbosity = 0 if quiet else verbose + 1
 
         if minimox_dir:
@@ -197,14 +200,22 @@ def load_cli(app):
                 top_level_dir=os.path.join(topdir),
             )
 
-        if list:
-            def expand_suite(suite):
-                for member in suite:
-                    if isinstance(member, unittest.TestSuite):
-                        yield from expand_suite(member)
-                    else:
-                        yield member
+        def expand_suite(suite):
+            for member in suite:
+                if isinstance(member, unittest.TestSuite):
+                    yield from expand_suite(member)
+                else:
+                    yield member
 
+        if keywords:
+            suite = unittest.TestSuite(
+                case
+                for k in keywords
+                for case in expand_suite(suite)
+                if k in str(case)
+            )
+
+        if do_list:
             for case in expand_suite(suite):
                 if verbose:
                     print(case)
