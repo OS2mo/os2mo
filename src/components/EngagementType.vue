@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>Engagementstype</label>
+    <label v-if="!noLabel">Engagementstype</label>
     <select 
       class="form-control col" 
       v-model="selectedType"
@@ -24,7 +24,8 @@ import Property from '../api/Property'
 export default {
   props: {
     value: String,
-    preselected: String
+    preselected: String,
+    noLabel: Boolean
   },
   data () {
     return {

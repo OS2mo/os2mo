@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>Stillingsbetegnelse</label>
+    <label v-if="!noLabel">Stillingsbetegnelse</label>
     <select 
       class="form-control col" 
       v-model="selectedTitle"
@@ -21,7 +21,8 @@ import Property from '../api/Property'
 export default {
   props: {
     model: String,
-    preselected: String
+    preselected: String,
+    noLabel: Boolean
   },
   data () {
     return {

@@ -1,6 +1,10 @@
 <template>
     <div class="form-group col">
-      <label id="date-label" for="date">{{label}}</label>
+      <label 
+        v-if="!noLabel"
+        id="date-label" 
+        for="date"
+        >{{label}}</label>
       <date-time-picker 
         name="date"
         :data-vv-as="label"
@@ -46,7 +50,8 @@ export default {
       default: null,
       type: Date
     },
-    preselectedDate: Date
+    preselectedDate: Date,
+    noLabel: Boolean
   },
   data () {
     return {
