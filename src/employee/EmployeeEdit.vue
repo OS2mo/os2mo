@@ -14,7 +14,8 @@
           <th scope="col">Enhed</th>
           <th scope="col">Stillingsbetegnelse</th>
           <th scope="col">Engagementstype</th>
-          <th scope="col">Dato</th>
+          <th scope="col">Startdato</th>
+          <th scope="col">Slutdato</th>
         </tr>
       </thead>
 
@@ -25,20 +26,24 @@
           </td>
           <td> 
             <engagement-title
-            v-model="engagement.selectedTitle"
-            :preselected="e.job_function | getProperty('name')"
+              v-model="engagement.selectedTitle"
+              :preselected="e.job_function | getProperty('uuid')"
             />
           </td>
           <td>
-            <engagement-type v-model="engagement.engagement_type_uuid"
-            :preselected="e.type | getProperty('uuid')"
+            <engagement-type 
+              v-model="engagement.engagement_type_uuid"
+              :preselected="e.type | getProperty('uuid')"
             />
           </td>
           <td>
-            <date-start-end 
-            v-model="dateStartEnd" 
-            :selected-valid-from="new Date(e.valid_from)"
-            :selected-valid-to="new Date(e.valid_to)"
+            <date-picker 
+              :preselectedDate="new Date(e.valid_from)"
+            />
+          </td>
+          <td>
+            <date-picker
+            :preselectedDate="new Date(e.valid_to)"
             />
           </td>
         </tr>
@@ -55,7 +60,7 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/GetProperty'
-  import DateStartEnd from '../components/DatePickerStartEnd'
+  import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
   import EngagementTitle from '../components/EngagementTitle'
@@ -64,7 +69,7 @@
 
   export default {
     components: {
-      DateStartEnd,
+      DatePicker,
       OrganisationUnitPicker,
       UnitTypeSelect,
       EngagementTitle,
@@ -73,19 +78,12 @@
     },
     data () {
       return {
-        dateStartEnd: {},
-        dates: {
-          startDate: null,
-          startEnd: null
-        },
         engagement: {
           selectedTitle: '',
           job_title_uuid: '',
           uuid: '',
           orgUnit: ''
         },
-        uuid: '',
-        engagementType: '',
         employeeEngagement: {}
       }
     },
