@@ -25,8 +25,17 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .workflow-padding {
+
+  @media (min-width: 768px) {
+   .workflow-padding {
     padding-right: 75px;
+    }
+   }
+
+   @media (max-width: 768px) {
+   .workflow-padding {
+    padding-top: 30px;
+    }
   }
 
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card col-sm-12 col-md-12">
     <div class="card-body">
       <h4 class="card-title">
         <icon name="folder-o"/>
