@@ -9,17 +9,15 @@
   
     <div>
       <h4>Engagement</h4>
-      <date-start-end v-model="dateStartEnd"/>
+      <date-start-end v-model="engagement.dateStartEnd"/>
       <div class="form-row">
         <organisation-unit-picker 
           class="col" 
           label="Vælg enhed"
-          v-model="orgUnit"/>
-        <engagement-title v-model="engagement.job_title_uuid"/>
-        <engagement-type v-model="engagement.engagement_type_uuid"/>
-
+          v-model="engagement.orgUnit"/>
+        <engagement-title v-model="engagement.job_function"/>
+        <engagement-type v-model="engagement.type"/>
       </div>
-      
       <div class="form-row">
         <div class="form-check col">
           <label class="form-check-label">
@@ -27,6 +25,18 @@
           </label>
         </div>
       </div>
+
+      <h4>Tilknytning</h4>
+      <date-start-end v-model="association.dateStartEnd"/>
+      <div class="form-row">
+        <organisation-unit-picker 
+          class="col" 
+          label="Vælg enhed"
+          v-model="association.orgUnit"/>
+        <engagement-title v-model="association.job_function"/>
+        <address-search v-model="association.address"/>
+      </div>
+      {{association}}
     </div>
 
     <div class="float-right">
@@ -40,7 +50,6 @@
   import Employee from '../api/Employee'
   import DateStartEnd from '../components/DatePickerStartEnd'
   import AddressSearch from '../components/AddressSearch'
-  import ContactChannel from '../components/ContactChannelInput'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
   import EngagementTitle from '../components/EngagementTitle'
@@ -51,7 +60,6 @@
     components: {
       DateStartEnd,
       AddressSearch,
-      ContactChannel,
       OrganisationUnitPicker,
       UnitTypeSelect,
       EngagementTitle,
@@ -62,23 +70,54 @@
       return {
         dateStartEnd: {},
         orgUnit: {},
-        engagement: {
-        },
-        jobTitle: '',
-        engagementType: ''
+        engagement: {},
+        association: {}
       }
     },
     created: function () {},
     methods: {
       createEmployee () {
-        this.engagement.type = 'engagement'
-        this.engagement.org_uuid = this.orgUnit.org
-        this.engagement.org_unit_uuid = this.orgUnit.uuid
-        this.engagement.valid_from = this.dateStartEnd.startDate
-        this.engagement.valid_to = this.dateStartEnd.endDate
-
         let vm = this
-        Employee.createEmployee(this.$route.params.uuid, [this.engagement])
+        let engagement = [{
+          type: 'engagement',
+          org_unit: {
+            uuid: this.engagement.orgUnit.org
+          },
+          org: {
+            uuid: this.engagement.orgUnit.uuid
+          },
+          job_function: {
+            uuid: this.association.job_function
+          },
+          engagement_type: {
+            uuid: this.association.type
+          },
+          valid_from: this.engagement.dateStartEnd.startDate,
+          valid_to: this.engagement.dateStartEnd.endDate
+        }]
+
+        let association = [{
+          type: 'association',
+          org_unit: {
+            uuid: this.association.orgUnit.org
+          },
+          org: {
+            uuid: this.association.orgUnit.uuid
+          },
+          job_function: {
+            uuid: this.association.job_function
+          },
+          association_type: {
+            uuid: this.association.type
+          },
+          location: {
+            uuid: this.association.address
+          },
+          valid_from: this.association.dateStartEnd.startDate,
+          valid_to: this.association.dateStartEnd.endDate
+        }]
+
+        Employee.createEmployee(this.$route.params.uuid, engagement, association)
         .then(response => {
           vm.$refs.employeeCreate.hide()
           console.log(response)

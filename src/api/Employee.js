@@ -72,8 +72,8 @@ export default {
    * @param {Object} engagement - new Employee uuid
    * @returns {Object} employee uuid
    */
-  createEmployee (uuid, engagement) {
-    return Service.post(`/e/${uuid}/create`, engagement)
+  createEmployee (uuid, engagement, association) {
+    return Service.post(`/e/${uuid}/create`, engagement, association)
     .then(response => {
       return response.data
     })
