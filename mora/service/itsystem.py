@@ -184,7 +184,7 @@ def get_itsystem(id):
                     ),
                 ),
             ),
-            key=(lambda v: util.parsedatetime(v['valid_from']))
+            key=(lambda v: common.get_valid_from(v['valid_from']))
         ),
     )
 
@@ -207,7 +207,7 @@ def validate_it(func):
             elif not c.itsystem.get(uuid=req[ITSYSTEM]['uuid']):
                 errors.append('no such it system')
 
-        if not req.get('valid_from'):
+        if common.get_valid_from('valid_from') == util.negative_infinity:
             errors.append('missing or invalid start date')
 
         if not c.bruger.get(uuid=employee_uuid):
@@ -227,8 +227,8 @@ def validate_it(func):
 @validate_it
 def create_system(employee_uuid, req):
     systemid = req[ITSYSTEM].get('uuid')
-    valid_from = req.get('valid_from')
-    valid_to = req.get('valid_to') or 'infinity'
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
 
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.bruger.get(uuid=employee_uuid)

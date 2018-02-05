@@ -16,6 +16,7 @@ import iso8601
 
 from mora import util
 from .. import lora
+from . import keys
 
 
 class FieldTypes(Enum):
@@ -363,3 +364,21 @@ def create_organisationsfunktion_payload(
     org_funk = _set_virkning(org_funk, virkning)
 
     return org_funk
+
+
+def get_valid_from(obj):
+    valid_from = obj.get(keys.VALID_FROM)
+
+    if valid_from:
+        return util.from_iso_time(valid_from)
+    else:
+        return util.negative_infinity
+
+
+def get_valid_to(obj):
+    valid_to = obj.get(keys.VALID_TO)
+
+    if valid_to:
+        return util.from_iso_time(valid_to)
+    else:
+        return util.positive_infinity
