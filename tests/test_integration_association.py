@@ -27,8 +27,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
@@ -70,7 +69,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -114,7 +113,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
                 "adresser": [
@@ -139,8 +138,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Tilknytning",
                         "funktionsnavn": "Tilknytning"
                     }
@@ -170,8 +169,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -211,7 +209,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -244,7 +242,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
                 "adresser": [
@@ -269,8 +267,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Tilknytning",
                         "funktionsnavn": "Tilknytning"
                     }
@@ -302,8 +300,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
@@ -344,7 +341,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -388,7 +385,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
                 "adresser": [
@@ -413,8 +410,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Tilknytning",
                         "funktionsnavn": "Tilknytning"
                     }
