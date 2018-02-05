@@ -6,15 +6,39 @@ pipeline {
   environment {
     MINIMOX_DIR = '/srv/minimox'
     BROWSER = 'Firefox'
+    MOZ_HEADLESS = '1'
+    PYTEST_ADDOPTS = '--color=yes'
   }
 
   stages {
+    stage('Fetch') {
+      steps {
+        timeout(2) {
+          ansiColor('xterm') {
+            sh './build/run-fetch.sh'
+          }
+        }
+      }
+    }
+
+    stage('Check') {
+      steps {
+        timeout(2) {
+          ansiColor('xterm') {
+            sh './build/run-check.sh'
+          }
+        }
+      }
+    }
+
     stage('Build') {
       steps {
         echo 'Building...'
 
         timeout(10) {
-          sh './build/run-build.sh'
+          ansiColor('xterm') {
+            sh './build/run-build.sh'
+          }
         }
       }
     }
@@ -24,7 +48,9 @@ pipeline {
         echo 'Testing..'
 
         timeout(10) {
-          sh './build/run-tests.sh'
+          ansiColor('xterm') {
+            sh './build/run-tests.sh'
+          }
         }
       }
     }
@@ -34,7 +60,9 @@ pipeline {
         echo 'Deploying....'
 
         timeout(1) {
-          sh './build/run-deploy.sh'
+          ansiColor('xterm') {
+            sh './build/run-deploy.sh'
+          }
         }
       }
     }

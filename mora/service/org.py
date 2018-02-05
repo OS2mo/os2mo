@@ -159,7 +159,12 @@ class UnitDetails(enum.Enum):
     FULL = 2
 
 
-def _convert_unit(c, unitid, unit=None, details=UnitDetails.NCHILDREN):
+def get_one_orgunit(c, unitid, unit=None,
+                    details=UnitDetails.NCHILDREN) -> dict:
+    '''Internal API for returning one organisation unit.
+
+    '''
+
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
@@ -182,11 +187,11 @@ def _convert_unit(c, unitid, unit=None, details=UnitDetails.NCHILDREN):
     if details is UnitDetails.FULL:
         rels = unit['relationer']
 
-        r['parent'] = _convert_unit(c, rels['overordnet'][0]['uuid'],
-                                    details=UnitDetails.MINIMAL)
+        r['parent'] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
+                                      details=UnitDetails.MINIMAL)
 
         r['children'] = [
-            _convert_unit(c, childid, child)
+            get_one_orgunit(c, childid, child)
             for childid, child in
             c.organisationenhed.get_all(overordnet=unitid, gyldighed='Aktiv')
         ]
@@ -252,7 +257,7 @@ def get_children(type, parentid):
         raise werkzeug.exceptions.NotFound
 
     children = [
-        _convert_unit(c, childid, child)
+        get_one_orgunit(c, childid, child)
         for childid, child in
         c.organisationenhed.get_all(overordnet=parentid,
                                     gyldighed='Aktiv')
@@ -264,13 +269,16 @@ def get_children(type, parentid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at')
-def get_orgunit(unitid, details=UnitDetails.NCHILDREN, raw=False):
+@util.restrictargs('at', 'validity')
+def get_orgunit(unitid):
     '''Retrieve an organisational unit.
 
     .. :quickref: Unit; Get
 
     :queryparam date at: Current time in ISO-8601 format.
+    :queryparam string validity: Only show *past*, *present* or
+        *future* values -- which the default being to show *present*
+        values.
 
     :<json string name: Human-readable name.
     :<json string uuid: Machine-friendly UUID.
@@ -294,14 +302,12 @@ def get_orgunit(unitid, details=UnitDetails.NCHILDREN, raw=False):
     '''
     c = common.get_connector()
 
-    r = _convert_unit(c, unitid, details=details)
+    r = get_one_orgunit(c, unitid)
 
-    if raw:
-        return r
-    elif not r:
-        return '', 404
-    else:
+    if r:
         return flask.jsonify(r)
+    else:
+        raise werkzeug.exceptions.NotFound('no such unit')
 
 
 @blueprint.route('/ou/<uuid:unitid>/tree')
@@ -356,8 +362,9 @@ def get_orgunit_tree(unitid):
       }
 
     '''
+    c = common.get_connector()
 
-    return get_orgunit(unitid, UnitDetails.FULL)
+    return flask.jsonify(get_one_orgunit(c, unitid, details=UnitDetails.FULL))
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
@@ -406,7 +413,7 @@ def list_orgunits(orgid):
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
     return flask.jsonify([
-        _convert_unit(c, unitid, unit, details=UnitDetails.MINIMAL)
+        get_one_orgunit(c, unitid, unit, details=UnitDetails.MINIMAL)
         for unitid, unit in c.organisationenhed.get_all(
             tilhoerer=str(orgid),
             gyldighed='Aktiv',

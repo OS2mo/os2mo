@@ -9,51 +9,50 @@
 from mora.service.common import FieldTuple, FieldTypes
 
 ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
-    ('tilstande', 'organisationfunktiongyldighed'),
-    FieldTypes.ZERO_TO_ONE,
-    lambda x: True
+    path=('tilstande', 'organisationfunktiongyldighed'),
+    type=FieldTypes.ZERO_TO_ONE,
+    filter_fn=lambda x: True
 )
 
 ORG_FUNK_EGENSKABER_FIELD = FieldTuple(
-    ('attributter', 'organisationfunktionegenskaber'),
-    FieldTypes.ZERO_TO_ONE,
-    lambda x: True
+    path=('attributter', 'organisationfunktionegenskaber'),
+    type=FieldTypes.ZERO_TO_ONE,
+    filter_fn=lambda x: True
 )
 
 JOB_TITLE_FIELD = FieldTuple(
-    ('relationer', 'opgaver'),
-    FieldTypes.ADAPTED_ZERO_TO_MANY,
-    lambda x: True
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: True
 )
 
 ORG_FUNK_TYPE_FIELD = FieldTuple(
-    ('relationer', 'organisatoriskfunktionstype'),
-    FieldTypes.ZERO_TO_ONE,
-    lambda x: True
+    path=('relationer', 'organisatoriskfunktionstype'),
+    type=FieldTypes.ZERO_TO_ONE,
+    filter_fn=lambda x: True
 )
-
 ORG_UNIT_FIELD = FieldTuple(
-    ('relationer', 'tilknyttedeenheder'),
-    FieldTypes.ADAPTED_ZERO_TO_MANY,
-    lambda x: True
+    path=('relationer', 'tilknyttedeenheder'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: True
 )
 
 ORG_FIELD = FieldTuple(
-    ('relationer', 'tilknyttedeorganisationer'),
-    FieldTypes.ADAPTED_ZERO_TO_MANY,
-    lambda x: True
+    path=('relationer', 'tilknyttedeorganisationer'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: True
 )
 
 USER_FIELD = FieldTuple(
-    ('relationer', 'tilknyttedebrugere'),
-    FieldTypes.ADAPTED_ZERO_TO_MANY,
-    lambda x: True
+    path=('relationer', 'tilknyttedebrugere'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: True
 )
 
 ADDRESSES_FIELD = FieldTuple(
-    ('relationer', 'adresser'),
-    FieldTypes.ADAPTED_ZERO_TO_MANY,
-    lambda x: True
+    path=('relationer', 'adresser'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: True
 )
 
 ENGAGEMENT_FIELDS = {
@@ -75,4 +74,13 @@ ASSOCIATION_FIELDS = {
     ORG_FIELD,
     USER_FIELD,
     ADDRESSES_FIELD
+}
+
+ROLE_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    ORG_UNIT_FIELD,
+    ORG_FIELD,
+    USER_FIELD,
 }

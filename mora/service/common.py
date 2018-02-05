@@ -9,7 +9,7 @@ import collections
 import copy
 import functools
 from enum import Enum
-from typing import Callable, List, Tuple, Set
+from typing import Callable, List, Tuple
 
 import flask
 import iso8601
@@ -153,11 +153,8 @@ def ensure_bounds(valid_from: str,
                 updated_props.append(first)
             if last['virkning']['to'] < valid_to:
                 last['virkning']['to'] = valid_to
-                if not updated_props and last is not first:
+                if not updated_props or last is not first:
                     updated_props.append(last)
-            updated_props = [first]
-            if last is not first:
-                updated_props.append(last)
 
         if updated_props:
             payload = set_object_value(payload, field.path, updated_props)
@@ -277,10 +274,7 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
             _set_virkning(v, virkning, overwrite)
         elif isinstance(v, list):
             for d in v:
-                if overwrite:
-                    d['virkning'] = virkning.copy()
-                else:
-                    d.setdefault('virkning', virkning.copy())
+                d.setdefault('virkning', virkning.copy())
     return lora_obj
 
 

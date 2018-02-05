@@ -22,8 +22,9 @@ objects.
 
 '''
 
-import locale
+import functools
 import itertools
+import locale
 import uuid
 
 import flask
@@ -38,6 +39,7 @@ blueprint = flask.Blueprint('facet', __name__, static_url_path='',
 FACETS = {
     'address': 'Adressetype',
     'job-function': 'Stillingsbetegnelse',
+    'association': 'Tilknytningstype',
     'ou': 'Enhedstype',
 }
 
@@ -107,7 +109,10 @@ def list_facets(orgid):
     ))
 
 
-def _convert_class(classid, clazz):
+def get_one_class(c, classid, clazz=None):
+    if not clazz:
+        clazz = c.klasse.get(classid)
+
     attrs = clazz['attributter']['klasseegenskaber'][0]
 
     return {
@@ -218,18 +223,10 @@ def get_classes(orgid: uuid.UUID, facet: str):
 
     return flask.jsonify(facetids and sorted(
         itertools.starmap(
-            _convert_class,
+            functools.partial(get_one_class, c),
             c.klasse.get_all(facet=facetids, ansvarlig=str(orgid),
                              start=start, limit=limit),
         ),
         # use locale-aware sorting
         key=lambda c: locale.strxfrm(c['name']),
     ))
-
-
-def get_class(uuid):
-    c = common.get_connector()
-
-    cls = c.klasse.get(uuid=uuid)
-
-    return cls and _convert_class(uuid, cls)

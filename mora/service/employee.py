@@ -15,25 +15,39 @@ This section describes how to interact with employees.
 
 '''
 
-import copy
-import functools
-from typing import Callable, List, Tuple
-
 import flask
 
 from mora import lora
 from mora.service.association import (create_association, edit_association,
                                       terminate_association, ASSOCIATION_KEY)
-from mora.service.common import (FieldTuple, FieldTypes, set_object_value,
-                                 get_obj_value)
 from mora.service.engagement import (terminate_engagement, create_engagement,
                                      edit_engagement, ENGAGEMENT_KEY)
+from mora.service.role import edit_role, create_role
 from . import common
 from .. import util
-from ..converters import reading, writing
+from ..converters import writing
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+def get_one_employee(c, userid, user=None, with_cpr=False):
+    if not user:
+        user = c.bruger.get(userid)
+
+    r = {
+        'name': user['attributter']['brugeregenskaber'][0]['brugernavn'],
+        'uuid': userid,
+    }
+
+    if with_cpr:
+        r['cpr_no'] = (
+            user['relationer']
+            ['tilknyttedepersoner'][0]
+            ['urn'].rsplit(':', 1)[-1]
+        )
+
+    return r
 
 
 @blueprint.route('/o/<uuid:orgid>/e/')
@@ -93,17 +107,14 @@ def list_employees(orgid):
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
     return flask.jsonify([
-        {
-            'name': bruger['attributter']['brugeregenskaber'][0]['brugernavn'],
-            'uuid': brugerid,
-        }
+        get_one_employee(c, brugerid, bruger)
         for brugerid, bruger in c.bruger.get_all(**kwargs)
     ])
 
 
 @blueprint.route('/e/<uuid:id>/')
 @util.restrictargs('at')
-def get_employee(id, raw=False):
+def get_employee(id):
     '''Retrieve an employee.
 
     .. :quickref: Employee; Get
@@ -131,26 +142,7 @@ def get_employee(id, raw=False):
     '''
     c = common.get_connector()
 
-    user = c.bruger.get(id)
-
-    r = {
-        'uuid': id,
-
-        'name':
-            user['attributter']
-            ['brugeregenskaber'][0]
-            ['brugernavn'],
-
-        'cpr_no':
-            user['relationer']
-            ['tilknyttedepersoner'][0]
-            ['urn'].rsplit(':', 1)[-1],
-    }
-
-    if raw:
-        return r
-    else:
-        return flask.jsonify(r)
+    return flask.jsonify(get_one_employee(c, id, with_cpr=True))
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
@@ -229,7 +221,7 @@ def create_employee(employee_uuid):
           "job_title": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
           },
-          "engagement_type": {
+          "association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "location": {
@@ -242,9 +234,38 @@ def create_employee(employee_uuid):
 
     **IT**:
 
+    **Role**:
+
+    :<jsonarr string type: **"role"**
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string org: The associated organisation
+    :<jsonarr string role_type: The role type
+    :<jsonarr string valid_from: The date from which the role should
+        be valid, in ISO 8601.
+    :<jsonarr string valid_to: The date to which the role should be
+        valid, in ISO 8601.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "role",
+          "org_unit": {
+            "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "org": {
+            "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+          },
+          "role_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2018-01-01T00:00:00+00:00"
+        }
+      ]
+
     **Leader**:
 
-    **Role**:
 
     """
 
@@ -252,7 +273,7 @@ def create_employee(employee_uuid):
         'engagement': create_engagement,
         'association': create_association,
         # 'it': create_it,
-        # 'role': create_role,
+        'role': create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
         # 'absence': create_absence,
@@ -287,7 +308,7 @@ def edit_employee(employee_uuid):
 
     **Engagement**:
 
-    :param employee_uuid: The UUID of the employee to be moved.
+    :param employee_uuid: The UUID of the employee.
 
     :<json string type: **"engagement"**
     :<json string uuid: The UUID of the engagement,
@@ -339,13 +360,13 @@ def edit_employee(employee_uuid):
 
     **Association**:
 
-    :param employee_uuid: The UUID of the employee to be moved.
+    :param employee_uuid: The UUID of the employee.
 
     :<json string type: **"association"**
     :<json string uuid: The UUID of the association,
-    :<json object overwrite: An object containing the original state
-        of the association to be overwritten. If supplied, the change will
-        modify the existing registration on the association object.
+    :<json object overwrite: An **optional** object containing the original
+        state of the association to be overwritten. If supplied, the change
+        will modify the existing registration on the association object.
         Detailed below.
     :<json object data: An object containing the changes to be made to the
         association. Detailed below.
@@ -393,11 +414,61 @@ def edit_employee(employee_uuid):
           }
         }
       ]
+
+    **Role**:
+
+    :param employee_uuid: The UUID of the employee.
+
+    :<json string type: **"role"**
+    :<json string uuid: The UUID of the role,
+    :<json object overwrite: An **optional** object containing the original
+        state of the role to be overwritten. If supplied, the change will
+        modify the existing registration on the role object. Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        role. Detailed below.
+
+    The **overwrite** and **data** objects follow the same structure.
+    Every field in **overwrite** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string org: The associated organisation
+    :<jsonarr string role_type: The role type
+    :<jsonarr string location: The associated location.
+    :<jsonarr string valid_from: The from date, in ISO 8601.
+    :<jsonarr string valid_to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "role",
+          "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
+          "overwrite": {
+            "valid_from": "2016-01-01T00:00:00+00:00",
+            "valid_to": "2018-01-01T00:00:00+00:00",
+            "role_type": {
+              "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
+            },
+            "org_unit": {
+              "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
+            }
+          },
+          "data": {
+            "valid_from": "2016-01-01T00:00:00+00:00",
+            "valid_to": "2019-01-01T00:00:00+00:00",
+            "role_type": {
+              "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
+            }
+          }
+        }
+      ]
     """
 
     handlers = {
         'engagement': edit_engagement,
         'association': edit_association,
+        'role': edit_role,
         # 'it': edit_it,
         # 'contact': edit_contact,
         # 'leader': edit_leader,
