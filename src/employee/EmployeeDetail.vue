@@ -3,7 +3,7 @@
     <div class="card-body">
       <h4 class="card-title">
         <icon name="user-o"/>
-        {{employee.name}} <span class="cpr">({{employee['user-key'] | CPRNumber}})</span>
+        {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
       </h4>
       <div class="row">
         <div class="mr-auto">

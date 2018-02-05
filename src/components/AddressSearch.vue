@@ -76,7 +76,7 @@
       /**
        * Update address suggestions based on search query
        */
-      getGeographicalLocation: function (query) {
+      getGeographicalLocation (query) {
         let vm = this
         let local = this.orgUuid !== '' && !this.searchCountry ? this.orgUuid : ''
         Property.getGeographicalLocation(query, local).then(function (response) {
@@ -84,11 +84,8 @@
         })
       },
 
-      updateAddress: function () {
+      updateAddress () {
         try {
-        /**
-         * Fired when the address is changed
-         */
           this.$emit('updateAddress', {
             location: this.location.location,
             name: this.location.name
@@ -103,31 +100,5 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-  .v-autocomplete {
-    .v-autocomplete-input-group {
-      .v-autocomplete-input {
-        display: block;
-        width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        background-image: none;
-        background-clip: padding-box;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-      }
-    }
-    .v-autocomplete-list {
-      z-index: 999;
-      background-color: #fff;
-      width: 100%;
-      padding: 0.375rem 0.75rem;
-      border: 1px solid #ced4da;
-      border-radius: 0 0 0.25rem;
-      transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-    }
-  }
+
 </style>
