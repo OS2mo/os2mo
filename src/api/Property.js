@@ -1,5 +1,11 @@
 import { HTTP, Service } from './HttpCommon'
 
+/**
+ * THIS API IS BEING PHASED OUT
+ * USE FACET.JS INSTEAD
+ * @deprecated
+ */
+
 export default {
 
   /**

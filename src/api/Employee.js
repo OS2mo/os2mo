@@ -6,8 +6,8 @@ export default {
    * Get a list of all employees
    * @returns {Array} List of all employees
    */
-  getAll () {
-    return HTTP.get('/e/')
+  getAll (orgUuid) {
+    return Service.get(`/o/${orgUuid}/e/`)
       .then(response => {
         return response.data
       })
@@ -19,7 +19,7 @@ export default {
    * @returns {Object} employee object
    */
   getEmployee (uuid) {
-    return HTTP.get(`/e/${uuid}`)
+    return Service.get(`/e/${uuid}/`)
     .then(response => {
       return response.data
     })
@@ -29,21 +29,9 @@ export default {
   },
 
   /**
-   * find an employee
-   * @param {String} query -  search query
-   * @return {Object}
-   */
-  searchForEmployee (query) {
-    return HTTP.get(`/e/?limit=200&query=${query}&start=0`)
-    .then(response => {
-      return response.data
-    })
-  },
-
-  /**
    * Get engagement details for employee
    * @param {String} uuid - employee uuid
-   * @see getDetails
+   * @see getDetail
    */
   getEngagementDetails (uuid) {
     return this.getDetail(uuid, 'engagement')
@@ -61,10 +49,39 @@ export default {
   /**
    * Get it details for employee
    * @param {String} uuid - Employee uuid
-   * @see getDetails
+   * @see getDetail
    */
   getItDetails (uuid) {
     return this.getDetail(uuid, 'it')
+  },
+
+  /**
+   * Base call for getting details.
+   * @param {String} uuid - employee uuid
+   * @param {String} detail - Name of the detail
+   * @returns {Array} A list of options for the detail
+   */
+  getDetail (uuid, detail) {
+    return Service.get(`/e/${uuid}/details/${detail}`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  /**
+   * Base call for getting details about an employee.
+   * @param {String} uuid - Employee uuid
+   * @param {String} detail - Name of the detail to get
+   * @param {String} validity - Can be 'past', 'present' or 'future'
+   * @returns {Object} Detail data
+   * @deprecated
+   */
+  getDetails (uuid, detail, validity) {
+    validity = validity || 'present'
+    return HTTP.get(`/e/${uuid}/role-types/${detail}/?validity=${validity}`)
+    .then(response => {
+      return response.data
+    })
   },
 
   /**
@@ -106,38 +123,10 @@ export default {
   },
 
   /**
-   * Base call for getting details.
-   * @param {String} uuid - employee uuid
-   * @param {String} detail - Name of the detail
-   * @returns {Array} A list of options for the detail
-   */
-  getDetail (uuid, detail) {
-    return Service.get(`/e/${uuid}/details/${detail}`)
-    .then(response => {
-      return response.data
-    })
-  },
-
-  /**
-   * Base call for getting details about an employee.
-   * @param {String} uuid - Employee uuid
-   * @param {String} detail - Name of the detail to get
-   * @param {String} validity - Can be 'past', 'present' or 'future'
-   * @returns {Object} Detail data
-   * @deprecated
-   */
-  getDetails (uuid, detail, validity) {
-    validity = validity || 'present'
-    return HTTP.get(`/e/${uuid}/role-types/${detail}/?validity=${validity}`)
-    .then(response => {
-      return response.data
-    })
-  },
-
-  /**
    * Create a new engagement for an employee
    * @param {String} uuid - Employee uuid
    * @param {Object} engagement - New engagement
+   * @deprecated
    */
   createEngagement (uuid, engagement) {
     return HTTP.post(`/e/${uuid}/roles/engagement`, engagement)

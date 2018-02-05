@@ -61,28 +61,4 @@ export default {
   getSelectedOrganisation () {
     return selectedOrganisation
   }
-
-  /** **************************************************** */
-  /** REFACTOR FROM HERE, THIS SHOULD BE ORGANISATION UNIT */
-  /** **************************************************** */
-
-  /**
-   * Get an orgaisation unit
-   * @param {String} unitUuid - Uuid for the organisation unit
-   * @returns {Object} an organisation unit object
-   */
-  // getOrganisationUnit (unitUuid) {
-  //   let vm = this
-  //   return HTTP.get(`/org-unit/${unitUuid}`)
-  //   .then(response => {
-  //     selectedOrgUnit = response.data[0]
-  //     EventBus.$emit('organisation-unit-changed', selectedOrgUnit)
-
-  //     if (selectedOrganisation === '') {
-  //       vm.getOrganisation(selectedOrgUnit.org)
-  //     }
-
-  //     return response.data[0]
-  //   })
-  // },
 }

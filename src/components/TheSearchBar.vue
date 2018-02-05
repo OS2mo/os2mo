@@ -1,25 +1,90 @@
 <template>
-  <form class="form-inline my-2 my-lg-0">
     <div class="input-group">
-      <span class="input-group-addon" id="basic-addon2"><icon name="search"></icon></span>
-      <input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
+      <span class="input-group-addon">
+        <icon name="search"/>
+      </span>
+      <v-autocomplete 
+        :items="results"
+        :get-label="getLabel" 
+        :component-item="template" 
+        @update-items="getSearchResults"
+        @item-selected="selected"
+        @blur="results=[]"
+        :auto-select-one-item="false"
+        :min-len="2"
+        placeholder="Søg"
+      />
     </div>
-  </form>
 </template>
 
 <script>
+  import Search from '../api/Search'
+  import Organisation from '../api/Organisation'
+  import VAutocomplete from 'v-autocomplete'
+  import 'v-autocomplete/dist/v-autocomplete.css'
+  import TheSearchBarTemplate from './TheSearchBarTemplate.vue'
+  
   export default {
-    components: {},
-    data () {
-      return {}
+    components: {
+      VAutocomplete
     },
-    created: function () {},
-    methods: {}
+    data () {
+      return {
+        results: [],
+        routeName: '',
+        template: TheSearchBarTemplate
+      }
+    },
+    watch: {
+      '$route' (to) {
+        this.getRouteName(to)
+      }
+    },
+    created () {
+      this.getRouteName(this.$route)
+    },
+    methods: {
+      getLabel (item) {
+        return item.name
+      },
+
+      getRouteName (route) {
+        if (route.name.indexOf('Organisation') > -1) {
+          this.routeName = 'OrganisationDetail'
+        }
+
+        if (route.name.indexOf('Employee') > -1) {
+          this.routeName = 'EmployeeDetail'
+        }
+      },
+
+      getSearchResults (query) {
+        let vm = this
+        let org = Organisation.getSelectedOrganisation()
+        if (vm.routeName === 'EmployeeDetail') {
+          Search.employees(org.uuid, query)
+          .then(response => {
+            vm.results = response
+          })
+        }
+
+        if (vm.routeName === 'OrganisationDetail') {
+          Search.organisations(org.uuid, query)
+          .then(response => {
+            vm.results = response
+          })
+        }
+      },
+
+      selected (item) {
+        this.$router.push({name: this.routeName, params: { uuid: item.uuid }})
+      }
+    }
   }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
   .input-group {
     width: 500px;
   }

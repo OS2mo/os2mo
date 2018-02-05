@@ -19,59 +19,59 @@ class IntegrationTests(util.LoRATestCase):
         util.import_fixture('MAGENTA_01.json')
 
         with self.subTest('org unit types'):
-                self.assertRequestResponse(
-                    '/mo/org-unit/type',
-                    [
-                        {
-                            "name": "Afdeling",
-                            "user-key": "Afdeling",
-                            "userKey": "Afdeling",
-                            "uuid": "ac8206d0-b807-44f1-9a29-f252b926917e"
-                        },
-                        {
-                            "name": "Center",
-                            "user-key": "Center",
-                            "userKey": "Center",
-                            "uuid": "8cce4b27-4bfe-4627-a61e-75792148d7a9"
-                        },
-                        {
-                            "name": "Direktion",
-                            "user-key": "Direktion",
-                            "userKey": "Direktion",
-                            "uuid": "d60db620-7c2b-4a76-b15e-ae3478a4f2f9"
-                        },
-                        {
-                            "name": "Enhed",
-                            "user-key": "Enhed",
-                            "userKey": "Enhed",
-                            "uuid": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f"
-                        },
-                        {
-                            "name": "Forvaltning",
-                            "user-key": "Forvaltning",
-                            "userKey": "Forvaltning",
-                            "uuid": "7def0dc1-2982-40d6-ac20-7315b42325aa"
-                        },
-                        {
-                            "name": "Kontor",
-                            "user-key": "Kontor",
-                            "userKey": "Kontor",
-                            "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8"
-                        },
-                        {
-                            "name": "Projekt",
-                            "user-key": "Projekt",
-                            "userKey": "Projekt",
-                            "uuid": "254c6782-9fef-478a-89b3-c043ca7cb0e9"
-                        },
-                        {
-                            "name": "Sekretariat",
-                            "user-key": "Sekretariat",
-                            "userKey": "Sekretariat",
-                            "uuid": "f24b718c-951d-4152-9b1b-d62d824527d1"
-                        }
-                    ],
-                )
+            self.assertRequestResponse(
+                '/mo/org-unit/type',
+                [
+                    {
+                        "name": "Afdeling",
+                        "user-key": "Afdeling",
+                        "userKey": "Afdeling",
+                        "uuid": "ac8206d0-b807-44f1-9a29-f252b926917e"
+                    },
+                    {
+                        "name": "Center",
+                        "user-key": "Center",
+                        "userKey": "Center",
+                        "uuid": "8cce4b27-4bfe-4627-a61e-75792148d7a9"
+                    },
+                    {
+                        "name": "Direktion",
+                        "user-key": "Direktion",
+                        "userKey": "Direktion",
+                        "uuid": "d60db620-7c2b-4a76-b15e-ae3478a4f2f9"
+                    },
+                    {
+                        "name": "Enhed",
+                        "user-key": "Enhed",
+                        "userKey": "Enhed",
+                        "uuid": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f"
+                    },
+                    {
+                        "name": "Forvaltning",
+                        "user-key": "Forvaltning",
+                        "userKey": "Forvaltning",
+                        "uuid": "7def0dc1-2982-40d6-ac20-7315b42325aa"
+                    },
+                    {
+                        "name": "Kontor",
+                        "user-key": "Kontor",
+                        "userKey": "Kontor",
+                        "uuid": "333b3660-438b-4a5a-9982-2790ed4626d8"
+                    },
+                    {
+                        "name": "Projekt",
+                        "user-key": "Projekt",
+                        "userKey": "Projekt",
+                        "uuid": "254c6782-9fef-478a-89b3-c043ca7cb0e9"
+                    },
+                    {
+                        "name": "Sekretariat",
+                        "user-key": "Sekretariat",
+                        "userKey": "Sekretariat",
+                        "uuid": "f24b718c-951d-4152-9b1b-d62d824527d1"
+                    }
+                ],
+            )
 
         with self.subTest('engagement types'):
             self.assertRequestResponse(
@@ -429,7 +429,6 @@ class IntegrationTests(util.LoRATestCase):
             )
 
         with self.subTest('get user by cpr'):
-
             self.assertRequestResponse(
                 '/mo/e/1011101010/',
                 {
@@ -919,23 +918,29 @@ class IntegrationTests(util.LoRATestCase):
 
     @freezegun.freeze_time('2018-06-01')
     def test_service_with_ballerup(self):
-        util.import_fixture('BALLERUP.xlsx')
+        with util.mock('dawa-ballerup.json', allow_mox=True):
+            util.import_fixture('BALLERUP.xlsx')
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/',
-            [{'name': 'address',
+            [{'name': 'address_type',
               'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-              '/f/address/',
+                      '/f/address_type/',
               'user_key': 'Adressetype',
               'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2'},
-             {'name': 'job-function',
+             {'name': 'association_type',
               'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-              '/f/job-function/',
+                      '/f/association_type/',
+              'user_key': 'Tilknytningstype',
+              'uuid': '81b80fa7-b71b-4d33-b528-cae038208758'},
+             {'name': 'job_function',
+              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                      '/f/job_function/',
               'user_key': 'Stillingsbetegnelse',
               'uuid': '51774dde-bf2c-4100-9059-70d1a1fb1d1f'},
-             {'name': 'ou',
+             {'name': 'org_unit_type',
               'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-              '/f/ou/',
+                      '/f/org_unit_type/',
               'user_key': 'Enhedstype',
               'uuid': 'd2a8b57a-5913-47c9-8ead-99b9822e27fa'}],
         )
@@ -961,7 +966,7 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/address/',
+            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/address_type/',
             [{'example': 'Besvares indenfor to hverdage.',
               'name': 'Bemærkninger om email',
               'scope': 'TEXT',
@@ -1030,7 +1035,7 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/job-function/',
+            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/job_function/',
             [{'example': None,
               'name': 'Administrativ leder',
               'scope': None,
@@ -1054,7 +1059,7 @@ class IntegrationTests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/ou/',
+            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/org_unit_type/',
             [{'example': None,
               'name': 'Afsnit',
               'scope': None,
@@ -1143,85 +1148,215 @@ class IntegrationTests(util.LoRATestCase):
             },
         )
 
-        self.assertRequestResponse(
-            '/service/e/34705881-8af9-4254-ac3f-31738eae0be8'
-            '/details/engagement',
-            [{'job_function': {'example': None,
-                               'name': 'Administrativ leder',
-                               'scope': None,
-                               'user_key': 'Administrativ leder',
-                               'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee'},
-              'org_unit': {'name': 'Ballerup Kommune',
-                           'user_key': 'BALLERUP',
-                           'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-              'person': {'cpr_no': '0101001010',
-                         'name': 'Sune Skriver',
-                         'uuid': '34705881-8af9-4254-ac3f-31738eae0be8'},
-              'type': {'example': None,
-                       'name': 'Ansat',
-                       'scope': None,
-                       'user_key': 'Ansat',
-                       'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
-              'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
-              'valid_from': '2018-01-01T00:00:00+01:00',
-              'valid_to': None}],
-        )
+        with self.subTest('details list'):
+            self.assertRequestResponse(
+                '/service/e/34705881-8af9-4254-ac3f-31738eae0be8/details/',
+                {'association': False, 'engagement': True, 'it': False},
+            )
 
-        self.assertRequestResponse(
-            '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
-            '/details/engagement',
-            [{'job_function': None,
-              'org_unit': {'name': 'Ballerup Kommune',
-                           'user_key': 'BALLERUP',
-                           'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-              'person': {'cpr_no': '1011101010',
-                         'name': 'Sanne Schäff',
-                         'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
-              'type': {'example': None,
-                       'name': 'Ansat',
-                       'scope': None,
-                       'user_key': 'Ansat',
-                       'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
-              'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
-              'valid_from': '2018-01-01T00:00:00+01:00',
-              'valid_to': None}],
-        )
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745/details/',
+                {'association': True, 'engagement': True, 'it': False},
+            )
 
-        self.assertRequestResponse(
-            '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
-            '/details/engagement',
-            [{'job_function': None,
-              'org_unit': {'name': 'Ballerup Kommune',
-                           'user_key': 'BALLERUP',
-                           'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-              'person': {'cpr_no': '1011101010',
-                         'name': 'Sanne Schäff',
-                         'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
-              'type': {'example': None,
-                       'name': 'Ansat',
-                       'scope': None,
-                       'user_key': 'Ansat',
-                       'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
-              'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
-              'valid_from': '2018-01-01T00:00:00+01:00',
-              'valid_to': None},
-             {'job_function': {'example': None,
-                               'name': 'Administrativ leder',
-                               'scope': None,
-                               'user_key': 'Administrativ leder',
-                               'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee'},
-              'org_unit': {'name': 'Ballerup Kommune',
-                           'user_key': 'BALLERUP',
-                           'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-              'person': {'cpr_no': '0101001010',
-                         'name': 'Sune Skriver',
-                         'uuid': '34705881-8af9-4254-ac3f-31738eae0be8'},
-              'type': {'example': None,
-                       'name': 'Ansat',
-                       'scope': None,
-                       'user_key': 'Ansat',
-                       'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
-              'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
-              'valid_from': '2018-01-01T00:00:00+01:00',
-              'valid_to': None}],
-        )
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/details/',
+                {'association': True, 'engagement': True},
+            )
+
+        with self.subTest('employee engagement'):
+            self.assertRequestResponse(
+                '/service/e/34705881-8af9-4254-ac3f-31738eae0be8'
+                '/details/engagement',
+                [
+                    {
+                        'job_function': {
+                            'example': None,
+                            'name': 'Administrativ leder',
+                            'scope': None,
+                            'user_key': 'Administrativ leder',
+                            'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '0101001010',
+                            'name': 'Sune Skriver',
+                            'uuid': '34705881-8af9-4254-ac3f-31738eae0be8',
+                        },
+                        'engagement_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
+                        'valid_from': '2018-01-01T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/engagement',
+                [{'job_function': None,
+                  'org_unit': {'name': 'Ballerup Kommune',
+                               'user_key': 'BALLERUP',
+                               'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+                  'person': {'cpr_no': '1011101010',
+                             'name': 'Sanne Schäff',
+                             'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
+                  'engagement_type': {
+                      'example': None,
+                      'name': 'Ansat',
+                      'scope': None,
+                      'user_key': 'Ansat',
+                      'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
+                  'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
+                  'valid_from': '2018-01-01T00:00:00+01:00',
+                  'valid_to': None}],
+            )
+
+        with self.subTest('unit engagement'):
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/engagement',
+                [
+                    {
+                        'job_function': None,
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '1011101010',
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'engagement_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
+                        'valid_from': '2018-01-01T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                    {
+                        'job_function': {
+                            'example': None,
+                            'name': 'Administrativ leder',
+                            'scope': None,
+                            'user_key': 'Administrativ leder',
+                            'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '0101001010',
+                            'name': 'Sune Skriver',
+                            'uuid': '34705881-8af9-4254-ac3f-31738eae0be8',
+                        },
+                        'engagement_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
+                        'valid_from': '2018-01-01T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                ],
+            )
+
+        with self.subTest('association'):
+            self.assertRequestResponse(
+                '/service/e/34705881-8af9-4254-ac3f-31738eae0be8'
+                '/details/association',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/association',
+                [
+                    {
+                        'job_function': {
+                            'example': None,
+                            'name': '… (≈400 flere)',
+                            'scope': None,
+                            'user_key': '… (≈400 flere)',
+                            'uuid': 'f5b8f156-fa4e-46e2-b9e6-51a953166273',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '1011101010',
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'association_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': 'b4cd77e4-2ba0-47c7-93e9-22f7446abb57',
+                        'valid_from': '2018-01-01T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/association',
+                [
+                    {
+                        'job_function': {
+                            'example': None,
+                            'name': '… (≈400 flere)',
+                            'scope': None,
+                            'user_key': '… (≈400 flere)',
+                            'uuid': 'f5b8f156-fa4e-46e2-b9e6-51a953166273',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '1011101010',
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'association_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': 'b4cd77e4-2ba0-47c7-93e9-22f7446abb57',
+                        'valid_from': '2018-01-01T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                ],
+            )

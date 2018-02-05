@@ -12,6 +12,7 @@ import functools
 import json
 import os
 import pprint
+import re
 import select
 import signal
 import socket
@@ -219,32 +220,54 @@ def override_lora_url(lora_url='http://mox/'):
     return override_settings(LORA_URL=lora_url)
 
 
-def mock(name=None):
+class mock(requests_mock.Mocker):
     '''Decorator for running a function under requests_mock, with the
-    given mocking fixture loaded.
+    given mocking fixture loaded, and optionally overriding the LORA
+    URL to a fixed location.
+
     '''
 
-    def outer_wrapper(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            with requests_mock.mock() as mock:
-                if name:
-                    # inject the fixture; note that complete_qs is
-                    # important: without it, a URL need only match *some*
-                    # of the query parameters passed, and that's quite
-                    # obnoxious if requests only differ by them
-                    for url, value in get_mock_data(name).items():
-                        mock.get(url, json=value, complete_qs=True)
+    def __init__(self, name=None, allow_mox=False, **kwargs):
+        super().__init__(**kwargs)
 
-                # pass the mocker object as the final parameter
-                args = args + (mock,)
+        self.__name = name
+        self.__allow_mox = allow_mox
+        self.__kwargs = kwargs
 
-                with override_lora_url():
-                    return func(*args, **kwargs)
+        if name:
+            # inject the fixture; note that complete_qs is
+            # important: without it, a URL need only match *some*
+            # of the query parameters passed, and that's quite
+            # obnoxious if requests only differ by them
+            for url, value in get_mock_data(name).items():
+                self.get(url, json=value, complete_qs=True)
 
-        return wrapper
+        if not allow_mox:
+            self.__overrider = override_lora_url()
+        else:
+            self.__overrider = None
+            self.register_uri(
+                requests_mock.ANY,
+                re.compile('^{}/.*'.format(settings.LORA_URL.rstrip('/'))),
+                real_http=True,
+            )
 
-    return outer_wrapper
+    def copy(self):
+        """Returns an exact copy of current mock
+        """
+        return mock(self.__name, self.__allow_mox, **self.__kwargs)
+
+    def start(self):
+        if self.__overrider:
+            self.__overrider.__enter__()
+
+        super().start()
+
+    def stop(self):
+        super().stop()
+
+        if self.__overrider:
+            self.__overrider.__exit__(None, None, None)
 
 
 class TestCaseMixin(object):

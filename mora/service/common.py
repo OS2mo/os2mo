@@ -9,7 +9,7 @@ import collections
 import copy
 import functools
 from enum import Enum
-from typing import Callable, List, Tuple, Set
+from typing import Callable, List, Tuple
 
 import flask
 import iso8601

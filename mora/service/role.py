@@ -8,7 +8,7 @@
 
 '''
 Roles
------------
+-----
 
 This section describes how to interact with employee roles.
 
@@ -17,21 +17,16 @@ This section describes how to interact with employee roles.
 import flask
 
 from mora import lora
-from mora.service.common import (create_organisationsfunktion_payload,
-                                 ensure_bounds, inactivate_old_interval,
-                                 update_payload)
-from mora.service.mapping import (ORG_FUNK_GYLDIGHED_FIELD,
-                                  ORG_FUNK_TYPE_FIELD, ORG_UNIT_FIELD,
-                                  ROLE_FIELDS)
+from .common import (create_organisationsfunktion_payload,
+                     ensure_bounds, inactivate_old_interval,
+                     update_payload)
+from .keys import ORG, ORG_UNIT, ROLE_TYPE, VALID_FROM, VALID_TO, ROLE_KEY
+from .mapping import (ORG_FUNK_GYLDIGHED_FIELD,
+                      ORG_FUNK_TYPE_FIELD, ORG_UNIT_FIELD,
+                      ROLE_FIELDS)
 
 blueprint = flask.Blueprint('roles', __name__, static_url_path='',
                             url_prefix='/service')
-
-ROLE_KEY = 'Rolle'
-
-ROLE_TYPE = 'role_type'
-ORG_UNIT = 'org_unit'
-ORG = 'org'
 
 
 def create_role(employee_uuid, req):
@@ -40,8 +35,8 @@ def create_role(employee_uuid, req):
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
     org_uuid = req.get(ORG).get('uuid')
     role_type_uuid = req.get(ROLE_TYPE).get('uuid')
-    valid_from = req.get('valid_from')
-    valid_to = req.get('valid_to', 'infinity')
+    valid_from = req.get(VALID_FROM)
+    valid_to = req.get(VALID_TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ROLE_KEY)
 
@@ -66,17 +61,17 @@ def edit_role(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=role_uuid)
 
     data = req.get('data')
-    new_from = data.get('valid_from')
-    new_to = data.get('valid_to', 'infinity')
+    new_from = data.get(VALID_FROM)
+    new_to = data.get(VALID_TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger rolle'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
+    original_data = req.get('original')
+    if original_data:
         # We are performing an update
-        old_from = overwrite.get('valid_from')
-        old_to = overwrite.get('valid_to')
+        old_from = original_data.get(VALID_FROM)
+        old_to = original_data.get(VALID_TO)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

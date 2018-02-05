@@ -15,32 +15,90 @@ This section describes how to interact with employee engagements.
 
 '''
 
+import collections
+import itertools
+
 import flask
 
 from mora import lora
-from mora.service.common import (create_organisationsfunktion_payload,
-                                 ensure_bounds, inactivate_old_interval,
-                                 inactivate_org_funktion,
-                                 update_payload)
-from mora.service.mapping import (ENGAGEMENT_FIELDS, ORG_FUNK_TYPE_FIELD,
-                                  JOB_TITLE_FIELD, ORG_FUNK_GYLDIGHED_FIELD,
-                                  ORG_UNIT_FIELD)
 from . import common, employee, facet, org
+from .common import (create_organisationsfunktion_payload,
+                     ensure_bounds, inactivate_old_interval,
+                     inactivate_org_funktion,
+                     update_payload)
+from .keys import (ENGAGEMENT_TYPE, JOB_FUNCTION, ORG, ORG_UNIT, PERSON,
+                   VALID_FROM, VALID_TO, ENGAGEMENT_KEY, ASSOCIATION_KEY,
+                   ASSOCIATION_TYPE, FUNCTION_KEYS, FUNCTION_TYPES)
+from .mapping import (ENGAGEMENT_FIELDS, JOB_FUNCTION_FIELD,
+                      ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
+                      ORG_UNIT_FIELD)
 from .. import util
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
                             url_prefix='/service')
-ENGAGEMENT_KEY = 'Engagement'
-
-JOB_TITLE = 'job_title'
-ENGAGEMENT_TYPE = 'engagement_type'
-ORG_UNIT = 'org_unit'
-ORG = 'org'
 
 
-@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/engagement')
-@util.restrictargs('at', 'validity')
-def get_engagement(type, id):
+@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
+def list_details(type, id):
+    '''List the available 'detail' types under this entry.
+
+    **Example response**:
+
+    .. sourcecode:: json
+
+      {
+        "association": false,
+        "engagement": true
+      }
+
+    The value above informs you that 'association' and 'engagement'
+    are valid for this entry, and that no entry exists at any time for
+    'association', whereas 'engagement' has at least one entry either
+    in the past, present or future.
+
+    '''
+    c = common.get_connector()
+
+    r = []
+
+    if type == 'e':
+        search = dict(tilknyttedebrugere=id)
+    else:
+        assert type == 'ou', 'bad type ' + type
+        search = dict(tilknyttedeenheder=id)
+
+    search.update(virkningfra='-infinity', virkningtil='infinity')
+
+    r = {
+        functype: bool(
+            c.organisationfunktion(funktionsnavn=funcname, **search),
+        )
+        for functype, funcname in FUNCTION_KEYS.items()
+    }
+
+    if type == 'e':
+        def get_systems(reg):
+            if not reg:
+                return
+
+            yield from reg['relationer'].get('tilknyttedeitsystemer', [])
+
+        regs = c.bruger.get(
+            id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
+
+        r['it'] = any(rel.get('uuid') for rel in get_systems(regs))
+
+    return flask.jsonify(r)
+
+
+@blueprint.route(
+    '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
+)
+@util.restrictargs('at', 'validity', 'start', 'limit')
+def get_engagement(type, id, function):
     '''Obtain the list of engagements corresponding to a user or
     organisational unit.
 
@@ -50,11 +108,15 @@ def get_engagement(type, id):
     :queryparam string validity: Only show *past*, *present* or
         *future* values -- which the default being to show *present*
         values.
+    :queryparam int start: Index of first item for paging.
+    :queryparam int limit: Maximum items.
 
     :param type: 'ou' for querying a unit; 'e' for querying an
         employee.
     :param uuid id: The UUID to query, i.e. the ID of the employee or
         unit.
+    :param function: See :http:get:`/service/(any:type)/(uuid:id)/details/`
+        for the available values for this field.
 
     :<jsonarr object job_function:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
@@ -91,7 +153,7 @@ def get_engagement(type, id):
                     "name": "Anders And",
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
                 },
-                "type": {
+                "engagement_type": {
                     "example": null,
                     "name": "Afdeling",
                     "scope": null,
@@ -114,55 +176,94 @@ def get_engagement(type, id):
         assert type == 'ou', 'bad type ' + type
         search = dict(tilknyttedeenheder=id)
 
-    search['funktionsnavn'] = ENGAGEMENT_KEY
+    # ensure that we report an error correctly
+    if function not in FUNCTION_KEYS:
+        raise ValueError('invalid function type {!r}'.format(function))
 
-    # all these caches are overkill when just listing one engagement,
-    # but frequently helpful when listing all engagements for a unit
-    class_cache = common.cache(facet.get_class)
+    search.update(
+        limit=int(flask.request.args.get('limit', 0)) or 20,
+        start=int(flask.request.args.get('start', 0)),
+        funktionsnavn=FUNCTION_KEYS[function],
+    )
 
-    user_cache = common.cache(employee.get_employee, raw=True)
+    #
+    # all these caches might be overkill when just listing one
+    # engagement, but they are frequently helpful when listing all
+    # engagements for a unit
+    #
+    # we fetch the types preemptively so that we may rely on
+    # get_all(), and fetch them in as few requests as possible
+    #
+    functions = collections.OrderedDict(
+        c.organisationfunktion.get_all(**search),
+    )
 
-    unit_cache = common.cache(org.get_orgunit,
-                              details=org.UnitDetails.MINIMAL,
-                              raw=True)
+    def get_employee_id(effect):
+        return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
 
-    def _convert_engagement(funcid, start, end, effect):
-        rels = effect['relationer']
+    def get_unit_id(effect):
+        return effect['relationer']['tilknyttedeenheder'][-1]['uuid']
 
-        emplid = rels['tilknyttedebrugere'][-1]['uuid']
-
-        unitid = rels['tilknyttedeenheder'][-1]['uuid']
-
+    def get_type_id(effect):
         try:
-            typeid = rels['organisatoriskfunktionstype'][-1]['uuid']
+            rels = effect['relationer']
+            return rels['organisatoriskfunktionstype'][-1]['uuid']
         except (KeyError, IndexError):
-            typeid = None
+            return None
 
+    def get_title_id(effect):
         try:
-            titleid = rels['opgaver'][-1]['uuid']
+            return effect['relationer']['opgaver'][-1]['uuid']
         except (KeyError, IndexError):
-            titleid = None
+            return None
 
-        r = {
-            "uuid": funcid,
+    class_cache = {
+        classid: classid and facet.get_one_class(c, classid, classobj)
+        for classid, classobj in c.klasse.get_all(
+            uuid=itertools.chain(
+                map(get_title_id, functions.values()),
+                map(get_type_id, functions.values()),
+            )
+        )
+    }
 
-            "person": user_cache[emplid],
-            "org_unit": unit_cache[unitid],
-            "job_function": titleid and class_cache[titleid],
-            "type": typeid and class_cache[typeid],
+    user_cache = {
+        userid: employee.get_one_employee(c, userid, user, with_cpr=True)
+        for userid, user in
+        c.bruger.get_all(uuid={
+            get_employee_id(v) for v in functions.values()
+        })
+    }
 
-            "valid_from": util.to_iso_time(start),
-            "valid_to": util.to_iso_time(end),
-        }
+    unit_cache = {
+        unitid: org.get_one_orgunit(
+            c, unitid, unit, details=org.UnitDetails.MINIMAL,
+        )
+        for unitid, unit in
+        c.organisationenhed.get_all(
+            uuid=map(get_unit_id,
+                     functions.values()),
+        )
+    }
 
-        return r
+    class_cache[None] = user_cache[None] = unit_cache[None] = None
 
     return flask.jsonify([
-        _convert_engagement(funcid, start, end, effect)
+        {
+            "uuid": funcid,
 
-        for funcid in c.organisationfunktion(**search)
+            PERSON: user_cache[get_employee_id(effect)],
+            ORG_UNIT: unit_cache[get_unit_id(effect)],
+            JOB_FUNCTION: class_cache[get_title_id(effect)],
+            FUNCTION_TYPES[function]: class_cache[get_type_id(effect)],
+
+            VALID_FROM: util.to_iso_time(start),
+            VALID_TO: util.to_iso_time(end),
+        }
+
+        for funcid, funcobj in functions.items()
         for start, end, effect in c.organisationfunktion.get_effects(
-            funcid,
+            funcobj,
             {
                 'relationer': (
                     'opgaver',
@@ -197,10 +298,10 @@ def create_engagement(employee_uuid, req):
 
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
     org_uuid = req.get(ORG).get('uuid')
-    job_title_uuid = req.get(JOB_TITLE).get('uuid')
+    job_function_uuid = req.get(JOB_FUNCTION).get('uuid')
     engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
-    valid_from = req.get('valid_from')
-    valid_to = req.get('valid_to', 'infinity')
+    valid_from = req.get(VALID_FROM)
+    valid_to = req.get(VALID_TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
 
@@ -213,7 +314,7 @@ def create_engagement(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=engagement_type_uuid,
-        opgaver=[job_title_uuid]
+        opgaver=[job_function_uuid]
     )
 
     lora.Connector().organisationfunktion.create(engagement)
@@ -226,17 +327,17 @@ def edit_engagement(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     data = req.get('data')
-    new_from = data.get('valid_from')
-    new_to = data.get('valid_to', 'infinity')
+    new_from = data.get(VALID_FROM)
+    new_to = data.get(VALID_TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
+    original_data = req.get('original')
+    if original_data:
         # We are performing an update
-        old_from = overwrite.get('valid_from')
-        old_to = overwrite.get('valid_to')
+        old_from = original_data.get(VALID_FROM)
+        old_to = original_data.get(VALID_TO)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -250,10 +351,10 @@ def edit_engagement(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if JOB_TITLE in data.keys():
+    if JOB_FUNCTION in data.keys():
         update_fields.append((
-            JOB_TITLE_FIELD,
-            {'uuid': data.get(JOB_TITLE).get('uuid')}
+            JOB_FUNCTION_FIELD,
+            {'uuid': data.get(JOB_FUNCTION).get('uuid')}
         ))
 
     if ENGAGEMENT_TYPE in data.keys():
