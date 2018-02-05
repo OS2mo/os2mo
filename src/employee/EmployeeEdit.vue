@@ -20,29 +20,35 @@
       </thead>
 
       <tbody>
-        <tr v-for="e in employeeEngagement" v-bind:key="e.uuid">
+        <tr v-for="e in engagements" v-bind:key="e.uuid">
           <td>
             {{e.org_unit | getProperty('name')}}
           </td>
           <td> 
             <engagement-title
-              v-model="engagement.selectedTitle"
+              no-label
+              v-model="e.job_function.uuid"
               :preselected="e.job_function | getProperty('uuid')"
             />
           </td>
           <td>
             <engagement-type 
-              v-model="engagement.engagement_type_uuid"
+              no-label
+              v-model="e.type.uuid"
               :preselected="e.type | getProperty('uuid')"
             />
           </td>
           <td>
             <date-picker 
+              no-label
+              v-model="e.valid_from"
               :preselectedDate="new Date(e.valid_from)"
             />
           </td>
           <td>
             <date-picker
+            no-label
+            v-model="e.valid_to"
             :preselectedDate="new Date(e.valid_to)"
             />
           </td>
@@ -50,6 +56,7 @@
       </tbody>
       </table>
     </div>
+
       <div class="float-right">
         <button-submit @click.native="editEmployee"/>
       </div>
@@ -61,8 +68,6 @@
   import Employee from '../api/Employee'
   import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
-  import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
   import EngagementTitle from '../components/EngagementTitle'
   import EngagementType from '../components/EngagementType'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -70,21 +75,15 @@
   export default {
     components: {
       DatePicker,
-      OrganisationUnitPicker,
-      UnitTypeSelect,
       EngagementTitle,
       EngagementType,
       ButtonSubmit
     },
     data () {
       return {
-        engagement: {
-          selectedTitle: '',
-          job_title_uuid: '',
-          uuid: '',
-          orgUnit: ''
-        },
-        employeeEngagement: {}
+        engagements: [],
+        original: []
+
       }
     },
     created () {
@@ -95,36 +94,27 @@
         var vm = this
         Employee.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
-          vm.employeeEngagement = response
+          vm.engagements = response
+          // make a copy that is non-reactive
+          vm.original = JSON.parse(JSON.stringify(response))
         })
       },
 
       editEmployee () {
         let vm = this
-        let edit = [{
-          type: 'engagement',
-          uuid: this.employeeEngagement[0].uuid,
-          overwrite: {
-            valid_from: this.dateStartEnd.startDate,
-            valid_to: this.dateStartEnd.endDate,
-            job_function: {
-              uuid: this.engagement.selectedTitle
-            },
-            engagement_type: {
-              uuid: this.engagement.engagement_type_uuid
-            },
-            org_unit: {
-              uuid: this.engagement.orgUnit
-            }
-          },
-          data: {
-            valid_from: this.dateStartEnd.startDate,
-            valid_to: this.dateStartEnd.endDate,
-            job_function: {
-              uuid: this.engagement.selectedTitle
-            }
+        let edit = []
+        this.engagements.forEach(function (e, index) {
+          let obj = {
+            type: 'engagement',
+            uuid: e.uuid,
+            overwrite: vm.original[index],
+            data: e
           }
-        }]
+          edit.push(obj)
+        })
+
+        console.log(edit)
+
         Employee.editEmployee(this.$route.params.uuid, edit)
         .then(response => {
           vm.$refs.employeeEdit.hide()
