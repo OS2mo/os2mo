@@ -20,7 +20,7 @@ from mora import lora
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      update_payload)
-from .keys import ORG, ORG_UNIT, ROLE_TYPE, VALID_FROM, VALID_TO, ROLE_KEY
+from .keys import ORG_UNIT, ROLE_KEY, ROLE_TYPE, VALID_FROM, VALID_TO
 from .mapping import (ORG_FUNK_GYLDIGHED_FIELD,
                       ORG_FUNK_TYPE_FIELD, ORG_UNIT_FIELD,
                       ROLE_FIELDS)
@@ -31,9 +31,11 @@ blueprint = flask.Blueprint('roles', __name__, static_url_path='',
 
 def create_role(employee_uuid, req):
     # TODO: Validation
+    c = lora.Connector()
 
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
-    org_uuid = req.get(ORG).get('uuid')
+    org_uuid = c.organisationenhed.get(
+        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     role_type_uuid = req.get(ROLE_TYPE).get('uuid')
     valid_from = req.get(VALID_FROM)
     valid_to = req.get(VALID_TO, 'infinity')
@@ -51,7 +53,7 @@ def create_role(employee_uuid, req):
         funktionstype=role_type_uuid,
     )
 
-    lora.Connector().organisationfunktion.create(role)
+    c.organisationfunktion.create(role)
 
 
 def edit_role(employee_uuid, req):

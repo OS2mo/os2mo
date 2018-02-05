@@ -26,9 +26,9 @@ from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      inactivate_org_funktion,
                      update_payload)
-from .keys import (ENGAGEMENT_TYPE, JOB_FUNCTION, ORG, ORG_UNIT, PERSON,
-                   VALID_FROM, VALID_TO, ENGAGEMENT_KEY, ASSOCIATION_KEY,
-                   ASSOCIATION_TYPE, FUNCTION_KEYS, FUNCTION_TYPES)
+from .keys import (ENGAGEMENT_KEY, ENGAGEMENT_TYPE, FUNCTION_KEYS,
+                   FUNCTION_TYPES, JOB_FUNCTION, ORG_UNIT, PERSON,
+                   VALID_FROM, VALID_TO)
 from .mapping import (ENGAGEMENT_FIELDS, JOB_FUNCTION_FIELD,
                       ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
                       ORG_UNIT_FIELD)
@@ -296,8 +296,11 @@ def get_engagement(type, id, function):
 def create_engagement(employee_uuid, req):
     # TODO: Validation
 
+    c = lora.Connector()
+
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
-    org_uuid = req.get(ORG).get('uuid')
+    org_uuid = c.organisationenhed.get(
+        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = req.get(JOB_FUNCTION).get('uuid')
     engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
     valid_from = req.get(VALID_FROM)
@@ -317,7 +320,7 @@ def create_engagement(employee_uuid, req):
         opgaver=[job_function_uuid]
     )
 
-    lora.Connector().organisationfunktion.create(engagement)
+    c.organisationfunktion.create(engagement)
 
 
 def edit_engagement(employee_uuid, req):

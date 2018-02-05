@@ -10,7 +10,6 @@
 VALID_FROM = 'valid_from'
 VALID_TO = 'valid_to'
 ORG_UNIT = 'org_unit'
-ORG = 'org'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'
 ADDRESS_TYPE = 'address_type'
