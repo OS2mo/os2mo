@@ -5,12 +5,11 @@
       </span>
       <v-autocomplete 
         :items="results"
-        name="search"
         :get-label="getLabel" 
         :component-item="template" 
         @update-items="getSearchResults"
-        @untouched="results=[]"
-        item-selected="updateResult"
+        @item-selected="selected"
+        @blur="results=[]"
         :auto-select-one-item="false"
         :min-len="2"
         placeholder="Søg"
@@ -32,41 +31,53 @@
     data () {
       return {
         results: [],
-        selected: {},
+        routeName: '',
         template: TheSearchBarTemplate
       }
     },
-    created () {},
     watch: {
-      selected (newVal) {
-        console.log(newVal)
-        this.$router.push({ name: 'EmployeeDetail', params: { userId: newVal.uuid }})
-        // this.$router.push({
-        //   name: 'EmployeeDetail',
-        //   params: {
-        //     uuid: newVal.uuid
-        //   }
-        // })
+      '$route' (to) {
+        this.getRouteName(to)
       }
+    },
+    created () {
+      this.getRouteName(this.$route)
     },
     methods: {
       getLabel (item) {
-        this.selected = item
         return item.name
+      },
+
+      getRouteName (route) {
+        if (route.name.indexOf('Organisation') > -1) {
+          this.routeName = 'OrganisationDetail'
+        }
+
+        if (route.name.indexOf('Employee') > -1) {
+          this.routeName = 'EmployeeDetail'
+        }
       },
 
       getSearchResults (query) {
         let vm = this
         let org = Organisation.getSelectedOrganisation()
-        Search.employees(org.uuid, query)
-        .then(response => {
-          vm.results = response
-        })
+        if (vm.routeName === 'EmployeeDetail') {
+          Search.employees(org.uuid, query)
+          .then(response => {
+            vm.results = response
+          })
+        }
+
+        if (vm.routeName === 'OrganisationDetail') {
+          Search.organisations(org.uuid, query)
+          .then(response => {
+            vm.results = response
+          })
+        }
       },
 
-      updateResult () {
-        console.log('upate result')
-        console.log(this.selected)
+      selected (item) {
+        this.$router.push({name: this.routeName, params: { uuid: item.uuid }})
       }
     }
   }
@@ -76,33 +87,5 @@
 <style lang="scss" scoped>
   .input-group {
     width: 500px;
-  }
-
-  .v-autocomplete {
-    .v-autocomplete-input-group {
-      .v-autocomplete-input {
-        display: block;
-        width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        background-image: none;
-        background-clip: padding-box;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-      }
-    }
-    .v-autocomplete-list {
-      z-index: 999;
-      background-color: #fff;
-      width: 100%;
-      padding: 0.375rem 0.75rem;
-      border: 1px solid #ced4da;
-      border-radius: 0 0 0.25rem;
-      transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-    }
   }
 </style>
