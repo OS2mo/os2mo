@@ -30,17 +30,18 @@ import uuid
 import flask
 import werkzeug
 
-from .. import util
 from . import common
+from .keys import ADDRESS_TYPE, JOB_FUNCTION, ORG_UNIT_TYPE, ASSOCIATION_TYPE
+from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
                             url_prefix='/service')
 
 FACETS = {
-    'address': 'Adressetype',
-    'job-function': 'Stillingsbetegnelse',
-    'association': 'Tilknytningstype',
-    'ou': 'Enhedstype',
+    ADDRESS_TYPE: 'Adressetype',
+    JOB_FUNCTION: 'Stillingsbetegnelse',
+    ASSOCIATION_TYPE: 'Tilknytningstype',
+    ORG_UNIT_TYPE: 'Enhedstype',
 }
 
 

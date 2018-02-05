@@ -581,7 +581,7 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'type': {
+                'engagement_type': {
                     'example': None,
                     'name': 'Afdeling',
                     'scope': None,
@@ -646,7 +646,7 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/00000000-0000-0000-0000-000000000000/f/address/',
+            '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
             [],
         )
 
@@ -658,12 +658,12 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/service/o/00000000-0000-0000-0000-000000000000/f/ou/',
+            '/service/o/00000000-0000-0000-0000-000000000000/f/org_unit_type/',
             [],
         )
 
         self.assertRequestResponse(
-            '/service/o/00000000-0000-0000-0000-000000000000/f/address/',
+            '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
             [],
         )
 
@@ -674,20 +674,20 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
-            [{'name': 'address',
+            [{'name': 'address_type',
               'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-              '/f/address/',
+              '/f/address_type/',
               'user_key': 'Adressetype',
               'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
-             {'name': 'ou',
+             {'name': 'org_unit_type',
               'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-              '/f/ou/',
+              '/f/org_unit_type/',
               'user_key': 'Enhedstype',
               'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
         )
 
         self.assertRequestResponse(
-            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/ou/',
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_type/',
             [{'example': None,
               'name': 'Afdeling',
               'scope': None,
@@ -706,7 +706,7 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address/',
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/',
             [{'example': '<UUID>',
               'name': 'Adresse',
               'scope': 'DAR',
