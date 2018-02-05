@@ -21,28 +21,30 @@ import itertools
 import flask
 
 from mora import lora
-from mora.service.common import (create_organisationsfunktion_payload,
-                                 ensure_bounds, inactivate_old_interval,
-                                 inactivate_org_funktion,
-                                 update_payload)
-from mora.service.mapping import (ENGAGEMENT_FIELDS, ORG_FUNK_TYPE_FIELD,
-                                  JOB_TITLE_FIELD, ORG_FUNK_GYLDIGHED_FIELD,
-                                  ORG_UNIT_FIELD)
 from . import common, employee, facet, org
+from .common import (create_organisationsfunktion_payload,
+                     ensure_bounds, inactivate_old_interval,
+                     inactivate_org_funktion,
+                     update_payload)
+from .keys import (ENGAGEMENT_TYPE, JOB_FUNCTION, ORG, ORG_UNIT, PERSON,
+                   VALID_FROM, VALID_TO, ENGAGEMENT_KEY, ASSOCIATION_KEY,
+                   ASSOCIATION_TYPE)
+from .mapping import (ENGAGEMENT_FIELDS, JOB_FUNCTION_FIELD,
+                      ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
+                      ORG_UNIT_FIELD)
 from .. import util
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
                             url_prefix='/service')
-ENGAGEMENT_KEY = 'Engagement'
 
-JOB_TITLE = 'job_title'
-ENGAGEMENT_TYPE = 'engagement_type'
-ORG_UNIT = 'org_unit'
-ORG = 'org'
+FUNCTION_KEYS = {
+    'engagement': ENGAGEMENT_KEY,
+    'association': ASSOCIATION_KEY,
+}
 
 FUNCTION_TYPES = {
-    'engagement': 'Engagement',
-    'association': 'Tilknytning',
+    'engagement': ENGAGEMENT_TYPE,
+    'association': ASSOCIATION_TYPE,
 }
 
 
@@ -81,7 +83,7 @@ def list_details(type, id):
         functype: bool(
             c.organisationfunktion(funktionsnavn=funcname, **search),
         )
-        for functype, funcname in FUNCTION_TYPES.items()
+        for functype, funcname in FUNCTION_KEYS.items()
     }
 
     if type == 'e':
@@ -161,7 +163,7 @@ def get_engagement(type, id, function):
                     "name": "Anders And",
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
                 },
-                "type": {
+                "engagement_type": {
                     "example": null,
                     "name": "Afdeling",
                     "scope": null,
@@ -185,13 +187,13 @@ def get_engagement(type, id, function):
         search = dict(tilknyttedeenheder=id)
 
     # ensure that we report an error correctly
-    if function not in FUNCTION_TYPES:
+    if function not in FUNCTION_KEYS:
         raise ValueError('invalid function type {!r}'.format(function))
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or 20,
         start=int(flask.request.args.get('start', 0)),
-        funktionsnavn=FUNCTION_TYPES[function],
+        funktionsnavn=FUNCTION_KEYS[function],
     )
 
     #
@@ -260,13 +262,13 @@ def get_engagement(type, id, function):
         {
             "uuid": funcid,
 
-            "person": user_cache[get_employee_id(effect)],
-            "org_unit": unit_cache[get_unit_id(effect)],
-            "job_function": class_cache[get_title_id(effect)],
-            "type": class_cache[get_type_id(effect)],
+            PERSON: user_cache[get_employee_id(effect)],
+            ORG_UNIT: unit_cache[get_unit_id(effect)],
+            JOB_FUNCTION: class_cache[get_title_id(effect)],
+            FUNCTION_TYPES[function]: class_cache[get_type_id(effect)],
 
-            "valid_from": util.to_iso_time(start),
-            "valid_to": util.to_iso_time(end),
+            VALID_FROM: util.to_iso_time(start),
+            VALID_TO: util.to_iso_time(end),
         }
 
         for funcid, funcobj in functions.items()
@@ -306,10 +308,10 @@ def create_engagement(employee_uuid, req):
 
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
     org_uuid = req.get(ORG).get('uuid')
-    job_title_uuid = req.get(JOB_TITLE).get('uuid')
+    job_function_uuid = req.get(JOB_FUNCTION).get('uuid')
     engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
-    valid_from = req.get('valid_from')
-    valid_to = req.get('valid_to', 'infinity')
+    valid_from = req.get(VALID_FROM)
+    valid_to = req.get(VALID_TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
 
@@ -322,7 +324,7 @@ def create_engagement(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=engagement_type_uuid,
-        opgaver=[job_title_uuid]
+        opgaver=[job_function_uuid]
     )
 
     lora.Connector().organisationfunktion.create(engagement)
@@ -335,8 +337,8 @@ def edit_engagement(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     data = req.get('data')
-    new_from = data.get('valid_from')
-    new_to = data.get('valid_to', 'infinity')
+    new_from = data.get(VALID_FROM)
+    new_to = data.get(VALID_TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
@@ -344,8 +346,8 @@ def edit_engagement(employee_uuid, req):
     overwrite = req.get('overwrite')
     if overwrite:
         # We are performing an update
-        old_from = overwrite.get('valid_from')
-        old_to = overwrite.get('valid_to')
+        old_from = overwrite.get(VALID_FROM)
+        old_to = overwrite.get(VALID_TO)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -359,10 +361,10 @@ def edit_engagement(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if JOB_TITLE in data.keys():
+    if JOB_FUNCTION in data.keys():
         update_fields.append((
-            JOB_TITLE_FIELD,
-            {'uuid': data.get(JOB_TITLE).get('uuid')}
+            JOB_FUNCTION_FIELD,
+            {'uuid': data.get(JOB_FUNCTION).get('uuid')}
         ))
 
     if ENGAGEMENT_TYPE in data.keys():

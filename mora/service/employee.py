@@ -18,12 +18,13 @@ This section describes how to interact with employees.
 import flask
 
 from mora import lora
-from mora.service.association import (create_association, edit_association,
-                                      terminate_association, ASSOCIATION_KEY)
-from mora.service.engagement import (terminate_engagement, create_engagement,
-                                     edit_engagement, ENGAGEMENT_KEY)
-from mora.service.role import edit_role, create_role
 from . import common
+from .association import (ASSOCIATION_KEY, create_association,
+                          edit_association, terminate_association)
+from .engagement import (ENGAGEMENT_KEY, create_engagement, edit_engagement,
+                         terminate_engagement)
+from .keys import VALID_FROM
+from .role import create_role, edit_role
 from .. import util
 from ..converters import writing
 
@@ -165,7 +166,7 @@ def create_employee(employee_uuid):
     :<jsonarr string type: **"engagement"**
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string org: The associated organisation
-    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr string valid_from: The date from which the engagement should
         be valid, in ISO 8601.
@@ -183,7 +184,7 @@ def create_employee(employee_uuid):
           "org": {
             "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
           },
-          "job_title": {
+          "job_function": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
           },
           "engagement_type": {
@@ -199,7 +200,7 @@ def create_employee(employee_uuid):
     :<jsonarr string type: **"association"**
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string org: The associated organisation
-    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string location: The associated location.
     :<jsonarr string valid_from: The date from which the association should
@@ -218,7 +219,7 @@ def create_employee(employee_uuid):
           "org": {
             "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
           },
-          "job_title": {
+          "job_function": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
           },
           "association_type": {
@@ -324,7 +325,7 @@ def edit_employee(employee_uuid):
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr string valid_from: The from date, in ISO 8601.
     :<jsonarr string valid_to: The to date, in ISO 8601.
@@ -338,7 +339,7 @@ def edit_employee(employee_uuid):
           "overwrite": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2018-01-01T00:00:00+00:00",
-            "job_title": {
+            "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             },
             "engagement_type": {
@@ -351,7 +352,7 @@ def edit_employee(employee_uuid):
           "data": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2019-01-01T00:00:00+00:00",
-            "job_title": {
+            "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             }
           }
@@ -377,7 +378,7 @@ def edit_employee(employee_uuid):
 
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string org: The associated organisation
-    :<jsonarr string job_title: The job title of the association
+    :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string location: The associated location.
     :<jsonarr string valid_from: The from date, in ISO 8601.
@@ -392,7 +393,7 @@ def edit_employee(employee_uuid):
           "overwrite": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2018-01-01T00:00:00+00:00",
-            "job_title": {
+            "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             },
             "association_type": {
@@ -408,7 +409,7 @@ def edit_employee(employee_uuid):
           "data": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2019-01-01T00:00:00+00:00",
-            "job_title": {
+            "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             }
           }
@@ -510,7 +511,7 @@ def terminate_employee(employee_uuid):
         "valid_from": "2016-01-01T00:00:00+00:00"
       }
     """
-    date = flask.request.get_json().get('valid_from')
+    date = flask.request.get_json().get(VALID_FROM)
 
     c = lora.Connector(effective_date=date)
 
