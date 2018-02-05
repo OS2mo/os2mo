@@ -439,7 +439,7 @@ class Tests(util.LoRATestCase):
         req = [{
             "type": "engagement",
             "uuid": engagement_uuid,
-            "overwrite": {
+            "original": {
                 "valid_from": "2017-01-01 00:00:00+01",
                 "valid_to": "infinity",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},

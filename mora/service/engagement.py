@@ -28,7 +28,7 @@ from .common import (create_organisationsfunktion_payload,
                      update_payload)
 from .keys import (ENGAGEMENT_TYPE, JOB_FUNCTION, ORG, ORG_UNIT, PERSON,
                    VALID_FROM, VALID_TO, ENGAGEMENT_KEY, ASSOCIATION_KEY,
-                   ASSOCIATION_TYPE)
+                   ASSOCIATION_TYPE, FUNCTION_KEYS, FUNCTION_TYPES)
 from .mapping import (ENGAGEMENT_FIELDS, JOB_FUNCTION_FIELD,
                       ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
                       ORG_UNIT_FIELD)
@@ -36,16 +36,6 @@ from .. import util
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
                             url_prefix='/service')
-
-FUNCTION_KEYS = {
-    'engagement': ENGAGEMENT_KEY,
-    'association': ASSOCIATION_KEY,
-}
-
-FUNCTION_TYPES = {
-    'engagement': ENGAGEMENT_TYPE,
-    'association': ASSOCIATION_TYPE,
-}
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
@@ -343,11 +333,11 @@ def edit_engagement(employee_uuid, req):
     payload = dict()
     payload['note'] = 'Rediger engagement'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
+    original_data = req.get('original')
+    if original_data:
         # We are performing an update
-        old_from = overwrite.get(VALID_FROM)
-        old_to = overwrite.get(VALID_TO)
+        old_from = original_data.get(VALID_FROM)
+        old_to = original_data.get(VALID_TO)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

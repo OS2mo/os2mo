@@ -30,3 +30,13 @@ ROLE_TYPE = 'role_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
+
+FUNCTION_KEYS = {
+    'engagement': ENGAGEMENT_KEY,
+    'association': ASSOCIATION_KEY,
+}
+
+FUNCTION_TYPES = {
+    'engagement': ENGAGEMENT_TYPE,
+    'association': ASSOCIATION_TYPE,
+}

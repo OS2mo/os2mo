@@ -8,7 +8,7 @@
 
 '''
 Roles
------------
+-----
 
 This section describes how to interact with employee roles.
 
@@ -67,11 +67,11 @@ def edit_role(employee_uuid, req):
     payload = dict()
     payload['note'] = 'Rediger rolle'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
+    original_data = req.get('original')
+    if original_data:
         # We are performing an update
-        old_from = overwrite.get(VALID_FROM)
-        old_to = overwrite.get(VALID_TO)
+        old_from = original_data.get(VALID_FROM)
+        old_to = original_data.get(VALID_TO)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

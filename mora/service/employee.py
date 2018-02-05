@@ -313,15 +313,15 @@ def edit_employee(employee_uuid):
 
     :<json string type: **"engagement"**
     :<json string uuid: The UUID of the engagement,
-    :<json object overwrite: An **optional** object containing the original
+    :<json object original: An **optional** object containing the original
         state of the engagement to be overwritten. If supplied, the change
         will modify the existing registration on the engagement object.
         Detailed below.
     :<json object data: An object containing the changes to be made to the
         engagement. Detailed below.
 
-    The **overwrite** and **data** objects follow the same structure.
-    Every field in **overwrite** is required, whereas **data** only needs
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
@@ -336,7 +336,7 @@ def edit_employee(employee_uuid):
         {
           "type": "engagement",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
-          "overwrite": {
+          "original": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2018-01-01T00:00:00+00:00",
             "job_function": {
@@ -365,15 +365,15 @@ def edit_employee(employee_uuid):
 
     :<json string type: **"association"**
     :<json string uuid: The UUID of the association,
-    :<json object overwrite: An **optional** object containing the original
+    :<json object original: An **optional** object containing the original
         state of the association to be overwritten. If supplied, the change
         will modify the existing registration on the association object.
         Detailed below.
     :<json object data: An object containing the changes to be made to the
         association. Detailed below.
 
-    The **overwrite** and **data** objects follow the same structure.
-    Every field in **overwrite** is required, whereas **data** only needs
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
@@ -390,7 +390,7 @@ def edit_employee(employee_uuid):
         {
           "type": "association",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
-          "overwrite": {
+          "original": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2018-01-01T00:00:00+00:00",
             "job_function": {
@@ -422,14 +422,14 @@ def edit_employee(employee_uuid):
 
     :<json string type: **"role"**
     :<json string uuid: The UUID of the role,
-    :<json object overwrite: An **optional** object containing the original
+    :<json object original: An **optional** object containing the original
         state of the role to be overwritten. If supplied, the change will
         modify the existing registration on the role object. Detailed below.
     :<json object data: An object containing the changes to be made to the
         role. Detailed below.
 
-    The **overwrite** and **data** objects follow the same structure.
-    Every field in **overwrite** is required, whereas **data** only needs
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
@@ -445,7 +445,7 @@ def edit_employee(employee_uuid):
         {
           "type": "role",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
-          "overwrite": {
+          "original": {
             "valid_from": "2016-01-01T00:00:00+00:00",
             "valid_to": "2018-01-01T00:00:00+00:00",
             "role_type": {

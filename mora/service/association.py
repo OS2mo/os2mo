@@ -73,11 +73,11 @@ def edit_association(employee_uuid, req):
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
+    original_data = req.get('original')
+    if original_data:
         # We are performing an update
-        old_from = overwrite.get('valid_from')
-        old_to = overwrite.get('valid_to')
+        old_from = original_data.get('valid_from')
+        old_to = original_data.get('valid_to')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
