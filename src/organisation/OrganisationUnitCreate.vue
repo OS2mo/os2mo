@@ -32,7 +32,6 @@
 
     <address-search 
       v-model="orgUnit.locations[0]"
-      :orgUuid="org.uuid"
     />
     
     <component 
