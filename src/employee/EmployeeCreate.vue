@@ -25,7 +25,7 @@
           </label>
         </div>
       </div>
-
+{{engagement}}
       <h4>Tilknytning</h4>
       <date-start-end v-model="association.dateStartEnd"/>
       <div class="form-row">
@@ -34,7 +34,8 @@
           label="Vælg enhed"
           v-model="association.orgUnit"/>
         <engagement-title v-model="association.job_function"/>
-        <address-search v-model="association.address"/>
+        <address-search 
+        :orgUuid="org.uuid"/>
       </div>
       {{association}}
     </div>
@@ -47,6 +48,7 @@
 </template>
 
 <script>
+  import Organisation from '../api/Organisation'
   import Employee from '../api/Employee'
   import DateStartEnd from '../components/DatePickerStartEnd'
   import AddressSearch from '../components/AddressSearch'
@@ -68,56 +70,60 @@
     },
     data () {
       return {
-        dateStartEnd: {},
-        orgUnit: {},
         engagement: {},
-        association: {}
+        association: {},
+        org: {},
+        test: {}
       }
     },
-    created: function () {},
+    created () {
+      this.org = Organisation.getSelectedOrganisation()
+    },
     methods: {
       createEmployee () {
         let vm = this
-        let engagement = [{
-          type: 'engagement',
-          org_unit: {
-            uuid: this.engagement.orgUnit.org
+        let create = [
+          this.engagement = {
+            type: 'engagement',
+            org_unit: {
+              uuid: this.engagement.orgUnit.org
+            },
+            org: {
+              uuid: this.engagement.orgUnit.uuid
+            },
+            job_function: {
+              uuid: this.engagement.job_function
+            },
+            engagement_type: {
+              uuid: this.engagement.type
+            },
+            valid_from: this.engagement.dateStartEnd.startDate,
+            valid_to: this.engagement.dateStartEnd.endDate
           },
-          org: {
-            uuid: this.engagement.orgUnit.uuid
-          },
-          job_function: {
-            uuid: this.association.job_function
-          },
-          engagement_type: {
-            uuid: this.association.type
-          },
-          valid_from: this.engagement.dateStartEnd.startDate,
-          valid_to: this.engagement.dateStartEnd.endDate
-        }]
 
-        let association = [{
-          type: 'association',
-          org_unit: {
-            uuid: this.association.orgUnit.org
-          },
-          org: {
-            uuid: this.association.orgUnit.uuid
-          },
-          job_function: {
-            uuid: this.association.job_function
-          },
-          association_type: {
-            uuid: this.association.type
-          },
-          location: {
-            uuid: this.association.address
-          },
-          valid_from: this.association.dateStartEnd.startDate,
-          valid_to: this.association.dateStartEnd.endDate
-        }]
+          this.association = {
+            type: 'association',
+            org_unit: {
+              uuid: this.association.orgUnit.org
+            },
+            org: {
+              uuid: this.association.orgUnit.uuid
+            },
+            job_function: {
+              uuid: this.association.job_function
+            },
+            association_type: {
+              uuid: this.association.type
+            },
+            location: {
+              uuid: '5e0d7420-e06b-4832-b843-c4ad6955f5ec'
+            },
+            valid_from: this.association.dateStartEnd.startDate,
+            valid_to: this.association.dateStartEnd.endDate
+          }
+        ]
 
-        Employee.createEmployee(this.$route.params.uuid, engagement, association)
+        Employee.createEmployee(this.$route.params.uuid, create)
         .then(response => {
           vm.$refs.employeeCreate.hide()
           console.log(response)

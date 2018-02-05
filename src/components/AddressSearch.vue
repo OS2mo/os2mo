@@ -45,7 +45,8 @@
        */
       orgUuid: {
         type: String,
-        default: ''
+        default: '',
+        required: true
       }
     },
     data () {
