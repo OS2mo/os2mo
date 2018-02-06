@@ -20,8 +20,8 @@ from mora import lora
 from .common import (create_organisationsfunktion_payload, ensure_bounds,
                      inactivate_old_interval, inactivate_org_funktion,
                      update_payload)
-from .keys import (ASSOCIATION_TYPE, JOB_FUNCTION, LOCATION, ORG, ORG_UNIT,
-                   ASSOCIATION_KEY, VALID_FROM, VALID_TO)
+from .keys import (ASSOCIATION_KEY, ASSOCIATION_TYPE, JOB_FUNCTION, LOCATION,
+                   ORG_UNIT, VALID_FROM, VALID_TO)
 from .mapping import (ADDRESSES_FIELD, ASSOCIATION_FIELDS, JOB_FUNCTION_FIELD,
                       ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
                       ORG_UNIT_FIELD)
@@ -32,9 +32,11 @@ blueprint = flask.Blueprint('associations', __name__, static_url_path='',
 
 def create_association(employee_uuid, req):
     # TODO: Validation
+    c = lora.Connector()
 
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
-    org_uuid = req.get(ORG).get('uuid')
+    org_uuid = c.organisationenhed.get(
+        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     job_title_uuid = req.get(JOB_FUNCTION).get('uuid') if req.get(
         JOB_FUNCTION) else None
     association_type_uuid = req.get(ASSOCIATION_TYPE).get('uuid')
@@ -57,7 +59,7 @@ def create_association(employee_uuid, req):
         adresser=[location_uuid]
     )
 
-    lora.Connector().organisationfunktion.create(association)
+    c.organisationfunktion.create(association)
 
 
 def edit_association(employee_uuid, req):

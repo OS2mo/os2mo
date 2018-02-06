@@ -84,3 +84,9 @@ ROLE_FIELDS = {
     ORG_FIELD,
     USER_FIELD,
 }
+
+ITSYSTEMS_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedeitsystemer'),
+    type=FieldTypes.ZERO_TO_MANY,
+    filter_fn=lambda x: True
+)

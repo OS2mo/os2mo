@@ -10,10 +10,10 @@
 VALID_FROM = 'valid_from'
 VALID_TO = 'valid_to'
 ORG_UNIT = 'org_unit'
-ORG = 'org'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'
 ADDRESS_TYPE = 'address_type'
+ITSYSTEM = 'itsystem'
 
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
@@ -27,6 +27,7 @@ LOCATION = 'location'
 # Role type
 ROLE_KEY = 'Rolle'
 ROLE_TYPE = 'role_type'
+
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'

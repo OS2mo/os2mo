@@ -25,6 +25,7 @@ from .engagement import (ENGAGEMENT_KEY, create_engagement, edit_engagement,
                          terminate_engagement)
 from .keys import VALID_FROM
 from .role import create_role, edit_role
+from . import itsystem
 from .. import util
 from ..converters import writing
 
@@ -165,7 +166,6 @@ def create_employee(employee_uuid):
 
     :<jsonarr string type: **"engagement"**
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string org: The associated organisation
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr string valid_from: The date from which the engagement should
@@ -180,9 +180,6 @@ def create_employee(employee_uuid):
           "type": "engagement",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-          },
-          "org": {
-            "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
           },
           "job_function": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
@@ -199,7 +196,6 @@ def create_employee(employee_uuid):
 
     :<jsonarr string type: **"association"**
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string org: The associated organisation
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string location: The associated location.
@@ -215,9 +211,6 @@ def create_employee(employee_uuid):
           "type": "association",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-          },
-          "org": {
-            "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
           },
           "job_function": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
@@ -239,7 +232,6 @@ def create_employee(employee_uuid):
 
     :<jsonarr string type: **"role"**
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string org: The associated organisation
     :<jsonarr string role_type: The role type
     :<jsonarr string valid_from: The date from which the role should
         be valid, in ISO 8601.
@@ -253,9 +245,6 @@ def create_employee(employee_uuid):
           "type": "role",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-          },
-          "org": {
-            "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
           },
           "role_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -273,7 +262,7 @@ def create_employee(employee_uuid):
     handlers = {
         'engagement': create_engagement,
         'association': create_association,
-        # 'it': create_it,
+        'it': itsystem.create_system,
         'role': create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
@@ -286,7 +275,7 @@ def create_employee(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify('Unknown role type'), 400
+            return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
 
@@ -470,23 +459,25 @@ def edit_employee(employee_uuid):
         'engagement': edit_engagement,
         'association': edit_association,
         'role': edit_role,
-        # 'it': edit_it,
+        'it': itsystem.edit_system,
         # 'contact': edit_contact,
         # 'leader': edit_leader,
     }
 
     reqs = flask.request.get_json()
 
+    # TODO: pre-validate all requests, since we should either handle
+    # all or none of them
     for req in reqs:
         role_type = req.get('type')
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify('Unknown role type'), 400
+            return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
 
-    # TODO: Figure out the response
+    # TODO: Figure out the response -- probably just the edited object(s)?
     return flask.jsonify(employee_uuid), 200
 
 
