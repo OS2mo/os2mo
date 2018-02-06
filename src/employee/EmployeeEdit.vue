@@ -18,24 +18,24 @@
           <th scope="col">Slutdato</th>
         </tr>
       </thead>
-
+      
       <tbody>
         <tr v-for="e in engagements" v-bind:key="e.uuid">
           <td>
             {{e.org_unit | getProperty('name')}}
           </td>
           <td> 
-            <engagement-title
+            <job-function-picker
               no-label
               v-model="e.job_function.uuid"
               :preselected="e.job_function | getProperty('uuid')"
             />
           </td>
           <td>
-            <engagement-type 
+            <engagement-type-picker 
               no-label
-              v-model="e.type.uuid"
-              :preselected="e.type | getProperty('uuid')"
+              v-model="e.engagement_type.uuid"
+              :preselected="e.engagement_type | getProperty('uuid')"
             />
           </td>
           <td>
@@ -68,22 +68,29 @@
   import Employee from '../api/Employee'
   import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
-  import EngagementTitle from '../components/EngagementTitle'
-  import EngagementType from '../components/EngagementType'
+  import JobFunctionPicker from '../components/JobFunctionPicker'
+  import EngagementTypePicker from '../components/EngagementTypePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
 
   export default {
     components: {
       DatePicker,
-      EngagementTitle,
-      EngagementType,
+      JobFunctionPicker,
+      EngagementTypePicker,
       ButtonSubmit
+    },
+    props: {
+      uuid: String
     },
     data () {
       return {
         engagements: [],
         original: []
-
+      }
+    },
+    watch: {
+      uuid () {
+        this.getEngagements()
       }
     },
     created () {
@@ -91,8 +98,9 @@
     },
     methods: {
       getEngagements () {
+        console.log('get engagements for edit')
         var vm = this
-        Employee.getEngagementDetails(this.$route.params.uuid)
+        Employee.getEngagementDetails(this.uuid)
         .then(response => {
           vm.engagements = response
           // make a copy that is non-reactive
@@ -113,9 +121,7 @@
           edit.push(obj)
         })
 
-        console.log(edit)
-
-        Employee.editEmployee(this.$route.params.uuid, edit)
+        Employee.editEmployee(this.uuid, edit)
         .then(response => {
           vm.$refs.employeeEdit.hide()
         })

@@ -77,11 +77,9 @@
     methods: {
       // part of the death sin
       getEngagements () {
-        console.log('get engagements')
         var vm = this
         Employee.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
-          console.log(response)
           vm.engagements = response
         })
       },

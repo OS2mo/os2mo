@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>Stillingsbetegnelse</label>
+    <label v-if="!noLabel">Stillingsbetegnelse</label>
     <select 
       class="form-control col" 
       v-model="selected"
@@ -22,7 +22,8 @@ import Facet from '../api/Facet'
 export default {
   name: 'JobFunctionPicker',
   props: {
-    value: String
+    value: String,
+    noLabel: Boolean
   },
   data () {
     return {

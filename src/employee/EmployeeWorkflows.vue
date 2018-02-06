@@ -8,13 +8,15 @@
       <button-workflow label="Afslut medarbejder" icon="user-times" target="EmployeeEnd" v-b-modal.employeeEnd/>
     </div>
     <!-- Modal Component -->
-    <employee-create/>
+    <employee-create :org="org"/>
     <employee-move/>
     <employee-end/>
   </div>
 </template>
 
 <script>
+  import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import ButtonWorkflow from '../components/ButtonWorkflow'
   import EmployeeCreate from './EmployeeCreate'
   import EmployeeMove from './EmployeeMove'
@@ -26,6 +28,21 @@
       EmployeeCreate,
       EmployeeMove,
       EmployeeEnd
+    },
+    data () {
+      return {
+        org: {}
+      }
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', (org) => {
+        this.org = org
+      })
+    },
+    methods: {
+      getOrganisation () {
+        Organisation.getSelectedOrganisation()
+      }
     }
   }
 </script>

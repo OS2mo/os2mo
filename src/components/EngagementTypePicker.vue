@@ -19,12 +19,13 @@
 </template>
 
 <script>
-import Property from '../api/Property'
+import Facet from '../api/Facet'
 
 export default {
   props: {
     value: String,
     preselected: String,
+    org: {},
     noLabel: Boolean
   },
   data () {
@@ -38,9 +39,9 @@ export default {
     this.selectedType = this.preselected
   },
   methods: {
-    getEngagementTypes: function () {
+    getEngagementTypes () {
       var vm = this
-      Property.getEngagementTypes()
+      Facet.engagementTypes()
       .then(response => {
         vm.engagementTypes = response
       })

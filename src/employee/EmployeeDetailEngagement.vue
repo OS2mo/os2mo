@@ -44,11 +44,10 @@
       this.getDetails()
     },
     methods: {
-      getDetails: function () {
+      getDetails () {
         var vm = this
         Employee.getEngagementDetails(this.$route.params.uuid)
         .then(response => {
-          console.log(response)
           vm.details = response
         })
       }

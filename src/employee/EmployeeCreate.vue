@@ -56,6 +56,12 @@
       EngagementTypePicker,
       ButtonSubmit
     },
+    props: {
+      org: {
+        type: Object,
+        required: true
+      }
+    },
     data () {
       return {
         dateStartEnd: {},
@@ -66,7 +72,7 @@
         engagementType: ''
       }
     },
-    created: function () {},
+    created () {},
     methods: {
       createEmployee () {
         this.engagement.type = 'engagement'
