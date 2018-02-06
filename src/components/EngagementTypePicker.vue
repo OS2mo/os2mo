@@ -3,7 +3,7 @@
     <label>Engagementstype</label>
     <select 
       class="form-control col" 
-      v-model="selectedType"
+      v-model="selected"
       @change="updateEngagementType()"
     >
       <option disabled>Engagementstype</option>
@@ -27,7 +27,7 @@ export default {
   },
   data () {
     return {
-      selectedType: {},
+      selected: {},
       engagementTypes: []
     }
   },
@@ -44,7 +44,7 @@ export default {
     },
 
     updateEngagementType () {
-      this.$emit('input', this.selectedType)
+      this.$emit('input', this.selected)
     }
   }
 }

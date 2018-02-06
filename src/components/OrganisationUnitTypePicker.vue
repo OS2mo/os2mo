@@ -23,7 +23,7 @@
   import Facet from '../api/Facet'
 
   export default {
-    name: 'OrganisationUnitTypeSelect',
+    name: 'OrganisationUnitTypePicker',
     props: {
       value: {
         default: {},
