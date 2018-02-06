@@ -36,12 +36,12 @@
     props: {
       uuid: String
     },
-    data() {
+    data () {
       return {
         tabs: {}
       }
     },
-    created() {
+    created () {
       this.getTabs()
     },
     methods: {
