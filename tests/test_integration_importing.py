@@ -10,6 +10,8 @@ import pprint
 
 import freezegun
 
+from mora.service import facet
+
 from . import util
 
 
@@ -978,6 +980,12 @@ class IntegrationTests(util.LoRATestCase):
             )
 
             pprint.pprint(all_types)
+
+            self.assertEqual(
+                sorted(facet.FACETS),
+                sorted(all_types),
+                'the BALLERUP spreadsheet should include all supported facets',
+            )
 
             self.assertEqual(
                 {
