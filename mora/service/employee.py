@@ -25,6 +25,7 @@ from .engagement import (ENGAGEMENT_KEY, create_engagement, edit_engagement,
                          terminate_engagement)
 from .keys import VALID_FROM
 from .role import create_role, edit_role
+from . import itsystem
 from .. import util
 from ..converters import writing
 
@@ -261,7 +262,7 @@ def create_employee(employee_uuid):
     handlers = {
         'engagement': create_engagement,
         'association': create_association,
-        # 'it': create_it,
+        'it': itsystem.create_system,
         'role': create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
