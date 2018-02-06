@@ -40,6 +40,14 @@
       VAutocomplete
     },
     props: {
+      /**
+       * The organisation uuid used to search locally
+       */
+      orgUuid: {
+        type: String,
+        default: '',
+        required: true
+      },
       value: Object
     },
     data () {
