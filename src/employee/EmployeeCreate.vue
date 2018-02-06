@@ -15,11 +15,11 @@
           class="col" 
           label="Vælg enhed"
           v-model="engagement.org_unit"/>
-        <engagement-title 
+        <job-function-picker 
           :org-uuid="org.uuid" 
           v-model="engagement.job_function"
         />
-        <engagement-type 
+        <engagement-type-picker 
           :org-uuid="org.uuid" 
           v-model="engagement.engagement_type"
         />
@@ -31,7 +31,6 @@
           </label>
         </div>
       </div>
-    {{engagement}}
 
       <h4>Tilknytning</h4>
       <date-start-end v-model="association.dateStartEnd"/>
@@ -40,7 +39,7 @@
           class="col" 
           label="Vælg enhed"
           v-model="association.org_unit"/>
-        <engagement-title 
+        <job-function-picker 
           :org-uuid="org.uuid" 
           v-model="association.job_function"
         />
@@ -49,7 +48,6 @@
           v-model="association.association_type"
         />
       </div>
-      {{association}}
     </div>
 
     <div class="float-right">
@@ -67,9 +65,8 @@ import DateStartEnd from '../components/DatePickerStartEnd'
 import AddressSearch from '../components/AddressSearch'
 import AssociationType from '../components/AssociationType'
 import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
-import EngagementTitle from '../components/EngagementTitle'
-import EngagementType from '../components/EngagementType'
+import JobFunctionPicker from '../components/JobFunctionPicker'
+import EngagementTypePicker from '../components/EngagementTypePicker'
 import ButtonSubmit from '../components/ButtonSubmit'
 
 export default {
@@ -78,9 +75,8 @@ export default {
     AddressSearch,
     AssociationType,
     OrganisationUnitPicker,
-    UnitTypeSelect,
-    EngagementTitle,
-    EngagementType,
+    JobFunctionPicker,
+    EngagementTypePicker,
     ButtonSubmit
   },
   data () {
