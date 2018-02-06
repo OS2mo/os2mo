@@ -109,6 +109,10 @@ def to_iso_time(s):
     )
 
 
+def from_iso_time(s):
+    return iso8601.parse_date(s, default_timezone=default_timezone)
+
+
 def to_frontend_time(s):
     dt = parsedatetime(s)
 
