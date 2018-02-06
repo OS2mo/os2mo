@@ -69,6 +69,18 @@ export default {
   },
 
   /**
+   * Get a list of available details
+   * @param {String} uuid - employee uuid
+   * @returns {Object} A list of available tabs
+   */
+  getDetailList (uuid) {
+    return Service.get(`e/${uuid}/details/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  /**
    * Base call for getting details about an employee.
    * @param {String} uuid - Employee uuid
    * @param {String} detail - Name of the detail to get
