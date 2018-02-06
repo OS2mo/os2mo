@@ -15,6 +15,7 @@ This section describes how to interact with IT systems.
 
 '''
 
+import copy
 import functools
 import itertools
 import uuid
@@ -244,6 +245,62 @@ def create_system(employee_uuid, req):
         original,
         {
             'note': 'Tilføj IT-system',
+        },
+    )
+
+    c.bruger.update(payload, employee_uuid)
+
+
+def edit_system(employee_uuid, req):
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    data = req.get('data')
+
+    old_entry = req.get('original')
+    old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
+
+    if not old_entry:
+        raise ValueError('original required!')
+
+    # We are performing an update of a pre-existing effect
+    old_id = old_entry['uuid']
+    old_from = common.get_valid_from(old_entry)
+    old_to = common.get_valid_to(old_entry)
+
+    new_entry = req['data']
+
+    new_id = new_entry.get('uuid') or old_id
+    new_from = common.get_valid_from(new_entry, old_entry)
+    new_to = common.get_valid_to(new_entry, old_entry)
+
+    new_rel = [
+        rel
+        for rel in old_rel
+        if not (util.parsedatetime(rel['virkning']['from']) == old_from and
+                util.parsedatetime(rel['virkning']['to']) == old_to and
+                rel.get('uuid') == old_id)
+    ]
+
+    # FIXME: this should be a validation error!
+    if len(new_rel) == len(old_rel):
+        raise ValueError('original entry not found')
+
+    replacement = copy.deepcopy(original)
+    replacement['relationer']['tilknyttedeitsystemer'] = new_rel
+
+    payload = common.update_payload(
+        new_from,
+        new_to,
+        [(
+            mapping.ITSYSTEMS_FIELD,
+            {
+                'uuid': new_id,
+            }
+        )],
+        replacement,
+        {
+            'note': 'Rediger IT-system',
         },
     )
 
