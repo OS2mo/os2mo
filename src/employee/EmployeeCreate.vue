@@ -42,7 +42,6 @@
   import AddressSearch from '../components/AddressSearch'
   import ContactChannel from '../components/ContactChannelInput'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
   import EngagementTitle from '../components/EngagementTitle'
   import EngagementType from '../components/EngagementType'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -53,7 +52,6 @@
       AddressSearch,
       ContactChannel,
       OrganisationUnitPicker,
-      UnitTypeSelect,
       EngagementTitle,
       EngagementType,
       ButtonSubmit
