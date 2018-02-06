@@ -3,7 +3,7 @@
     <label>Stillingsbetegnelse</label>
     <select 
       class="form-control col" 
-      v-model="selectedJobFunction"
+      v-model="selected"
       @change="updateSelectedJobFunction()">
       <option disabled>Stillingsbetegnelse</option>
       <option 
@@ -26,7 +26,7 @@ export default {
   },
   data () {
     return {
-      selectedJobFunction: {},
+      selected: {},
       jobFunctions: []
     }
   },
@@ -43,7 +43,7 @@ export default {
     },
 
     updateSelectedJobFunction () {
-      this.$emit('input', this.selectedJobFunction)
+      this.$emit('input', this.selected)
     }
   }
 }

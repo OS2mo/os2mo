@@ -16,7 +16,7 @@
           label="Vælg enhed"
           v-model="orgUnit"/>
         <job-function-picker v-model="engagement.job_title_uuid"/>
-        <engagement-type v-model="engagement.engagement_type_uuid"/>
+        <engagement-type-picker v-model="engagement.engagement_type_uuid"/>
 
       </div>
       
@@ -43,7 +43,7 @@
   import ContactChannel from '../components/ContactChannelInput'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import JobFunctionPicker from '../components/JobFunctionPicker'
-  import EngagementType from '../components/EngagementType'
+  import EngagementTypePicker from '../components/EngagementTypePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
 
   export default {
@@ -53,7 +53,7 @@
       ContactChannel,
       OrganisationUnitPicker,
       JobFunctionPicker,
-      EngagementType,
+      EngagementTypePicker,
       ButtonSubmit
     },
     data () {
