@@ -58,12 +58,6 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.router-link-active {
-  color: #495057;
-  background-color: #fff;
-  border-color: #ddd #ddd #fff;
-}
-
 .cpr {
   color: #aaa
 }

@@ -40,7 +40,7 @@ def create_association(employee_uuid, req):
     job_title_uuid = req.get(JOB_FUNCTION).get('uuid') if req.get(
         JOB_FUNCTION) else None
     association_type_uuid = req.get(ASSOCIATION_TYPE).get('uuid')
-    location_uuid = req.get(LOCATION).get('uuid')
+    # location_uuid = req.get(LOCATION).get('uuid')
     valid_from = req.get(VALID_FROM)
     valid_to = req.get(VALID_TO, 'infinity')
 
@@ -56,7 +56,7 @@ def create_association(employee_uuid, req):
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=association_type_uuid,
         opgaver=[job_title_uuid] if job_title_uuid else None,
-        adresser=[location_uuid]
+        # adresser=[location_uuid]
     )
 
     c.organisationfunktion.create(association)
@@ -111,11 +111,11 @@ def edit_association(employee_uuid, req):
             {'uuid': data.get(ORG_UNIT).get('uuid')},
         ))
 
-    if LOCATION in data.keys():
-        update_fields.append((
-            ADDRESSES_FIELD,
-            {'uuid': data.get(LOCATION).get('uuid')},
-        ))
+    # if LOCATION in data.keys():
+    #     update_fields.append((
+    #         ADDRESSES_FIELD,
+    #         {'uuid': data.get(LOCATION).get('uuid')},
+    #     ))
 
     payload = update_payload(new_from, new_to, update_fields, original,
                              payload)

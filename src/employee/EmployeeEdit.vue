@@ -27,14 +27,14 @@
           <td> 
             <job-function-picker
               no-label
-              v-model="e.job_function.uuid"
+              v-model="e.job_function"
               :preselected="e.job_function | getProperty('uuid')"
             />
           </td>
           <td>
             <engagement-type-picker 
               no-label
-              v-model="e.engagement_type.uuid"
+              v-model="e.engagement_type"
               :preselected="e.engagement_type | getProperty('uuid')"
             />
           </td>

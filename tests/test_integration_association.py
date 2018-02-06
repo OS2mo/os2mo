@@ -33,9 +33,9 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "location": {
-                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                },
+                # "location": {
+                #     "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                # },
                 "valid_from": "2017-12-01T00:00:00+01",
                 "valid_to": "2017-12-02T00:00:00+01",
             }
@@ -116,17 +116,17 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                    }
-                ],
+                # "adresser": [
+                #     {
+                #         "virkning": {
+                #             "to_included": False,
+                #             "to": "2017-12-02 00:00:00+01",
+                #             "from_included": True,
+                #             "from": "2017-12-01 00:00:00+01"
+                #         },
+                #         "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                #     }
+                # ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -173,9 +173,9 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "location": {
-                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                },
+                # "location": {
+                #     "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                # },
                 "valid_from": "2017-12-01T00:00:00+01",
                 "valid_to": "2017-12-02T00:00:00+01",
             }
@@ -245,17 +245,17 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                    }
-                ],
+                # "adresser": [
+                #     {
+                #         "virkning": {
+                #             "to_included": False,
+                #             "to": "2017-12-02 00:00:00+01",
+                #             "from_included": True,
+                #             "from": "2017-12-01 00:00:00+01"
+                #         },
+                #         "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                #     }
+                # ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -306,9 +306,9 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "location": {
-                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                },
+                # "location": {
+                #     "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                # },
                 "valid_from": "2017-12-01T00:00:00+01",
             }
         ]
@@ -388,17 +388,17 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                    }
-                ],
+                # "adresser": [
+                #     {
+                #         "virkning": {
+                #             "to_included": False,
+                #             "to": "infinity",
+                #             "from_included": True,
+                #             "from": "2017-12-01 00:00:00+01"
+                #         },
+                #         "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                #     }
+                # ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -467,21 +467,21 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "opgaver": [
                     {
-                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
                         "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
                             "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
                         }
                     },
 
@@ -540,26 +540,26 @@ class Tests(util.LoRATestCase):
                     }
                 ],
 
-                "adresser": [
-                    {
-                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "uuid": "47c51ade-cf1c-401c-afb7-a2f7d3455fcd",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    }
-                ]
+                # "adresser": [
+                #     {
+                #         "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
+                #         "virkning": {
+                #             "from_included": True,
+                #             "to_included": False,
+                #             "from": "2017-01-01 00:00:00+01",
+                #             "to": "2018-04-01 00:00:00+02"
+                #         }
+                #     },
+                #     {
+                #         "uuid": "47c51ade-cf1c-401c-afb7-a2f7d3455fcd",
+                #         "virkning": {
+                #             "from_included": True,
+                #             "to_included": False,
+                #             "from": "2018-04-01 00:00:00+02",
+                #             "to": "infinity"
+                #         }
+                #     }
+                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -652,21 +652,21 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "opgaver": [
                     {
-                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
                         "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
                             "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
                         }
                     },
                 ],
@@ -723,17 +723,17 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
+                # "adresser": [
+                #     {
+                #         "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
+                #         "virkning": {
+                #             "from_included": True,
+                #             "to_included": False,
+                #             "from": "2017-01-01 00:00:00+01",
+                #             "to": "infinity"
+                #         }
+                #     }
+                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -843,6 +843,15 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2019-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
+                    {
                         "uuid": "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b",
                         "virkning": {
                             "from_included": True,
@@ -860,15 +869,6 @@ class Tests(util.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02"
                         },
                     },
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2019-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
                 ],
                 "tilknyttedebrugere": [
                     {
@@ -881,17 +881,17 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
+                # "adresser": [
+                #     {
+                #         "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
+                #         "virkning": {
+                #             "from_included": True,
+                #             "to_included": False,
+                #             "from": "2017-01-01 00:00:00+01",
+                #             "to": "infinity"
+                #         }
+                #     }
+                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1041,17 +1041,17 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
+                # "adresser": [
+                #     {
+                #         "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
+                #         "virkning": {
+                #             "from_included": True,
+                #             "to_included": False,
+                #             "from": "2017-01-01 00:00:00+01",
+                #             "to": "infinity"
+                #         }
+                #     }
+                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1173,17 +1173,17 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
+                # "adresser": [
+                #     {
+                #         "uuid": "c248af23-06d8-48d2-b84f-0ac65839808b",
+                #         "virkning": {
+                #             "from_included": True,
+                #             "to_included": False,
+                #             "from": "2017-01-01 00:00:00+01",
+                #             "to": "infinity"
+                #         }
+                #     }
+                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
