@@ -459,7 +459,7 @@ def edit_employee(employee_uuid):
         'engagement': edit_engagement,
         'association': edit_association,
         'role': edit_role,
-        # 'it': edit_it,
+        'it': itsystem.edit_system,
         # 'contact': edit_contact,
         # 'leader': edit_leader,
     }

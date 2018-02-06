@@ -131,6 +131,84 @@ class Writing(util.LoRATestCase):
             status_code=400,
         )
 
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            {
+                'message': 'original entry not found',
+                'status': 400,
+            },
+            json=[
+                {
+                    "type": "it",
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "original": {
+                        'name': 'Active Directory',
+                        'user_name': 'Fedtmule',
+                        # WRONG:
+                        'uuid': '00000000-0000-0000-0000-000000000000',
+                        'valid_from': '2002-02-14T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                    "data": {
+                        "valid_to": '2020-01-01T00:00:00+01:00',
+                    },
+                },
+            ],
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            {
+                'message': 'original entry not found',
+                'status': 400,
+            },
+            json=[
+                {
+                    "type": "it",
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "original": {
+                        'name': 'Active Directory',
+                        'user_name': 'Fedtmule',
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                        # WRONG:
+                        'valid_from': '2010-02-14T00:00:00+01:00',
+                        'valid_to': None,
+                    },
+                    "data": {
+                        "valid_to": '2020-01-01T00:00:00+01:00',
+                    },
+                },
+            ],
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            {
+                'message': 'original entry not found',
+                'status': 400,
+            },
+            json=[
+                {
+                    "type": "it",
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "original": {
+                        'name': 'Active Directory',
+                        'user_name': 'Fedtmule',
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                        'valid_from': '2001-02-14T00:00:00+01:00',
+                        # WRONG:
+                        'valid_to': '3001-02-14T00:00:00+01:00',
+                    },
+                    "data": {
+                        "valid_to": '2020-01-01T00:00:00+01:00',
+                    },
+                },
+            ],
+            status_code=400,
+        )
+
     def test_create_itsystem(self):
         self.load_sample_structures()
 
@@ -306,6 +384,156 @@ class Writing(util.LoRATestCase):
         ]
 
         self.assertEqual(new_relations, edited['relationer'])
+
+    def test_edit_itsystem_no_overwrite(self):
+        self.load_sample_structures()
+
+        # "fedtmule" already has IT systems
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        system_uuid = '59c135c9-2b15-41cc-97c8-b5dff7180beb'
+
+        req = [{
+            "type": "it",
+            "uuid": system_uuid,
+            "data": {
+                "valid_from": "2018-04-01T00:00:00+02",
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            {'message': 'original required!', 'status': 400},
+            status_code=400,
+            json=req,
+        )
+
+    def test_edit_itsystem(self):
+        self.load_sample_structures()
+
+        # "fedtmule" already has IT systems
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it'.format(userid),
+            [{'name': 'Active Directory',
+              'user_name': 'Fedtmule',
+              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+              'valid_from': '2002-02-14T00:00:00+01:00',
+              'valid_to': None},
+             {'name': 'Lokal Rammearkitektur',
+              'user_name': 'Fedtmule',
+              'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+              'valid_from': '2016-01-01T00:00:00+01:00',
+              'valid_to': '2018-01-01T00:00:00+01:00'}],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "it",
+                "original": {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    'valid_from': '2002-02-14T00:00:00+01:00',
+                    'valid_to': None,
+                },
+                "data": {
+                    "valid_to": '2020-01-01T00:00:00+01:00',
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it'.format(userid),
+            [{'name': 'Active Directory',
+              'user_name': 'Fedtmule',
+              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+              'valid_from': '2002-02-14T00:00:00+01:00',
+              'valid_to': '2020-01-01T00:00:00+01:00'},
+             {'name': 'Lokal Rammearkitektur',
+              'user_name': 'Fedtmule',
+              'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+              'valid_from': '2016-01-01T00:00:00+01:00',
+              'valid_to': '2018-01-01T00:00:00+01:00'}],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "it",
+                "original": {
+                    'name': 'Lokal Rammearkitektur',
+                    'user_name': 'Fedtmule',
+                    'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                    'valid_from': '2016-01-01T00:00:00+01:00',
+                    'valid_to': '2018-01-01T00:00:00+01:00',
+                },
+                "data": {
+                    "valid_to": None,
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it'.format(userid),
+            [{'name': 'Active Directory',
+              'user_name': 'Fedtmule',
+              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+              'valid_from': '2002-02-14T00:00:00+01:00',
+              'valid_to': '2020-01-01T00:00:00+01:00'},
+             {'name': 'Lokal Rammearkitektur',
+              'user_name': 'Fedtmule',
+              'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+              'valid_from': '2016-01-01T00:00:00+01:00',
+              'valid_to': None}],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "it",
+                "original": {
+                    'name': 'Lokal Rammearkitektur',
+                    'user_name': 'Fedtmule',
+                    'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                    'valid_from': '2016-01-01T00:00:00+01:00',
+                    'valid_to': None,
+                },
+                "data": {
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    'valid_to': '2040-01-01T00:00:00+01:00',
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it'.format(userid),
+            [{'name': 'Active Directory',
+              'user_name': 'Fedtmule',
+              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+              'valid_from': '2002-02-14T00:00:00+01:00',
+              'valid_to': '2020-01-01T00:00:00+01:00'},
+             {'name': 'Active Directory',
+              'user_name': 'Fedtmule',
+              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+              'valid_from': '2016-01-01T00:00:00+01:00',
+              'valid_to': '2040-01-01T00:00:00+01:00'}],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it?validity=future'.format(userid),
+            [],
+        )
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
