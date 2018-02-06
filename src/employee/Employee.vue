@@ -4,7 +4,7 @@
       <the-left-menu/>
     </div>
     <div class="col-md-9 workflow-padding">
-      <router-view/>
+      <router-view :key="$route.params.uuid"/>
     </div>
     
     <employee-workflows/>

@@ -27,9 +27,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
-                "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "valid_from": "2017-12-01T00:00:00+01",
@@ -65,7 +65,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -109,7 +109,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ]
             },
@@ -123,8 +123,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Engagement",
                         "funktionsnavn": "Engagement"
                     }
@@ -156,9 +156,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
-                "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -194,7 +194,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -238,7 +238,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ]
             },
@@ -252,8 +252,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Engagement",
                         "funktionsnavn": "Engagement"
                     }
@@ -278,8 +278,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
@@ -288,7 +286,8 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
-                "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "job_function": {
+                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -431,8 +430,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
@@ -440,16 +437,18 @@ class Tests(util.LoRATestCase):
         req = [{
             "type": "engagement",
             "uuid": engagement_uuid,
-            "overwrite": {
+            "original": {
                 "valid_from": "2017-01-01 00:00:00+01",
                 "valid_to": "infinity",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "job_title": {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
+                "job_function": {
+                    'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
                 "engagement_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
             },
             "data": {
-                "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "job_function": {
+                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                 "valid_from": "2018-04-01T00:00:00+02",
@@ -591,8 +590,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
@@ -750,8 +747,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'

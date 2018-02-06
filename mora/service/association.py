@@ -8,7 +8,7 @@
 
 '''
 Associations
------------
+------------
 
 This section describes how to interact with employee associations.
 
@@ -17,36 +17,32 @@ This section describes how to interact with employee associations.
 import flask
 
 from mora import lora
-from mora.service.common import (create_organisationsfunktion_payload,
-                                 inactivate_old_interval, update_payload,
-                                 ensure_bounds, inactivate_org_funktion)
-from mora.service.mapping import (ORG_FUNK_GYLDIGHED_FIELD, JOB_TITLE_FIELD,
-                                  ORG_FUNK_TYPE_FIELD, ORG_UNIT_FIELD,
-                                  ASSOCIATION_FIELDS, ADDRESSES_FIELD)
+from .common import (create_organisationsfunktion_payload, ensure_bounds,
+                     inactivate_old_interval, inactivate_org_funktion,
+                     update_payload)
+from .keys import (ASSOCIATION_KEY, ASSOCIATION_TYPE, JOB_FUNCTION, LOCATION,
+                   ORG_UNIT, VALID_FROM, VALID_TO)
+from .mapping import (ADDRESSES_FIELD, ASSOCIATION_FIELDS, JOB_FUNCTION_FIELD,
+                      ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
+                      ORG_UNIT_FIELD)
 
 blueprint = flask.Blueprint('associations', __name__, static_url_path='',
                             url_prefix='/service')
 
-ASSOCIATION_KEY = 'Tilknytning'
-
-JOB_TITLE = 'job_title'
-ASSOCIATION_TYPE = 'association_type'
-ORG_UNIT = 'org_unit'
-ORG = 'org'
-LOCATION = 'location'
-
 
 def create_association(employee_uuid, req):
     # TODO: Validation
+    c = lora.Connector()
 
     org_unit_uuid = req.get(ORG_UNIT).get('uuid')
-    org_uuid = req.get(ORG).get('uuid')
-    job_title_uuid = req.get(JOB_TITLE).get('uuid') if req.get(
-        JOB_TITLE) else None
+    org_uuid = c.organisationenhed.get(
+        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    job_title_uuid = req.get(JOB_FUNCTION).get('uuid') if req.get(
+        JOB_FUNCTION) else None
     association_type_uuid = req.get(ASSOCIATION_TYPE).get('uuid')
     location_uuid = req.get(LOCATION).get('uuid')
-    valid_from = req.get('valid_from')
-    valid_to = req.get('valid_to', 'infinity')
+    valid_from = req.get(VALID_FROM)
+    valid_to = req.get(VALID_TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ASSOCIATION_KEY)
 
@@ -63,7 +59,7 @@ def create_association(employee_uuid, req):
         adresser=[location_uuid]
     )
 
-    lora.Connector().organisationfunktion.create(association)
+    c.organisationfunktion.create(association)
 
 
 def edit_association(employee_uuid, req):
@@ -79,11 +75,11 @@ def edit_association(employee_uuid, req):
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
 
-    overwrite = req.get('overwrite')
-    if overwrite:
+    original_data = req.get('original')
+    if original_data:
         # We are performing an update
-        old_from = overwrite.get('valid_from')
-        old_to = overwrite.get('valid_to')
+        old_from = original_data.get('valid_from')
+        old_to = original_data.get('valid_to')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -97,10 +93,10 @@ def edit_association(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if JOB_TITLE in data.keys():
+    if JOB_FUNCTION in data.keys():
         update_fields.append((
-            JOB_TITLE_FIELD,
-            {'uuid': data.get(JOB_TITLE).get('uuid')}
+            JOB_FUNCTION_FIELD,
+            {'uuid': data.get(JOB_FUNCTION).get('uuid')}
         ))
 
     if ASSOCIATION_TYPE in data.keys():
@@ -133,9 +129,9 @@ def edit_association(employee_uuid, req):
 
 def terminate_association(association_uuid, enddate):
     """
-    Terminate the given engagement at the given date
+    Terminate the given association at the given date
 
-    :param engagement_uuid: An engagement UUID
+    :param association_uuid: An engagement UUID
     :param enddate: The date of termination
     """
     c = lora.Connector(effective_date=enddate)

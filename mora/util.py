@@ -6,8 +6,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import collections
 import datetime
 import functools
+import itertools
 import json
 import os
 import re
@@ -251,3 +253,9 @@ _cpr_re = re.compile(r'\d{10}')
 
 def is_cpr_number(v):
     return isinstance(v, str) and _cpr_re.fullmatch(v)
+
+
+def uniqueify(xs):
+    '''return the contents of xs as a list, but stable'''
+    # TODO: is this fast?
+    return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())

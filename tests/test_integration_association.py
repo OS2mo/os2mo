@@ -27,9 +27,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
-                "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -69,7 +69,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -113,7 +113,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
                 "adresser": [
@@ -138,8 +138,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Tilknytning",
                         "funktionsnavn": "Tilknytning"
                     }
@@ -160,8 +160,7 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_association, expected)
 
-    def test_create_association_no_job_title(self):
-
+    def test_create_association_no_job_function(self):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -170,8 +169,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -211,7 +209,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -244,7 +242,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
                 "adresser": [
@@ -269,8 +267,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Tilknytning",
                         "funktionsnavn": "Tilknytning"
                     }
@@ -302,9 +300,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
-                "org_unit": {'uuid': "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
-                "org": {'uuid': "f494ad89-039d-478e-91f2-a63566554bd6"},
-                "job_title": {'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -343,7 +341,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -387,7 +385,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
                 "adresser": [
@@ -412,8 +410,8 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 a30f5f68-9c0d-"
-                                             "44e9-afc9-04e58f52dfec "
+                                             "7697009c9053 9d07123e-"
+                                             "47ac-4a9a-88c8-da82e3a4bc9e "
                                              "Tilknytning",
                         "funktionsnavn": "Tilknytning"
                     }
@@ -448,7 +446,8 @@ class Tests(util.LoRATestCase):
             "type": "association",
             "uuid": association_uuid,
             "data": {
-                "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "job_function": {
+                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -624,18 +623,20 @@ class Tests(util.LoRATestCase):
         req = [{
             "type": "association",
             "uuid": association_uuid,
-            "overwrite": {
+            "original": {
                 "valid_from": "2017-01-01 00:00:00+01",
                 "valid_to": "infinity",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "job_title": {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
+                "job_function": {
+                    'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
                 "association_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
                 "location": {'uuid': "c248af23-06d8-48d2-b84f-0ac65839808b"}
             },
             "data": {
-                "job_title": {'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "job_function": {
+                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                 "valid_from": "2018-04-01T00:00:00+02",
