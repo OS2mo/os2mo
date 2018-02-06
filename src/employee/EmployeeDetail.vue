@@ -13,9 +13,6 @@
             <icon name="edit" />
           </button>
           <button class="btn btn-outline-primary">
-            <icon name="eye" />
-          </button>
-          <button class="btn btn-outline-primary">
             <icon name="book" />
           </button>
         </div>
@@ -23,25 +20,7 @@
       <!-- Modal Component -->
       <employee-edit/>
 
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'EmployeeDetailEngagement' }">
-            Engagement
-          </router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'EmployeeDetailContact' }">
-            Kontakt
-          </router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'EmployeeDetailIt' }">
-            It
-          </router-link>
-        </li>
-      </ul>
-
-      <router-view/>
+      <employee-detail-tabs :uuid="$route.params.uuid"/>
     </div>
   </div>
 </template>
@@ -49,11 +28,11 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/CPRNumber'
-  import EmployeeEdit from './EmployeeEdit'
+  import EmployeeDetailTabs from './EmployeeDetailTabs'
 
   export default {
     components: {
-      EmployeeEdit
+      EmployeeDetailTabs
     },
     data () {
       return {

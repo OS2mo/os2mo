@@ -15,14 +15,19 @@ This section describes how to interact with IT systems.
 
 '''
 
+import copy
+import functools
 import itertools
 import uuid
 
 import flask
 
+from .. import lora
 from .. import util
 
 from . import common
+from . import keys
+from . import mapping
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
@@ -179,6 +184,124 @@ def get_itsystem(id):
                     ),
                 ),
             ),
-            key=(lambda v: util.parsedatetime(v['valid_from']))
+            key=common.get_valid_from,
         ),
     )
+
+
+def validate_it(func):
+    @functools.wraps(func)
+    def wrapper(employee_uuid, req):
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        errors = []
+
+        # TODO: cache anything from LoRA and reuse it in the actual request?
+
+        if not req.get(keys.ITSYSTEM):
+            errors.append('missing "itsystem"')
+        else:
+            if not util.is_uuid(req[keys.ITSYSTEM].get('uuid')):
+                errors.append('missing or invalid "itsystem" UUID')
+
+            elif not c.itsystem.get(uuid=req[keys.ITSYSTEM]['uuid']):
+                errors.append('no such it system')
+
+        if common.get_valid_from(req) == util.negative_infinity:
+            errors.append('missing or invalid start date')
+
+        if not c.bruger.get(uuid=employee_uuid):
+            errors.append('no such user')
+
+        # TODO: ensure effective time is within both user and itsystem
+
+        if errors:
+            # TODO: add granular, consistent and documented error reporting
+            raise ValueError('; '.join(errors))
+
+        return func(employee_uuid, req)
+
+    return wrapper
+
+
+@validate_it
+def create_system(employee_uuid, req):
+    systemid = req[keys.ITSYSTEM].get('uuid')
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
+
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    payload = common.update_payload(
+        valid_from,
+        valid_to,
+        [(
+            mapping.ITSYSTEMS_FIELD,
+            {
+                'uuid': systemid,
+            }
+        )],
+        original,
+        {
+            'note': 'Tilføj IT-system',
+        },
+    )
+
+    c.bruger.update(payload, employee_uuid)
+
+
+def edit_system(employee_uuid, req):
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    data = req.get('data')
+
+    old_entry = req.get('original')
+    old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
+
+    if not old_entry:
+        raise ValueError('original required!')
+
+    # We are performing an update of a pre-existing effect
+    old_id = old_entry['uuid']
+    old_from = common.get_valid_from(old_entry)
+    old_to = common.get_valid_to(old_entry)
+
+    new_entry = req['data']
+
+    new_id = new_entry.get('uuid') or old_id
+    new_from = common.get_valid_from(new_entry, old_entry)
+    new_to = common.get_valid_to(new_entry, old_entry)
+
+    new_rel = [
+        rel
+        for rel in old_rel
+        if not (util.parsedatetime(rel['virkning']['from']) == old_from and
+                util.parsedatetime(rel['virkning']['to']) == old_to and
+                rel.get('uuid') == old_id)
+    ]
+
+    # FIXME: this should be a validation error!
+    if len(new_rel) == len(old_rel):
+        raise ValueError('original entry not found')
+
+    replacement = copy.deepcopy(original)
+    replacement['relationer']['tilknyttedeitsystemer'] = new_rel
+
+    payload = common.update_payload(
+        new_from,
+        new_to,
+        [(
+            mapping.ITSYSTEMS_FIELD,
+            {
+                'uuid': new_id,
+            }
+        )],
+        replacement,
+        {
+            'note': 'Rediger IT-system',
+        },
+    )
+
+    c.bruger.update(payload, employee_uuid)

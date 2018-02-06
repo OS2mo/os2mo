@@ -25,6 +25,7 @@ from .engagement import (ENGAGEMENT_KEY, create_engagement, edit_engagement,
                          terminate_engagement)
 from .keys import VALID_FROM
 from .role import create_role, edit_role
+from . import itsystem
 from .. import util
 from ..converters import writing
 
@@ -261,7 +262,7 @@ def create_employee(employee_uuid):
     handlers = {
         'engagement': create_engagement,
         'association': create_association,
-        # 'it': create_it,
+        'it': itsystem.create_system,
         'role': create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
@@ -274,7 +275,7 @@ def create_employee(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify('Unknown role type'), 400
+            return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
 
@@ -458,23 +459,25 @@ def edit_employee(employee_uuid):
         'engagement': edit_engagement,
         'association': edit_association,
         'role': edit_role,
-        # 'it': edit_it,
+        'it': itsystem.edit_system,
         # 'contact': edit_contact,
         # 'leader': edit_leader,
     }
 
     reqs = flask.request.get_json()
 
+    # TODO: pre-validate all requests, since we should either handle
+    # all or none of them
     for req in reqs:
         role_type = req.get('type')
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify('Unknown role type'), 400
+            return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
 
-    # TODO: Figure out the response
+    # TODO: Figure out the response -- probably just the edited object(s)?
     return flask.jsonify(employee_uuid), 200
 
 

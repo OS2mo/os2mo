@@ -31,17 +31,24 @@ import flask
 import werkzeug
 
 from . import common
-from .keys import ADDRESS_TYPE, JOB_FUNCTION, ORG_UNIT_TYPE, ASSOCIATION_TYPE
+from . import keys
 from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
                             url_prefix='/service')
 
 FACETS = {
-    ADDRESS_TYPE: 'Adressetype',
-    JOB_FUNCTION: 'Stillingsbetegnelse',
-    ASSOCIATION_TYPE: 'Tilknytningstype',
-    ORG_UNIT_TYPE: 'Enhedstype',
+    keys.ADDRESS_TYPE: 'Adressetype',
+    keys.ASSOCIATION_TYPE: 'Tilknytningstype',
+    # keys.AUTHORITY_TYPE: 'Myndighedstype',
+    keys.ENGAGEMENT_TYPE: 'Engagementstype',
+    # keys.FUNCTION_TYPE: 'Funktionstype',
+    keys.JOB_FUNCTION: 'Stillingsbetegnelse',
+    # keys.LEADER_TYPE: 'Ledertyper',
+    keys.ORG_UNIT_TYPE: 'Enhedstype',
+    # keys.RESPONSIBILITY_TYPE: 'Lederansvar',
+    keys.ROLE_TYPE: 'Rolletype',
+    # keys.USER_TYPE: 'Brugertype',
 }
 
 

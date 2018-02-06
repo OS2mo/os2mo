@@ -51,10 +51,10 @@
     },
     methods: {
       getLabel (item) {
-          return item.vejnavn
+        return item.vejnavn
       },
 
-      // Update address suggestions based on search query      
+      // Update address suggestions based on search query
       getGeographicalLocation (query) {
         let vm = this
         let local = this.searchCountry ? '' : Organisation.getSelectedOrganisation().uuid

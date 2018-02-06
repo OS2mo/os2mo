@@ -22,7 +22,7 @@
         <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
       </div>
 
-      <unit-type-select 
+      <organisation-unit-type-picker 
         v-model="orgUnit.type" 
         :orgUuid="org.uuid"
       />
@@ -71,7 +71,7 @@
   import AddressSearch from '../components/AddressSearch'
   import ContactChannel from '../components/ContactChannelInput'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import UnitTypeSelect from '../components/OrganisationUnitTypeSelect'
+  import OrganisationUnitTypePicker from '../components/OrganisationUnitTypePicker'
 
   export default {
     name: 'OrganisationUnitCreate',
@@ -82,7 +82,7 @@
       AddressSearch,
       ContactChannel,
       OrganisationUnitPicker,
-      UnitTypeSelect
+      OrganisationUnitTypePicker
     },
     data () {
       return {
