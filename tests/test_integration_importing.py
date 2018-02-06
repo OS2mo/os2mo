@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import pprint
+
 import freezegun
 
 from . import util
@@ -921,29 +923,220 @@ class IntegrationTests(util.LoRATestCase):
         with util.mock('dawa-ballerup.json', allow_mox=True):
             util.import_fixture('BALLERUP.xlsx')
 
-        self.assertRequestResponse(
-            '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/',
-            [{'name': 'address_type',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                      '/f/address_type/',
-              'user_key': 'Adressetype',
-              'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2'},
-             {'name': 'association_type',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                      '/f/association_type/',
-              'user_key': 'Tilknytningstype',
-              'uuid': '81b80fa7-b71b-4d33-b528-cae038208758'},
-             {'name': 'job_function',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                      '/f/job_function/',
-              'user_key': 'Stillingsbetegnelse',
-              'uuid': '51774dde-bf2c-4100-9059-70d1a1fb1d1f'},
-             {'name': 'org_unit_type',
-              'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                      '/f/org_unit_type/',
-              'user_key': 'Enhedstype',
-              'uuid': 'd2a8b57a-5913-47c9-8ead-99b9822e27fa'}],
-        )
+        with self.subTest('all facets'):
+            self.assertRequestResponse(
+                '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/',
+                [{'name': 'address_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                  '/f/address_type/',
+                  'user_key': 'Adressetype',
+                  'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2'},
+                 {'name': 'association_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                  '/f/association_type/',
+                  'user_key': 'Tilknytningstype',
+                  'uuid': '81b80fa7-b71b-4d33-b528-cae038208758'},
+                 {'name': 'job_function',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                  '/f/job_function/',
+                  'user_key': 'Stillingsbetegnelse',
+                  'uuid': '51774dde-bf2c-4100-9059-70d1a1fb1d1f'},
+                 {'name': 'org_unit_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                  '/f/org_unit_type/',
+                  'user_key': 'Enhedstype',
+                  'uuid': 'd2a8b57a-5913-47c9-8ead-99b9822e27fa'},
+                 {'name': 'role_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                  '/f/role_type/',
+                  'user_key': 'Rolletype',
+                  'uuid': '09c93426-db19-4442-aea8-5ac9ba9573a6'}],
+            )
+
+            def get(f):
+                r = self.client.get(f['path'])
+
+                if r.status_code != 200:
+                    v = (r.status, r.get_data(as_text=True))
+                else:
+                    v = r.json
+
+                return (f['name'], v)
+
+            all_types = dict(
+                map(
+                    get,
+                    self.client.get(
+                        '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/f/',
+                    ).json,
+                ),
+            )
+
+            pprint.pprint(all_types)
+
+            self.assertEqual(
+                {
+                    'address_type': [
+                        {'example': 'Besvares indenfor to hverdage.',
+                         'name': 'Bemærkninger om email',
+                         'scope': 'TEXT',
+                         'user_key': 'Email bemærkninger',
+                         'uuid': 'e86c1e6f-934c-42b2-8a6b-20d1b7ea79a5'},
+                        {'example': '5790001969370',
+                         'name': 'EAN',
+                         'scope': 'INTEGER',
+                         'user_key': 'EAN',
+                         'uuid': 'a88aa93b-8edc-46ab-bad7-6535f9b765e5'},
+                        {'example': 'hpe@korsbaek.dk',
+                         'name': 'Emailadresse',
+                         'scope': 'EMAIL',
+                         'user_key': 'Email',
+                         'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
+                        {'example': '<UUID>',
+                         'name': 'Henvendelsessted',
+                         'scope': 'DAR',
+                         'user_key': 'AdresseHenvendelsesSted',
+                         'uuid': 'ff4ed3b4-18fc-42cf-af12-51ac7b9a069a'},
+                        {'example': 'http://www.korsbaek.dk/',
+                         'name': 'Hjemmeside',
+                         'scope': 'WWW',
+                         'user_key': 'URL',
+                         'uuid': '160ecaed-50b0-4800-bebc-0d0289a4f624'},
+                        {'example': '<UUID>',
+                         'name': 'Lokation',
+                         'scope': 'DAR',
+                         'user_key': 'AdresseLokation',
+                         'uuid': '031f93c3-6bab-462e-a998-87cad6db3128'},
+                        {'example': '<UUID>',
+                         'name': 'Postadresse',
+                         'scope': 'DAR',
+                         'user_key': 'AdressePost',
+                         'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f'},
+                        {'example': 'Postboks 29, 4260 Korsbæk',
+                         'name': 'Returadresse',
+                         'scope': 'DAR',
+                         'user_key': 'AdressePostRetur',
+                         'uuid': '2c4d87bd-ad26-4580-982f-7ea90c4512d3'},
+                        {'example': None,
+                         'name': 'Skolekode',
+                         'scope': 'INTEGER',
+                         'user_key': 'Skolekode',
+                         'uuid': '9ee2a20b-2687-406b-b658-55a5f4b5287b'},
+                        {'example': None,
+                         'name': 'Telefax',
+                         'scope': 'PHONE',
+                         'user_key': 'Fax',
+                         'uuid': '26d0da83-f43f-4feb-a7b1-d7c28d56daae'},
+                        {'example': '+45 3334 9400',
+                         'name': 'Telefonnummer',
+                         'scope': 'PHONE',
+                         'user_key': 'Telefon',
+                         'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a'},
+                        {'example': 'Onsdag 10:30-11:00 Torsdag 16:00-18:00',
+                         'name': 'Åbningstid, henvendelse',
+                         'scope': 'TEXT',
+                         'user_key': 'Åbningstid, henvendelse',
+                         'uuid': '08857eb8-a2c4-4337-836f-19332f991362'},
+                        {'example': 'Mandag 10:00-12:00 Tirsdag 14:00-16:00',
+                         'name': 'Åbningstid, telefon',
+                         'scope': 'TEXT',
+                         'user_key': 'Åbningstid Telefon',
+                         'uuid': '0836ffbf-3b3e-410f-8cbf-face7e6844ef'},
+                    ],
+                    'association_type': [
+                        {'example': None,
+                         'name': 'Ansat',
+                         'scope': None,
+                         'user_key': 'Ansat',
+                         'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
+                    ],
+                    'job_function': [
+                        {'example': None,
+                         'name': 'Administrativ leder',
+                         'scope': None,
+                         'user_key': 'Administrativ leder',
+                         'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee'},
+                        {'example': None,
+                         'name': 'Afdelingschef',
+                         'scope': None,
+                         'user_key': 'Afdelingschef',
+                         'uuid': 'cc9e7333-5031-45f2-b123-d83cbda4b9d5'},
+                        {'example': None,
+                         'name': 'Afdelingssygeplejerske',
+                         'scope': None,
+                         'user_key': 'Afdelingssygeplejerske',
+                         'uuid': 'fdfa8984-1b78-4014-8c35-f2a59b758bcb'},
+                        {'example': None,
+                         'name': '… (≈400 flere)',
+                         'scope': None,
+                         'user_key': '… (≈400 flere)',
+                         'uuid': 'f5b8f156-fa4e-46e2-b9e6-51a953166273'},
+                    ],
+                    'org_unit_type': [
+                        {'example': None,
+                         'name': 'Afsnit',
+                         'scope': None,
+                         'user_key': 'Afsnit',
+                         'uuid': '3498dd38-5cb5-4c19-a43d-c63ecaefacaf'},
+                        {'example': None,
+                         'name': 'Andre',
+                         'scope': None,
+                         'user_key': 'Andre',
+                         'uuid': '72e01813-495b-47f7-a71c-4e41dfe82813'},
+                        {'example': None,
+                         'name': 'Direktørområde',
+                         'scope': None,
+                         'user_key': 'Direktørområde',
+                         'uuid': '26d94be8-e164-4405-b2b3-a73807703b94'},
+                        {'example': None,
+                         'name': 'Fagligt Center',
+                         'scope': None,
+                         'user_key': 'Fagligt Center',
+                         'uuid': '59f10075-88f6-4758-bf61-454858170776'},
+                        {'example': None,
+                         'name': 'Institution',
+                         'scope': None,
+                         'user_key': 'Institution',
+                         'uuid': '547e6946-abdb-4dc2-ad99-b6042e05a7e4'},
+                        {'example': None,
+                         'name': 'Institutionsafsnit',
+                         'scope': None,
+                         'user_key': 'Institutionsafsnit',
+                         'uuid': '04c310a3-42a0-437b-a27c-f9ba41b65e55'},
+                        {'example': None,
+                         'name': 'Institutionsunderafsnit',
+                         'scope': None,
+                         'user_key': 'Institutionsunderafsnit',
+                         'uuid': '1de0c88a-dca9-4c90-931b-c60c1a0efab4'},
+                        {'example': None,
+                         'name': 'Kommune',
+                         'scope': None,
+                         'user_key': 'Kommune',
+                         'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195'},
+                        {'example': None,
+                         'name': 'Konsulentfunktion',
+                         'scope': None,
+                         'user_key': 'Konsulentfunktion',
+                         'uuid': '225342e1-7ad3-463c-9aa0-1b0341e9e316'},
+                        {'example': None,
+                         'name': 'Ledelsessekretariat',
+                         'scope': None,
+                         'user_key': 'Ledelsessekretariat',
+                         'uuid': '18d124f1-19c8-4401-a8ed-cdb5e90accf2'},
+                        {'example': None,
+                         'name': 'Supportcenter',
+                         'scope': None,
+                         'user_key': 'Supportcenter',
+                         'uuid': '7c0f22a0-e942-4333-ab69-d716de2ff8ee'},
+                        {'example': None,
+                         'name': 'Team',
+                         'scope': None,
+                         'user_key': 'Team',
+                         'uuid': '56cfc7f4-2e54-45e2-af27-90591fb7c664'},
+                    ],
+                    'role_type': [],
+                },
+                all_types)
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/children',
