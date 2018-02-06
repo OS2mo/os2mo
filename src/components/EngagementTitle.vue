@@ -4,12 +4,12 @@
     <select 
       class="form-control col" 
       v-model="selectedTitle"
-      @change="updateSelectedTitle()">
+      @change="updatejobFunctions()">
       <option disabled>Stillingsbetegnelse</option>
       <option 
-        v-for="title in engagementTitles" 
+        v-for="title in jobFunctions" 
         v-bind:key="title.uuid"
-        :value="title.uuid">
+        :value="title">
           {{title.name}}
       </option>
     </select>
@@ -17,29 +17,34 @@
 </template>
 
 <script>
-import Property from '../api/Property'
+import Facet from '../api/Facet'
+
 export default {
   props: {
-    value: String
+    value: Object,
+    orgUuid: String
   },
   data () {
     return {
       selectedTitle: '',
-      engagementTitles: []
+      jobFunctions: []
     }
   },
-  created () {
-    this.getEngagementTitles()
+  watch: {
+    orgUuid () {
+      this.getjobFunctions()
+    }
   },
   methods: {
-    getEngagementTitles () {
-      var vm = this
-      Property.getEngagementTitles().then(function (response) {
-        vm.engagementTitles = response
-      })
+    getjobFunctions () {
+      let vm = this
+      Facet.jobFunctions(this.orgUuid)
+        .then(response => {
+          vm.jobFunctions = response
+        })
     },
 
-    updateSelectedTitle () {
+    updatejobFunctions () {
       this.$emit('input', this.selectedTitle)
     }
   }

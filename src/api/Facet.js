@@ -14,14 +14,35 @@ export default {
   },
 
   organisationUnitTypes (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/ou/`)
+    return Service.get(`/o/${orgUuid}/f/org_unit_type/`)
     .then(response => {
       return response.data
     })
   },
 
   addressTypes (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/address/`)
+    return Service.get(`/o/${orgUuid}/f/address_type/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  associationTypes (orgUuid) {
+    return Service.get(`/o/${orgUuid}/f/association_type/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  engagementTypes (orgUuid) {
+    return Service.get(`/o/${orgUuid}/f/engagement_type/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  jobFunctions (orgUuid) {
+    return Service.get(`/o/${orgUuid}/f/job_function/`)
     .then(response => {
       return response.data
     })

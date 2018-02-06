@@ -10,7 +10,7 @@
       <option 
         v-for="etype in engagementTypes" 
         v-bind:key="etype.uuid"
-        :value="etype.uuid"
+        :value="etype"
       >
         {{etype.name}}
       </option>
@@ -19,11 +19,12 @@
 </template>
 
 <script>
-import Property from '../api/Property'
+import Facet from '../api/Facet'
 
 export default {
   props: {
-    value: String
+    value: Object,
+    orgUuid: String
   },
   data () {
     return {
@@ -31,13 +32,15 @@ export default {
       engagementTypes: []
     }
   },
-  created () {
-    this.getEngagementTypes()
+  watch: {
+    orgUuid () {
+      this.getEngagementTypes()
+    }
   },
   methods: {
-    getEngagementTypes: function () {
-      var vm = this
-      Property.getEngagementTypes()
+    getEngagementTypes () {
+      let vm = this
+      Facet.engagementTypes(this.orgUuid)
       .then(response => {
         vm.engagementTypes = response
       })
