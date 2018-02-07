@@ -60,7 +60,7 @@ export default new Router({
           path: '/medarbejder',
           name: 'Employee',
           component: Employee,
-          // redirect: { name: 'EmployeeList' },
+          redirect: { name: 'EmployeeList' },
 
           children: [
             {
