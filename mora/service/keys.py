@@ -9,6 +9,9 @@
 # Common
 VALID_FROM = 'valid_from'
 VALID_TO = 'valid_to'
+TO = 'to'
+FROM = 'from'
+VALIDITY = 'validity'
 ORG_UNIT = 'org_unit'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'

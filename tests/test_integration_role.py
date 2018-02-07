@@ -30,8 +30,10 @@ class Tests(util.LoRATestCase):
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "valid_from": "2017-12-01T00:00:00+01",
-                "valid_to": "2017-12-02T00:00:00+01",
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01",
+                    "to": "2017-12-02T00:00:00+01",
+                },
             }
         ]
 
@@ -146,7 +148,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "valid_from": "2017-12-01T00:00:00+01",
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01",
+                },
             }
         ]
 
@@ -264,7 +268,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
                 },
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                },
             },
         }]
 
@@ -398,7 +404,9 @@ class Tests(util.LoRATestCase):
             "type": "role",
             "uuid": role_uuid,
             "data": {
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                },
             },
         }]
 
@@ -514,8 +522,10 @@ class Tests(util.LoRATestCase):
             "type": "role",
             "uuid": role_uuid,
             "original": {
-                "valid_from": "2017-01-01 00:00:00+01",
-                "valid_to": "infinity",
+                "validity": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "to": "infinity",
+                },
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
@@ -527,7 +537,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
                 },
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                },
             },
         }]
 

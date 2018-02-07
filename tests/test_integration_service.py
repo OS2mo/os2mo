@@ -589,8 +589,10 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
-                'valid_from': '2017-01-01T00:00:00+01:00',
-                'valid_to': None,
+                "validity": {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
         ]
 

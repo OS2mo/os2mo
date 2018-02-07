@@ -159,7 +159,17 @@ def create_employee(employee_uuid):
 
     :param employee_uuid: The UUID of the employee.
 
-    **Example Request**:
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00",
+      }
 
     Request payload contains a list of creation objects, each differentiated
     by the attribute 'type'. Each of these object types are detailed below:
@@ -170,10 +180,7 @@ def create_employee(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
-    :<jsonarr string valid_from: The date from which the engagement should
-        be valid, in ISO 8601.
-    :<jsonarr string valid_to: The date to which the engagement should be
-        valid, in ISO 8601.
+    :<jsonarr object validity: The validities of the created object.
 
     .. sourcecode:: json
 
@@ -189,8 +196,10 @@ def create_employee(employee_uuid):
           "engagement_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "valid_from": "2016-01-01T00:00:00+00:00",
-          "valid_to": "2018-01-01T00:00:00+00:00"
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2018-01-01T00:00:00+00:00"
+          }
         }
       ]
 
@@ -201,10 +210,7 @@ def create_employee(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string location: The associated location.
-    :<jsonarr string valid_from: The date from which the association should
-        be valid, in ISO 8601.
-    :<jsonarr string valid_to: The date to which the association should be
-        valid, in ISO 8601.
+    :<jsonarr object validity: The validities of the created object.
 
     .. sourcecode:: json
 
@@ -223,8 +229,10 @@ def create_employee(employee_uuid):
           "location": {
             "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
           },
-          "valid_from": "2016-01-01T00:00:00+00:00",
-          "valid_to": "2018-01-01T00:00:00+00:00"
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2018-01-01T00:00:00+00:00"
+          },
         }
       ]
 
@@ -235,10 +243,7 @@ def create_employee(employee_uuid):
     :<jsonarr string type: **"role"**
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string role_type: The role type
-    :<jsonarr string valid_from: The date from which the role should
-        be valid, in ISO 8601.
-    :<jsonarr string valid_to: The date to which the role should be
-        valid, in ISO 8601.
+    :<jsonarr object validity: The validities of the created object.
 
     .. sourcecode:: json
 
@@ -251,8 +256,10 @@ def create_employee(employee_uuid):
           "role_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "valid_from": "2016-01-01T00:00:00+00:00",
-          "valid_to": "2018-01-01T00:00:00+00:00"
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2018-01-01T00:00:00+00:00"
+          }
         }
       ]
 
@@ -262,10 +269,7 @@ def create_employee(employee_uuid):
 
     :<jsonarr string type: **"leave"**
     :<jsonarr string leave_type: The leave type
-    :<jsonarr string valid_from: The date from which the leave should
-        be valid, in ISO 8601.
-    :<jsonarr string valid_to: The date to which the leave should be
-        valid, in ISO 8601.
+    :<jsonarr object validity: The validities of the created object.
 
     .. sourcecode:: json
 
@@ -275,8 +279,10 @@ def create_employee(employee_uuid):
           "leave_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "valid_from": "2016-01-01T00:00:00+00:00",
-          "valid_to": "2018-01-01T00:00:00+00:00"
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2018-01-01T00:00:00+00:00"
+          },
         }
       ]
 
@@ -314,7 +320,17 @@ def edit_employee(employee_uuid):
 
     :statuscode 200: The edit succeeded.
 
-    **Example Request**:
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00",
+      }
 
     Request payload contains a list of edit objects, each differentiated
     by the attribute 'type'. Each of these object types are detailed below:
@@ -339,8 +355,7 @@ def edit_employee(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
-    :<jsonarr string valid_from: The from date, in ISO 8601.
-    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
 
@@ -349,8 +364,10 @@ def edit_employee(employee_uuid):
           "type": "engagement",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2018-01-01T00:00:00+00:00",
+            "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2018-01-01T00:00:00+00:00"
+            },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             },
@@ -362,8 +379,10 @@ def edit_employee(employee_uuid):
             }
           },
           "data": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2019-01-01T00:00:00+00:00",
+            "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2019-01-01T00:00:00+00:00"
+            },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             }
@@ -392,8 +411,7 @@ def edit_employee(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string location: The associated location.
-    :<jsonarr string valid_from: The from date, in ISO 8601.
-    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
 
@@ -402,8 +420,10 @@ def edit_employee(employee_uuid):
           "type": "association",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2018-01-01T00:00:00+00:00",
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2018-01-01T00:00:00+00:00"
+            },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             },
@@ -412,14 +432,16 @@ def edit_employee(employee_uuid):
             },
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
-            }
+            },
             "location": {
               "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-            },
+            }
           },
           "data": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2019-01-01T00:00:00+00:00",
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2019-01-01T00:00:00+00:00"
+            },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
             }
@@ -446,8 +468,7 @@ def edit_employee(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string role_type: The role type
     :<jsonarr string location: The associated location.
-    :<jsonarr string valid_from: The from date, in ISO 8601.
-    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
 
@@ -456,8 +477,10 @@ def edit_employee(employee_uuid):
           "type": "role",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2018-01-01T00:00:00+00:00",
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2018-01-01T00:00:00+00:00"
+            },
             "role_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
             },
@@ -466,8 +489,10 @@ def edit_employee(employee_uuid):
             }
           },
           "data": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2019-01-01T00:00:00+00:00",
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2019-01-01T00:00:00+00:00"
+            },
             "role_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
             }
@@ -492,8 +517,7 @@ def edit_employee(employee_uuid):
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string leave_type: The leave type
-    :<jsonarr string valid_from: The from date, in ISO 8601.
-    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
 
@@ -502,15 +526,19 @@ def edit_employee(employee_uuid):
           "type": "leave",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2018-01-01T00:00:00+00:00",
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2018-01-01T00:00:00+00:00"
+            },
             "leave_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
-            },
+            }
           },
           "data": {
-            "valid_from": "2016-01-01T00:00:00+00:00",
-            "valid_to": "2019-01-01T00:00:00+00:00",
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2019-01-01T00:00:00+00:00"
+            },
             "leave_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
             }
