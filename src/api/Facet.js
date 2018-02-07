@@ -1,50 +1,82 @@
 import { Service } from './HttpCommon'
 
 export default {
+
+  /**
+   * Get IT a list of available IT systems
+   * @param {String} uuid - organisation uuid
+   * @returns {Array} a list of options
+   */
+  itSystems (uuid) {
+    return Service.get(`/o/${uuid}/it/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  /**
+   * Get a list of options for a facet
+   * @param {String} uuid - organisation uuid
+   * @returns {Array} a list of options
+   */
+  getFacet (uuid, facet) {
+    return Service.get(`/o/${uuid}/f/${facet}/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
   /**
    * Get a list of all available facets
-   * @param {String} orgUuid - organisation uuid
-   * @returns {Array} a list of all available facets
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
    */
-  getAll (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/`)
-    .then(response => {
-      return response.data
-    })
+  getAll (uuid) {
+    return this.getFacet(uuid)
   },
 
-  organisationUnitTypes (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/org_unit_type/`)
-    .then(response => {
-      return response.data
-    })
+  /**
+   * Return a list of organisation unit type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  organisationUnitTypes (uuid) {
+    return this.getFacet(uuid, 'org_unit_type')
   },
 
-  addressTypes (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/address_type/`)
-    .then(response => {
-      return response.data
-    })
+  /**
+   * Return a list of address type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  addressTypes (uuid) {
+    return this.getFacet(uuid, 'address_type')
   },
 
-  associationTypes (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/association_type/`)
-    .then(response => {
-      return response.data
-    })
+  /**
+   * Return a list of association type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  associationTypes (uuid) {
+    return this.getFacet(uuid, 'association_type')
   },
 
-  engagementTypes (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/engagement_type/`)
-    .then(response => {
-      return response.data
-    })
+  /**
+   * Return a list of engagement type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  engagementTypes (uuid) {
+    return this.getFacet(uuid, 'engagement_type')
   },
 
-  jobFunctions (orgUuid) {
-    return Service.get(`/o/${orgUuid}/f/job_function/`)
-    .then(response => {
-      return response.data
-    })
+  /**
+   * Return a list of job function options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  jobFunctions (uuid) {
+    return this.getFacet(uuid, 'job_function')
   }
 }
