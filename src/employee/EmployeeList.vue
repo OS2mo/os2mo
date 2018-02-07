@@ -40,6 +40,12 @@
     components: {
       Loading
     },
+    props: {
+      orgUuid: {
+        type: String,
+        required: true
+      }
+    },
     data () {
       return {
         employees: [],

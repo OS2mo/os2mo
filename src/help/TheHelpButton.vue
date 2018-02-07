@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="{ name: 'help'}">
+  <router-link :to="{ name: 'Help'}">
     <button type="button" class="btn btn-link">
       <icon name="question-circle"></icon>
     </button>

@@ -9,12 +9,13 @@
     </div>
     <!-- Modal Component -->
     <employee-create/>
-    <employee-move/>
+    <employee-move :org="org"/>
     <employee-end/>
   </div>
 </template>
 
 <script>
+  import { EventBus } from '../EventBus'
   import ButtonWorkflow from '../components/ButtonWorkflow'
   import EmployeeCreate from './EmployeeCreate'
   import EmployeeMove from './EmployeeMove'
@@ -26,6 +27,16 @@
       EmployeeCreate,
       EmployeeMove,
       EmployeeEnd
+    },
+    data () {
+      return {
+        org: {}
+      }
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', (newOrg) => {
+        this.org = newOrg
+      })
     }
   }
 </script>

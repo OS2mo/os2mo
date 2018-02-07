@@ -29,7 +29,6 @@
 
 
 <script>
-  import Organisation from '../api/Organisation'
   import Property from '../api/Property'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
@@ -40,12 +39,8 @@
       VAutocomplete
     },
     props: {
-      /**
-       * The organisation uuid used to search locally
-       */
-      orgUuid: {
-        type: String,
-        default: '',
+      org: {
+        type: Object,
         required: true
       },
       value: Object
@@ -65,7 +60,7 @@
       // Update address suggestions based on search query
       getGeographicalLocation (query) {
         let vm = this
-        let local = this.searchCountry ? '' : Organisation.getSelectedOrganisation().uuid
+        let local = this.searchCountry ? '' : this.org.uuid
         Property.getGeographicalLocation(query, local)
         .then(response => {
           vm.addressSuggestions = response
