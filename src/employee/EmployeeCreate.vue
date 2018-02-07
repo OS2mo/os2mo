@@ -6,49 +6,12 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
-  
-    <div>
-      <h4>Engagement</h4>
-      <date-start-end v-model="engagement.dateStartEnd"/>
-      <div class="form-row">
-        <organisation-unit-picker 
-          class="col" 
-          label="Vælg enhed"
-          v-model="engagement.org_unit"/>
-        <job-function-picker 
-          :org-uuid="org.uuid" 
-          v-model="engagement.job_function"
-        />
-        <engagement-type-picker 
-          :org-uuid="org.uuid" 
-          v-model="engagement.engagement_type"
-        />
-      </div>
-      <div class="form-row">
-        <div class="form-check col">
-          <label class="form-check-label">
-            <input class="form-check-input" type="checkbox" value=""> Overføre
-          </label>
-        </div>
-      </div>
+  <!-- Modal Component -->
+    <employee-create-engagement :org="org" v-model="engagement"/>
+    {{engagement}}
+    <employee-create-association :org="org" v-model="association"/>
 
-      <h4>Tilknytning</h4>
-      <date-start-end v-model="association.dateStartEnd"/>
-      <div class="form-row">
-        <organisation-unit-picker 
-          class="col" 
-          label="Vælg enhed"
-          v-model="association.org_unit"/>
-        <job-function-picker 
-          :org-uuid="org.uuid" 
-          v-model="association.job_function"
-        />
-        <association-type 
-          :org-uuid="org.uuid" 
-          v-model="association.association_type"
-        />
-      </div>
-    </div>
+    {{association}}
 
     <div class="float-right">
       <button-submit @click.native="createEmployee"/>
@@ -61,33 +24,21 @@
 import Organisation from '../api/Organisation'
 import Employee from '../api/Employee'
 import { EventBus } from '../EventBus'
-import DateStartEnd from '../components/DatePickerStartEnd'
-import AddressSearch from '../components/AddressSearch'
-import AssociationType from '../components/AssociationType'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../components/JobFunctionPicker'
-import EngagementTypePicker from '../components/EngagementTypePicker'
 import ButtonSubmit from '../components/ButtonSubmit'
+import EmployeeCreateAssociation from './EmployeeCreateAssociation'
+import EmployeeCreateEngagement from './EmployeeCreateEngagement'
 
 export default {
   components: {
-    DateStartEnd,
-    AddressSearch,
-    AssociationType,
-    OrganisationUnitPicker,
-    JobFunctionPicker,
-    EngagementTypePicker,
-    ButtonSubmit
+    ButtonSubmit,
+    EmployeeCreateAssociation,
+    EmployeeCreateEngagement
   },
   data () {
     return {
-      engagement: {
-        type: 'engagement'
-      },
-      association: {
-        type: 'association'
-      },
-      org: {}
+      org: {},
+      engagement: {},
+      association: {}
     }
   },
   created () {
@@ -103,14 +54,8 @@ export default {
       let vm = this
       let create = []
 
-      this.engagement.valid_from = this.engagement.dateStartEnd.startDate
-      this.engagement.valid_to = this.engagement.dateStartEnd.endDate
-
-      this.association.valid_from = this.association.dateStartEnd.startDate
-      this.association.valid_to = this.association.dateStartEnd.endDate
-
       create.push(this.engagement)
-      create.push(this.association)
+      // create.push(this.association)
 
       Employee.createEmployee(this.$route.params.uuid, create)
       .then(response => {
