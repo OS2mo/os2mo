@@ -29,7 +29,6 @@
     },
     props: {
       value: null,
-      preselectedDate: Date,
       selectedValidFrom: Date,
       selectedValidTo: Date
     },

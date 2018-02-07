@@ -111,11 +111,12 @@
       editEmployee () {
         let vm = this
         let edit = []
+        // loop through all the engagements and add them to the edit array
         this.engagements.forEach(function (e, index) {
           let obj = {
             type: 'engagement',
             uuid: e.uuid,
-            overwrite: vm.original[index],
+            original: vm.original[index],
             data: e
           }
           edit.push(obj)
