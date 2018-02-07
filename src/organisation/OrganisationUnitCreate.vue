@@ -31,6 +31,7 @@
     <organisation-unit-picker v-model="superUnit"/>
 
     <address-search 
+      :org="org"
       v-model="orgUnit.locations[0]"
     />
     

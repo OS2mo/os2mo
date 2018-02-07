@@ -10,10 +10,10 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'employee'}">Medarbejder</router-link>
+          <router-link class="nav-link" :to="{ name: 'Employee'}">Medarbejder</router-link>
         </li>
         <li class="nav-item">
-          <router-link class="nav-link" :to="{ name: 'organisation'}">Organisation</router-link>
+          <router-link class="nav-link" :to="{ name: 'Organisation'}">Organisation</router-link>
         </li>
       </ul>
 

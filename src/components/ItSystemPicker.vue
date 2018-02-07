@@ -1,11 +1,11 @@
 <template>
   <div class="form-group col">
-    <label>IT systemer</label>
+    <label>{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedItSystem()">
-      <option disabled>IT systemer</option>
+      <option disabled>{{label}}</option>
       <option 
         v-for="it in itSystems" 
         v-bind:key="it.uuid"
@@ -30,17 +30,18 @@ export default {
   },
   data () {
     return {
+      label: 'IT systemer',
       selected: {},
       itSystems: []
     }
   },
   watch: {
     orgUuid () {
-      this.getJobFunctions()
+      this.getItSystems()
     }
   },
   methods: {
-    getJobFunctions () {
+    getItSystems () {
       var vm = this
       Facet.itSystems(this.orgUuid)
       .then(response => {

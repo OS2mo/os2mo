@@ -30,10 +30,10 @@
       UnitEnd
     },
     data () {
-      return {}
-    },
-    created: function () {},
-    methods: {}
+      return {
+        org: {}
+      }
+    }
   }
 </script>
 
