@@ -17,12 +17,12 @@ This section describes how to interact with employee associations.
 import flask
 
 from mora import lora
+from . import keys
 from .common import (create_organisationsfunktion_payload, ensure_bounds,
                      inactivate_old_interval, inactivate_org_funktion,
                      update_payload)
-from .keys import (ASSOCIATION_KEY, ASSOCIATION_TYPE, JOB_FUNCTION, LOCATION,
-                   ORG_UNIT, VALID_FROM, VALID_TO)
-from .mapping import (ADDRESSES_FIELD, ASSOCIATION_FIELDS, JOB_FUNCTION_FIELD,
+from .keys import (ASSOCIATION_KEY, ASSOCIATION_TYPE, JOB_FUNCTION, ORG_UNIT)
+from .mapping import (ASSOCIATION_FIELDS, JOB_FUNCTION_FIELD,
                       ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
                       ORG_UNIT_FIELD)
 
@@ -41,8 +41,8 @@ def create_association(employee_uuid, req):
         JOB_FUNCTION) else None
     association_type_uuid = req.get(ASSOCIATION_TYPE).get('uuid')
     # location_uuid = req.get(LOCATION).get('uuid')
-    valid_from = req.get(VALID_FROM)
-    valid_to = req.get(VALID_TO, 'infinity')
+    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
+    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ASSOCIATION_KEY)
 
@@ -69,8 +69,8 @@ def edit_association(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=association_uuid)
 
     data = req.get('data')
-    new_from = data.get('valid_from')
-    new_to = data.get('valid_to', 'infinity')
+    new_from = data.get(keys.VALIDITY).get(keys.FROM)
+    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
@@ -78,8 +78,8 @@ def edit_association(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get('valid_from')
-        old_to = original_data.get('valid_to')
+        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
+        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

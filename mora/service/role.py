@@ -17,10 +17,11 @@ This section describes how to interact with employee roles.
 import flask
 
 from mora import lora
+from . import keys
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      update_payload)
-from .keys import ORG_UNIT, ROLE_KEY, ROLE_TYPE, VALID_FROM, VALID_TO
+from .keys import ORG_UNIT, ROLE_KEY, ROLE_TYPE
 from .mapping import (ORG_FUNK_GYLDIGHED_FIELD,
                       ORG_FUNK_TYPE_FIELD, ORG_UNIT_FIELD,
                       ROLE_FIELDS)
@@ -37,8 +38,8 @@ def create_role(employee_uuid, req):
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     role_type_uuid = req.get(ROLE_TYPE).get('uuid')
-    valid_from = req.get(VALID_FROM)
-    valid_to = req.get(VALID_TO, 'infinity')
+    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
+    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ROLE_KEY)
 
@@ -63,8 +64,8 @@ def edit_role(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=role_uuid)
 
     data = req.get('data')
-    new_from = data.get(VALID_FROM)
-    new_to = data.get(VALID_TO, 'infinity')
+    new_from = data.get(keys.VALIDITY).get(keys.FROM)
+    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger rolle'
@@ -72,8 +73,8 @@ def edit_role(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get(VALID_FROM)
-        old_to = original_data.get(VALID_TO)
+        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
+        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

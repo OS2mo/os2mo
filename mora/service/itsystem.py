@@ -103,13 +103,24 @@ def get_itsystem(id):
     :param uuid id: The UUID to query, i.e. the ID of the employee or
         unit.
 
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00",
+      }
+
     :<jsonarr string name:
         The name of the IT system in question.
     :<jsonarr string user_name:
         The user name on the IT system, sort of.
     :<jsonarr string uuid: Machine-friendly UUID.
-    :<jsonarr string valid_from: The from date, in ISO 8601.
-    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr string validity: The validity times of the object.
 
     :status 200: Always.
 
@@ -122,15 +133,19 @@ def get_itsystem(id):
           "name": "Lokal Rammearkitektur",
           "user_name": "Fedtmule",
           "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-          "valid_from": "2016-01-01T00:00:00+01:00",
-          "valid_to": "2018-01-01T00:00:00+01:00"
+          "validity": {
+              "from": "2016-01-01T00:00:00+01:00",
+              "to": "2018-01-01T00:00:00+01:00"
+          },
         },
         {
           "name": "Active Directory",
           "user_name": "Fedtmule",
           "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-          "valid_from": "2002-02-14T00:00:00+01:00",
-          "valid_to": null
+          "validity": {
+              "from": "2002-02-14T00:00:00+01:00",
+              "to": null
+          },
         }
       ]
 
@@ -157,8 +172,10 @@ def get_itsystem(id):
                 "name": system_attrs['itsystemnavn'],
                 "user_name": attrs['brugernavn'],
 
-                "valid_from": util.to_iso_time(systemrel['virkning']['from']),
-                "valid_to": util.to_iso_time(systemrel['virkning']['to']),
+                keys.VALIDITY: {
+                    keys.FROM: util.to_iso_time(systemrel['virkning']['from']),
+                    keys.TO: util.to_iso_time(systemrel['virkning']['to']),
+                },
             }
 
     return flask.jsonify(

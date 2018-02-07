@@ -368,23 +368,25 @@ def create_organisationsfunktion_payload(
 
 def get_valid_from(obj, fallback=None):
     sentinel = object()
-    valid_from = obj.get(keys.VALID_FROM, sentinel)
-
-    if valid_from is sentinel:
-        return get_valid_from(fallback) if fallback else util.negative_infinity
-    elif valid_from:
-        return util.from_iso_time(valid_from)
-    else:
-        return util.negative_infinity
+    validity = obj.get(keys.VALIDITY, sentinel)
+    if validity is not sentinel:
+        valid_from = validity.get(keys.FROM, sentinel)
+        if valid_from is sentinel:
+            return get_valid_from(
+                fallback) if fallback else util.negative_infinity
+        elif valid_from:
+            return util.from_iso_time(valid_from)
+    return util.negative_infinity
 
 
 def get_valid_to(obj, fallback=None):
     sentinel = object()
-    valid_to = obj.get(keys.VALID_TO, sentinel)
-
-    if valid_to is sentinel:
-        return get_valid_to(fallback) if fallback else util.positive_infinity
-    elif valid_to:
-        return util.from_iso_time(valid_to)
-    else:
-        return util.positive_infinity
+    validity = obj.get(keys.VALIDITY, sentinel)
+    if validity is not sentinel:
+        valid_to = validity.get(keys.TO, sentinel)
+        if valid_to is sentinel:
+            return get_valid_to(
+                fallback) if fallback else util.positive_infinity
+        elif valid_to:
+            return util.from_iso_time(valid_to)
+    return util.positive_infinity

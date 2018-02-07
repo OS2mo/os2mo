@@ -35,8 +35,8 @@ def create_leave(employee_uuid, req):
     org_uuid = c.bruger.get(
         employee_uuid)['relationer']['tilhoerer'][0]['uuid']
     leave_type_uuid = req.get(keys.LEAVE_TYPE).get('uuid')
-    valid_from = req.get(keys.VALID_FROM)
-    valid_to = req.get(keys.VALID_TO, 'infinity')
+    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
+    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     bvn = str(uuid.uuid4())
 
@@ -60,8 +60,8 @@ def edit_leave(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=leave_uuid)
 
     data = req.get('data')
-    new_from = data.get(keys.VALID_FROM)
-    new_to = data.get(keys.VALID_TO, 'infinity')
+    new_from = data.get(keys.VALIDITY).get(keys.FROM)
+    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger orlov'
@@ -69,8 +69,8 @@ def edit_leave(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get(keys.VALID_FROM)
-        old_to = original_data.get(keys.VALID_TO)
+        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
+        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
