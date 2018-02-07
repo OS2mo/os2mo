@@ -7,6 +7,7 @@ export default {
    * @returns {Array} a list of all available facets
    */
   employees (orgUuid, query) {
+    query = query || ''
     return Service.get(`/o/${orgUuid}/e/?query=${query}`)
     .then(response => {
       return response.data
@@ -14,6 +15,7 @@ export default {
   },
 
   organisations (orgUuid, query) {
+    query = query || ''
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
     .then(response => {
       return response.data
