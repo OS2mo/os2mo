@@ -28,6 +28,10 @@ LOCATION = 'location'
 ROLE_KEY = 'Rolle'
 ROLE_TYPE = 'role_type'
 
+# Leave
+LEAVE_KEY = 'Orlov'
+LEAVE_TYPE = 'leave_type'
+
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
