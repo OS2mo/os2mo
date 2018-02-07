@@ -44,7 +44,7 @@ class Tests(util.LoRATestCase):
             'user_key': 'AU',
             'unit_count': 1,
             'person_count': 2,
-            'employment_count': 3,
+            'employment_count': 4,
             'child_count': 1,
         }
 

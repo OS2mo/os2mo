@@ -18,6 +18,7 @@ This section describes how to interact with employees.
 import flask
 
 from mora import lora
+from . import keys
 from . import common
 from .association import (ASSOCIATION_KEY, create_association,
                           edit_association, terminate_association)
@@ -26,6 +27,7 @@ from .engagement import (ENGAGEMENT_KEY, create_engagement, edit_engagement,
 from .keys import VALID_FROM
 from .role import create_role, edit_role
 from . import itsystem
+from . import leave
 from .. import util
 from ..converters import writing
 
@@ -256,6 +258,27 @@ def create_employee(employee_uuid):
 
     **Leader**:
 
+    **Leave**:
+
+    :<jsonarr string type: **"leave"**
+    :<jsonarr string leave_type: The leave type
+    :<jsonarr string valid_from: The date from which the leave should
+        be valid, in ISO 8601.
+    :<jsonarr string valid_to: The date to which the leave should be
+        valid, in ISO 8601.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "leave",
+          "leave_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "valid_from": "2016-01-01T00:00:00+00:00",
+          "valid_to": "2018-01-01T00:00:00+00:00"
+        }
+      ]
 
     """
 
@@ -266,7 +289,7 @@ def create_employee(employee_uuid):
         'role': create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
-        # 'absence': create_absence,
+        'leave': leave.create_leave,
     }
 
     reqs = flask.request.get_json()
@@ -366,7 +389,6 @@ def edit_employee(employee_uuid):
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string org: The associated organisation
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string location: The associated location.
@@ -422,7 +444,6 @@ def edit_employee(employee_uuid):
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string org: The associated organisation
     :<jsonarr string role_type: The role type
     :<jsonarr string location: The associated location.
     :<jsonarr string valid_from: The from date, in ISO 8601.
@@ -453,6 +474,49 @@ def edit_employee(employee_uuid):
           }
         }
       ]
+
+    **Leave**:
+
+    :param employee_uuid: The UUID of the employee.
+
+    :<json string type: **"leave"**
+    :<json string uuid: The UUID of the leave,
+    :<json object original: An **optional** object containing the original
+        state of the leave to be overwritten. If supplied, the change will
+        modify the existing registration on the leave object. Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        leave. Detailed below.
+
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string leave_type: The leave type
+    :<jsonarr string valid_from: The from date, in ISO 8601.
+    :<jsonarr string valid_to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "leave",
+          "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
+          "original": {
+            "valid_from": "2016-01-01T00:00:00+00:00",
+            "valid_to": "2018-01-01T00:00:00+00:00",
+            "leave_type": {
+              "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
+            },
+          },
+          "data": {
+            "valid_from": "2016-01-01T00:00:00+00:00",
+            "valid_to": "2019-01-01T00:00:00+00:00",
+            "leave_type": {
+              "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
+            }
+          }
+        }
+      ]
     """
 
     handlers = {
@@ -460,6 +524,7 @@ def edit_employee(employee_uuid):
         'association': edit_association,
         'role': edit_role,
         'it': itsystem.edit_system,
+        'leave': leave.edit_leave,
         # 'contact': edit_contact,
         # 'leader': edit_leader,
     }
@@ -524,7 +589,13 @@ def terminate_employee(employee_uuid):
     # TODO: Terminate Kontakt
     # TODO: Terminate Rolle
     # TODO: Terminate Leder
-    # TODO: Terminate Orlov
+
+    leaves = c.organisationfunktion.get_all(
+        tilknyttedebrugere=employee_uuid,
+        funktionsnavn=keys.LEAVE_KEY)
+    for leave_obj in leaves:
+        leave_uuid = leave_obj[0]
+        leave.terminate_leave(leave_uuid, date)
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
