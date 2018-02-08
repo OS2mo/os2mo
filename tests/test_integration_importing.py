@@ -1381,13 +1381,13 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745/details/',
                 {'association': True, 'engagement': True, 'it': False,
-                 'leave': False, 'role': False},
+                 'leave': True, 'role': True},
             )
 
             self.assertRequestResponse(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/details/',
                 {'association': True, 'engagement': True, 'leave': False,
-                 'role': False},
+                 'role': True},
             )
 
         with self.subTest('employee engagement'):
@@ -1598,4 +1598,98 @@ class IntegrationTests(util.LoRATestCase):
                         },
                     },
                 ],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/role',
+                [
+                    {
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '1011101010',
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'role_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': '3b204d9b-a0ba-48ad-9c20-778a49b6d3a9',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/role',
+                [
+                    {
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'person': {
+                            'cpr_no': '1011101010',
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'role_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': '3b204d9b-a0ba-48ad-9c20-778a49b6d3a9',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/leave',
+                [
+                    {
+                        'person': {
+                            'cpr_no': '1011101010',
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'leave_type': {
+                            'example': None,
+                            'name': 'Ansat',
+                            'scope': None,
+                            'user_key': 'Ansat',
+                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                        },
+                        'uuid': 'd82de46c-e266-4810-9e8d-e99a0c9c18d5',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/leave',
+                [],
             )
