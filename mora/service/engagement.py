@@ -211,6 +211,8 @@ def get_engagement(type, id, function):
         return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
 
     def get_unit_id(effect):
+        # 'Leave' objects do not contains this relation, so we need to guard
+        #  ourselves here
         try:
             return effect['relationer']['tilknyttedeenheder'][-1]['uuid']
         except (KeyError, IndexError):
@@ -229,7 +231,7 @@ def get_engagement(type, id, function):
         except (KeyError, IndexError):
             return None
 
-    def convert_engagement(funcid, effect, start, end):
+    def convert_engagement(funcid, effect):
         return {
             "uuid": funcid,
 
@@ -237,14 +239,9 @@ def get_engagement(type, id, function):
             keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
             keys.JOB_FUNCTION: class_cache[get_title_id(effect)],
             keys.ENGAGEMENT_TYPE: class_cache[get_type_id(effect)],
-
-            keys.VALIDITY: {
-                keys.FROM: util.to_iso_time(start),
-                keys.TO: util.to_iso_time(end),
-            }
         }
 
-    def convert_association(funcid, effect, start, end):
+    def convert_association(funcid, effect):
         return {
             "uuid": funcid,
 
@@ -252,39 +249,31 @@ def get_engagement(type, id, function):
             keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
             keys.JOB_FUNCTION: class_cache[get_title_id(effect)],
             keys.ASSOCIATION_TYPE: class_cache[get_type_id(effect)],
-
-            keys.VALIDITY: {
-                keys.FROM: util.to_iso_time(start),
-                keys.TO: util.to_iso_time(end),
-            }
         }
 
-    def convert_role(funcid, effect, start, end):
+    def convert_role(funcid, effect):
         return {
             "uuid": funcid,
 
             keys.PERSON: user_cache[get_employee_id(effect)],
             keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
             keys.ROLE_TYPE: class_cache[get_type_id(effect)],
-
-            keys.VALIDITY: {
-                keys.FROM: util.to_iso_time(start),
-                keys.TO: util.to_iso_time(end),
-            }
         }
 
-    def convert_leave(funcid, effect, start, end):
+    def convert_leave(funcid, effect):
         return {
             "uuid": funcid,
 
             keys.PERSON: user_cache[get_employee_id(effect)],
             keys.LEAVE_TYPE: class_cache[get_type_id(effect)],
-
-            keys.VALIDITY: {
-                keys.FROM: util.to_iso_time(start),
-                keys.TO: util.to_iso_time(end),
-            }
         }
+
+    def add_validity(start, end, func):
+        func[keys.VALIDITY] = {
+            keys.FROM: util.to_iso_time(start),
+            keys.TO: util.to_iso_time(end),
+        }
+        return func
 
     converters = {
         'engagement': convert_engagement,
@@ -325,7 +314,10 @@ def get_engagement(type, id, function):
     class_cache[None] = user_cache[None] = unit_cache[None] = None
 
     return flask.jsonify([
-        converters[function](funcid, effect, start, end)
+        add_validity(
+            start, end,
+            converters[function](funcid, effect)
+        )
 
         for funcid, funcobj in functions.items()
         for start, end, effect in c.organisationfunktion.get_effects(
