@@ -26,7 +26,10 @@ export default {
     value: Object,
     preselected: String,
     noLabel: Boolean,
-    orgUuid: String
+    org: {
+      type: Object,
+      required: true
+    }
   },
   data () {
     return {
@@ -36,14 +39,14 @@ export default {
     }
   },
   watch: {
-    orgUuid () {
+    org () {
       this.getEngagementTypes()
     }
   },
   methods: {
     getEngagementTypes () {
       let vm = this
-      Facet.engagementTypes(this.orgUuid)
+      Facet.engagementTypes(this.org.uuid)
       .then(response => {
         vm.engagementTypes = response
       })

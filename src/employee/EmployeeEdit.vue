@@ -36,6 +36,7 @@
               no-label
               v-model="e.engagement_type"
               :preselected="e.engagement_type | getProperty('uuid')"
+              :org="org"
             />
           </td>
           <td>
@@ -47,9 +48,9 @@
           </td>
           <td>
             <date-picker
-            no-label
-            v-model="e.validity.to"
-            :preselectedDate="new Date(e.validity.to)"
+              no-label
+              v-model="e.validity.to"
+              :preselectedDate="new Date(e.validity.to)"
             />
           </td>
         </tr>
@@ -66,6 +67,8 @@
 
 <script>
   import Employee from '../api/Employee'
+  import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
   import JobFunctionPicker from '../components/JobFunctionPicker'
@@ -85,7 +88,8 @@
     data () {
       return {
         engagements: [],
-        original: []
+        original: [],
+        org: Object
       }
     },
     watch: {
@@ -95,10 +99,15 @@
     },
     created () {
       this.getEngagements()
+      this.org = Organisation.getSelectedOrganisation()
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', newOrg => {
+        this.org = newOrg
+      })
     },
     methods: {
       getEngagements () {
-        console.log('get engagements for edit')
         var vm = this
         Employee.getEngagementDetails(this.uuid)
         .then(response => {

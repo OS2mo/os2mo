@@ -80,7 +80,8 @@ export default {
     }
   },
   created () {
-    this.selectedDate = this.preselectedDate
+    this.selectedDate = this.preselectedDate || null
+    console.log(this.preselectedDate)
   }
 }
 </script>

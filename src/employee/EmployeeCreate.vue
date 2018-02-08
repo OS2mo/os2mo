@@ -20,7 +20,7 @@
           v-model="engagement.job_function"
         />
         <engagement-type-picker 
-          :org-uuid="org.uuid" 
+          :org="org" 
           v-model="engagement.engagement_type"
         />
       </div>
