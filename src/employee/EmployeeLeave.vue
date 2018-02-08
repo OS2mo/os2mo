@@ -8,23 +8,15 @@
   >
       <h3>Orlov</h3>
       <div class="form-row">
-        <date-picker 
-          label="Orlov start"
-        />
-        <date-picker 
-          label="Orlov slut"
-        />
+        <date-picker-start-end v-model="leave.validity"/>
 
         <div class="form-group col">
-          <label>Orlovstype</label>
-          <select class="form-control col" id="" >
-            <option>Orlovstype</option>
-          </select>
+          <leave-picker :org="org" v-model="leave"/>
         </div>        
       </div>
 
     <div class="float-right">
-      <button-submit/>
+      <button-submit @click.native="createLeave"/>
     </div>
   </b-modal>
 
@@ -34,12 +26,14 @@
 import Organisation from '../api/Organisation'
 import Employee from '../api/Employee'
 import { EventBus } from '../EventBus'
-import DatePicker from '../components/DatePicker'
+import DatePickerStartEnd from '../components/DatePickerStartEnd'
+import LeavePicker from '../components/LeavePicker'
 import ButtonSubmit from '../components/ButtonSubmit'
 
 export default {
   components: {
-    DatePicker,
+    DatePickerStartEnd,
+    LeavePicker,
     ButtonSubmit
   },
   data () {
@@ -59,7 +53,7 @@ export default {
     })
   },
   methods: {
-    createEmployee () {
+    createLeave () {
       let vm = this
       let create = []
 
@@ -67,7 +61,7 @@ export default {
 
       Employee.createEmployee(this.$route.params.uuid, create)
       .then(response => {
-        vm.$refs.employeeCreate.hide()
+        vm.$refs.employeeLeave.hide()
         console.log(response)
       })
     }

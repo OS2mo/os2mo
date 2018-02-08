@@ -1,11 +1,11 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label>Orlovstype</label>
     <select 
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedJobFunction()">
-      <option disabled>{{label}}</option>
+      @change="updateSelectedLeaveTypes()">
+      <option disabled>Orlovstype</option>
       <option 
         v-for="lt in leaveTypes" 
         v-bind:key="lt.uuid"
@@ -27,26 +27,25 @@ export default {
   },
   data () {
     return {
-      label: 'Orlovstype',
       selected: {},
       leaveTypes: []
     }
   },
   watch: {
     orgUuid () {
-      this.getJobFunctions()
+      this.getLeavePicker()
     }
   },
   methods: {
-    getJobFunctions () {
+    getLeavePicker () {
       var vm = this
-      Facet.jobFunctions(this.orgUuid)
+      Facet.leaveTypes(this.orgUuid)
       .then(response => {
-        vm.jobFunctions = response
+        vm.leaveTypes = response
       })
     },
 
-    updateSelectedJobFunction () {
+    updateSelectedLeaveTypes () {
       this.$emit('input', this.selected)
     }
   }
