@@ -14,8 +14,8 @@
         <tr v-for="d in details" v-bind:key="d.uuid">
           <td>{{d.name}}</td>
           <td>{{d.user_name}}</td>
-          <td>{{d.valid_from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.valid_to | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
         </tr>
       </tbody>
     </table>
@@ -27,6 +27,12 @@
   import Employee from '../api/Employee'
 
   export default {
+    props: {
+      uuid: {
+        type: String,
+        required: true
+      }
+    },
     data () {
       return {
         details: []
@@ -38,7 +44,7 @@
     methods: {
       getDetails () {
         var vm = this
-        Employee.getItDetails(this.$route.params.uuid)
+        Employee.getItDetails(this.uuid)
         .then(response => {
           vm.details = response
         })

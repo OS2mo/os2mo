@@ -23,8 +23,8 @@
           <td><router-link :to="{ name: 'EmployeeDetail', params: {'uuid': e.person.uuid} }">{{e.person.name}}</router-link></td>
           <td><span v-if="e.job_function">{{e.job_function.name}}</span></td>
           <td><span v-if="e.type">{{e.type.name}}</span></td>
-          <td><span v-if="e.valid_from">{{e.valid_from | moment("DD-MM-YYYY") }}</span></td>
-          <td><span v-if="e.valid_to">{{e.valid_to | moment("DD-MM-YYYY") }}</span></td>
+          <td><span>{{e.validity.from | moment("DD-MM-YYYY") }}</span></td>
+          <td><span>{{e.valididy.to | moment("DD-MM-YYYY") }}</span></td>
         </tr>
 
         <!-- <tr v-for="e in engagementsPast" v-bind:key="e.uuid" style="color:#bbb">

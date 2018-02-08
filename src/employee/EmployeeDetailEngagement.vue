@@ -18,8 +18,8 @@
           <td>
               {{d.type | getProperty('name')}}
           </td>
-          <td>{{d.valid_from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.valid_to | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
         </tr>
       </tbody>
     </table>
@@ -33,6 +33,12 @@
 
   export default {
     components: {},
+    props: {
+      uuid: {
+        type: String,
+        required: true
+      }
+    },
     data () {
       return {
         details: [],
@@ -46,7 +52,7 @@
     methods: {
       getDetails () {
         var vm = this
-        Employee.getEngagementDetails(this.$route.params.uuid)
+        Employee.getEngagementDetails(this.uuid)
         .then(response => {
           vm.details = response
         })

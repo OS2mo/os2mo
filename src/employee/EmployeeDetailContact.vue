@@ -30,6 +30,12 @@
 
   export default {
     components: {},
+    props: {
+      uuid: {
+        type: String,
+        required: true
+      }
+    },
     data () {
       return {
         details: [],
@@ -43,7 +49,7 @@
     methods: {
       getDetails: function () {
         var vm = this
-        Employee.getContactDetails(this.$route.params.uuid)
+        Employee.getContactDetails(this.uuid)
         .then(function (response) {
           vm.details = response
         })

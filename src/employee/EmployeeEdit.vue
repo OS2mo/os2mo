@@ -41,15 +41,15 @@
           <td>
             <date-picker 
               no-label
-              v-model="e.valid_from"
-              :preselectedDate="new Date(e.valid_from)"
+              v-model="e.validity.from"
+              :preselectedDate="new Date(e.validity.from)"
             />
           </td>
           <td>
             <date-picker
             no-label
-            v-model="e.valid_to"
-            :preselectedDate="new Date(e.valid_to)"
+            v-model="e.validity.to"
+            :preselectedDate="new Date(e.validity.to)"
             />
           </td>
         </tr>
