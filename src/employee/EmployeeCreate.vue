@@ -6,12 +6,13 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
-  <!-- Modal Component -->
+  <!-- Modal Components -->
     <employee-create-engagement :org="org" v-model="engagement"/>
     {{engagement}}
     <employee-create-association :org="org" v-model="association"/>
-
     {{association}}
+    <employee-create-role :org="org" v-model="role"/>
+    {{role}}
 
     <div class="float-right">
       <button-submit @click.native="createEmployee"/>
@@ -27,18 +28,21 @@ import { EventBus } from '../EventBus'
 import ButtonSubmit from '../components/ButtonSubmit'
 import EmployeeCreateAssociation from './EmployeeCreateAssociation'
 import EmployeeCreateEngagement from './EmployeeCreateEngagement'
+import EmployeeCreateRole from './EmployeeCreateRole'
 
 export default {
   components: {
     ButtonSubmit,
     EmployeeCreateAssociation,
-    EmployeeCreateEngagement
+    EmployeeCreateEngagement,
+    EmployeeCreateRole
   },
   data () {
     return {
       org: {},
       engagement: {},
-      association: {}
+      association: {},
+      role: {}
     }
   },
   created () {
@@ -55,7 +59,7 @@ export default {
       let create = []
 
       create.push(this.engagement)
-      // create.push(this.association)
+      create.push(this.association)
 
       Employee.createEmployee(this.$route.params.uuid, create)
       .then(response => {

@@ -51,9 +51,7 @@ export default {
   data () {
     return {
       engagement: {
-        type: 'engagement',
-        valid_from: Date,
-        valid_to: Date
+        type: 'engagement'
       }
     }
   },

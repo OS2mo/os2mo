@@ -46,5 +46,12 @@ export default {
     .then(response => {
       return response.data
     })
+  },
+
+  roleTypes (orgUuid) {
+    return Service.get(`/o/${orgUuid}/f/role_type/`)
+    .then(response => {
+      return response.data
+    })
   }
 }
