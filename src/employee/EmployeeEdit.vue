@@ -28,6 +28,7 @@
             <job-function-picker
               no-label
               v-model="e.job_function"
+              :org="org"
               :preselected="e.job_function | getProperty('uuid')"
             />
           </td>
@@ -35,8 +36,8 @@
             <engagement-type-picker 
               no-label
               v-model="e.engagement_type"
-              :preselected="e.engagement_type | getProperty('uuid')"
               :org="org"
+              :preselected="e.engagement_type | getProperty('uuid')"
             />
           </td>
           <td>

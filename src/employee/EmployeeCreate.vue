@@ -6,7 +6,8 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
-  <!-- Modal Components -->
+
+    <employee-picker :org="org"/>
     <employee-create-engagement :org="org" v-model="engagement"/>
     {{engagement}}
     <employee-create-association :org="org" v-model="association"/>
@@ -29,13 +30,15 @@ import ButtonSubmit from '../components/ButtonSubmit'
 import EmployeeCreateAssociation from './EmployeeCreateAssociation'
 import EmployeeCreateEngagement from './EmployeeCreateEngagement'
 import EmployeeCreateRole from './EmployeeCreateRole'
+import EmployeePicker from '../components/EmployeePicker'
 
 export default {
   components: {
     ButtonSubmit,
     EmployeeCreateAssociation,
     EmployeeCreateEngagement,
-    EmployeeCreateRole
+    EmployeeCreateRole,
+    EmployeePicker
   },
   data () {
     return {

@@ -24,7 +24,10 @@ export default {
   props: {
     value: Object,
     noLabel: Boolean,
-    orgUuid: String
+    org: {
+      type: Object,
+      required: true
+    }
   },
   data () {
     return {
@@ -34,14 +37,14 @@ export default {
     }
   },
   watch: {
-    orgUuid () {
+    org () {
       this.getJobFunctions()
     }
   },
   methods: {
     getJobFunctions () {
       var vm = this
-      Facet.jobFunctions(this.orgUuid)
+      Facet.jobFunctions(this.org.uuid)
       .then(response => {
         vm.jobFunctions = response
       })
