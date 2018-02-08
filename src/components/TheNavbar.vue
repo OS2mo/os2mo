@@ -17,6 +17,8 @@
         </li>
       </ul>
 
+      <organisation-picker class="ml-auto mr-auto"/>
+
       <search-bar class="ml-auto mr-auto"/>
 
       <time-machine-button/>
@@ -41,12 +43,14 @@
   import HelpButton from '../help/TheHelpButton'
   import TimeMachineButton from '../timeMachine/TimeMachineButton'
   import SearchBar from './TheSearchBar'
+  import OrganisationPicker from './OrganisationPicker'
 
   export default {
     components: {
       HelpButton,
       TimeMachineButton,
-      SearchBar
+      SearchBar,
+      OrganisationPicker
     },
     data () {
       return {

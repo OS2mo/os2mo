@@ -31,6 +31,7 @@
 
 <script>
   import Employee from '../api/Employee'
+  import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
   import Loading from '../components/Loading'
   import '../filters/CPRNumber'
@@ -44,6 +45,9 @@
         employees: [],
         isLoading: true
       }
+    },
+    created () {
+      this.getEmployees(Organisation.getSelectedOrganisation())
     },
     mounted () {
       EventBus.$on('organisation-changed', (newOrg) => {
