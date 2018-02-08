@@ -2,8 +2,10 @@
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">{{org.name}}</h4>
-      <p>Jeg er en landingpage for en organisation</p>
-      <p>Vi kunne have noget sweet indhold her, som fx. statistik om antal enheder, brugere, eller noget andet spændende.</p>
+      
+      <p>Medarbejdere: {{org.person_count}}</p>
+      <p>Org funker: {{org.employment_count}}</p>
+      <p>Enheder: {{org.unit_count}}</p>
     </div>
   </div>
 </template>
@@ -20,14 +22,21 @@
       }
     },
     created () {
-      this.org = Organisation.getSelectedOrganisation()
+      this.getOrganisationDetails(Organisation.getSelectedOrganisation())
     },
     mounted () {
       EventBus.$on('organisation-changed', newOrg => {
-        this.org = newOrg
+        this.getOrganisationDetails(newOrg)
       })
     },
     methods: {
+      getOrganisationDetails (newOrg) {
+        let vm = this
+        Organisation.get(newOrg.uuid)
+        .then(response => {
+          vm.org = response
+        })
+      }
     }
   }
 </script>

@@ -25,7 +25,7 @@ export default {
    * @returns {Object} an organisation object
    */
   get (uuid) {
-    Service.get('/o/' + uuid)
+    return Service.get(`/o/${uuid}/`)
       .then(response => {
         return response.data
       })
