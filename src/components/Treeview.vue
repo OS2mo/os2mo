@@ -53,12 +53,13 @@
         this.$emit('input', newVal)
       }
     },
-    created() {
+    created () {
       this.getChildren(this.org)
     },
     methods: {
       getChildren (org) {
         let vm = this
+        if (org.uuid === undefined) return
         Organisation.getChildren(org.uuid, this.atDate)
         .then(response => {
           vm.children = response
