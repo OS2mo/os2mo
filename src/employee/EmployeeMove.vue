@@ -45,6 +45,7 @@
 
 <script>
   import Employee from '../api/Employee'
+  import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import EngagementPicker from '../components/EngagementPicker'

@@ -1,6 +1,10 @@
 <template>
     <div class="form-group col">
-      <label id="date-label" for="date">{{label}}</label>
+      <label 
+        v-if="!noLabel"
+        id="date-label" 
+        for="date"
+        >{{label}}</label>
       <date-time-picker 
         name="date"
         :data-vv-as="label"
@@ -37,7 +41,9 @@ export default {
   },
   props: {
     value: Date,
+    preselectedDate: Date,
     required: Boolean,
+    noLabel: Boolean,
     label: {
       default: 'Dato',
       type: String
@@ -72,6 +78,10 @@ export default {
     disabledFrom (newVal) {
       this.disabled.from = newVal
     }
+  },
+  created () {
+    this.selectedDate = this.preselectedDate || null
+    console.log(this.preselectedDate)
   }
 }
 </script>

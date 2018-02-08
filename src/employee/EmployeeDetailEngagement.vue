@@ -14,14 +14,12 @@
       <tbody>
         <tr v-for="d in details" v-bind:key="d.uuid">
           <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function.name}}</td>
+          <td>{{d.job_function | getProperty('name')}}</td>
           <td>
-            <span v-if="d.type">
-              {{d.type.name}}
-            </span>
+              {{d.engagement_type | getProperty('name')}}
           </td>
-          <td>{{d.valid_from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.valid_to | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
         </tr>
       </tbody>
     </table>
@@ -31,9 +29,16 @@
 
 <script>
   import Employee from '../api/Employee'
+  import '../filters/GetProperty'
 
   export default {
     components: {},
+    props: {
+      uuid: {
+        type: String,
+        required: true
+      }
+    },
     data () {
       return {
         details: [],
@@ -45,11 +50,10 @@
       this.getDetails()
     },
     methods: {
-      getDetails: function () {
+      getDetails () {
         var vm = this
-        Employee.getEngagementDetails(this.$route.params.uuid)
+        Employee.getEngagementDetails(this.uuid)
         .then(response => {
-          console.log(response)
           vm.details = response
         })
       }

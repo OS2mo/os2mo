@@ -9,7 +9,7 @@
         <div class="mr-auto">
         </div>
         <div>
-          <button class="btn btn-outline-primary">
+          <button class="btn btn-outline-primary" v-b-modal.employeeEdit>
             <icon name="edit" />
           </button>
           <button class="btn btn-outline-primary">
@@ -17,6 +17,8 @@
           </button>
         </div>
       </div>
+      <!-- Modal Component -->
+      <employee-edit :uuid="$route.params.uuid"/>
 
       <employee-detail-tabs :uuid="$route.params.uuid"/>
     </div>
@@ -26,10 +28,12 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/CPRNumber'
+  import EmployeeEdit from './EmployeeEdit'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
 
   export default {
     components: {
+      EmployeeEdit,
       EmployeeDetailTabs
     },
     data () {
@@ -54,12 +58,6 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.router-link-active {
-  color: #495057;
-  background-color: #fff;
-  border-color: #ddd #ddd #fff;
-}
-
 .cpr {
   color: #aaa
 }

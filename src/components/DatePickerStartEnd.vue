@@ -3,6 +3,7 @@
     <date-picker 
       class="col"
       label="Startdato"
+      :preselectedDate="selectedValidFrom"
       v-model="validFrom"
       :disabled-from="validTo"
       required
@@ -11,6 +12,7 @@
 
     <date-picker 
       label="Slutdato"
+      :preselectedDate="selectedValidTo"
       v-model="validTo"
       :disabled-to="validFrom"
       @input="updateDate()"
@@ -27,7 +29,9 @@
       DatePicker
     },
     props: {
-      value: Object
+      value: Object,
+      selectedValidFrom: Date,
+      selectedValidTo: Date
     },
     data () {
       return {

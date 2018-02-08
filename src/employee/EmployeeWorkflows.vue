@@ -8,7 +8,7 @@
       <button-workflow label="Afslut medarbejder" icon="user-times" target="EmployeeEnd" v-b-modal.employeeEnd/>
     </div>
     <!-- Modal Component -->
-    <employee-create/>
+    <employee-create :org="org"/>
     <employee-move :org="org"/>
     <employee-end/>
   </div>
@@ -34,8 +34,8 @@
       }
     },
     mounted () {
-      EventBus.$on('organisation-changed', (newOrg) => {
-        this.org = newOrg
+      EventBus.$on('organisation-changed', (org) => {
+        this.org = org
       })
     }
   }
