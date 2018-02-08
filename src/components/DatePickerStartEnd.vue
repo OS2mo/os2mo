@@ -3,15 +3,16 @@
     <date-picker 
       class="col"
       label="Startdato"
-      v-model="startDate"
+      v-model="validFrom"
+      :disabled-from="validTo"
       required
       @input="updateDate()"
     />
 
     <date-picker 
       label="Slutdato"
-      v-model="endDate"
-      :disabled-to="startDate"
+      v-model="validTo"
+      :disabled-to="validFrom"
       @input="updateDate()"
     />
   </div>
@@ -25,19 +26,20 @@
     components: {
       DatePicker
     },
-    props: ['value'],
+    props: {
+      value: Object
+    },
     data () {
       return {
-        startDate: null,
-        endDate: null
+        validFrom: null,
+        validTo: null
       }
     },
-    created: function () {},
     methods: {
       updateDate () {
         this.$emit('input', {
-          startDate: this.startDate,
-          endDate: this.endDate
+          from: this.validFrom,
+          to: this.validTo
         })
       }
     }

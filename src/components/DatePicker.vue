@@ -45,6 +45,10 @@ export default {
     disabledTo: {
       default: null,
       type: Date
+    },
+    disabledFrom: {
+      default: null,
+      type: Date
     }
   },
   data () {
@@ -57,11 +61,16 @@ export default {
     }
   },
   watch: {
-    selectedDate (newVal, oldVal) {
+    selectedDate (newVal) {
       this.$emit('input', newVal)
     },
-    disabledTo (newVal, oldVal) {
+
+    disabledTo (newVal) {
       this.disabled.to = newVal
+    },
+
+    disabledFrom (newVal) {
+      this.disabled.from = newVal
     }
   }
 }

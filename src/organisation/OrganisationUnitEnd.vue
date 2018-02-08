@@ -14,7 +14,7 @@
       />
       <date-picker 
         label="Slutdato"
-        v-model="endDate"
+        v-model="validFrom"
       />
     </div>
     <div class="float-right">
@@ -41,14 +41,14 @@
     },
     computed: {
       isCompleted () {
-        return this.orgUnit && this.endDate
+        return this.orgUnit && this.validFrom
       }
     },
     data () {
       return {
         orgUnit: {},
         preselectedUnit: {},
-        endDate: null
+        validFrom: null
       }
     },
     mounted () {
@@ -59,7 +59,7 @@
     methods: {
       endOrganisationUnit () {
         let vm = this
-        OrganisationUnit.terminate(this.orgUnit, this.endDate)
+        OrganisationUnit.terminate(this.orgUnit, this.validFrom)
         .then(response => {
           vm.$refs.orgUnitEnd.hide()
         })
