@@ -21,7 +21,7 @@
       <tree-view 
         v-model="selectedSuperUnit" 
         v-click-outside="hide"
-        :orgUuid="org.uuid" 
+        :org="org" 
       />
     </div>
   </div>

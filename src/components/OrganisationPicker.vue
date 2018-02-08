@@ -36,7 +36,7 @@ export default {
     this.getAll()
   },
   watch: {
-    selectedOrganisation (newVal, oldVal) {
+    selectedOrganisation (newVal) {
       Organisation.setSelectedOrganisation(newVal)
       this.$emit('input', newVal)
     },

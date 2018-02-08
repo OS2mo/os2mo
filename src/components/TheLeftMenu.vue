@@ -5,16 +5,16 @@
         <icon name="folder-o"/>
         Overblik
       </h4>
-      <organisation-picker v-model="org" />
-
       <tree-view 
-        :orgUuid="org.uuid" 
+        :org="org" 
         linkable/>
     </div>
   </div>
 </template>
 
 <script>
+  import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
   import OrganisationPicker from '../components/OrganisationPicker'
   import TreeView from '../components/Treeview'
 
@@ -27,6 +27,14 @@
       return {
         org: {}
       }
+    },
+    created () {
+      this.org = Organisation.getSelectedOrganisation()
+    },
+    mounted () {
+      EventBus.$on('organisation-changed', newOrg => {
+        this.org = newOrg
+      })
     }
   }
 </script>

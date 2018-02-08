@@ -67,7 +67,7 @@
       }
     },
     watch: {
-      selected: function (newVal, oldVal) {
+      selected (newVal) {
         this.selectOrgUnit(newVal)
       },
 
