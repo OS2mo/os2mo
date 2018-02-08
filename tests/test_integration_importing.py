@@ -948,6 +948,11 @@ class IntegrationTests(util.LoRATestCase):
                   '/f/job_function/',
                   'user_key': 'Stillingsbetegnelse',
                   'uuid': '51774dde-bf2c-4100-9059-70d1a1fb1d1f'},
+                 {'name': 'leave_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/leave_type/',
+                  'user_key': 'Orlovstype',
+                  'uuid': 'd9aa489a-ac93-4769-98e5-19d6d37a919c'},
                  {'name': 'org_unit_type',
                   'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
                   '/f/org_unit_type/',
@@ -957,7 +962,8 @@ class IntegrationTests(util.LoRATestCase):
                   'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
                   '/f/role_type/',
                   'user_key': 'Rolletype',
-                  'uuid': '09c93426-db19-4442-aea8-5ac9ba9573a6'}],
+                  'uuid': '09c93426-db19-4442-aea8-5ac9ba9573a6'},
+                 ],
             )
 
             def get(f):
@@ -1164,7 +1170,20 @@ class IntegrationTests(util.LoRATestCase):
                          'user_key': 'Team',
                          'uuid': '56cfc7f4-2e54-45e2-af27-90591fb7c664'},
                     ],
-                    'role_type': [],
+                    'role_type': [
+                        {'example': None,
+                         'name': 'Tillidsmand',
+                         'scope': None,
+                         'user_key': 'Tillidsmand',
+                         'uuid': '0838d00d-e2b3-4aa8-a5a5-649c2205ab21'}
+                    ],
+                    'leave_type': [
+                        {'example': None,
+                         'name': 'Barselsorlov',
+                         'scope': None,
+                         'user_key': 'Barselsorlov',
+                         'uuid': 'd7ec3a18-3a9d-43c8-ad03-0202c0d044d4'}
+                    ],
                 },
                 all_types)
 
@@ -1418,7 +1437,7 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ansat',
                             'scope': None,
                             'user_key': 'Ansat',
-                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                            'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9',
                         },
                         'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
                         "validity": {
@@ -1444,7 +1463,7 @@ class IntegrationTests(util.LoRATestCase):
                       'name': 'Ansat',
                       'scope': None,
                       'user_key': 'Ansat',
-                      'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
+                      'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9'},
                   'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
                   "validity": {
                       'from': '2018-01-01T00:00:00+01:00',
@@ -1475,7 +1494,7 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ansat',
                             'scope': None,
                             'user_key': 'Ansat',
-                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                            'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9',
                         },
                         'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
                         "validity": {
@@ -1506,7 +1525,7 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ansat',
                             'scope': None,
                             'user_key': 'Ansat',
-                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                            'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9',
                         },
                         'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
                         "validity": {
@@ -1617,10 +1636,10 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'role_type': {
                             'example': None,
-                            'name': 'Ansat',
+                            'name': 'Tillidsmand',
                             'scope': None,
-                            'user_key': 'Ansat',
-                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                            'user_key': 'Tillidsmand',
+                            'uuid': '0838d00d-e2b3-4aa8-a5a5-649c2205ab21',
                         },
                         'uuid': '3b204d9b-a0ba-48ad-9c20-778a49b6d3a9',
                         "validity": {
@@ -1648,10 +1667,10 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'role_type': {
                             'example': None,
-                            'name': 'Ansat',
+                            'name': 'Tillidsmand',
                             'scope': None,
-                            'user_key': 'Ansat',
-                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                            'user_key': 'Tillidsmand',
+                            'uuid': '0838d00d-e2b3-4aa8-a5a5-649c2205ab21',
                         },
                         'uuid': '3b204d9b-a0ba-48ad-9c20-778a49b6d3a9',
                         "validity": {
@@ -1674,10 +1693,10 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'leave_type': {
                             'example': None,
-                            'name': 'Ansat',
+                            'name': 'Barselsorlov',
                             'scope': None,
-                            'user_key': 'Ansat',
-                            'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
+                            'user_key': 'Barselsorlov',
+                            'uuid': 'd7ec3a18-3a9d-43c8-ad03-0202c0d044d4',
                         },
                         'uuid': 'd82de46c-e266-4810-9e8d-e99a0c9c18d5',
                         "validity": {
