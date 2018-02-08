@@ -641,6 +641,151 @@ class Tests(util.LoRATestCase):
             [],
         )
 
+    def test_role(self):
+        self.load_sample_structures()
+
+        func = [
+            {
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'cpr_no': '1111111111',
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'role_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                "validity": {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
+            },
+        ]
+
+        with self.subTest('user'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/role',
+                func,
+            )
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/role?validity=past',
+                [],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/role?validity=future',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/role?at=2016-01-01&validity=future',
+                func,
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+            '/details/role',
+            func,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/details/role',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/00000000-0000-0000-0000-000000000000'
+            '/details/role',
+            [],
+        )
+
+    def test_leave(self):
+        self.load_sample_structures()
+
+        func = [
+            {
+                'person': {
+                    'cpr_no': '1111111111',
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'leave_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'uuid': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
+                "validity": {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
+            },
+        ]
+
+        with self.subTest('user'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/leave',
+                func,
+            )
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/leave?validity=past',
+                [],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/leave?validity=future',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/leave?at=2016-01-01&validity=future',
+                func,
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+            '/details/leave',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/details/leave',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/00000000-0000-0000-0000-000000000000'
+            '/details/leave',
+            [],
+        )
+
     def test_facet(self):
         self.assertRequestResponse(
             '/service/o/00000000-0000-0000-0000-000000000000/f/',
