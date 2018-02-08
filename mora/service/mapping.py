@@ -31,6 +31,7 @@ ORG_FUNK_TYPE_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
     filter_fn=lambda x: True
 )
+
 ORG_UNIT_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
@@ -81,6 +82,14 @@ ROLE_FIELDS = {
     ORG_FUNK_GYLDIGHED_FIELD,
     ORG_FUNK_TYPE_FIELD,
     ORG_UNIT_FIELD,
+    ORG_FIELD,
+    USER_FIELD,
+}
+
+LEAVE_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ORG_FUNK_TYPE_FIELD,
     ORG_FIELD,
     USER_FIELD,
 }

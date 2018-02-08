@@ -17,14 +17,11 @@ This section describes how to interact with employee associations.
 import flask
 
 from mora import lora
+from . import keys
+from . import mapping
 from .common import (create_organisationsfunktion_payload, ensure_bounds,
                      inactivate_old_interval, inactivate_org_funktion,
                      update_payload)
-from .keys import (ASSOCIATION_KEY, ASSOCIATION_TYPE, JOB_FUNCTION, LOCATION,
-                   ORG_UNIT, VALID_FROM, VALID_TO)
-from .mapping import (ADDRESSES_FIELD, ASSOCIATION_FIELDS, JOB_FUNCTION_FIELD,
-                      ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
-                      ORG_UNIT_FIELD)
 
 blueprint = flask.Blueprint('associations', __name__, static_url_path='',
                             url_prefix='/service')
@@ -34,20 +31,20 @@ def create_association(employee_uuid, req):
     # TODO: Validation
     c = lora.Connector()
 
-    org_unit_uuid = req.get(ORG_UNIT).get('uuid')
+    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_title_uuid = req.get(JOB_FUNCTION).get('uuid') if req.get(
-        JOB_FUNCTION) else None
-    association_type_uuid = req.get(ASSOCIATION_TYPE).get('uuid')
+    job_title_uuid = req.get(keys.JOB_FUNCTION).get('uuid') if req.get(
+        keys.JOB_FUNCTION) else None
+    association_type_uuid = req.get(keys.ASSOCIATION_TYPE).get('uuid')
     # location_uuid = req.get(LOCATION).get('uuid')
-    valid_from = req.get(VALID_FROM)
-    valid_to = req.get(VALID_TO, 'infinity')
+    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
+    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ASSOCIATION_KEY)
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ASSOCIATION_KEY)
 
     association = create_organisationsfunktion_payload(
-        funktionsnavn=ASSOCIATION_KEY,
+        funktionsnavn=keys.ASSOCIATION_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
         brugervendtnoegle=bvn,
@@ -69,8 +66,8 @@ def edit_association(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=association_uuid)
 
     data = req.get('data')
-    new_from = data.get('valid_from')
-    new_to = data.get('valid_to', 'infinity')
+    new_from = data.get(keys.VALIDITY).get(keys.FROM)
+    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
@@ -78,8 +75,8 @@ def edit_association(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get('valid_from')
-        old_to = original_data.get('valid_to')
+        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
+        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -89,26 +86,26 @@ def edit_association(employee_uuid, req):
 
     # Always update gyldighed
     update_fields.append((
-        ORG_FUNK_GYLDIGHED_FIELD,
+        mapping.ORG_FUNK_GYLDIGHED_FIELD,
         {'gyldighed': "Aktiv"}
     ))
 
-    if JOB_FUNCTION in data.keys():
+    if keys.JOB_FUNCTION in data.keys():
         update_fields.append((
-            JOB_FUNCTION_FIELD,
-            {'uuid': data.get(JOB_FUNCTION).get('uuid')}
+            mapping.JOB_FUNCTION_FIELD,
+            {'uuid': data.get(keys.JOB_FUNCTION).get('uuid')}
         ))
 
-    if ASSOCIATION_TYPE in data.keys():
+    if keys.ASSOCIATION_TYPE in data.keys():
         update_fields.append((
-            ORG_FUNK_TYPE_FIELD,
-            {'uuid': data.get(ASSOCIATION_TYPE).get('uuid')},
+            mapping.ORG_FUNK_TYPE_FIELD,
+            {'uuid': data.get(keys.ASSOCIATION_TYPE).get('uuid')},
         ))
 
-    if ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data.keys():
         update_fields.append((
-            ORG_UNIT_FIELD,
-            {'uuid': data.get(ORG_UNIT).get('uuid')},
+            mapping.ORG_UNIT_FIELD,
+            {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
         ))
 
     # if LOCATION in data.keys():
@@ -121,7 +118,7 @@ def edit_association(employee_uuid, req):
                              payload)
 
     bounds_fields = list(
-        ASSOCIATION_FIELDS.difference({x[0] for x in update_fields}))
+        mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
     c.organisationfunktion.update(payload, association_uuid)

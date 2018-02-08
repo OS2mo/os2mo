@@ -8,7 +8,7 @@
   >
   <div class="col">
       <div class="form-row">
-        <date-picker label="Slutdato" v-model="endDate"/>
+        <date-picker label="Slutdato" v-model="validFrom"/>
       </div>
       <div class="float-right">
         <button-submit @click.native="endEmployee"/>
@@ -29,7 +29,7 @@
     },
     data () {
       return {
-        endDate: null,
+        validFrom: null,
         engagement: {}
       }
     },
@@ -38,7 +38,7 @@
       endEmployee () {
         let vm = this
         let terminate = {
-          valid_from: this.endDate
+          valid_from: this.validFrom
         }
         Employee.endEmployee(this.$route.params.uuid, terminate)
         .then(response => {

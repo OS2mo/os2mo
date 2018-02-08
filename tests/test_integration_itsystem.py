@@ -33,8 +33,10 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "it",
                     "itsystem": None,
-                    "valid_from": "2017-12-01T00:00:00+01",
-                    "valid_to": None,
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": None,
+                    },
                 },
             ],
             status_code=400,
@@ -52,8 +54,10 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '00000000-0000-0000-0000-000000000000',
                     },
-                    "valid_from": "2017-12-01T00:00:00+01",
-                    "valid_to": None,
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": None,
+                    },
                 },
             ],
             status_code=400,
@@ -69,8 +73,10 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "it",
                     "itsystem": None,
-                    "valid_from": "2017-12-01T00:00:00+01",
-                    "valid_to": None,
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": None,
+                    },
                 },
             ],
             status_code=400,
@@ -88,8 +94,10 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     },
-                    "valid_from": None,
-                    "valid_to": None,
+                    "validity": {
+                        "from": None,
+                        "to": None,
+                    },
                 },
             ],
             status_code=400,
@@ -105,8 +113,10 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "it",
                     "itsystem": {},
-                    "valid_from": None,
-                    "valid_to": None,
+                    "validity": {
+                        "from": None,
+                        "to": None,
+                    },
                 },
             ],
             status_code=400,
@@ -124,8 +134,10 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '42',
                     },
-                    "valid_from": "2017-12-01T00:00:00+01",
-                    "valid_to": None,
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": None,
+                    },
                 },
             ],
             status_code=400,
@@ -146,11 +158,15 @@ class Writing(util.LoRATestCase):
                         'user_name': 'Fedtmule',
                         # WRONG:
                         'uuid': '00000000-0000-0000-0000-000000000000',
-                        'valid_from': '2002-02-14T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2002-02-14T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     "data": {
-                        "valid_to": '2020-01-01T00:00:00+01:00',
+                        "validity": {
+                            "to": '2020-01-01T00:00:00+01:00',
+                        },
                     },
                 },
             ],
@@ -197,12 +213,16 @@ class Writing(util.LoRATestCase):
                         'name': 'Active Directory',
                         'user_name': 'Fedtmule',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                        'valid_from': '2001-02-14T00:00:00+01:00',
-                        # WRONG:
-                        'valid_to': '3001-02-14T00:00:00+01:00',
+                        "validity": {
+                            'from': '2001-02-14T00:00:00+01:00',
+                            # WRONG:
+                            'to': '3001-02-14T00:00:00+01:00',
+                        },
                     },
                     "data": {
-                        "valid_to": '2020-01-01T00:00:00+01:00',
+                        "validity": {
+                            "to": '2020-01-01T00:00:00+01:00',
+                        },
                     },
                 },
             ],
@@ -302,8 +322,10 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     },
-                    "valid_from": "2017-12-01T00:00:00+01",
-                    "valid_to": None,
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": None,
+                    },
                 },
             ])
 
@@ -345,8 +367,10 @@ class Writing(util.LoRATestCase):
                         'name': 'Active Directory',
                         'user_name': 'Anders And',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                        'valid_from': '2017-12-01T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2017-12-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             )
@@ -360,8 +384,10 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     },
-                    "valid_from": "2016-01-01T00:00:00+01",
-                    "valid_to": "2020-01-01T00:00:00+01",
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01",
+                        "to": "2020-01-01T00:00:00+01",
+                    },
                 },
             ],
         )
@@ -397,7 +423,9 @@ class Writing(util.LoRATestCase):
             "type": "it",
             "uuid": system_uuid,
             "data": {
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                },
             },
         }]
 
@@ -419,13 +447,18 @@ class Writing(util.LoRATestCase):
             [{'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2002-02-14T00:00:00+01:00',
-              'valid_to': None},
+              "validity": {
+                  'from': '2002-02-14T00:00:00+01:00',
+                  'to': None},
+              },
              {'name': 'Lokal Rammearkitektur',
               'user_name': 'Fedtmule',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              'valid_from': '2016-01-01T00:00:00+01:00',
-              'valid_to': '2018-01-01T00:00:00+01:00'}],
+              "validity": {
+                  'from': '2016-01-01T00:00:00+01:00',
+                  'to': '2018-01-01T00:00:00+01:00'
+              },
+              }],
         )
 
         self.assertRequestResponse(
@@ -437,11 +470,15 @@ class Writing(util.LoRATestCase):
                     'name': 'Active Directory',
                     'user_name': 'Fedtmule',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                    'valid_from': '2002-02-14T00:00:00+01:00',
-                    'valid_to': None,
+                    "validity": {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 "data": {
-                    "valid_to": '2020-01-01T00:00:00+01:00',
+                    "validity": {
+                        "to": '2020-01-01T00:00:00+01:00',
+                    },
                 },
             }],
         )
@@ -451,13 +488,18 @@ class Writing(util.LoRATestCase):
             [{'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2002-02-14T00:00:00+01:00',
-              'valid_to': '2020-01-01T00:00:00+01:00'},
+              "validity": {
+                  'from': '2002-02-14T00:00:00+01:00',
+                  'to': '2020-01-01T00:00:00+01:00'},
+              },
              {'name': 'Lokal Rammearkitektur',
               'user_name': 'Fedtmule',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              'valid_from': '2016-01-01T00:00:00+01:00',
-              'valid_to': '2018-01-01T00:00:00+01:00'}],
+              "validity": {
+                  'from': '2016-01-01T00:00:00+01:00',
+                  'to': '2018-01-01T00:00:00+01:00'
+              },
+              }],
         )
 
         self.assertRequestResponse(
@@ -469,11 +511,15 @@ class Writing(util.LoRATestCase):
                     'name': 'Lokal Rammearkitektur',
                     'user_name': 'Fedtmule',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-                    'valid_from': '2016-01-01T00:00:00+01:00',
-                    'valid_to': '2018-01-01T00:00:00+01:00',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00',
+                    },
                 },
                 "data": {
-                    "valid_to": None,
+                    "validity": {
+                        "to": None,
+                    },
                 },
             }],
         )
@@ -483,13 +529,18 @@ class Writing(util.LoRATestCase):
             [{'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2002-02-14T00:00:00+01:00',
-              'valid_to': '2020-01-01T00:00:00+01:00'},
+              "validity": {
+                  'from': '2002-02-14T00:00:00+01:00',
+                  'to': '2020-01-01T00:00:00+01:00'},
+              },
              {'name': 'Lokal Rammearkitektur',
               'user_name': 'Fedtmule',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              'valid_from': '2016-01-01T00:00:00+01:00',
-              'valid_to': None}],
+              "validity": {
+                  'from': '2016-01-01T00:00:00+01:00',
+                  'to': None
+              },
+              }],
         )
 
         self.assertRequestResponse(
@@ -501,12 +552,16 @@ class Writing(util.LoRATestCase):
                     'name': 'Lokal Rammearkitektur',
                     'user_name': 'Fedtmule',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-                    'valid_from': '2016-01-01T00:00:00+01:00',
-                    'valid_to': None,
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 "data": {
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                    'valid_to': '2040-01-01T00:00:00+01:00',
+                    "validity": {
+                        'to': '2040-01-01T00:00:00+01:00',
+                    },
                 }
             }],
         )
@@ -516,13 +571,18 @@ class Writing(util.LoRATestCase):
             [{'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2002-02-14T00:00:00+01:00',
-              'valid_to': '2020-01-01T00:00:00+01:00'},
+              "validity": {
+                  'from': '2002-02-14T00:00:00+01:00',
+                  'to': '2020-01-01T00:00:00+01:00'},
+              },
              {'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2016-01-01T00:00:00+01:00',
-              'valid_to': '2040-01-01T00:00:00+01:00'}],
+              "validity": {
+                  'from': '2016-01-01T00:00:00+01:00',
+                  'to': '2040-01-01T00:00:00+01:00'
+              },
+              }],
         )
 
         self.assertRequestResponse(
@@ -565,13 +625,18 @@ class Reading(util.LoRATestCase):
             [{'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2002-02-14T00:00:00+01:00',
-              'valid_to': None},
+              "validity": {
+                  'from': '2002-02-14T00:00:00+01:00',
+                  'to': None},
+              },
              {'name': 'Lokal Rammearkitektur',
               'user_name': 'Fedtmule',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              'valid_from': '2016-01-01T00:00:00+01:00',
-              'valid_to': '2018-01-01T00:00:00+01:00'}],
+              "validity": {
+                  'from': '2016-01-01T00:00:00+01:00',
+                  'to': '2018-01-01T00:00:00+01:00'
+              },
+              }],
         )
 
         self.assertRequestResponse(
@@ -592,8 +657,11 @@ class Reading(util.LoRATestCase):
             [{'name': 'Active Directory',
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              'valid_from': '2002-02-14T00:00:00+01:00',
-              'valid_to': None}],
+              "validity": {
+                  'from': '2002-02-14T00:00:00+01:00',
+                  'to': None
+              },
+              }],
         )
 
         self.assertRequestResponse(
@@ -602,8 +670,11 @@ class Reading(util.LoRATestCase):
             [{'name': 'Lokal Rammearkitektur',
               'user_name': 'Fedtmule',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              'valid_from': '2016-01-01T00:00:00+01:00',
-              'valid_to': '2018-01-01T00:00:00+01:00'}],
+              "validity": {
+                  'from': '2016-01-01T00:00:00+01:00',
+                  'to': '2018-01-01T00:00:00+01:00'
+              },
+              }],
         )
 
         self.assertRequestResponse(

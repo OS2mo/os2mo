@@ -9,6 +9,9 @@
 # Common
 VALID_FROM = 'valid_from'
 VALID_TO = 'valid_to'
+TO = 'to'
+FROM = 'from'
+VALIDITY = 'validity'
 ORG_UNIT = 'org_unit'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'
@@ -28,6 +31,9 @@ LOCATION = 'location'
 ROLE_KEY = 'Rolle'
 ROLE_TYPE = 'role_type'
 
+# Leave
+LEAVE_KEY = 'Orlov'
+LEAVE_TYPE = 'leave_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
@@ -35,9 +41,6 @@ ORG_UNIT_TYPE = 'org_unit_type'
 FUNCTION_KEYS = {
     'engagement': ENGAGEMENT_KEY,
     'association': ASSOCIATION_KEY,
-}
-
-FUNCTION_TYPES = {
-    'engagement': ENGAGEMENT_TYPE,
-    'association': ASSOCIATION_TYPE,
+    'role': ROLE_KEY,
+    'leave': LEAVE_KEY,
 }

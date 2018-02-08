@@ -47,18 +47,17 @@
       }
     },
     created () {
-      this.getEmployees()
+      this.getEmployees(Organisation.getSelectedOrganisation())
     },
     mounted () {
-      EventBus.$on('organisation-changed', () => {
-        this.getEmployees()
+      EventBus.$on('organisation-changed', (newOrg) => {
+        this.getEmployees(newOrg)
       })
     },
     methods: {
-      getEmployees () {
+      getEmployees (org) {
         let vm = this
         vm.isLoading = true
-        let org = Organisation.getSelectedOrganisation()
         Employee.getAll(org.uuid)
         .then(response => {
           vm.employees = response

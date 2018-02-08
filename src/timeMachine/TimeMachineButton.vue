@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="{ name: 'timemachine'}">
+  <router-link :to="{ name: 'Timemachine'}">
     <button type="button" class="btn btn-link">
       <icon name="history"></icon>
     </button>

@@ -4,50 +4,53 @@
     <select 
       class="form-control col" 
       v-model="selected"
-      @change="updateEngagementType()"
-    >
+      @change="updateSelectedEmployee()">
       <option disabled>{{label}}</option>
       <option 
-        v-for="etype in engagementTypes" 
-        v-bind:key="etype.uuid"
-        :value="etype"
-      >
-        {{etype.name}}
+        v-for="e in employees" 
+        v-bind:key="e.uuid"
+        :value="e">
+          {{e.name}}
       </option>
     </select>
   </div>
 </template>
 
 <script>
-import Facet from '../api/Facet'
+import Search from '../api/Search'
 
 export default {
+  name: 'EmployeePicker',
   props: {
     value: Object,
-    orgUuid: String
+    preselected: Object,
+    org: {
+      type: Object,
+      required: true
+    }
   },
   data () {
     return {
-      label: 'Engagementstype',
+      label: 'Medarbejder',
       selected: {},
-      engagementTypes: []
+      employees: []
     }
   },
   watch: {
-    orgUuid () {
-      this.getEngagementTypes()
+    org () {
+      this.getJobFunctions()
     }
   },
   methods: {
-    getEngagementTypes () {
-      let vm = this
-      Facet.engagementTypes(this.orgUuid)
+    getJobFunctions () {
+      var vm = this
+      Search.employees(this.org.uuid)
       .then(response => {
-        vm.engagementTypes = response
+        vm.employees = response
       })
     },
 
-    updateEngagementType () {
+    updateSelectedEmployee () {
       this.$emit('input', this.selected)
     }
   }

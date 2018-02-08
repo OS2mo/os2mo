@@ -4,15 +4,13 @@
     <select 
       class="form-control col" 
       v-model="selected"
-      @change="updateEngagementType()"
-    >
+      @change="updateSelectedItSystem()">
       <option disabled>{{label}}</option>
       <option 
-        v-for="etype in engagementTypes" 
-        v-bind:key="etype.uuid"
-        :value="etype"
-      >
-        {{etype.name}}
+        v-for="it in itSystems" 
+        v-bind:key="it.uuid"
+        :value="it">
+          {{it.name}}
       </option>
     </select>
   </div>
@@ -22,32 +20,36 @@
 import Facet from '../api/Facet'
 
 export default {
+  name: 'ItSystemPicker',
   props: {
     value: Object,
-    orgUuid: String
+    orgUuid: {
+      type: String,
+      required: true
+    }
   },
   data () {
     return {
-      label: 'Engagementstype',
+      label: 'IT systemer',
       selected: {},
-      engagementTypes: []
+      itSystems: []
     }
   },
   watch: {
     orgUuid () {
-      this.getEngagementTypes()
+      this.getItSystems()
     }
   },
   methods: {
-    getEngagementTypes () {
-      let vm = this
-      Facet.engagementTypes(this.orgUuid)
+    getItSystems () {
+      var vm = this
+      Facet.itSystems(this.orgUuid)
       .then(response => {
-        vm.engagementTypes = response
+        vm.itSystems = response
       })
     },
 
-    updateEngagementType () {
+    updateSelectedItSystem () {
       this.$emit('input', this.selected)
     }
   }

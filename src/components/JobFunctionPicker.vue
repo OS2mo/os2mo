@@ -1,11 +1,11 @@
 <template>
   <div class="form-group col">
-    <label>Stillingsbetegnelse</label>
+    <label>{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedJobFunction()">
-      <option disabled>Stillingsbetegnelse</option>
+      <option disabled>{{label}}</option>
       <option 
         v-for="jf in jobFunctions" 
         v-bind:key="jf.uuid"
@@ -27,6 +27,7 @@ export default {
   },
   data () {
     return {
+      label: 'Stillingsbetegnelse',
       selected: {},
       jobFunctions: []
     }

@@ -9,9 +9,6 @@ import OrganisationDetail from '@/organisation/OrganisationDetail'
 import Employee from '@/employee/Employee'
 import EmployeeList from '@/employee/EmployeeList'
 import EmployeeDetail from '@/employee/EmployeeDetail'
-import EmployeeDetailContact from '@/employee/EmployeeDetailContact'
-import EmployeeDetailEngagement from '@/employee/EmployeeDetailEngagement'
-import EmployeeDetailIt from '@/employee/EmployeeDetailIt'
 import PageNotFound from '@/components/PageNotFound'
 import TheHelp from '@/help/TheHelp'
 import TimeMachine from '@/timeMachine/TimeMachine'
@@ -23,23 +20,23 @@ export default new Router({
   routes: [
     {
       path: '/login',
-      name: 'login',
+      name: 'Login',
       component: LoginPage
     },
     {
       path: '/',
-      name: 'base',
+      name: 'Base',
       component: MoBase,
-      redirect: { name: 'home' },
+      redirect: { name: 'Home' },
       children: [
         {
           path: '',
-          name: 'home',
+          name: 'Home',
           component: HelloWorld
         },
         {
           path: '/organisation',
-          name: 'organisation',
+          name: 'Organisation',
           component: Organisation,
           redirect: { name: 'OrganisationLandingPage' },
 
@@ -58,7 +55,7 @@ export default new Router({
         },
         {
           path: '/medarbejder',
-          name: 'employee',
+          name: 'Employee',
           component: Employee,
           redirect: { name: 'EmployeeList' },
 
@@ -71,37 +68,18 @@ export default new Router({
             {
               path: ':uuid',
               name: 'EmployeeDetail',
-              component: EmployeeDetail,
-              redirect: { name: 'EmployeeDetailEngagement' },
-
-              children: [
-                {
-                  path: 'engagement',
-                  name: 'EmployeeDetailEngagement',
-                  component: EmployeeDetailEngagement
-                },
-                {
-                  path: 'kontakt',
-                  name: 'EmployeeDetailContact',
-                  component: EmployeeDetailContact
-                },
-                {
-                  path: 'it',
-                  name: 'EmployeeDetailIt',
-                  component: EmployeeDetailIt
-                }
-              ]
+              component: EmployeeDetail
             }
           ]
         },
         {
           path: '/hjaelp',
-          name: 'help',
+          name: 'Help',
           component: TheHelp
         },
         {
           path: '/tidsmaskine',
-          name: 'timemachine',
+          name: 'Timemachine',
           component: TimeMachine
         },
         {

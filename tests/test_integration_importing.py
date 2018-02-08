@@ -1374,17 +1374,20 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('details list'):
             self.assertRequestResponse(
                 '/service/e/34705881-8af9-4254-ac3f-31738eae0be8/details/',
-                {'association': False, 'engagement': True, 'it': False},
+                {'association': False, 'engagement': True, 'it': False,
+                 'leave': False, 'role': False},
             )
 
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745/details/',
-                {'association': True, 'engagement': True, 'it': False},
+                {'association': True, 'engagement': True, 'it': False,
+                 'leave': False, 'role': False},
             )
 
             self.assertRequestResponse(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/details/',
-                {'association': True, 'engagement': True},
+                {'association': True, 'engagement': True, 'leave': False,
+                 'role': False},
             )
 
         with self.subTest('employee engagement'):
@@ -1418,8 +1421,10 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
                         },
                         'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
-                        'valid_from': '2018-01-01T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             )
@@ -1441,8 +1446,11 @@ class IntegrationTests(util.LoRATestCase):
                       'user_key': 'Ansat',
                       'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458'},
                   'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
-                  'valid_from': '2018-01-01T00:00:00+01:00',
-                  'valid_to': None}],
+                  "validity": {
+                      'from': '2018-01-01T00:00:00+01:00',
+                      'to': None
+                  },
+                  }],
             )
 
         with self.subTest('unit engagement'):
@@ -1470,8 +1478,10 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
                         },
                         'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
-                        'valid_from': '2018-01-01T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     {
                         'job_function': {
@@ -1499,8 +1509,10 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
                         },
                         'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
-                        'valid_from': '2018-01-01T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             )
@@ -1542,8 +1554,10 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
                         },
                         'uuid': 'b4cd77e4-2ba0-47c7-93e9-22f7446abb57',
-                        'valid_from': '2018-01-01T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             )
@@ -1578,8 +1592,10 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '39dd14ed-faa9-40bf-9fc9-13c440078458',
                         },
                         'uuid': 'b4cd77e4-2ba0-47c7-93e9-22f7446abb57',
-                        'valid_from': '2018-01-01T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             )
