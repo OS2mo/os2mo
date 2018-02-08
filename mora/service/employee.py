@@ -20,7 +20,7 @@ import flask
 from mora import lora
 from . import keys
 from . import common
-from .association import (ASSOCIATION_KEY, create_association,
+from .association import (create_association,
                           edit_association, terminate_association)
 from .engagement import (create_engagement, edit_engagement,
                          terminate_engagement)
@@ -607,7 +607,7 @@ def terminate_employee(employee_uuid):
 
     associations = c.organisationfunktion.get_all(
         tilknyttedebrugere=employee_uuid,
-        funktionsnavn=ASSOCIATION_KEY)
+        funktionsnavn=keys.ASSOCIATION_KEY)
     for association in associations:
         association_uuid = association[0]
         terminate_association(association_uuid, date)
