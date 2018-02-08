@@ -18,13 +18,10 @@ import flask
 
 from mora import lora
 from . import keys
+from . import mapping
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      update_payload)
-from .keys import ORG_UNIT, ROLE_KEY, ROLE_TYPE
-from .mapping import (ORG_FUNK_GYLDIGHED_FIELD,
-                      ORG_FUNK_TYPE_FIELD, ORG_UNIT_FIELD,
-                      ROLE_FIELDS)
 
 blueprint = flask.Blueprint('roles', __name__, static_url_path='',
                             url_prefix='/service')
@@ -34,17 +31,17 @@ def create_role(employee_uuid, req):
     # TODO: Validation
     c = lora.Connector()
 
-    org_unit_uuid = req.get(ORG_UNIT).get('uuid')
+    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    role_type_uuid = req.get(ROLE_TYPE).get('uuid')
+    role_type_uuid = req.get(keys.ROLE_TYPE).get('uuid')
     valid_from = req.get(keys.VALIDITY).get(keys.FROM)
     valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ROLE_KEY)
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ROLE_KEY)
 
     role = create_organisationsfunktion_payload(
-        funktionsnavn=ROLE_KEY,
+        funktionsnavn=keys.ROLE_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
         brugervendtnoegle=bvn,
@@ -84,27 +81,27 @@ def edit_role(employee_uuid, req):
 
     # Always update gyldighed
     update_fields.append((
-        ORG_FUNK_GYLDIGHED_FIELD,
+        mapping.ORG_FUNK_GYLDIGHED_FIELD,
         {'gyldighed': "Aktiv"}
     ))
 
-    if ROLE_TYPE in data.keys():
+    if keys.ROLE_TYPE in data.keys():
         update_fields.append((
-            ORG_FUNK_TYPE_FIELD,
-            {'uuid': data.get(ROLE_TYPE).get('uuid')},
+            mapping.ORG_FUNK_TYPE_FIELD,
+            {'uuid': data.get(keys.ROLE_TYPE).get('uuid')},
         ))
 
-    if ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data.keys():
         update_fields.append((
-            ORG_UNIT_FIELD,
-            {'uuid': data.get(ORG_UNIT).get('uuid')},
+            mapping.ORG_UNIT_FIELD,
+            {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
         ))
 
     payload = update_payload(new_from, new_to, update_fields, original,
                              payload)
 
     bounds_fields = list(
-        ROLE_FIELDS.difference({x[0] for x in update_fields}))
+        mapping.ROLE_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
     c.organisationfunktion.update(payload, role_uuid)

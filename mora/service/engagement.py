@@ -21,18 +21,11 @@ import itertools
 import flask
 
 from mora import lora
-from . import keys
-from . import common, employee, facet, org
+from . import common, employee, facet, keys, mapping, org
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      inactivate_org_funktion,
                      update_payload)
-from .keys import (ENGAGEMENT_KEY, ENGAGEMENT_TYPE, FUNCTION_KEYS,
-                   FUNCTION_TYPES, JOB_FUNCTION, ORG_UNIT, PERSON,
-                   VALID_FROM, VALID_TO)
-from .mapping import (ENGAGEMENT_FIELDS, JOB_FUNCTION_FIELD,
-                      ORG_FUNK_GYLDIGHED_FIELD, ORG_FUNK_TYPE_FIELD,
-                      ORG_UNIT_FIELD)
 from .. import util
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
@@ -49,13 +42,15 @@ def list_details(type, id):
 
       {
         "association": false,
-        "engagement": true
+        "engagement": true,
+        "role": false,
+        "leave": true
       }
 
-    The value above informs you that 'association' and 'engagement'
-    are valid for this entry, and that no entry exists at any time for
-    'association', whereas 'engagement' has at least one entry either
-    in the past, present or future.
+    The value above informs you that 'association', 'engagement', 'role' and
+    'leave' are valid for this entry, and that no entry exists at any time
+    for 'association' and 'role', whereas 'engagement' and 'leave' have at
+    least one entry either in the past, present or future.
 
     '''
     c = common.get_connector()
@@ -74,7 +69,7 @@ def list_details(type, id):
         functype: bool(
             c.organisationfunktion(funktionsnavn=funcname, **search),
         )
-        for functype, funcname in FUNCTION_KEYS.items()
+        for functype, funcname in keys.FUNCTION_KEYS.items()
     }
 
     if type == 'e':
@@ -191,13 +186,13 @@ def get_engagement(type, id, function):
         search = dict(tilknyttedeenheder=id)
 
     # ensure that we report an error correctly
-    if function not in FUNCTION_KEYS:
+    if function not in keys.FUNCTION_KEYS:
         raise ValueError('invalid function type {!r}'.format(function))
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or 20,
         start=int(flask.request.args.get('start', 0)),
-        funktionsnavn=FUNCTION_KEYS[function],
+        funktionsnavn=keys.FUNCTION_KEYS[function],
     )
 
     #
@@ -216,7 +211,12 @@ def get_engagement(type, id, function):
         return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
 
     def get_unit_id(effect):
-        return effect['relationer']['tilknyttedeenheder'][-1]['uuid']
+        # 'Leave' objects do not contains this relation, so we need to guard
+        #  ourselves here
+        try:
+            return effect['relationer']['tilknyttedeenheder'][-1]['uuid']
+        except (KeyError, IndexError):
+            return None
 
     def get_type_id(effect):
         try:
@@ -230,6 +230,57 @@ def get_engagement(type, id, function):
             return effect['relationer']['opgaver'][-1]['uuid']
         except (KeyError, IndexError):
             return None
+
+    def convert_engagement(funcid, effect):
+        return {
+            "uuid": funcid,
+
+            keys.PERSON: user_cache[get_employee_id(effect)],
+            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
+            keys.JOB_FUNCTION: class_cache[get_title_id(effect)],
+            keys.ENGAGEMENT_TYPE: class_cache[get_type_id(effect)],
+        }
+
+    def convert_association(funcid, effect):
+        return {
+            "uuid": funcid,
+
+            keys.PERSON: user_cache[get_employee_id(effect)],
+            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
+            keys.JOB_FUNCTION: class_cache[get_title_id(effect)],
+            keys.ASSOCIATION_TYPE: class_cache[get_type_id(effect)],
+        }
+
+    def convert_role(funcid, effect):
+        return {
+            "uuid": funcid,
+
+            keys.PERSON: user_cache[get_employee_id(effect)],
+            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
+            keys.ROLE_TYPE: class_cache[get_type_id(effect)],
+        }
+
+    def convert_leave(funcid, effect):
+        return {
+            "uuid": funcid,
+
+            keys.PERSON: user_cache[get_employee_id(effect)],
+            keys.LEAVE_TYPE: class_cache[get_type_id(effect)],
+        }
+
+    def add_validity(start, end, func):
+        func[keys.VALIDITY] = {
+            keys.FROM: util.to_iso_time(start),
+            keys.TO: util.to_iso_time(end),
+        }
+        return func
+
+    converters = {
+        'engagement': convert_engagement,
+        'association': convert_association,
+        'role': convert_role,
+        'leave': convert_leave,
+    }
 
     class_cache = {
         classid: classid and facet.get_one_class(c, classid, classobj)
@@ -263,19 +314,10 @@ def get_engagement(type, id, function):
     class_cache[None] = user_cache[None] = unit_cache[None] = None
 
     return flask.jsonify([
-        {
-            "uuid": funcid,
-
-            PERSON: user_cache[get_employee_id(effect)],
-            ORG_UNIT: unit_cache[get_unit_id(effect)],
-            JOB_FUNCTION: class_cache[get_title_id(effect)],
-            FUNCTION_TYPES[function]: class_cache[get_type_id(effect)],
-
-            keys.VALIDITY: {
-                keys.FROM: util.to_iso_time(start),
-                keys.TO: util.to_iso_time(end),
-            }
-        }
+        add_validity(
+            start, end,
+            converters[function](funcid, effect)
+        )
 
         for funcid, funcobj in functions.items()
         for start, end, effect in c.organisationfunktion.get_effects(
@@ -314,18 +356,18 @@ def create_engagement(employee_uuid, req):
 
     c = lora.Connector()
 
-    org_unit_uuid = req.get(ORG_UNIT).get('uuid')
+    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = req.get(JOB_FUNCTION).get('uuid')
-    engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
+    job_function_uuid = req.get(keys.JOB_FUNCTION).get('uuid')
+    engagement_type_uuid = req.get(keys.ENGAGEMENT_TYPE).get('uuid')
     valid_from = req.get(keys.VALIDITY).get(keys.FROM)
     valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
 
     engagement = create_organisationsfunktion_payload(
-        funktionsnavn=ENGAGEMENT_KEY,
+        funktionsnavn=keys.ENGAGEMENT_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
         brugervendtnoegle=bvn,
@@ -366,33 +408,33 @@ def edit_engagement(employee_uuid, req):
 
     # Always update gyldighed
     update_fields.append((
-        ORG_FUNK_GYLDIGHED_FIELD,
+        mapping.ORG_FUNK_GYLDIGHED_FIELD,
         {'gyldighed': "Aktiv"}
     ))
 
-    if JOB_FUNCTION in data.keys():
+    if keys.JOB_FUNCTION in data.keys():
         update_fields.append((
-            JOB_FUNCTION_FIELD,
-            {'uuid': data.get(JOB_FUNCTION).get('uuid')}
+            mapping.JOB_FUNCTION_FIELD,
+            {'uuid': data.get(keys.JOB_FUNCTION).get('uuid')}
         ))
 
-    if ENGAGEMENT_TYPE in data.keys():
+    if keys.ENGAGEMENT_TYPE in data.keys():
         update_fields.append((
-            ORG_FUNK_TYPE_FIELD,
-            {'uuid': data.get(ENGAGEMENT_TYPE).get('uuid')},
+            mapping.ORG_FUNK_TYPE_FIELD,
+            {'uuid': data.get(keys.ENGAGEMENT_TYPE).get('uuid')},
         ))
 
-    if ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data.keys():
         update_fields.append((
-            ORG_UNIT_FIELD,
-            {'uuid': data.get(ORG_UNIT).get('uuid')},
+            mapping.ORG_UNIT_FIELD,
+            {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
         ))
 
     payload = update_payload(new_from, new_to, update_fields, original,
                              payload)
 
     bounds_fields = list(
-        ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
+        mapping.ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
     c.organisationfunktion.update(payload, engagement_uuid)
