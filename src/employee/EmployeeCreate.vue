@@ -103,11 +103,11 @@ export default {
       let vm = this
       let create = []
 
-      this.engagement.valid_from = this.engagement.dateStartEnd.startDate
-      this.engagement.valid_to = this.engagement.dateStartEnd.endDate
+      this.engagement.valid_from = this.engagement.dateStartEnd.from
+      this.engagement.valid_to = this.engagement.dateStartEnd.to
 
-      this.association.valid_from = this.association.dateStartEnd.startDate
-      this.association.valid_to = this.association.dateStartEnd.endDate
+      this.association.valid_from = this.association.dateStartEnd.from
+      this.association.valid_to = this.association.dateStartEnd.to
 
       create.push(this.engagement)
       create.push(this.association)

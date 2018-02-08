@@ -9,13 +9,12 @@
     </div>
     <!-- Modal Component -->
     <employee-create :org="org"/>
-    <employee-move/>
+    <employee-move :org="org"/>
     <employee-end/>
   </div>
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
   import ButtonWorkflow from '../components/ButtonWorkflow'
   import EmployeeCreate from './EmployeeCreate'
@@ -38,11 +37,6 @@
       EventBus.$on('organisation-changed', (org) => {
         this.org = org
       })
-    },
-    methods: {
-      getOrganisation () {
-        Organisation.getSelectedOrganisation()
-      }
     }
   }
 </script>

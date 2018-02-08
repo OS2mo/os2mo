@@ -1,53 +1,42 @@
 import { Service } from './HttpCommon'
 
 export default {
+
+  /**
+   * Get IT a list of available IT systems
+   * @param {String} uuid - organisation uuid
+   * @returns {Array} a list of options
+   */
+  itSystems (uuid) {
+    return Service.get(`/o/${uuid}/it/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
+  /**
+   * Get a list of options for a facet
+   * @param {String} uuid - organisation uuid
+   * @returns {Array} a list of options
+   */
+  getFacet (uuid, facet) {
+    return Service.get(`/o/${uuid}/f/${facet}/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
   /**
    * Get a list of all available facets
    * @param {String} uuid - organisation uuid
-   * @returns {Array} a list of all available facets
+   * @see getFacet
    */
   getAll (uuid) {
     return this.getFacet(uuid)
   },
 
-   /**
-   * Get address types
-   * @param {String} uuid - organisation uuid
-   * @see getFacet
-   */
-  addressTypes (uuid) {
-    return this.getFacet(uuid, 'address_type')
-  },
-
   /**
-   * Get association types
-   * @param {String} uuid - organisation uuid
-   * @see getFacet
-   */
-  associationTypes (uuid) {
-    return this.getFacet(uuid, 'association_type')
-  },
-
-  /**
-   * Get engagement types
-   * @param {String} uuid - organisation uuid
-   * @see getFacet
-   */
-  engagementTypes (uuid) {
-    return this.getFacet(uuid, 'engagement_type')
-  },
-
-  /**
-   * Get job functions
-   * @param {String} uuid - organisation uuid
-   * @see getFacet
-   */
-  jobFunctions (uuid) {
-    return this.getFacet(uuid, 'job_function')
-  },
-
-  /**
-   * Get organisation unit types
+   * Return a list of organisation unit type options
    * @param {String} uuid - organisation uuid
    * @see getFacet
    */
@@ -56,24 +45,38 @@ export default {
   },
 
   /**
-   * Get role types
+   * Return a list of address type options
    * @param {String} uuid - organisation uuid
    * @see getFacet
    */
-  roleTypes (uuid) {
-    return this.getFacet(uuid, 'role_type')
+  addressTypes (uuid) {
+    return this.getFacet(uuid, 'address_type')
   },
 
   /**
-   * Base call for getting a facet
+   * Return a list of association type options
    * @param {String} uuid - organisation uuid
-   * @param {String} facet - facet name
-   * @returns {Array} a list of available facet options
+   * @see getFacet
    */
-  getFacet (uuid, facet) {
-    return Service.get(`/o/${uuid}/f/${facet}`)
-    .then(response => {
-      return response.data
-    })
+  associationTypes (uuid) {
+    return this.getFacet(uuid, 'association_type')
+  },
+
+  /**
+   * Return a list of engagement type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  engagementTypes (uuid) {
+    return this.getFacet(uuid, 'engagement_type')
+  },
+
+  /**
+   * Return a list of job function options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  jobFunctions (uuid) {
+    return this.getFacet(uuid, 'job_function')
   }
 }

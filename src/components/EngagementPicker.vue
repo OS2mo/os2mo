@@ -1,0 +1,74 @@
+<template>
+  <div class="form-group col">
+    <label>{{label}}</label>
+    <select 
+      class="form-control col" 
+      v-model="selected"
+      @change="updateSelectedEngagement()"
+      :disabled="!employeeDefined">
+      <option disabled>{{label}}</option>
+      <option 
+        v-for="e in engagements" 
+        v-bind:key="e.uuid"
+        :value="e">
+          {{e.engagement_type.name}}, {{e.org_unit.name}}
+      </option>
+    </select>
+  </div>
+</template>
+
+<script>
+import Employee from '../api/Employee'
+
+export default {
+  name: 'EngagementPicker',
+  props: {
+    value: Object,
+    employee: {
+      type: Object,
+      required: true
+    }
+  },
+  data () {
+    return {
+      label: 'Engagementer',
+      selected: {},
+      engagements: []
+    }
+  },
+  computed: {
+    employeeDefined () {
+      for (let key in this.employee) {
+        if (this.employee.hasOwnProperty(key)) {
+          return true
+        }
+      }
+      return false
+    }
+  },
+  watch: {
+    employee () {
+      this.getEngagements()
+    }
+  },
+  methods: {
+    getEngagements () {
+      var vm = this
+      Employee.getEngagementDetails(this.employee.uuid)
+      .then(response => {
+        vm.engagements = response
+        console.log(vm.engagements)
+      })
+    },
+
+    updateSelectedEngagement () {
+      this.$emit('input', this.selected)
+    }
+  }
+}
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+
+</style>

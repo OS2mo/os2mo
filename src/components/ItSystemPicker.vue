@@ -1,16 +1,16 @@
 <template>
   <div class="form-group col">
-    <label v-if="!noLabel">{{label}}</label>
+    <label>{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedJobFunction()">
+      @change="updateSelectedItSystem()">
       <option disabled>{{label}}</option>
       <option 
-        v-for="jf in jobFunctions" 
-        v-bind:key="jf.uuid"
-        :value="jf">
-          {{jf.name}}
+        v-for="it in itSystems" 
+        v-bind:key="it.uuid"
+        :value="it">
+          {{it.name}}
       </option>
     </select>
   </div>
@@ -20,34 +20,36 @@
 import Facet from '../api/Facet'
 
 export default {
-  name: 'JobFunctionPicker',
+  name: 'ItSystemPicker',
   props: {
     value: Object,
-    noLabel: Boolean,
-    orgUuid: String
+    orgUuid: {
+      type: String,
+      required: true
+    }
   },
   data () {
     return {
-      label: 'Stillingsbetegnelse',
+      label: 'IT systemer',
       selected: {},
-      jobFunctions: []
+      itSystems: []
     }
   },
   watch: {
     orgUuid () {
-      this.getJobFunctions()
+      this.getItSystems()
     }
   },
   methods: {
-    getJobFunctions () {
+    getItSystems () {
       var vm = this
-      Facet.jobFunctions(this.orgUuid)
+      Facet.itSystems(this.orgUuid)
       .then(response => {
-        vm.jobFunctions = response
+        vm.itSystems = response
       })
     },
 
-    updateSelectedJobFunction () {
+    updateSelectedItSystem () {
       this.$emit('input', this.selected)
     }
   }

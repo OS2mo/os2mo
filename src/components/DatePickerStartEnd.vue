@@ -3,17 +3,18 @@
     <date-picker 
       class="col"
       label="Startdato"
-      v-model="startDate"
       :preselectedDate="selectedValidFrom"
+      v-model="validFrom"
+      :disabled-from="validTo"
       required
       @input="updateDate()"
     />
 
     <date-picker 
       label="Slutdato"
-      v-model="endDate"
-      :disabled-to="startDate"
       :preselectedDate="selectedValidTo"
+      v-model="validTo"
+      :disabled-to="validFrom"
       @input="updateDate()"
     />
   </div>
@@ -28,31 +29,21 @@
       DatePicker
     },
     props: {
-      value: null,
+      value: Object,
       selectedValidFrom: Date,
       selectedValidTo: Date
     },
     data () {
       return {
-        startDate: null,
-        endDate: null,
-        dates: {
-          startDate: null,
-          endDate: null
-        }
-      }
-    },
-    created () {
-      this.dates = {
-        startDate: this.selectedValidFrom,
-        endDate: this.selectedValidTo
+        validFrom: null,
+        validTo: null
       }
     },
     methods: {
       updateDate () {
         this.$emit('input', {
-          startDate: this.startDate,
-          endDate: this.endDate
+          from: this.validFrom,
+          to: this.validTo
         })
       }
     }

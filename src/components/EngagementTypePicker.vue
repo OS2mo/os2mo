@@ -1,12 +1,12 @@
 <template>
   <div class="form-group col">
-    <label v-if="!noLabel">Engagementstype</label>
+    <label v-if="!noLabel">{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
       @change="updateEngagementType()"
     >
-      <option disabled>Engagementstype</option>
+      <option disabled>{{label}}</option>
       <option 
         v-for="etype in engagementTypes" 
         v-bind:key="etype.uuid"
@@ -30,6 +30,7 @@ export default {
   },
   data () {
     return {
+      label: 'Engagementstype',
       selected: {},
       engagementTypes: []
     }
@@ -54,8 +55,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

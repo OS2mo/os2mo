@@ -31,7 +31,6 @@
 
 <script>
   import Employee from '../api/Employee'
-  import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
   import Loading from '../components/Loading'
   import '../filters/CPRNumber'
@@ -46,19 +45,15 @@
         isLoading: true
       }
     },
-    created () {
-      this.getEmployees()
-    },
     mounted () {
-      EventBus.$on('organisation-changed', () => {
-        this.getEmployees()
+      EventBus.$on('organisation-changed', (newOrg) => {
+        this.getEmployees(newOrg)
       })
     },
     methods: {
-      getEmployees () {
+      getEmployees (org) {
         let vm = this
         vm.isLoading = true
-        let org = Organisation.getSelectedOrganisation()
         Employee.getAll(org.uuid)
         .then(response => {
           vm.employees = response

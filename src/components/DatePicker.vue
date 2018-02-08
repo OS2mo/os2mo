@@ -41,7 +41,9 @@ export default {
   },
   props: {
     value: Date,
+    preselectedDate: Date,
     required: Boolean,
+    noLabel: Boolean,
     label: {
       default: 'Dato',
       type: String
@@ -50,8 +52,10 @@ export default {
       default: null,
       type: Date
     },
-    preselectedDate: Date,
-    noLabel: Boolean
+    disabledFrom: {
+      default: null,
+      type: Date
+    }
   },
   data () {
     return {
@@ -63,11 +67,16 @@ export default {
     }
   },
   watch: {
-    selectedDate (newVal, oldVal) {
+    selectedDate (newVal) {
       this.$emit('input', newVal)
     },
-    disabledTo (newVal, oldVal) {
+
+    disabledTo (newVal) {
       this.disabled.to = newVal
+    },
+
+    disabledFrom (newVal) {
+      this.disabled.from = newVal
     }
   },
   created () {

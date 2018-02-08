@@ -20,23 +20,23 @@ export default new Router({
   routes: [
     {
       path: '/login',
-      name: 'login',
+      name: 'Login',
       component: LoginPage
     },
     {
       path: '/',
-      name: 'base',
+      name: 'Base',
       component: MoBase,
-      redirect: { name: 'home' },
+      redirect: { name: 'Home' },
       children: [
         {
           path: '',
-          name: 'home',
+          name: 'Home',
           component: HelloWorld
         },
         {
           path: '/organisation',
-          name: 'organisation',
+          name: 'Organisation',
           component: Organisation,
           redirect: { name: 'OrganisationLandingPage' },
 
@@ -55,7 +55,7 @@ export default new Router({
         },
         {
           path: '/medarbejder',
-          name: 'employee',
+          name: 'Employee',
           component: Employee,
           redirect: { name: 'EmployeeList' },
 
@@ -74,12 +74,12 @@ export default new Router({
         },
         {
           path: '/hjaelp',
-          name: 'help',
+          name: 'Help',
           component: TheHelp
         },
         {
           path: '/tidsmaskine',
-          name: 'timemachine',
+          name: 'Timemachine',
           component: TimeMachine
         },
         {

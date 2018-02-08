@@ -1,44 +1,38 @@
 <template>
-<b-modal 
+  <b-modal 
     id="employeeMove" 
     size="lg" 
     hide-footer 
     title="Flyt medarbejder"
     ref="employeeMove"
   >
-  <div>
+    <div>
+      <div class="form-row">
+        <employee-picker 
+          v-model="employee" 
+          :org="org"
+        />
+      </div>
+
       <div class="form-row">
         <date-picker 
           class="col"
           label="Dato for flytning"
-          v-model="selectedDate"
+          v-model="move.data.valid_from"
         />
       </div>
       
       <div class="form-row">
-        <div class="form-group">
-        <!-- THIS THING NEEDS TO DIE SOMETIME -->
-        <label>Vælg engagement som skal flyttes</label>
-        <select
-          class="form-control" 
-          v-model="selectedEngagement"
-        >
-          <option disabled>Vælg engagement</option>
-          <option 
-            v-for="e in engagements" 
-            :key="e.uuid"
-            :value="e.uuid"
-          >
-            {{e.job_function | getProperty('name')}} ({{e.org_unit | getProperty('name')}})
-          </option>
-        </select>
-        </div>
-        </div>
-        <!-- HOPEFULLY IT IS DEAD NOW. OTHERWISE GO BACK AND KILL IT AGAIN -->
+        <engagement-picker 
+          v-model="move.original"
+          :employee="employee"
+        />
+      </div>
+
       <div class="form-row">
         <organisation-unit-picker 
           class="col" 
-          v-model="orgUnit"
+          v-model="move.data.org_unit"
         />       
       </div>
 
@@ -54,6 +48,8 @@
   import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
+  import EngagementPicker from '../components/EngagementPicker'
+  import EmployeePicker from '../components/EmployeePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
 
   export default {
@@ -61,43 +57,40 @@
       Employee,
       DatePicker,
       OrganisationUnitPicker,
+      EngagementPicker,
+      EmployeePicker,
       ButtonSubmit
+    },
+    props: {
+      org: {
+        type: Object,
+        required: true
+      }
     },
     data () {
       return {
         orgUnit: {},
+        employee: {},
         selectedDate: null,
         selectedEngagement: null,
-        engagements: []
+        engagements: [],
+        engagement: {},
+        move: {
+          type: 'engagement',
+          data: {}
+        }
       }
     },
-    created () {
-      this.getEngagements()
-    },
     methods: {
-      // part of the death sin
-      getEngagements () {
-        var vm = this
-        Employee.getEngagementDetails(this.$route.params.uuid)
-        .then(response => {
-          vm.engagements = response
-        })
-      },
-      // carry on
-
       moveEmployee () {
         let vm = this
-        let edit = [{
-          type: 'engagement',
-          uuid: this.selectedEngagement,
-          data: {
-            valid_from: this.selectedDate,
-            valid_to: null,
-            org_unit_uuid: this.orgUnit.uuid
-          }
-        }]
-        Employee.editEmployee(this.$route.params.uuid, edit)
+
+        this.move.uuid = this.move.original.uuid
+
+        console.log(this.move)
+        Employee.editEmployee(this.employee.uuid, [this.move])
         .then(response => {
+          console.log(response)
           vm.$refs.employeeMove.hide()
         })
       }

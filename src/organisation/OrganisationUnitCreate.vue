@@ -31,6 +31,7 @@
     <organisation-unit-picker v-model="superUnit"/>
 
     <address-search 
+      :org="org"
       v-model="orgUnit.locations[0]"
     />
     
@@ -108,12 +109,12 @@
     },
     computed: {
       isCompleted () {
-        return this.dateStartEnd.startDate && this.orgUnit.name && this.superUnit
+        return this.dateStartEnd.from && this.orgUnit.name && this.superUnit
       }
     },
     updated () {
-      this.orgUnit['valid-from'] = this.dateStartEnd.startDate
-      this.orgUnit['valid-to'] = this.dateStartEnd.endDate !== '' ? this.dateStartEnd.endDate : 'infinity'
+      this.orgUnit['valid-from'] = this.dateStartEnd.from
+      this.orgUnit['valid-to'] = this.dateStartEnd.to !== '' ? this.dateStartEnd.to : 'infinity'
     },
     created () {
       this.org = Organisation.getSelectedOrganisation()

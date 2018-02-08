@@ -21,6 +21,7 @@ import itertools
 import flask
 
 from mora import lora
+from . import keys
 from . import common, employee, facet, org
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
@@ -104,6 +105,18 @@ def get_engagement(type, id, function):
 
     .. :quickref: Engagement; List
 
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00",
+      }
+
     :queryparam date at: Current time in ISO-8601 format.
     :queryparam string validity: Only show *past*, *present* or
         *future* values -- which the default being to show *present*
@@ -125,8 +138,7 @@ def get_engagement(type, id, function):
     :<jsonarr object org_unit:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
-    :<jsonarr string valid_from: The from date, in ISO 8601.
-    :<jsonarr string valid_to: The to date, in ISO 8601.
+    :<jsonarr string validity: The validity times of the object.
 
     :status 200: Always.
 
@@ -161,8 +173,10 @@ def get_engagement(type, id, function):
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
                 "uuid": "d000591f-8705-4324-897a-075e3623f37b",
-                "valid_from": "2017-01-01T00:00:00+01:00",
-                "valid_to": null
+                "validity": {
+                    "from": "2017-01-01T00:00:00+01:00",
+                    "to": null
+                },
             }
         ]
 
@@ -257,8 +271,10 @@ def get_engagement(type, id, function):
             JOB_FUNCTION: class_cache[get_title_id(effect)],
             FUNCTION_TYPES[function]: class_cache[get_type_id(effect)],
 
-            VALID_FROM: util.to_iso_time(start),
-            VALID_TO: util.to_iso_time(end),
+            keys.VALIDITY: {
+                keys.FROM: util.to_iso_time(start),
+                keys.TO: util.to_iso_time(end),
+            }
         }
 
         for funcid, funcobj in functions.items()
@@ -303,8 +319,8 @@ def create_engagement(employee_uuid, req):
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = req.get(JOB_FUNCTION).get('uuid')
     engagement_type_uuid = req.get(ENGAGEMENT_TYPE).get('uuid')
-    valid_from = req.get(VALID_FROM)
-    valid_to = req.get(VALID_TO, 'infinity')
+    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
+    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, ENGAGEMENT_KEY)
 
@@ -330,8 +346,8 @@ def edit_engagement(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     data = req.get('data')
-    new_from = data.get(VALID_FROM)
-    new_to = data.get(VALID_TO, 'infinity')
+    new_from = data.get(keys.VALIDITY).get(keys.FROM)
+    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
@@ -339,8 +355,8 @@ def edit_engagement(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get(VALID_FROM)
-        old_to = original_data.get(VALID_TO)
+        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
+        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

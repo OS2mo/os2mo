@@ -32,8 +32,10 @@ class Tests(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "valid_from": "2017-12-01T00:00:00+01",
-                "valid_to": "2017-12-02T00:00:00+01",
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01",
+                    "to": "2017-12-02T00:00:00+01",
+                }
             }
         ]
 
@@ -162,7 +164,9 @@ class Tests(util.LoRATestCase):
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "valid_from": "2017-12-01T00:00:00+01",
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01",
+                }
             }
         ]
 
@@ -291,7 +295,9 @@ class Tests(util.LoRATestCase):
                 "engagement_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                }
             },
         }]
 
@@ -438,8 +444,10 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "original": {
-                "valid_from": "2017-01-01 00:00:00+01",
-                "valid_to": "infinity",
+                "validity": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "to": "infinity",
+                },
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
@@ -451,7 +459,9 @@ class Tests(util.LoRATestCase):
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                }
             },
         }]
 
@@ -599,8 +609,10 @@ class Tests(util.LoRATestCase):
             "uuid": engagement_uuid,
             "data": {
                 "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
-                "valid_from": "2018-04-01T00:00:00+02",
-                "valid_to": "2019-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                    "to": "2019-04-01T00:00:00+02",
+                },
             },
         }]
 
@@ -756,7 +768,9 @@ class Tests(util.LoRATestCase):
             "uuid": engagement_uuid,
             "data": {
                 "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
-                "valid_from": "2018-04-01T00:00:00+02",
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                }
             },
         }]
 

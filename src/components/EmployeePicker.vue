@@ -1,53 +1,56 @@
 <template>
   <div class="form-group col">
-    <label v-if="!noLabel">{{label}}</label>
+    <label>{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedJobFunction()">
+      @change="updateSelectedEmployee()">
       <option disabled>{{label}}</option>
       <option 
-        v-for="jf in jobFunctions" 
-        v-bind:key="jf.uuid"
-        :value="jf">
-          {{jf.name}}
+        v-for="e in employees" 
+        v-bind:key="e.uuid"
+        :value="e">
+          {{e.name}}
       </option>
     </select>
   </div>
 </template>
 
 <script>
-import Facet from '../api/Facet'
+import Search from '../api/Search'
 
 export default {
-  name: 'JobFunctionPicker',
+  name: 'EmployeePicker',
   props: {
     value: Object,
-    noLabel: Boolean,
-    orgUuid: String
+    preselected: Object,
+    org: {
+      type: Object,
+      required: true
+    }
   },
   data () {
     return {
-      label: 'Stillingsbetegnelse',
+      label: 'Medarbejder',
       selected: {},
-      jobFunctions: []
+      employees: []
     }
   },
   watch: {
-    orgUuid () {
+    org () {
       this.getJobFunctions()
     }
   },
   methods: {
     getJobFunctions () {
       var vm = this
-      Facet.jobFunctions(this.orgUuid)
+      Search.employees(this.org.uuid)
       .then(response => {
-        vm.jobFunctions = response
+        vm.employees = response
       })
     },
 
-    updateSelectedJobFunction () {
+    updateSelectedEmployee () {
       this.$emit('input', this.selected)
     }
   }

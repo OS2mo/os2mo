@@ -5,18 +5,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+from unittest.mock import patch
 
 import freezegun
 
 from mora import lora
 from tests import util
 
+mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
+@patch('mora.service.leave.uuid.uuid4', new=lambda: mock_uuid)
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    def test_create_role(self):
+    def test_create_leave(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -26,9 +30,8 @@ class Tests(util.LoRATestCase):
 
         payload = [
             {
-                "type": "role",
-                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "role_type": {
+                "type": "leave",
+                "leave_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
@@ -90,17 +93,6 @@ class Tests(util.LoRATestCase):
                         "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
                     }
                 ],
-                "tilknyttedeenheder": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                    }
-                ]
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -111,30 +103,27 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Rolle",
-                        "funktionsnavn": "Rolle"
+                        "brugervendtnoegle": mock_uuid,
+                        "funktionsnavn": "Orlov"
                     }
                 ]
             }
         }
 
-        roles = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(roles), 1)
-        roleid = roles[0]
+        leaves = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(leaves), 1)
+        leaveid = leaves[0]
 
-        actual_role = c.organisationfunktion.get(roleid)
+        actual_leave = c.organisationfunktion.get(leaveid)
 
         # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
+        del actual_leave['fratidspunkt'], actual_leave[
+            'tiltidspunkt'], actual_leave[
             'brugerref']
 
-        self.assertEqual(actual_role, expected)
+        self.assertEqual(actual_leave, expected)
 
-    def test_create_role_no_valid_to(self):
+    def test_create_leave_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -144,9 +133,8 @@ class Tests(util.LoRATestCase):
 
         payload = [
             {
-                "type": "role",
-                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "role_type": {
+                "type": "leave",
+                "leave_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
@@ -207,17 +195,6 @@ class Tests(util.LoRATestCase):
                         "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
                     }
                 ],
-                "tilknyttedeenheder": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                    }
-                ]
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -228,45 +205,39 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Rolle",
-                        "funktionsnavn": "Rolle"
+                        "brugervendtnoegle": mock_uuid,
+                        "funktionsnavn": "Orlov"
                     }
                 ]
             }
         }
 
-        roles = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(roles), 1)
-        roleid = roles[0]
+        leaves = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(leaves), 1)
+        leaveid = leaves[0]
 
-        actual_role = c.organisationfunktion.get(roleid)
+        actual_leave = c.organisationfunktion.get(leaveid)
 
         # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
+        del actual_leave['fratidspunkt'], actual_leave[
+            'tiltidspunkt'], actual_leave[
             'brugerref']
 
-        self.assertEqual(actual_role, expected)
+        self.assertEqual(actual_leave, expected)
 
-    def test_edit_role_no_overwrite(self):
+    def test_edit_leave_no_overwrite(self):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
+        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
         req = [{
-            "type": "role",
-            "uuid": role_uuid,
+            "type": "leave",
+            "uuid": leave_uuid,
             "data": {
-                "role_type": {
+                "leave_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                },
-                "org_unit": {
-                    'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
                 },
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
@@ -278,8 +249,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_role = {
-            "note": "Rediger rolle",
+        expected_leave = {
+            "note": "Rediger orlov",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
@@ -312,26 +283,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "5991f9c2-9d82-45d5-9818-edf26fcc6d8b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                ],
                 "tilknyttedebrugere": [
                     {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
@@ -377,32 +328,32 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Rolle"
+                        "funktionsnavn": "Orlov"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_leave = c.organisationfunktion.get(leave_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
+        del actual_leave['fratidspunkt'], actual_leave[
+            'tiltidspunkt'], actual_leave[
             'brugerref']
 
-        self.assertEqual(expected_role, actual_role)
+        self.assertEqual(expected_leave, actual_leave)
 
-    def test_edit_role_minimal(self):
+    def test_edit_leave_minimal(self):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
+        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
         req = [{
-            "type": "role",
-            "uuid": role_uuid,
+            "type": "leave",
+            "uuid": leave_uuid,
             "data": {
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
@@ -414,8 +365,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_role = {
-            "note": "Rediger rolle",
+        expected_leave = {
+            "note": "Rediger orlov",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
@@ -439,17 +390,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                ],
                 "tilknyttedebrugere": [
                     {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
@@ -495,43 +435,43 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Rolle"
+                        "funktionsnavn": "Orlov"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_leave = c.organisationfunktion.get(leave_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
+        del actual_leave['fratidspunkt'], actual_leave[
+            'tiltidspunkt'], actual_leave[
             'brugerref']
 
-        self.assertEqual(expected_role, actual_role)
+        self.assertEqual(expected_leave, actual_leave)
 
-    def test_edit_role_overwrite(self):
+    def test_edit_leave_overwrite(self):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
+        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
         req = [{
-            "type": "role",
-            "uuid": role_uuid,
+            "type": "leave",
+            "uuid": leave_uuid,
             "original": {
                 "validity": {
                     "from": "2017-01-01 00:00:00+01",
                     "to": "infinity",
                 },
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "role_type": {
+                "leave_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
             },
             "data": {
-                "role_type": {
+                "leave_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "org_unit": {
@@ -547,8 +487,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             userid, json=req)
 
-        expected_role = {
-            "note": "Rediger rolle",
+        expected_leave = {
+            "note": "Rediger orlov",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
@@ -580,26 +520,6 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         }
                     }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "5991f9c2-9d82-45d5-9818-edf26fcc6d8b",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
                 ],
                 "tilknyttedebrugere": [
                     {
@@ -646,18 +566,118 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Rolle"
+                        "funktionsnavn": "Orlov"
                     }
                 ]
             },
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_leave = c.organisationfunktion.get(leave_uuid)
 
         # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
+        del actual_leave['fratidspunkt'], actual_leave[
+            'tiltidspunkt'], actual_leave[
             'brugerref']
 
-        self.assertEqual(expected_role, actual_role)
+        self.assertEqual(expected_leave, actual_leave)
+
+    def test_terminate_leave(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        payload = {"valid_from": "2017-12-01T00:00:00+01"}
+
+        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
+                                   userid, json=payload)
+
+        expected = {
+            "note": "Afslut orlov",
+            "relationer": {
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+            },
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Orlov"
+                    }
+                ]
+            },
+        }
+
+        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
+
+        actual_leave = c.organisationfunktion.get(leave_uuid)
+
+        # drop lora-generated timestamps & users
+        del actual_leave['fratidspunkt'], actual_leave[
+            'tiltidspunkt'], actual_leave[
+            'brugerref']
+
+        self.assertEqual(expected, actual_leave)
