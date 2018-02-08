@@ -22,9 +22,8 @@ from . import keys
 from . import common
 from .association import (ASSOCIATION_KEY, create_association,
                           edit_association, terminate_association)
-from .engagement import (ENGAGEMENT_KEY, create_engagement, edit_engagement,
+from .engagement import (create_engagement, edit_engagement,
                          terminate_engagement)
-from .keys import VALID_FROM
 from .role import create_role, edit_role
 from . import itsystem
 from . import leave
@@ -595,13 +594,13 @@ def terminate_employee(employee_uuid):
         "valid_from": "2016-01-01T00:00:00+00:00"
       }
     """
-    date = flask.request.get_json().get(VALID_FROM)
+    date = flask.request.get_json().get(keys.VALID_FROM)
 
     c = lora.Connector(effective_date=date)
 
     engagements = c.organisationfunktion.get_all(
         tilknyttedebrugere=employee_uuid,
-        funktionsnavn=ENGAGEMENT_KEY)
+        funktionsnavn=keys.ENGAGEMENT_KEY)
     for engagement in engagements:
         engagement_uuid = engagement[0]
         terminate_engagement(engagement_uuid, date)
