@@ -1,12 +1,21 @@
 <template>
-  <button type="button" class="btn btn-primary">
+  <div>
+  <loading v-show="isLoading"/>
+  <button type="button" class="btn btn-primary" v-show="!isLoading">
     <icon name="check"/>
   </button>
+  </div>
 </template>
 
 <script>
+import Loading from './Loading'
 export default {
-  props: {},
+  components: {
+    Loading
+  },
+  props: {
+    isLoading: Boolean
+  },
   data () {
     return {}
   }
