@@ -1,7 +1,7 @@
 <template>
   <div>
       <h4>Tilknytning</h4>
-      <date-start-end v-model="association.validity"/>
+      <date-start-end v-model="association.validity" initially-hidden/>
       <div class="form-row">
         <organisation-unit-picker 
           class="col" 
@@ -39,26 +39,26 @@ export default {
     org: {
       type: Object,
       required: true
-    }
+    },
+    validity: Object
   },
   data () {
     return {
       association: {
-        type: 'association'
+        type: 'association',
+        validity: {}
       }
     }
   },
   watch: {
-    association (newVal, oldVal) {
+    association (newVal) {
       this.$emit('input', newVal)
+    },
+
+    validity (newVal) {
+      this.association.validity = newVal
     }
-  },
-  methods: {
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
