@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label v-if="!noLabel">{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
@@ -9,7 +9,7 @@
       <option disabled>{{label}}</option>
       <option 
         v-for="etype in engagementTypes" 
-        v-bind:key="etype.uuid"
+        :key="etype.uuid"
         :value="etype"
       >
         {{etype.name}}
@@ -24,7 +24,12 @@ import Facet from '../api/Facet'
 export default {
   props: {
     value: Object,
-    orgUuid: String
+    preselected: {},
+    noLabel: Boolean,
+    org: {
+      type: Object,
+      required: true
+    }
   },
   data () {
     return {
@@ -34,14 +39,17 @@ export default {
     }
   },
   watch: {
-    orgUuid () {
+    org () {
       this.getEngagementTypes()
     }
+  },
+  created () {
+    this.selected = this.preselected || {}
   },
   methods: {
     getEngagementTypes () {
       let vm = this
-      Facet.engagementTypes(this.orgUuid)
+      Facet.engagementTypes(this.org.uuid)
       .then(response => {
         vm.engagementTypes = response
       })
@@ -53,8 +61,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

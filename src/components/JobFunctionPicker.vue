@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label v-if="!noLabel">{{label}}</label>
     <select 
       class="form-control col" 
       v-model="selected"
@@ -23,6 +23,7 @@ export default {
   name: 'JobFunctionPicker',
   props: {
     value: Object,
+    noLabel: Boolean,
     orgUuid: String
   },
   data () {

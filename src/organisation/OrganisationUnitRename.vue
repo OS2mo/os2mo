@@ -68,7 +68,7 @@
     },
     computed: {
       isCompleted () {
-        return this.orgUnit && this.newName && this.dateStartEnd.startDate
+        return this.orgUnit && this.newName && this.dateStartEnd.from
       }
     },
     mounted () {

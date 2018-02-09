@@ -68,7 +68,6 @@
       },
 
       selected (item) {
-        console.log(item)
         this.$emit('input', item)
       }
     }

@@ -1,9 +1,6 @@
 <template>
     <div class="row">
-    <div class="col-md-3">
-      <the-left-menu/>
-    </div>
-    <div class="col-md-9 workflow-padding">
+    <div class="col-12 workflow-padding">
       <router-view :key="$route.params.uuid"/>
     </div>
     
@@ -12,12 +9,10 @@
 </template>
 
 <script>
-  import TheLeftMenu from '../components/TheLeftMenu'
   import EmployeeWorkflows from './EmployeeWorkflows'
 
   export default {
     components: {
-      TheLeftMenu,
       EmployeeWorkflows
     }
   }

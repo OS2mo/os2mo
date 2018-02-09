@@ -27,7 +27,10 @@
     },
     props: {
       value: Object,
-      orgUuid: String,
+      org: {
+        type: Object,
+        required: true
+      },
       linkable: Boolean,
       atDate: Date
     },
@@ -38,8 +41,8 @@
       }
     },
     watch: {
-      orgUuid () {
-        this.getChildren()
+      org (newOrg) {
+        this.getChildren(newOrg)
       },
 
       atDate () {
@@ -50,10 +53,14 @@
         this.$emit('input', newVal)
       }
     },
+    created () {
+      this.getChildren(this.org)
+    },
     methods: {
-      getChildren () {
+      getChildren (org) {
         let vm = this
-        Organisation.getChildren(this.orgUuid, this.atDate)
+        if (org.uuid === undefined) return
+        Organisation.getChildren(org.uuid, this.atDate)
         .then(response => {
           vm.children = response
         })
