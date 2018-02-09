@@ -7,16 +7,14 @@
     ref="employeeCreate"
   >
 
-    <employee-picker :org="org"/>
+    <employee-picker :org="org" v-model="employee"/>
     <employee-create-engagement :org="org" v-model="engagement"/>
-    {{engagement}}
-    <employee-create-association :org="org" v-model="association"/>
-    {{association}}
-    <employee-create-role :org="org" v-model="role"/>
-    {{role}}
+    <employee-create-association :org="org" v-model="association" :validity="engagement.validity"/>
+    <!-- <employee-create-role :org="org" v-model="role"/> -->
+    <!-- {{role}} -->
 
     <div class="float-right">
-      <button-submit @click.native="createEmployee"/>
+      <button-submit @click.native="createEmployee" :is-loading="isLoading"/>
     </div>
   </b-modal>
 
@@ -42,10 +40,12 @@ export default {
   },
   data () {
     return {
+      employee: {},
       org: {},
       engagement: {},
       association: {},
-      role: {}
+      role: {},
+      isLoading: false
     }
   },
   created () {
@@ -60,21 +60,25 @@ export default {
     createEmployee () {
       let vm = this
       let create = []
+      this.isLoading = true
 
       create.push(this.engagement)
-      create.push(this.association)
 
-      Employee.createEmployee(this.$route.params.uuid, create)
+      console.log(this.association)
+      if(Object.keys(this.association).length > 0) {
+        create.push(this.association)
+      }
+
+      Employee.createEmployee(this.employee.uuid, create)
       .then(response => {
+        vm.isLoading = false
         vm.$refs.employeeCreate.hide()
-        console.log(response)
+      })
+      .catch(err => {
+        console.log(err)
+        vm.isLoading = false
       })
     }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
