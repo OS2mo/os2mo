@@ -11,6 +11,7 @@
         <job-function-picker 
           :org-uuid="org.uuid" 
           v-model="association.job_function"
+          :org="org"
         />
         <association-type 
           :org-uuid="org.uuid" 
