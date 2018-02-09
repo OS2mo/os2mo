@@ -37,10 +37,16 @@
     },
     methods: {
       updateDate () {
-        this.$emit('input', {
-          from: this.validFrom,
-          to: this.validTo
-        })
+        let obj = {}
+        if (this.validFrom) {
+          obj.from = this.validFrom
+        }
+
+        if (this.validTo) {
+          obj.to = this.validTo
+        }
+
+        this.$emit('input', obj)
       }
     }
   }
