@@ -17,14 +17,6 @@
           v-model="engagement.engagement_type"
         />
       </div>
-
-      <div class="form-row">
-        <div class="form-check col">
-          <label class="form-check-label">
-            <input class="form-check-input" type="checkbox" value=""> Overføre
-          </label>
-        </div>
-      </div>
   </div>
 </template>
 
@@ -59,13 +51,6 @@ export default {
     engagement (newVal, oldVal) {
       this.$emit('input', newVal)
     }
-  },
-  methods: {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
