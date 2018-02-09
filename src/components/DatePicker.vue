@@ -61,11 +61,15 @@ export default {
     },
 
     disabledTo (newVal) {
-      this.disabled.to = new Date(newVal)
+      this.disabled.to = newVal ? new Date(newVal) : null
     },
 
     disabledFrom (newVal) {
-      this.disabled.from = new Date(newVal)
+      this.disabled.from = newVal ? new Date(newVal) : null
+    },
+
+    value (newVal) {
+      this.selected = newVal
     }
   },
   created () {
