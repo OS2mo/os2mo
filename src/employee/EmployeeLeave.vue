@@ -11,7 +11,7 @@
         <date-picker-start-end v-model="leave.validity"/>
 
         <div class="form-group col">
-          <leave-picker :org="org" v-model="leave"/>
+          <leave-picker :org="org" v-model="leave.leave_type"/>
         </div>        
       </div>
 
@@ -23,9 +23,7 @@
 </template>
 
 <script>
-import Organisation from '../api/Organisation'
 import Employee from '../api/Employee'
-import { EventBus } from '../EventBus'
 import DatePickerStartEnd from '../components/DatePickerStartEnd'
 import LeavePicker from '../components/LeavePicker'
 import ButtonSubmit from '../components/ButtonSubmit'
@@ -36,21 +34,18 @@ export default {
     LeavePicker,
     ButtonSubmit
   },
+  props: {
+    org: {
+      type: Object,
+      required: true
+    }
+  },
   data () {
     return {
       leave: {
         type: 'leave'
-      },
-      org: {}
+      }
     }
-  },
-  created () {
-    this.org = Organisation.getSelectedOrganisation()
-  },
-  mounted () {
-    EventBus.$on('organisation-changed', newOrg => {
-      this.org = newOrg
-    })
   },
   methods: {
     createLeave () {

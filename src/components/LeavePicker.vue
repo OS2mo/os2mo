@@ -23,7 +23,10 @@ export default {
   name: 'LeavePicker',
   props: {
     value: Object,
-    orgUuid: String
+    org: {
+      type: Object,
+      required: true
+    }
   },
   data () {
     return {
@@ -32,14 +35,14 @@ export default {
     }
   },
   watch: {
-    orgUuid () {
+    org () {
       this.getLeavePicker()
     }
   },
   methods: {
     getLeavePicker () {
       var vm = this
-      Facet.leaveTypes(this.orgUuid)
+      Facet.leaveTypes(this.org.uuid)
       .then(response => {
         vm.leaveTypes = response
       })
