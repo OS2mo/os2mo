@@ -9,7 +9,7 @@
       <option disabled>{{label}}</option>
       <option 
         v-for="etype in engagementTypes" 
-        v-bind:key="etype.uuid"
+        :key="etype.uuid"
         :value="etype"
       >
         {{etype.name}}
@@ -24,7 +24,7 @@ import Facet from '../api/Facet'
 export default {
   props: {
     value: Object,
-    preselected: String,
+    preselected: {},
     noLabel: Boolean,
     org: {
       type: Object,
@@ -42,6 +42,9 @@ export default {
     org () {
       this.getEngagementTypes()
     }
+  },
+  created () {
+    this.selected = this.preselected || {}
   },
   methods: {
     getEngagementTypes () {
