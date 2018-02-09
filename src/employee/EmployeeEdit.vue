@@ -7,60 +7,50 @@
     ref="employeeEdit"
   >
     <h4>Engagement</h4>
-    <div>
       <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">Enhed</th>
-          <th scope="col">Stillingsbetegnelse</th>
-          <th scope="col">Engagementstype</th>
-          <th scope="col">Startdato</th>
-          <th scope="col">Slutdato</th>
-        </tr>
-      </thead>
+        <thead>
+          <tr>
+            <th scope="col">Enhed</th>
+            <th scope="col">Stillingsbetegnelse</th>
+            <th scope="col">Engagementstype</th>
+            <th scope="col">Startdato</th>
+            <th scope="col">Slutdato</th>
+          </tr>
+        </thead>
       
-      <tbody>
-        <tr v-for="e in engagements" v-bind:key="e.uuid">
-          <td>
-            {{e.org_unit | getProperty('name')}}
-          </td>
-          <td> 
-            <job-function-picker
-              no-label
-              v-model="e.job_function"
-              :preselected="e.job_function | getProperty('uuid')"
-            />
-          </td>
-          <td>
-            <engagement-type-picker 
-              no-label
-              v-model="e.engagement_type"
-              :preselected="e.engagement_type | getProperty('uuid')"
-              :org="org"
-            />
-          </td>
-          <td>
-            <date-picker 
-              no-label
-              v-model="e.validity.from"
-              :preselectedDate="new Date(e.validity.from)"
-            />
-          </td>
-          <td>
-            <date-picker
-              no-label
-              v-model="e.validity.to"
-              :preselectedDate="new Date(e.validity.to)"
-            />
-          </td>
-        </tr>
-      </tbody>
+        <tbody>
+          <tr v-for="e in engagements" v-bind:key="e.uuid">
+            <td>
+              {{e.org_unit | getProperty('name')}}
+            </td>
+            <td> 
+              <job-function-picker
+                no-label
+                v-model="e.job_function"
+                :preselected="e.job_function | getProperty('uuid')"
+              />
+            </td>
+            <td>
+              <engagement-type-picker 
+                no-label
+                v-model="e.engagement_type"
+                :preselected="e.engagement_type | getProperty('uuid')"
+                :org="org"
+              />
+            </td>
+            <td>
+              <date-picker no-label v-model="e.validity.from"/>
+            </td>
+            <td>
+              <date-picker no-label v-model="e.validity.to"/>
+            </td>
+          </tr>
+        </tbody>
       </table>
-    </div>
 
-      <div class="float-right">
-        <button-submit @click.native="editEmployee"/>
-      </div>
+    <div class="float-right">
+      <button-submit @click.native="editEmployee"/>
+    </div>
   </b-modal>
 
 </template>

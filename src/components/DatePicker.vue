@@ -1,14 +1,10 @@
 <template>
     <div class="form-group col">
-      <label 
-        v-if="!noLabel"
-        id="date-label" 
-        for="date"
-        >{{label}}</label>
+      <label v-if="!noLabel" id="date-label" for="date">{{label}}</label>
       <date-time-picker 
         name="date"
         :data-vv-as="label"
-        v-model="selectedDate" 
+        v-model="selected" 
         format="dd-MM-yyyy"
         language="da" 
         monday-first
@@ -41,52 +37,39 @@ export default {
   },
   props: {
     value: Date,
-    preselectedDate: Date,
     required: Boolean,
     noLabel: Boolean,
     label: {
       default: 'Dato',
       type: String
     },
-    disabledTo: {
-      default: null,
-      type: Date
-    },
-    disabledFrom: {
-      default: null,
-      type: Date
-    }
+    disabledTo: Date,
+    disabledFrom: Date
   },
   data () {
     return {
-      selectedDate: null,
       disabled: {
         to: null,
         from: null
-      }
+      },
+      selected: null
     }
   },
   watch: {
-    selectedDate (newVal) {
+    selected (newVal) {
       this.$emit('input', newVal)
     },
 
     disabledTo (newVal) {
-      this.disabled.to = newVal
+      this.disabled.to = new Date(newVal)
     },
 
     disabledFrom (newVal) {
-      this.disabled.from = newVal
+      this.disabled.from = new Date(newVal)
     }
   },
   created () {
-    this.selectedDate = this.preselectedDate || null
-    console.log(this.preselectedDate)
+    this.selected = this.value
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
