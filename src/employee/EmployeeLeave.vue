@@ -17,7 +17,7 @@
 
     <div class="float-right">
       <button-submit 
-      :disabled="errors.any() || !isCompleted"
+      :is-disabled="isDisabled"
       @click.native="createLeave"/>
     </div>
   </b-modal>
@@ -37,8 +37,8 @@ export default {
     ButtonSubmit
   },
   computed: {
-    isCompleted () {
-      return this.leave.validity && this.leave.leave_type
+    isDisabled () {
+      if (this.leave.validity.from === undefined || this.leave.validity.to === undefined || this.leave.leave_type === undefined) return true
     }
   },
   props: {
@@ -50,7 +50,8 @@ export default {
   data () {
     return {
       leave: {
-        type: 'leave'
+        type: 'leave',
+        validity: {}
       }
     }
   },
