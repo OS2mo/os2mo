@@ -17,7 +17,7 @@
         </li>
       </ul>
 
-      <organisation-picker class="ml-auto mr-auto"/>
+      <organisation-picker reset-route class="ml-auto mr-auto"/>
 
       <search-bar class="ml-auto mr-auto"/>
 
