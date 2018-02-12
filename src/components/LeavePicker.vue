@@ -3,8 +3,11 @@
     <label>Orlovstype</label>
     <select 
       class="form-control col" 
+      name="leavetypes"
       v-model="selected"
-      @change="updateSelectedLeaveTypes()">
+      @change="updateSelectedLeaveTypes()"
+      v-validate="{ required: true }"
+    >
       <option disabled>Orlovstype</option>
       <option 
         v-for="lt in leaveTypes" 
@@ -13,6 +16,7 @@
           {{lt.name}}
       </option>
     </select>
+    <span v-show="errors.has('leavetypes')" class="text-danger">{{ errors.first('leavetypes') }}</span>
   </div>
 </template>
 

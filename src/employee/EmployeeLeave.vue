@@ -16,7 +16,9 @@
       </div>
 
     <div class="float-right">
-      <button-submit @click.native="createLeave"/>
+      <button-submit 
+      :disabled="errors.any() || !isCompleted"
+      @click.native="createLeave"/>
     </div>
   </b-modal>
 
@@ -33,6 +35,11 @@ export default {
     DatePickerStartEnd,
     LeavePicker,
     ButtonSubmit
+  },
+  computed: {
+    isCompleted () {
+      return this.leave.validity && this.leave.leave_type
+    }
   },
   props: {
     org: {
