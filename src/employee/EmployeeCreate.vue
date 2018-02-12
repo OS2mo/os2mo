@@ -65,7 +65,7 @@ export default {
       create.push(this.engagement)
 
       console.log(this.association)
-      if(Object.keys(this.association).length > 0) {
+      if (Object.keys(this.association).length > 0) {
         create.push(this.association)
       }
 

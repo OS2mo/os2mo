@@ -41,6 +41,10 @@ export default {
       this.getJobFunctions()
     }
   },
+  created () {
+    this.getJobFunctions()
+    this.selected = this.value
+  },
   methods: {
     getJobFunctions () {
       var vm = this

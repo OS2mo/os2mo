@@ -24,7 +24,6 @@ import Facet from '../api/Facet'
 export default {
   props: {
     value: Object,
-    preselected: {},
     noLabel: Boolean,
     org: {
       type: Object,
@@ -44,7 +43,8 @@ export default {
     }
   },
   created () {
-    this.selected = this.preselected || {}
+    this.getEngagementTypes()
+    this.selected = this.value
   },
   methods: {
     getEngagementTypes () {
