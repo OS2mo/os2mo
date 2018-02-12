@@ -1,22 +1,27 @@
 <template>
   <div class="form-row">
+    <div v-show="hidden">
+      <button class="btn btn-link" @click="hidden=false">
+        Vælg anden validity
+      </button>
+    </div>
     <date-picker 
-      class="col"
       label="Startdato"
       v-model="validFrom"
+      v-show="!hidden"
       :disabled-from="validTo"
-      required
       @input="updateDate()"
+      required
     />
 
     <date-picker 
       label="Slutdato"
       v-model="validTo"
+      v-show="!hidden"
       :disabled-to="validFrom"
       @input="updateDate()"
     />
   </div>
-
 </template>
 
 <script>
@@ -27,20 +32,39 @@
       DatePicker
     },
     props: {
-      value: Object
+      value: Object,
+      initiallyHidden: Boolean
     },
     data () {
       return {
         validFrom: null,
-        validTo: null
+        validTo: null,
+        hidden: false
       }
+    },
+    watch: {
+      value (newVal) {
+        if (this.hidden) {
+          this.validFrom = newVal.from
+          this.validTo = newVal.to
+        }
+      }
+    },
+    created () {
+      this.hidden = this.initiallyHidden
     },
     methods: {
       updateDate () {
-        this.$emit('input', {
-          from: this.validFrom,
-          to: this.validTo
-        })
+        let obj = {}
+        if (this.validFrom) {
+          obj.from = this.validFrom
+        }
+
+        if (this.validTo) {
+          obj.to = this.validTo
+        }
+
+        this.$emit('input', obj)
       }
     }
   }

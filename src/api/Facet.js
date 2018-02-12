@@ -54,6 +54,15 @@ export default {
   },
 
   /**
+   * Return a list of role type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  roleTypes (uuid) {
+    return this.getFacet(uuid, 'role_type')
+  },
+
+  /**
    * Return a list of association type options
    * @param {String} uuid - organisation uuid
    * @see getFacet

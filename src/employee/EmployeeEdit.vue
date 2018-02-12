@@ -28,6 +28,7 @@
                 no-label
                 v-model="e.job_function"
                 :preselected="e.job_function | getProperty('uuid')"
+                :org="org"
               />
             </td>
             <td>

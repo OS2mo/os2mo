@@ -6,52 +6,15 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
-  
-    <div>
-      <h4>Engagement</h4>
-      <date-start-end v-model="engagement.dateStartEnd"/>
-      <div class="form-row">
-        <organisation-unit-picker 
-          class="col" 
-          label="Vælg enhed"
-          v-model="engagement.org_unit"/>
-        <job-function-picker 
-          :org-uuid="org.uuid" 
-          v-model="engagement.job_function"
-        />
-        <engagement-type-picker 
-          :org="org" 
-          v-model="engagement.engagement_type"
-        />
-      </div>
-      <div class="form-row">
-        <div class="form-check col">
-          <label class="form-check-label">
-            <input class="form-check-input" type="checkbox" value=""> Overføre
-          </label>
-        </div>
-      </div>
 
-      <h4>Tilknytning</h4>
-      <date-start-end v-model="association.dateStartEnd"/>
-      <div class="form-row">
-        <organisation-unit-picker 
-          class="col" 
-          label="Vælg enhed"
-          v-model="association.org_unit"/>
-        <job-function-picker 
-          :org-uuid="org.uuid" 
-          v-model="association.job_function"
-        />
-        <association-type 
-          :org-uuid="org.uuid" 
-          v-model="association.association_type"
-        />
-      </div>
-    </div>
+    <employee-picker :org="org" v-model="employee"/>
+    <employee-create-engagement :org="org" v-model="engagement"/>
+    <employee-create-association :org="org" v-model="association" :validity="engagement.validity"/>
+    <!-- <employee-create-role :org="org" v-model="role"/> -->
+    <!-- {{role}} -->
 
     <div class="float-right">
-      <button-submit @click.native="createEmployee"/>
+      <button-submit @click.native="createEmployee" :is-loading="isLoading"/>
     </div>
   </b-modal>
 
@@ -61,33 +24,28 @@
 import Organisation from '../api/Organisation'
 import Employee from '../api/Employee'
 import { EventBus } from '../EventBus'
-import DateStartEnd from '../components/DatePickerStartEnd'
-import AddressSearch from '../components/AddressSearch'
-import AssociationType from '../components/AssociationType'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../components/JobFunctionPicker'
-import EngagementTypePicker from '../components/EngagementTypePicker'
 import ButtonSubmit from '../components/ButtonSubmit'
+import EmployeeCreateAssociation from './EmployeeCreateAssociation'
+import EmployeeCreateEngagement from './EmployeeCreateEngagement'
+import EmployeeCreateRole from './EmployeeCreateRole'
+import EmployeePicker from '../components/EmployeePicker'
 
 export default {
   components: {
-    DateStartEnd,
-    AddressSearch,
-    AssociationType,
-    OrganisationUnitPicker,
-    JobFunctionPicker,
-    EngagementTypePicker,
-    ButtonSubmit
+    ButtonSubmit,
+    EmployeeCreateAssociation,
+    EmployeeCreateEngagement,
+    EmployeeCreateRole,
+    EmployeePicker
   },
   data () {
     return {
-      engagement: {
-        type: 'engagement'
-      },
-      association: {
-        type: 'association'
-      },
-      org: {}
+      employee: {},
+      org: {},
+      engagement: {},
+      association: {},
+      role: {},
+      isLoading: false
     }
   },
   created () {
@@ -102,27 +60,25 @@ export default {
     createEmployee () {
       let vm = this
       let create = []
-
-      this.engagement.valid_from = this.engagement.dateStartEnd.from
-      this.engagement.valid_to = this.engagement.dateStartEnd.to
-
-      this.association.valid_from = this.association.dateStartEnd.from
-      this.association.valid_to = this.association.dateStartEnd.to
+      this.isLoading = true
 
       create.push(this.engagement)
-      create.push(this.association)
 
-      Employee.createEmployee(this.$route.params.uuid, create)
+      console.log(this.association)
+      if(Object.keys(this.association).length > 0) {
+        create.push(this.association)
+      }
+
+      Employee.createEmployee(this.employee.uuid, create)
       .then(response => {
+        vm.isLoading = false
         vm.$refs.employeeCreate.hide()
-        console.log(response)
+      })
+      .catch(err => {
+        console.log(err)
+        vm.isLoading = false
       })
     }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
