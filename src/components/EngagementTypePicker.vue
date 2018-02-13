@@ -20,16 +20,12 @@
 
 <script>
 import Facet from '../api/Facet'
+import Organisation from '../api/Organisation'
 
 export default {
   props: {
     value: Object,
-    preselected: {},
     noLabel: Boolean,
-    org: {
-      type: Object,
-      required: true
-    }
   },
   data () {
     return {
@@ -44,12 +40,15 @@ export default {
     }
   },
   created () {
-    this.selected = this.preselected || {}
+    this.getEngagementTypes()
+    this.selected = this.value
   },
   methods: {
     getEngagementTypes () {
       let vm = this
-      Facet.engagementTypes(this.org.uuid)
+      let org = Organisation.getSelectedOrganisation()
+      if (org.uuid === undefined) return
+      Facet.engagementTypes(org.uuid)
       .then(response => {
         vm.engagementTypes = response
       })

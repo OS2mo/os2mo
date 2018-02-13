@@ -18,7 +18,7 @@
         <date-picker 
           class="col"
           label="Dato for flytning"
-          v-model="move.data.valid_from"
+          v-model="move.data.validity.from"
         />
       </div>
       
@@ -30,14 +30,15 @@
       </div>
 
       <div class="form-row">
-        <organisation-unit-picker 
+        <organisation-unit-picker
+          label="Angiv enhed" 
           class="col" 
           v-model="move.data.org_unit"
         />       
       </div>
 
     <div class="float-right">
-      <button-submit @click.native="moveEmployee"/>
+      <button-submit @click.native="moveEmployee" :is-loading="isLoading"/>
     </div>
   </div>
 </b-modal>
@@ -69,29 +70,30 @@
     },
     data () {
       return {
-        orgUnit: {},
         employee: {},
-        selectedDate: null,
-        selectedEngagement: null,
-        engagements: [],
-        engagement: {},
+        isLoading: false,
         move: {
           type: 'engagement',
-          data: {}
+          data: {
+            validity: {}
+          }
         }
       }
     },
     methods: {
       moveEmployee () {
         let vm = this
+        vm.isLoading = true
+        vm.move.uuid = this.move.original.uuid
 
-        this.move.uuid = this.move.original.uuid
-
-        console.log(this.move)
         Employee.editEmployee(this.employee.uuid, [this.move])
         .then(response => {
-          console.log(response)
+          vm.isLoading = false
           vm.$refs.employeeMove.hide()
+        })
+        .catch(err => {
+          console.log(err)
+          vm.isLoading = false
         })
       }
     }

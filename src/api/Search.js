@@ -12,6 +12,9 @@ export default {
     .then(response => {
       return response.data
     })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   organisations (orgUuid, query) {
@@ -19,6 +22,9 @@ export default {
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
     .then(response => {
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   }
 }

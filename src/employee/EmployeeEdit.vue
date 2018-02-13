@@ -28,15 +28,12 @@
                 no-label
                 v-model="e.job_function"
                 :preselected="e.job_function | getProperty('uuid')"
-                :org="org"
               />
             </td>
             <td>
               <engagement-type-picker 
                 no-label
                 v-model="e.engagement_type"
-                :preselected="e.engagement_type | getProperty('uuid')"
-                :org="org"
               />
             </td>
             <td>
@@ -50,7 +47,7 @@
       </table>
 
     <div class="float-right">
-      <button-submit @click.native="editEmployee"/>
+      <button-submit @click.native="editEmployee" :is-loading="isLoading"/>
     </div>
   </b-modal>
 
@@ -60,6 +57,7 @@
   import Employee from '../api/Employee'
   import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
+  import CompareObjects from '../mixins/CompareObjects'
   import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
   import JobFunctionPicker from '../components/JobFunctionPicker'
@@ -76,11 +74,15 @@
     props: {
       uuid: String
     },
+    mixins: [
+      CompareObjects
+    ],
     data () {
       return {
         engagements: [],
         original: [],
-        org: Object
+        org: Object,
+        isLoading: false
       }
     },
     watch: {
@@ -100,11 +102,13 @@
     methods: {
       getEngagements () {
         var vm = this
+        vm.isLoading = true
         Employee.getEngagementDetails(this.uuid)
         .then(response => {
           vm.engagements = response
           // make a copy that is non-reactive
           vm.original = JSON.parse(JSON.stringify(response))
+          vm.isLoading = false
         })
       },
 
@@ -112,15 +116,19 @@
         let vm = this
         let edit = []
         // loop through all the engagements and add them to the edit array
-        this.engagements.forEach(function (e, index) {
-          let obj = {
-            type: 'engagement',
-            uuid: e.uuid,
-            original: vm.original[index],
-            data: e
+        this.engagements.forEach(function (e, i) {
+          console.log(vm.compareObjects(e, vm.original[i]))
+          if (!vm.compareObjects(e, vm.original[i])) {
+            let obj = {
+              type: 'engagement',
+              uuid: e.uuid,
+              original: vm.original[i],
+              data: e
+            }
+            edit.push(obj)
           }
-          edit.push(obj)
         })
+        console.log(edit)
 
         Employee.editEmployee(this.uuid, edit)
         .then(response => {

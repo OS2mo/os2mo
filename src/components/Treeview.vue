@@ -1,6 +1,7 @@
 <template>
   <div>
-    <ul>
+    <loading v-show="isLoading"/>
+    <ul v-show="!isLoading">
       <tree-item
       v-for="c in children"
       v-bind:key="c.uuid"
@@ -11,7 +12,6 @@
       first-open
       />
     </ul>
-    <loading v-show="!children"/>
   </div>
 </template>
 
@@ -37,7 +37,8 @@
     data () {
       return {
         children: null,
-        selectedOrgUnit: {}
+        selectedOrgUnit: {},
+        isLoading: false
       }
     },
     watch: {
@@ -58,10 +59,12 @@
     },
     methods: {
       getChildren (org) {
-        let vm = this
         if (org.uuid === undefined) return
+        let vm = this
+        vm.isLoading = true
         Organisation.getChildren(org.uuid, this.atDate)
         .then(response => {
+          vm.isLoading = false
           vm.children = response
         })
       }

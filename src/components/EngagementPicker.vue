@@ -1,7 +1,9 @@
 <template>
   <div class="form-group col">
     <label>{{label}}</label>
-    <select 
+    <loading v-show="isLoading"/>
+    <select
+      v-show="!isLoading" 
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedEngagement()"
@@ -19,9 +21,13 @@
 
 <script>
 import Employee from '../api/Employee'
+import Loading from './Loading'
 
 export default {
   name: 'EngagementPicker',
+  components: {
+    Loading
+  },
   props: {
     value: Object,
     employee: {
@@ -33,7 +39,8 @@ export default {
     return {
       label: 'Engagementer',
       selected: {},
-      engagements: []
+      engagements: [],
+      isLoading: false
     }
   },
   computed: {
@@ -54,10 +61,11 @@ export default {
   methods: {
     getEngagements () {
       var vm = this
+      vm.isLoading = true
       Employee.getEngagementDetails(this.employee.uuid)
       .then(response => {
+        vm.isLoading = false
         vm.engagements = response
-        console.log(vm.engagements)
       })
     },
 

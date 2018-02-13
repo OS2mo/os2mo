@@ -12,6 +12,9 @@ export default {
     .then(response => {
       return response.data
     })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   /**
@@ -23,6 +26,9 @@ export default {
     return Service.get(`/o/${uuid}/f/${facet}/`)
     .then(response => {
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   },
 
@@ -87,5 +93,14 @@ export default {
    */
   jobFunctions (uuid) {
     return this.getFacet(uuid, 'job_function')
+  },
+
+   /**
+   * Return a list of leave type options
+   * @param {String} uuid - organisation uuid
+   * @see getFacet
+   */
+  leaveTypes (uuid) {
+    return this.getFacet(uuid, 'leave_type')
   }
 }
