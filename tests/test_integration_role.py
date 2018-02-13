@@ -676,7 +676,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected_role = {
-            "note": "Afslut rolle",
+            "note": "Afslut medarbejder",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {

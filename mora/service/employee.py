@@ -591,21 +591,22 @@ def terminate_employee(employee_uuid):
     c = lora.Connector(effective_date=date)
 
     # Org funks
-    types = [
-        (keys.ENGAGEMENT_KEY, 'Afslut engagement'),
-        (keys.ASSOCIATION_KEY, 'Afslut tilknytning'),
-        (keys.ROLE_KEY, 'Afslut rolle'),
-        (keys.LEAVE_KEY, 'Afslut orlov'),
-    ]
-    for funk_type in types:
-        key = funk_type[0]
-        note = funk_type[1]
+    types = (
+        keys.ENGAGEMENT_KEY,
+        keys.ASSOCIATION_KEY,
+        keys.ROLE_KEY,
+        keys.LEAVE_KEY,
+    )
+    for key in types:
         for obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
             funktionsnavn=key
         ):
             c.organisationfunktion.update(
-                common.inactivate_org_funktion_payload(date, note), obj[0])
+                common.inactivate_org_funktion_payload(
+                    date,
+                    "Afslut medarbejder"),
+                obj[0])
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
