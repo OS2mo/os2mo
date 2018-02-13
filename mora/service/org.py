@@ -21,6 +21,7 @@ import operator
 import flask
 import werkzeug
 
+from . import common, keys
 from .. import util
 from . import common
 from . import keys
@@ -142,7 +143,8 @@ def get_organisation(orgid):
     # 0.8s -> 12.3s for 28k users and 33k functions
     # https://redmine.magenta-aps.dk/issues/21273
     users = c.bruger(tilhoerer=orgid)
-    functions = c.organisationfunktion(tilknyttedeorganisationer=orgid)
+    functions = c.organisationfunktion(tilknyttedeorganisationer=orgid,
+                                       funktionsnavn=keys.ENGAGEMENT_KEY)
 
     return flask.jsonify({
         'name': attrs['organisationsnavn'],

@@ -56,6 +56,24 @@ ADDRESSES_FIELD = FieldTuple(
     filter_fn=lambda x: True
 )
 
+MANAGER_TYPE_FIELD = FieldTuple(
+    path=('relationer', 'organisatoriskfunktionstype'),
+    type=FieldTypes.ZERO_TO_ONE,
+    filter_fn=lambda x: True
+)
+
+RESPONSIBILITY_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'lederansvar'
+)
+
+MANAGER_LEVEL_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'lederniveau'
+)
+
 ENGAGEMENT_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,
     ORG_FUNK_GYLDIGHED_FIELD,
@@ -92,6 +110,17 @@ LEAVE_FIELDS = {
     ORG_FUNK_TYPE_FIELD,
     ORG_FIELD,
     USER_FIELD,
+}
+
+MANAGER_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    ORG_UNIT_FIELD,
+    ORG_FIELD,
+    USER_FIELD,
+    RESPONSIBILITY_FIELD,
+    MANAGER_LEVEL_FIELD,
 }
 
 ITSYSTEMS_FIELD = FieldTuple(
