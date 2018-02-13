@@ -1,7 +1,9 @@
 <template>
   <div class="form-group col">
     <label>{{label}}</label>
-    <select 
+    <loading v-show="isLoading"/>
+    <select
+      v-show="!isLoading" 
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedEmployee()">
@@ -18,34 +20,42 @@
 
 <script>
 import Search from '../api/Search'
+import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
+import Loading from './Loading'
 
 export default {
   name: 'EmployeePicker',
+  components: {
+    Loading
+  },
   props: {
-    value: Object,
-    preselected: Object,
-    org: {
-      type: Object,
-      required: true
-    }
+    value: Object
   },
   data () {
     return {
       label: 'Medarbejder',
       selected: {},
-      employees: []
+      employees: [],
+      isLoading: false
     }
   },
-  watch: {
-    org () {
-      this.getJobFunctions()
-    }
+  mounted () {
+    EventBus.$on('organisation-changed', () => {
+      this.getEmployees()
+    })
+  },
+  created () {
+    this.getEmployees()
   },
   methods: {
-    getJobFunctions () {
+    getEmployees () {
       var vm = this
-      Search.employees(this.org.uuid)
+      vm.isLoading = true
+      let org = Organisation.getSelectedOrganisation()
+      Search.employees(org.uuid)
       .then(response => {
+        vm.isLoading = false
         vm.employees = response
       })
     },
@@ -56,8 +66,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
