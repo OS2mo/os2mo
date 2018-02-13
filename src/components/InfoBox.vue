@@ -18,7 +18,7 @@
         required: true
       },
       info: {
-        type: String,
+        type: Number,
         required: true
       }
     }
