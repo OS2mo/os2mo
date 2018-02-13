@@ -1,7 +1,8 @@
 <template>
   <div class="card">
     <div class="card-body">
-      <h4 class="card-title">
+      <loading v-show="isLoading"/>
+      <h4 class="card-title" v-show="!isLoading">
         <icon name="user-o"/>
         {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
       </h4>
@@ -30,15 +31,18 @@
   import '../filters/CPRNumber'
   import EmployeeEdit from './EmployeeEdit'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
+  import Loading from '../components/Loading'
 
   export default {
     components: {
       EmployeeEdit,
-      EmployeeDetailTabs
+      EmployeeDetailTabs,
+      Loading
     },
     data () {
       return {
-        employee: Object
+        employee: Object,
+        isLoading: false
       }
     },
     created () {
@@ -47,8 +51,10 @@
     methods: {
       getEmployee: function (uuid) {
         var vm = this
+        vm.isLoading = true
         Employee.getEmployee(uuid)
         .then(response => {
+          vm.isLoading = false
           vm.employee = response
         })
       }

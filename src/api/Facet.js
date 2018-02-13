@@ -12,6 +12,9 @@ export default {
     .then(response => {
       return response.data
     })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   /**
@@ -23,6 +26,9 @@ export default {
     return Service.get(`/o/${uuid}/f/${facet}/`)
     .then(response => {
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   },
 

@@ -9,11 +9,9 @@
           v-model="engagement.org_unit"
         />
         <job-function-picker 
-          :org="org" 
           v-model="engagement.job_function"
         />
         <engagement-type-picker 
-          :org="org" 
           v-model="engagement.engagement_type"
         />
       </div>

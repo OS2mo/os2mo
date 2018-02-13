@@ -18,16 +18,14 @@
 
 <script>
 import Facet from '../api/Facet'
+import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
 
 export default {
   name: 'JobFunctionPicker',
   props: {
     value: Object,
-    noLabel: Boolean,
-    org: {
-      type: Object,
-      required: true
-    }
+    noLabel: Boolean
   },
   data () {
     return {
@@ -36,10 +34,10 @@ export default {
       jobFunctions: []
     }
   },
-  watch: {
-    org () {
+  mounted () {
+    EventBus.$on('organisation-changed', () => {
       this.getJobFunctions()
-    }
+    })
   },
   created () {
     this.getJobFunctions()
@@ -48,7 +46,9 @@ export default {
   methods: {
     getJobFunctions () {
       var vm = this
-      Facet.jobFunctions(this.org.uuid)
+      let org = Organisation.getSelectedOrganisation()
+      if (org.uuid === undefined) return
+      Facet.jobFunctions(org.uuid)
       .then(response => {
         vm.jobFunctions = response
       })
@@ -60,8 +60,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
