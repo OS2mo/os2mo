@@ -21,6 +21,7 @@
 <script>
 import Facet from '../api/Facet'
 import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
 
 export default {
   props: {
@@ -34,10 +35,10 @@ export default {
       engagementTypes: []
     }
   },
-  watch: {
-    org () {
+   mounted () {
+    EventBus.$on('organisation-changed', () => {
       this.getEngagementTypes()
-    }
+    })
   },
   created () {
     this.getEngagementTypes()

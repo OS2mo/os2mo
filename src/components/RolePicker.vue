@@ -18,12 +18,14 @@
 
 <script>
 import Facet from '../api/Facet'
+import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
 
 export default {
   name: 'RolePicker',
   props: {
     value: Object,
-    orgUuid: String
+    noLabel: Boolean
   },
   data () {
     return {
@@ -31,15 +33,20 @@ export default {
       roleTypes: []
     }
   },
-  watch: {
-    orgUuid () {
+  mounted () {
+    EventBus.$on('organisation-changed', () => {
       this.getRoleTypes()
-    }
+    })
+  },
+  created () {
+    this.getRoleTypes()
   },
   methods: {
     getRoleTypes () {
       var vm = this
-      Facet.roleTypes(this.orgUuid)
+      let org = Organisation.getSelectedOrganisation()
+      if (org.uuid === undefined) return
+      Facet.roleTypes(org.uuid)
       .then(response => {
         vm.roleTypes = response
       })
