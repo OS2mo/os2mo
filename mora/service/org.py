@@ -53,6 +53,7 @@ def list_organisations():
     :queryparam date at: Current time in ISO-8601 format.
 
     :<jsonarr string name: Human-readable name of the organisation.
+    :<jsonarr string user_key: Short, unique key identifying the unit.
     :<jsonarr string uuid: Machine-friendly UUID of the organisation.
 
     :status 200: Always.
@@ -64,10 +65,12 @@ def list_organisations():
       [
         {
           "name": "Aarhus Kommune",
+          "user_key": "AARHUS",
           "uuid": "59141156-ed0b-457c-9535-884447c5220b"
         },
         {
           "name": "Ballerup Kommune",
+          "user_key": "BALLERUP",
           "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd"
         }
       ]
@@ -293,7 +296,8 @@ def get_orgunit(unitid):
     :<json string name: Human-readable name.
     :<json string uuid: Machine-friendly UUID.
     :<json string user_key: Short, unique key identifying the unit.
-    :<json int child_count: The number of child units within this unit.
+    :<json object org: The organisation that this unit belongs to, as
+        yielded by :http:get:`/service/o/`.
 
     :status 404: If the organisational unit isn't found.
     :status 200: Otherwise.
@@ -303,10 +307,14 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
-        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-        "name": "Overordnet Enhed",
-        "user_key": "root",
-        "child_count": 2
+        "name": "Ballerup Kommune",
+        "org": {
+          "name": "Ballerup Kommune",
+          "user_key": "Ballerup Kommune",
+          "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd"
+        },
+        "user_key": "BALLERUP",
+        "uuid": "9f42976b-93be-4e0b-9a25-0dcb8af2f6b4"
       }
 
     '''

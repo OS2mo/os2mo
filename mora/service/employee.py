@@ -122,6 +122,8 @@ def get_employee(id):
 
     :<json string name: Human-readable name.
     :<json string uuid: Machine-friendly UUID.
+    :<json object org: The organisation that this employee belongs to, as
+        yielded by :http:get:`/service/o/`.
     :<json string cpr_no: CPR number of for the corresponding person.
         Please note that this is the only means for obtaining the CPR
         number; due to confidentiality requirements, all other end
