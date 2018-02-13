@@ -35,7 +35,7 @@ export default {
       engagementTypes: []
     }
   },
-   mounted () {
+  mounted () {
     EventBus.$on('organisation-changed', () => {
       this.getEngagementTypes()
     })
