@@ -43,14 +43,15 @@ def list_details(type, id):
         "association": false,
         "engagement": true,
         "role": false,
-        "leave": true
+        "leave": true,
+        "manager": false
       }
 
-    The value above informs you that 'association', 'engagement', 'role' and
-    'leave' are valid for this entry, and that no entry exists at any time
-    for 'association' and 'role', whereas 'engagement' and 'leave' have at
-    least one entry either in the past, present or future.
-
+    The value above informs you that 'association', 'engagement', 'role',
+    'leave' and 'manager' are valid for this entry, and that no entry exists
+    at any time for 'association', 'role' and 'manager', whereas
+    'engagement' and 'leave' have at least one entry either in the past,
+    present or future.
     '''
     c = common.get_connector()
 
@@ -300,7 +301,7 @@ def get_engagement(type, id, function):
 
     def get_classes(effect):
         rels = effect['relationer']
-        return [obj['uuid'] for obj in itertools.chain(
+        return [obj.get('uuid') for obj in itertools.chain(
             rels.get('opgaver', []),
             rels.get('organisatoriskfunktionstype', [])
         )]
