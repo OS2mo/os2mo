@@ -25,7 +25,7 @@ import Organisation from '../api/Organisation'
 export default {
   props: {
     value: Object,
-    noLabel: Boolean,
+    noLabel: Boolean
   },
   data () {
     return {
