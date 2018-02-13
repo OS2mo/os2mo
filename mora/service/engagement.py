@@ -24,7 +24,6 @@ from mora import lora
 from . import common, employee, facet, keys, mapping, org
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
-                     inactivate_org_funktion,
                      update_payload)
 from .. import util
 
@@ -156,7 +155,6 @@ def get_engagement(type, id, function):
                     "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
                 "person": {
-                    "cpr_no": "1111111111",
                     "name": "Anders And",
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
                 },
@@ -293,7 +291,7 @@ def get_engagement(type, id, function):
     }
 
     user_cache = {
-        userid: employee.get_one_employee(c, userid, user, with_cpr=True)
+        userid: employee.get_one_employee(c, userid, user)
         for userid, user in
         c.bruger.get_all(uuid={
             get_employee_id(v) for v in functions.values()
@@ -361,8 +359,8 @@ def create_engagement(employee_uuid, req):
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = req.get(keys.JOB_FUNCTION).get('uuid')
     engagement_type_uuid = req.get(keys.ENGAGEMENT_TYPE).get('uuid')
-    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
-    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
 
@@ -388,8 +386,8 @@ def edit_engagement(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     data = req.get('data')
-    new_from = data.get(keys.VALIDITY).get(keys.FROM)
-    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
+    new_from = common.get_valid_from(data)
+    new_to = common.get_valid_to(data)
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
@@ -397,8 +395,8 @@ def edit_engagement(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
-        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
+        old_from = common.get_valid_from(original_data)
+        old_to = common.get_valid_to(original_data)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -437,26 +435,4 @@ def edit_engagement(employee_uuid, req):
         mapping.ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
-    c.organisationfunktion.update(payload, engagement_uuid)
-
-
-def terminate_engagement(engagement_uuid, enddate):
-    """
-    Terminate the given engagement at the given date
-
-    :param engagement_uuid: An engagement UUID
-    :param enddate: The date of termination
-    """
-    c = lora.Connector(effective_date=enddate)
-
-    orgfunk = c.organisationfunktion.get(engagement_uuid)
-
-    # Create inactivation object
-    startdate = [
-        g['virkning']['from'] for g in
-        orgfunk['tilstande']['organisationfunktiongyldighed']
-        if g['gyldighed'] == 'Aktiv'
-    ][0]
-
-    payload = inactivate_org_funktion(startdate, enddate, "Afslut engagement")
     c.organisationfunktion.update(payload, engagement_uuid)

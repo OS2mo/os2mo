@@ -17,11 +17,9 @@ This section describes how to interact with employee associations.
 import flask
 
 from mora import lora
-from . import keys
-from . import mapping
+from . import common, keys, mapping
 from .common import (create_organisationsfunktion_payload, ensure_bounds,
-                     inactivate_old_interval, inactivate_org_funktion,
-                     update_payload)
+                     inactivate_old_interval, update_payload)
 
 blueprint = flask.Blueprint('associations', __name__, static_url_path='',
                             url_prefix='/service')
@@ -38,8 +36,8 @@ def create_association(employee_uuid, req):
         keys.JOB_FUNCTION) else None
     association_type_uuid = req.get(keys.ASSOCIATION_TYPE).get('uuid')
     # location_uuid = req.get(LOCATION).get('uuid')
-    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
-    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ASSOCIATION_KEY)
 
@@ -66,8 +64,8 @@ def edit_association(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=association_uuid)
 
     data = req.get('data')
-    new_from = data.get(keys.VALIDITY).get(keys.FROM)
-    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
+    new_from = common.get_valid_from(data)
+    new_to = common.get_valid_to(data)
 
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
@@ -75,8 +73,8 @@ def edit_association(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
-        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
+        old_from = common.get_valid_from(original_data)
+        old_to = common.get_valid_to(original_data)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -121,26 +119,4 @@ def edit_association(employee_uuid, req):
         mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
-    c.organisationfunktion.update(payload, association_uuid)
-
-
-def terminate_association(association_uuid, enddate):
-    """
-    Terminate the given association at the given date
-
-    :param association_uuid: An engagement UUID
-    :param enddate: The date of termination
-    """
-    c = lora.Connector(effective_date=enddate)
-
-    orgfunk = c.organisationfunktion.get(association_uuid)
-
-    # Create inactivation object
-    startdate = [
-        g['virkning']['from'] for g in
-        orgfunk['tilstande']['organisationfunktiongyldighed']
-        if g['gyldighed'] == 'Aktiv'
-    ][0]
-
-    payload = inactivate_org_funktion(startdate, enddate, "Afslut tilknytning")
     c.organisationfunktion.update(payload, association_uuid)

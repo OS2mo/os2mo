@@ -8,6 +8,9 @@
       <b-tab title="Adresser" v-if="tabs.address">
         <employee-detail-contact :uuid="uuid"/>
       </b-tab>
+      <b-tab title="Rolle" v-if="tabs.role">
+        <employee-detail-role :uuid="uuid"/>
+      </b-tab>
       <b-tab title="IT" v-if="tabs.it">
         <employee-detail-it :uuid="uuid"/>
       </b-tab>
@@ -26,6 +29,7 @@
   import Employee from '../api/Employee'
   import EmployeeDetailEngagement from './EmployeeDetailEngagement'
   import EmployeeDetailContact from './EmployeeDetailContact'
+  import EmployeeDetailRole from './EmployeeDetailRole'
   import EmployeeDetailIt from './EmployeeDetailIt'
   import EmployeeDetailAssociation from './EmployeeDetailAssociation'
   import EmployeeDetailLeave from './EmployeeDetailLeave'
@@ -36,6 +40,7 @@
     components: {
       EmployeeDetailEngagement,
       EmployeeDetailContact,
+      EmployeeDetailRole,
       EmployeeDetailIt,
       EmployeeDetailAssociation,
       EmployeeDetailLeave,

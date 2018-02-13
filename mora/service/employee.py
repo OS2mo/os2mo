@@ -18,15 +18,7 @@ This section describes how to interact with employees.
 import flask
 
 from mora import lora
-from . import keys
-from . import common
-from .association import (create_association,
-                          edit_association, terminate_association)
-from .engagement import (create_engagement, edit_engagement,
-                         terminate_engagement)
-from .role import create_role, edit_role
-from . import itsystem
-from . import leave
+from . import association, common, engagement, itsystem, org, keys, leave, role
 from .. import util
 from ..converters import writing
 
@@ -34,21 +26,25 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_one_employee(c, userid, user=None, with_cpr=False):
+def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
 
+    props = user['attributter']['brugeregenskaber'][0]
+
     r = {
-        'name': user['attributter']['brugeregenskaber'][0]['brugernavn'],
-        'uuid': userid,
+        keys.NAME: props['brugernavn'],
+        keys.UUID: userid,
     }
 
-    if with_cpr:
-        r['cpr_no'] = (
-            user['relationer']
-            ['tilknyttedepersoner'][0]
-            ['urn'].rsplit(':', 1)[-1]
+    if full:
+        rels = user['relationer']
+        orgid = rels['tilhoerer'][0]['uuid']
+
+        r[keys.CPR_NO] = (
+            rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
         )
+        r[keys.ORG] = org.get_one_organisation(c, orgid)
 
     return r
 
@@ -126,7 +122,12 @@ def get_employee(id):
 
     :<json string name: Human-readable name.
     :<json string uuid: Machine-friendly UUID.
+    :<json object org: The organisation that this employee belongs to, as
+        yielded by :http:get:`/service/o/`.
     :<json string cpr_no: CPR number of for the corresponding person.
+        Please note that this is the only means for obtaining the CPR
+        number; due to confidentiality requirements, all other end
+        points omit it.
 
     :status 200: Whenever the user ID is valid and corresponds to an
         existing user.
@@ -139,13 +140,18 @@ def get_employee(id):
       {
         "cpr_no": "1011101010",
         "name": "Hans Bruger",
-        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
+        "org": {
+          "name": "Magenta ApS",
+          "user_key": "Magenta ApS",
+          "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566"
+        }
       }
 
     '''
     c = common.get_connector()
 
-    return flask.jsonify(get_one_employee(c, id, with_cpr=True))
+    return flask.jsonify(get_one_employee(c, id, full=True))
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
@@ -288,10 +294,10 @@ def create_employee(employee_uuid):
     """
 
     handlers = {
-        'engagement': create_engagement,
-        'association': create_association,
+        'engagement': engagement.create_engagement,
+        'association': association.create_association,
         'it': itsystem.create_system,
-        'role': create_role,
+        'role': role.create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
         'leave': leave.create_leave,
@@ -547,9 +553,9 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
-        'engagement': edit_engagement,
-        'association': edit_association,
-        'role': edit_role,
+        'engagement': engagement.edit_engagement,
+        'association': association.edit_association,
+        'role': role.edit_role,
         'it': itsystem.edit_system,
         'leave': leave.edit_leave,
         # 'contact': edit_contact,
@@ -598,31 +604,23 @@ def terminate_employee(employee_uuid):
 
     c = lora.Connector(effective_date=date)
 
-    engagements = c.organisationfunktion.get_all(
-        tilknyttedebrugere=employee_uuid,
-        funktionsnavn=keys.ENGAGEMENT_KEY)
-    for engagement in engagements:
-        engagement_uuid = engagement[0]
-        terminate_engagement(engagement_uuid, date)
-
-    associations = c.organisationfunktion.get_all(
-        tilknyttedebrugere=employee_uuid,
-        funktionsnavn=keys.ASSOCIATION_KEY)
-    for association in associations:
-        association_uuid = association[0]
-        terminate_association(association_uuid, date)
-
-    # TODO: Terminate IT
-    # TODO: Terminate Kontakt
-    # TODO: Terminate Rolle
-    # TODO: Terminate Leder
-
-    leaves = c.organisationfunktion.get_all(
-        tilknyttedebrugere=employee_uuid,
-        funktionsnavn=keys.LEAVE_KEY)
-    for leave_obj in leaves:
-        leave_uuid = leave_obj[0]
-        leave.terminate_leave(leave_uuid, date)
+    # Org funks
+    types = (
+        keys.ENGAGEMENT_KEY,
+        keys.ASSOCIATION_KEY,
+        keys.ROLE_KEY,
+        keys.LEAVE_KEY,
+    )
+    for key in types:
+        for obj in c.organisationfunktion.get_all(
+            tilknyttedebrugere=employee_uuid,
+            funktionsnavn=key
+        ):
+            c.organisationfunktion.update(
+                common.inactivate_org_funktion_payload(
+                    date,
+                    "Afslut medarbejder"),
+                obj[0])
 
     # TODO:
     return flask.jsonify(employee_uuid), 200

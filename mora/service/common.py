@@ -7,6 +7,7 @@
 #
 import collections
 import copy
+import datetime
 import functools
 from enum import Enum
 from typing import Callable, List, Tuple
@@ -115,11 +116,20 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
-def ensure_bounds(valid_from: str,
-                  valid_to: str,
+def get_effect_from(effect):
+    return util.parsedatetime(effect['virkning']['from'])
+
+
+def get_effect_to(effect):
+    return util.parsedatetime(effect['virkning']['to'])
+
+
+def ensure_bounds(valid_from: datetime.datetime,
+                  valid_to: datetime.datetime,
                   props: List[FieldTuple],
                   obj: dict,
                   payload: dict):
+
     for field in props:
         props = get_obj_value(obj, field.path, field.filter_fn)
         if not props:
@@ -128,16 +138,16 @@ def ensure_bounds(valid_from: str,
         updated_props = []
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
-            sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
+            sorted_props = sorted(props, key=get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
             # Check bounds on first
-            if valid_from < first['virkning']['from']:
-                first['virkning']['from'] = valid_from
+            if valid_from < get_effect_from(first):
+                first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props = sorted_props
-            if last['virkning']['to'] < valid_to:
-                last['virkning']['to'] = valid_to
+            if get_effect_to(last) < valid_to:
+                last['virkning']['to'] = util.to_lora_time(valid_to)
                 updated_props = sorted_props
 
         elif field.type == FieldTypes.ZERO_TO_MANY:
@@ -145,15 +155,15 @@ def ensure_bounds(valid_from: str,
             updated_props = props
         else:
             # Zero-to-one. Move first and last. LoRa does the merging.
-            sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
+            sorted_props = sorted(props, key=get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
-            if valid_from < first['virkning']['from']:
-                first['virkning']['from'] = valid_from
+            if valid_from < get_effect_from(first):
+                first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props.append(first)
-            if last['virkning']['to'] < valid_to:
-                last['virkning']['to'] = valid_to
+            if get_effect_to(last) < valid_to:
+                last['virkning']['to'] = util.to_lora_time(valid_to)
                 if not updated_props or last is not first:
                     updated_props.append(last)
 
@@ -162,8 +172,8 @@ def ensure_bounds(valid_from: str,
     return payload
 
 
-def update_payload(valid_from: str,
-                   valid_to: str,
+def update_payload(valid_from: datetime.datetime,
+                   valid_to: datetime.datetime,
                    relevant_fields: List[Tuple[FieldTuple, dict]],
                    obj: dict,
                    payload: dict):
@@ -211,12 +221,12 @@ def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
     sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
 
     result = [new]
-    new_from = util.parsedatetime(new['virkning']['from'])
-    new_to = util.parsedatetime(new['virkning']['to'])
+    new_from = get_effect_from(new)
+    new_to = get_effect_to(new)
 
     for orig in sorted_orig:
-        orig_from = util.parsedatetime(orig['virkning']['from'])
-        orig_to = util.parsedatetime(orig['virkning']['to'])
+        orig_from = get_effect_from(orig)
+        orig_to = get_effect_to(orig)
 
         if new_to <= orig_from or orig_to <= new_from:
             # Not affected, add orig as-is
@@ -279,19 +289,14 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
     return lora_obj
 
 
-def inactivate_org_funktion(startdate, enddate, note):
+def inactivate_org_funktion_payload(enddate, note):
     obj_path = ('tilstande', 'organisationfunktiongyldighed')
-    val_active = {
-        'gyldighed': 'Aktiv',
-        'virkning': _create_virkning(startdate, enddate)
-    }
     val_inactive = {
         'gyldighed': 'Inaktiv',
         'virkning': _create_virkning(enddate, 'infinity')
     }
 
-    payload = set_object_value(dict(), obj_path, [val_active, val_inactive])
-    payload['note'] = note
+    payload = set_object_value({'note': note}, obj_path, [val_inactive])
 
     return payload
 

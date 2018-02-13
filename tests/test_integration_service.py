@@ -329,10 +329,14 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
             {
-                'child_count': 0,
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
             },
         )
 
@@ -352,10 +356,14 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
             {
-                'child_count': 2,
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
             },
         )
 
@@ -450,6 +458,11 @@ class Tests(util.LoRATestCase):
                 'name': 'Anders And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 'cpr_no': '1111111111',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
             },
         )
 
@@ -459,6 +472,11 @@ class Tests(util.LoRATestCase):
                 'name': 'Fedtmule',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 'cpr_no': '2222222222',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
             },
         )
 
@@ -577,7 +595,6 @@ class Tests(util.LoRATestCase):
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 },
                 'person': {
-                    'cpr_no': '1111111111',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
@@ -652,7 +669,6 @@ class Tests(util.LoRATestCase):
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 },
                 'person': {
-                    'cpr_no': '1111111111',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
@@ -722,7 +738,6 @@ class Tests(util.LoRATestCase):
         func = [
             {
                 'person': {
-                    'cpr_no': '1111111111',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },

@@ -634,7 +634,7 @@ class Tests(util.LoRATestCase):
             "original": {
                 "validity": {
                     "from": "2017-01-01 00:00:00+01",
-                    "to": "infinity",
+                    "to": None
                 },
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
@@ -1132,7 +1132,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut tilknytning",
+            "note": "Afslut medarbejder",
             "relationer": {
                 "opgaver": [
                     {
