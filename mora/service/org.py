@@ -23,9 +23,23 @@ import werkzeug
 
 from .. import util
 from . import common
+from . import keys
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+def get_one_organisation(c, orgid, org=None):
+    if not org:
+        org = c.organisation.get(orgid)
+
+    attrs = org['attributter']['organisationegenskaber'][0]
+
+    return {
+        'name': attrs['organisationsnavn'],
+        'user_key': attrs['brugervendtnoegle'],
+        'uuid': orgid,
+    }
 
 
 @blueprint.route('/o/')
@@ -39,6 +53,7 @@ def list_organisations():
     :queryparam date at: Current time in ISO-8601 format.
 
     :<jsonarr string name: Human-readable name of the organisation.
+    :<jsonarr string user_key: Short, unique key identifying the unit.
     :<jsonarr string uuid: Machine-friendly UUID of the organisation.
 
     :status 200: Always.
@@ -50,10 +65,12 @@ def list_organisations():
       [
         {
           "name": "Aarhus Kommune",
+          "user_key": "AARHUS",
           "uuid": "59141156-ed0b-457c-9535-884447c5220b"
         },
         {
           "name": "Ballerup Kommune",
+          "user_key": "BALLERUP",
           "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd"
         }
       ]
@@ -61,23 +78,14 @@ def list_organisations():
     '''
     c = common.get_connector()
 
-    r = []
-
-    for orgid, org in c.organisation.get_all(bvn='%'):
-        attrs = org['attributter']['organisationegenskaber'][0]
-
-        children = c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
-
-        if len(children):
-            r.append({
-                'name': attrs['organisationsnavn'],
-                'user_key': attrs['brugervendtnoegle'],
-                'uuid': orgid,
-            })
-
-    r.sort(key=operator.itemgetter('name'))
-
-    return flask.jsonify(r)
+    return flask.jsonify(sorted(
+        (
+            get_one_organisation(c, orgid, org)
+            for orgid, org in c.organisation.get_all(bvn='%')
+            if c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
+        ),
+        key=operator.itemgetter('name'),
+    ))
 
 
 @blueprint.route('/o/<uuid:orgid>/')
@@ -152,11 +160,14 @@ class UnitDetails(enum.Enum):
     # name & userkey only
     MINIMAL = 0
 
+    # with organisation
+    ORG = 1
+
     # with child count
-    NCHILDREN = 1
+    NCHILDREN = 2
 
     # with children and parent
-    FULL = 2
+    FULL = 3
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -172,6 +183,7 @@ def get_one_orgunit(c, unitid, unit=None,
             return None
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]
+    rels = unit['relationer']
 
     r = {
         'name': attrs['enhedsnavn'],
@@ -179,14 +191,15 @@ def get_one_orgunit(c, unitid, unit=None,
         'uuid': unitid,
     }
 
-    if details is UnitDetails.NCHILDREN:
+    if details is UnitDetails.ORG:
+        r[keys.ORG] = get_one_organisation(c, rels['tilhoerer'][0]['uuid'])
+
+    elif details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
 
         r['child_count'] = len(children)
 
-    if details is UnitDetails.FULL:
-        rels = unit['relationer']
-
+    elif details is UnitDetails.FULL:
         r['parent'] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
                                       details=UnitDetails.MINIMAL)
 
@@ -283,7 +296,8 @@ def get_orgunit(unitid):
     :<json string name: Human-readable name.
     :<json string uuid: Machine-friendly UUID.
     :<json string user_key: Short, unique key identifying the unit.
-    :<json int child_count: The number of child units within this unit.
+    :<json object org: The organisation that this unit belongs to, as
+        yielded by :http:get:`/service/o/`.
 
     :status 404: If the organisational unit isn't found.
     :status 200: Otherwise.
@@ -293,16 +307,20 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
-        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-        "name": "Overordnet Enhed",
-        "user_key": "root",
-        "child_count": 2
+        "name": "Ballerup Kommune",
+        "org": {
+          "name": "Ballerup Kommune",
+          "user_key": "Ballerup Kommune",
+          "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd"
+        },
+        "user_key": "BALLERUP",
+        "uuid": "9f42976b-93be-4e0b-9a25-0dcb8af2f6b4"
       }
 
     '''
     c = common.get_connector()
 
-    r = get_one_orgunit(c, unitid)
+    r = get_one_orgunit(c, unitid, details=UnitDetails.ORG)
 
     if r:
         return flask.jsonify(r)

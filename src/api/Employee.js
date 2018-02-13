@@ -60,12 +60,21 @@ export default {
   },
 
   /**
-   * Get it details for employee
+   * Get IT details for employee
    * @param {String} uuid - Employee uuid
    * @see getDetail
    */
   getItDetails (uuid) {
     return this.getDetail(uuid, 'it')
+  },
+
+  /**
+   * Get association details for employee
+   * @param {String} uuid - Employee uuid
+   * @see getDetail
+   */
+  getAssociationDetails (uuid) {
+    return this.getDetail(uuid, 'association')
   },
 
   /**

@@ -5,7 +5,7 @@
       <b-tab title="Engagement" active v-if="tabs.engagement"> 
         <employee-detail-engagement :uuid="uuid"/>
       </b-tab>
-      <b-tab title="Kontakt" v-if="tabs.engagement">
+      <b-tab title="Adresser" v-if="tabs.engagement">
         <employee-detail-contact :uuid="uuid"/>
       </b-tab>
       <b-tab title="Rolle" v-if="tabs.role">
@@ -13,6 +13,9 @@
       </b-tab>
       <b-tab title="IT" v-if="tabs.it">
         <employee-detail-it :uuid="uuid"/>
+      </b-tab>
+      <b-tab title="Tilknytning" v-if="tabs.association">
+        <employee-detail-association :uuid="uuid"/>
       </b-tab>
     </b-tabs>
   </div>
@@ -25,6 +28,7 @@
   import EmployeeDetailContact from './EmployeeDetailContact'
   import EmployeeDetailRole from './EmployeeDetailRole'
   import EmployeeDetailIt from './EmployeeDetailIt'
+  import EmployeeDetailAssociation from './EmployeeDetailAssociation'
   import Loading from '../components/Loading'
 
   export default {
@@ -33,6 +37,7 @@
       EmployeeDetailContact,
       EmployeeDetailRole,
       EmployeeDetailIt,
+      EmployeeDetailAssociation,
       Loading
     },
     props: {
