@@ -1,6 +1,7 @@
 <template>
   <div>
-    <table class="table table-striped">
+    <loading v-show="isLoading"/>
+    <table class="table table-striped" v-show="!isLoading">
       <thead>
         <tr>
           <th scope="col">Enhed</th>
@@ -30,9 +31,12 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/GetProperty'
+  import Loading from '../components/Loading'
 
   export default {
-    components: {},
+    components: {
+      Loading
+    },
     props: {
       uuid: {
         type: String,
@@ -43,7 +47,8 @@
       return {
         details: [],
         detailsPast: [],
-        detailsFuture: []
+        detailsFuture: [],
+        isLoading: false
       }
     },
     created: function () {
@@ -52,8 +57,10 @@
     methods: {
       getDetails () {
         var vm = this
+        vm.isLoading = true
         Employee.getEngagementDetails(this.uuid)
         .then(response => {
+          vm.isLoading = false
           vm.details = response
         })
       }

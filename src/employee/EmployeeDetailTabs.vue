@@ -1,6 +1,7 @@
 <template>
   <div>
-    <b-tabs>
+    <loading v-show="isLoading"/>
+    <b-tabs v-show="!isLoading">
       <b-tab title="Engagement" active v-if="tabs.engagement"> 
         <employee-detail-engagement :uuid="uuid"/>
       </b-tab>
@@ -20,18 +21,22 @@
   import EmployeeDetailEngagement from './EmployeeDetailEngagement'
   import EmployeeDetailContact from './EmployeeDetailContact'
   import EmployeeDetailIt from './EmployeeDetailIt'
+  import Loading from '../components/Loading'
+
   export default {
     components: {
       EmployeeDetailEngagement,
       EmployeeDetailContact,
-      EmployeeDetailIt
+      EmployeeDetailIt,
+      Loading
     },
     props: {
       uuid: String
     },
     data () {
       return {
-        tabs: {}
+        tabs: {},
+        isLoading: false
       }
     },
     created () {
@@ -39,9 +44,12 @@
     },
     methods: {
       getTabs () {
+        let vm = this
+        vm.isLoading = true
         Employee.getDetailList(this.uuid)
-        .then(respone => {
-          this.tabs = respone
+        .then(response => {
+          vm.isLoading = false
+          vm.tabs = response
         })
       }
     }
