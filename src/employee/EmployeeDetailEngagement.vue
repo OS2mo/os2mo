@@ -51,7 +51,7 @@
         isLoading: false
       }
     },
-    created: function () {
+    created () {
       this.getDetails()
     },
     methods: {
