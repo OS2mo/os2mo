@@ -116,8 +116,12 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
-def get_effect_from(prop):
-    return util.parsedatetime(prop['virkning']['from'])
+def get_effect_from(effect):
+    return util.parsedatetime(effect['virkning']['from'])
+
+
+def get_effect_to(effect):
+    return util.parsedatetime(effect['virkning']['to'])
 
 
 def ensure_bounds(valid_from: datetime.datetime,
@@ -139,10 +143,10 @@ def ensure_bounds(valid_from: datetime.datetime,
             last = sorted_props[-1]
 
             # Check bounds on first
-            if valid_from < util.parsedatetime(first['virkning']['from']):
+            if valid_from < get_effect_from(first):
                 first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props = sorted_props
-            if util.parsedatetime(last['virkning']['to']) < valid_to:
+            if get_effect_to(last) < valid_to:
                 last['virkning']['to'] = util.to_lora_time(valid_to)
                 updated_props = sorted_props
 
@@ -155,10 +159,10 @@ def ensure_bounds(valid_from: datetime.datetime,
             first = sorted_props[0]
             last = sorted_props[-1]
 
-            if valid_from < util.parsedatetime(first['virkning']['from']):
+            if valid_from < get_effect_from(first):
                 first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props.append(first)
-            if util.parsedatetime(last['virkning']['to']) < valid_to:
+            if get_effect_to(last) < valid_to:
                 last['virkning']['to'] = util.to_lora_time(valid_to)
                 if not updated_props or last is not first:
                     updated_props.append(last)
@@ -217,12 +221,12 @@ def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
     sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
 
     result = [new]
-    new_from = util.parsedatetime(new['virkning']['from'])
-    new_to = util.parsedatetime(new['virkning']['to'])
+    new_from = get_effect_from(new)
+    new_to = get_effect_to(new)
 
     for orig in sorted_orig:
-        orig_from = util.parsedatetime(orig['virkning']['from'])
-        orig_to = util.parsedatetime(orig['virkning']['to'])
+        orig_from = get_effect_from(orig)
+        orig_to = get_effect_to(orig)
 
         if new_to <= orig_from or orig_to <= new_from:
             # Not affected, add orig as-is
