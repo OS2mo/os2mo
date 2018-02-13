@@ -7,6 +7,7 @@
 #
 import collections
 import copy
+import datetime
 import functools
 from enum import Enum
 from typing import Callable, List, Tuple
@@ -115,11 +116,14 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
-def ensure_bounds(valid_from: str,
-                  valid_to: str,
+def ensure_bounds(valid_from: datetime.datetime,
+                  valid_to: datetime.datetime,
                   props: List[FieldTuple],
                   obj: dict,
                   payload: dict):
+    def filter_fn(prop):
+        return util.from_iso_time(prop['virkning']['from'])
+
     for field in props:
         props = get_obj_value(obj, field.path, field.filter_fn)
         if not props:
@@ -128,16 +132,16 @@ def ensure_bounds(valid_from: str,
         updated_props = []
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
-            sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
+            sorted_props = sorted(props, key=filter_fn)
             first = sorted_props[0]
             last = sorted_props[-1]
 
             # Check bounds on first
-            if valid_from < first['virkning']['from']:
-                first['virkning']['from'] = valid_from
+            if valid_from < util.parsedatetime(first['virkning']['from']):
+                first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props = sorted_props
-            if last['virkning']['to'] < valid_to:
-                last['virkning']['to'] = valid_to
+            if util.parsedatetime(last['virkning']['to']) < valid_to:
+                last['virkning']['to'] = util.to_lora_time(valid_to)
                 updated_props = sorted_props
 
         elif field.type == FieldTypes.ZERO_TO_MANY:
@@ -145,15 +149,15 @@ def ensure_bounds(valid_from: str,
             updated_props = props
         else:
             # Zero-to-one. Move first and last. LoRa does the merging.
-            sorted_props = sorted(props, key=lambda x: x['virkning']['from'])
+            sorted_props = sorted(props, key=filter_fn)
             first = sorted_props[0]
             last = sorted_props[-1]
 
-            if valid_from < first['virkning']['from']:
-                first['virkning']['from'] = valid_from
+            if valid_from < util.parsedatetime(first['virkning']['from']):
+                first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props.append(first)
-            if last['virkning']['to'] < valid_to:
-                last['virkning']['to'] = valid_to
+            if util.parsedatetime(last['virkning']['to']) < valid_to:
+                last['virkning']['to'] = util.to_lora_time(valid_to)
                 if not updated_props or last is not first:
                     updated_props.append(last)
 
@@ -162,8 +166,8 @@ def ensure_bounds(valid_from: str,
     return payload
 
 
-def update_payload(valid_from: str,
-                   valid_to: str,
+def update_payload(valid_from: datetime.datetime,
+                   valid_to: datetime.datetime,
                    relevant_fields: List[Tuple[FieldTuple, dict]],
                    obj: dict,
                    payload: dict):
@@ -279,19 +283,14 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
     return lora_obj
 
 
-def inactivate_org_funktion(startdate, enddate, note):
+def inactivate_org_funktion_payload(enddate, note):
     obj_path = ('tilstande', 'organisationfunktiongyldighed')
-    val_active = {
-        'gyldighed': 'Aktiv',
-        'virkning': _create_virkning(startdate, enddate)
-    }
     val_inactive = {
         'gyldighed': 'Inaktiv',
         'virkning': _create_virkning(enddate, 'infinity')
     }
 
-    payload = set_object_value(dict(), obj_path, [val_active, val_inactive])
-    payload['note'] = note
+    payload = set_object_value({'note': note}, obj_path, [val_inactive])
 
     return payload
 
