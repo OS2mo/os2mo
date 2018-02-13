@@ -14,9 +14,12 @@ export default {
     atDate = atDate || new Date()
 
     return Service.get(`/o/?at=${atDate.toISOString()}`)
-      .then(response => {
-        return response.data
-      })
+    .then(response => {
+      return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   /**
@@ -26,9 +29,12 @@ export default {
    */
   get (uuid) {
     return Service.get(`/o/${uuid}/`)
-      .then(response => {
-        return response.data
-      })
+    .then(response => {
+      return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
     /**
@@ -40,9 +46,12 @@ export default {
   getChildren (uuid, atDate) {
     atDate = atDate || new Date()
     return Service.get(`/o/${uuid}/children?at=${atDate.toISOString()}`)
-      .then(response => {
-        return response.data
-      })
+    .then(response => {
+      return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   /**

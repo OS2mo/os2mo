@@ -11,6 +11,9 @@ export default {
       .then(response => {
         return response.data
       })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -23,8 +26,8 @@ export default {
     .then(response => {
       return response.data
     })
-    .catch(e => {
-      console.log(e)
+    .catch(error => {
+      console.log(error.response)
     })
   },
 
@@ -66,6 +69,9 @@ export default {
     .then(response => {
       return response.data
     })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   /**
@@ -77,6 +83,9 @@ export default {
     return Service.get(`e/${uuid}/details/`)
     .then(response => {
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   },
 
@@ -94,6 +103,9 @@ export default {
     .then(response => {
       return response.data
     })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
   /**
@@ -105,6 +117,9 @@ export default {
     return Service.post(`/e/${uuid}/create`, engagement, association)
     .then(response => {
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   },
 
@@ -119,6 +134,9 @@ export default {
     .then(response => {
       return response.data
     })
+    .catch(error => {
+      console.log(error.response)
+    })
   },
 
    /**
@@ -131,6 +149,9 @@ export default {
     return Service.post(`/e/${uuid}/terminate`, engagement)
     .then(response => {
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   },
 
@@ -145,6 +166,9 @@ export default {
     .then(response => {
       console.log(response)
       return response
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   }
 }
