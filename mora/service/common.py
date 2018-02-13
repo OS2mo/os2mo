@@ -116,13 +116,15 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
+def get_effect_from(prop):
+    return util.parsedatetime(prop['virkning']['from'])
+
+
 def ensure_bounds(valid_from: datetime.datetime,
                   valid_to: datetime.datetime,
                   props: List[FieldTuple],
                   obj: dict,
                   payload: dict):
-    def filter_fn(prop):
-        return util.from_iso_time(prop['virkning']['from'])
 
     for field in props:
         props = get_obj_value(obj, field.path, field.filter_fn)
@@ -132,7 +134,7 @@ def ensure_bounds(valid_from: datetime.datetime,
         updated_props = []
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
-            sorted_props = sorted(props, key=filter_fn)
+            sorted_props = sorted(props, key=get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
@@ -149,7 +151,7 @@ def ensure_bounds(valid_from: datetime.datetime,
             updated_props = props
         else:
             # Zero-to-one. Move first and last. LoRa does the merging.
-            sorted_props = sorted(props, key=filter_fn)
+            sorted_props = sorted(props, key=get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 

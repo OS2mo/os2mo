@@ -909,7 +909,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut engagement",
+            "note": "Afslut medarbejder",
             "relationer": {
                 "opgaver": [
                     {
