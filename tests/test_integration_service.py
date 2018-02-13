@@ -45,6 +45,10 @@ class Tests(util.LoRATestCase):
             'unit_count': 1,
             'person_count': 2,
             'employment_count': 1,
+            'association_count': 1,
+            'leave_count': 1,
+            'role_count': 1,
+            'manager_count': 1,
             'child_count': 1,
         }
 
