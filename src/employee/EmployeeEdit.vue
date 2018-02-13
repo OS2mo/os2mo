@@ -28,14 +28,12 @@
                 no-label
                 v-model="e.job_function"
                 :preselected="e.job_function | getProperty('uuid')"
-                :org="org"
               />
             </td>
             <td>
               <engagement-type-picker 
                 no-label
                 v-model="e.engagement_type"
-                :org="org"
               />
             </td>
             <td>

@@ -47,7 +47,7 @@ export default {
     getJobFunctions () {
       var vm = this
       let org = Organisation.getSelectedOrganisation()
-      console.log(org)
+      if (org.uuid === undefined) return
       Facet.jobFunctions(org.uuid)
       .then(response => {
         vm.jobFunctions = response

@@ -53,6 +53,7 @@ export default {
       var vm = this
       vm.isLoading = true
       let org = Organisation.getSelectedOrganisation()
+      if (org.uuid === undefined) return
       Search.employees(org.uuid)
       .then(response => {
         vm.isLoading = false
