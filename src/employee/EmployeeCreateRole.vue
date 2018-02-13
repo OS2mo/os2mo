@@ -1,7 +1,7 @@
 <template>
   <div>
       <h4>Rolle</h4>
-      <date-start-end v-model="role.validity"/>
+      <date-start-end v-model="role.validity" initially-hidden/>
       <div class="form-row">
         <organisation-unit-picker 
           class="col" 
@@ -9,7 +9,7 @@
           v-model="role.org_unit"
         />
         <role-picker 
-        :org-uuid="org.uuid"
+        :org="org" 
         v-model="role.role_type"
         />
       </div>
@@ -32,18 +32,24 @@ export default {
     org: {
       type: Object,
       required: true
-    }
+    },
+    validity: Object
   },
   data () {
     return {
       role: {
-        type: 'role'
+        type: 'role',
+        validity: {}
       }
     }
   },
   watch: {
     role (newVal, oldVal) {
       this.$emit('input', newVal)
+    },
+
+    validity (newVal) {
+      this.role.validity = newVal
     }
   },
   methods: {
