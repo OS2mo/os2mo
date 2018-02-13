@@ -6,7 +6,7 @@
         <tr>
           <th scope="col">Enhed</th>
           <th scope="col">Stillingsbetegnelse</th>
-          <th scope="col">Engagementstype</th>
+          <th scope="col">Tilknytningstype</th>
           <th scope="col">Startdato</th>
           <th scope="col">Slutdato</th>
         </tr>
@@ -17,7 +17,7 @@
           <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
           <td>{{d.job_function | getProperty('name')}}</td>
           <td>
-              {{d.engagement_type | getProperty('name')}}
+              {{d.association_type | getProperty('name')}}
           </td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
@@ -58,7 +58,7 @@
       getDetails () {
         var vm = this
         vm.isLoading = true
-        Employee.getEngagementDetails(this.uuid)
+        Employee.getAssociationDetails(this.uuid)
         .then(response => {
           vm.isLoading = false
           vm.details = response
