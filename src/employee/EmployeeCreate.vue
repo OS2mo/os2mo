@@ -10,8 +10,7 @@
     <employee-picker :org="org" v-model="employee"/>
     <employee-create-engagement :org="org" v-model="engagement"/>
     <employee-create-association :org="org" v-model="association" :validity="engagement.validity"/>
-    <!-- <employee-create-role :org="org" v-model="role"/> -->
-    <!-- {{role}} -->
+    <employee-create-role :org="org" v-model="role" :validity="engagement.validity"/>
 
     <div class="float-right">
       <button-submit @click.native="createEmployee" :is-loading="isLoading"/>
@@ -65,8 +64,12 @@ export default {
       create.push(this.engagement)
 
       console.log(this.association)
-      if(Object.keys(this.association).length > 0) {
+      if (Object.keys(this.association).length > 0) {
         create.push(this.association)
+      }
+
+      if (Object.keys(this.role).length > 0) {
+        create.push(this.role)
       }
 
       Employee.createEmployee(this.employee.uuid, create)
