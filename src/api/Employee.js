@@ -1,4 +1,5 @@
 import {HTTP, Service} from './HttpCommon'
+import { EventBus } from '../EventBus'
 
 export default {
 
@@ -47,6 +48,15 @@ export default {
    */
   getContactDetails (uuid) {
     return this.getDetails(uuid, 'contact')
+  },
+
+  /**
+   * Get role details for employee
+   * @param {String} uuid - Employee uuid
+   * @see getDetail
+   */
+  getRoleDetails (uuid) {
+    return this.getDetail(uuid, 'role')
   },
 
   /**
@@ -110,12 +120,14 @@ export default {
 
   /**
    * Create a new employee
-   * @param {Object} engagement - new Employee uuid
+   * @param {String} uuid - employee uuid
+   * @param {Array} create - A list of elements to create
    * @returns {Object} employee uuid
    */
-  createEmployee (uuid, engagement, association) {
-    return Service.post(`/e/${uuid}/create`, engagement, association)
+  createEmployee (uuid, create) {
+    return Service.post(`/e/${uuid}/create`, create)
     .then(response => {
+      EventBus.$emit('employee-changed', response.data)
       return response.data
     })
     .catch(error => {
@@ -125,13 +137,14 @@ export default {
 
   /**
    * Move an employee
-   * @param {Object} uuid - employee to move
-   * @param {String} engagement - uuid for the new employee
+   * @param {String} uuid - employee uuid
+   * @param {Array} edit - A list of elements to edit
    * @returns {Object} employeee uuid
    */
-  editEmployee (uuid, engagement) {
-    return Service.post(`/e/${uuid}/edit`, engagement)
+  editEmployee (uuid, edit) {
+    return Service.post(`/e/${uuid}/edit`, edit)
     .then(response => {
+      EventBus.$emit('employee-changed', response.data)
       return response.data
     })
     .catch(error => {
@@ -141,31 +154,14 @@ export default {
 
    /**
    * End an employee
-   * @param {Object} engagement - the employee to end
-   * @param {String} endDate - the date on which the employee shall end
+   * @param {String} uuid - employee uuid
+   * @param {Object} end - Object containing the end date
    * @returns {Object} employee uuid
    */
-  endEmployee (uuid, engagement) {
-    return Service.post(`/e/${uuid}/terminate`, engagement)
+  endEmployee (uuid, end) {
+    return Service.post(`/e/${uuid}/terminate`, end)
     .then(response => {
       return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
-  },
-
-  /**
-   * Create a new engagement for an employee
-   * @param {String} uuid - Employee uuid
-   * @param {Object} engagement - New engagement
-   * @deprecated
-   */
-  createEngagement (uuid, engagement) {
-    return HTTP.post(`/e/${uuid}/roles/engagement`, engagement)
-    .then(response => {
-      console.log(response)
-      return response
     })
     .catch(error => {
       console.log(error.response)
