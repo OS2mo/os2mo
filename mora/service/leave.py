@@ -18,11 +18,10 @@ import uuid
 import flask
 
 from mora import lora
+from . import common, keys, mapping
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
-                     update_payload, inactivate_org_funktion)
-from . import keys
-from . import mapping
+                     update_payload)
 
 blueprint = flask.Blueprint('leave', __name__, static_url_path='',
                             url_prefix='/service')
@@ -35,8 +34,8 @@ def create_leave(employee_uuid, req):
     org_uuid = c.bruger.get(
         employee_uuid)['relationer']['tilhoerer'][0]['uuid']
     leave_type_uuid = req.get(keys.LEAVE_TYPE).get('uuid')
-    valid_from = req.get(keys.VALIDITY).get(keys.FROM)
-    valid_to = req.get(keys.VALIDITY).get(keys.TO, 'infinity')
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
 
     bvn = str(uuid.uuid4())
 
@@ -60,8 +59,8 @@ def edit_leave(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=leave_uuid)
 
     data = req.get('data')
-    new_from = data.get(keys.VALIDITY).get(keys.FROM)
-    new_to = data.get(keys.VALIDITY).get(keys.TO, 'infinity')
+    new_from = common.get_valid_from(data)
+    new_to = common.get_valid_to(data)
 
     payload = dict()
     payload['note'] = 'Rediger orlov'
@@ -69,8 +68,8 @@ def edit_leave(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = original_data.get(keys.VALIDITY).get(keys.FROM)
-        old_to = original_data.get(keys.VALIDITY).get(keys.TO, 'infinity')
+        old_from = common.get_valid_from(original_data)
+        old_to = common.get_valid_to(original_data)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -97,26 +96,4 @@ def edit_leave(employee_uuid, req):
         mapping.LEAVE_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
-    c.organisationfunktion.update(payload, leave_uuid)
-
-
-def terminate_leave(leave_uuid, enddate):
-    """
-    Terminate the given leave at the given date
-
-    :param leave_uuid: An engagement UUID
-    :param enddate: The date of termination
-    """
-    c = lora.Connector(effective_date=enddate)
-
-    orgfunk = c.organisationfunktion.get(leave_uuid)
-
-    # Create inactivation object
-    startdate = [
-        g['virkning']['from'] for g in
-        orgfunk['tilstande']['organisationfunktiongyldighed']
-        if g['gyldighed'] == 'Aktiv'
-    ][0]
-
-    payload = inactivate_org_funktion(startdate, enddate, "Afslut orlov")
     c.organisationfunktion.update(payload, leave_uuid)

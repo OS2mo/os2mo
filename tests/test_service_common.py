@@ -5,9 +5,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
+import datetime
 from unittest import TestCase
 
+from mora import util
 from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
                                  update_payload, inactivate_old_interval,
                                  ensure_bounds, _merge_obj_effects)
@@ -275,8 +276,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_times_are_inside_bounds(self):
         # Arrange
-        new_from = '2013-01-01T00:00:00+00:00'
-        new_to = '2015-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2013-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -344,8 +345,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_expanding_from_time(self):
         # Arrange
-        new_from = '2010-01-01T00:00:00+00:00'
-        new_to = '2014-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2014-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -429,8 +430,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_diminishing_from_time(self):
         # Arrange
-        new_from = '2012-07-01T00:00:00+00:00'
-        new_to = '2015-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2012-07-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -501,8 +502,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_expanding_to_time(self):
         # Arrange
-        new_from = '2012-01-01T00:00:00+00:00'
-        new_to = '2017-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2017-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -586,8 +587,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_diminishing_to_time(self):
         # Arrange
-        new_from = '2012-01-01T00:00:00+00:00'
-        new_to = '2014-07-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2014-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -658,8 +659,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_ztm(self):
         # Arrange
-        new_from = '2000-01-01T00:00:00+00:00'
-        new_to = '2020-07-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2000-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2020-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -759,8 +760,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_expanding_to_time(self):
         # Arrange
-        new_from = '2012-01-01T00:00:00+00:00'
-        new_to = '2016-07-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2016-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -842,8 +843,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_expanding_from_time(self):
         # Arrange
-        new_from = '2010-01-01T00:00:00+00:00'
-        new_to = '2015-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -926,8 +927,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_inside_bounds(self):
         # Arrange
-        new_from = '2012-01-01T00:00:00+00:00'
-        new_to = '2015-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -999,8 +1000,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_extending_both_ends(self):
         # Arrange
-        new_from = '2010-01-01T00:00:00+00:00'
-        new_to = '2020-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1092,8 +1093,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_extending_both_ends_single_effect(self):
         # Arrange
-        new_from = '2010-01-01T00:00:00+00:00'
-        new_to = '2020-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1158,8 +1159,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_handles_unknown_fields(self):
         # Arrange
-        new_from = '2010-01-01T00:00:00+00:00'
-        new_to = '2020-01-01T00:00:00+00:00'
+        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'unknown': {

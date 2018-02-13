@@ -18,15 +18,7 @@ This section describes how to interact with employees.
 import flask
 
 from mora import lora
-from . import keys
-from . import common
-from .association import (create_association,
-                          edit_association, terminate_association)
-from .engagement import (create_engagement, edit_engagement,
-                         terminate_engagement)
-from .role import create_role, edit_role
-from . import itsystem
-from . import leave
+from . import association, common, engagement, itsystem, keys, leave, role
 from .. import util
 from ..converters import writing
 
@@ -288,10 +280,10 @@ def create_employee(employee_uuid):
     """
 
     handlers = {
-        'engagement': create_engagement,
-        'association': create_association,
+        'engagement': engagement.create_engagement,
+        'association': association.create_association,
         'it': itsystem.create_system,
-        'role': create_role,
+        'role': role.create_role,
         'contact': writing.create_contact,
         # 'leader': create_leader,
         'leave': leave.create_leave,
@@ -547,9 +539,9 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
-        'engagement': edit_engagement,
-        'association': edit_association,
-        'role': edit_role,
+        'engagement': engagement.edit_engagement,
+        'association': association.edit_association,
+        'role': role.edit_role,
         'it': itsystem.edit_system,
         'leave': leave.edit_leave,
         # 'contact': edit_contact,
@@ -598,31 +590,22 @@ def terminate_employee(employee_uuid):
 
     c = lora.Connector(effective_date=date)
 
-    engagements = c.organisationfunktion.get_all(
-        tilknyttedebrugere=employee_uuid,
-        funktionsnavn=keys.ENGAGEMENT_KEY)
-    for engagement in engagements:
-        engagement_uuid = engagement[0]
-        terminate_engagement(engagement_uuid, date)
-
-    associations = c.organisationfunktion.get_all(
-        tilknyttedebrugere=employee_uuid,
-        funktionsnavn=keys.ASSOCIATION_KEY)
-    for association in associations:
-        association_uuid = association[0]
-        terminate_association(association_uuid, date)
-
-    # TODO: Terminate IT
-    # TODO: Terminate Kontakt
-    # TODO: Terminate Rolle
-    # TODO: Terminate Leder
-
-    leaves = c.organisationfunktion.get_all(
-        tilknyttedebrugere=employee_uuid,
-        funktionsnavn=keys.LEAVE_KEY)
-    for leave_obj in leaves:
-        leave_uuid = leave_obj[0]
-        leave.terminate_leave(leave_uuid, date)
+    # Org funks
+    types = [
+        (keys.ENGAGEMENT_KEY, 'Afslut engagement'),
+        (keys.ASSOCIATION_KEY, 'Afslut tilknytning'),
+        (keys.ROLE_KEY, 'Afslut rolle'),
+        (keys.LEAVE_KEY, 'Afslut orlov'),
+    ]
+    for funk_type in types:
+        key = funk_type[0]
+        note = funk_type[1]
+        for obj in c.organisationfunktion.get_all(
+            tilknyttedebrugere=employee_uuid,
+            funktionsnavn=key
+        ):
+            c.organisationfunktion.update(
+                common.inactivate_org_funktion_payload(date, note), obj[0])
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
