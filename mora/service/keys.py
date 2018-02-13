@@ -11,12 +11,18 @@ VALID_FROM = 'valid_from'
 VALID_TO = 'valid_to'
 TO = 'to'
 FROM = 'from'
+NAME = 'name'
+UUID = 'uuid'
 VALIDITY = 'validity'
+ORG = 'org'
 ORG_UNIT = 'org_unit'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'
 ADDRESS_TYPE = 'address_type'
 ITSYSTEM = 'itsystem'
+
+# Employee
+CPR_NO = 'cpr_no'
 
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'

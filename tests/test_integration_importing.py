@@ -1188,6 +1188,13 @@ class IntegrationTests(util.LoRATestCase):
                 all_types)
 
         self.assertRequestResponse(
+            '/service/o/',
+            [{'name': 'Ballerup Kommune',
+              'user_key': 'Ballerup Kommune',
+              'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'}],
+        )
+
+        self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/children',
             [{'child_count': 0,
               'name': 'Ballerup Kommune',
@@ -1378,6 +1385,11 @@ class IntegrationTests(util.LoRATestCase):
                 "cpr_no": "1011101010",
                 "name": "Sanne Sch\u00e4ff",
                 "uuid": "1ce40e25-6238-4202-9e93-526b348ec745",
+                "org": {
+                    "name": "Ballerup Kommune",
+                    "user_key": "Ballerup Kommune",
+                    "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd",
+                },
             },
         )
 
@@ -1387,6 +1399,11 @@ class IntegrationTests(util.LoRATestCase):
                 "cpr_no": "0101001010",
                 "name": "Sune Skriver",
                 "uuid": "34705881-8af9-4254-ac3f-31738eae0be8",
+                "org": {
+                    "name": "Ballerup Kommune",
+                    "user_key": "Ballerup Kommune",
+                    "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd",
+                },
             },
         )
 

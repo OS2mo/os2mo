@@ -23,9 +23,23 @@ import werkzeug
 
 from .. import util
 from . import common
+from . import keys
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+def get_one_organisation(c, orgid, org=None):
+    if not org:
+        org = c.organisation.get(orgid)
+
+    attrs = org['attributter']['organisationegenskaber'][0]
+
+    return {
+        'name': attrs['organisationsnavn'],
+        'user_key': attrs['brugervendtnoegle'],
+        'uuid': orgid,
+    }
 
 
 @blueprint.route('/o/')
@@ -61,23 +75,14 @@ def list_organisations():
     '''
     c = common.get_connector()
 
-    r = []
-
-    for orgid, org in c.organisation.get_all(bvn='%'):
-        attrs = org['attributter']['organisationegenskaber'][0]
-
-        children = c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
-
-        if len(children):
-            r.append({
-                'name': attrs['organisationsnavn'],
-                'user_key': attrs['brugervendtnoegle'],
-                'uuid': orgid,
-            })
-
-    r.sort(key=operator.itemgetter('name'))
-
-    return flask.jsonify(r)
+    return flask.jsonify(sorted(
+        (
+            get_one_organisation(c, orgid, org)
+            for orgid, org in c.organisation.get_all(bvn='%')
+            if c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
+        ),
+        key=operator.itemgetter('name'),
+    ))
 
 
 @blueprint.route('/o/<uuid:orgid>/')
@@ -152,11 +157,14 @@ class UnitDetails(enum.Enum):
     # name & userkey only
     MINIMAL = 0
 
+    # with organisation
+    ORG = 1
+
     # with child count
-    NCHILDREN = 1
+    NCHILDREN = 2
 
     # with children and parent
-    FULL = 2
+    FULL = 3
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -172,6 +180,7 @@ def get_one_orgunit(c, unitid, unit=None,
             return None
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]
+    rels = unit['relationer']
 
     r = {
         'name': attrs['enhedsnavn'],
@@ -179,14 +188,15 @@ def get_one_orgunit(c, unitid, unit=None,
         'uuid': unitid,
     }
 
-    if details is UnitDetails.NCHILDREN:
+    if details is UnitDetails.ORG:
+        r[keys.ORG] = get_one_organisation(c, rels['tilhoerer'][0]['uuid'])
+
+    elif details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
 
         r['child_count'] = len(children)
 
-    if details is UnitDetails.FULL:
-        rels = unit['relationer']
-
+    elif details is UnitDetails.FULL:
         r['parent'] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
                                       details=UnitDetails.MINIMAL)
 
@@ -302,7 +312,7 @@ def get_orgunit(unitid):
     '''
     c = common.get_connector()
 
-    r = get_one_orgunit(c, unitid)
+    r = get_one_orgunit(c, unitid, details=UnitDetails.ORG)
 
     if r:
         return flask.jsonify(r)

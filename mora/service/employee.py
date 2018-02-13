@@ -26,21 +26,25 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_one_employee(c, userid, user=None, with_cpr=False):
+def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
 
+    props = user['attributter']['brugeregenskaber'][0]
+
     r = {
-        'name': user['attributter']['brugeregenskaber'][0]['brugernavn'],
-        'uuid': userid,
+        keys.NAME: props['brugernavn'],
+        keys.UUID: userid,
     }
 
-    if with_cpr:
-        r['cpr_no'] = (
-            user['relationer']
-            ['tilknyttedepersoner'][0]
-            ['urn'].rsplit(':', 1)[-1]
+    if full:
+        rels = user['relationer']
+        orgid = rels['tilhoerer'][0]['uuid']
+
+        r[keys.CPR_NO] = (
+            rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
         )
+        r[keys.ORG] = org.get_one_organisation(c, orgid)
 
     return r
 
@@ -134,13 +138,18 @@ def get_employee(id):
       {
         "cpr_no": "1011101010",
         "name": "Hans Bruger",
-        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
+        "org": {
+          "name": "Magenta ApS",
+          "user_key": "Magenta ApS",
+          "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566"
+        }
       }
 
     '''
     c = common.get_connector()
 
-    return flask.jsonify(get_one_employee(c, id, with_cpr=True))
+    return flask.jsonify(get_one_employee(c, id, full=True))
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
