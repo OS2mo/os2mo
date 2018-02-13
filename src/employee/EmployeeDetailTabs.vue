@@ -5,7 +5,7 @@
       <b-tab title="Engagement" active v-if="tabs.engagement"> 
         <employee-detail-engagement :uuid="uuid"/>
       </b-tab>
-      <b-tab title="Adresser" v-if="tabs.engagement">
+      <b-tab title="Adresser" v-if="tabs.address">
         <employee-detail-contact :uuid="uuid"/>
       </b-tab>
       <b-tab title="Rolle" v-if="tabs.role">
@@ -16,6 +16,9 @@
       </b-tab>
       <b-tab title="Tilknytning" v-if="tabs.association">
         <employee-detail-association :uuid="uuid"/>
+      </b-tab>
+      <b-tab title="Orlov" v-if="tabs.leave">
+        <employee-detail-leave :uuid="uuid"/>
       </b-tab>
     </b-tabs>
   </div>
@@ -29,6 +32,7 @@
   import EmployeeDetailRole from './EmployeeDetailRole'
   import EmployeeDetailIt from './EmployeeDetailIt'
   import EmployeeDetailAssociation from './EmployeeDetailAssociation'
+  import EmployeeDetailLeave from './EmployeeDetailLeave'
   import Loading from '../components/Loading'
 
   export default {
@@ -38,6 +42,7 @@
       EmployeeDetailRole,
       EmployeeDetailIt,
       EmployeeDetailAssociation,
+      EmployeeDetailLeave,
       Loading
     },
     props: {
@@ -46,7 +51,8 @@
     data () {
       return {
         tabs: {},
-        isLoading: false
+        isLoading: false,
+        details: {}
       }
     },
     created () {
@@ -62,6 +68,27 @@
           vm.tabs = response
         })
       }
+
+      // this will be very smart at some point! We can essentially remove all table views
+      // populateTables () {
+      //   let vm = this
+      //   vm.isLoading = true
+      //   Employee.getDetailList(this.uuid)
+      //   .then(detail => {
+      //     let asyncArray = []
+      //     for (let key in detail) {
+      //       if (detail[key]) {
+      //         asyncArray.push(key)
+      //       }
+      //     }
+      //     asyncArray.forEach((element, index) => {
+      //       Employee.getDetail(vm.uuid, element)
+      //       .then(facet => {
+      //         vm.details[asyncArray[index]] = facet
+      //       })
+      //     })
+      //   })
+      // }
     }
   }
 </script>
