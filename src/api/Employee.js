@@ -68,6 +68,15 @@ export default {
   },
 
   /**
+   * Get leave details for employee
+   * @param {String} uuid - Employee uuid
+   * @see getDetail
+   */
+  getLeaveDetails (uuid) {
+    return this.getDetail(uuid, 'leave')
+  },
+
+  /**
    * Base call for getting details.
    * @param {String} uuid - employee uuid
    * @param {String} detail - Name of the detail
