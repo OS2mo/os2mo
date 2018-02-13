@@ -119,6 +119,9 @@ def get_employee(id):
     :<json string name: Human-readable name.
     :<json string uuid: Machine-friendly UUID.
     :<json string cpr_no: CPR number of for the corresponding person.
+        Please note that this is the only means for obtaining the CPR
+        number; due to confidentiality requirements, all other end
+        points omit it.
 
     :status 200: Whenever the user ID is valid and corresponds to an
         existing user.

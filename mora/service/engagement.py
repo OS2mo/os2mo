@@ -155,7 +155,6 @@ def get_engagement(type, id, function):
                     "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
                 "person": {
-                    "cpr_no": "1111111111",
                     "name": "Anders And",
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
                 },
@@ -292,7 +291,7 @@ def get_engagement(type, id, function):
     }
 
     user_cache = {
-        userid: employee.get_one_employee(c, userid, user, with_cpr=True)
+        userid: employee.get_one_employee(c, userid, user)
         for userid, user in
         c.bruger.get_all(uuid={
             get_employee_id(v) for v in functions.values()

@@ -577,7 +577,6 @@ class Tests(util.LoRATestCase):
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 },
                 'person': {
-                    'cpr_no': '1111111111',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
@@ -652,7 +651,6 @@ class Tests(util.LoRATestCase):
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 },
                 'person': {
-                    'cpr_no': '1111111111',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
@@ -722,7 +720,6 @@ class Tests(util.LoRATestCase):
         func = [
             {
                 'person': {
-                    'cpr_no': '1111111111',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
