@@ -58,6 +58,7 @@
   import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
   import CompareObjects from '../mixins/CompareObjects'
+  import ConvertValidityDates from '../mixins/ConvertValidityDates'
   import '../filters/GetProperty'
   import DatePicker from '../components/DatePicker'
   import JobFunctionPicker from '../components/JobFunctionPicker'
@@ -75,7 +76,8 @@
       uuid: String
     },
     mixins: [
-      CompareObjects
+      CompareObjects,
+      ConvertValidityDates
     ],
     data () {
       return {
@@ -105,6 +107,7 @@
         vm.isLoading = true
         Employee.getEngagementDetails(this.uuid)
         .then(response => {
+          vm.convertValidityDates(response)
           vm.engagements = response
           // make a copy that is non-reactive
           vm.original = JSON.parse(JSON.stringify(response))
