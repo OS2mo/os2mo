@@ -33,7 +33,6 @@
   import EmployeeDetailIt from './EmployeeDetailIt'
   import EmployeeDetailAssociation from './EmployeeDetailAssociation'
   import EmployeeDetailLeave from './EmployeeDetailLeave'
-  // import EmployeeDetailTable from './EmployeeDetailTable'
   import Loading from '../components/Loading'
 
   export default {
@@ -44,7 +43,6 @@
       EmployeeDetailIt,
       EmployeeDetailAssociation,
       EmployeeDetailLeave,
-      // EmployeeDetailTable,
       Loading
     },
     props: {
