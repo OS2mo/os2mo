@@ -120,8 +120,7 @@
         let edit = []
         // loop through all the engagements and add them to the edit array
         this.engagements.forEach(function (e, i) {
-          console.log(vm.compareObjects(e, vm.original[i]))
-          if (!vm.compareObjects(e, vm.original[i])) {
+          if (!vm.compareObjects(JSON.parse(JSON.stringify(e)), vm.original[i])) {
             let obj = {
               type: 'engagement',
               uuid: e.uuid,
