@@ -52,7 +52,7 @@ USER_FIELD = FieldTuple(
 
 ADDRESSES_FIELD = FieldTuple(
     path=('relationer', 'adresser'),
-    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    type=FieldTypes.ZERO_TO_MANY,
     filter_fn=lambda x: True
 )
 
