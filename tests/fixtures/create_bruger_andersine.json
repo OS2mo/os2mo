@@ -17,7 +17,7 @@
     "relationer": {
         "adresser": [
             {
-                "objekttype": null,
+                "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                 "urn": "urn:mailto:andersine@example.com",
                 "virkning": {
                     "from": "2010-01-01T00:00:00+01:00",

@@ -279,6 +279,7 @@ class Writing(util.LoRATestCase):
                         'from': '2002-02-14 00:00:00+01',
                         'from_included': True,
                     },
+                    'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     'urn': 'urn:mailto:bruger@example.com',
                 },
             ],

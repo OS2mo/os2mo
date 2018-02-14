@@ -69,7 +69,7 @@
         "adresser": [
             {
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "objekttype": "v0:1:Kontor",
+                "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01:00",
                     "to": "2019-01-01 00:00:00+01:00"
