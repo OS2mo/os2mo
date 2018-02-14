@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from . import address
 from . import employee
 from . import engagement
 from . import facet

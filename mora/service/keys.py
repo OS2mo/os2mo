@@ -18,8 +18,15 @@ ORG = 'org'
 ORG_UNIT = 'org_unit'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'
-ADDRESS_TYPE = 'address_type'
 ITSYSTEM = 'itsystem'
+
+# Address
+ADDRESS_KEY = 'Adresse'
+ADDRESS_TYPE = 'address_type'
+ADDRESS_HREF = 'href'
+ADDRESS_PRETTY = 'pretty_value'
+ADDRESS_RAW = 'raw_value'
+
 
 # Employee
 CPR_NO = 'cpr_no'

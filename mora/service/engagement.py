@@ -22,7 +22,7 @@ import itertools
 import flask
 
 from mora import lora
-from . import common, employee, facet, keys, mapping, org, itsystem
+from . import common, employee, facet, keys, mapping, org, itsystem, address
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      update_payload)
@@ -33,6 +33,7 @@ blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
 
 RELATION_TYPE_MODULES = {
     'it': itsystem.ITSystems,
+    'address': address.Adresses,
 }
 
 
@@ -178,6 +179,28 @@ def get_engagement(type, id, function):
         ]
 
     **Example IT response**:
+
+    .. sourcecode:: json
+
+          [
+              {
+                  "address_type": {
+                      "example": "<UUID>",
+                      "name": "Lokation",
+                      "scope": "DAR",
+                      "user_key": "AdresseLokation",
+                      "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
+                  },
+                  "from": "2018-01-01T00:00:00+01:00",
+                  "href": "https://www.openstreetmap.org/"
+                  "?mlon=12.57924839&mlat=55.68113676&zoom=16",
+                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
+                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                  "to": null
+              }
+          ]
+
+    **Example address response**:
 
     .. sourcecode:: json
 

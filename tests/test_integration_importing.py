@@ -1430,6 +1430,7 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/34705881-8af9-4254-ac3f-31738eae0be8/details/',
                 {
+                    'address': True,
                     'association': False,
                     'engagement': True,
                     'it': False,
@@ -1441,6 +1442,7 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745/details/',
                 {
+                    'address': True,
                     'association': True,
                     'engagement': True,
                     'it': False,
@@ -1452,6 +1454,7 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/details/',
                 {
+                    'address': True,
                     'association': True,
                     'engagement': True,
                     'it': False,
@@ -1753,4 +1756,164 @@ class IntegrationTests(util.LoRATestCase):
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
                 '/details/leave',
                 [],
+            )
+
+        with self.subTest('employee I address'):
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/address',
+                [
+                    {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Lokation',
+                            'scope': 'DAR',
+                            'user_key': 'AdresseLokation',
+                            'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'https://www.openstreetmap.org/'
+                        '?mlon=12.57924839&mlat=55.68113676&zoom=16',
+                        'pretty_value': 'Pilestræde 43, 3., 1112 København K',
+                        'raw_value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
+                            'example': 'hpe@korsbaek.dk',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'mailto:sanne@example.com',
+                        'pretty_value': 'sanne@example.com',
+                        'raw_value': 'urn:mailto:sanne@example.com',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'tel:+4511221122',
+                        'pretty_value': 11221122,
+                        'raw_value': 'urn:magenta.dk:telefon:+4511221122',
+                        'to': None,
+                    },
+                ],
+            )
+
+        with self.subTest('employee II address'):
+            self.assertRequestResponse(
+                '/service/e/34705881-8af9-4254-ac3f-31738eae0be8'
+                '/details/address',
+                [
+                    {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Lokation',
+                            'scope': 'DAR',
+                            'user_key': 'AdresseLokation',
+                            'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                        'pretty_value': 'Åbogade 15, 8200 Aarhus N',
+                        'raw_value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
+                            'example': 'hpe@korsbaek.dk',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'mailto:sune@example.com',
+                        'pretty_value': 'sune@example.com',
+                        'raw_value': 'urn:mailto:sune@example.com',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'tel:+4511223344',
+                        'pretty_value': 11223344,
+                        'raw_value': 'urn:magenta.dk:telefon:+4511223344',
+                        'to': None,
+                    },
+                ],
+            )
+
+        with self.subTest('unit address'):
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/address',
+                [
+                    {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Postadresse',
+                            'scope': 'DAR',
+                            'user_key': 'AdressePost',
+                            'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f',
+                        },
+                        'from': '2007-01-01T00:00:00+01:00',
+                        'href': 'https://www.openstreetmap.org/'
+                        '?mlon=12.3647784&mlat=55.73404048&zoom=16',
+                        'pretty_value': 'Hold-An Vej 7, 2750 Ballerup',
+                        'raw_value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
+                            'example': 'hpe@korsbaek.dk',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
+                        },
+                        'from': '2007-01-01T00:00:00+01:00',
+                        'href': 'mailto:borger@balk.dk',
+                        'pretty_value': 'borger@balk.dk',
+                        'raw_value': 'urn:mailto:borger@balk.dk',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'from': '2007-01-01T00:00:00+01:00',
+                        'href': 'tel:+4544772000',
+                        'pretty_value': 44772000,
+                        'raw_value': 'urn:magenta.dk:telefon:+4544772000',
+                        'to': None,
+                    },
+                ],
+            )
+
+        with self.subTest('unit it systems'):
+            self.assertRequestFails(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/it',
+                404,
             )
