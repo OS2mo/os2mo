@@ -46,10 +46,26 @@ if __name__ == "__main__":
 
     # create the virtual env, if necessary
     if not is_in_venv:
-        if (CURRENT_PYTHON[0] != REQUIRED_PYTHON[0] or
-                CURRENT_PYTHON[1] < REQUIRED_PYTHON[1]):
+        if (
+            CURRENT_PYTHON[0] != REQUIRED_PYTHON[0] or
+            CURRENT_PYTHON[1] < REQUIRED_PYTHON[1]
+        ):
             exe = 'python%d.%d' % REQUIRED_PYTHON
-            os.execlp(exe, exe, *sys.argv)
+            try:
+                os.execlp(exe, exe, *sys.argv)
+            except OSError:
+                try:
+                    if CURRENT_PYTHON[0] == REQUIRED_PYTHON[0]:
+                        raise
+
+                    exe = 'python%d' % REQUIRED_PYTHON[0]
+                    os.execlp(exe, exe, *sys.argv)
+                except OSError:
+                    print(
+                        'Python %d.%d or later required!' % REQUIRED_PYTHON,
+                        file=sys.stderr,
+                    )
+                    sys.exit(os.EX_UNAVAILABLE)
 
         if not os.path.isfile(venv_executable):
             import venv
