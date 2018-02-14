@@ -17,6 +17,7 @@ This section describes how to interact with employees.
 
 import flask
 
+from . import address
 from . import association
 from . import common
 from . import engagement
@@ -253,10 +254,11 @@ def create_employee(employee_uuid):
 
     :<json string type: ``"it"``
     :<json object itsystem: The IT system to create a relation to, as
-        returned by :http:get:`/o/(uuid:orgid)/it/`. The only
+        returned by :http:get:`/service/o/(uuid:orgid)/it/`. The only
         mandatory field is ``uuid``.
 
     .. sourcecode:: json
+
       [
           {
               "type": "it",
@@ -349,9 +351,40 @@ def create_employee(employee_uuid):
         }
       ]
 
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string address: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "address": "1234567890",
+          "address_type": {
+            "example": "5712345000014",
+            "name": "EAN",
+            "scope": "EAN",
+            "user_key": "EAN",
+            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
+        }
+      ]
+
     """
 
     handlers = {
+        'address': address.create_address,
         'engagement': engagement.create_engagement,
         'association': association.create_association,
         'it': itsystem.create_system,

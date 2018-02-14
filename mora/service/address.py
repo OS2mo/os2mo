@@ -20,12 +20,14 @@ import locale
 import flask
 import parse
 
+from .. import lora
 from .. import util
 from ..converters import addr
 
 from . import common
 from . import facet
 from . import keys
+from . import mapping
 
 HREF_FORMATS = {
     'EMAIL': 'mailto:{}',
@@ -154,3 +156,44 @@ class Adresses(common.AbstractRelationDetail):
                 ),
             ),
         )
+
+
+def create_address(employee_uuid, req):
+    scope = req[keys.ADDRESS_TYPE]['scope']
+    val = req[keys.ADDRESS]
+
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
+
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    if scope == 'DAR':
+        if not util.is_uuid(val):
+            raise ValueError('{!r} is not a valid address UUID!'.format(val))
+
+        rel = {
+            'uuid': val,
+            'objekttype': req[keys.ADDRESS_TYPE]['uuid']
+        }
+
+    elif scope in addr.URN_FORMATS:
+        rel = {
+            'urn': addr.URN_FORMATS[scope].format(val),
+            'objekttype': req[keys.ADDRESS_TYPE]['uuid'],
+        }
+
+    else:
+        raise ValueError('unknown address scope {!r}!'.format(scope))
+
+    payload = common.update_payload(
+        valid_from,
+        valid_to,
+        [(mapping.ADDRESSES_FIELD, rel)],
+        original,
+        {
+            'note': 'Tilføj adresse',
+        },
+    )
+
+    c.bruger.update(payload, employee_uuid)
