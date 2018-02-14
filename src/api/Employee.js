@@ -37,8 +37,8 @@ export default {
    * @param {String} uuid - employee uuid
    * @see getDetail
    */
-  getEngagementDetails (uuid) {
-    return this.getDetail(uuid, 'engagement')
+  getEngagementDetails (uuid, validity) {
+    return this.getDetail(uuid, 'engagement', validity)
   },
 
   /**
@@ -46,8 +46,8 @@ export default {
    * @param {String} uuid - Employee uuid
    * @see getDetails
    */
-  getContactDetails (uuid) {
-    return this.getDetails(uuid, 'contact')
+  getContactDetails (uuid, validity) {
+    return this.getDetails(uuid, 'contact', validity)
   },
 
   /**
@@ -55,8 +55,8 @@ export default {
    * @param {String} uuid - Employee uuid
    * @see getDetail
    */
-  getRoleDetails (uuid) {
-    return this.getDetail(uuid, 'role')
+  getRoleDetails (uuid, validity) {
+    return this.getDetail(uuid, 'role', validity)
   },
 
   /**
@@ -64,8 +64,8 @@ export default {
    * @param {String} uuid - Employee uuid
    * @see getDetail
    */
-  getItDetails (uuid) {
-    return this.getDetail(uuid, 'it')
+  getItDetails (uuid, validity) {
+    return this.getDetail(uuid, 'it', validity)
   },
 
   /**
@@ -73,8 +73,8 @@ export default {
    * @param {String} uuid - Employee uuid
    * @see getDetail
    */
-  getAssociationDetails (uuid) {
-    return this.getDetail(uuid, 'association')
+  getAssociationDetails (uuid, validity) {
+    return this.getDetail(uuid, 'association', validity)
   },
 
   /**
@@ -82,8 +82,8 @@ export default {
    * @param {String} uuid - Employee uuid
    * @see getDetail
    */
-  getLeaveDetails (uuid) {
-    return this.getDetail(uuid, 'leave')
+  getLeaveDetails (uuid, validity) {
+    return this.getDetail(uuid, 'leave', validity)
   },
 
   /**
@@ -92,8 +92,9 @@ export default {
    * @param {String} detail - Name of the detail
    * @returns {Array} A list of options for the detail
    */
-  getDetail (uuid, detail) {
-    return Service.get(`/e/${uuid}/details/${detail}`)
+  getDetail (uuid, detail, validity) {
+    validity = validity || 'present'
+    return Service.get(`/e/${uuid}/details/${detail}?validity=${validity}`)
     .then(response => {
       return response.data
     })
