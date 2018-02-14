@@ -22,14 +22,11 @@ import uuid
 import flask
 import werkzeug
 
-from mora import lora
-from . import mapping
-from .common import (create_organisationsenhed_payload, _create_virkning,
-                     inactivate_old_interval, set_object_value, update_payload,
-                     ensure_bounds)
-from .. import util
 from . import common
 from . import keys
+from . import mapping
+from .. import lora
+from .. import util
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
@@ -521,7 +518,7 @@ def create_org_unit():
 
     # TODO: Process address objects
 
-    org_unit = create_organisationsenhed_payload(
+    org_unit = common.create_organisationsenhed_payload(
         valid_from=valid_from,
         valid_to=valid_to,
         enhedsnavn=name,
@@ -613,7 +610,7 @@ def edit_org_unit(unitid):
         # We are performing an update
         old_from = common.get_valid_from(original_data)
         old_to = common.get_valid_to(original_data)
-        payload = inactivate_old_interval(
+        payload = common.inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationenhedgyldighed')
         )
@@ -644,12 +641,13 @@ def edit_org_unit(unitid):
             {'uuid': data[keys.PARENT]['uuid']}
         ))
 
-    payload = update_payload(new_from, new_to, update_fields, original,
-                             payload)
+    payload = common.update_payload(new_from, new_to, update_fields, original,
+                                    payload)
 
     bounds_fields = list(
         mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
-    payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
+    payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
+                                   payload)
 
     c.organisationenhed.update(payload, unitid)
 
@@ -682,10 +680,10 @@ def terminate_org_unit(unitid):
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
         'gyldighed': 'Inaktiv',
-        'virkning': _create_virkning(date, 'infinity')
+        'virkning': common._create_virkning(date, 'infinity')
     }
 
-    payload = set_object_value(dict(), obj_path, [val_inactive])
+    payload = common.set_object_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
     lora.Connector().organisationenhed.update(payload, unitid)
