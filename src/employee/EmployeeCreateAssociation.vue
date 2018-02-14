@@ -9,12 +9,9 @@
           v-model="association.org_unit"
         />
         <job-function-picker 
-          :org-uuid="org.uuid" 
           v-model="association.job_function"
-          :org="org"
         />
         <association-type 
-          :org-uuid="org.uuid" 
           v-model="association.association_type"
         />
       </div>
@@ -51,7 +48,7 @@ export default {
     }
   },
   watch: {
-    association (newVal) {
+    association (newVal, oldVal) {
       this.$emit('input', newVal)
     },
 
