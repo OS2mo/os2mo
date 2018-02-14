@@ -92,8 +92,9 @@ export default {
    * @param {String} detail - Name of the detail
    * @returns {Array} A list of options for the detail
    */
-  getDetail (uuid, detail) {
-    return Service.get(`/e/${uuid}/details/${detail}`)
+  getDetail (uuid, detail, validity) {
+    validity = validity || 'present'
+    return Service.get(`/e/${uuid}/details/${detail}?validity=${validity}`)
     .then(response => {
       return response.data
     })
