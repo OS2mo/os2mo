@@ -966,6 +966,7 @@ class IntegrationTests(util.LoRATestCase):
                  ],
             )
 
+        with self.subTest('all classes'):
             def get(f):
                 r = self.client.get(f['path'])
 
