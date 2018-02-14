@@ -890,3 +890,97 @@ class Tests(util.LoRATestCase):
               'user_key': 'Telefon',
               'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'}],
         )
+
+    def test_detail_list(self):
+        self.load_sample_structures()
+
+        with self.subTest('fedtmule'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/',
+                {
+                    'association': False,
+                    'engagement': False,
+                    'it': True,
+                    'leave': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('anders'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/',
+                {
+                    'association': True,
+                    'engagement': True,
+                    'it': False,
+                    'leave': True,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('hum'):
+            self.assertRequestResponse(
+                '/service/e/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                '/details/',
+                {
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('samf'):
+            self.assertRequestResponse(
+                '/service/e/b688513d-11f7-4efc-b679-ab082a2055d0'
+                '/details/',
+                {
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('fil'):
+            self.assertRequestResponse(
+                '/service/e/85715fc7-925d-401b-822d-467eb4b163b6'
+                '/details/',
+                {
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('hist'):
+            self.assertRequestResponse(
+                '/service/e/da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                '/details/',
+                {
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('frem'):
+            self.assertRequestResponse(
+                '/service/e/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/details/',
+                {
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                },
+            )

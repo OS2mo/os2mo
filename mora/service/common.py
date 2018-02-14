@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import abc
 import collections
 import copy
 import datetime
@@ -24,6 +25,16 @@ class FieldTypes(Enum):
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
+
+
+class AbstractRelationDetail(abc.ABC):
+    @abc.abstractstaticmethod
+    def has(objtype, registration):
+        pass
+
+    @abc.abstractstaticmethod
+    def get(objtype, objid):
+        pass
 
 
 FieldTuple = collections.namedtuple(
