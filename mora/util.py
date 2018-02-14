@@ -19,7 +19,6 @@ import uuid
 
 import flask
 import iso8601
-import pytz
 import dateutil.parser
 
 
@@ -27,11 +26,17 @@ import dateutil.parser
 PLACEHOLDER = "\u2014"
 
 # timezone-aware versions of min/max
-positive_infinity = pytz.FixedOffset(23 * 60).localize(
-    datetime.datetime.max,
+positive_infinity = datetime.datetime.max.replace(
+    tzinfo=dateutil.tz.tzoffset(
+        'MAX',
+        datetime.timedelta(hours=23, minutes=59),
+    ),
 )
-negative_infinity = pytz.FixedOffset(-23 * 60).localize(
-    datetime.datetime.min,
+negative_infinity = datetime.datetime.min.replace(
+    tzinfo=dateutil.tz.tzoffset(
+        'MIN',
+        -datetime.timedelta(hours=23, minutes=59),
+    ),
 )
 
 # TODO: the default timezone should be configurable, shouldn't it?
