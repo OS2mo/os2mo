@@ -16,10 +16,12 @@ import re
 import sys
 import uuid
 
-import openpyxl
+import pyexcel
 
 from .. import util
 from .. import lora
+
+from . import addr
 
 
 def _make_relation(obj, k):
@@ -34,8 +36,8 @@ def _make_relation(obj, k):
     elif util.is_uuid(val):
         key = 'uuid'
     else:
-        raise ValueError('{} is neither a URN nor a UUID!'.format(
-            val,
+        raise ValueError('{}: {} is neither a URN nor a UUID!'.format(
+            k, val,
         ))
 
     return [
@@ -126,13 +128,8 @@ def read_paths(paths):
             with open(p) as fp:
                 yield json.load(fp)
 
-        elif fmt == '.xlsx':
-            yield from openpyxl.load_workbook(
-                p, read_only=True, data_only=True,
-            )
-
         else:
-            raise ValueError('bad format ' + fmt)
+            yield from pyexcel.get_book(file_name=p, name_columns_by_row=0)
 
 
 def load_data(sheets, exact=False):
@@ -163,19 +160,19 @@ def load_data(sheets, exact=False):
             dest.update(sheet)
             continue
 
-        out = dest[sheet.title] = []
+        print(sheet.name, file=sys.stderr)
 
-        print(sheet.title, file=sys.stderr)
+        out = dest[sheet.name] = []
 
-        headers = [c.value.lower() for c in sheet[1]]
+        sheet.name_columns_by_row(0)
+
+        headers = [c.lower() for c in sheet.colnames]
         headers = [remap.get(v, v) for v in headers]
 
         assert len(set(headers)) == len(headers), \
-            'duplicate headers in ' + sheet.title
+            'duplicate headers in ' + sheet.name
 
-        for i, row in enumerate(sheet.iter_rows(min_row=2), 2):
-            row = [cell.value for cell in row]
-
+        for i, row in enumerate(sheet.rows()):
             if not any(row):
                 continue
 
@@ -213,6 +210,8 @@ def load_data(sheets, exact=False):
         for k, v in obj.items():
             if isinstance(v, datetime.datetime):
                 obj[k] = v.isoformat()
+            elif v == '':
+                obj[k] = None
 
     # some items in the spreadsheet refer to other rows by their bvn
     uuid_mapping = {

@@ -61,11 +61,6 @@ class MockTests(util.TestCase):
 
         self.assertEqual(expected, actual)
 
-    @util.mock()
-    def test_unknown_suffix(self, m):
-        gen = importing.read_paths('test.hest')
-        self.assertRaises(ValueError, next, gen)
-
     @util.mock('importing-wash.json')
     def test_addr_wash(self, m):
         w = importing._wash_address
