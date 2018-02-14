@@ -63,21 +63,29 @@ if __name__ == "__main__":
                 shutil.rmtree(venvdir)
                 raise
 
-        requirements_file = ('requirements-test.txt'
-                             if 'test' in sys.argv
-                             else 'requirements.txt')
-
-        subprocess.check_call([
-            venv_executable, '-m', 'pip', 'install', '-qr',
-            os.path.join(basedir, requirements_file),
-        ])
-
         if platform.system() == 'Windows':
             # os.execlp doesn't actually replace the current process
             # on Windows
             sys.exit(subprocess.call([venv_executable] + sys.argv))
         else:
             os.execlp(venv_executable, venv_executable, *sys.argv)
+
+    requirements_file = ('requirements-test.txt'
+                         if 'test' in sys.argv
+                         else 'requirements.txt')
+
+    r = os.fork()
+
+    if not r:
+        import pip
+        pip.commands.install.InstallCommand().main([
+            '-qr',
+            os.path.join(basedir, requirements_file),
+        ])
+
+        sys.exit(0)
+
+    os.wait()
 
     os.environ.setdefault("FLASK_APP", "mora.app")
     os.environ.setdefault("FLASK_DEBUG", "1")
