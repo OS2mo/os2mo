@@ -52,16 +52,16 @@ if __name__ == "__main__":
             os.execlp(exe, exe, *sys.argv)
 
         if not os.path.isfile(venv_executable):
-                import venv
+            import venv
 
-                try:
-                    venv.main(['--upgrade', venvdir])
-                except SystemExit:
-                    # handle Ubuntu's horrible hackery where you get a
-                    # venv without pip...
-                    import shutil
-                    shutil.rmtree(venvdir)
-                    raise
+            try:
+                venv.main(['--upgrade', venvdir])
+            except SystemExit:
+                # handle Ubuntu's horrible hackery where you get a
+                # venv without pip...
+                import shutil
+                shutil.rmtree(venvdir)
+                raise
 
         requirements_file = ('requirements-test.txt'
                              if 'test' in sys.argv

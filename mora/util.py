@@ -34,6 +34,7 @@ negative_infinity = pytz.FixedOffset(-23 * 60).localize(
     datetime.datetime.min,
 )
 
+# TODO: the default timezone should be configurable, shouldn't it?
 default_timezone = dateutil.tz.gettz('Europe/Copenhagen')
 
 tzinfos = {

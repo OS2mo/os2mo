@@ -8,7 +8,6 @@
 
 import atexit
 import contextlib
-import functools
 import json
 import os
 import pprint

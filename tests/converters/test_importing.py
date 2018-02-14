@@ -57,7 +57,7 @@ class MockTests(util.TestCase):
 
         # for resetting the test
         with open(actual_path, 'w') as fp:
-                json.dump(actual, fp, indent=2, sort_keys=True)
+            json.dump(actual, fp, indent=2, sort_keys=True)
 
         self.assertEqual(expected, actual)
 
