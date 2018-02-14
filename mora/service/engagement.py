@@ -7,11 +7,12 @@
 #
 
 
-'''
-Engagements
------------
+'''Details
+-------
 
-This section describes how to interact with employee engagements.
+This section describes how to interact with employee and
+organisational unit metadata, referred to as *details* within this
+API.
 
 '''
 
@@ -38,6 +39,8 @@ RELATION_TYPE_MODULES = {
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
 def list_details(type, id):
     '''List the available 'detail' types under this entry.
+
+    .. :quickref: Detail; List
 
     **Example response**:
 
@@ -90,10 +93,15 @@ def list_details(type, id):
 )
 @util.restrictargs('at', 'validity', 'start', 'limit')
 def get_engagement(type, id, function):
-    '''Obtain the list of engagements corresponding to a user or
-    organisational unit.
+    '''Obtain the list of engagements, associations, roles, etc.
+    corresponding to a user or organisational unit. See
+    :http:get:`/service/(any:type)/(uuid:id)/details/` for the
+    available list of endpoints.
 
-    .. :quickref: Engagement; List
+    .. :quickref: Detail; Get
+
+    Most of these endpoints are broadly similar to engagements, with
+    the notable exception being IT systems.
 
     All requests contain validity objects on the following form:
 
@@ -121,6 +129,10 @@ def get_engagement(type, id, function):
     :param function: See :http:get:`/service/(any:type)/(uuid:id)/details/`
         for the available values for this field.
 
+    :status 200: Always.
+
+    **Example engagement response**:
+
     :<jsonarr object job_function:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object type:
@@ -129,10 +141,6 @@ def get_engagement(type, id, function):
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string validity: The validity times of the object.
-
-    :status 200: Always.
-
-    **Example response**:
 
     .. sourcecode:: json
 
@@ -168,6 +176,28 @@ def get_engagement(type, id, function):
                 },
             }
         ]
+
+    **Example IT response**:
+
+    .. sourcecode:: json
+
+          [
+              {
+                  "address_type": {
+                      "example": "<UUID>",
+                      "name": "Lokation",
+                      "scope": "DAR",
+                      "user_key": "AdresseLokation",
+                      "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
+                  },
+                  "from": "2018-01-01T00:00:00+01:00",
+                  "href": "https://www.openstreetmap.org/"
+                  "?mlon=12.57924839&mlat=55.68113676&zoom=16",
+                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
+                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                  "to": null
+              }
+          ]
 
     '''
 
