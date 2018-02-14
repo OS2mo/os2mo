@@ -610,7 +610,7 @@ def edit_employee(employee_uuid):
 
       [
         {
-          "type": "leave",
+          "type": "manager",
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
               "org_unit": {

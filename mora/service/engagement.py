@@ -47,11 +47,8 @@ def list_details(type, id):
         "manager": false
       }
 
-    The value above informs you that 'association', 'engagement', 'role',
-    'leave' and 'manager' are valid for this entry, and that no entry exists
-    at any time for 'association', 'role' and 'manager', whereas
-    'engagement' and 'leave' have at least one entry either in the past,
-    present or future.
+    The value above informs you that at least one entry exists for each of
+    'engagement' and 'leave' either in the past, present or future.
     '''
     c = common.get_connector()
 
