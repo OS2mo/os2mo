@@ -404,25 +404,27 @@ def load_cli(app):
                   help='only convert the given sheet')
     @click.option('--quiet', '-q', is_flag=True,
                   help='Suppress all output.')
-    def sheetconvert(sheet, quiet):
+    @click.argument('source', type=click.Path())
+    @click.argument('destination', type=click.Path())
+    def sheetconvert(sheet, quiet, source, destination):
         '''Convert a spreadsheet to another format.
 
         Supports CSV, ODS, XLSX and possibly more.
         '''
 
         if not quiet:
-            print('{} -> {}'.format(src, dst))
+            print('{} -> {}'.format(source, destination))
 
         if sheet:
             pyexcel.save_as(
-                file_name=src,
-                dest_file_name=dst,
+                file_name=source,
+                dest_file_name=destination,
                 sheet_name=sheet,
             )
         else:
             pyexcel.save_book_as(
-                file_name=src,
-                dest_file_name=dst,
+                file_name=source,
+                dest_file_name=destination,
             )
 
     @app.cli.command()
