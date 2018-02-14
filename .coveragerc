@@ -6,3 +6,8 @@ omit =
      tests/*
      manage.py
      mora/cli.py
+
+[report]
+exclude_lines =
+     raise NotImplementedError
+     \bpass\b
