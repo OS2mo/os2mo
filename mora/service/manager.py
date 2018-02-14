@@ -6,9 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-"""
-Manager
-------
+"""Manager
+-------
 
 This section describes how to interact with employee manager roles.
 

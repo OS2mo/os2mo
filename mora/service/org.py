@@ -121,10 +121,10 @@ def get_organisation(orgid):
         "child_count": 1,
         "unit_count": 6,
         "employment_count": 1,
-        'association_count': 1,
-        'leave_count': 1,
-        'role_count': 1,
-        'manager_count': 1
+        "association_count": 1,
+        "leave_count": 1,
+        "role_count": 1,
+        "manager_count": 1
       }
 
     '''

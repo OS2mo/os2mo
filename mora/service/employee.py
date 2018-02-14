@@ -532,26 +532,27 @@ def edit_employee(employee_uuid):
 
     .. sourcecode:: json
 
-    [
-       {
-         "type": "it",
-         "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-         "original": {
-             "name": "Active Directory",
-             "user_name": "Fedtmule",
-             "uuid": "00000000-0000-0000-0000-000000000000",
-             "validity": {
-                 "from": "2002-02-14T00:00:00+01:00",
-                 "to": null
-             },
-         },
-         "data": {
-             "uuid": "11111111-1111-1111-1111-111111111111",
-             "validity": {
-                 "to": "2020-01-01T00:00:00+01:00"
-             },
-         },
-     },
+      [
+        {
+          "type": "it",
+          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "original": {
+            "name": "Active Directory",
+            "user_name": "Fedtmule",
+            "uuid": "00000000-0000-0000-0000-000000000000",
+            "validity": {
+              "from": "2002-02-14T00:00:00+01:00",
+              "to": null
+            }
+          },
+          "data": {
+            "uuid": "11111111-1111-1111-1111-111111111111",
+            "validity": {
+              "to": "2020-01-01T00:00:00+01:00"
+            }
+          }
+        }
+      ]
 
     **Role**:
 
