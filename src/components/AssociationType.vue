@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>Tilknytningstype</label>
+    <label v-if="!noLabel">{{label}}</label>
     <select 
       class="form-control col" 
       v-model="type"
@@ -21,33 +21,41 @@
 
 <script>
   import Facet from '../api/Facet'
+  import Organisation from '../api/Organisation'
+  import { EventBus } from '../EventBus'
 
   export default {
     name: 'AssociationType',
     props: {
       value: Object,
-      orgUuid: String
+      noLabel: Boolean
     },
     data () {
       return {
-        type: String,
+        label: 'Tilknytningstype',
+        type: {},
         associationTypes: []
       }
     },
-    watch: {
-      orgUuid () {
+    mounted () {
+      EventBus.$on('organisation-changed', () => {
         this.getassociationTypes()
-      }
+      })
+    },
+    created () {
+      this.getassociationTypes()
+      this.type = this.value
     },
     methods: {
       getassociationTypes () {
         let vm = this
-        Facet.associationTypes(this.orgUuid)
+        let org = Organisation.getSelectedOrganisation()
+        if (org.uuid === undefined) return
+        Facet.associationTypes(org.uuid)
         .then(response => {
           vm.associationTypes = response
         })
       },
-
       updateAssociationTypes () {
         this.$emit('input', this.type)
       }
