@@ -89,13 +89,9 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
     return payload
 
 
-def set_object_value(obj: dict, path: tuple, val: Union[dict, List[dict]],
-                     overwrite: bool = False):
+def set_object_value(obj: dict, path: tuple, val: List[dict]):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
-
-    if val is not list:
-        val = list(val)
 
     current_value = obj_copy
     while path_list:
@@ -103,7 +99,7 @@ def set_object_value(obj: dict, path: tuple, val: Union[dict, List[dict]],
         if path_list:
             current_value = current_value.setdefault(key, {})
         else:
-            if overwrite or not current_value.get(key):
+            if not current_value.get(key):
                 current_value[key] = val
             else:
                 current_value[key].extend(val)
