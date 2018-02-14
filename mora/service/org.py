@@ -21,7 +21,6 @@ import operator
 import flask
 import werkzeug
 
-from . import common, keys
 from .. import util
 from . import common
 from . import keys

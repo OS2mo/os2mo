@@ -11,7 +11,7 @@ import copy
 import datetime
 import functools
 from enum import Enum
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 
 import flask
 import iso8601

@@ -17,9 +17,16 @@ This section describes how to interact with employees.
 
 import flask
 
-from mora import lora
-from . import association, common, engagement, itsystem, org, keys, leave, role
+from . import association
+from . import common
+from . import engagement
+from . import itsystem
+from . import keys
 from . import manager
+from . import leave
+from . import org
+from . import role
+from .. import lora
 from .. import util
 from ..converters import writing
 
