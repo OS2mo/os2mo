@@ -13,7 +13,10 @@
       </thead>
 
       <tbody>
-        <tr v-for="d in details" v-bind:key="d.uuid">
+        <tr>
+          <th scope="col">Fortid</th>
+        </tr>
+        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
           <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
           <td>{{d.job_function | getProperty('name')}}</td>
           <td>
@@ -24,9 +27,9 @@
         </tr>
 
         <tr>
-          <th scope="col">Fortid</th>
+          <th scope="col">Nutid</th>
         </tr>
-        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
+        <tr v-for="d in details" v-bind:key="d.uuid">
           <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
           <td>{{d.job_function | getProperty('name')}}</td>
           <td>
@@ -107,3 +110,10 @@
     }
   }
 </script>
+<style scoped>
+
+th{
+  background-color: #ffffff;
+}
+
+</style>
