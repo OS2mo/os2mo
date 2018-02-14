@@ -996,6 +996,7 @@ class Tests(util.LoRATestCase):
                     'engagement': False,
                     'it': True,
                     'leave': False,
+                    'manager': False,
                     'role': False,
                 },
             )
@@ -1011,6 +1012,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': True,
                     'role': True,
+                    'manager': True,
                 },
             )
 
@@ -1024,6 +1026,7 @@ class Tests(util.LoRATestCase):
                     'engagement': False,
                     'it': False,
                     'leave': False,
+                    'manager': False,
                     'role': False,
                 },
             )
@@ -1038,6 +1041,7 @@ class Tests(util.LoRATestCase):
                     'engagement': False,
                     'it': False,
                     'leave': False,
+                    'manager': False,
                     'role': False,
                 },
             )
@@ -1052,6 +1056,7 @@ class Tests(util.LoRATestCase):
                     'engagement': False,
                     'it': False,
                     'leave': False,
+                    'manager': False,
                     'role': False,
                 },
             )
@@ -1066,6 +1071,7 @@ class Tests(util.LoRATestCase):
                     'engagement': False,
                     'it': False,
                     'leave': False,
+                    'manager': False,
                     'role': False,
                 },
             )
@@ -1080,6 +1086,7 @@ class Tests(util.LoRATestCase):
                     'engagement': False,
                     'it': False,
                     'leave': False,
+                    'manager': False,
                     'role': False,
                 },
             )
