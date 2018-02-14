@@ -10,7 +10,7 @@ import copy
 import datetime
 import functools
 from enum import Enum
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 
 import flask
 import iso8601
@@ -89,8 +89,7 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
     return payload
 
 
-def set_object_value(obj: dict, path: tuple, vals: List[dict],
-                     overwrite: bool = False):
+def set_object_value(obj: dict, path: tuple, val: List[dict]):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
 
@@ -100,10 +99,10 @@ def set_object_value(obj: dict, path: tuple, vals: List[dict],
         if path_list:
             current_value = current_value.setdefault(key, {})
         else:
-            if overwrite or not current_value.get(key):
-                current_value[key] = vals
+            if not current_value.get(key):
+                current_value[key] = val
             else:
-                current_value[key].extend(vals)
+                current_value[key].extend(val)
 
     return obj_copy
 
@@ -310,7 +309,7 @@ def create_organisationsfunktion_payload(
     tilknyttedeorganisationer: List[str],
     tilknyttedeenheder: List[str] = None,
     funktionstype: str = None,
-    opgaver: List[str] = None,
+    opgaver: List[dict] = None,
     adresser: List[str] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
@@ -357,9 +356,7 @@ def create_organisationsfunktion_payload(
         }]
 
     if opgaver:
-        org_funk['relationer']['opgaver'] = [{
-            'uuid': uuid
-        } for uuid in opgaver]
+        org_funk['relationer']['opgaver'] = opgaver
 
     if adresser:
         org_funk['relationer']['adresser'] = [{

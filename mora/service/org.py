@@ -21,6 +21,7 @@ import operator
 import flask
 import werkzeug
 
+from . import common, keys
 from .. import util
 from . import common
 from . import keys
@@ -120,7 +121,11 @@ def get_organisation(orgid):
         "person_count": 2,
         "child_count": 1,
         "unit_count": 6,
-        "employment_count": 1
+        "employment_count": 1,
+        'association_count': 1,
+        'leave_count': 1,
+        'role_count': 1,
+        'manager_count': 1
       }
 
     '''
@@ -142,7 +147,16 @@ def get_organisation(orgid):
     # 0.8s -> 12.3s for 28k users and 33k functions
     # https://redmine.magenta-aps.dk/issues/21273
     users = c.bruger(tilhoerer=orgid)
-    functions = c.organisationfunktion(tilknyttedeorganisationer=orgid)
+    engagements = c.organisationfunktion(tilknyttedeorganisationer=orgid,
+                                         funktionsnavn=keys.ENGAGEMENT_KEY)
+    associations = c.organisationfunktion(tilknyttedeorganisationer=orgid,
+                                          funktionsnavn=keys.ASSOCIATION_KEY)
+    leaves = c.organisationfunktion(tilknyttedeorganisationer=orgid,
+                                    funktionsnavn=keys.LEAVE_KEY)
+    roles = c.organisationfunktion(tilknyttedeorganisationer=orgid,
+                                   funktionsnavn=keys.ROLE_KEY)
+    managers = c.organisationfunktion(tilknyttedeorganisationer=orgid,
+                                      funktionsnavn=keys.MANAGER_KEY)
 
     return flask.jsonify({
         'name': attrs['organisationsnavn'],
@@ -151,7 +165,11 @@ def get_organisation(orgid):
         'child_count': len(children),
         'unit_count': len(units),
         'person_count': len(users),
-        'employment_count': len(functions),
+        'employment_count': len(engagements),
+        'association_count': len(associations),
+        'leave_count': len(leaves),
+        'role_count': len(roles),
+        'manager_count': len(managers),
     })
 
 

@@ -1411,19 +1411,19 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/34705881-8af9-4254-ac3f-31738eae0be8/details/',
                 {'association': False, 'engagement': True, 'it': False,
-                 'leave': False, 'role': False},
+                 'leave': False, 'role': False, 'manager': False},
             )
 
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745/details/',
                 {'association': True, 'engagement': True, 'it': False,
-                 'leave': True, 'role': True},
+                 'leave': True, 'role': True, 'manager': False},
             )
 
             self.assertRequestResponse(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/details/',
                 {'association': True, 'engagement': True, 'leave': False,
-                 'role': True},
+                 'role': True, 'manager': False},
             )
 
         with self.subTest('employee engagement'):
@@ -1630,6 +1630,8 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
+        with self.subTest('role'):
+
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
                 '/details/role',
@@ -1689,6 +1691,8 @@ class IntegrationTests(util.LoRATestCase):
                     },
                 ],
             )
+
+        with self.subTest('leave'):
 
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'

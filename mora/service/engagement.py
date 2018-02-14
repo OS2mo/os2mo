@@ -46,14 +46,12 @@ def list_details(type, id):
         "association": false,
         "engagement": true,
         "role": false,
-        "leave": true
+        "leave": true,
+        "manager": false
       }
 
-    The value above informs you that 'association', 'engagement', 'role' and
-    'leave' are valid for this entry, and that no entry exists at any time
-    for 'association' and 'role', whereas 'engagement' and 'leave' have at
-    least one entry either in the past, present or future.
-
+    The value above informs you that at least one entry exists for each of
+    'engagement' and 'leave' either in the past, present or future.
     '''
     c = common.get_connector()
 
@@ -259,6 +257,20 @@ def get_engagement(type, id, function):
         except (KeyError, IndexError):
             return None
 
+    def get_responsibility(effect):
+        try:
+            return list(filter(mapping.RESPONSIBILITY_FIELD.filter_fn,
+                               effect['relationer']['opgaver']))[-1]['uuid']
+        except (KeyError, IndexError):
+            return None
+
+    def get_manager_level(effect):
+        try:
+            return list(filter(mapping.MANAGER_LEVEL_FIELD.filter_fn,
+                               effect['relationer']['opgaver']))[-1]['uuid']
+        except (KeyError, IndexError):
+            return None
+
     def convert_engagement(funcid, effect):
         return {
             "uuid": funcid,
@@ -296,6 +308,17 @@ def get_engagement(type, id, function):
             keys.LEAVE_TYPE: class_cache[get_type_id(effect)],
         }
 
+    def convert_manager(funcid, effect):
+        return {
+            "uuid": funcid,
+
+            keys.PERSON: user_cache[get_employee_id(effect)],
+            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
+            keys.RESPONSIBILITY: class_cache[get_responsibility(effect)],
+            keys.MANAGER_LEVEL: class_cache[get_manager_level(effect)],
+            keys.MANAGER_TYPE: class_cache[get_type_id(effect)],
+        }
+
     def add_validity(start, end, func):
         func[keys.VALIDITY] = {
             keys.FROM: util.to_iso_time(start),
@@ -303,21 +326,25 @@ def get_engagement(type, id, function):
         }
         return func
 
+    def get_classes(effect):
+        rels = effect['relationer']
+        return [obj.get('uuid') for obj in itertools.chain(
+            rels.get('opgaver', []),
+            rels.get('organisatoriskfunktionstype', [])
+        )]
+
     converters = {
         'engagement': convert_engagement,
         'association': convert_association,
         'role': convert_role,
         'leave': convert_leave,
+        'manager': convert_manager,
     }
 
     class_cache = {
         classid: classid and facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(
-            uuid=itertools.chain(
-                map(get_title_id, functions.values()),
-                map(get_type_id, functions.values()),
-            )
-        )
+            uuid=itertools.chain(*map(get_classes, functions.values())))
     }
 
     user_cache = {
@@ -403,7 +430,7 @@ def create_engagement(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=engagement_type_uuid,
-        opgaver=[job_function_uuid]
+        opgaver=[{'uuid': job_function_uuid}]
     )
 
     c.organisationfunktion.create(engagement)

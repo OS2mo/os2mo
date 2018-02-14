@@ -112,8 +112,14 @@ class TestCreateOrgFunk(unittest.TestCase):
         tilknyttedeenheder = ["a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
                               "3f2e320e-d265-4480-a4f6-b92e40cf91b3"]
         funktionstype = "62ec821f-4179-4758-bfdf-134529d186e9"
-        opgaver = ["3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
-                   "8017363b-e836-41c1-8511-2287d8fbc8a2"]
+        opgaver = [
+            {
+                "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
+            },
+            {
+                "uuid": "8017363b-e836-41c1-8511-2287d8fbc8a2"
+            },
+        ]
 
         self.assertDictEqual(
             create_organisationsfunktion_payload(

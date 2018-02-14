@@ -44,7 +44,11 @@ class Tests(util.LoRATestCase):
             'user_key': 'AU',
             'unit_count': 1,
             'person_count': 2,
-            'employment_count': 4,
+            'employment_count': 1,
+            'association_count': 1,
+            'leave_count': 1,
+            'role_count': 1,
+            'manager_count': 1,
             'child_count': 1,
         }
 
@@ -798,6 +802,94 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000'
             '/details/leave',
+            [],
+        )
+
+    def test_manager(self):
+        self.load_sample_structures()
+
+        func = [
+            {
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'org_unit': {
+                    "name": "Humanistisk fakultet",
+                    "user_key": "hum",
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'responsibility': {
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+                },
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                "validity": {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
+            },
+        ]
+
+        with self.subTest('user'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/manager',
+                func,
+            )
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/manager?validity=past',
+                [],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/manager?validity=future',
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/manager?at=2016-01-01&validity=future',
+                func,
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+            '/details/manager',
+            func,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+            '/details/manager',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/00000000-0000-0000-0000-000000000000'
+            '/details/manager',
             [],
         )
 

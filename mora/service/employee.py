@@ -19,6 +19,7 @@ import flask
 
 from mora import lora
 from . import association, common, engagement, itsystem, org, keys, leave, role
+from . import manager
 from .. import util
 from ..converters import writing
 
@@ -287,7 +288,38 @@ def create_employee(employee_uuid):
         }
       ]
 
-    **Leader**:
+    **Manager**:
+
+    :<jsonarr string type: **"manager"**
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string manager_type: The manager type
+    :<jsonarr string responsibility: The manager responsibility
+    :<jsonarr string manager_level: The manager level
+    :<jsonarr object validity: The validities of the created object.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "manager",
+          "org_unit": {
+            "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "manager_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "responsibility": {
+            "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
+          },
+          "manager_level": {
+            "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
+          },
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2018-01-01T00:00:00+00:00"
+          }
+        }
+      ]
 
     **Leave**:
 
@@ -318,7 +350,7 @@ def create_employee(employee_uuid):
         'it': itsystem.create_system,
         'role': role.create_role,
         'contact': writing.create_contact,
-        # 'leader': create_leader,
+        'manager': manager.create_manager,
         'leave': leave.create_leave,
     }
 
@@ -610,6 +642,65 @@ def edit_employee(employee_uuid):
           }
         }
       ]
+
+    **Manager**:
+
+    :param employee_uuid: The UUID of the employee.
+
+    :<json string type: **"manager"**
+    :<json string uuid: The UUID of the manager,
+    :<json object original: An **optional** object containing the original
+        state of the leave to be overwritten. If supplied, the change will
+        modify the existing registration on the leave object. Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        leave. Detailed below.
+
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string manager_type: The manager type
+    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr string manager_type: The manager type
+    :<jsonarr string responsibility: The manager responsibility
+    :<jsonarr string manager_level: The manager level
+    :<jsonarr object validity: The validities of the changes.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "manager",
+          "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
+          "original": {
+              "org_unit": {
+                "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+              },
+              "manager_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+              },
+              "responsibility": {
+                "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
+              },
+              "manager_level": {
+                "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
+              },
+              "validity": {
+                  "from": "2016-01-01T00:00:00+00:00",
+                  "to": "2018-01-01T00:00:00+00:00"
+              }
+          },
+          "data": {
+            "validity": {
+                "from": "2016-01-01T00:00:00+00:00",
+                "to": "2019-01-01T00:00:00+00:00"
+            },
+            "manager_type": {
+              "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
+            }
+          }
+        }
+      ]
     """
 
     handlers = {
@@ -618,8 +709,8 @@ def edit_employee(employee_uuid):
         'role': role.edit_role,
         'it': itsystem.edit_system,
         'leave': leave.edit_leave,
+        'manager': manager.edit_manager,
         # 'contact': edit_contact,
-        # 'leader': edit_leader,
     }
 
     reqs = flask.request.get_json()
@@ -670,6 +761,7 @@ def terminate_employee(employee_uuid):
         keys.ASSOCIATION_KEY,
         keys.ROLE_KEY,
         keys.LEAVE_KEY,
+        keys.MANAGER_KEY
     )
     for key in types:
         for obj in c.organisationfunktion.get_all(
