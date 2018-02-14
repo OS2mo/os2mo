@@ -23,6 +23,7 @@ import click
 import flask
 import requests
 import urllib3
+import pyexcel
 
 from . import auth
 from . import lora
@@ -397,6 +398,32 @@ def load_cli(app):
         print('imported {} objects in {} ({} per second)'.format(
             total, duration, total / duration.total_seconds(),
         ))
+
+    @app.cli.command('sheet-convert', with_appcontext=False)
+    @click.option('--sheet', '-s',
+                  help='only convert the given sheet')
+    @click.option('--quiet', '-q', is_flag=True,
+                  help='Suppress all output.')
+    def sheetconvert(sheet, quiet):
+        '''Convert a spreadsheet to another format.
+
+        Supports CSV, ODS, XLSX and possibly more.
+        '''
+
+        if not quiet:
+            print('{} -> {}'.format(src, dst))
+
+        if sheet:
+            pyexcel.save_as(
+                file_name=src,
+                dest_file_name=dst,
+                sheet_name=sheet,
+            )
+        else:
+            pyexcel.save_book_as(
+                file_name=src,
+                dest_file_name=dst,
+            )
 
     @app.cli.command()
     @click.argument('spreadsheets', nargs=-1, type=click.Path(exists=True))
