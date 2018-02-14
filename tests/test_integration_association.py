@@ -442,8 +442,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
@@ -622,8 +620,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
@@ -969,8 +965,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        date = '2019-01-01T00:00:00+01'
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'

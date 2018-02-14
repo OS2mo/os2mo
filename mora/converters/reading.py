@@ -267,8 +267,8 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
                 'location': _get_location(info.location),
                 'visibility': {
                     'user-key': info.visibility,
-                    'uuid': meta.PHONE_VISIBILITY_UUIDS[info.visibility],
-                    'name': meta.PHONE_VISIBILITIES[info.visibility],
+                    'uuid': meta.PHONE_VISIBILITY_UUIDS.get(info.visibility),
+                    'name': meta.PHONE_VISIBILITIES.get(info.visibility),
                 },
                 "type": t,
                 "phone-type": t,
@@ -296,8 +296,8 @@ def get_contact_channels(userid=None, orgid=None, unitid=None, **loraparams):
                 "location": _get_location(info.location),
                 'visibility': {
                     'user-key': info.visibility,
-                    'uuid': meta.PHONE_VISIBILITY_UUIDS[info.visibility],
-                    'name': meta.PHONE_VISIBILITIES[info.visibility],
+                    'uuid': meta.PHONE_VISIBILITY_UUIDS.get(info.visibility),
+                    'name': meta.PHONE_VISIBILITIES.get(info.visibility),
                 },
                 "phone-type": t,
                 "type": t,

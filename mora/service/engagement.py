@@ -22,7 +22,7 @@ import itertools
 import flask
 
 from mora import lora
-from . import common, employee, facet, keys, mapping, org
+from . import common, employee, facet, keys, mapping, org, itsystem, address
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      update_payload)
@@ -30,6 +30,11 @@ from .. import util
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
                             url_prefix='/service')
+
+RELATION_TYPE_MODULES = {
+    'it': itsystem.ITSystems,
+    'address': address.Adresses,
+}
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
@@ -59,9 +64,11 @@ def list_details(type, id):
 
     if type == 'e':
         search = dict(tilknyttedebrugere=id)
+        scope = c.bruger
     else:
         assert type == 'ou', 'bad type ' + type
         search = dict(tilknyttedeenheder=id)
+        scope = c.organisationenhed
 
     search.update(virkningfra='-infinity', virkningtil='infinity')
 
@@ -72,20 +79,10 @@ def list_details(type, id):
         for functype, funcname in keys.FUNCTION_KEYS.items()
     }
 
-    if type == 'e':
-        def get_systems(reg):
-            if not reg:
-                return
+    reg = scope.get(id)
 
-            yield from reg['relationer'].get('tilknyttedeitsystemer', [])
-
-        regs = c.bruger.get(
-            id,
-            virkningfra='-infinity',
-            virkningtil='infinity',
-        )
-
-        r['it'] = any(rel.get('uuid') for rel in get_systems(regs))
+    for relname, cls in RELATION_TYPE_MODULES.items():
+        r[relname] = bool(cls.has(type, reg))
 
     return flask.jsonify(r)
 
@@ -201,7 +198,32 @@ def get_engagement(type, id, function):
               }
           ]
 
+    **Example address response**:
+
+    .. sourcecode:: json
+
+          [
+              {
+                  "address_type": {
+                      "example": "<UUID>",
+                      "name": "Lokation",
+                      "scope": "DAR",
+                      "user_key": "AdresseLokation",
+                      "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
+                  },
+                  "from": "2018-01-01T00:00:00+01:00",
+                  "href": "https://www.openstreetmap.org/"
+                  "?mlon=12.57924839&mlat=55.68113676&zoom=16",
+                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
+                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                  "to": null
+              }
+          ]
+
     '''
+
+    if function in RELATION_TYPE_MODULES:
+        return RELATION_TYPE_MODULES[function].get(type, id)
 
     c = common.get_connector()
 

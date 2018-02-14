@@ -16,10 +16,22 @@ import re
 import sys
 import uuid
 
-import openpyxl
+import pyexcel
 
 from .. import util
 from .. import lora
+
+from . import addr
+
+
+# TODO: don't hardcode these, look into the imported data instead?
+ADDRESS_COLUMN_SCOPES = {
+    'email': 'EMAIL',
+    'telefon': 'PHONE',
+    'www': 'WWW',
+    'ean': 'EAN',
+    'adresse': 'DAR',
+}
 
 
 def _make_relation(obj, k):
@@ -34,8 +46,8 @@ def _make_relation(obj, k):
     elif util.is_uuid(val):
         key = 'uuid'
     else:
-        raise ValueError('{} is neither a URN nor a UUID!'.format(
-            val,
+        raise ValueError('{}: {} is neither a URN nor a UUID!'.format(
+            k, val,
         ))
 
     return [
@@ -45,6 +57,40 @@ def _make_relation(obj, k):
             'virkning': _make_effect(obj['fra'], obj['til']),
         }
     ]
+
+
+def _make_addresses_relation(obj):
+    virkning = _make_effect(obj['fra'], obj['til'])
+
+    r = []
+
+    assert 'adresser' not in obj
+
+    for column, scope in sorted(ADDRESS_COLUMN_SCOPES.items()):
+        if column not in obj:
+            continue
+
+        v = obj[column]
+        t = obj.get(column + '_type')
+
+        if util.is_uuid(v):
+            r.append({
+                'uuid': v,
+                'objekttype': t or 'DAR',
+                'virkning': virkning,
+            })
+
+        elif v:
+            if not isinstance(v, str) or not v.startswith('urn:'):
+                v = addr.URN_FORMATS[scope].format(v)
+
+            r.append({
+                'urn': v,
+                'objekttype': t or 'Adresse',
+                'virkning': virkning,
+            })
+
+    return r
 
 
 @functools.lru_cache(10000)
@@ -126,13 +172,8 @@ def read_paths(paths):
             with open(p) as fp:
                 yield json.load(fp)
 
-        elif fmt == '.xlsx':
-            yield from openpyxl.load_workbook(
-                p, read_only=True, data_only=True,
-            )
-
         else:
-            raise ValueError('bad format ' + fmt)
+            yield from pyexcel.get_book(file_name=p, name_columns_by_row=0)
 
 
 def load_data(sheets, exact=False):
@@ -147,7 +188,6 @@ def load_data(sheets, exact=False):
         'tilknyttedepersoner': 'urn:dk:cpr:person:{:010d}',
         'myndighed': 'urn:dk:kommune:{:d}',
         'virksomhed': 'urn:dk:cvr:virksomhed:{:d}',
-        'telefon': 'urn:magenta.dk:telefon:+45{:08d}',
     }
 
     allow_invalid_types = {
@@ -163,19 +203,19 @@ def load_data(sheets, exact=False):
             dest.update(sheet)
             continue
 
-        out = dest[sheet.title] = []
+        print(sheet.name, file=sys.stderr)
 
-        print(sheet.title, file=sys.stderr)
+        out = dest[sheet.name] = []
 
-        headers = [c.value.lower() for c in sheet[1]]
+        sheet.name_columns_by_row(0)
+
+        headers = [c.lower() for c in sheet.colnames]
         headers = [remap.get(v, v) for v in headers]
 
         assert len(set(headers)) == len(headers), \
-            'duplicate headers in ' + sheet.title
+            'duplicate headers in ' + sheet.name
 
-        for i, row in enumerate(sheet.iter_rows(min_row=2), 2):
-            row = [cell.value for cell in row]
-
+        for i, row in enumerate(sheet.rows()):
             if not any(row):
                 continue
 
@@ -213,6 +253,8 @@ def load_data(sheets, exact=False):
         for k, v in obj.items():
             if isinstance(v, datetime.datetime):
                 obj[k] = v.isoformat()
+            elif v == '':
+                obj[k] = None
 
     # some items in the spreadsheet refer to other rows by their bvn
     uuid_mapping = {
@@ -235,10 +277,13 @@ def load_data(sheets, exact=False):
         if exact or util.is_uuid(address):
             # just use it
             obj['adresse'] = address
+            obj['adresse_type'] = obj.get('adresse_type')
+
         elif address and postalcode and postaldistrict:
 
             obj['adresse'] = _wash_address(address, postalcode, postaldistrict)
-            obj['adresse_type'] = 'DAR'
+            obj['adresse_type'] = obj.get('adresse_type')
+
         else:
             obj['adresse'] = None
             obj['adresse_type'] = None
@@ -451,22 +496,6 @@ def convert_organisation(obj):
 def convert_organisationenhed(obj):
     virkning = _make_effect(obj['fra'], obj['til'])
 
-    addresses = []
-
-    if obj['telefon']:
-        addresses.append({
-            'urn': obj['telefon'],
-            'objekttype': 'Adresse',
-            'virkning': virkning,
-        })
-
-    if obj['adresse']:
-        addresses.append({
-            'uuid': obj['adresse'],
-            'objekttype': obj['adresse_type'],
-            'virkning': virkning,
-        })
-
     r = {
         'note': obj['note'],
         'attributter': {
@@ -487,7 +516,7 @@ def convert_organisationenhed(obj):
             ],
         },
         'relationer': {
-            'adresser': addresses,
+            'adresser': _make_addresses_relation(obj),
             'tilhoerer': [
                 {
                     'uuid': obj['tilhoerer'],
@@ -621,10 +650,27 @@ def convert_facet(obj):
 def convert_bruger(obj):
     virkning = _make_effect(obj['fra'], obj['til'])
 
-    obj['adresser'] = 'urn:mailto:' + obj['email'] if obj['email'] else None
-
     if obj['brugertyper']:
         obj['brugertyper'] = 'urn:' + obj['brugertyper']
+
+    rels = {
+        k: _make_relation(obj, k)
+        for k in (
+            "tilhoerer",
+            "adresser",
+            "brugertyper",
+            "opgaver",
+            "tilknyttedeenheder",
+            "tilknyttedefunktioner",
+            "tilknyttedeinteressefaellesskaber",
+            "tilknyttedeorganisationer",
+            "tilknyttedepersoner",
+            "tilknyttedeitsystemer",
+        )
+        if k in obj
+    }
+
+    rels['adresser'] = _make_addresses_relation(obj)
 
     return 'PUT', '/organisation/bruger/' + obj['objektid'], {
         'note': obj['note'],
@@ -642,22 +688,7 @@ def convert_bruger(obj):
             ],
         },
 
-        'relationer': {
-            k: _make_relation(obj, k)
-            for k in (
-                "tilhoerer",
-                "adresser",
-                "brugertyper",
-                "opgaver",
-                "tilknyttedeenheder",
-                "tilknyttedefunktioner",
-                "tilknyttedeinteressefaellesskaber",
-                "tilknyttedeorganisationer",
-                "tilknyttedepersoner",
-                "tilknyttedeitsystemer",
-            )
-            if k in obj
-        },
+        'relationer': rels,
 
         "tilstande": {
             "brugergyldighed": [
