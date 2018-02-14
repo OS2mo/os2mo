@@ -740,10 +740,10 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-from': '14-02-2016',
                         'valid-to': 'infinity',
                         'visibility': {
-                            'name': 'Må vises internt',
-                            'user-key': 'internal',
-                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
-                        }
+                            'name': None,
+                            'user-key': '9a7c9b28-654c-44b4-a757-87bf90e6a451',
+                            'uuid': None,
+                        },
                     },
                 ],
             )
@@ -761,11 +761,29 @@ class IntegrationTests(util.LoRATestCase):
             )
 
         with self.subTest('get user locations'):
-            # FIXME: add some user locations to the import
             self.assertRequestResponse(
                 '/mo/e/9917e91c-e3ee-41bf-9a60-b024c23b5fe3'
                 '/role-types/location/',
-                [],
+                [
+                    {
+                        'location': {
+                            'name': 'db6fd4bd-6683-4dae-81af-5c47189d6a20',
+                            'user-key': '01015520__43__3____',
+                            'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                            'valid-from': '2000-02-05T20:30:37+01:00',
+                            'valid-to': 'infinity',
+                            'vejnavn': 'Pilestræde 43, 3., 1112 København K',
+                        },
+                        'name': 'db6fd4bd-6683-4dae-81af-5c47189d6a20',
+                        'org-unit': None,
+                        'primaer': False,
+                        'role-type': 'location',
+                        'user-key': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                        'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                        'valid-from': '14-02-2016',
+                        'valid-to': 'infinity',
+                    },
+                ],
             )
 
         with self.subTest('write user contact channel'):
@@ -781,9 +799,9 @@ class IntegrationTests(util.LoRATestCase):
                     },
                     "contact-info": "test@example.com",
                     "properties": {
-                        "name": "Må vises internt",
-                        "user-key": "internal",
-                        "uuid": "internal"
+                        'name': None,
+                        'user-key': '9a7c9b28-654c-44b4-a757-87bf90e6a451',
+                        'uuid': None,
                     },
                     "valid-from": "01-01-2018",
                     "person": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
@@ -814,9 +832,9 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-from': '14-02-2016',
                         'valid-to': 'infinity',
                         'visibility': {
-                            'name': 'Må vises internt',
-                            'user-key': 'internal',
-                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
+                            'name': None,
+                            'user-key': '9a7c9b28-654c-44b4-a757-87bf90e6a451',
+                            'uuid': None,
                         }
                     },
                 ],
@@ -905,9 +923,9 @@ class IntegrationTests(util.LoRATestCase):
                         'valid-from': '14-02-2016',
                         'valid-to': 'infinity',
                         'visibility': {
-                            'name': 'Må vises internt',
-                            'user-key': 'internal',
-                            'uuid': 'ab68b2c2-8ffb-4292-a938-60e3afe0cad0',
+                            'name': None,
+                            'user-key': '9a7c9b28-654c-44b4-a757-87bf90e6a451',
+                            'uuid': None,
                         }
                     },
                 ],
@@ -1411,20 +1429,35 @@ class IntegrationTests(util.LoRATestCase):
         with self.subTest('details list'):
             self.assertRequestResponse(
                 '/service/e/34705881-8af9-4254-ac3f-31738eae0be8/details/',
-                {'association': False, 'engagement': True, 'it': False,
-                 'leave': False, 'role': False},
+                {
+                    'association': False,
+                    'engagement': True,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                },
             )
 
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745/details/',
-                {'association': True, 'engagement': True, 'it': False,
-                 'leave': True, 'role': True},
+                {
+                    'association': True,
+                    'engagement': True,
+                    'it': False,
+                    'leave': True,
+                    'role': True,
+                },
             )
 
             self.assertRequestResponse(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/details/',
-                {'association': True, 'engagement': True, 'leave': False,
-                 'role': True},
+                {
+                    'association': True,
+                    'engagement': True,
+                    'it': False,
+                    'leave': False,
+                    'role': True,
+                },
             )
 
         with self.subTest('employee engagement'):
