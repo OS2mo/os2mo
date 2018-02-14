@@ -1436,6 +1436,7 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'role': False,
+                    'manager': False,
                 },
             )
 
@@ -1448,6 +1449,7 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': True,
                     'role': True,
+                    'manager': False,
                 },
             )
 
@@ -1460,6 +1462,7 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'role': True,
+                    'manager': False,
                 },
             )
 
@@ -1667,6 +1670,8 @@ class IntegrationTests(util.LoRATestCase):
                 ],
             )
 
+        with self.subTest('role'):
+
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
                 '/details/role',
@@ -1726,6 +1731,8 @@ class IntegrationTests(util.LoRATestCase):
                     },
                 ],
             )
+
+        with self.subTest('leave'):
 
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'

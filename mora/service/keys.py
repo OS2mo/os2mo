@@ -48,6 +48,12 @@ ROLE_TYPE = 'role_type'
 LEAVE_KEY = 'Orlov'
 LEAVE_TYPE = 'leave_type'
 
+# Manager
+MANAGER_KEY = 'Leder'
+MANAGER_TYPE = 'manager_type'
+MANAGER_LEVEL = 'manager_level'
+RESPONSIBILITY = 'responsibility'
+
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
 
@@ -56,4 +62,5 @@ FUNCTION_KEYS = {
     'association': ASSOCIATION_KEY,
     'role': ROLE_KEY,
     'leave': LEAVE_KEY,
+    'manager': MANAGER_KEY,
 }

@@ -18,15 +18,13 @@
 
 <script>
 import Facet from '../api/Facet'
+import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
 
 export default {
   name: 'ItSystemPicker',
   props: {
-    value: Object,
-    orgUuid: {
-      type: String,
-      required: true
-    }
+    value: Object
   },
   data () {
     return {
@@ -35,15 +33,19 @@ export default {
       itSystems: []
     }
   },
-  watch: {
-    orgUuid () {
+  mounted () {
+    EventBus.$on('organisation-changed', () => {
       this.getItSystems()
-    }
+    })
+  },
+  created () {
+    this.getItSystems()
   },
   methods: {
     getItSystems () {
       var vm = this
-      Facet.itSystems(this.orgUuid)
+      let org = Organisation.getSelectedOrganisation()
+      Facet.itSystems(org.uuid)
       .then(response => {
         vm.itSystems = response
       })

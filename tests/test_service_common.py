@@ -11,7 +11,8 @@ from unittest import TestCase
 from mora import util
 from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
                                  update_payload, inactivate_old_interval,
-                                 ensure_bounds, _merge_obj_effects)
+                                 ensure_bounds, _merge_obj_effects,
+                                 set_object_value)
 
 
 class TestClass(TestCase):
@@ -1563,6 +1564,49 @@ class TestClass(TestCase):
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_object_value_existing_path(self):
+        # Arrange
+        obj = {'test1': {'test2': [{'key1': 'val1'}]}}
+        path = ('test1', 'test2')
+
+        val = [{'key2': 'val2'}]
+
+        expected_result = {
+            'test1': {
+                'test2': [
+                    {'key1': 'val1'},
+                    {'key2': 'val2'},
+                ]
+            }
+        }
+
+        # Act
+        actual_result = set_object_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_object_value_new_path(self):
+        # Arrange
+        obj = {}
+        path = ('test1', 'test2')
+
+        val = [{'key2': 'val2'}]
+
+        expected_result = {
+            'test1': {
+                'test2': [
+                    {'key2': 'val2'},
+                ]
+            }
+        }
+
+        # Act
+        actual_result = set_object_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)

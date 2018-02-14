@@ -126,6 +126,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
         'tilknytning': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
         'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
         'orlov': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
+        'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
     }
 
     users = {
