@@ -314,7 +314,7 @@ def load_cli(app):
         lora.put(path, json.load(input))
 
     @app.cli.command('import')
-    @click.argument('spreadsheets', nargs=-1, type=click.Path(exists=True))
+    @click.argument('spreadsheets', nargs=-1, type=click.Path())
     @click.option('--destination-url', '-d',
                   help='LoRA url')
     @click.option('--verbose', '-v', count=True,
@@ -428,7 +428,7 @@ def load_cli(app):
             )
 
     @app.cli.command()
-    @click.argument('spreadsheets', nargs=-1, type=click.Path(exists=True))
+    @click.argument('spreadsheets', nargs=-1, type=click.Path())
     @click.option('--output', '-o', type=click.File('w'), default='-')
     @click.option('--compact', '-c', is_flag=True)
     @click.option('--exact', '-e', is_flag=True,

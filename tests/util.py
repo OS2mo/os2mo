@@ -34,6 +34,7 @@ from mora.service import common
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
+IMPORTING_DIR = os.path.join(FIXTURE_DIR, 'importing')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
 
@@ -89,10 +90,9 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
 
 
 def import_fixture(fixture_name):
-    print(fixture_name, os.path.join(FIXTURE_DIR, fixture_name))
-    for method, path, obj in importing.convert([
-        os.path.join(FIXTURE_DIR, fixture_name),
-    ]):
+    path = os.path.join(IMPORTING_DIR, fixture_name)
+    print(fixture_name, path)
+    for method, path, obj in importing.convert([path]):
         r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
                              json=obj)
         r.raise_for_status()
