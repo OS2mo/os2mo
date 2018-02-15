@@ -116,12 +116,14 @@ class Adresses(common.AbstractRelationDetail):
                     keys.ADDRESS_RAW: raw_value,
                     keys.ADDRESS_TYPE: addrclass,
 
-                    keys.FROM: util.to_iso_time(
-                        addrrel['virkning']['from'],
-                    ),
-                    keys.TO: util.to_iso_time(
-                        addrrel['virkning']['to'],
-                    ),
+                    keys.VALIDITY: {
+                        keys.FROM: util.to_iso_time(
+                            common.get_effect_from(addrrel),
+                        ),
+                        keys.TO: util.to_iso_time(
+                            common.get_effect_to(addrrel),
+                        ),
+                    }
                 }
 
         return flask.jsonify(

@@ -189,10 +189,10 @@ class ITSystems(common.AbstractRelationDetail):
 
                     keys.VALIDITY: {
                         keys.FROM: util.to_iso_time(
-                            systemrel['virkning']['from'],
+                            common.get_effect_from(systemrel),
                         ),
                         keys.TO: util.to_iso_time(
-                            systemrel['virkning']['to'],
+                            common.get_effect_to(systemrel),
                         ),
                     },
                 }
@@ -311,8 +311,8 @@ def edit_system(employee_uuid, req):
         new_rel = [
             rel
             for rel in old_rel
-            if not (util.parsedatetime(rel['virkning']['from']) == old_from and
-                    util.parsedatetime(rel['virkning']['to']) == old_to and
+            if not (common.get_effect_from(rel) == old_from and
+                    common.get_effect_to(rel) == old_to and
                     rel.get('uuid') == old_id)
         ]
 
