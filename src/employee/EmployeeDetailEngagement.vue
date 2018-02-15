@@ -9,6 +9,7 @@
           <th scope="col">Engagementstype</th>
           <th scope="col">Startdato</th>
           <th scope="col">Slutdato</th>
+          <th></th>
         </tr>
       </thead>
 
@@ -21,6 +22,9 @@
           </td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+          <td>
+            <mo-edit :uuid="uuid" :content="d"/>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -33,12 +37,15 @@
   import '../filters/GetProperty'
   import Loading from '../components/Loading'
   import { EventBus } from '../EventBus'
+  import MoEdit from './MoEdit/MoEdit'
 
   export default {
     components: {
-      Loading
+      Loading,
+      MoEdit
     },
     props: {
+      value: Object,
       uuid: {
         type: String,
         required: true
