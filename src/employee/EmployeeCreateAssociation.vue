@@ -48,7 +48,8 @@ export default {
     }
   },
   watch: {
-    association (newVal, oldVal) {
+    association (newVal) {
+      newVal.type = 'association'
       this.$emit('input', newVal)
     },
 

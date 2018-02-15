@@ -21,6 +21,7 @@ import threading
 import time
 import unittest
 
+import copy
 import flask_testing
 import requests
 import requests_mock
@@ -28,6 +29,7 @@ import werkzeug.serving
 
 from mora import lora, app, settings
 from mora.converters import importing
+from mora.service import common
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -356,6 +358,33 @@ class TestCaseMixin(object):
             kwargs['headers'] = {'Content-Type': 'application/json'}
 
         return self.client.open(path, **kwargs)
+
+    def assertRegistrationsEqual(self, expected, actual):
+        def sort_inner_lists(obj):
+            """
+            Sort all inner lists in LoRa objects ascending by the 'from' date
+            of their elements -- e.g. The list located at
+            obj['relationer']['enhedstype']
+
+            This is purely to help comparison tests, as we don't care about the
+            list ordering
+            """
+            obj = copy.deepcopy(obj)
+            for outer_value in filter(lambda x: type(x) is dict, obj.values()):
+                for inner_key in outer_value:
+                    outer_value[inner_key] = sorted(outer_value[inner_key],
+                                                    key=common.get_effect_from)
+            return obj
+
+        # drop lora-generated timestamps & users
+        del actual['fratidspunkt'], actual[
+            'tiltidspunkt'], actual[
+            'brugerref']
+
+        # Sort all inner lists and compare
+        return self.assertEqual(
+            sort_inner_lists(expected),
+            sort_inner_lists(actual))
 
 
 class LoRATestCaseMixin(TestCaseMixin):

@@ -12,6 +12,19 @@
       </thead>
 
       <tbody>
+        <tr>
+          <th scope="col">Fortid</th>
+        </tr>
+        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
+          <td>{{d.name}}</td>
+          <td>{{d.user_name}}</td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+        </tr>
+
+        <tr>
+          <th scope="col">Nutid</th>
+        </tr>
         <tr v-for="d in details" v-bind:key="d.uuid">
           <td>{{d.name}}</td>
           <td>{{d.user_name}}</td>
@@ -21,7 +34,17 @@
             <mo-edit :uuid="uuid" :content="d" type="it"/>
           </td>
         </tr>
-      </tbody>
+
+        <tr>
+          <th scope="col">Fremtid</th>
+        </tr>
+        <tr v-for="d in detailsFuture" v-bind:key="d.uuid">
+          <td>{{d.name}}</td>
+          <td>{{d.user_name}}</td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+        </tr>
+        </tbody>
     </table>
   </div>
 </template>
@@ -43,7 +66,9 @@
     },
     data () {
       return {
-        details: []
+        details: [],
+        detailsPast: [],
+        detailsFuture: []
       }
     },
     created () {
@@ -56,6 +81,14 @@
         .then(response => {
           vm.details = response
         })
+        Employee.getItDetails(this.uuid, 'past')
+        .then(response => {
+          vm.detailsPast = response
+        })
+        Employee.getItDetails(this.uuid, 'future')
+        .then(response => {
+          vm.detailsFuture = response
+        })
       }
     }
   }
@@ -63,5 +96,9 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
+th{
+  background-color: #ffffff;
+}
 
 </style>

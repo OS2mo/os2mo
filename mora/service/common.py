@@ -379,6 +379,62 @@ def create_organisationsfunktion_payload(
     return org_funk
 
 
+def create_organisationsenhed_payload(
+    enhedsnavn: str,
+    valid_from: str,
+    valid_to: str,
+    brugervendtnoegle: str,
+    tilhoerer: str,
+    enhedstype: str,
+    overordnet: str,
+    adresser: List[dict] = None,
+) -> dict:
+
+    virkning = _create_virkning(valid_from, valid_to)
+
+    org_unit = {
+        'note': 'Oprettet i MO',
+        'attributter': {
+            'organisationenhedegenskaber': [
+                {
+                    'enhedsnavn': enhedsnavn,
+                    'brugervendtnoegle': brugervendtnoegle
+                },
+            ],
+        },
+        'tilstande': {
+            'organisationenhedgyldighed': [
+                {
+                    'gyldighed': 'Aktiv',
+                },
+            ],
+        },
+        'relationer': {
+            'tilhoerer': [
+                {
+                    'uuid': tilhoerer
+                }
+            ],
+            'enhedstype': [
+                {
+                    'uuid': enhedstype
+                }
+            ],
+            'overordnet': [
+                {
+                    'uuid': overordnet
+                }
+            ],
+        }
+    }
+    if adresser:
+        org_unit['relationer']['adresser'] = adresser
+
+    org_unit = _set_virkning(org_unit, virkning)
+
+    return org_unit
+
+
 def get_valid_from(obj, fallback=None):
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)

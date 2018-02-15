@@ -56,6 +56,9 @@ RESPONSIBILITY = 'responsibility'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
+NAME = 'name'
+PARENT = 'parent'
+ADDRESSES = 'addresses'
 
 FUNCTION_KEYS = {
     'engagement': ENGAGEMENT_KEY,

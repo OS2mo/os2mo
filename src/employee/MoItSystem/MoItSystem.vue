@@ -30,6 +30,7 @@ export default {
   },
   watch: {
     itSystem (newVal) {
+      newVal.type = 'it'
       this.$emit('input', newVal)
     },
 

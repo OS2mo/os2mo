@@ -17,14 +17,16 @@ organisational units.
 
 import enum
 import operator
+import uuid
 
 import flask
 import werkzeug
 
-from . import common, keys
-from .. import util
 from . import common
 from . import keys
+from . import mapping
+from .. import lora
+from .. import util
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
@@ -456,3 +458,236 @@ def list_orgunits(orgid):
             **kwargs,
         )
     ])
+
+
+@blueprint.route('/ou/create', methods=['POST'])
+def create_org_unit():
+    """Creates new organisational unit
+
+    .. :quickref: Unit; Create
+
+    :statuscode 200: Creation succeeded.
+
+    **Example Request**:
+
+    Request payload contains a list of creation objects, each differentiated
+    by the attribute 'type'. Each of these object types are detailed below:
+
+    :<json string name: The name of the org unit
+    :<json string parent: The parent org unit
+    :<json string org_unit_type: The type of org unit
+    :<json list addresses: A list of address objects.
+    :<json object validity: The validity of the created object.
+
+    Validity objects are defined as such:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "name": "Name",
+        "parent": {
+          "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+        },
+        "org_unit_type": {
+          "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+        },
+        "valid_from": "2016-01-01T00:00:00+00:00",
+        "valid_to": "2018-01-01T00:00:00+00:00"
+      }
+
+    """
+
+    c = lora.Connector()
+
+    req = flask.request.get_json()
+
+    name = req.get(keys.NAME)
+    parent_uuid = req.get(keys.PARENT).get('uuid')
+    organisationenhed_get = c.organisationenhed.get(parent_uuid)
+    org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
+    org_unit_type_uuid = req.get(keys.ORG_UNIT_TYPE).get('uuid')
+    # addresses = req.get(keys.ADDRESSES)
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
+
+    # TODO
+    bvn = "{} {}".format(name, uuid.uuid4())
+
+    # TODO: Process address objects
+
+    org_unit = common.create_organisationsenhed_payload(
+        valid_from=valid_from,
+        valid_to=valid_to,
+        enhedsnavn=name,
+        brugervendtnoegle=bvn,
+        tilhoerer=org_uuid,
+        enhedstype=org_unit_type_uuid,
+        overordnet=parent_uuid,
+        # adresser=addresses,
+    )
+
+    unitid = c.organisationenhed.create(org_unit)
+
+    return flask.jsonify(unitid)
+
+
+@blueprint.route('/ou/<uuid:unitid>/edit', methods=['POST'])
+def edit_org_unit(unitid):
+    """Edits an organisational unit
+
+    .. :quickref: Unit; Edit
+
+    :statuscode 200: The edit succeeded.
+
+    **Example Request**:
+
+    :param unitid: The UUID of the organisational unit.
+
+    :<json object original: An **optional** object containing the original
+        state of the org unit to be overwritten. If supplied, the change will
+        modify the existing registration on the org unit object.
+        Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        org unit. Detailed below.
+
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string name: The name of the org unit
+    :<jsonarr string parent: The parent org unit
+    :<jsonarr string org_unit_type: The type of org unit
+    :<jsonarr object validity: The validities of the changes.
+
+    Validity objects are defined as such:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "original": {
+          "name": "Pandekagehuset",
+          "parent": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "org_unit_type": {
+            "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+          },
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": null
+          }
+        },
+        "data": {
+          "name": "Vaffelhuset",
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+          }
+        }
+      }
+    """
+
+    req = flask.request.get_json()
+
+    # Get the current org-unit which the user wants to change
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.organisationenhed.get(uuid=unitid)
+
+    data = req.get('data')
+    new_from = common.get_valid_from(data)
+    new_to = common.get_valid_to(data)
+
+    payload = dict()
+    payload['note'] = 'Rediger organisationsenhed'
+
+    original_data = req.get('original')
+    if original_data:
+        # We are performing an update
+        old_from = common.get_valid_from(original_data)
+        old_to = common.get_valid_to(original_data)
+        payload = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload,
+            ('tilstande', 'organisationenhedgyldighed')
+        )
+
+    update_fields = list()
+
+    # Always update gyldighed
+    update_fields.append((
+        mapping.ORG_UNIT_GYLDIGHED_FIELD,
+        {'gyldighed': "Aktiv"}
+    ))
+
+    if keys.NAME in data.keys():
+        update_fields.append((
+            mapping.ORG_UNIT_EGENSKABER_FIELD,
+            {'enhedsnavn': data[keys.NAME]}
+        ))
+
+    if keys.ORG_UNIT_TYPE in data.keys():
+        update_fields.append((
+            mapping.ORG_UNIT_TYPE_FIELD,
+            {'uuid': data[keys.ORG_UNIT_TYPE]['uuid']}
+        ))
+
+    if keys.PARENT in data.keys():
+        update_fields.append((
+            mapping.PARENT_FIELD,
+            {'uuid': data[keys.PARENT]['uuid']}
+        ))
+
+    payload = common.update_payload(new_from, new_to, update_fields, original,
+                                    payload)
+
+    bounds_fields = list(
+        mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
+    payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
+                                   payload)
+
+    c.organisationenhed.update(payload, unitid)
+
+    return flask.jsonify(unitid)
+
+
+@blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
+def terminate_org_unit(unitid):
+    """Terminates an organisational unit from a specified date.
+
+    .. :quickref: Unit; Terminate
+
+    :statuscode 200: The termination succeeded.
+
+    :param unitid: The UUID of the organisational unit to be terminated.
+
+    :<json string valid_from: The date on which the termination should happen,
+        in ISO 8601.
+
+    **Example Request**:
+
+    .. sourcecode:: json
+
+      {
+        "valid_from": "2016-01-01T00:00:00+00:00"
+      }
+    """
+    date = flask.request.get_json().get('valid_from')
+
+    obj_path = ('tilstande', 'organisationenhedgyldighed')
+    val_inactive = {
+        'gyldighed': 'Inaktiv',
+        'virkning': common._create_virkning(date, 'infinity')
+    }
+
+    payload = common.set_object_value(dict(), obj_path, [val_inactive])
+    payload['note'] = 'Afslut enhed'
+
+    lora.Connector().organisationenhed.update(payload, unitid)
+
+    return flask.jsonify(unitid)
+
+    # TODO: Afkort adresser?
