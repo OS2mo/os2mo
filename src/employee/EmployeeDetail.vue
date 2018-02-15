@@ -45,7 +45,7 @@
       getEmployee: function (uuid) {
         var vm = this
         vm.isLoading = true
-        Employee.getEmployee(uuid)
+        Employee.get(uuid)
         .then(response => {
           vm.isLoading = false
           vm.employee = response

@@ -75,7 +75,7 @@
           data: this.edit
         }]
 
-        Employee.editEmployee(this.uuid, data)
+        Employee.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
           vm.$refs['moEdit' + vm._uid].hide()

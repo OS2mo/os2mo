@@ -40,7 +40,7 @@
         let terminate = {
           valid_from: this.validFrom
         }
-        Employee.endEmployee(this.$route.params.uuid, terminate)
+        Employee.terminate(this.$route.params.uuid, terminate)
         .then(response => {
           vm.$refs.employeeEnd.hide()
         })

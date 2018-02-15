@@ -82,7 +82,7 @@ export default {
         create.push(this.itSystem)
       }
 
-      Employee.createEmployee(this.employee.uuid, create)
+      Employee.create(this.employee.uuid, create)
       .then(response => {
         vm.isLoading = false
         vm.$refs.employeeCreate.hide()

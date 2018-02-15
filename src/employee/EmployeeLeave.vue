@@ -62,7 +62,7 @@ export default {
 
       create.push(this.leave)
 
-      Employee.createEmployee(this.$route.params.uuid, create)
+      Employee.create(this.$route.params.uuid, create)
       .then(response => {
         vm.$refs.employeeLeave.hide()
         console.log(response)
