@@ -40,6 +40,7 @@ export default {
   },
   created () {
     this.getRoleTypes()
+    this.selected = this.value
   },
   methods: {
     getRoleTypes () {

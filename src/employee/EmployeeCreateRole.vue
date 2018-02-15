@@ -44,7 +44,8 @@ export default {
     }
   },
   watch: {
-    role (newVal, oldVal) {
+    role (newVal) {
+      newVal.type = 'role'
       this.$emit('input', newVal)
     },
 
@@ -52,7 +53,8 @@ export default {
       this.role.validity = newVal
     }
   },
-  methods: {
+  created () {
+    this.role = this.value
   }
 }
 </script>

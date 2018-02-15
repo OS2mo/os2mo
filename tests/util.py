@@ -21,6 +21,7 @@ import threading
 import time
 import unittest
 
+import copy
 import flask_testing
 import requests
 import requests_mock
@@ -28,10 +29,12 @@ import werkzeug.serving
 
 from mora import lora, app, settings
 from mora.converters import importing
+from mora.service import common
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
+IMPORTING_DIR = os.path.join(FIXTURE_DIR, 'importing')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
 
@@ -87,10 +90,9 @@ def load_fixture(path, fixture_name, uuid, *, verbose=False):
 
 
 def import_fixture(fixture_name):
-    print(fixture_name, os.path.join(FIXTURE_DIR, fixture_name))
-    for method, path, obj in importing.convert([
-        os.path.join(FIXTURE_DIR, fixture_name),
-    ]):
+    path = os.path.join(IMPORTING_DIR, fixture_name)
+    print(fixture_name, path)
+    for method, path, obj in importing.convert([path]):
         r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
                              json=obj)
         r.raise_for_status()
@@ -356,6 +358,33 @@ class TestCaseMixin(object):
             kwargs['headers'] = {'Content-Type': 'application/json'}
 
         return self.client.open(path, **kwargs)
+
+    def assertRegistrationsEqual(self, expected, actual):
+        def sort_inner_lists(obj):
+            """
+            Sort all inner lists in LoRa objects ascending by the 'from' date
+            of their elements -- e.g. The list located at
+            obj['relationer']['enhedstype']
+
+            This is purely to help comparison tests, as we don't care about the
+            list ordering
+            """
+            obj = copy.deepcopy(obj)
+            for outer_value in filter(lambda x: type(x) is dict, obj.values()):
+                for inner_key in outer_value:
+                    outer_value[inner_key] = sorted(outer_value[inner_key],
+                                                    key=common.get_effect_from)
+            return obj
+
+        # drop lora-generated timestamps & users
+        del actual['fratidspunkt'], actual[
+            'tiltidspunkt'], actual[
+            'brugerref']
+
+        # Sort all inner lists and compare
+        return self.assertEqual(
+            sort_inner_lists(expected),
+            sort_inner_lists(actual))
 
 
 class LoRATestCaseMixin(TestCaseMixin):

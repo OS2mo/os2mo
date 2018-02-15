@@ -30,12 +30,16 @@ export default {
   },
   watch: {
     itSystem (newVal) {
+      newVal.type = 'it'
       this.$emit('input', newVal)
     },
 
     validity (newVal) {
       this.itSystem.validity = newVal
     }
+  },
+  created () {
+    this.itSystem.itsystem = this.value
   }
 }
 </script>

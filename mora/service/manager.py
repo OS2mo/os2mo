@@ -109,7 +109,7 @@ def edit_manager(employee_uuid, req):
 
     if keys.ORG_UNIT in data.keys():
         update_fields.append((
-            mapping.ORG_UNIT_FIELD,
+            mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
         ))
 

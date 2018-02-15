@@ -40,15 +40,17 @@ export default {
   },
   data () {
     return {
-      engagement: {
-        type: 'engagement'
-      }
+      engagement: {}
     }
   },
   watch: {
-    engagement (newVal, oldVal) {
+    engagement (newVal) {
+      newVal.type = 'engagement'
       this.$emit('input', newVal)
     }
+  },
+  created () {
+    this.engagement = this.value
   }
 }
 </script>

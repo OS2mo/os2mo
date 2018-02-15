@@ -9,11 +9,44 @@
           <th scope="col">Engagementstype</th>
           <th scope="col">Startdato</th>
           <th scope="col">Slutdato</th>
+          <th></th>
         </tr>
       </thead>
 
       <tbody>
+        <tr>
+          <th scope="col">Fortid</th>
+        </tr>
+        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
+          <td>{{d.job_function | getProperty('name')}}</td>
+          <td>
+              {{d.engagement_type | getProperty('name')}}
+          </td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+        </tr>
+
+        <tr>
+          <th scope="col">Nutid</th>
+        </tr>
         <tr v-for="d in details" v-bind:key="d.uuid">
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
+          <td>{{d.job_function | getProperty('name')}}</td>
+          <td>
+              {{d.engagement_type | getProperty('name')}}
+          </td>
+          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
+          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+          <td>
+            <mo-edit :uuid="uuid" :content="d" type="engagement"/>
+          </td>
+        </tr>
+
+        <tr>
+          <th scope="col">Fremtid</th>
+        </tr>
+        <tr v-for="d in detailsFuture" v-bind:key="d.uuid">
           <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
           <td>{{d.job_function | getProperty('name')}}</td>
           <td>
@@ -33,12 +66,15 @@
   import '../filters/GetProperty'
   import Loading from '../components/Loading'
   import { EventBus } from '../EventBus'
+  import MoEdit from './MoEdit/MoEdit'
 
   export default {
     components: {
-      Loading
+      Loading,
+      MoEdit
     },
     props: {
+      value: Object,
       uuid: {
         type: String,
         required: true
@@ -47,6 +83,8 @@
     data () {
       return {
         details: [],
+        detailsPast: [],
+        detailsFuture: [],
         isLoading: false
       }
     },
@@ -67,7 +105,22 @@
           vm.isLoading = false
           vm.details = response
         })
+        Employee.getEngagementDetails(this.uuid, 'past')
+        .then(response => {
+          vm.detailsPast = response
+        })
+        Employee.getEngagementDetails(this.uuid, 'future')
+        .then(response => {
+          vm.detailsFuture = response
+        })
       }
     }
   }
 </script>
+<style scoped>
+
+th{
+  background-color: #ffffff;
+}
+
+</style>

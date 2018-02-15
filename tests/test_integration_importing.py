@@ -20,7 +20,7 @@ class IntegrationTests(util.LoRATestCase):
 
     @freezegun.freeze_time('2017-06-01')
     def test_with_import(self):
-        util.import_fixture('MAGENTA_01.json')
+        util.import_fixture('MAGENTA_01.csv')
 
         with self.subTest('org unit types'):
             self.assertRequestResponse(
@@ -941,7 +941,7 @@ class IntegrationTests(util.LoRATestCase):
     @freezegun.freeze_time('2018-06-01')
     def test_service_with_ballerup(self):
         with util.mock('dawa-ballerup.json', allow_mox=True):
-            util.import_fixture('BALLERUP.xlsx')
+            util.import_fixture('BALLERUP.csv')
 
         with self.subTest('all facets'):
             self.assertRequestResponse(

@@ -1,0 +1,9 @@
+operation,objektid,note,fra,til,brugervendtnoegle,enhedsnavn,enhedstype,adresse,postnummer,postdistrikt,adresse_type,telefon,telefon_type,tilknyttedeenheder,overordnet,tilhoerer,gyldighed
+opret,746eeba3-30a9-4c0a-8d22-c6f34af1095f,,2016-01-01 00:00:00,,ÅRHUS,Aarhus Kommune,9334fa1f-b1ef-4764-8505-c5b9ca43aaa9,Rådhuset,8000,Aarhus C,9ae62035-10c1-486e-a1b4-cda28e6ce679,,,urn:kmd.dk:administrativenhedsid:325,,59141156-ed0b-457c-9535-884447c5220b,Aktiv
+opret,FF2F8CAE-0CED-467D-B934-D61939D06BC6,,2016-01-01 00:00:00,,AARHUS-ENHED,Aarhus Enhed,9334fa1f-b1ef-4764-8505-c5b9ca43aaa9,Rådhuspladsen,8100,Aarhus C,9ae62035-10c1-486e-a1b4-cda28e6ce679,,,,746eeba3-30a9-4c0a-8d22-c6f34af1095f,59141156-ed0b-457c-9535-884447c5220b,Aktiv
+,01e479c4-66ef-42aa-877e-15f0512f792c,https://datacvr.virk.dk/data/visenhed?enhedstype=virksomhed&id=25052943,1999-11-15 00:00:00+01,,MAGENTA,Magenta ApS,5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f,,,,,,,,,8efbd074-ad2a-4e6a-afec-1d0b1891f566,Aktiv
+,8a32549b-458e-4ff3-814d-9155963c519a,,2014-08-07 00:00:00+02,,MAGENTA-AAR,Aarhuskontoret,333b3660-438b-4a5a-9982-2790ed4626d8,Åbogade 15,8200,Aarhus N,9ae62035-10c1-486e-a1b4-cda28e6ce679,33369696,7c642b1c-535d-4461-b7f5-57951a23a998,,01e479c4-66ef-42aa-877e-15f0512f792c,8efbd074-ad2a-4e6a-afec-1d0b1891f566,Aktiv
+,514e8a8e-2d3f-4789-9237-0492688d5024,,1999-11-15 00:00:00+01,,MAGENTA-HQ,Hovedkvarteret,333b3660-438b-4a5a-9982-2790ed4626d8,"Pilestræde 43, 3.",1112,København K,ef100977-41b5-4354-8541-617ed023c676,33369696,7c642b1c-535d-4461-b7f5-57951a23a998,,01e479c4-66ef-42aa-877e-15f0512f792c,8efbd074-ad2a-4e6a-afec-1d0b1891f566,Aktiv
+,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
