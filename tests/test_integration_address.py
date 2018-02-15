@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import unittest
 import copy
 
 import freezegun
@@ -18,7 +19,7 @@ from tests import util
 class Writing(util.LoRATestCase):
     maxDiff = None
 
-    def test_create_address(self):
+    def test_employee_address(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -399,6 +400,154 @@ class Writing(util.LoRATestCase):
                 ],
                 edited['relationer']['adresser'])
 
+    @unittest.expectedFailure
+    def test_create_unit_address(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+
+        address_rels = [
+            {
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                },
+            },
+            {
+                'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                'urn': 'urn:magenta.dk:ean:5798000420229',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                },
+            },
+            {
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+
+                },
+            },
+        ]
+
+        addresses = [
+            {
+                'address_type': {
+                    'example': '5712345000014',
+                    'name': 'EAN',
+                    'scope': 'EAN',
+                    'user_key': 'EAN',
+                    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                },
+                'href': None,
+                'pretty_value': '5798000420229',
+                'raw_value': 'urn:magenta.dk:ean:5798000420229',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+            },
+            {
+                'address_type': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                },
+                'href': 'tel:+4587150000',
+                'pretty_value': 87150000,
+                'raw_value': 'urn:magenta.dk:telefon:+4587150000',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+            },
+            {
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
+                'href': 'https://www.openstreetmap.org/'
+                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+            },
+        ]
+
+        email_class = {
+            'example': 'test@example.com',
+            'name': 'Emailadresse',
+            'scope': 'EMAIL',
+            'user_key': 'Email',
+            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+        }
+
+        original = c.organisationenhed.get(unitid)
+
+        # PRECONDITIONS
+        self.assertIn(
+            email_class,
+            self.client.get(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/f/address_type/',
+            ).json,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            addresses,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address?validity=future'.format(unitid),
+            [],
+        )
+
+        self.assertEqual(original['relationer']['adresser'], address_rels)
+
+        # NOW CREATE IT
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "address",
+                    "address_type": email_class,
+                    "address": "hallo@exmaple.com",
+                    "validity": {
+                        "from": "2013-01-01T00:00:00+01:00",
+                        "to": None,
+                    },
+                },
+            ])
+
+        original = c.organisationenhed.get(unitid)
+
+        self.assertEqual(original['relationer']['adresser'], address_rels)
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):
