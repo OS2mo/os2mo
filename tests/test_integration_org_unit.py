@@ -248,7 +248,7 @@ class Tests(util.LoRATestCase):
                 "adresser": [
                     {
                         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "v0:1:Kontor",
+                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -258,8 +258,7 @@ class Tests(util.LoRATestCase):
                     },
                     {
                         "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "v0:external:"
-                                      "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -383,7 +382,7 @@ class Tests(util.LoRATestCase):
                 "adresser": [
                     {
                         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "v0:1:Kontor",
+                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -393,8 +392,7 @@ class Tests(util.LoRATestCase):
                     },
                     {
                         "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "v0:external:"
-                                      "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -517,7 +515,7 @@ class Tests(util.LoRATestCase):
                 "adresser": [
                     {
                         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "v0:1:Kontor",
+                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -527,8 +525,7 @@ class Tests(util.LoRATestCase):
                     },
                     {
                         "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "v0:external:"
-                                      "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -651,7 +648,7 @@ class Tests(util.LoRATestCase):
                 "adresser": [
                     {
                         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "v0:1:Kontor",
+                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -661,8 +658,7 @@ class Tests(util.LoRATestCase):
                     },
                     {
                         "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "v0:external:"
-                                      "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -715,7 +711,7 @@ class Tests(util.LoRATestCase):
             'relationer': {
                 'adresser': [
                     {
-                        'objekttype': 'v0:1:Kontor',
+                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'virkning': {
                             'from': '2016-01-01 00:00:00+01',
@@ -726,7 +722,7 @@ class Tests(util.LoRATestCase):
                     },
                     {
                         'objekttype':
-                            'v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                            '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'virkning': {
                             'from': '2016-01-01 00:00:00+01',
