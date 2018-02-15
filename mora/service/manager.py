@@ -8,7 +8,7 @@
 
 """
 Manager
-------
+-------
 
 This section describes how to interact with employee manager roles.
 
