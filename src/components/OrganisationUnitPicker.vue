@@ -42,8 +42,7 @@
       label: {
         default: 'Angiv overenhed',
         type: String
-      },
-      preselected: Object
+      }
     },
     data () {
       return {
@@ -66,7 +65,7 @@
       }
     },
     created () {
-      this.selectedSuperUnit = this.preselected || this.selectedSuperUnit
+      this.selectedSuperUnit = this.value || this.selectedSuperUnit
     },
     methods: {
       getSelectedOrganisation () {
