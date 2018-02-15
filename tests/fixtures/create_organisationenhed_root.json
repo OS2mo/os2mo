@@ -61,6 +61,14 @@
                 }
             },
             {
+                "urn": "dk:magenta.dk:ean:5798000420229",
+                "objekttype": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            },
+            {
                 "urn": "urn:magenta.dk:telefon:+4587150000",
                 "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "virkning": {

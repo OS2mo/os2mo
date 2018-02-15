@@ -57,14 +57,9 @@ class MockTests(util.TestCase):
 
         # for resetting the test
         with open(actual_path, 'w') as fp:
-                json.dump(actual, fp, indent=2, sort_keys=True)
+            json.dump(actual, fp, indent=2, sort_keys=True)
 
         self.assertEqual(expected, actual)
-
-    @util.mock()
-    def test_unknown_suffix(self, m):
-        gen = importing.read_paths('test.hest')
-        self.assertRaises(ValueError, next, gen)
 
     @util.mock('importing-wash.json')
     def test_addr_wash(self, m):
