@@ -10,17 +10,12 @@
         <div class="mr-auto">
         </div>
         <div>
-          <button class="btn btn-outline-primary" v-b-modal.employeeEdit>
-            <icon name="edit" />
-          </button>
           <button class="btn btn-outline-primary">
             <icon name="book" />
           </button>
         </div>
       </div>
       <!-- Modal Component -->
-      <employee-edit :uuid="$route.params.uuid"/>
-
       <employee-detail-tabs :uuid="$route.params.uuid"/>
     </div>
   </div>
@@ -29,13 +24,11 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/CPRNumber'
-  import EmployeeEdit from './EmployeeEdit'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import Loading from '../components/Loading'
 
   export default {
     components: {
-      EmployeeEdit,
       EmployeeDetailTabs,
       Loading
     },

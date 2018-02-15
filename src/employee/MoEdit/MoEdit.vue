@@ -26,9 +26,6 @@
 <script>
   import Organisation from '../../api/Organisation'
   import Employee from '../../api/Employee'
-  import CompareObjects from '../../mixins/CompareObjects'
-  import ConvertValidityDates from '../../mixins/ConvertValidityDates'
-  import '../../filters/GetProperty'
   import EmployeeCreateEngagement from '../EmployeeCreateEngagement'
   import EmployeeCreateAssociation from '../EmployeeCreateAssociation'
   import EmployeeCreateRole from '../EmployeeCreateRole'
@@ -50,10 +47,6 @@
       },
       type: String
     },
-    mixins: [
-      CompareObjects,
-      ConvertValidityDates
-    ],
     data () {
       return {
         edit: {},
