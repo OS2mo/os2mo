@@ -39,6 +39,7 @@ export default {
     })
   },
   created () {
+    this.selected = this.value
     this.getItSystems()
   },
   methods: {

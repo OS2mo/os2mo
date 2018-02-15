@@ -7,6 +7,7 @@
           <th scope="col">Brugernavn</th>
           <th scope="col">Startdato</th>
           <th scope="col">Slutdato</th>
+          <th></th>
         </tr>
       </thead>
 
@@ -16,6 +17,9 @@
           <td>{{d.user_name}}</td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+          <td>
+            <mo-edit :uuid="uuid" :content="d" type="it"/>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -25,8 +29,12 @@
 
 <script>
   import Employee from '../api/Employee'
+  import MoEdit from './MoEdit/MoEdit'
 
   export default {
+    components: {
+      MoEdit
+    },
     props: {
       uuid: {
         type: String,

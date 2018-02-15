@@ -14,6 +14,7 @@
       <employee-create-engagement v-if="showModal && type=='engagement'" v-model="edit" :org="org"/>
       <employee-create-association v-if="showModal && type=='association'" v-model="edit" :org="org"/>
       <employee-create-role v-if="showModal && type=='role'" v-model="edit" :org="org"/>
+      <mo-it-system v-if="showModal && type=='it'" v-model="edit" :org="org"/>
 
       <div class="float-right">
         <button-submit @click.native="editEmployee" :is-loading="isLoading"/>
@@ -29,6 +30,7 @@
   import EmployeeCreateEngagement from '../EmployeeCreateEngagement'
   import EmployeeCreateAssociation from '../EmployeeCreateAssociation'
   import EmployeeCreateRole from '../EmployeeCreateRole'
+  import MoItSystem from '../MoItSystem/MoItSystem'
   import ButtonSubmit from '../../components/ButtonSubmit'
 
   export default {
@@ -36,7 +38,8 @@
       ButtonSubmit,
       EmployeeCreateEngagement,
       EmployeeCreateAssociation,
-      EmployeeCreateRole
+      EmployeeCreateRole,
+      MoItSystem
     },
     props: {
       value: Object,
