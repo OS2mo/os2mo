@@ -57,6 +57,7 @@
         </tr>
       </tbody>
     </table>
+    <mo-create :uuid="uuid" type="engagement" />
   </div>
 </template>
 
@@ -67,11 +68,13 @@
   import Loading from '../components/Loading'
   import { EventBus } from '../EventBus'
   import MoEdit from './MoEdit/MoEdit'
+  import MoCreate from './MoCreate/MoCreate'
 
   export default {
     components: {
       Loading,
-      MoEdit
+      MoEdit,
+      MoCreate
     },
     props: {
       value: Object,

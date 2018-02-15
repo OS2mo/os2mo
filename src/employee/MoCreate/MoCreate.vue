@@ -1,15 +1,15 @@
 <template>
   <div>
-    <button class="btn btn-outline-primary" v-b-modal="'moEdit'+_uid" @click="showModal=true">
-      <icon name="edit" />
+    <button class="btn btn-outline-primary" v-b-modal="'moCreate'+_uid" @click="showModal=true">
+      <icon name="plus" />
     </button>
 
     <b-modal
-      :id="'moEdit'+_uid"
+      :id="'moCreate'+_uid"
       size="lg"
       hide-footer 
-      title="Rediger medarbejder"
-      :ref="'moEdit'+_uid"
+      title="Opret"
+      :ref="'moCreate'+_uid"
     >
       <employee-create-engagement v-if="showModal && type=='engagement'" v-model="edit" :org="org"/>
       <employee-create-association v-if="showModal && type=='association'" v-model="edit" :org="org"/>
@@ -43,18 +43,8 @@
     },
     props: {
       value: Object,
-      uuid: {
-        type: String,
-        required: true
-      },
-      content: {
-        type: Object,
-        required: true
-      },
-      type: {
-        type: String,
-        required: true
-      }
+      uuid: String,
+      type: String
     },
     data () {
       return {
@@ -71,22 +61,22 @@
       this.original = JSON.parse(JSON.stringify(this.content))
     },
     methods: {
-      editEmployee () {
-        let vm = this
-        vm.isLoading = true
-        let data = [{
-          type: 'engagement',
-          uuid: this.edit.uuid,
-          original: this.original,
-          data: this.edit
-        }]
+      // editEmployee () {
+      //   let vm = this
+      //   vm.isLoading = true
+      //   let data = [{
+      //     type: 'engagement',
+      //     uuid: this.edit.uuid,
+      //     original: this.original,
+      //     data: this.edit
+      //   }]
 
-        Employee.edit(this.uuid, data)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs['moEdit' + vm._uid].hide()
-        })
-      }
+      //   Employee.create(this.uuid, data)
+      //   .then(response => {
+      //     vm.isLoading = false
+      //     vm.$refs['moCreate' + vm._uid].hide()
+      //   })
+      // }
     }
   }
 </script>
