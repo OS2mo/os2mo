@@ -36,6 +36,9 @@ export default {
     validity (newVal) {
       this.itSystem.validity = newVal
     }
+  },
+  created () {
+    this.itSystem.itsystem = this.value
   }
 }
 </script>

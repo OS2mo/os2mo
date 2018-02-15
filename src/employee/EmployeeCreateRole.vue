@@ -52,7 +52,8 @@ export default {
       this.role.validity = newVal
     }
   },
-  methods: {
+  created () {
+    this.role = this.value
   }
 }
 </script>

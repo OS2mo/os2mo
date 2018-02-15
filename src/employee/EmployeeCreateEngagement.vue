@@ -49,6 +49,9 @@ export default {
     engagement (newVal, oldVal) {
       this.$emit('input', newVal)
     }
+  },
+  created () {
+    this.engagement = this.value
   }
 }
 </script>

@@ -36,15 +36,15 @@ export default {
     DateTimePicker
   },
   props: {
-    value: Date,
+    value: [Date, String],
     required: Boolean,
     noLabel: Boolean,
     label: {
       default: 'Dato',
       type: String
     },
-    disabledTo: Date,
-    disabledFrom: Date
+    disabledTo: [Date, String],
+    disabledFrom: [Date, String]
   },
   data () {
     return {
@@ -73,7 +73,7 @@ export default {
     }
   },
   created () {
-    this.selected = this.value
+    this.selected = this.value ? new Date(this.value) : null
   }
 }
 </script>

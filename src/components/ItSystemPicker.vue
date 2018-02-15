@@ -39,12 +39,14 @@ export default {
     })
   },
   created () {
+    this.selected = this.value
     this.getItSystems()
   },
   methods: {
     getItSystems () {
       var vm = this
       let org = Organisation.getSelectedOrganisation()
+      if (org.uuid === undefined) return
       Facet.itSystems(org.uuid)
       .then(response => {
         vm.itSystems = response
