@@ -44,7 +44,8 @@ export default {
     }
   },
   watch: {
-    role (newVal, oldVal) {
+    role (newVal) {
+      newVal.type = 'role'
       this.$emit('input', newVal)
     },
 

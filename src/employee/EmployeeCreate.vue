@@ -15,7 +15,7 @@
     <mo-it-system v-model="itSystem" :validity="engagement.validity"/>
 
     <div class="float-right">
-      <button-submit @click.native="createEmployee" :is-loading="isLoading"/>
+      <button-submit @click.native="createEmployee" :is-disabled="!isEmployeeSet" :is-loading="isLoading"/>
     </div>
   </b-modal>
 
@@ -52,6 +52,11 @@ export default {
       isLoading: false
     }
   },
+  computed: {
+    isEmployeeSet () {
+      return Object.keys(this.employee).length > 0
+    }
+  },
   created () {
     this.org = Organisation.getSelectedOrganisation()
   },
@@ -66,22 +71,23 @@ export default {
       let create = []
       this.isLoading = true
 
-      if (Object.keys(this.engagement).length > 0) {
+      if (Object.keys(this.engagement).length === 5) {
         create.push(this.engagement)
       }
 
-      if (Object.keys(this.association).length > 0) {
+      if (Object.keys(this.association).length === 5) {
         create.push(this.association)
       }
 
-      if (Object.keys(this.role).length > 0) {
+      if (Object.keys(this.role).length === 4) {
         create.push(this.role)
       }
 
-      if (Object.keys(this.itSystem).length > 0) {
+      if (Object.keys(this.itSystem).length === 3) {
         create.push(this.itSystem)
       }
 
+      console.log(create)
       Employee.createEmployee(this.employee.uuid, create)
       .then(response => {
         vm.isLoading = false
