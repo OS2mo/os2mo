@@ -147,8 +147,9 @@ class Adresses(common.AbstractRelationDetail):
                 ),
                 key=(
                     lambda v: (
-                        common.get_valid_from(v),
-                        locale.strxfrm(v[keys.ADDRESS_HREF]),
+                        common.get_valid_from(v) or util.negative_infinity,
+                        common.get_valid_to(v) or util.positive_infinity,
+                        str(v[keys.ADDRESS_PRETTY]),
                     )
                 ),
             ),

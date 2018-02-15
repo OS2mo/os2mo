@@ -1772,6 +1772,20 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'href': 'tel:+4511221122',
+                        'pretty_value': 11221122,
+                        'raw_value': 'urn:magenta.dk:telefon:+4511221122',
+                        'to': None,
+                    },
+                    {
+                        'address_type': {
                             'example': '<UUID>',
                             'name': 'Lokation',
                             'scope': 'DAR',
@@ -1799,20 +1813,6 @@ class IntegrationTests(util.LoRATestCase):
                         'raw_value': 'urn:mailto:sanne@example.com',
                         'to': None,
                     },
-                    {
-                        'address_type': {
-                            'example': '+45 3334 9400',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
-                        },
-                        'from': '2018-01-01T00:00:00+01:00',
-                        'href': 'tel:+4511221122',
-                        'pretty_value': 11221122,
-                        'raw_value': 'urn:magenta.dk:telefon:+4511221122',
-                        'to': None,
-                    },
                 ],
             )
 
@@ -1823,17 +1823,16 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Lokation',
-                            'scope': 'DAR',
-                            'user_key': 'AdresseLokation',
-                            'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'from': '2018-01-01T00:00:00+01:00',
-                        'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                        'pretty_value': 'Åbogade 15, 8200 Aarhus N',
-                        'raw_value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'href': 'tel:+4511223344',
+                        'pretty_value': 11223344,
+                        'raw_value': 'urn:magenta.dk:telefon:+4511223344',
                         'to': None,
                     },
                     {
@@ -1852,16 +1851,17 @@ class IntegrationTests(util.LoRATestCase):
                     },
                     {
                         'address_type': {
-                            'example': '+45 3334 9400',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                            'example': '<UUID>',
+                            'name': 'Lokation',
+                            'scope': 'DAR',
+                            'user_key': 'AdresseLokation',
+                            'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
                         },
                         'from': '2018-01-01T00:00:00+01:00',
-                        'href': 'tel:+4511223344',
-                        'pretty_value': 11223344,
-                        'raw_value': 'urn:magenta.dk:telefon:+4511223344',
+                        'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                        'pretty_value': 'Åbogade 15, 8200 Aarhus N',
+                        'raw_value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'to': None,
                     },
                 ],
@@ -1872,6 +1872,20 @@ class IntegrationTests(util.LoRATestCase):
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
                 '/details/address',
                 [
+                    {
+                        'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'from': '2007-01-01T00:00:00+01:00',
+                        'href': 'tel:+4544772000',
+                        'pretty_value': 44772000,
+                        'raw_value': 'urn:magenta.dk:telefon:+4544772000',
+                        'to': None,
+                    },
                     {
                         'address_type': {
                             'example': '<UUID>',
@@ -1899,20 +1913,6 @@ class IntegrationTests(util.LoRATestCase):
                         'href': 'mailto:borger@balk.dk',
                         'pretty_value': 'borger@balk.dk',
                         'raw_value': 'urn:mailto:borger@balk.dk',
-                        'to': None,
-                    },
-                    {
-                        'address_type': {
-                            'example': '+45 3334 9400',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
-                        },
-                        'from': '2007-01-01T00:00:00+01:00',
-                        'href': 'tel:+4544772000',
-                        'pretty_value': 44772000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4544772000',
                         'to': None,
                     },
                 ],
