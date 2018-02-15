@@ -39,7 +39,7 @@
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
           <td>
-            <mo-edit :uuid="uuid" :content="d"/>
+            <mo-edit :uuid="uuid" :content="d" type="engagement"/>
           </td>
         </tr>
 

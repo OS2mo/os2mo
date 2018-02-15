@@ -55,6 +55,9 @@ export default {
     validity (newVal) {
       this.association.validity = newVal
     }
+  },
+  created () {
+    this.association = this.value
   }
 }
 </script>

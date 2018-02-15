@@ -9,6 +9,7 @@
           <th scope="col">Tilknytningstype</th>
           <th scope="col">Startdato</th>
           <th scope="col">Slutdato</th>
+          <th></th>
         </tr>
       </thead>
 
@@ -37,6 +38,9 @@
           </td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+          <td>
+            <mo-edit :uuid="uuid" :content="d" type="association"/>
+          </td>
         </tr>
 
         <tr>
@@ -60,13 +64,16 @@
 <script>
   import Employee from '../api/Employee'
   import '../filters/GetProperty'
+  import MoEdit from './MoEdit/MoEdit'
   import Loading from '../components/Loading'
 
   export default {
     components: {
+      MoEdit,
       Loading
     },
     props: {
+      value: Object,
       uuid: {
         type: String,
         required: true

@@ -11,7 +11,9 @@
       title="Rediger medarbejder"
       :ref="'moEdit'+_uid"
     >
-      <employee-create-engagement v-if="showModal" v-model="edit" :org="org"/>
+      <employee-create-engagement v-if="showModal && type=='engagement'" v-model="edit" :org="org"/>
+      <employee-create-association v-if="showModal && type=='association'" v-model="edit" :org="org"/>
+      <employee-create-role v-if="showModal && type=='role'" v-model="edit" :org="org"/>
 
       <div class="float-right">
         <button-submit @click.native="editEmployee" :is-loading="isLoading"/>
@@ -28,17 +30,25 @@
   import ConvertValidityDates from '../../mixins/ConvertValidityDates'
   import '../../filters/GetProperty'
   import EmployeeCreateEngagement from '../EmployeeCreateEngagement'
+  import EmployeeCreateAssociation from '../EmployeeCreateAssociation'
+  import EmployeeCreateRole from '../EmployeeCreateRole'
   import ButtonSubmit from '../../components/ButtonSubmit'
 
   export default {
     components: {
       ButtonSubmit,
-      EmployeeCreateEngagement
+      EmployeeCreateEngagement,
+      EmployeeCreateAssociation,
+      EmployeeCreateRole
     },
     props: {
       value: Object,
       uuid: String,
-      content: Object
+      content: {
+        type: Object,
+        required: true
+      },
+      type: String
     },
     mixins: [
       CompareObjects,
