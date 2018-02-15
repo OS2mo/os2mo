@@ -127,7 +127,7 @@ class Tests(util.LoRATestCase):
 
         actual_org_unit = c.organisationenhed.get(unitid)
 
-        self.assertEqualLoRa(expected, actual_org_unit)
+        self.assertRegistrationsEqual(expected, actual_org_unit)
 
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
@@ -275,7 +275,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.organisationenhed.get(org_unit_uuid)
 
-        self.assertEqualLoRa(expected, actual)
+        self.assertRegistrationsEqual(expected, actual)
 
     def test_edit_org_unit(self):
         # A generic example of editing an org unit
@@ -410,7 +410,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.organisationenhed.get(org_unit_uuid)
 
-        self.assertEqualLoRa(expected, actual)
+        self.assertRegistrationsEqual(expected, actual)
 
     def test_rename_org_unit(self):
         # A generic example of editing an org unit
@@ -544,7 +544,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.organisationenhed.get(org_unit_uuid)
 
-        self.assertEqualLoRa(expected, actual)
+        self.assertRegistrationsEqual(expected, actual)
 
     def test_move_org_unit(self):
         # A generic example of editing an org unit
@@ -678,7 +678,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.organisationenhed.get(org_unit_uuid)
 
-        self.assertEqualLoRa(expected, actual)
+        self.assertRegistrationsEqual(expected, actual)
 
     def test_terminate_org_unit(self):
         self.load_sample_structures()
@@ -797,4 +797,4 @@ class Tests(util.LoRATestCase):
 
         actual_org_unit = c.organisationenhed.get(unitid)
 
-        self.assertEqualLoRa(expected, actual_org_unit)
+        self.assertRegistrationsEqual(expected, actual_org_unit)

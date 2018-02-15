@@ -359,23 +359,23 @@ class TestCaseMixin(object):
 
         return self.client.open(path, **kwargs)
 
-    def sort_inner_lists(self, obj):
-        """
-        Sort all inner lists in LoRa objects ascending by the 'from' date of
-        their elements -- e.g. The list located at
-        obj['relationer']['enhedstype']
+    def assertRegistrationsEqual(self, expected, actual):
+        def sort_inner_lists(obj):
+            """
+            Sort all inner lists in LoRa objects ascending by the 'from' date
+            of their elements -- e.g. The list located at
+            obj['relationer']['enhedstype']
 
-        This is purely to help comparison tests, as we don't care about the
-        list ordering
-        """
-        obj = copy.deepcopy(obj)
-        for outer_value in filter(lambda x: type(x) is dict, obj.values()):
-            for inner_key in outer_value:
-                outer_value[inner_key] = sorted(outer_value[inner_key],
-                                                key=common.get_effect_from)
-        return obj
+            This is purely to help comparison tests, as we don't care about the
+            list ordering
+            """
+            obj = copy.deepcopy(obj)
+            for outer_value in filter(lambda x: type(x) is dict, obj.values()):
+                for inner_key in outer_value:
+                    outer_value[inner_key] = sorted(outer_value[inner_key],
+                                                    key=common.get_effect_from)
+            return obj
 
-    def assertEqualLoRa(self, expected, actual):
         # drop lora-generated timestamps & users
         del actual['fratidspunkt'], actual[
             'tiltidspunkt'], actual[
@@ -383,8 +383,8 @@ class TestCaseMixin(object):
 
         # Sort all inner lists and compare
         return self.assertEqual(
-            self.sort_inner_lists(expected),
-            self.sort_inner_lists(actual))
+            sort_inner_lists(expected),
+            sort_inner_lists(actual))
 
 
 class LoRATestCaseMixin(TestCaseMixin):
