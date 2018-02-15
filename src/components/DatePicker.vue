@@ -73,7 +73,7 @@ export default {
     }
   },
   created () {
-    this.selected = this.value
+    this.selected = this.value ? new Date(this.value) : null
   }
 }
 </script>
