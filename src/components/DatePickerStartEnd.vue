@@ -52,6 +52,10 @@
     },
     created () {
       this.hidden = this.initiallyHidden
+      if (this.value !== undefined) {
+        this.validFrom = this.value.from
+        this.validTo = this.value.to
+      }
     },
     methods: {
       updateDate () {
