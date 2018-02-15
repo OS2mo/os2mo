@@ -173,7 +173,12 @@ def read_paths(paths):
                 yield json.load(fp)
 
         else:
-            yield from pyexcel.get_book(file_name=p, name_columns_by_row=0)
+            try:
+                book = pyexcel.get_book(file_name=p, name_columns_by_row=0)
+            except TypeError:
+                book = pyexcel.get_book(file_name=p)
+
+            yield from book
 
 
 def load_data(sheets, exact=False):
