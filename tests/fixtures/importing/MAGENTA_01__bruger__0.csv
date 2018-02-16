@@ -1,0 +1,10 @@
+operation,objektid,note,fra,til,brugervendtnoegle,brugernavn,adresse,adresse_type,email,email_type,brugertype,brugertyper,tilhoerer,gyldighed,tilknyttedepersoner
+,cd2dcfad-6d34-4553-9fee-a7023139a9e8,,2016-02-15 00:00:00+01,infinity,user,Joe User,,,user@example.com,9a7c9b28-654c-44b4-a757-87bf90e6a451,idp,email,8efbd074-ad2a-4e6a-afec-1d0b1891f566,Aktiv,101001010
+,9917e91c-e3ee-41bf-9a60-b024c23b5fe3,,2016-02-14 00:00:00+01,infinity,bruger,Hans Bruger,0a3f50a0-23c9-32b8-e044-0003ba298018,db6fd4bd-6683-4dae-81af-5c47189d6a20,bruger@example.com,9a7c9b28-654c-44b4-a757-87bf90e6a451,idp,email,8efbd074-ad2a-4e6a-afec-1d0b1891f566,Aktiv,1011101010
+,F715A2C9-A425-4CC9-B69B-7D89AAEDECE4,,2016-02-14 00:00:00+01,infinity,mam,MAAAAAM,,,mam@example.com,9a7c9b28-654c-44b4-a757-87bf90e6a451,idp,email,8efbd074-ad2a-4e6a-afec-1d0b1891f566,Aktiv,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,

@@ -30,7 +30,7 @@ class MockTests(util.TestCase):
         ], exact=True)))
 
         self.assertEqual(expected, dict(importing.load_data([
-            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.xlsx'),
+            os.path.join(util.IMPORTING_DIR, 'MAGENTA_01.csv'),
         ])))
 
     @util.mock()
@@ -46,9 +46,13 @@ class MockTests(util.TestCase):
             return val[0], val[1], fromdates
 
         # JSON converts tuples to lists - the map() converts them back
-        expected = sorted(map(tuple,
-                              util.get_fixture('MAGENTA_01-expected.json')),
-                          key=keyfunc)
+        expected = sorted(
+            map(
+                tuple,
+                util.get_fixture('MAGENTA_01-expected.json'),
+            ),
+            key=keyfunc,
+        )
 
         actual = sorted(importing.convert([
             os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),

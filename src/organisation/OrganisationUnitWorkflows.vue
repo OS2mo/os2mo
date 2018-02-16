@@ -4,7 +4,7 @@
       <button-workflow label="Opret enhed" icon="plus-circle" v-b-modal.orgUnitCreate/>
       <button-workflow label="Omdøb enhed" icon="pencil-square-o" v-b-modal.orgUnitRename/>
       <button-workflow label="Flyt enhed" icon="share-square-o" v-b-modal.orgUnitMove/>
-      <button-workflow label="Afslut enhed" icon="ban" v-b-modal.orgUnitEnd/>
+      <button-workflow label="Afslut enhed" icon="ban" v-b-modal.orgUnitTerminate/>
     </div>
   <!-- Modal Component -->
   <unit-create/>

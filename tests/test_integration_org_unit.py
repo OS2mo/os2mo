@@ -688,7 +688,9 @@ class Tests(util.LoRATestCase):
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
         payload = {
-            "valid_from": "2017-10-22T00:00:00+02",
+            "validity": {
+                "from": "2017-10-22T00:00:00+02"
+            }
         }
 
         self._perform_request('/service/ou/{}/terminate'.format(unitid),
