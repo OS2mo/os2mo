@@ -1,6 +1,5 @@
 <template>
   <div>
-      <h4>Rolle</h4>
       <date-start-end v-model="role.validity" initially-hidden/>
       <div class="form-row">
         <organisation-unit-picker 
@@ -51,6 +50,7 @@ export default {
 
     validity (newVal) {
       this.role.validity = newVal
+      console.log(newVal)
     }
   },
   created () {

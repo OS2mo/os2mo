@@ -1,6 +1,5 @@
 <template>
   <div>
-      <h4>Tilknytning</h4>
       <date-start-end v-model="association.validity" initially-hidden/>
       <div class="form-row">
         <organisation-unit-picker 
@@ -11,7 +10,7 @@
         <job-function-picker 
           v-model="association.job_function"
         />
-        <association-type 
+        <association-type-picker 
           v-model="association.association_type"
         />
       </div>
@@ -22,14 +21,14 @@
 import DateStartEnd from '../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
 import JobFunctionPicker from '../components/JobFunctionPicker'
-import AssociationType from '../components/AssociationType'
+import AssociationTypePicker from '../components/AssociationTypePicker'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
     JobFunctionPicker,
-    AssociationType
+    AssociationTypePicker
   },
   props: {
     value: Object,

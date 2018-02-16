@@ -1,7 +1,7 @@
 <template>
   <div>
     <button class="btn btn-outline-primary" v-b-modal="'moCreate'+_uid" @click="showModal=true">
-      <icon name="plus" />
+      <icon name="plus" /> Nyt engagement
     </button>
 
     <b-modal
@@ -17,7 +17,7 @@
       <mo-it-system v-if="showModal && type=='it'" v-model="edit" :org="org"/>
 
       <div class="float-right">
-        <button-submit @click.native="editEmployee" :is-loading="isLoading"/>
+        <button-submit @click.native="create" :is-loading="isLoading"/>
       </div>
     </b-modal>
 
@@ -57,26 +57,18 @@
     },
     created () {
       this.org = Organisation.getSelectedOrganisation()
-      this.edit = JSON.parse(JSON.stringify(this.content))
-      this.original = JSON.parse(JSON.stringify(this.content))
     },
     methods: {
-      // editEmployee () {
-      //   let vm = this
-      //   vm.isLoading = true
-      //   let data = [{
-      //     type: 'engagement',
-      //     uuid: this.edit.uuid,
-      //     original: this.original,
-      //     data: this.edit
-      //   }]
+      create () {
+        let vm = this
+        vm.isLoading = true
 
-      //   Employee.create(this.uuid, data)
-      //   .then(response => {
-      //     vm.isLoading = false
-      //     vm.$refs['moCreate' + vm._uid].hide()
-      //   })
-      // }
+        Employee.create(this.uuid, [this.edit])
+        .then(response => {
+          vm.isLoading = false
+          vm.$refs['moCreate' + vm._uid].hide()
+        })
+      }
     }
   }
 </script>
