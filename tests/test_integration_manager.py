@@ -713,7 +713,11 @@ class Tests(util.LoRATestCase):
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        payload = {"valid_from": "2017-12-01T00:00:00+01"}
+        payload = {
+            "validity": {
+                "from": "2017-12-01T00:00:00+01"
+            }
+        }
 
         self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
                                    userid, json=payload)

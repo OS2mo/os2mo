@@ -15,7 +15,7 @@ export default {
   },
   props: {
     isDisabled: Boolean,
-    isLoading: Boolean,
+    isLoading: Boolean
   },
   data () {
     return {}

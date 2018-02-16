@@ -171,15 +171,17 @@ export default {
 
   /**
    * Terminate a organisation unit
-   * @param {Object} orgUnit - the organisation unit to end
-   * @param {String} endDate - the date on which the organisation unit shall end
+   * @param {Object} uuid - the organisation unit to end
+   * @param {String} terminate - the date on which the organisation unit shall end
    * @returns {Object} organisation unit uuid
    */
-  terminate (orgUnit, endDate) {
-    return HTTP.delete(`/org-unit/${orgUnit.uuid}?endDate=${endDate}`)
+  terminate (uuid, terminate) {
+    return Service.post(`/ou/${uuid}/terminate`, terminate)
     .then(response => {
-      EventBus.$emit('org-unit-end-date', response.data)
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   }
 }
