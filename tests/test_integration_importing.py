@@ -971,14 +971,29 @@ class IntegrationTests(util.LoRATestCase):
                           '/f/leave_type/',
                   'user_key': 'Orlovstype',
                   'uuid': 'd9aa489a-ac93-4769-98e5-19d6d37a919c'},
+                 {'name': 'manager_level',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/manager_level/',
+                  'user_key': 'Lederniveau',
+                  'uuid': '5e1186f2-3b41-428e-97c1-ebd680b12488'},
+                 {'name': 'manager_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/manager_type/',
+                  'user_key': 'Ledertyper',
+                  'uuid': '7f63f302-5277-4ab6-b9d8-073b4a7ffc51'},
                  {'name': 'org_unit_type',
                   'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                  '/f/org_unit_type/',
+                          '/f/org_unit_type/',
                   'user_key': 'Enhedstype',
                   'uuid': 'd2a8b57a-5913-47c9-8ead-99b9822e27fa'},
+                 {'name': 'responsibility',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/responsibility/',
+                  'user_key': 'Lederansvar',
+                  'uuid': '035f1fc2-0d61-47ec-994b-a75a727de8c3'},
                  {'name': 'role_type',
                   'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                  '/f/role_type/',
+                          '/f/role_type/',
                   'user_key': 'Rolletype',
                   'uuid': '09c93426-db19-4442-aea8-5ac9ba9573a6'},
                  ],
@@ -1203,6 +1218,130 @@ class IntegrationTests(util.LoRATestCase):
                          'user_key': 'Barselsorlov',
                          'uuid': 'd7ec3a18-3a9d-43c8-ad03-0202c0d044d4'}
                     ],
+                    'manager_level': [
+                        {'example': None,
+                         'name': 'Niveau 90',
+                         'scope': None,
+                         'user_key': 'Niveau 90',
+                         'uuid': '7d4d2609-7146-4a20-b9f0-fe4c19701217'}],
+                    'manager_type': [
+                        {'example': None,
+                         'name': 'Afsnitsleder',
+                         'scope': None,
+                         'user_key': 'Afsnitsleder',
+                         'uuid': '48f525f5-4420-49a0-9e95-096e26cfdc9f'},
+                        {'example': None,
+                         'name': 'Beredskabschef',
+                         'scope': None,
+                         'user_key': 'Beredskabschef',
+                         'uuid': '6a1e28d1-5c15-439b-bfcd-34de284a8c80'},
+                        {'example': None,
+                         'name': 'Borgmester',
+                         'scope': None,
+                         'user_key': 'Borgmester',
+                         'uuid': '6a6d5c82-a7d1-4488-b687-49daa3910ec1'},
+                        {'example': None,
+                         'name': 'Chef',
+                         'scope': None,
+                         'user_key': 'Chef',
+                         'uuid': 'ff13e6d0-d43b-4b39-8cd4-742a0365d6c2'},
+                        {'example': None,
+                         'name': 'Direktør',
+                         'scope': None,
+                         'user_key': 'Direktør',
+                         'uuid': 'd8043094-6f38-4349-9fbb-dc7c28668fa0'},
+                        {'example': None,
+                         'name': 'Institutionsafsnitsleder',
+                         'scope': None,
+                         'user_key': 'Institutionsafsnitsleder',
+                         'uuid': '42617c67-b516-4b41-be6f-0cb43bb455f9'},
+                        {'example': None,
+                         'name': 'Institutionsleder',
+                         'scope': None,
+                         'user_key': 'Institutionsleder',
+                         'uuid': 'a0a4db8c-a2cd-4e43-baae-288f2b0ed89d'},
+                        {'example': None,
+                         'name': 'Institutionsunderafsnitsleder',
+                         'scope': None,
+                         'user_key': 'Institutionsunderafsnitsleder',
+                         'uuid': '38639c7f-0f90-441b-9bc7-cb8681aa4f55'},
+                        {'example': None,
+                         'name': 'Kommunaldirektør',
+                         'scope': None,
+                         'user_key': 'Kommunaldirektør',
+                         'uuid': '08cedf73-852b-4a51-9e8e-d026d83c4915'},
+                        {'example': None,
+                         'name': 'Sekretariatschef',
+                         'scope': None,
+                         'user_key': 'Sekretariatschef',
+                         'uuid': '21f7d83f-5e80-4f16-9a44-8eb2a96014a2'},
+                        {'example': None,
+                         'name': 'Stedfortræder',
+                         'scope': None,
+                         'user_key': 'Stedfortræder',
+                         'uuid': '0b7e086c-7364-4337-8426-a97545249725'},
+                        {'example': None,
+                         'name': 'Systemadministrator',
+                         'scope': None,
+                         'user_key': 'Systemadministrator',
+                         'uuid': '1bc1d585-e0e8-43ac-b7d1-a1519e0b48e5'},
+                        {'example': None,
+                         'name': 'Teamleder',
+                         'scope': None,
+                         'user_key': 'Teamleder',
+                         'uuid': '58b4060b-b6b9-409a-81aa-9d390af71f61'}],
+                    'responsibility': [
+                        {'example': None,
+                         'name': 'Ansvar for bygninger og arealer',
+                         'scope': None,
+                         'user_key': 'Ansvar for bygninger og arealer',
+                         'uuid': '31388038-b979-47c8-be08-42d8846661af'},
+                        {'example': None,
+                         'name': 'Beredskabsledelse',
+                         'scope': None,
+                         'user_key': 'Beredskabsledelse',
+                         'uuid': '149a6f1e-3bda-40f8-a5a2-545fb3c12c8f'},
+                        {'example': None,
+                         'name': 'Faglig ledelse',
+                         'scope': None,
+                         'user_key': 'Faglig ledelse',
+                         'uuid': '4f1ae448-dfac-4287-99a1-87cc5b4ee9b3'},
+                        {'example': None,
+                         'name': 'IT ledelse',
+                         'scope': None,
+                         'user_key': 'IT ledelse',
+                         'uuid': '1b2f87ac-44ad-402b-8083-e5a399d6e5fb'},
+                        {'example': None,
+                         'name': 'Personale: Ansættelse/afskedigelse',
+                         'scope': None,
+                         'user_key': 'Personale: Ansættelse/afskedigelse',
+                         'uuid': '7b587287-af54-421f-b6b2-f1bcd1f1d178'},
+                        {'example': None,
+                         'name': 'Personale: MUS kompetence',
+                         'scope': None,
+                         'user_key': 'Personale: MUS kompetence',
+                         'uuid': 'fd438fda-7f94-488a-8345-b05b68b6eac6'},
+                        {'example': None,
+                         'name': 'Personale: Sygefravær',
+                         'scope': None,
+                         'user_key': 'Personale: Sygefravær',
+                         'uuid': '29df9de4-b624-4abc-8946-33d39bf1c5ac'},
+                        {'example': None,
+                         'name': 'Personale: Øvrige administrative opgaver',
+                         'scope': None,
+                         'user_key': 'Personale: Øvrige '
+                                     'administrative opgaver',
+                         'uuid': '3aefba7a-026f-478c-8cef-48ab176c3c53'},
+                        {'example': None,
+                         'name': 'Økonomi: Løbende kontering',
+                         'scope': None,
+                         'user_key': 'Økonomi: Løbende kontering',
+                         'uuid': 'a295b388-7d65-4a2b-82eb-2a401a51baeb'},
+                        {'example': None,
+                         'name': 'Økonomi: Overordnet',
+                         'scope': None,
+                         'user_key': 'Økonomi: Overordnet',
+                         'uuid': '4ce843b3-8897-4558-8b9c-5765b4813151'}],
                 },
                 all_types)
 
@@ -1449,7 +1588,7 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': True,
                     'role': True,
-                    'manager': False,
+                    'manager': True,
                 },
             )
 
@@ -1462,7 +1601,7 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'role': True,
-                    'manager': False,
+                    'manager': True,
                 },
             )
 
@@ -1507,24 +1646,32 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
                 '/details/engagement',
-                [{'job_function': None,
-                  'org_unit': {'name': 'Ballerup Kommune',
-                               'user_key': 'BALLERUP',
-                               'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-                  'person': {'name': 'Sanne Schäff',
-                             'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
-                  'engagement_type': {
-                      'example': None,
-                      'name': 'Ansat',
-                      'scope': None,
-                      'user_key': 'Ansat',
-                      'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9'},
-                  'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
-                  "validity": {
-                      'from': '2018-01-01T00:00:00+01:00',
-                      'to': None
-                  },
-                  }],
+                [{
+                    'job_function': {
+                        'example': None,
+                        'name': 'Administrativ leder',
+                        'scope': None,
+                        'user_key': 'Administrativ leder',
+                        'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
+                    },
+                    'org_unit': {'name': 'Ballerup Kommune',
+                                 'user_key': 'BALLERUP',
+                                 'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                                 },
+                    'person': {'name': 'Sanne Schäff',
+                               'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
+                    'engagement_type': {
+                        'example': None,
+                        'name': 'Ansat',
+                        'scope': None,
+                        'user_key': 'Ansat',
+                        'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9'},
+                    'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
+                    "validity": {
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'to': None
+                    },
+                }],
             )
 
         with self.subTest('unit engagement'):
@@ -1533,7 +1680,13 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/engagement',
                 [
                     {
-                        'job_function': None,
+                        'job_function': {
+                            'example': None,
+                            'name': 'Administrativ leder',
+                            'scope': None,
+                            'user_key': 'Administrativ leder',
+                            'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
+                        },
                         'org_unit': {
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
@@ -1763,6 +1916,96 @@ class IntegrationTests(util.LoRATestCase):
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
                 '/details/leave',
                 [],
+            )
+
+        with self.subTest('manager'):
+
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/manager',
+                [
+                    {
+                        'person': {
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'manager_type': {
+                            'example': None,
+                            'name': 'Borgmester',
+                            'user_key': 'Borgmester',
+                            'scope': None,
+                            'uuid': '6a6d5c82-a7d1-4488-b687-49daa3910ec1',
+                        },
+                        'responsibility': {
+                            'example': None,
+                            'name': 'Ansvar for bygninger og arealer',
+                            'user_key': 'Ansvar for bygninger og arealer',
+                            'scope': None,
+                            'uuid': '31388038-b979-47c8-be08-42d8846661af',
+                        },
+                        'manager_level': {
+                            'example': None,
+                            'name': 'Niveau 90',
+                            'user_key': 'Niveau 90',
+                            'scope': None,
+                            'uuid': '7d4d2609-7146-4a20-b9f0-fe4c19701217',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/manager',
+                [
+                    {
+                        'person': {
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'manager_type': {
+                            'example': None,
+                            'name': 'Borgmester',
+                            'user_key': 'Borgmester',
+                            'scope': None,
+                            'uuid': '6a6d5c82-a7d1-4488-b687-49daa3910ec1',
+                        },
+                        'responsibility': {
+                            'example': None,
+                            'name': 'Ansvar for bygninger og arealer',
+                            'user_key': 'Ansvar for bygninger og arealer',
+                            'scope': None,
+                            'uuid': '31388038-b979-47c8-be08-42d8846661af',
+                        },
+                        'manager_level': {
+                            'example': None,
+                            'name': 'Niveau 90',
+                            'user_key': 'Niveau 90',
+                            'scope': None,
+                            'uuid': '7d4d2609-7146-4a20-b9f0-fe4c19701217',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
             )
 
         with self.subTest('employee I address'):
