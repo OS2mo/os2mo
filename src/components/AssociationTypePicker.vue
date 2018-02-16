@@ -2,12 +2,15 @@
   <div class="form-group col">
     <label v-if="!noLabel">{{label}}</label>
     <select 
+      name="association-type-picker"
+      :data-vv-as="label"
       class="form-control col" 
       v-model="type"
       placeholder="Vælg enhed"
       @change="updateAssociationTypes()"
+      v-validate="{ required: true }"
     >
-      <option disabled>Tilknytningstype</option>
+      <option disabled>{{label}}</option>
       <option 
         v-for="atype in associationTypes" 
         v-bind:key="atype.uuid"
@@ -16,6 +19,12 @@
         {{atype.name}}
       </option>
     </select>
+    <span
+      v-show="errors.has('association-type-picker')" 
+      class="text-danger"
+    >
+      {{ errors.first('association-type-picker') }}
+    </span>
   </div>
 </template>
 
@@ -25,7 +34,7 @@
   import { EventBus } from '../EventBus'
 
   export default {
-    name: 'AssociationType',
+    name: 'AssociationTypePicker',
     props: {
       value: Object,
       noLabel: Boolean
