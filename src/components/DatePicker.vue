@@ -2,7 +2,7 @@
     <div class="form-group col">
       <label v-if="!noLabel" id="date-label" for="date">{{label}}</label>
       <date-time-picker 
-        name="date"
+        name="date-picker"
         :data-vv-as="label"
         v-model="selected" 
         format="dd-MM-yyyy"
@@ -11,18 +11,14 @@
         bootstrapStyling
         clear-button
         :disabled="disabled"
-       
-        v-validate="{ 
-          date_format: 'dd-MM-yyyy', 
-          required: required 
-        }"
+        v-validate="{ required: true }"
       />
 
       <span
-        v-show="errors.has('date')" 
+        v-show="errors.has('date-picker')" 
         class="text-danger"
       >
-        {{ errors.first('date') }}
+        {{ errors.first('date-picker') }}
       </span>
     </div>
 </template>
