@@ -275,6 +275,7 @@ def create_system(employee_uuid, req):
             [(
                 mapping.ITSYSTEMS_FIELD,
                 {
+                    'objekttype': 'itsystem',
                     'uuid': systemid,
                 }
             )],
@@ -329,6 +330,7 @@ def edit_system(employee_uuid, req):
             [(
                 mapping.ITSYSTEMS_FIELD,
                 {
+                    'objekttype': 'itsystem',
                     'uuid': new_id,
                 }
             )],

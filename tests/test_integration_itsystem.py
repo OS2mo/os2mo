@@ -349,6 +349,7 @@ class Writing(util.LoRATestCase):
         new_relations['tilknyttedeitsystemer'] = [
             {
                 'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                'objekttype': 'itsystem',
                 'virkning': {
                     'from': '2017-12-01 00:00:00+01',
                     'from_included': True,
@@ -406,6 +407,7 @@ class Writing(util.LoRATestCase):
         new_relations['tilknyttedeitsystemer'][:0] = [
             {
                 'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                'objekttype': 'itsystem',
                 'virkning': {
                     'from': '2016-01-01 00:00:00+01',
                     'from_included': True,
