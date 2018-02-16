@@ -33,7 +33,7 @@ blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
 
 RELATION_TYPE_MODULES = {
     'it': itsystem.ITSystems,
-    'address': address.Adresses,
+    'address': address.Addresses,
 }
 
 

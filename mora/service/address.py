@@ -36,7 +36,7 @@ HREF_FORMATS = {
 }
 
 
-class Adresses(common.AbstractRelationDetail):
+class Addresses(common.AbstractRelationDetail):
     @staticmethod
     def has(objtype, reg):
         return(
