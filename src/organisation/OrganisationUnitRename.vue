@@ -9,7 +9,7 @@
       <organisation-unit-picker 
         label="Enhed" 
         class="col"
-        v-model="orgUnit"
+        v-model="rename.original"
         :preselected="preselectedUnit"
       />
     </div>
@@ -19,26 +19,23 @@
         <label for="exampleFormControlInput1">Nyt navn</label>
         <input 
           name="name"
-          type="text" 
-          class="form-control" 
-          id="" 
-          v-model="newName"
-          v-validate="{ required: true }" 
+          type="text"
+          class="form-control"
+          v-model="rename.data.name"
         >
-        <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
       </div>
     </div>
 
     <div class="form-row">
       <date-picker-start-end 
         class="col"
-        v-model="dateStartEnd"
+        v-model="rename.data.validity"
       />
     </div>
 
     <div class="float-right">
-      <button-submit 
-      :disabled="errors.any() || !isCompleted"
+      <button-submit
+      :is-disabled="isDisabled"
       @click.native="renameOrganisationUnit"
       />
     </div>
@@ -62,13 +59,17 @@
       return {
         orgUnit: {},
         preselectedUnit: {},
-        newName: '',
-        dateStartEnd: {}
+        rename: {
+          data: {
+            name: '',
+            validity: {}
+          }
+        }
       }
     },
     computed: {
-      isCompleted () {
-        return this.orgUnit && this.newName && this.dateStartEnd.from
+      isDisabled () {
+        if (this.rename.data.validity.from === undefined || this.rename.original === undefined || this.rename.data.name === '') return true
       }
     },
     mounted () {
@@ -79,9 +80,15 @@
     methods: {
       renameOrganisationUnit () {
         let vm = this
-        OrganisationUnit.rename(this.orgUnit, this.newName)
+        vm.isLoading = true
+
+        OrganisationUnit.edit(this.rename.original.uuid, this.rename)
         .then(response => {
           vm.$refs.orgUnitRename.hide()
+        })
+        .catch(err => {
+          console.log(err)
+          vm.isLoading = false
         })
       }
     }
