@@ -1815,8 +1815,8 @@ class IntegrationTests(util.LoRATestCase):
                         'pretty_value': 'sanne@example.com',
                         'raw_value': 'urn:mailto:sanne@example.com',
                         'validity': {
-                                'from': '2018-01-01T00:00:00+01:00',
-                                'to': None,
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
                         },
                     },
                 ],

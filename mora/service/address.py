@@ -15,7 +15,6 @@ This section describes how to interact with addresses.
 '''
 
 import itertools
-import locale
 
 import flask
 import parse
