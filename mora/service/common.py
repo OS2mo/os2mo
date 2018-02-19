@@ -14,9 +14,10 @@
 import abc
 import collections
 import copy
+import enum
 import datetime
 import functools
-from enum import Enum
+
 from typing import Callable, List, Tuple
 
 import flask
@@ -27,7 +28,7 @@ from .. import lora
 from . import keys
 
 
-class FieldTypes(Enum):
+class FieldTypes(enum.Enum):
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
