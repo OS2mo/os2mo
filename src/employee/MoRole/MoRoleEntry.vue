@@ -16,9 +16,9 @@
 </template>
 
 <script>
-import DateStartEnd from '../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import RolePicker from '../components/RolePicker'
+import DateStartEnd from '../../components/DatePickerStartEnd'
+import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
+import RolePicker from '../../components/RolePicker'
 
 export default {
   components: {

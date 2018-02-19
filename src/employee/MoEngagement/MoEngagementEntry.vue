@@ -18,10 +18,10 @@
 </template>
 
 <script>
-import DateStartEnd from '../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../components/JobFunctionPicker'
-import EngagementTypePicker from '../components/EngagementTypePicker'
+import DateStartEnd from '../../components/DatePickerStartEnd'
+import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
+import JobFunctionPicker from '../../components/JobFunctionPicker'
+import EngagementTypePicker from '../../components/EngagementTypePicker'
 
 export default {
   components: {
@@ -48,7 +48,8 @@ export default {
         newVal.type = 'engagement'
         this.$emit('input', newVal)
         let valid = false
-        if (Object.keys(newVal).length === 5 && newVal.validity.from !== undefined) valid = true
+        console.log(newVal)
+        if (Object.keys(newVal).length >= 5 && newVal.validity.from !== undefined) valid = true
         this.$emit('is-valid', valid)
       },
       deep: true

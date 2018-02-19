@@ -11,13 +11,13 @@
       title="Rediger medarbejder"
       :ref="'moEdit'+_uid"
     >
-      <employee-create-engagement v-if="showModal && type=='engagement'" v-model="edit" :org="org"/>
-      <employee-create-association v-if="showModal && type=='association'" v-model="edit" :org="org"/>
-      <employee-create-role v-if="showModal && type=='role'" v-model="edit" :org="org"/>
-      <mo-it-system v-if="showModal && type=='it'" v-model="edit" :org="org"/>
+      <mo-engagement-entry v-if="showModal && type=='engagement'" v-model="edit" :org="org"/>
+      <mo-association-entry v-if="showModal && type=='association'" v-model="edit" :org="org"/>
+      <mo-role-entry v-if="showModal && type=='role'" v-model="edit" :org="org"/>
+      <mo-it-system-entry v-if="showModal && type=='it'" v-model="edit" :org="org"/>
 
       <div class="float-right">
-        <button-submit @click.native="editEmployee" :is-loading="isLoading"/>
+        <button-submit :on-click-action="editEmployee" :is-loading="isLoading"/>
       </div>
     </b-modal>
 
@@ -27,19 +27,19 @@
 <script>
   import Organisation from '../../api/Organisation'
   import Employee from '../../api/Employee'
-  import EmployeeCreateEngagement from '../EmployeeCreateEngagement'
-  import EmployeeCreateAssociation from '../EmployeeCreateAssociation'
-  import EmployeeCreateRole from '../EmployeeCreateRole'
-  import MoItSystem from '../MoItSystem/MoItSystem'
+  import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
+  import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
+  import MoRoleEntry from '../MoRole/MoRoleEntry'
+  import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
   import ButtonSubmit from '../../components/ButtonSubmit'
 
   export default {
     components: {
       ButtonSubmit,
-      EmployeeCreateEngagement,
-      EmployeeCreateAssociation,
-      EmployeeCreateRole,
-      MoItSystem
+      MoEngagementEntry,
+      MoAssociationEntry,
+      MoRoleEntry,
+      MoItSystemEntry
     },
     props: {
       value: Object,

@@ -63,25 +63,24 @@
     props: {
       title: {
         type: String,
-        default: 'Skift mig'
+        required: true
       },
       labels: Array,
       content: Array,
       visible: Boolean
     },
     watch: {
-      open: function (newVal, oldVal) {
+      open () {
         this.isLoading = true
       },
 
-      content: function (newVal, oldVal) {
+      content () {
         this.isLoading = false
       }
     },
     created () {
-      if (this.visible) {
-        this.open = this.visible
-      }
+      if (this.visible) this.open = this.visible
+
       if (this.content !== undefined && this.content.length > 0) {
         this.isLoading = false
       }

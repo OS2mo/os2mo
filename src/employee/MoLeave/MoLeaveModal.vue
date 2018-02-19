@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import Employee from '../api/Employee'
-import DatePickerStartEnd from '../components/DatePickerStartEnd'
-import LeavePicker from '../components/LeavePicker'
-import ButtonSubmit from '../components/ButtonSubmit'
+import Employee from '../../api/Employee'
+import DatePickerStartEnd from '../../components/DatePickerStartEnd'
+import LeavePicker from '../../components/LeavePicker'
+import ButtonSubmit from '../../components/ButtonSubmit'
 
 export default {
   components: {

@@ -18,10 +18,10 @@
 </template>
 
 <script>
-import DateStartEnd from '../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../components/JobFunctionPicker'
-import AssociationTypePicker from '../components/AssociationTypePicker'
+import DateStartEnd from '../../components/DatePickerStartEnd'
+import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
+import JobFunctionPicker from '../../components/JobFunctionPicker'
+import AssociationTypePicker from '../../components/AssociationTypePicker'
 
 export default {
   components: {
@@ -41,15 +41,20 @@ export default {
   data () {
     return {
       association: {
-        type: 'association',
         validity: {}
       }
     }
   },
   watch: {
-    association (newVal) {
-      newVal.type = 'association'
-      this.$emit('input', newVal)
+    association: {
+      handler (newVal) {
+        newVal.type = 'association'
+        this.$emit('input', newVal)
+        let valid = false
+        if (Object.keys(newVal).length === 5 && newVal.validity.from !== undefined) valid = true
+        this.$emit('is-valid', valid)
+      },
+      deep: true
     },
 
     validity (newVal) {

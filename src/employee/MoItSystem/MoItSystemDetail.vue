@@ -31,7 +31,7 @@
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
           <td>
-            <mo-edit :uuid="uuid" :content="d" type="it"/>
+            <!-- <mo-edit :uuid="uuid" :content="d" type="it"/> -->
           </td>
         </tr>
 
@@ -51,12 +51,12 @@
 
 
 <script>
-  import Employee from '../api/Employee'
-  import MoEdit from './MoEdit/MoEdit'
+  import Employee from '../../api/Employee'
+  // import MoEdit from '../MoEdit/MoEdit'
 
   export default {
     components: {
-      MoEdit
+      // MoEdit
     },
     props: {
       uuid: {

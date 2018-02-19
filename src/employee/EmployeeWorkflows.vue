@@ -8,9 +8,9 @@
       <button-workflow label="Afslut medarbejder" icon="user-times" target="EmployeeEnd" v-b-modal.employeeEnd/>
     </div>
     <!-- Modal Component -->
-    <employee-leave :org="org"/>
+    <mo-leave-modal :org="org"/>
     <employee-create :org="org"/>
-    <employee-move :org="org"/>
+    <mo-move-modal :org="org"/>
     <employee-end/>
   </div>
 </template>
@@ -19,16 +19,16 @@
   import { EventBus } from '../EventBus'
   import ButtonWorkflow from '../components/ButtonWorkflow'
   import EmployeeCreate from './EmployeeCreate'
-  import EmployeeLeave from './EmployeeLeave'
-  import EmployeeMove from './EmployeeMove'
+  import MoLeaveModal from './MoLeave/MoLeaveModal'
+  import MoMoveModal from './MoMove/MoMoveModal'
   import EmployeeEnd from './EmployeeEnd'
 
   export default {
     components: {
       ButtonWorkflow,
       EmployeeCreate,
-      EmployeeLeave,
-      EmployeeMove,
+      MoLeaveModal,
+      MoMoveModal,
       EmployeeEnd
     },
     data () {

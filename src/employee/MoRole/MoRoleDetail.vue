@@ -4,9 +4,11 @@
     <table class="table table-striped" v-show="!isLoading">
       <thead>
         <tr>
-          <th scope="col">Orlovstype</th>
+          <th scope="col">Enhed</th>
+          <th scope="col">Rolle</th>
           <th scope="col">Startdato</th>
           <th scope="col">Slutdato</th>
+          <th></th>
         </tr>
       </thead>
 
@@ -15,7 +17,8 @@
           <th scope="col">Fortid</th>
         </tr>
         <tr v-for="d in detailsPast" v-bind:key="d.uuid">
-          <td>{{d.leave_type | getProperty('name')}}</td>
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
+          <td>{{d.role_type | getProperty('name')}}</td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
         </tr>
@@ -24,16 +27,21 @@
           <th scope="col">Nutid</th>
         </tr>
         <tr v-for="d in details" v-bind:key="d.uuid">
-          <td>{{d.leave_type | getProperty('name')}}</td>
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
+          <td>{{d.role_type | getProperty('name')}}</td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
+          <td>
+            <!-- <mo-edit :uuid="uuid" :content="d" type="role"/> -->
+          </td>
         </tr>
 
         <tr>
           <th scope="col">Fremtid</th>
         </tr>
         <tr v-for="d in detailsFuture" v-bind:key="d.uuid">
-          <td>{{d.leave_type | getProperty('name')}}</td>
+          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
+          <td>{{d.role_type | getProperty('name')}}</td>
           <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
           <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
         </tr>
@@ -44,13 +52,16 @@
 
 
 <script>
-  import Employee from '../api/Employee'
-  import '../filters/GetProperty'
-  import Loading from '../components/Loading'
+  import Employee from '../../api/Employee'
+  import '../../filters/GetProperty'
+  import Loading from '../../components/Loading'
+  import { EventBus } from '../../EventBus'
+  // import MoEdit from '../MoEdit/MoEdit'
 
   export default {
     components: {
       Loading
+      // MoEdit
     },
     props: {
       uuid: {
@@ -66,6 +77,11 @@
         isLoading: false
       }
     },
+    mounted () {
+      EventBus.$on('employee-changed', () => {
+        this.getDetails()
+      })
+    },
     created () {
       this.getDetails()
     },
@@ -73,16 +89,16 @@
       getDetails () {
         var vm = this
         vm.isLoading = true
-        Employee.getLeaveDetails(this.uuid)
+        Employee.getRoleDetails(this.uuid)
         .then(response => {
           vm.isLoading = false
           vm.details = response
         })
-        Employee.getLeaveDetails(this.uuid, 'past')
+        Employee.getRoleDetails(this.uuid, 'past')
         .then(response => {
           vm.detailsPast = response
         })
-        Employee.getLeaveDetails(this.uuid, 'future')
+        Employee.getRoleDetails(this.uuid, 'future')
         .then(response => {
           vm.detailsFuture = response
         })
