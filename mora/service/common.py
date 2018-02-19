@@ -132,11 +132,11 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
-def get_effect_from(effect):
+def get_effect_from(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['from'])
 
 
-def get_effect_to(effect):
+def get_effect_to(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['to'])
 
 
@@ -440,7 +440,7 @@ def create_organisationsenhed_payload(
     return org_unit
 
 
-def get_valid_from(obj, fallback=None):
+def get_valid_from(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)
     if validity is not sentinel:
@@ -453,7 +453,7 @@ def get_valid_from(obj, fallback=None):
     return util.negative_infinity
 
 
-def get_valid_to(obj, fallback=None):
+def get_valid_to(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)
     if validity is not sentinel:
