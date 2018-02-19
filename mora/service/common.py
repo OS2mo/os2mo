@@ -464,3 +464,31 @@ def get_valid_to(obj, fallback=None):
         elif valid_to:
             return util.from_iso_time(valid_to)
     return util.positive_infinity
+
+
+def replace_relation_value(relations: List[dict],
+                           old_entry: dict,
+                           new_entry: dict) -> List[dict]:
+    old_from = get_effect_from(old_entry)
+    old_to = get_effect_to(old_entry)
+
+    old_urn = old_entry.get('urn')
+    old_uuid = old_entry.get('uuid')
+    old_type = old_entry.get('objekttype')
+
+    for i, rel in enumerate(relations):
+        if (
+            get_effect_from(rel) == old_from and
+            get_effect_to(rel) == old_to and
+            rel.get('urn') == old_urn and
+            rel.get('uuid') == old_uuid and
+            rel.get('objekttype') == old_type
+        ):
+            new_rels = copy.deepcopy(relations)
+
+            new_rels[i] = new_entry
+
+            return new_rels
+
+    else:
+        raise ValueError('original entry not found!')

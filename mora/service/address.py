@@ -14,7 +14,6 @@ This section describes how to interact with addresses.
 
 '''
 
-import copy
 import itertools
 
 import flask
@@ -27,7 +26,6 @@ from ..converters import addr
 from . import common
 from . import facet
 from . import keys
-from . import mapping
 
 HREF_FORMATS = {
     'EMAIL': 'mailto:{}',
@@ -160,8 +158,13 @@ class Addresses(common.AbstractRelationDetail):
         )
 
 
-def get_relation_for(classobj, value):
+def get_relation_for(classobj, value, start, end):
     scope = classobj['scope']
+
+    effect = {
+        'from': util.to_lora_time(start),
+        'to': util.to_lora_time(end),
+    }
 
     if scope == 'DAR':
         if not util.is_uuid(value):
@@ -169,72 +172,45 @@ def get_relation_for(classobj, value):
 
         return {
             'uuid': value,
-            'objekttype': classobj['uuid']
+            'objekttype': classobj['uuid'],
+            'virkning': effect,
         }
 
     elif scope in addr.URN_FORMATS:
         return {
             'urn': addr.URN_FORMATS[scope].format(value),
             'objekttype': classobj['uuid'],
+            'virkning': effect,
         }
 
     else:
         raise ValueError('unknown address scope {!r}!'.format(scope))
 
 
-def convert_request(original, req, note):
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
-
-    return common.update_payload(
-        valid_from,
-        valid_to,
-        [(
-            mapping.ADDRESSES_FIELD,
-            get_relation_for(
-                req[keys.ADDRESS_TYPE],
-                req[keys.ADDRESS],
-            ),
-        )],
-        original,
-        {
-            'note': note,
-        },
-    )
-
-
-def replace_relation_value(relations, old_entry, new_entry):
-    old_from = common.get_effect_from(old_entry)
-    old_to = common.get_effect_to(old_entry)
-
-    old_urn = old_entry.get('urn')
-    old_uuid = old_entry.get('uuid')
-    old_type = old_entry.get('objekttype')
-
-    for i, rel in enumerate(relations):
-        if (
-            common.get_effect_from(rel) == old_from and
-            common.get_effect_to(rel) == old_to and
-            rel.get('urn') == old_urn and
-            rel.get('uuid') == old_uuid and
-            rel.get('objekttype') == old_type
-        ):
-            new_rels = copy.deepcopy(relations)
-
-            new_rels[i] = new_entry
-
-            return new_rels
-
-    else:
-        raise ValueError('original entry not found!')
-
-
 def create_address(employee_uuid, req):
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.bruger.get(uuid=employee_uuid)
 
-    c.bruger.update(convert_request(original, req, 'Tilføj adresse'),
-                    employee_uuid)
+    # we're editing a many to many relation, so inline the logic for simplicity
+    orig_addresses = original['relationer']['adresser'][:]
+
+    new_addreses = [
+        get_relation_for(
+            req[keys.ADDRESS_TYPE],
+            req[keys.ADDRESS],
+            common.get_valid_from(req),
+            common.get_valid_to(req),
+        )
+    ]
+
+    payload = {
+        'relationer': {
+            'adresser': orig_addresses + new_addreses,
+        },
+        'note': 'Tilføj adresse',
+    }
+
+    c.bruger.update(payload, employee_uuid)
 
 
 def edit_address(employee_uuid, req):
@@ -257,24 +233,21 @@ def edit_address(employee_uuid, req):
     old_rel = get_relation_for(
         old_entry[keys.ADDRESS_TYPE],
         old_entry[keys.ADDRESS_PRETTY],
+        start=old_from,
+        end=old_to,
     )
-
-    old_rel['virkning'] = {
-        'from': util.to_lora_time(old_from),
-        'to': util.to_lora_time(old_to),
-    }
 
     new_rel = get_relation_for(
         new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
         new_entry.get('value') or old_entry[keys.ADDRESS_PRETTY],
+        start=valid_from,
+        end=valid_to,
     )
-    new_rel['virkning'] = {
-        'from': util.to_lora_time(valid_from),
-        'to': util.to_lora_time(valid_to),
-    }
 
-    addresses = replace_relation_value(original['relationer']['adresser'],
-                                       old_rel, new_rel)
+    addresses = common.replace_relation_value(
+        original['relationer']['adresser'],
+        old_rel, new_rel,
+    )
 
     payload = {
         'relationer': {
