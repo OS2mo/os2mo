@@ -6,16 +6,21 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
+    <div class="form-row">
+      <employee-picker :org="org" v-model="employee"/>
+    </div>
+    <h4>Engagement</h4>
+    <employee-create-engagement :org="org" v-model="engagement" @is-valid="isEngagementValid"/>
 
-    <employee-picker :org="org" v-model="employee"/>
-    <employee-create-engagement :org="org" v-model="engagement"/>
+    <h4>Tilknytning</h4>
     <employee-create-association :org="org" v-model="association" :validity="engagement.validity"/>
+    <h4>Rolle</h4>
     <employee-create-role :org="org" v-model="role" :validity="engagement.validity"/>
     <h4>IT systemer</h4>
     <mo-it-system v-model="itSystem" :validity="engagement.validity"/>
 
     <div class="float-right">
-      <button-submit @click.native="createEmployee" :is-disabled="!isEmployeeSet" :is-loading="isLoading"/>
+      <button-submit @click.native="createEmployee" :is-disabled="isDisabled" :is-loading="isLoading"/>
     </div>
   </b-modal>
 
@@ -49,12 +54,17 @@ export default {
       association: {},
       role: {},
       itSystem: {},
-      isLoading: false
+      isLoading: false,
+      valid: {
+        engagement: false
+      }
     }
   },
   computed: {
-    isEmployeeSet () {
-      return Object.keys(this.employee).length > 0
+    isDisabled () {
+      let emp = Object.keys(this.employee).length > 0
+
+      return (!emp || !this.valid.engagement)
     }
   },
   created () {
@@ -66,6 +76,9 @@ export default {
     })
   },
   methods: {
+    isEngagementValid (val) {
+      this.valid.engagement = val
+    },
     createEmployee () {
       let vm = this
       let create = []
@@ -87,8 +100,7 @@ export default {
         create.push(this.itSystem)
       }
 
-      console.log(create)
-      Employee.createEmployee(this.employee.uuid, create)
+      Employee.create(this.employee.uuid, create)
       .then(response => {
         vm.isLoading = false
         vm.$refs.employeeCreate.hide()

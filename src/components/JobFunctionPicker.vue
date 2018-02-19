@@ -2,9 +2,13 @@
   <div class="form-group col">
     <label v-if="!noLabel">{{label}}</label>
     <select 
+      name="job-function-picker"
+      :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedJobFunction()">
+      @change="updateSelectedJobFunction()"
+      v-validate="{ required: true }"
+    >
       <option disabled>{{label}}</option>
       <option 
         v-for="jf in jobFunctions" 
@@ -13,6 +17,12 @@
           {{jf.name}}
       </option>
     </select>
+    <span
+      v-show="errors.has('job-function-picker')" 
+      class="text-danger"
+    >
+      {{ errors.first('job-function-picker') }}
+    </span>
   </div>
 </template>
 
@@ -25,11 +35,14 @@ export default {
   name: 'JobFunctionPicker',
   props: {
     value: Object,
-    noLabel: Boolean
+    noLabel: Boolean,
+    label: {
+      type: String,
+      default: 'Stillingsbetegnelse'
+    }
   },
   data () {
     return {
-      label: 'Stillingsbetegnelse',
       selected: {},
       jobFunctions: []
     }

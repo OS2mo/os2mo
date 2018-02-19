@@ -2,9 +2,12 @@
   <div class="form-group col">
     <label v-if="!noLabel">{{label}}</label>
     <select 
+      name="engagement-type-picker"
+      :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
       @change="updateEngagementType()"
+      v-validate="{ required: true }"
     >
       <option disabled>{{label}}</option>
       <option 
@@ -15,6 +18,12 @@
         {{etype.name}}
       </option>
     </select>
+    <span
+      v-show="errors.has('engagement-type-picker')" 
+      class="text-danger"
+    >
+      {{ errors.first('engagement-type-picker') }}
+    </span>
   </div>
 </template>
 

@@ -1,15 +1,15 @@
 <template>
   <div>
-    <button class="btn btn-outline-primary" v-b-modal="'moEdit'+_uid" @click="showModal=true">
-      <icon name="edit" />
+    <button class="btn btn-outline-primary" v-b-modal="'moCreate'+_uid" @click="showModal=true">
+      <icon name="plus" /> Nyt engagement
     </button>
 
     <b-modal
-      :id="'moEdit'+_uid"
+      :id="'moCreate'+_uid"
       size="lg"
       hide-footer 
-      title="Rediger medarbejder"
-      :ref="'moEdit'+_uid"
+      title="Opret"
+      :ref="'moCreate'+_uid"
     >
       <employee-create-engagement v-if="showModal && type=='engagement'" v-model="edit" :org="org"/>
       <employee-create-association v-if="showModal && type=='association'" v-model="edit" :org="org"/>
@@ -17,7 +17,7 @@
       <mo-it-system v-if="showModal && type=='it'" v-model="edit" :org="org"/>
 
       <div class="float-right">
-        <button-submit @click.native="editEmployee" :is-loading="isLoading"/>
+        <button-submit @click.native="create" :is-loading="isLoading"/>
       </div>
     </b-modal>
 
@@ -43,18 +43,8 @@
     },
     props: {
       value: Object,
-      uuid: {
-        type: String,
-        required: true
-      },
-      content: {
-        type: Object,
-        required: true
-      },
-      type: {
-        type: String,
-        required: true
-      }
+      uuid: String,
+      type: String
     },
     data () {
       return {
@@ -67,24 +57,16 @@
     },
     created () {
       this.org = Organisation.getSelectedOrganisation()
-      this.edit = JSON.parse(JSON.stringify(this.content))
-      this.original = JSON.parse(JSON.stringify(this.content))
     },
     methods: {
-      editEmployee () {
+      create () {
         let vm = this
         vm.isLoading = true
-        let data = [{
-          type: 'engagement',
-          uuid: this.edit.uuid,
-          original: this.original,
-          data: this.edit
-        }]
 
-        Employee.edit(this.uuid, data)
+        Employee.create(this.uuid, [this.edit])
         .then(response => {
           vm.isLoading = false
-          vm.$refs['moEdit' + vm._uid].hide()
+          vm.$refs['moCreate' + vm._uid].hide()
         })
       }
     }

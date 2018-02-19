@@ -1,11 +1,15 @@
 <template>
   <div class="form-group col">
-    <label>Rolle</label>
+    <label>{{label}}</label>
     <select 
+      name="role-picker"
+      :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedRoleTypes()">
-      <option disabled>Rolle</option>
+      @change="updateSelectedRoleTypes()"
+      v-validate="{ required: true }"
+    >
+      <option disabled>{{label}}</option>
       <option 
         v-for="rt in roleTypes" 
         v-bind:key="rt.uuid"
@@ -13,6 +17,12 @@
           {{rt.name}}
       </option>
     </select>
+    <span
+      v-show="errors.has('role-picker')" 
+      class="text-danger"
+    >
+      {{ errors.first('role-picker') }}
+    </span>
   </div>
 </template>
 
@@ -25,7 +35,11 @@ export default {
   name: 'RolePicker',
   props: {
     value: Object,
-    noLabel: Boolean
+    noLabel: Boolean,
+    label: {
+      type: String,
+      default: 'Rolle'
+    }
   },
   data () {
     return {

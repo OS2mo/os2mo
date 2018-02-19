@@ -54,7 +54,7 @@
       },
 
       getEmployeeName (uuid) {
-        return Employee.getEmployee(uuid)
+        return Employee.get(uuid)
         .then(response => {
           return response.name
         })

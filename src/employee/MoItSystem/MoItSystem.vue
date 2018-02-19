@@ -32,6 +32,7 @@ export default {
     itSystem (newVal) {
       newVal.type = 'it'
       this.$emit('input', newVal)
+      this.$emit('isValid', false)
     },
 
     validity (newVal) {
