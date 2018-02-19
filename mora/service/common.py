@@ -194,8 +194,7 @@ def update_payload(valid_from: datetime.datetime,
                    obj: dict,
                    payload: dict):
     for field in relevant_fields:
-        field_tuple = field[0]
-        val = field[1]
+        field_tuple, val = field
         val['virkning'] = _create_virkning(valid_from, valid_to)
 
         # Get original properties
