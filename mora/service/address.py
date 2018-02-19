@@ -14,6 +14,7 @@ This section describes how to interact with addresses.
 
 '''
 
+import copy
 import itertools
 
 import flask
@@ -159,42 +160,126 @@ class Addresses(common.AbstractRelationDetail):
         )
 
 
-def create_address(employee_uuid, req):
-    scope = req[keys.ADDRESS_TYPE]['scope']
-    val = req[keys.ADDRESS]
-
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
-
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.bruger.get(uuid=employee_uuid)
+def get_relation_for(classobj, value):
+    scope = classobj['scope']
 
     if scope == 'DAR':
-        if not util.is_uuid(val):
-            raise ValueError('{!r} is not a valid address UUID!'.format(val))
+        if not util.is_uuid(value):
+            raise ValueError('{!r} is not a valid address UUID!'.format(value))
 
-        rel = {
-            'uuid': val,
-            'objekttype': req[keys.ADDRESS_TYPE]['uuid']
+        return {
+            'uuid': value,
+            'objekttype': classobj['uuid']
         }
 
     elif scope in addr.URN_FORMATS:
-        rel = {
-            'urn': addr.URN_FORMATS[scope].format(val),
-            'objekttype': req[keys.ADDRESS_TYPE]['uuid'],
+        return {
+            'urn': addr.URN_FORMATS[scope].format(value),
+            'objekttype': classobj['uuid'],
         }
 
     else:
         raise ValueError('unknown address scope {!r}!'.format(scope))
 
-    payload = common.update_payload(
+
+def convert_request(original, req, note):
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
+
+    return common.update_payload(
         valid_from,
         valid_to,
-        [(mapping.ADDRESSES_FIELD, rel)],
+        [(
+            mapping.ADDRESSES_FIELD,
+            get_relation_for(
+                req[keys.ADDRESS_TYPE],
+                req[keys.ADDRESS],
+            ),
+        )],
         original,
         {
-            'note': 'Tilføj adresse',
+            'note': note,
         },
     )
+
+
+def replace_relation_value(relations, old_entry, new_entry):
+    old_from = common.get_effect_from(old_entry)
+    old_to = common.get_effect_to(old_entry)
+
+    old_urn = old_entry.get('urn')
+    old_uuid = old_entry.get('uuid')
+    old_type = old_entry.get('objekttype')
+
+    for i, rel in enumerate(relations):
+        if (
+            common.get_effect_from(rel) == old_from and
+            common.get_effect_to(rel) == old_to and
+            rel.get('urn') == old_urn and
+            rel.get('uuid') == old_uuid and
+            rel.get('objekttype') == old_type
+        ):
+            new_rels = copy.deepcopy(relations)
+
+            new_rels[i] = new_entry
+
+            return new_rels
+
+    else:
+        raise ValueError('original entry not found!')
+
+
+def create_address(employee_uuid, req):
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    c.bruger.update(convert_request(original, req, 'Tilføj adresse'),
+                    employee_uuid)
+
+
+def edit_address(employee_uuid, req):
+
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
+
+    old_entry = req.get('original')
+    new_entry = req.get('data')
+
+    valid_from = common.get_valid_from(new_entry, old_entry)
+    valid_to = common.get_valid_to(new_entry, old_entry)
+
+    if not old_entry:
+        raise ValueError('original required!')
+
+    old_from = common.get_valid_from(old_entry)
+    old_to = common.get_valid_to(old_entry)
+
+    old_rel = get_relation_for(
+        old_entry[keys.ADDRESS_TYPE],
+        old_entry[keys.ADDRESS_PRETTY],
+    )
+
+    old_rel['virkning'] = {
+        'from': util.to_lora_time(old_from),
+        'to': util.to_lora_time(old_to),
+    }
+
+    new_rel = get_relation_for(
+        new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
+        new_entry.get('value') or old_entry[keys.ADDRESS_PRETTY],
+    )
+    new_rel['virkning'] = {
+        'from': util.to_lora_time(valid_from),
+        'to': util.to_lora_time(valid_to),
+    }
+
+    addresses = replace_relation_value(original['relationer']['adresser'],
+                                       old_rel, new_rel)
+
+    payload = {
+        'relationer': {
+            'adresser': addresses,
+        }
+    }
 
     c.bruger.update(payload, employee_uuid)

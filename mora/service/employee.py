@@ -745,6 +745,7 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
+        'address': address.edit_address,
         'engagement': engagement.edit_engagement,
         'association': association.edit_association,
         'role': role.edit_role,

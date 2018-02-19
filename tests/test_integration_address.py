@@ -384,6 +384,155 @@ class Writing(util.LoRATestCase):
                 ],
                 edited['relationer']['adresser'])
 
+    def test_edit_address(self):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        email_class = {
+            'example': 'test@example.com',
+            'name': 'Emailadresse',
+            'scope': 'EMAIL',
+            'user_key': 'Email',
+            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+        }
+
+        address_class = {
+            'example': '<UUID>',
+            'name': 'Adresse',
+            'scope': 'DAR',
+            'user_key': 'Adresse',
+            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+        }
+
+        address_classes = self.client.get(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/f/address_type/',
+        ).json
+
+        self.assertIn(email_class, address_classes)
+        self.assertIn(address_class, address_classes)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': email_class,
+                    'href': 'mailto:bruger@example.com',
+                    'pretty_value': 'bruger@example.com',
+                    'raw_value': 'urn:mailto:bruger@example.com',
+                    'validity': {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
+        )
+
+        # first, test editing the value & the end time
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "address",
+                "original": {
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'href': 'mailto:bruger@example.com',
+                    'pretty_value': 'bruger@example.com',
+                    'raw_value': 'urn:mailto:bruger@example.com',
+                    'validity': {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+                "data": {
+                    'value': 'user@example.com',
+                    "validity": {
+                        'to': '2040-01-01T00:00:00+01:00',
+                    },
+                }
+            }],
+        )
+
+        # verify our edit
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': email_class,
+                    'href': 'mailto:user@example.com',
+                    'pretty_value': 'user@example.com',
+                    'raw_value': 'urn:mailto:user@example.com',
+                    'validity': {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': '2040-01-01T00:00:00+01:00',
+                    },
+                },
+            ],
+        )
+
+        # second, test editing type, value, and removing the end date
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "address",
+                "original": {
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'href': 'mailto:user@example.com',
+                    'pretty_value': 'user@example.com',
+                    'raw_value': 'urn:mailto:user@example.com',
+                    'validity': {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': '2040-01-01T00:00:00+01:00',
+                    },
+                },
+                "data": {
+                    'address_type': address_class,
+                    'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'validity': {
+                        'to': None,
+                    },
+                }
+            }],
+        )
+
+        # verify the result
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=12.57924839&mlat=55.68113676&zoom=16',
+                    'pretty_value': 'Pilestræde 43, 3., 1112 København K',
+                    'raw_value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'validity': {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
+        )
+
     @unittest.expectedFailure
     def test_create_unit_address(self):
         self.load_sample_structures()
