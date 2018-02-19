@@ -36,6 +36,9 @@ def get_one_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
+        if not org or not common.is_reg_valid(org, 'organisationgyldighed'):
+            return None
+
     attrs = org['attributter']['organisationegenskaber'][0]
 
     return {
@@ -199,7 +202,8 @@ def get_one_orgunit(c, unitid, unit=None,
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
-        if not unit:
+        if not unit or not common.is_reg_valid(unit,
+                                               'organisationenhedgyldighed'):
             return None
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]
@@ -402,7 +406,12 @@ def get_orgunit_tree(unitid):
     '''
     c = common.get_connector()
 
-    return flask.jsonify(get_one_orgunit(c, unitid, details=UnitDetails.FULL))
+    r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
+
+    if r:
+        return flask.jsonify(r)
+    else:
+        raise werkzeug.exceptions.NotFound('no such unit')
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
