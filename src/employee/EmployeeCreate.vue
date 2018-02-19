@@ -20,7 +20,7 @@
     <mo-it-system v-model="itSystem" :validity="engagement.validity"/>
 
     <div class="float-right">
-      <button-submit @click.native="createEmployee" :is-disabled="isDisabled" :is-loading="isLoading"/>
+      <button-submit :on-click-action="createEmployee" :is-disabled="isDisabled" :is-loading="isLoading"/>
     </div>
   </b-modal>
 

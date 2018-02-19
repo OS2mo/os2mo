@@ -38,7 +38,7 @@
       </div>
 
     <div class="float-right">
-      <button-submit @click.native="moveEmployee" :is-loading="isLoading"/>
+      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading"/>
     </div>
   </div>
 </b-modal>

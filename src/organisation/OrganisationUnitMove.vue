@@ -41,7 +41,7 @@
     <div class="float-right">
       <button-submit 
       :disabled="errors.any() || !isCompleted"
-      @click.native="moveUnit"
+      :on-click-action="moveUnit"
       />
     </div> 
   </b-modal>

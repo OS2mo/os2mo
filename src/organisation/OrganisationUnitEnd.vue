@@ -20,7 +20,7 @@
     <div class="float-right">
       <button-submit
       :is-disabled="isDisabled"
-      @click.native="endOrganisationUnit"
+      :on-click-action="endOrganisationUnit"
       />
     </div>
   </b-modal>

@@ -18,7 +18,7 @@
     <div class="float-right">
       <button-submit 
       :is-disabled="isDisabled"
-      @click.native="createLeave"/>
+      :on-click-action="createLeave"/>
     </div>
   </b-modal>
 

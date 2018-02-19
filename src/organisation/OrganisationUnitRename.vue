@@ -39,7 +39,7 @@
     <div class="float-right">
       <button-submit 
       :disabled="errors.any() || !isCompleted"
-      @click.native="renameOrganisationUnit"
+      :on-click-action="renameOrganisationUnit"
       />
     </div>
   </b-modal>

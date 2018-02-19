@@ -1,7 +1,7 @@
 <template>
   <div>
   <loading v-show="isLoading"/>
-  <button :disabled="isDisabled" type="button" class="btn btn-primary" v-show="!isLoading">
+  <button :disabled="isDisabled" @click="onClickAction" type="button" class="btn btn-primary" v-show="!isLoading">
     <icon name="check"/>
   </button>
   </div>
@@ -15,7 +15,8 @@ export default {
   },
   props: {
     isDisabled: Boolean,
-    isLoading: Boolean
+    isLoading: Boolean,
+    onClickAction: Function
   },
   data () {
     return {}

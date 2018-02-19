@@ -11,7 +11,7 @@
         <date-picker label="Slutdato" v-model="validFrom"/>
       </div>
       <div class="float-right">
-        <button-submit @click.native="endEmployee"/>
+        <button-submit :on-click-action="endEmployee"/>
       </div>
   </div>
 </b-modal>
