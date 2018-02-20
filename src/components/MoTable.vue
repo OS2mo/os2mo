@@ -68,7 +68,8 @@
         label: {
           org_unit: 'Enhed',
           job_function: 'Stillingsbetegnelse',
-          engagement_type: 'Engagementstype'
+          engagement_type: 'Engagementstype',
+          association_type: 'Tilknytningstype'
         }
       }
     },

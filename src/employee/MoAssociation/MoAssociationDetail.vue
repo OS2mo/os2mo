@@ -1,80 +1,30 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
+    <mo-table-collapsible-tense
+      :columns="columns"
+      :content="details"
+      :loading="loading"
+      :edit-component="editComponent"
+      :uuid="uuid"
+    />
 
-    <table class="table table-striped" v-show="!isLoading">
-      <thead>
-        <tr>
-          <th scope="col">Enhed</th>
-          <th scope="col">Stillingsbetegnelse</th>
-          <th scope="col">Tilknytningstype</th>
-          <th scope="col">Startdato</th>
-          <th scope="col">Slutdato</th>
-          <th></th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <!-- <tr>
-          <th scope="col">Fortid</th>
-        </tr>
-        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function | getProperty('name')}}</td>
-          <td>
-              {{d.association_type | getProperty('name')}}
-          </td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-        </tr>
-
-        <tr>
-          <th scope="col">Nutid</th>
-        </tr> -->
-        <tr v-for="d in details" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function | getProperty('name')}}</td>
-          <td>
-              {{d.association_type | getProperty('name')}}
-          </td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-          <td>
-            <!-- <mo-edit :uuid="uuid" :content="d" type="association"/> -->
-          </td>
-        </tr>
-
-        <!-- <tr>
-          <th scope="col">Fremtid</th>
-        </tr>
-        <tr v-for="d in detailsFuture" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function | getProperty('name')}}</td>
-          <td>
-              {{d.association_type | getProperty('name')}}
-          </td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-        </tr> -->
-      </tbody>
-    </table>
+    <mo-association-modal :uuid="uuid" type="CREATE" label="Ny tilknytning"/>
   </div>
 </template>
 
 
 <script>
   import Employee from '../../api/Employee'
-  import '../../filters/GetProperty'
-  // import MoTable from '../../components/MoTable'
-  import Loading from '../../components/Loading'
+  import { EventBus } from '../../EventBus'
+  import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
+  import MoAssociationModal from './MoAssociationModal'
 
   export default {
     components: {
-      // MoTable,
-      Loading
+      MoTableCollapsibleTense,
+      MoAssociationModal
     },
     props: {
-      value: Object,
       uuid: {
         type: String,
         required: true
@@ -82,35 +32,48 @@
     },
     data () {
       return {
-        details: [],
-        detailsPast: [],
-        detailsFuture: [],
-        isLoading: false
+        details: {
+          present: [],
+          past: [],
+          future: []
+        },
+        loading: {
+          present: false,
+          past: false,
+          future: false
+        },
+        columns: ['org_unit', 'job_function', 'association_type'],
+        editComponent: MoAssociationModal
       }
     },
+    mounted () {
+      EventBus.$on('employee-changed', () => {
+        this.getAllDetails()
+      })
+    },
     created () {
-      this.getDetails()
+      this.getAllDetails()
     },
     methods: {
-      getDetails () {
-        var vm = this
-        vm.isLoading = true
-        return Employee.getAssociationDetails(this.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.details = response
-          return response
+      getAllDetails () {
+        let tense = ['past', 'present', 'future']
+
+        tense.forEach(t => {
+          this.getDetails(t)
         })
-        // Employee.getAssociationDetails(this.uuid, 'past')
-        // .then(response => {
-        //   vm.detailsPast = response
-        // })
-        // Employee.getAssociationDetails(this.uuid, 'future')
-        // .then(response => {
-        //   vm.detailsFuture = response
-        // })
+      },
+
+      getDetails (tense) {
+        let vm = this
+        vm.loading.present = true
+        Employee.getAssociationDetails(this.uuid, tense)
+        .then(response => {
+          vm.loading[tense] = false
+          vm.details[tense] = response
+        })
       }
     }
   }
 </script>
+
 
