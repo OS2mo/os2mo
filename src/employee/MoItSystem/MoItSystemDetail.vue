@@ -52,11 +52,9 @@
 
 <script>
   import Employee from '../../api/Employee'
-  // import MoEdit from '../MoEdit/MoEdit'
 
   export default {
     components: {
-      // MoEdit
     },
     props: {
       uuid: {

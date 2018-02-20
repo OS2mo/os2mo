@@ -56,12 +56,10 @@
   import '../../filters/GetProperty'
   import Loading from '../../components/Loading'
   import { EventBus } from '../../EventBus'
-  // import MoEdit from '../MoEdit/MoEdit'
 
   export default {
     components: {
       Loading
-      // MoEdit
     },
     props: {
       uuid: {

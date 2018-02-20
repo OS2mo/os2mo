@@ -65,13 +65,11 @@
 <script>
   import Employee from '../../api/Employee'
   import '../../filters/GetProperty'
-  // import MoEdit from '../MoEdit/MoEdit'
   // import MoTable from '../../components/MoTable'
   import Loading from '../../components/Loading'
 
   export default {
     components: {
-      // MoEdit,
       // MoTable,
       Loading
     },
