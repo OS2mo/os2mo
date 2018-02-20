@@ -6,6 +6,7 @@
       @click="showModal=true"
     >
       <icon :name="iconLabel" />
+      {{label}}
     </button>
 
     <b-modal
@@ -47,6 +48,7 @@
     props: {
       value: Object,
       uuid: String,
+      label: String,
       content: Object,
       type: {
         type: String,
