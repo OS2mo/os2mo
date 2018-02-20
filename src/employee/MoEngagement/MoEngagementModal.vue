@@ -46,7 +46,6 @@
       ButtonSubmit
     },
     props: {
-      value: Object,
       uuid: String,
       label: String,
       content: Object,

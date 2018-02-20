@@ -57,7 +57,7 @@
     methods: {
       getAllDetails () {
         let tense = ['past', 'present', 'future']
-        
+
         tense.forEach(t => {
           this.getDetails(t)
         })
