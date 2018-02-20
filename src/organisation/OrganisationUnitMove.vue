@@ -50,6 +50,7 @@
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import DatePicker from '../components/DatePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
+  import '../filters/GetProperty'
 
   export default {
     components: {
@@ -76,7 +77,7 @@
       move: {
         handler (newVal) {
           if (!newVal) return
-          this.getCurrentUnit(newVal.original.uuid)
+          this.getCurrentUnit(newVal.original.uuid | this.Getproperty)
         }
       },
       deep: true
