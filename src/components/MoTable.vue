@@ -74,7 +74,7 @@
     },
     computed: {
       contentAvailable () {
-        return this.content.length > 0
+        return this.content ? this.content.length > 0 : false
       }
     }
   }
