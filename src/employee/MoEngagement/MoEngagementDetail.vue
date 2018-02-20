@@ -1,63 +1,35 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
-    <table class="table table-striped" v-show="!isLoading">
-      <thead>
-        <tr>
-          <th scope="col">Enhed</th>
-          <th scope="col">Stillingsbetegnelse</th>
-          <th scope="col">Engagementstype</th>
-          <th scope="col">Startdato</th>
-          <th scope="col">Slutdato</th>
-          <th></th>
-        </tr>
-      </thead>
+    <mo-collapse title="Fremtid">
+      <mo-table 
+        :columns="columns"
+        :content="detailsFuture"
+        :is-loading="loading.future"
+        :edit-component="editComponent"
+        :edit-uuid="uuid"
+      />
+    </mo-collapse>
+    <mo-collapse title="Nutid" initially-open>
+      <mo-table 
+        :columns="columns"
+        :content="details"
+        :is-loading="loading.present"
+        :edit-component="editComponent"
+        :edit-uuid="uuid"
+      />
+    </mo-collapse>
 
-      <tbody>
-        <tr>
-          <th scope="col">Fortid</th>
-        </tr>
-        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function | getProperty('name')}}</td>
-          <td>
-              {{d.engagement_type | getProperty('name')}}
-          </td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-        </tr>
+    <mo-collapse title="Fortid">
+      <mo-table 
+        :columns="columns"
+        :content="detailsPast"
+        :is-loading="loading.past"
+        :edit-component="editComponent"
+        :edit-uuid="uuid"
+      />
+    </mo-collapse>
 
-        <tr>
-          <th scope="col">Nutid</th>
-        </tr>
-        <tr v-for="d in details" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function | getProperty('name')}}</td>
-          <td>
-              {{d.engagement_type | getProperty('name')}}
-          </td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-          <td>
-            <mo-engagement-modal :uuid="uuid" :content="d" type="EDIT"/>
-          </td>
-        </tr>
-
-        <tr>
-          <th scope="col">Fremtid</th>
-        </tr>
-        <tr v-for="d in detailsFuture" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.job_function | getProperty('name')}}</td>
-          <td>
-              {{d.engagement_type | getProperty('name')}}
-          </td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <mo-engagement-modal :uuid="uuid" type="CREATE"/>
+    <mo-engagement-modal :uuid="uuid" type="CREATE" label="Nyt engagement"/>
   </div>
 </template>
 
@@ -65,12 +37,16 @@
 <script>
   import Employee from '../../api/Employee'
   import '../../filters/GetProperty'
-  import Loading from '../../components/Loading'
   import { EventBus } from '../../EventBus'
+  import MoCollapse from '../../components/MoCollapse'
+  import MoTable from '../../components/MoTable'
+  import Loading from '../../components/Loading'
   import MoEngagementModal from './MoEngagementModal'
 
   export default {
     components: {
+      MoCollapse,
+      MoTable,
       Loading,
       MoEngagementModal
     },
@@ -86,32 +62,56 @@
         details: [],
         detailsPast: [],
         detailsFuture: [],
-        isLoading: false
+        loading: {
+          present: false,
+          past: false,
+          future: false
+        },
+        columns: ['org_unit', 'job_function', 'engagement_type'],
+        editComponent: MoEngagementModal
       }
     },
     mounted () {
       EventBus.$on('employee-changed', () => {
-        this.getDetails()
+        this.getAllDetails()
       })
     },
     created () {
-      this.getDetails()
+      this.getAllDetails()
     },
     methods: {
+      getAllDetails () {
+        this.getDetails()
+        this.getDetailsPast()
+        this.getDetailsFuture()
+      },
+
       getDetails () {
-        var vm = this
-        vm.isLoading = true
+        let vm = this
+        vm.loading.present = true
         Employee.getEngagementDetails(this.uuid)
         .then(response => {
-          vm.isLoading = false
+          vm.loading.present = false
           vm.details = response
         })
+      },
+
+      getDetailsPast () {
+        let vm = this
+        vm.loading.past = true
         Employee.getEngagementDetails(this.uuid, 'past')
         .then(response => {
+          vm.loading.past = false
           vm.detailsPast = response
         })
+      },
+
+      getDetailsFuture () {
+        let vm = this
+        vm.loading.future = true
         Employee.getEngagementDetails(this.uuid, 'future')
         .then(response => {
+          vm.loading.future = false
           vm.detailsFuture = response
         })
       }
