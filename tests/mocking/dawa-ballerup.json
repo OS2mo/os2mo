@@ -60,6 +60,128 @@
       }
     ]
   },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=Ballerup+Idr%C3%A6tsby+38%2C+2750+Ballerup": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f507b-7d9f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "Ballerup Idr\u00e6tsby",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/9ab45e95-a42a-47c0-b284-e5d2377fc429",
+          "husnr": "38",
+          "id": "9ab45e95-a42a-47c0-b284-e5d2377fc429",
+          "postnr": "2750",
+          "postnrnavn": "Ballerup",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Ballerup Idr\u00e6tsby"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f507b-7d9f-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "Ballerup Idr\u00e6tsby",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/9ab45e95-a42a-47c0-b284-e5d2377fc429",
+          "husnr": "38",
+          "id": "9ab45e95-a42a-47c0-b284-e5d2377fc429",
+          "postnr": "2750",
+          "postnrnavn": "Ballerup",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Ballerup Idr\u00e6tsby"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "38",
+            "postnr": "2750",
+            "postnrnavn": "Ballerup",
+            "vejnavn": "Ballerup Idr\u00e6tsby"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "38",
+            "postnr": "2750",
+            "postnrnavn": "Ballerup",
+            "supplerendebynavn": null,
+            "vejnavn": "Ballerup Idr\u00e6tsby"
+          }
+        }
+      }
+    ]
+  },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=Baneg\u00e5rdspladsen+1%2C+2750+Ballerup": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "0a3f507b-6331-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "Baneg\u00e5rdspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/99b29a62-01fd-40be-b5fe-8bfc4be35e83",
+          "husnr": "1",
+          "id": "99b29a62-01fd-40be-b5fe-8bfc4be35e83",
+          "postnr": "2750",
+          "postnrnavn": "Ballerup",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Baneg\u00e5rdspladsen"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "0a3f507b-6331-32b8-e044-0003ba298018",
+          "adresseringsvejnavn": "Baneg\u00e5rdspladsen",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/99b29a62-01fd-40be-b5fe-8bfc4be35e83",
+          "husnr": "1",
+          "id": "99b29a62-01fd-40be-b5fe-8bfc4be35e83",
+          "postnr": "2750",
+          "postnrnavn": "Ballerup",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Baneg\u00e5rdspladsen"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "1",
+            "postnr": "2750",
+            "postnrnavn": "Ballerup",
+            "vejnavn": "Baneg\u00e5rdspladsen"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "1",
+            "postnr": "2750",
+            "postnrnavn": "Ballerup",
+            "supplerendebynavn": null,
+            "vejnavn": "Baneg\u00e5rdspladsen"
+          }
+        }
+      }
+    ]
+  },
   "http://dawa.aws.dk/datavask/adresser?betegnelse=Hold-an+Vej+7%2C+2750+Ballerup": {
     "kategori": "A",
     "resultater": [
@@ -178,6 +300,67 @@
             "postnrnavn": "K\u00f8benhavn K",
             "supplerendebynavn": null,
             "vejnavn": "Pilestr\u00e6de"
+          }
+        }
+      }
+    ]
+  },
+  "http://dawa.aws.dk/datavask/adresser?betegnelse=Torvevej+21%2C+2740+Skovlunde": {
+    "kategori": "A",
+    "resultater": [
+      {
+        "adresse": {
+          "adgangsadresseid": "5d0bf402-ac49-417b-b181-6492818c273d",
+          "adresseringsvejnavn": "Torvevej",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/45b40fc3-bb75-412c-b122-d9df7b0ade94",
+          "husnr": "21",
+          "id": "45b40fc3-bb75-412c-b122-d9df7b0ade94",
+          "postnr": "2740",
+          "postnrnavn": "Skovlunde",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Torvevej"
+        },
+        "aktueladresse": {
+          "adgangsadresseid": "5d0bf402-ac49-417b-b181-6492818c273d",
+          "adresseringsvejnavn": "Torvevej",
+          "d\u00f8r": null,
+          "etage": null,
+          "href": "http://dawa.aws.dk/adresser/45b40fc3-bb75-412c-b122-d9df7b0ade94",
+          "husnr": "21",
+          "id": "45b40fc3-bb75-412c-b122-d9df7b0ade94",
+          "postnr": "2740",
+          "postnrnavn": "Skovlunde",
+          "status": 1,
+          "supplerendebynavn": null,
+          "vejnavn": "Torvevej"
+        },
+        "vaskeresultat": {
+          "afstand": 0,
+          "anvendtstormodtagerpostnummer": null,
+          "forskelle": {
+            "husnr": 0,
+            "postnr": 0,
+            "postnrnavn": 0,
+            "vejnavn": 0
+          },
+          "parsetadresse": {
+            "husnr": "21",
+            "postnr": "2740",
+            "postnrnavn": "Skovlunde",
+            "vejnavn": "Torvevej"
+          },
+          "ukendtetokens": [],
+          "variant": {
+            "d\u00f8r": null,
+            "etage": null,
+            "husnr": "21",
+            "postnr": "2740",
+            "postnrnavn": "Skovlunde",
+            "supplerendebynavn": null,
+            "vejnavn": "Torvevej"
           }
         }
       }
