@@ -262,82 +262,82 @@ def validate_it(func):
 
 @validate_it
 def create_system(employee_uuid, req):
-        systemid = req[keys.ITSYSTEM].get('uuid')
-        valid_from = common.get_valid_from(req)
-        valid_to = common.get_valid_to(req)
+    systemid = req[keys.ITSYSTEM].get('uuid')
+    valid_from = common.get_valid_from(req)
+    valid_to = common.get_valid_to(req)
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.bruger.get(uuid=employee_uuid)
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
 
-        payload = common.update_payload(
-            valid_from,
-            valid_to,
-            [(
-                mapping.ITSYSTEMS_FIELD,
-                {
-                    'objekttype': 'itsystem',
-                    'uuid': systemid,
-                }
-            )],
-            original,
+    payload = common.update_payload(
+        valid_from,
+        valid_to,
+        [(
+            mapping.ITSYSTEMS_FIELD,
             {
-                'note': 'Tilføj IT-system',
-            },
-        )
+                'objekttype': 'itsystem',
+                'uuid': systemid,
+            }
+        )],
+        original,
+        {
+            'note': 'Tilføj IT-system',
+        },
+    )
 
-        c.bruger.update(payload, employee_uuid)
+    c.bruger.update(payload, employee_uuid)
 
 
 def edit_system(employee_uuid, req):
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.bruger.get(uuid=employee_uuid)
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.bruger.get(uuid=employee_uuid)
 
-        old_entry = req.get('original')
-        old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
+    old_entry = req.get('original')
+    old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        if not old_entry:
-            raise ValueError('original required!')
+    if not old_entry:
+        raise ValueError('original required!')
 
-        # We are performing an update of a pre-existing effect
-        old_id = old_entry['uuid']
-        old_from = common.get_valid_from(old_entry)
-        old_to = common.get_valid_to(old_entry)
+    # We are performing an update of a pre-existing effect
+    old_id = old_entry['uuid']
+    old_from = common.get_valid_from(old_entry)
+    old_to = common.get_valid_to(old_entry)
 
-        new_entry = req['data']
+    new_entry = req['data']
 
-        new_id = new_entry.get('uuid') or old_id
-        new_from = common.get_valid_from(new_entry, old_entry)
-        new_to = common.get_valid_to(new_entry, old_entry)
+    new_id = new_entry.get('uuid') or old_id
+    new_from = common.get_valid_from(new_entry, old_entry)
+    new_to = common.get_valid_to(new_entry, old_entry)
 
-        new_rel = [
-            rel
-            for rel in old_rel
-            if not (common.get_effect_from(rel) == old_from and
-                    common.get_effect_to(rel) == old_to and
-                    rel.get('uuid') == old_id)
-        ]
+    new_rel = [
+        rel
+        for rel in old_rel
+        if not (common.get_effect_from(rel) == old_from and
+                common.get_effect_to(rel) == old_to and
+                rel.get('uuid') == old_id)
+    ]
 
-        # FIXME: this should be a validation error!
-        if len(new_rel) == len(old_rel):
-            raise ValueError('original entry not found')
+    # FIXME: this should be a validation error!
+    if len(new_rel) == len(old_rel):
+        raise ValueError('original entry not found')
 
-        replacement = copy.deepcopy(original)
-        replacement['relationer']['tilknyttedeitsystemer'] = new_rel
+    replacement = copy.deepcopy(original)
+    replacement['relationer']['tilknyttedeitsystemer'] = new_rel
 
-        payload = common.update_payload(
-            new_from,
-            new_to,
-            [(
-                mapping.ITSYSTEMS_FIELD,
-                {
-                    'objekttype': 'itsystem',
-                    'uuid': new_id,
-                }
-            )],
-            replacement,
+    payload = common.update_payload(
+        new_from,
+        new_to,
+        [(
+            mapping.ITSYSTEMS_FIELD,
             {
-                'note': 'Rediger IT-system',
-            },
-        )
+                'objekttype': 'itsystem',
+                'uuid': new_id,
+            }
+        )],
+        replacement,
+        {
+            'note': 'Rediger IT-system',
+        },
+    )
 
-        c.bruger.update(payload, employee_uuid)
+    c.bruger.update(payload, employee_uuid)
