@@ -19,6 +19,21 @@ export default {
   },
 
   /**
+   * Get an tree unit
+   * @param {String} uuid - tree unit uuid
+   * @returns {Object} tree unit object
+   */
+  getTree (uuid) {
+    return Service.get(`/ou/${uuid}/tree`)
+    .then(response => {
+      return response.data
+    })
+    .catch(e => {
+      console.log(e)
+    })
+  },
+
+  /**
    * Get an organisation unit
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
@@ -149,23 +164,20 @@ export default {
     })
   },
 
-    /**
-   * Move an organisation unit
-   * @param {Object} orgUnit - organisation unit to move
-   * @param {String} toUuid - uuid for the new parent organisation unit
-   * @param {String} date - the move date
+  /**
+   * Edit an organisation unit
+   * @param {String} uuid - organisation unit uuid
+   * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
-  move (orgUnit, toUuid, date) {
-    var obj = {
-      'moveDate': date,
-      'newParentOrgUnitUUID': toUuid
-    }
-
-    return HTTP.post(`/org-unit/${orgUnit.uuid}/actions/move`, obj)
+  edit (uuid, edit) {
+    return Service.post(`/ou/${uuid}/edit`, edit)
     .then(response => {
-      EventBus.$emit('org-unit-move', response.data)
+      EventBus.$emit('organisation-unit-changed', response.data)
       return response.data
+    })
+    .catch(error => {
+      console.log(error.response)
     })
   },
 

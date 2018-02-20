@@ -8,16 +8,15 @@
     <div class="form-row">
       <date-picker 
       label="Dato for flytning"
-      v-model="date"
+      v-model="move.data.validity.from"
       />
     </div>
 
     <div class="form-row">
       <div class="col">
         <organisation-unit-picker 
-          v-model="unit"
+          v-model="move.original"
           label="Fremsøg enhed"
-          :preselected="unit"
         />
       </div>
 
@@ -26,15 +25,14 @@
         <input 
           type="text" 
           class="form-control" 
-          id="" 
-          :value="currentSuperUnit.name" 
+          :value="currentUnit" 
           disabled
         >
       </div>
     </div>
 
     <organisation-unit-picker 
-      v-model="newSuperUnit"
+      v-model="move.data.parent"
       label="Angiv ny overenhed"
     />
 
@@ -52,7 +50,7 @@
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import DatePicker from '../components/DatePicker'
   import ButtonSubmit from '../components/ButtonSubmit'
-  import { EventBus } from '../EventBus'
+  import '../filters/GetProperty'
 
   export default {
     components: {
@@ -60,45 +58,52 @@
       DatePicker,
       ButtonSubmit
     },
-    data () {
-      return {
-        unit: {},
-        date: null,
-        newSuperUnit: {},
-        currentSuperUnit: {}
+    computed: {
+      isDisabled () {
+        if (this.move.data.validity.from === null || this.move.original === undefined || this.move.data.parent === undefined) return true
       }
     },
-    computed: {
-      isCompleted () {
-        return this.date && this.unit && this.newSuperUnit
+    data () {
+      return {
+        currentUnit: '',
+        move: {
+          data: {
+            validity: {}
+          }
+        }
       }
     },
     watch: {
-      unit (newVal, oldVal) {
-        this.getCurrentSuperUnit(newVal.parent)
-      }
-    },
-    mounted () {
-      EventBus.$on('organisation-unit-changed', selectedUnit => {
-        this.unit = selectedUnit
-      })
+      move: {
+        handler (newVal) {
+          if (!newVal) return
+          this.getCurrentUnit(newVal.original.uuid | this.Getproperty)
+        }
+      },
+      deep: true
     },
     methods: {
-      moveUnit () {
+      moveOrganisationUnit () {
         let vm = this
-        OrganisationUnit.move(vm.unit, vm.newSuperUnit.uuid, vm.date)
+        vm.isLoading = true
+
+        OrganisationUnit.edit(this.move.original.uuid, this.move)
         .then(response => {
           vm.$refs.orgUnitMove.hide()
         })
+        .catch(err => {
+          console.log(err)
+          vm.isLoading = false
+        })
       },
 
-      getCurrentSuperUnit (unitUuid) {
+      getCurrentUnit (unitUuid) {
         let vm = this
         if (!unitUuid) return
-        OrganisationUnit.get(unitUuid)
+        OrganisationUnit.getTree(unitUuid)
         .then(response => {
           console.log(response)
-          vm.currentSuperUnit = response
+          vm.currentUnit = response.parent.name
         })
       }
     }
