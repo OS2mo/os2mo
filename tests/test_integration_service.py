@@ -9,6 +9,7 @@
 import datetime
 
 import freezegun
+from flask import json
 
 from mora import lora
 
@@ -1115,3 +1116,216 @@ class Tests(util.LoRATestCase):
                     'role': False,
                 },
             )
+
+
+class HistoryTest(util.LoRATestCase):
+    def test_employee_history(self):
+        # Create and edit a bunch of stuff, followed by a terminate
+        # Arrange
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        # Act
+        self._perform_request(
+            '/service/e/{}/edit'.format(userid),
+            json=[
+                {
+                    "type": "engagement",
+                    "uuid": 'd000591f-8705-4324-897a-075e3623f37b',
+                    "data": {
+                        "validity": {
+                            "from": "2018-04-01T00:00:00+02",
+                        }
+                    },
+                },
+                {
+                    "type": "association",
+                    "uuid": 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+                    "data": {
+                        "validity": {
+                            "from": "2018-04-01T00:00:00+02",
+                        }
+                    },
+                },
+                {
+                    "type": "role",
+                    "uuid": '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                    "data": {
+                        "validity": {
+                            "from": "2018-04-01T00:00:00+02",
+                        }
+                    },
+                },
+                {
+                    "type": "leave",
+                    "uuid": 'b807628c-030c-4f5f-a438-de41c1f26ba5',
+                    "data": {
+                        "validity": {
+                            "from": "2018-04-01T00:00:00+02",
+                        }
+                    },
+                },
+                {
+                    "type": "manager",
+                    "uuid": '05609702-977f-4869-9fb4-50ad74c6999a',
+                    "data": {
+                        "validity": {
+                            "from": "2018-04-01T00:00:00+02",
+                        }
+                    },
+                },
+            ])
+
+        self._perform_request(
+            '/service/e/{}/create'.format(userid),
+            json=[
+                {
+                    "type": "engagement",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                    "job_function": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    "engagement_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": "2017-12-02T00:00:00+01",
+                    }
+                },
+                {
+                    "type": "association",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                    "job_function": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    "association_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                    },
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": "2017-12-02T00:00:00+01",
+                    },
+                },
+                {
+                    "type": "role",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                    "role_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": "2017-12-02T00:00:00+01",
+                    },
+                },
+                {
+                    "type": "leave",
+                    "leave_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": "2017-12-02T00:00:00+01",
+                    },
+                },
+                {
+                    "type": "manager",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                    "responsibility": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    "manager_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                    },
+                    "manager_level": {
+                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                    },
+                    "validity": {
+                        "from": "2017-12-01T00:00:00+01",
+                        "to": "2017-12-02T00:00:00+01",
+                    },
+                },
+            ])
+
+        self._perform_request(
+            '/service/e/{}/terminate'.format(userid),
+            json={
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01"
+                }
+            })
+
+        expected_result = [
+            {
+                'action': 'Afslut medarbejder',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Opret leder',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Opret orlov',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Opret rolle',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Opret tilknytning',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Opret engagement',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Rediger leder',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Rediger orlov',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Rediger rolle',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Rediger tilknytning',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': 'Rediger engagement',
+                'life_cycle_code': 'Rettet',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            },
+            {
+                'action': None,
+                'life_cycle_code': 'Importeret',
+                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+            }
+        ]
+
+        # Assert
+        r = self._perform_request(
+            '/service/e/{}/history'.format(userid),
+        )
+        actual_result = json.loads(r.get_data())
+        # 'From' and 'to' contain timestamps generated by the database,
+        # and as such are unreliable in testing
+        for obj in actual_result:
+            del obj['from']
+            del obj['to']
+
+        self.assertEqual(expected_result, actual_result)
