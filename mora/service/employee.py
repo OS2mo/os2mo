@@ -856,7 +856,7 @@ def terminate_employee(employee_uuid):
     return flask.jsonify(employee_uuid), 200
 
 
-@blueprint.route('/e/<uuid:employee_uuid>/history', methods=['GET'])
+@blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
 def get_employee_history(employee_uuid):
     """
     Get the history of an employee
