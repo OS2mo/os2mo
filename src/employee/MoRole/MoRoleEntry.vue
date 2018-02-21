@@ -43,14 +43,15 @@ export default {
     }
   },
   watch: {
-    role (newVal) {
-      newVal.type = 'role'
-      this.$emit('input', newVal)
-    },
-
-    validity (newVal) {
-      this.role.validity = newVal
-      console.log(newVal)
+    role: {
+      handler (newVal) {
+        newVal.type = 'role'
+        this.$emit('input', newVal)
+        let valid = false
+        if (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined) valid = true
+        this.$emit('is-valid', valid)
+      },
+      deep: true
     }
   },
   created () {

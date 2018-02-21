@@ -1,65 +1,28 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
-    <table class="table table-striped" v-show="!isLoading">
-      <thead>
-        <tr>
-          <th scope="col">Enhed</th>
-          <th scope="col">Rolle</th>
-          <th scope="col">Startdato</th>
-          <th scope="col">Slutdato</th>
-          <th></th>
-        </tr>
-      </thead>
+    <mo-table-collapsible-tense
+      :columns="columns"
+      :content="details"
+      :loading="loading"
+      :edit-component="editComponent"
+      :uuid="uuid"
+    />
 
-      <tbody>
-        <tr>
-          <th scope="col">Fortid</th>
-        </tr>
-        <tr v-for="d in detailsPast" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.role_type | getProperty('name')}}</td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-        </tr>
-
-        <tr>
-          <th scope="col">Nutid</th>
-        </tr>
-        <tr v-for="d in details" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.role_type | getProperty('name')}}</td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-          <td>
-            <!-- <mo-edit :uuid="uuid" :content="d" type="role"/> -->
-          </td>
-        </tr>
-
-        <tr>
-          <th scope="col">Fremtid</th>
-        </tr>
-        <tr v-for="d in detailsFuture" v-bind:key="d.uuid">
-          <td><router-link :to="{ name: 'OrganisationDetail', params: {'uuid': d.org_unit.uuid} }">{{d.org_unit.name}}</router-link></td>
-          <td>{{d.role_type | getProperty('name')}}</td>
-          <td>{{d.validity.from | moment('DD-MM-YYYY')}}</td>
-          <td>{{d.validity.to | moment('DD-MM-YYYY')}}</td>
-        </tr>
-      </tbody>
-    </table>
+    <mo-role-modal :uuid="uuid" type="CREATE" label="Nyt engagement"/>
   </div>
 </template>
 
 
 <script>
   import Employee from '../../api/Employee'
-  import '../../filters/GetProperty'
-  import Loading from '../../components/Loading'
   import { EventBus } from '../../EventBus'
+  import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
+  import MoRoleModal from './MoRoleModal'
 
   export default {
     components: {
-      Loading
+      MoTableCollapsibleTense,
+      MoRoleModal
     },
     props: {
       uuid: {
@@ -69,45 +32,46 @@
     },
     data () {
       return {
-        details: [],
-        detailsPast: [],
-        detailsFuture: [],
-        isLoading: false
+        details: {
+          present: [],
+          past: [],
+          future: []
+        },
+        loading: {
+          present: false,
+          past: false,
+          future: false
+        },
+        columns: ['org_unit', 'role_type'],
+        editComponent: MoRoleModal
       }
     },
     mounted () {
       EventBus.$on('employee-changed', () => {
-        this.getDetails()
+        this.getAllDetails()
       })
     },
     created () {
-      this.getDetails()
+      this.getAllDetails()
     },
     methods: {
-      getDetails () {
-        var vm = this
-        vm.isLoading = true
-        Employee.getRoleDetails(this.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.details = response
+      getAllDetails () {
+        let tense = ['past', 'present', 'future']
+
+        tense.forEach(t => {
+          this.getDetails(t)
         })
-        Employee.getRoleDetails(this.uuid, 'past')
+      },
+
+      getDetails (tense) {
+        let vm = this
+        vm.loading.present = true
+        Employee.getRoleDetails(this.uuid, tense)
         .then(response => {
-          vm.detailsPast = response
-        })
-        Employee.getRoleDetails(this.uuid, 'future')
-        .then(response => {
-          vm.detailsFuture = response
+          vm.loading[tense] = false
+          vm.details[tense] = response
         })
       }
     }
   }
 </script>
-<style scoped>
-
-th{
-  background-color: #ffffff;
-}
-
-</style>

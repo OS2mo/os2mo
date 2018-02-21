@@ -69,7 +69,8 @@
           org_unit: 'Enhed',
           job_function: 'Stillingsbetegnelse',
           engagement_type: 'Engagementstype',
-          association_type: 'Tilknytningstype'
+          association_type: 'Tilknytningstype',
+          role_type: 'Rolle'
         }
       }
     },
