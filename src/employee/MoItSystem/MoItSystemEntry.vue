@@ -23,7 +23,6 @@ export default {
   data () {
     return {
       itSystem: {
-        type: 'it',
         validity: {}
       }
     }
@@ -32,7 +31,9 @@ export default {
     itSystem (newVal) {
       newVal.type = 'it'
       this.$emit('input', newVal)
-      this.$emit('isValid', false)
+      let valid = false
+      if (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined) valid = true
+      this.$emit('is-valid', valid)
     },
 
     validity (newVal) {
@@ -40,7 +41,7 @@ export default {
     }
   },
   created () {
-    this.itSystem.itsystem = this.value
+    this.itSystem = this.value
   }
 }
 </script>

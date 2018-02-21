@@ -75,7 +75,9 @@
           engagement_type: 'Engagementstype',
           association_type: 'Tilknytningstype',
           role_type: 'Rolle',
-          leave_type: "Orlovstype"
+          leave_type: 'Orlovstype',
+          it_system: 'System',
+          user: 'Brugernavn'
         }
       }
     },
