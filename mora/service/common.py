@@ -518,8 +518,9 @@ def is_reg_valid(reg):
                 for gyldighed_obj in tilstand])
 
 
-def add_bruger_history_entry(employee_uuid, employee_obj, note: str):
+def add_bruger_history_entry(employee_uuid, note: str):
     c = lora.Connector()
+    employee_obj = c.bruger.get(employee_uuid)
 
     # XXX: We have to make some sort of 'meaningful' change to data to be
     # able to update the 'note' field - which for now amounts to just

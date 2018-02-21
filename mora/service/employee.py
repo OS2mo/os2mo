@@ -404,7 +404,6 @@ def create_employee(employee_uuid):
     }
 
     c = lora.Connector()
-    employee_obj = c.bruger.get(uuid=employee_uuid)
 
     reqs = flask.request.get_json()
     for req in reqs:
@@ -419,7 +418,6 @@ def create_employee(employee_uuid):
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            employee_obj,
             "Opret {}".format(common.RELATION_TRANSLATIONS[role_type])
         )
 
@@ -777,7 +775,6 @@ def edit_employee(employee_uuid):
     reqs = flask.request.get_json()
 
     c = lora.Connector()
-    employee_obj = c.bruger.get(uuid=employee_uuid)
 
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them
@@ -793,7 +790,6 @@ def edit_employee(employee_uuid):
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            employee_obj,
             "Rediger {}".format(common.RELATION_TRANSLATIONS[role_type])
         )
 
@@ -848,9 +844,7 @@ def terminate_employee(employee_uuid):
                 obj[0])
 
     # Write a noop entry to the user, to be used for the history
-    employee_obj = c.bruger.get(uuid=employee_uuid)
-    common.add_bruger_history_entry(employee_uuid, employee_obj,
-                                    "Afslut medarbejder")
+    common.add_bruger_history_entry(employee_uuid, "Afslut medarbejder")
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
