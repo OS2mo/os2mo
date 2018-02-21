@@ -47,7 +47,7 @@ pipeline {
       steps {
         echo 'Testing..'
 
-        timeout(10) {
+        timeout(15) {
           ansiColor('xterm') {
             sh './build/run-tests.sh'
           }
