@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1>DETTE BRUGER DET GAMLE API</h1>
     <table class="table table-striped">
       <thead>
         <tr>

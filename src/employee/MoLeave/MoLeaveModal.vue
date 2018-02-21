@@ -6,7 +6,6 @@
     title="Meld orlov"
     ref="employeeLeave"
   >
-      <h3>Orlov</h3>
       <div class="form-row">
         <date-picker-start-end v-model="leave.validity"/>
 

@@ -74,7 +74,8 @@
           job_function: 'Stillingsbetegnelse',
           engagement_type: 'Engagementstype',
           association_type: 'Tilknytningstype',
-          role_type: 'Rolle'
+          role_type: 'Rolle',
+          leave_type: "Orlovstype"
         }
       }
     },
