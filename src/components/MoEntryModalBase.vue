@@ -16,8 +16,10 @@
       title="Opret"
       :ref="'moCreate'+_uid"
     >
-      <mo-engagement-entry 
+      <component 
+        :is="entryComponent"
         v-if="showModal" 
+        :type="type"
         v-model="entry" 
         :org="org" 
         @is-valid="isValid"
@@ -35,20 +37,23 @@
 </template>
 
 <script>
-  import Organisation from '../../api/Organisation'
-  import Employee from '../../api/Employee'
-  import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
-  import ButtonSubmit from '../../components/ButtonSubmit'
+  import Organisation from '../api/Organisation'
+  import Employee from '../api/Employee'
+  import ButtonSubmit from './ButtonSubmit'
 
   export default {
     components: {
-      MoEngagementEntry,
       ButtonSubmit
     },
     props: {
       uuid: String,
       label: String,
       content: Object,
+      contentType: String,
+      entryComponent: {
+        type: Object,
+        required: true
+      },
       type: {
         type: String,
         required: true,
@@ -123,7 +128,7 @@
         vm.isLoading = true
 
         let data = [{
-          type: 'engagement',
+          type: this.contentType,
           uuid: this.entry.uuid,
           original: this.original,
           data: this.entry

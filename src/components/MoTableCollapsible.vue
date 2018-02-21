@@ -3,6 +3,7 @@
     <mo-table 
       :columns="columns"
       :content="content"
+      :content-type="contentType"
       :is-loading="isLoading"
       :edit-component="editComponent"
       :edit-uuid="uuid"
@@ -27,6 +28,7 @@
       initiallyOpen: Boolean,
       editComponent: Object,
       content: Array,
+      contentType: String,
       uuid: {
         type: String,
         required: true

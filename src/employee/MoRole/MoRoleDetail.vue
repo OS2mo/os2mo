@@ -3,12 +3,19 @@
     <mo-table-collapsible-tense
       :columns="columns"
       :content="details"
+      content-type="role"
       :loading="loading"
-      :edit-component="editComponent"
+      :edit-component="entryComponent"
       :uuid="uuid"
     />
 
-    <mo-role-modal :uuid="uuid" type="CREATE" label="Nyt engagement"/>
+    <mo-entry-modal-base 
+      type="CREATE" 
+      :uuid="uuid" 
+      label="Ny rolle" 
+      :entry-component="entryComponent"
+      content-type="role"
+    />
   </div>
 </template>
 
@@ -17,12 +24,13 @@
   import Employee from '../../api/Employee'
   import { EventBus } from '../../EventBus'
   import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
-  import MoRoleModal from './MoRoleModal'
+  import MoEntryModalBase from '../../components/MoEntryModalBase'
+  import MoRoleEntry from './MoRoleEntry'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoRoleModal
+      MoEntryModalBase
     },
     props: {
       uuid: {
@@ -43,7 +51,7 @@
           future: false
         },
         columns: ['org_unit', 'role_type'],
-        editComponent: MoRoleModal
+        entryComponent: MoRoleEntry
       }
     },
     mounted () {

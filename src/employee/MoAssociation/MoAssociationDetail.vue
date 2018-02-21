@@ -3,12 +3,19 @@
     <mo-table-collapsible-tense
       :columns="columns"
       :content="details"
+      content-type="association"
       :loading="loading"
-      :edit-component="editComponent"
+      :edit-component="entryComponent"
       :uuid="uuid"
     />
-
-    <mo-association-modal :uuid="uuid" type="CREATE" label="Ny tilknytning"/>
+    
+    <mo-entry-modal-base 
+      type="CREATE" 
+      :uuid="uuid" 
+      label="Ny tilknytning" 
+      :entry-component="entryComponent"
+      content-type="association"
+    />
   </div>
 </template>
 
@@ -17,12 +24,13 @@
   import Employee from '../../api/Employee'
   import { EventBus } from '../../EventBus'
   import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
-  import MoAssociationModal from './MoAssociationModal'
+  import MoAssociationEntry from './MoAssociationEntry'
+  import MoEntryModalBase from '../../components/MoEntryModalBase'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoAssociationModal
+      MoEntryModalBase
     },
     props: {
       uuid: {
@@ -43,7 +51,7 @@
           future: false
         },
         columns: ['org_unit', 'job_function', 'association_type'],
-        editComponent: MoAssociationModal
+        entryComponent: MoAssociationEntry
       }
     },
     mounted () {

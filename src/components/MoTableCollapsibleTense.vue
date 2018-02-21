@@ -4,6 +4,7 @@
       title="Fremtid"
       :columns="columns"
       :content="content.future"
+      :content-type="contentType"
       :is-loading="loading.future"
       :edit-component="editComponent"
       :uuid="uuid"
@@ -13,6 +14,7 @@
       title="Nutid"
       :columns="columns"
       :content="content.present"
+      :content-type="contentType"
       :is-loading="loading.present"
       :edit-component="editComponent"
       :uuid="uuid"
@@ -23,6 +25,7 @@
       title="Fortid"
       :columns="columns"
       :content="content.past"
+      :content-type="contentType"
       :is-loading="loading.past"
       :edit-component="editComponent"
       :uuid="uuid"
@@ -43,6 +46,7 @@
       loading: Object,
       editComponent: Object,
       content: Object,
+      contentType: String,
       uuid: {
         type: String,
         required: true

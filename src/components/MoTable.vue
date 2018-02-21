@@ -33,10 +33,11 @@
             {{c.validity.to | date}}
           </td>
           <td>
-            <component 
-              :is="editComponent" 
+            <mo-entry-modal-base
+              :entry-component="editComponent"
               type="EDIT"
               :content="c"
+              :content-type="contentType"
               :uuid="editUuid"
             />
           </td>
@@ -51,13 +52,16 @@
   import '../filters/GetProperty'
   import '../filters/Date'
   import Loading from './Loading'
+  import MoEntryModalBase from './MoEntryModalBase'
 
   export default {
     components: {
-      Loading
+      Loading,
+      MoEntryModalBase
     },
     props: {
       content: Array,
+      contentType: String,
       columns: Array,
       isLoading: Boolean,
       editComponent: Object,
