@@ -32,7 +32,7 @@ RELATION_TRANSLATIONS = {
     'association': keys.ASSOCIATION_KEY.lower(),
     'it': keys.ITSYSTEM_KEY.lower(),
     'role': keys.ROLE_KEY.lower(),
-    'contact': keys.ADDRESS_KEY.lower(),
+    'address': keys.ADDRESS_KEY.lower(),
     'manager': keys.MANAGER_KEY.lower(),
     'leave': keys.LEAVE_KEY.lower(),
 }
