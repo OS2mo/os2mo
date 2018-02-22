@@ -1,6 +1,5 @@
 <template>
   <div>
-      <h4>Engagement</h4>
       <date-start-end v-model="engagement.validity"/>
       <div class="form-row">
         <organisation-unit-picker 
@@ -19,10 +18,10 @@
 </template>
 
 <script>
-import DateStartEnd from '../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../components/JobFunctionPicker'
-import EngagementTypePicker from '../components/EngagementTypePicker'
+import DateStartEnd from '../../components/DatePickerStartEnd'
+import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
+import JobFunctionPicker from '../../components/JobFunctionPicker'
+import EngagementTypePicker from '../../components/EngagementTypePicker'
 
 export default {
   components: {
@@ -44,9 +43,15 @@ export default {
     }
   },
   watch: {
-    engagement (newVal) {
-      newVal.type = 'engagement'
-      this.$emit('input', newVal)
+    engagement: {
+      handler (newVal) {
+        newVal.type = 'engagement'
+        this.$emit('input', newVal)
+        let valid = false
+        if (Object.keys(newVal).length >= 5 && newVal.validity.from !== undefined) valid = true
+        this.$emit('is-valid', valid)
+      },
+      deep: true
     }
   },
   created () {

@@ -664,7 +664,7 @@ def terminate_org_unit(unitid):
 
     :param unitid: The UUID of the organisational unit to be terminated.
 
-    :<json string valid_from: The date on which the termination should happen,
+    :<json object validity: The date on which the termination should happen,
         in ISO 8601.
 
     **Example Request**:
@@ -672,10 +672,12 @@ def terminate_org_unit(unitid):
     .. sourcecode:: json
 
       {
-        "valid_from": "2016-01-01T00:00:00+00:00"
+        "validity: {
+          "from": "2016-01-01T00:00:00+00:00"
+        }
       }
     """
-    date = flask.request.get_json().get('valid_from')
+    date = common.get_valid_from(flask.request.get_json())
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {

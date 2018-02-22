@@ -1,96 +1,89 @@
 <template>
-<div class="wrapper">
-  <div class="card" @click="open = !open">
-    <div 
-      class="card-header" 
-      role="tab" 
-      id="headingOne" 
-      v-b-toggle="id" 
-      aria-expanded="true" 
-      :aria-controls="id">
-        <icon :name="open ? 'caret-down' : 'caret-right'"/>
-        <strong>{{title}}</strong>
-    </div>
-  </div>
-  <b-collapse :id="id" :visible="visible">
+  <div>
     <loading v-show="isLoading"/>
-    <span v-show="!isLoading && content === undefined">
-      Intet at vise
-    </span>
-    <table 
-      class="table table-striped" 
-      v-show="!isLoading && content !== undefined">
+    <div v-show="!isLoading">
+    <span v-if="!contentAvailable">Intet at vise</span>
+    <table v-if="contentAvailable" class="table table-striped">
       <thead>
         <tr>
           <th 
             scope="col" 
-            v-for="label in labels" 
-            v-bind:key="label"
+            v-for="col in columns" 
+            :key="col"
           >
-            {{label}}
+            {{label[col] }}
           </th>
+          <th>Startdato</th>
+          <th>Slutdato</th>
+          <th></th>
         </tr>
       </thead>
-
       <tbody>
         <tr 
-          v-for="unit in content" 
-          v-bind:key="unit.uuid"
+          v-for="c in content" 
+          v-bind:key="c.uuid"
         >
-          <td>{{unit.name}}</td>
-          <td>
-            <span v-if="unit.type">{{unit.type.name}}</span>
+          <td v-for="col in columns" :key="col">
+            {{ c[col] | getProperty('name') }}
           </td>
           <td>
-            <span v-if="unit['parent-object']">{{unit['parent-object'].name}}</span>
+            {{c.validity | getProperty('from') | date}}
           </td>
-          <td>{{unit['valid-from'] | moment("DD-MM-YYYY")}}</td>
-          <td>{{unit['valid-to'] | moment("DD-MM-YYYY")}}</td>
+          <td>
+            {{c.validity.to | date}}
+          </td>
+          <td>
+            <mo-entry-modal-base
+              :entry-component="editComponent"
+              type="EDIT"
+              :content="c"
+              :content-type="contentType"
+              :uuid="editUuid"
+            />
+          </td>
         </tr>
       </tbody>
     </table>
-  </b-collapse>
-</div>
+    </div>
+  </div>
 </template>
 
 <script>
+  import '../filters/GetProperty'
+  import '../filters/Date'
   import Loading from './Loading'
+  import MoEntryModalBase from './MoEntryModalBase'
 
   export default {
     components: {
-      Loading
+      Loading,
+      MoEntryModalBase
     },
     props: {
-      title: {
-        type: String,
-        default: 'Skift mig'
-      },
-      labels: Array,
       content: Array,
-      visible: Boolean
-    },
-    watch: {
-      open: function (newVal, oldVal) {
-        this.isLoading = true
-      },
-
-      content: function (newVal, oldVal) {
-        this.isLoading = false
-      }
-    },
-    created () {
-      if (this.visible) {
-        this.open = this.visible
-      }
-      if (this.content !== undefined && this.content.length > 0) {
-        this.isLoading = false
-      }
+      contentType: String,
+      columns: Array,
+      isLoading: Boolean,
+      editComponent: Object,
+      editUuid: String
     },
     data () {
       return {
-        id: 'collapse-' + this._uid,
-        isLoading: true,
-        open: false
+        label: {
+          org_unit: 'Enhed',
+          job_function: 'Stillingsbetegnelse',
+          engagement_type: 'Engagementstype',
+          association_type: 'Tilknytningstype',
+          role_type: 'Rolle',
+          leave_type: 'Orlovstype',
+          it_system: 'System',
+          user: 'Brugernavn'
+        }
+      }
+    },
+    computed: {
+      contentAvailable () {
+        return this.content ? this.content.length > 0 : false
       }
     }
   }
@@ -98,16 +91,7 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.wrapper {
-  margin-top: 1em;
-}
-
-.card-header {
-  border-bottom: none;
-  padding: 0.25rem 1.25rem;
-}
-
-table {
-  margin-top: 0;
-}
+  table {
+    margin-top: 0;
+  }
 </style>

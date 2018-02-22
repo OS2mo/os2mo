@@ -55,7 +55,7 @@
     <div class="float-right">
         <button-submit
         :disabled="errors.any() || !isCompleted" 
-        @click.native="createOrganisationUnit"
+        :on-click-action="createOrganisationUnit"
         />
       </div>
   </b-modal>

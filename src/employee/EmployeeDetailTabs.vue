@@ -3,22 +3,22 @@
     <loading v-show="isLoading"/>
     <b-tabs v-show="!isLoading">
       <b-tab title="Engagement" active v-if="tabs.engagement"> 
-        <employee-detail-engagement :uuid="uuid"/>
+        <mo-engagement-detail :uuid="uuid"/>
       </b-tab>
       <b-tab title="Adresser" v-if="tabs.address">
-        <employee-detail-contact :uuid="uuid"/>
+        <mo-address-detail :uuid="uuid"/>
       </b-tab>
       <b-tab title="Rolle" v-if="tabs.role">
-        <employee-detail-role :uuid="uuid"/>
+        <mo-role-detail :uuid="uuid"/>
       </b-tab>
       <b-tab title="IT" v-if="tabs.it">
-        <employee-detail-it :uuid="uuid"/>
+        <mo-it-system-detail :uuid="uuid"/>
       </b-tab>
       <b-tab title="Tilknytning" v-if="tabs.association">
-        <employee-detail-association :uuid="uuid"/>
+        <mo-association-detail :uuid="uuid"/>
       </b-tab>
       <b-tab title="Orlov" v-if="tabs.leave">
-        <employee-detail-leave :uuid="uuid"/>
+        <mo-leave-detail :uuid="uuid"/>
       </b-tab>
     </b-tabs>
   </div>
@@ -27,22 +27,22 @@
 
 <script>
   import Employee from '../api/Employee'
-  import EmployeeDetailEngagement from './EmployeeDetailEngagement'
-  import EmployeeDetailContact from './EmployeeDetailContact'
-  import EmployeeDetailRole from './EmployeeDetailRole'
-  import EmployeeDetailIt from './EmployeeDetailIt'
-  import EmployeeDetailAssociation from './EmployeeDetailAssociation'
-  import EmployeeDetailLeave from './EmployeeDetailLeave'
+  import MoEngagementDetail from './MoEngagement/MoEngagementDetail'
+  import MoAddressDetail from './MoAddress/MoAddressDetail'
+  import MoRoleDetail from './MoRole/MoRoleDetail'
+  import MoItSystemDetail from './MoItSystem/MoItSystemDetail'
+  import MoLeaveDetail from './MoLeave/MoLeaveDetail'
+  import MoAssociationDetail from './MoAssociation/MoAssociationDetail'
   import Loading from '../components/Loading'
 
   export default {
     components: {
-      EmployeeDetailEngagement,
-      EmployeeDetailContact,
-      EmployeeDetailRole,
-      EmployeeDetailIt,
-      EmployeeDetailAssociation,
-      EmployeeDetailLeave,
+      MoEngagementDetail,
+      MoAddressDetail,
+      MoRoleDetail,
+      MoItSystemDetail,
+      MoAssociationDetail,
+      MoLeaveDetail,
       Loading
     },
     props: {

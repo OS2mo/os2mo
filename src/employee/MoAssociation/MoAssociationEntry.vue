@@ -1,6 +1,5 @@
 <template>
   <div>
-      <h4>Tilknytning</h4>
       <date-start-end v-model="association.validity" initially-hidden/>
       <div class="form-row">
         <organisation-unit-picker 
@@ -11,7 +10,7 @@
         <job-function-picker 
           v-model="association.job_function"
         />
-        <association-type 
+        <association-type-picker 
           v-model="association.association_type"
         />
       </div>
@@ -19,17 +18,17 @@
 </template>
 
 <script>
-import DateStartEnd from '../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../components/JobFunctionPicker'
-import AssociationType from '../components/AssociationType'
+import DateStartEnd from '../../components/DatePickerStartEnd'
+import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
+import JobFunctionPicker from '../../components/JobFunctionPicker'
+import AssociationTypePicker from '../../components/AssociationTypePicker'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
     JobFunctionPicker,
-    AssociationType
+    AssociationTypePicker
   },
   props: {
     value: Object,
@@ -42,15 +41,20 @@ export default {
   data () {
     return {
       association: {
-        type: 'association',
         validity: {}
       }
     }
   },
   watch: {
-    association (newVal) {
-      newVal.type = 'association'
-      this.$emit('input', newVal)
+    association: {
+      handler (newVal) {
+        newVal.type = 'association'
+        this.$emit('input', newVal)
+        let valid = false
+        if (Object.keys(newVal).length >= 5 && newVal.validity.from !== undefined) valid = true
+        this.$emit('is-valid', valid)
+      },
+      deep: true
     },
 
     validity (newVal) {

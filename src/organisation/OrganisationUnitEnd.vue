@@ -1,26 +1,26 @@
 <template>
   <b-modal 
-    id="orgUnitEnd"
-    ref="orgUnitEnd"  
+    id="orgUnitTerminate"
+    ref="orgUnitTerminate"  
     size="lg" 
     hide-footer 
-    title="Afslut enhed">
+    title="Afslut enhed"
+  >
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
         class="col"
-        v-model="orgUnit"
-        :preselected="preselectedUnit"
+        v-model="org_unit"
       />
       <date-picker 
         label="Slutdato"
-        v-model="validFrom"
+        v-model="terminate.validity.from"
       />
     </div>
     <div class="float-right">
-      <button-submit 
-      :disabled="errors.any() || !isCompleted" 
-      @click.native="endOrganisationUnit"
+      <button-submit
+      :is-disabled="isDisabled"
+      :on-click-action="endOrganisationUnit"
       />
     </div>
   </b-modal>
@@ -28,7 +28,6 @@
 
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
-  import { EventBus } from '../EventBus'
   import DatePicker from '../components/DatePicker'
   import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -40,28 +39,24 @@
       ButtonSubmit
     },
     computed: {
-      isCompleted () {
-        return this.orgUnit && this.validFrom
+      isDisabled () {
+        if (this.org_unit.uuid === undefined || this.terminate.validity.from === null) return true
       }
     },
     data () {
       return {
-        orgUnit: {},
-        preselectedUnit: {},
-        validFrom: null
+        org_unit: {},
+        terminate: {
+          validity: {}
+        }
       }
-    },
-    mounted () {
-      EventBus.$on('organisation-unit-changed', selectedUnit => {
-        this.preselectedUnit = selectedUnit
-      })
     },
     methods: {
       endOrganisationUnit () {
         let vm = this
-        OrganisationUnit.terminate(this.orgUnit, this.validFrom)
+        OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
         .then(response => {
-          vm.$refs.orgUnitEnd.hide()
+          vm.$refs.orgUnitTerminate.hide()
         })
       }
     }

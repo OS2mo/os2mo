@@ -790,10 +790,12 @@ def terminate_employee(employee_uuid):
     .. sourcecode:: json
 
       {
-        "valid_from": "2016-01-01T00:00:00+00:00"
+        "validity: {
+          "from": "2016-01-01T00:00:00+00:00"
+        }
       }
     """
-    date = flask.request.get_json().get(keys.VALID_FROM)
+    date = common.get_valid_from(flask.request.get_json())
 
     c = lora.Connector(effective_date=date)
 

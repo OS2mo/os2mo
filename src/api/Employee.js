@@ -22,7 +22,7 @@ export default {
    * @param {String} uuid - uuid for employee
    * @returns {Object} employee object
    */
-  getEmployee (uuid) {
+  get (uuid) {
     return Service.get(`/e/${uuid}/`)
     .then(response => {
       return response.data
@@ -143,7 +143,7 @@ export default {
    * @param {Array} create - A list of elements to create
    * @returns {Object} employee uuid
    */
-  createEmployee (uuid, create) {
+  create (uuid, create) {
     return Service.post(`/e/${uuid}/create`, create)
     .then(response => {
       EventBus.$emit('employee-changed', response.data)
@@ -160,7 +160,7 @@ export default {
    * @param {Array} edit - A list of elements to edit
    * @returns {Object} employeee uuid
    */
-  editEmployee (uuid, edit) {
+  edit (uuid, edit) {
     return Service.post(`/e/${uuid}/edit`, edit)
     .then(response => {
       EventBus.$emit('employee-changed', response.data)
@@ -177,7 +177,7 @@ export default {
    * @param {Object} end - Object containing the end date
    * @returns {Object} employee uuid
    */
-  endEmployee (uuid, end) {
+  terminate (uuid, end) {
     return Service.post(`/e/${uuid}/terminate`, end)
     .then(response => {
       return response.data

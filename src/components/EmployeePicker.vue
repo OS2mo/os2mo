@@ -1,12 +1,16 @@
 <template>
-  <div class="form-group col">
-    <label>{{label}}</label>
+  <div>
+    <label v-if="!noLabel">{{label}}</label>
     <loading v-show="isLoading"/>
     <select
       v-show="!isLoading" 
+      name="employee-picker"
+      :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedEmployee()">
+      @change="updateSelectedEmployee()"
+      v-validate="{ required: true }"
+    >
       <option disabled>{{label}}</option>
       <option 
         v-for="e in employees" 
@@ -15,6 +19,12 @@
           {{e.name}}
       </option>
     </select>
+    <span
+      v-show="errors.has('employee-picker')" 
+      class="text-danger"
+    >
+      {{ errors.first('employee-picker') }}
+    </span>
   </div>
 </template>
 
@@ -30,11 +40,15 @@ export default {
     Loading
   },
   props: {
-    value: Object
+    value: Object,
+    noLabel: Boolean,
+    label: {
+      type: String,
+      default: 'Medarbejder'
+    }
   },
   data () {
     return {
-      label: 'Medarbejder',
       selected: {},
       employees: [],
       isLoading: false
@@ -47,6 +61,7 @@ export default {
   },
   created () {
     this.getEmployees()
+    this.selected = this.value
   },
   methods: {
     getEmployees () {
