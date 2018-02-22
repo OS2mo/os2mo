@@ -5,13 +5,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+'''Common utilities
+----------------
+
+'''
+
 import abc
 import collections
 import copy
+import enum
 import datetime
 import functools
-from enum import Enum
-from typing import Callable, List, Tuple, Union
+
+from typing import Callable, List, Tuple
 
 import flask
 import iso8601
@@ -21,7 +28,7 @@ from .. import lora
 from . import keys
 
 
-class FieldTypes(Enum):
+class FieldTypes(enum.Enum):
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
@@ -126,11 +133,11 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
-def get_effect_from(effect):
+def get_effect_from(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['from'])
 
 
-def get_effect_to(effect):
+def get_effect_to(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['to'])
 
 
@@ -188,8 +195,7 @@ def update_payload(valid_from: datetime.datetime,
                    obj: dict,
                    payload: dict):
     for field in relevant_fields:
-        field_tuple = field[0]
-        val = field[1]
+        field_tuple, val = field
         val['virkning'] = _create_virkning(valid_from, valid_to)
 
         # Get original properties
@@ -435,7 +441,7 @@ def create_organisationsenhed_payload(
     return org_unit
 
 
-def get_valid_from(obj, fallback=None):
+def get_valid_from(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)
     if validity is not sentinel:
@@ -448,7 +454,7 @@ def get_valid_from(obj, fallback=None):
     return util.negative_infinity
 
 
-def get_valid_to(obj, fallback=None):
+def get_valid_to(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)
     if validity is not sentinel:
@@ -459,3 +465,31 @@ def get_valid_to(obj, fallback=None):
         elif valid_to:
             return util.from_iso_time(valid_to)
     return util.positive_infinity
+
+
+def replace_relation_value(relations: List[dict],
+                           old_entry: dict,
+                           new_entry: dict) -> List[dict]:
+    old_from = get_effect_from(old_entry)
+    old_to = get_effect_to(old_entry)
+
+    old_urn = old_entry.get('urn')
+    old_uuid = old_entry.get('uuid')
+    old_type = old_entry.get('objekttype')
+
+    for i, rel in enumerate(relations):
+        if (
+            get_effect_from(rel) == old_from and
+            get_effect_to(rel) == old_to and
+            rel.get('urn') == old_urn and
+            rel.get('uuid') == old_uuid and
+            rel.get('objekttype') == old_type
+        ):
+            new_rels = copy.deepcopy(relations)
+
+            new_rels[i] = new_entry
+
+            return new_rels
+
+    else:
+        raise ValueError('original entry not found!')

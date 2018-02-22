@@ -35,16 +35,16 @@ class TestWritingIntegration(util.LoRATestCase):
             [
                 {
                     'location': {
-                        'name': 'Kontor',
+                        'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                     },
-                    'name': 'Kontor',
+                    'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
+                    'primaer': False,
                     'role-type': 'location',
                     'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
@@ -64,9 +64,9 @@ class TestWritingIntegration(util.LoRATestCase):
                     "UUID_EnhedsAdresse":
                         "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
-                "name": "Kontor",
+                "name": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                 "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "primaer": True,
+                "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "valid-from": "01-01-2016",
@@ -81,16 +81,16 @@ class TestWritingIntegration(util.LoRATestCase):
             [
                 {
                     'location': {
-                        'name': 'Kontor',
+                        'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'user-key': '07519651__15_______',
                         'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbogade 15, 8200 Aarhus N',
                     },
-                    'name': 'Kontor',
+                    'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
+                    'primaer': False,
                     'role-type': 'location',
                     'user-key': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
@@ -136,7 +136,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
         # Initial sanity check
-        check(True, 'Kontor')
+        check(False, '4e337d8e-1fd2-4449-8110-e0c8a22958ed')
 
         # Edit primary only
         self.assertRequestResponse(
@@ -1484,7 +1484,7 @@ class TestWritingIntegration(util.LoRATestCase):
             },
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                'objekttype': 'v0:1:Kontor',
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
@@ -1494,8 +1494,7 @@ class TestWritingIntegration(util.LoRATestCase):
             },
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
-                'objekttype': 'v0:external:b1f1817d-5f02-'
-                              '4331-b8b3-97330a5d3197',
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
@@ -1553,7 +1552,7 @@ class TestWritingIntegration(util.LoRATestCase):
             },
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                'objekttype': 'v0:1:Kontor',
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
@@ -1563,8 +1562,7 @@ class TestWritingIntegration(util.LoRATestCase):
             },
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
-                'objekttype': 'v0:external:b1f1817d-5f02-'
-                              '4331-b8b3-97330a5d3197',
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 'virkning': {
                     'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
