@@ -4,16 +4,16 @@
       <router-view :key="$route.params.uuid"/>
     </div>
     
-    <employee-workflows/>
+    <mo-employee-workflows/>
   </div>
 </template>
 
 <script>
-  import EmployeeWorkflows from './EmployeeWorkflows'
+  import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
 
   export default {
     components: {
-      EmployeeWorkflows
+      MoEmployeeWorkflows
     }
   }
 </script>
