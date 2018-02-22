@@ -10,8 +10,8 @@
     <!-- Modal Component -->
     <mo-leave-modal :org="org"/>
     <employee-create :org="org"/>
-    <mo-move-modal :org="org"/>
-    <employee-terminate/>
+    <mo-employee-move :org="org"/>
+    <mo-employee-terminate/>
   </div>
 </template>
 
@@ -20,16 +20,16 @@
   import ButtonWorkflow from '../../components/ButtonWorkflow'
   import EmployeeCreate from '../EmployeeCreate'
   import MoLeaveModal from '../MoLeave/MoLeaveModal'
-  import MoMoveModal from '../MoMove/MoMoveModal'
-  import EmployeeTerminate from './EmployeeTerminate'
+  import MoEmployeeMove from './MoEmployeeMove'
+  import MoEmployeeTerminate from './MoEmployeeTerminate'
 
   export default {
     components: {
       ButtonWorkflow,
       EmployeeCreate,
       MoLeaveModal,
-      MoMoveModal,
-      EmployeeTerminate
+      MoEmployeeMove,
+      MoEmployeeTerminate
     },
     data () {
       return {

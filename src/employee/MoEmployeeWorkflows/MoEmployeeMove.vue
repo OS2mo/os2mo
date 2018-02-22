@@ -7,12 +7,11 @@
     ref="employeeMove"
   >
     <div>
-      <div class="form-row">
+
         <employee-picker 
           v-model="employee" 
           :org="org"
         />
-      </div>
 
       <div class="form-row">
         <date-picker 
@@ -38,7 +37,7 @@
       </div>
 
     <div class="float-right">
-      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading"/>
+      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading" :is-disabled="isDisabled"/>
     </div>
   </div>
 </b-modal>
@@ -78,6 +77,11 @@
             validity: {}
           }
         }
+      }
+    },
+    computed: {
+      isDisabled () {
+        return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.move.original
       }
     },
     methods: {
