@@ -17,6 +17,7 @@ import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -25,6 +26,7 @@ import copy
 import flask_testing
 import requests
 import requests_mock
+import urllib3
 import werkzeug.serving
 
 from mora import lora, app, settings
@@ -396,6 +398,25 @@ class LoRATestCaseMixin(TestCaseMixin):
         self.assertIsNone(self.minimox.poll(), 'LoRA is not running!')
         load_sample_structures(**kwargs)
 
+    @classmethod
+    def flush_log(cls, *, silent=False):
+        '''read and print output from the server process
+
+        our test-runner enforces buffering of stdout, so we can safely
+        print out the process output; this ensures any exceptions,
+        etc. get reported to the user/test-runner
+
+        '''
+        cls.minimox_log.flush()
+        last_offset = cls.minimox_log_offset
+        cls.minimox_log_offset = os.path.getsize(cls.minimox_log.fileno())
+
+        data_len = cls.minimox_log_offset - last_offset
+        data = os.pread(cls.minimox_log.fileno(), data_len, last_offset)
+
+        if not silent and data:
+            print(data.decode('utf-8').rstrip())
+
     @unittest.skipUnless('MINIMOX_DIR' in os.environ, 'MINIMOX_DIR not set!')
     @classmethod
     def setUpClass(cls):
@@ -407,9 +428,12 @@ class LoRATestCaseMixin(TestCaseMixin):
         # since LoRA doesn't support Python 3, yet; the main downside
         # to this is that we have to take measures not to leak that
         # process.
+        cls.minimox_log_offset = 0
+        cls.minimox_log = tempfile.TemporaryFile(mode='w+')
         cls.minimox = subprocess.Popen(
             [os.path.join(MINIMOX_DIR, 'run-mox.py'), str(port)],
-            stdout=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,
+            stdout=cls.minimox_log.fileno(),
             stderr=subprocess.STDOUT,
             universal_newlines=True,
             cwd=MINIMOX_DIR,
@@ -423,8 +447,19 @@ class LoRATestCaseMixin(TestCaseMixin):
         # exits for some reason, tell the subprocess to exit as well
         atexit.register(cls.minimox.send_signal, signal.SIGINT)
 
-        # wait for the process to launch and print out its 'Listening...' line
-        cls.minimox.stdout.readline()
+        # wait for loading
+        s = requests.Session()
+        s.mount(
+            settings.LORA_URL,
+            requests.adapters.HTTPAdapter(
+                max_retries=urllib3.util.retry.Retry(backoff_factor=0.1),
+            ),
+        )
+
+        try:
+            s.get(settings.LORA_URL + 'site-map').raise_for_status()
+        except Exception as e:
+            self.skipTest(e.message)
 
     @classmethod
     def tearDownClass(cls):
@@ -434,24 +469,20 @@ class LoRATestCaseMixin(TestCaseMixin):
         # second, terminate our child process
         cls.minimox.send_signal(signal.SIGINT)
 
-        # read output from the server process
-        print(cls.minimox.stdout.read())
-
         settings.LORA_URL = cls._orig_lora
+        cls.minimox_log.close()
 
     def setUp(self):
         super().setUp()
 
         self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
 
+        self.flush_log()
+
     def tearDown(self):
         self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
 
-        # our test-runner enforces buffering of stdout, so we can
-        # safely print out the process output; this ensures any
-        # exceptions, etc. get reported to the user/test-runner
-        while select.select((self.minimox.stdout,), (), (), 0)[0]:
-            print(self.minimox.stdout.readline(), end='')
+        self.flush_log()
 
         # delete all objects in the test instance; this does 'leak'
         # information in that they continue to exist as registrations,
@@ -462,10 +493,15 @@ class LoRATestCaseMixin(TestCaseMixin):
             for objid in t(bvn='%'):
                 t.delete(objid)
 
-        while select.select((self.minimox.stdout,), (), (), 0)[0]:
-            self.minimox.stdout.readline()
+        self.flush_log(silent=True)
 
         super().tearDown()
+
+    def _perform_request(self, *args, **kwargs):
+        try:
+            return super()._perform_request(*args, **kwargs)
+        finally:
+            self.flush_log()
 
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):
