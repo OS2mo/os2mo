@@ -12,7 +12,6 @@ import json
 import os
 import pprint
 import re
-import select
 import signal
 import socket
 import subprocess
@@ -452,14 +451,17 @@ class LoRATestCaseMixin(TestCaseMixin):
         s.mount(
             settings.LORA_URL,
             requests.adapters.HTTPAdapter(
-                max_retries=urllib3.util.retry.Retry(backoff_factor=0.1),
+                max_retries=urllib3.util.retry.Retry(
+                    10,
+                    backoff_factor=0.01,
+                ),
             ),
         )
 
         try:
             s.get(settings.LORA_URL + 'site-map').raise_for_status()
         except Exception as e:
-            self.skipTest(e.message)
+            raise unittest.SkipTest('LoRA startup failed!')
 
     @classmethod
     def tearDownClass(cls):
@@ -475,12 +477,12 @@ class LoRATestCaseMixin(TestCaseMixin):
     def setUp(self):
         super().setUp()
 
-        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
+        self.assertIsNone(self.minimox.poll(), 'LoRA suddenly died!')
 
         self.flush_log()
 
     def tearDown(self):
-        self.assertIsNone(self.minimox.poll(), 'LoRA startup failed!')
+        self.assertIsNone(self.minimox.poll(), 'LoRA suddenly died!')
 
         self.flush_log()
 
