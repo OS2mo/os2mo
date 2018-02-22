@@ -33,6 +33,12 @@ ADDRESS_COLUMN_SCOPES = {
     'adresse': 'DAR',
 }
 
+OPGAVER_COLUMNS = {
+    'lederniveau',
+    'lederansvar',
+    'opgaver'
+}
+
 
 def _make_relation(obj, k):
     val = obj[k]
@@ -89,6 +95,27 @@ def _make_addresses_relation(obj):
                 'objekttype': t or 'Adresse',
                 'virkning': virkning,
             })
+
+    return r
+
+
+def _make_opgaver_relation(obj):
+    virkning = _make_effect(obj['fra'], obj['til'])
+
+    r = []
+
+    for column in OPGAVER_COLUMNS:
+        v = obj.get(column)
+        t = column
+
+        if not v:
+            continue
+
+        r.append({
+            'uuid': v,
+            'objekttype': t if t is not 'opgaver' else None,
+            'virkning': virkning,
+        })
 
     return r
 
@@ -709,6 +736,24 @@ def convert_bruger(obj):
 def convert_organisationfunktion(obj):
     virkning = _make_effect(obj['fra'], obj['til'])
 
+    rels = {
+        k: _make_relation(obj, k)
+        for k in (
+            "organisatoriskfunktionstype",
+            "adresser",
+            "tilknyttedebrugere",
+            "tilknyttedeenheder",
+            "tilknyttedeorganisationer",
+            "tilknyttedeitsystemer",
+            "tilknyttedeinteressefaellesskaber",
+            "tilknyttedepersoner",
+        )
+        if k in obj
+    }
+
+    if not obj.keys().isdisjoint(OPGAVER_COLUMNS):
+        rels['opgaver'] = _make_opgaver_relation(obj)
+
     return 'PUT', '/organisation/organisationfunktion/' + obj['objektid'], {
         'note': obj['note'],
         "attributter": {
@@ -724,21 +769,7 @@ def convert_organisationfunktion(obj):
             ],
         },
 
-        'relationer': {
-            k: _make_relation(obj, k)
-            for k in (
-                "organisatoriskfunktionstype",
-                "adresser",
-                "opgaver",
-                "tilknyttedebrugere",
-                "tilknyttedeenheder",
-                "tilknyttedeorganisationer",
-                "tilknyttedeitsystemer",
-                "tilknyttedeinteressefaellesskaber",
-                "tilknyttedepersoner",
-            )
-            if k in obj
-        },
+        'relationer': rels,
 
         "tilstande": {
             "organisationfunktiongyldighed": [
