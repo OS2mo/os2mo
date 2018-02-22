@@ -40,7 +40,7 @@ def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
 
-        if not user or not common.is_reg_valid(user, 'brugergyldighed'):
+        if not user or not common.is_reg_valid(user):
             return None
 
     props = user['attributter']['brugeregenskaber'][0]

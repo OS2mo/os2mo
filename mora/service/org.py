@@ -36,7 +36,7 @@ def get_one_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
-        if not org or not common.is_reg_valid(org, 'organisationgyldighed'):
+        if not org or not common.is_reg_valid(org):
             return None
 
     attrs = org['attributter']['organisationegenskaber'][0]
@@ -202,8 +202,7 @@ def get_one_orgunit(c, unitid, unit=None,
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
-        if not unit or not common.is_reg_valid(unit,
-                                               'organisationenhedgyldighed'):
+        if not unit or not common.is_reg_valid(unit):
             return None
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]

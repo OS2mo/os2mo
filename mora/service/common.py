@@ -495,13 +495,14 @@ def replace_relation_value(relations: List[dict],
         raise ValueError('original entry not found!')
 
 
-def is_reg_valid(reg, gyldighed_key):
+def is_reg_valid(reg):
     """
     Check if a given registration is valid
+    i.e. that the registration contains a 'gyldighed' that is 'Aktiv'
 
     :param reg: A registration object
-    :param gyldighed_key: A key for where to find the gyldighed on the object
-    :return: True if registration 'gyldighed' is 'Aktiv'
     """
-    return bool(get_obj_value(reg, ('tilstande', gyldighed_key),
-                              lambda x: x.get('gyldighed') == 'Aktiv'))
+
+    return any([gyldighed_obj.get('gyldighed') == 'Aktiv'
+                for tilstand in reg.get('tilstande', {}).values()
+                for gyldighed_obj in tilstand])
