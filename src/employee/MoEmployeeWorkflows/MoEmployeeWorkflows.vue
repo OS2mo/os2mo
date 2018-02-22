@@ -8,7 +8,7 @@
       <button-workflow label="Afslut medarbejder" icon="user-times" target="employeeTerminate" v-b-modal.employeeTerminate/>
     </div>
     <!-- Modal Component -->
-    <mo-leave-modal :org="org"/>
+    <mo-employee-leave :org="org"/>
     <employee-create :org="org"/>
     <mo-employee-move :org="org"/>
     <mo-employee-terminate/>
@@ -19,7 +19,7 @@
   import { EventBus } from '../../EventBus'
   import ButtonWorkflow from '../../components/ButtonWorkflow'
   import EmployeeCreate from '../EmployeeCreate'
-  import MoLeaveModal from '../MoLeave/MoLeaveModal'
+  import MoEmployeeLeave from './MoEmployeeLeave'
   import MoEmployeeMove from './MoEmployeeMove'
   import MoEmployeeTerminate from './MoEmployeeTerminate'
 
@@ -27,7 +27,7 @@
     components: {
       ButtonWorkflow,
       EmployeeCreate,
-      MoLeaveModal,
+      MoEmployeeLeave,
       MoEmployeeMove,
       MoEmployeeTerminate
     },

@@ -6,17 +6,15 @@
     title="Meld orlov"
     ref="employeeLeave"
   >
-      <div class="form-row">
-        <date-picker-start-end v-model="leave.validity"/>
+    <employee-picker v-model="employee"/>
+    <mo-leave-entry v-model="leave" :org="org" @is-valid="isValid"/>
 
-        <div class="form-group col">
-          <leave-picker :org="org" v-model="leave.leave_type"/>
-        </div>        
-      </div>
+    {{leave}}
 
     <div class="float-right">
       <button-submit 
       :is-disabled="isDisabled"
+      :is-loading="isLoading"
       :on-click-action="createLeave"/>
     </div>
   </b-modal>
@@ -25,20 +23,15 @@
 
 <script>
 import Employee from '../../api/Employee'
-import DatePickerStartEnd from '../../components/DatePickerStartEnd'
-import LeavePicker from '../../components/LeavePicker'
+import EmployeePicker from '../../components/EmployeePicker'
+import MoLeaveEntry from '../MoLeave/MoLeaveEntry'
 import ButtonSubmit from '../../components/ButtonSubmit'
 
 export default {
   components: {
-    DatePickerStartEnd,
-    LeavePicker,
+    EmployeePicker,
+    MoLeaveEntry,
     ButtonSubmit
-  },
-  computed: {
-    isDisabled () {
-      if (this.leave.validity.from === undefined || this.leave.validity.to === undefined || this.leave.leave_type === undefined) return true
-    }
   },
   props: {
     org: {
@@ -48,23 +41,31 @@ export default {
   },
   data () {
     return {
+      isLoading: false,
+      leaveValid: false,
+      employee: {},
       leave: {
-        type: 'leave',
         validity: {}
       }
     }
   },
+  computed: {
+    isDisabled () {
+      return !this.leaveValid || !this.employee.uuid
+    }
+  },
   methods: {
+    isValid (val) {
+      this.leaveValid = val
+    },
+
     createLeave () {
       let vm = this
-      let create = []
-
-      create.push(this.leave)
-
-      Employee.create(this.$route.params.uuid, create)
+      vm.isLoading = true
+      Employee.create(this.employee.uuid, [this.leave])
       .then(response => {
+        vm.isLoading = false
         vm.$refs.employeeLeave.hide()
-        console.log(response)
       })
     }
   }

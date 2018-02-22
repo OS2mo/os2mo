@@ -23,7 +23,9 @@ export default {
   },
   data () {
     return {
-      leave: {}
+      leave: {
+        validity: {}
+      }
     }
   },
   watch: {
@@ -31,8 +33,7 @@ export default {
       handler (newVal) {
         newVal.type = 'leave'
         this.$emit('input', newVal)
-        let valid = false
-        if (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined) valid = true
+        let valid = (Object.keys(newVal).length >= 3 && Object.keys(newVal.validity).length === 2)
         this.$emit('is-valid', valid)
       },
       deep: true
