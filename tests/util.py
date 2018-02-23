@@ -378,9 +378,13 @@ class TestCaseMixin(object):
             return obj
 
         # drop lora-generated timestamps & users
-        del actual['fratidspunkt'], actual[
-            'tiltidspunkt'], actual[
-            'brugerref']
+        expected.pop('fratidspunkt', None)
+        expected.pop('tiltidspunkt', None)
+        expected.pop('brugerref', None)
+
+        actual.pop('fratidspunkt', None)
+        actual.pop('tiltidspunkt', None)
+        actual.pop('brugerref', None)
 
         # Sort all inner lists and compare
         return self.assertEqual(

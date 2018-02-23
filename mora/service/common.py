@@ -17,15 +17,25 @@ import copy
 import enum
 import datetime
 import functools
-
+import uuid
 from typing import Callable, List, Tuple
 
 import flask
 import iso8601
 
 from mora import util
-from .. import lora
 from . import keys
+from .. import lora
+
+RELATION_TRANSLATIONS = {
+    'engagement': keys.ENGAGEMENT_KEY.lower(),
+    'association': keys.ASSOCIATION_KEY.lower(),
+    'it': keys.ITSYSTEM_KEY.lower(),
+    'role': keys.ROLE_KEY.lower(),
+    'address': keys.ADDRESS_KEY.lower(),
+    'manager': keys.MANAGER_KEY.lower(),
+    'leave': keys.LEAVE_KEY.lower(),
+}
 
 
 class FieldTypes(enum.Enum):
@@ -506,3 +516,47 @@ def is_reg_valid(reg):
     return any([gyldighed_obj.get('gyldighed') == 'Aktiv'
                 for tilstand in reg.get('tilstande', {}).values()
                 for gyldighed_obj in tilstand])
+
+
+def add_bruger_history_entry(employee_uuid, note: str):
+    """
+    Add a history entry to a given employee.
+    The idea is to write an update to the employee whenever an object
+    associated to him is created or changed, as to easily be able to get an
+    overview of the history of the modifications to both the employee
+    but also the employee's associated objects.
+
+    We have to make some sort of 'meaningful' change to data to be
+    able to update the 'note' field - which for now amounts to just
+    updating the virkning notetekst of gyldighed with a garbage value
+
+    :param employee_uuid: The UUID of the employee
+    :param note: A note to be associated with the entry
+    """
+    c = lora.Connector()
+    employee_obj = c.bruger.get(employee_uuid)
+
+    path = ('tilstande', 'brugergyldighed')
+    gyldighed = get_obj_value(employee_obj, path)[-1]
+    gyldighed['virkning']['notetekst'] = str(uuid.uuid4())
+
+    payload = {
+        'note': note
+    }
+
+    payload = set_object_value(payload, path, [gyldighed])
+    c.bruger.update(payload, employee_uuid)
+
+
+def convert_reg_to_history(reg):
+    return {
+        'user_ref': reg['brugerref'],
+        'from': util.to_frontend_time(
+            reg['fratidspunkt']['tidsstempeldatotid'],
+        ),
+        'to': util.to_frontend_time(
+            reg['tiltidspunkt']['tidsstempeldatotid'],
+        ),
+        'life_cycle_code': reg['livscykluskode'],
+        'action': reg.get('note')
+    }

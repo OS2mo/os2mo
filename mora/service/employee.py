@@ -403,6 +403,8 @@ def create_employee(employee_uuid):
         'leave': leave.create_leave,
     }
 
+    c = lora.Connector()
+
     reqs = flask.request.get_json()
     for req in reqs:
         role_type = req.get('type')
@@ -412,6 +414,12 @@ def create_employee(employee_uuid):
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
+
+        # Write a noop entry to the user, to be used for the history
+        common.add_bruger_history_entry(
+            employee_uuid,
+            "Opret {}".format(common.RELATION_TRANSLATIONS[role_type])
+        )
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
@@ -766,6 +774,8 @@ def edit_employee(employee_uuid):
 
     reqs = flask.request.get_json()
 
+    c = lora.Connector()
+
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them
     for req in reqs:
@@ -776,6 +786,12 @@ def edit_employee(employee_uuid):
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
+
+        # Write a noop entry to the user, to be used for the history
+        common.add_bruger_history_entry(
+            employee_uuid,
+            "Rediger {}".format(common.RELATION_TRANSLATIONS[role_type])
+        )
 
     # TODO: Figure out the response -- probably just the edited object(s)?
     return flask.jsonify(employee_uuid), 200
@@ -827,5 +843,61 @@ def terminate_employee(employee_uuid):
                     "Afslut medarbejder"),
                 obj[0])
 
+    # Write a noop entry to the user, to be used for the history
+    common.add_bruger_history_entry(employee_uuid, "Afslut medarbejder")
+
     # TODO:
     return flask.jsonify(employee_uuid), 200
+
+
+@blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
+def get_employee_history(employee_uuid):
+    """
+    Get the history of an employee
+    :param employee_uuid: The UUID of the employee
+
+    **Example response**:
+
+    :<jsonarr string from: When the change is active from
+    :<jsonarr string to: When the change is active to
+    :<jsonarr string action: The action performed
+    :<jsonarr string life_cycle_code: The type of action performed
+    :<jsonarr string user_ref: A reference to the user who made the change
+
+    .. sourcecode:: json
+
+      [
+        {
+          "from": "2018-02-21T11:27:20.909206+01:00",
+          "to": "infinity",
+          "action": "Opret orlov",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+        },
+        {
+          "from": "2018-02-21T11:27:20.803682+01:00",
+          "to": "2018-02-21T11:27:20.909206+01:00",
+          "action": "Rediger engagement",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+        },
+        {
+          "from": "2018-02-21T11:27:20.619990+01:00",
+          "to": "2018-02-21T11:27:20.803682+01:00",
+          "action": None,
+          "life_cycle_code": "Importeret",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+        }
+      ]
+
+    """
+
+    c = lora.Connector()
+    user_registrations = c.bruger.get(uuid=employee_uuid,
+                                      registreretfra='-infinity',
+                                      registrerettil='infinity')
+
+    history_entries = list(map(common.convert_reg_to_history,
+                               user_registrations))
+
+    return flask.jsonify(history_entries)
