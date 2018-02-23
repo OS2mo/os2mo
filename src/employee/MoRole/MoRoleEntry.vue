@@ -52,6 +52,10 @@ export default {
         this.$emit('is-valid', valid)
       },
       deep: true
+    },
+
+    validity (newVal) {
+      this.role.validity = newVal
     }
   },
   created () {

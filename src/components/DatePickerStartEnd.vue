@@ -43,11 +43,14 @@
       }
     },
     watch: {
-      value (newVal) {
-        if (this.hidden) {
-          this.validFrom = newVal.from
-          this.validTo = newVal.to
-        }
+      value: {
+        handler (newVal) {
+          if (this.hidden) {
+            this.validFrom = newVal.from
+            this.validTo = newVal.to
+          }
+        },
+        deep: true
       }
     },
     created () {

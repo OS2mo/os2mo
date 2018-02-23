@@ -6,9 +6,8 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
-    <div class="form-row">
-      <employee-picker :org="org" v-model="employee"/>
-    </div>
+    <employee-picker :org="org" v-model="employee"/>
+    
     <h4>Engagement</h4>
     <mo-engagement-entry
       :org="org" 
@@ -27,12 +26,21 @@
       :org="org" 
       v-model="role" 
       :validity="engagement.validity"
+      @is-valid="isRoleValid"
     />
     <h4>IT systemer</h4>
-    <mo-it-system-entry v-model="itSystem" :validity="engagement.validity"/>
+    <mo-it-system-entry 
+      v-model="itSystem" 
+      :validity="engagement.validity"
+      @is-valid="isItSystemValid"
+    />
 
     <div class="float-right">
-      <button-submit :on-click-action="createEmployee" :is-disabled="isDisabled" :is-loading="isLoading"/>
+      <button-submit 
+        :on-click-action="createEmployee" 
+        :is-disabled="isDisabled" 
+        :is-loading="isLoading"
+      />
     </div>
   </b-modal>
 
@@ -70,7 +78,8 @@ export default {
       valid: {
         engagement: false,
         association: false,
-        role: false
+        role: false,
+        itSysyem: false
       }
     }
   },
@@ -100,7 +109,11 @@ export default {
     },
 
     isRoleValid (val) {
-      this.valid.association = val
+      this.valid.role = val
+    },
+
+    isItSystemValid (val) {
+      this.valid.itSystem = val
     },
 
     createEmployee () {

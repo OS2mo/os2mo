@@ -119,6 +119,8 @@
         Employee.create(this.uuid, [this.entry])
         .then(response => {
           vm.isLoading = false
+          vm.showModal = false
+          vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
@@ -137,6 +139,8 @@
         Employee.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
+          vm.showModal = false
+          vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       }
