@@ -20,6 +20,7 @@ import uuid
 import flask
 import iso8601
 import dateutil.parser
+import dateutil.tz
 
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
@@ -150,9 +151,9 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     the function logs an error and return HTTP 501.
 
     '''
-    allowed = {v.lower() for v in allowed}
-    required = {v.lower() for v in required}
-    allallowed = allowed | required
+    allowed_values = {v.lower() for v in allowed}
+    required_values = {v.lower() for v in required}
+    all_allowed_values = allowed_values | required_values
 
     def wrap(f):
         @functools.wraps(f)
@@ -162,10 +163,10 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
 
             invalidargs = {
                 k for k, v in flask.request.args.items()
-                if v and k.lower() not in allallowed
+                if v and k.lower() not in all_allowed_values
             }
             missing = {
-                k for k in required
+                k for k in required_values
                 if not flask.request.args.get(k, None)
             }
 
@@ -182,8 +183,8 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
                     'Unsupported: {}'
                 )).format(
                     flask.request.url,
-                    ', '.join(sorted(required)),
-                    ', '.join(sorted(allowed)),
+                    ', '.join(sorted(required_values)),
+                    ', '.join(sorted(allowed_values)),
                     ', '.join(sorted(flask.request.args)),
                     ', '.join(sorted(missing)),
                     ', '.join(sorted(invalidargs)),
