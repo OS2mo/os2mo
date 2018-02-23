@@ -519,12 +519,23 @@ def is_reg_valid(reg):
 
 
 def add_bruger_history_entry(employee_uuid, note: str):
+    """
+    Add a history entry to a given employee.
+    The idea is to write an update to the employee whenever an object
+    associated to him is created or changed, as to easily be able to get an
+    overview of the history of the modifications to both the employee
+    but also the employee's associated objects.
+
+    We have to make some sort of 'meaningful' change to data to be
+    able to update the 'note' field - which for now amounts to just
+    updating the virkning notetekst of gyldighed with a garbage value
+
+    :param employee_uuid: The UUID of the employee
+    :param note: A note to be associated with the entry
+    """
     c = lora.Connector()
     employee_obj = c.bruger.get(employee_uuid)
 
-    # XXX: We have to make some sort of 'meaningful' change to data to be
-    # able to update the 'note' field - which for now amounts to just
-    # updating the virkning notetekst of gyldighed with a garbage value
     path = ('tilstande', 'brugergyldighed')
     gyldighed = get_obj_value(employee_obj, path)[-1]
     gyldighed['virkning']['notetekst'] = str(uuid.uuid4())

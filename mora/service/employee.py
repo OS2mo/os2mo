@@ -822,7 +822,7 @@ def terminate_employee(employee_uuid):
     """
     date = common.get_valid_from(flask.request.get_json())
 
-    c = lora.Connector()
+    c = lora.Connector(effective_date=date)
 
     # Org funks
     types = (

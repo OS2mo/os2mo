@@ -11,7 +11,7 @@ from flask import json
 from . import util
 
 
-class HistoryTest(util.LoRATestCase):
+class EmployeeHistoryTest(util.LoRATestCase):
     def test_employee_history(self):
         # Create and edit a bunch of stuff, followed by a terminate
         # Arrange
@@ -223,6 +223,8 @@ class HistoryTest(util.LoRATestCase):
 
         self.assertEqual(expected_result, actual_result)
 
+
+class OrgUnitHistoryTest(util.LoRATestCase):
     def test_org_unit_history(self):
         # A create, some edits, followed by a termination
         # Arrange
