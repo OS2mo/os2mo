@@ -30,6 +30,13 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures(minimal=True)
 
+        with self.subTest('invalid'):
+            self.assertRequestFails(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
+                '?at=2000-01-01T00:00:00Z',
+                404,
+            )
+
         org_list = [
             {
                 'name': 'Aarhus Universitet',
@@ -330,6 +337,17 @@ class Tests(util.LoRATestCase):
                 404,
             )
 
+            self.assertRequestFails(
+                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/'
+                '?at=2000-01-01T00:00:00Z',
+                404,
+            )
+
+            self.assertRequestFails(
+                '/service/ou/00000000-0000-0000-0000-000000000000/tree',
+                404,
+            )
+
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
             {
@@ -436,6 +454,13 @@ class Tests(util.LoRATestCase):
             )
 
         self.load_sample_structures(minimal=True)
+
+        with self.subTest('invalid'):
+            self.assertRequestFails(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/'
+                '?at=2000-01-01T00:00:00Z',
+                404,
+            )
 
         self.assertRequestResponse(
             '/service/o/00000000-0000-0000-0000-000000000000/e/',

@@ -16,6 +16,7 @@ This section describes how to interact with employees.
 '''
 
 import flask
+import werkzeug
 
 from . import address
 from . import association
@@ -38,6 +39,9 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
 def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
+
+        if not user or not common.is_reg_valid(user):
+            return None
 
     props = user['attributter']['brugeregenskaber'][0]
 
@@ -160,7 +164,12 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    return flask.jsonify(get_one_employee(c, id, full=True))
+    r = get_one_employee(c, id, full=True)
+
+    if r:
+        return flask.jsonify(r)
+    else:
+        raise werkzeug.exceptions.NotFound('no such user')
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
