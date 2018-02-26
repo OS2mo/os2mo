@@ -1,0 +1,1170 @@
+{
+  "http://dawa.aws.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197?noformat=1": {
+    "adgangsadresse": {
+      "DDKN": {
+        "km1": "1km_6225_574",
+        "km10": "10km_622_57",
+        "m100": "100m_62257_5744"
+      },
+      "adgangspunkt": {
+        "h\u00f8jde": 49.4,
+        "id": "0a3f5096-a0da-32b8-e044-0003ba298018",
+        "kilde": 5,
+        "koordinater": [
+          10.19938084,
+          56.17102843
+        ],
+        "n\u00f8jagtighed": "A",
+        "tekniskstandard": "TD",
+        "tekstretning": 375,
+        "\u00e6ndret": "2016-02-16T00:00:00.000"
+      },
+      "bebyggelser": [],
+      "ejerlav": {
+        "kode": 2006353,
+        "navn": "\u00c5rhus Markjorder"
+      },
+      "esrejendomsnr": "331045",
+      "historik": {
+        "oprettet": "2000-02-05T15:26:42.000",
+        "\u00e6ndret": "2016-08-25T13:42:00.330"
+      },
+      "href": "http://dawa.aws.dk/adgangsadresser/0a3f5096-a0da-32b8-e044-0003ba298018",
+      "husnr": "1",
+      "id": "0a3f5096-a0da-32b8-e044-0003ba298018",
+      "jordstykke": {
+        "ejerlav": {
+          "href": "http://dawa.aws.dk/ejerlav/2006353",
+          "kode": 2006353,
+          "navn": "\u00c5rhus Markjorder"
+        },
+        "esrejendomsnr": "331045",
+        "href": "http://dawa.aws.dk/jordstykker/2006353/117gr",
+        "matrikelnr": "117gr"
+      },
+      "kommune": {
+        "href": "http://dawa.aws.dk/kommuner/0751",
+        "kode": "0751",
+        "navn": "Aarhus"
+      },
+      "kvh": "07515902___1",
+      "matrikelnr": "117gr",
+      "opstillingskreds": {
+        "href": "http://dawa.aws.dk/opstillingskredse/65",
+        "kode": "0065",
+        "navn": "Aarhus \u00d8st"
+      },
+      "politikreds": {
+        "href": "http://dawa.aws.dk/politikredse/1461",
+        "kode": "1461",
+        "navn": "\u00d8stjyllands Politi"
+      },
+      "postnummer": {
+        "href": "http://dawa.aws.dk/postnumre/8000",
+        "navn": "Aarhus C",
+        "nr": "8000"
+      },
+      "region": {
+        "href": "http://dawa.aws.dk/regioner/1082",
+        "kode": "1082",
+        "navn": "Region Midtjylland"
+      },
+      "retskreds": {
+        "href": "http://dawa.aws.dk/retskredse/1165",
+        "kode": "1165",
+        "navn": "Retten i \u00c5rhus"
+      },
+      "sogn": {
+        "href": "http://dawa.aws.dk/sogne/8121",
+        "kode": "8121",
+        "navn": "Christians"
+      },
+      "status": 1,
+      "stormodtagerpostnummer": null,
+      "supplerendebynavn": null,
+      "vejpunkt": {
+        "id": "1b97bd3c-af45-11e7-847e-066cff24d637",
+        "kilde": "Ekstern",
+        "koordinater": [
+          10.19947691,
+          56.1708859
+        ],
+        "n\u00f8jagtighed": "B",
+        "tekniskstandard": "V2"
+      },
+      "vejstykke": {
+        "adresseringsnavn": "Nordre Ringgade",
+        "href": "http://dawa.aws.dk/vejstykker/751/5902",
+        "kode": "5902",
+        "navn": "Nordre Ringgade"
+      },
+      "zone": "Byzone"
+    },
+    "adressebetegnelse": "Nordre Ringgade 1, 8000 Aarhus C",
+    "d\u00f8r": null,
+    "etage": null,
+    "historik": {
+      "oprettet": "2014-05-05T19:07:48.577",
+      "\u00e6ndret": "2014-05-05T19:07:48.577"
+    },
+    "href": "http://dawa.aws.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
+    "id": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+    "kvhx": "07515902___1_______",
+    "status": 1
+  },
+  "http://mox/klassifikation/klasse?uuid=32547559-cfc1-4d97-94c6-70b192eff825": {
+    "results": [
+      [
+        {
+          "id": "32547559-cfc1-4d97-94c6-70b192eff825",
+          "registreringer": [
+            {
+              "attributter": {
+                "klasseegenskaber": [
+                  {
+                    "beskrivelse": "Dette er en afdeling",
+                    "brugervendtnoegle": "afd",
+                    "titel": "Afdeling",
+                    "virkning": {
+                      "from": "1900-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:23.215244+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "tilstande": {
+                "klassepubliceret": [
+                  {
+                    "publiceret": "Publiceret",
+                    "virkning": {
+                      "from": "1900-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/klassifikation/klasse?uuid=ca76a441-6226-404f-88a9-31e02e420e52": {
+    "results": [
+      [
+        {
+          "id": "ca76a441-6226-404f-88a9-31e02e420e52",
+          "registreringer": [
+            {
+              "attributter": {
+                "klasseegenskaber": [
+                  {
+                    "beskrivelse": "Dette er et institut",
+                    "brugervendtnoegle": "inst",
+                    "titel": "Institut",
+                    "virkning": {
+                      "from": "1900-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:23.563628+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "tilstande": {
+                "klassepubliceret": [
+                  {
+                    "publiceret": "Publiceret",
+                    "virkning": {
+                      "from": "1900-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=04c78fc2-72d2-4d02-b55f-807af19eac48&virkningfra=-infinity&virkningtil=2017-06-01T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        {
+          "id": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "frem",
+                    "enhedsnavn": "Afdeling for Fremtidshistorik",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2017-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "brugervendtnoegle": "frem",
+                    "enhedsnavn": "Afdeling for Samtidshistorik",
+                    "virkning": {
+                      "from": "2017-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2018-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.765599+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=04c78fc2-72d2-4d02-b55f-807af19eac48&virkningfra=2017-06-01T00%3A00%3A00%2B02%3A00&virkningtil=2017-06-02T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        {
+          "id": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "frem",
+                    "enhedsnavn": "Afdeling for Samtidshistorik",
+                    "virkning": {
+                      "from": "2017-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2018-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.765599+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=04c78fc2-72d2-4d02-b55f-807af19eac48&virkningfra=2017-06-02T00%3A00%3A00%2B02%3A00&virkningtil=infinity": {
+    "results": [
+      [
+        {
+          "id": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "frem",
+                    "enhedsnavn": "Afdeling for Fortidshistorik",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "brugervendtnoegle": "frem",
+                    "enhedsnavn": "Afdeling for Samtidshistorik",
+                    "virkning": {
+                      "from": "2017-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2018-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.765599+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=da77153e-30f3-4dc2-a611-ee912a28d8aa&virkningfra=-infinity&virkningtil=2017-06-01T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        {
+          "id": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "hist",
+                    "enhedsnavn": "Historisk Institut",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.56896+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=da77153e-30f3-4dc2-a611-ee912a28d8aa&virkningfra=2016-01-01T00%3A00%3A00%2B01%3A00&virkningtil=2017-01-01T00%3A00%3A00%2B01%3A00": {
+    "results": [
+      [
+        {
+          "id": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "hist",
+                    "enhedsnavn": "Historisk Institut",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.56896+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=da77153e-30f3-4dc2-a611-ee912a28d8aa&virkningfra=2017-01-01T00%3A00%3A00%2B01%3A00&virkningtil=2018-01-01T00%3A00%3A00%2B01%3A00": {
+    "results": [
+      [
+        {
+          "id": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "hist",
+                    "enhedsnavn": "Historisk Institut",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.56896+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=da77153e-30f3-4dc2-a611-ee912a28d8aa&virkningfra=2017-06-01T00%3A00%3A00%2B02%3A00&virkningtil=2017-06-02T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        {
+          "id": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "hist",
+                    "enhedsnavn": "Historisk Institut",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.56896+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=da77153e-30f3-4dc2-a611-ee912a28d8aa&virkningfra=2017-06-02T00%3A00%3A00%2B02%3A00&virkningtil=infinity": {
+    "results": [
+      [
+        {
+          "id": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "hist",
+                    "enhedsnavn": "Historisk Institut",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.56896+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/organisationenhed?uuid=da77153e-30f3-4dc2-a611-ee912a28d8aa&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00&virkningtil=2019-01-01T00%3A00%3A00%2B01%3A00": {
+    "results": [
+      [
+        {
+          "id": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "hist",
+                    "enhedsnavn": "Historisk Institut",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-15T11:41:24.56896+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "note": "Automatisk indl\u00e6sning",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "objekttype": "v0:1:Kontor",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:+4587150000",
+                    "objekttype": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2016-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "2019-01-01 00:00:00+01",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  }
+}

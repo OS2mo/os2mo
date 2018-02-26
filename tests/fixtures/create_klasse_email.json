@@ -1,0 +1,58 @@
+{
+    "note": "Automatisk indl\u00e6st fra JSON",
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "Email",
+                "eksempel": "test@example.com",
+                "omfang": "EMAIL",
+                "titel": "Emailadresse",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}

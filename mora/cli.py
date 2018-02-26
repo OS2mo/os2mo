@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,20 +10,26 @@ import base64
 import functools
 import json
 import os
+import posixpath
+import signal
 import ssl
+import subprocess
 import sys
 import traceback
 import unittest
 import warnings
 
 import click
+import flask
 import requests
 import urllib3
+import pyexcel
 
 from . import auth
 from . import lora
 from . import tokens
 from . import util
+from . import settings
 from .converters import importing
 
 basedir = os.path.dirname(__file__)
@@ -46,11 +52,13 @@ def requires_auth(func):
             warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
 
         if options['user'] and not options['password']:
-            options['password'] = click.prompt('Enter password for {}'.format(
-                options['user'],
-                hiden_input=True,
+            options['password'] = click.prompt(
+                'Enter password for {}'.format(
+                    options['user'],
+                ),
+                hide_input=True,
                 err=True,
-            ))
+            )
 
         try:
             assertion = tokens.get_token(
@@ -85,6 +93,23 @@ def load_cli(app):
         '''Build documentation'''
         import sphinx.cmdline
 
+        docdir = os.path.join(topdir, 'docs')
+        blueprintdir = os.path.join(docdir, 'blueprints')
+
+        os.makedirs(blueprintdir, exist_ok=True)
+
+        for blueprint in app.iter_blueprints():
+            with open(os.path.join(blueprintdir,
+                                   blueprint.name + '.rst'), 'w') as fp:
+                fp.write(flask.render_template('blueprint.rst',
+                                               blueprint=blueprint))
+
+        with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
+            modules = sorted(m for m in sys.modules
+                             if m.split('.', 1)[0] == 'mora')
+            fp.write(flask.render_template('backend.rst',
+                                           modules=modules))
+
         if args:
             args = list(args)
         else:
@@ -96,6 +121,11 @@ def load_cli(app):
 
         args += ['-v'] * verbose
 
+        os.environ['PATH'] = os.pathsep.join((
+            subprocess.check_output(['npm', 'bin']).decode()[:-1],
+            os.environ['PATH'],
+        ))
+
         r = sphinx.cmdline.main(['sphinx-build'] + args)
         if r:
             sys.exit(r)
@@ -104,11 +134,27 @@ def load_cli(app):
     @click.argument('target', required=False)
     def build(target=None):
         'Build the frontend application.'
-        from subprocess import check_call
 
-        check_call(['npm', 'install'], cwd=topdir)
-        check_call(['npm', 'run', 'grunt'] +
-                   ([target] if target else []), cwd=topdir)
+        subprocess.check_call(['yarn'], cwd=topdir)
+        subprocess.check_call(['yarn', 'build'], cwd=topdir)
+
+        if target:
+            subprocess.check_call(
+                ['yarn', 'run'] + ([target] if target else []),
+                cwd=topdir)
+
+    @app.cli.command()
+    def develop():
+        'Run for development.'
+
+        with subprocess.Popen(['yarn', 'start'],
+                              close_fds=True,
+                              cwd=topdir) as proc:
+            try:
+                app.run()
+            finally:
+                proc.send_signal(signal.SIGINT)
+                proc.wait()
 
     @app.cli.command()
     @click.argument('args', nargs=-1)
@@ -130,10 +176,13 @@ def load_cli(app):
                   'minimox branch of LoRA.')
     @click.option('--browser', help='Specify browser for Selenium tests, '
                   'e.g. "Safari", "Firefox" or "Chrome".')
-    @click.option('--list', '-l', is_flag=True,
-                  help='List all available tests')
+    @click.option('--list', '-l', 'do_list', is_flag=True,
+                  help='List all available tests',)
+    @click.option('--keyword', '-k', 'keywords', multiple=True,
+                  help='Only run or list tests matching the given keyword',)
     @click.argument('tests', nargs=-1)
-    def test(tests, quiet, verbose, minimox_dir, browser, list, **kwargs):
+    def test(tests, quiet, verbose, minimox_dir, browser, do_list,
+             keywords, **kwargs):
         verbosity = 0 if quiet else verbose + 1
 
         if minimox_dir:
@@ -152,14 +201,22 @@ def load_cli(app):
                 top_level_dir=os.path.join(topdir),
             )
 
-        if list:
-            def expand_suite(suite):
-                for member in suite:
-                    if isinstance(member, unittest.TestSuite):
-                        yield from expand_suite(member)
-                    else:
-                        yield member
+        def expand_suite(suite):
+            for member in suite:
+                if isinstance(member, unittest.TestSuite):
+                    yield from expand_suite(member)
+                else:
+                    yield member
 
+        if keywords:
+            suite = unittest.TestSuite(
+                case
+                for k in keywords
+                for case in expand_suite(suite)
+                if k in str(case)
+            )
+
+        if do_list:
             for case in expand_suite(suite):
                 if verbose:
                     print(case)
@@ -182,8 +239,7 @@ def load_cli(app):
                   help="account user name",
                   prompt='Enter user name')
     @click.option('--password', '-p',
-                  help="account password",
-                  prompt='Enter password', hide_input=True)
+                  help="account password")
     @click.option('--raw', '-r', is_flag=True,
                   help="don't pack and wrap the token")
     @click.option('--verbose', '-v', is_flag=True,
@@ -197,6 +253,15 @@ def load_cli(app):
             warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
         else:
             warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
+
+        if options['user'] and not options['password']:
+            options['password'] = click.prompt(
+                'Enter password for {}'.format(
+                    options['user'],
+                ),
+                hide_input=True,
+                err=True,
+            )
 
         try:
             # this is where the magic happens
@@ -227,14 +292,19 @@ def load_cli(app):
                 sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
 
     @app.cli.command()
-    @click.argument('path')
+    @click.argument('paths', nargs=-1)
     @requires_auth
-    def get(path):
-        for objuuid in lora.fetch(path):
-            print(objuuid)
-            json.dump(lora.get(path.split('?')[0], objuuid),
-                      sys.stdout, indent=4)
-            sys.stdout.write('\n')
+    def get(paths):
+        for path in paths:
+            print(path)
+
+            for obj in lora.fetch(path) or [None]:
+                if isinstance(obj, str):
+                    print(obj)
+                    obj = lora.get(path.split('?')[0], obj)
+
+                json.dump(obj, sys.stdout, indent=4)
+                sys.stdout.write('\n')
 
     @app.cli.command()
     @click.argument('path')
@@ -244,37 +314,49 @@ def load_cli(app):
         lora.put(path, json.load(input))
 
     @app.cli.command('import')
-    @click.argument('spreadsheet', type=click.File('rb'))
-    @click.argument('url', required=False)
+    @click.argument('spreadsheets', nargs=-1, type=click.Path())
+    @click.option('--destination-url', '-d',
+                  help='LoRA url')
     @click.option('--verbose', '-v', count=True,
                   help='Show more output.')
+    @click.option('--jobs', '-j', default=1, type=int,
+                  help='Amount of parallel requests.')
+    @click.option('--failfast', '-f', is_flag=True,
+                  help='Stop at first error.')
+    @click.option('--include', '-I', multiple=True,
+                  help='include only the given types.')
     @click.option('--check', '-c', is_flag=True,
                   help=('check if import would overwrite any existing '
                         'objects'))
+    @click.option('--exact', '-e', is_flag=True,
+                  help="don't calculate missing values")
     @requires_auth
-    def import_(url, spreadsheet, verbose, check):
+    def import_(destination_url, spreadsheets, verbose, jobs, failfast,
+                include, check, exact):
         '''
         Import an Excel spreadsheet into LoRa
         '''
 
         # apparently, you cannot call tzlocal after importing gevent/eventlets
-        util.now()
+        start = util.now()
 
         import grequests
 
-        sheetlines = importing.convert(spreadsheet)
+        sheetlines = importing.convert(spreadsheets,
+                                       include=include, exact=exact)
 
-        if not url:
+        if not destination_url:
             for method, path, obj in sheetlines:
                 print(method, path,
                       json.dumps(obj, indent=2))
+
             return
 
         requests = (
             grequests.request(
                 # check means that we always get GET anything
                 method if not check else 'GET',
-                url + path, session=lora.session,
+                destination_url + path, session=lora.session,
                 json=obj,
             )
             for method, path, obj in sheetlines
@@ -284,8 +366,13 @@ def load_cli(app):
             if verbose:
                 print(r.url)
             print(*exc.args)
+            if failfast:
+                raise exc
 
-        for r in grequests.imap(requests, size=6, exception_handler=fail):
+        total = 0
+
+        for r in grequests.imap(requests, size=jobs, exception_handler=fail):
+
             if verbose:
                 print(r.url)
 
@@ -300,7 +387,63 @@ def load_cli(app):
                     print(r.status_code, r.json())
                 except ValueError:
                     print(r.status_code, r.text)
-            r.raise_for_status()
+
+            if failfast:
+                r.raise_for_status()
+            else:
+                total += 1
+
+        duration = util.now() - start
+
+        print('imported {} objects in {} ({} per second)'.format(
+            total, duration, total / duration.total_seconds(),
+        ))
+
+    @app.cli.command('sheet-convert', with_appcontext=False)
+    @click.option('--sheet', '-s',
+                  help='only convert the given sheet')
+    @click.option('--quiet', '-q', is_flag=True,
+                  help='Suppress all output.')
+    @click.argument('source', type=click.Path())
+    @click.argument('destination', type=click.Path())
+    def sheetconvert(sheet, quiet, source, destination):
+        '''Convert a spreadsheet to another format.
+
+        Supports CSV, ODS, XLSX and possibly more.
+        '''
+
+        if not quiet:
+            print('{} -> {}'.format(source, destination))
+
+        if sheet:
+            pyexcel.save_as(
+                file_name=source,
+                dest_file_name=destination,
+                sheet_name=sheet,
+            )
+        else:
+            pyexcel.save_book_as(
+                file_name=source,
+                dest_file_name=destination,
+            )
+
+    @app.cli.command()
+    @click.argument('spreadsheets', nargs=-1, type=click.Path())
+    @click.option('--output', '-o', type=click.File('w'), default='-')
+    @click.option('--compact', '-c', is_flag=True)
+    @click.option('--exact', '-e', is_flag=True,
+                  help="don't calculate missing values")
+    @requires_auth
+    def preimport(output, spreadsheets, compact, exact):
+        '''
+        Convert an Excel spreadsheet into JSON for faster importing
+        '''
+        d = importing.load_data(spreadsheets, exact=exact)
+
+        if compact:
+            json.dump(d, output)
+        else:
+            json.dump(d, output, indent=2, sort_keys=True)
 
     @app.cli.command('load-fixtures')
     @click.option('--quiet', '-q', is_flag=True,
@@ -322,3 +465,68 @@ def load_cli(app):
             verbose=not kwargs.pop('quiet'),
             **kwargs,
         )
+
+    @app.cli.command()
+    @click.option('--quiet', '-q', is_flag=True,
+                  help='Suppress all output.')
+    @click.option('--dry-run', '-n', is_flag=True,
+                  help=("don't actually change anything"))
+    @click.option('--yes', '-y', is_flag=True,
+                  help=("don't prompt for confirmation before making changes"))
+    @requires_auth
+    def fixroots(**kwargs):
+        '''
+        Import the sample fixtures into LoRA.
+        '''
+
+        # apparently, you cannot call tzlocal after importing gevent/eventlets
+        util.now()
+
+        import grequests
+
+        unitids = lora.organisationenhed(bvn='%')
+        requests = (
+            grequests.get(
+                posixpath.join(settings.LORA_URL,
+                               'organisation', 'organisationenhed'),
+                session=lora.session,
+                params={
+                    'uuid': unitids[i:i + 10],
+                },
+            )
+            for i in range(0, len(unitids), 20)
+        )
+
+        for r in grequests.imap(requests, size=6):
+            for entry in r.json()['results'][0]:
+                unitid = entry['id']
+                unit = entry['registreringer'][-1]
+
+                if unit['relationer'].get('overordnet'):
+                    continue
+
+                print(unitid)
+
+                tilhoerer = unit['relationer']['tilhoerer'][0]
+
+                unit['note'] = \
+                    'Relation til organisation som overordnet tilføjet'
+                unit['relationer']['overordnet'] = [
+                    {
+                        'uuid': tilhoerer['uuid'],
+                        'virkning': tilhoerer['virkning'].copy(),
+                    },
+                ]
+
+                print(json.dumps(unit, indent=2))
+
+                if not kwargs['dry_run'] and (
+                        kwargs['yes'] or
+                        click.prompt('Perform update', prompt_suffix='? ',
+                                     err=True).lower() in ('y', 'yes')
+                ):
+                    lora.update(
+                        posixpath.join('organisation', 'organisationenhed',
+                                       unitid),
+                        unit,
+                    )

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,6 +15,13 @@ from .. import lora
 session = requests.Session()
 
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
+
+URN_FORMATS = {
+    'EMAIL': 'urn:mailto:{}',
+    'PHONE': 'urn:magenta.dk:telefon:+45{:08d}',
+    'EAN': 'urn:magenta.dk:ean:{}',
+    'WWW': 'urn:magenta.dk:www:{}',
+}
 
 
 def get_address(addrid: str):
@@ -58,7 +65,7 @@ def find_address(query: str, municipality: str=None):
 
 def autocomplete_address(query: str, orgid: str):
     if orgid:
-        org = lora.organisation.get(orgid)
+        org = lora.Connector().organisation.get(orgid)
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn', ''))

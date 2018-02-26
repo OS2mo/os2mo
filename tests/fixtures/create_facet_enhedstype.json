@@ -1,0 +1,54 @@
+{
+  "attributter": {
+    "facetegenskaber": [
+      {
+        "virkning": {
+          "to_included": false,
+          "to": "infinity",
+          "from_included": true,
+          "from": "2016-01-01 00:00:00+01"
+        },
+        "brugervendtnoegle": "Enhedstype"
+      }
+    ]
+  },
+  "tilstande": {
+    "facetpubliceret": [
+      {
+        "publiceret": "Publiceret",
+        "virkning": {
+          "to_included": false,
+          "to": "infinity",
+          "from_included": true,
+          "from": "2016-01-01 00:00:00+01"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "facettilhoerer": [
+      {
+        "objekttype": "klassifikation",
+        "virkning": {
+          "to_included": false,
+          "to": "infinity",
+          "from_included": true,
+          "from": "2016-01-01 00:00:00+01"
+        },
+        "uuid": null
+      }
+    ],
+    "ansvarlig": [
+      {
+        "objekttype": "organisation",
+        "virkning": {
+          "to_included": false,
+          "to": "infinity",
+          "from_included": true,
+          "from": "2016-01-01 00:00:00+01"
+        },
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+      }
+    ]
+  }
+}

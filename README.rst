@@ -5,6 +5,10 @@ Om MORa
 .. contents:: `Indhold`
    :depth: 2
 
+.. image:: http://lorajenkins.atlas.magenta.dk/buildStatus/icon?job=mora/development
+   :alt: Build Status
+   :target: http://lorajenkins.atlas.magenta.dk/job/mora/job/development/
+
 
 Introduktion
 ------------
@@ -308,7 +312,7 @@ Aktivér modulet ``proxy_http``, og genstart Apache::
   sudo a2enmod proxy_http
   sudo apache2ctl graceful
 
-Til sidst kopieres ``config-example.json`` til ``config.json`` og
+Til sidst kopieres ``config/mora-example.json`` til ``config/mora.json`` og
 ``LORA_URL`` justeres til at pege der hvor du har LoRa kørende::
 
   {
@@ -316,7 +320,7 @@ Til sidst kopieres ``config-example.json`` til ``config.json`` og
   }
 
 Bemærk venligst at anvendelse af HTTPS kræver et betroet certifikat på
-serveren, og at MORa ikke understøtter autentificering med SAML endnu.
+serveren, og at autentificering med SAML kræver yderligere konfiguration.
 
 Dokumentation
 -------------

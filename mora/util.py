@@ -1,20 +1,26 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import collections
 import datetime
 import functools
+import itertools
 import json
+import os
+import re
+import sys
 import typing
+import uuid
 
 import flask
 import iso8601
-import pytz
-import tzlocal
+import dateutil.parser
+import dateutil.tz
 
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
@@ -22,58 +28,71 @@ PLACEHOLDER = "\u2014"
 
 # timezone-aware versions of min/max
 positive_infinity = datetime.datetime.max.replace(
-    tzinfo=datetime.timezone(datetime.timedelta(hours=23)),
+    tzinfo=dateutil.tz.tzoffset(
+        'MAX',
+        datetime.timedelta(hours=23, minutes=59),
+    ),
 )
 negative_infinity = datetime.datetime.min.replace(
-    tzinfo=datetime.timezone(datetime.timedelta(hours=-23)),
+    tzinfo=dateutil.tz.tzoffset(
+        'MIN',
+        -datetime.timedelta(hours=23, minutes=59),
+    ),
 )
 
-DATETIME_PARSERS = (
-    # limits
-    lambda s: {
-        'infinity': positive_infinity,
-        '-infinity': negative_infinity,
-    }[s],
-    # ISO 8601
-    iso8601.parse_date,
-    lambda s: iso8601.parse_date(s.replace(' ', '+')),
-    # DD/MM/YYYY w/o time -- sent by the frontend
-    lambda s: tzlocal.get_localzone().localize(
-        datetime.datetime.strptime(s, '%d-%m-%Y')
-    ),
-    lambda s: tzlocal.get_localzone().localize(
-        datetime.datetime.strptime(s, '%Y-%m-%d')
-    ),
-    lambda s: datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S%z'),
-    # handle PG two-digit offsets
-    lambda s: datetime.datetime.strptime(s + '00', '%Y-%m-%d %H:%M:%S%z'),
-)
+# TODO: the default timezone should be configurable, shouldn't it?
+default_timezone = dateutil.tz.gettz('Europe/Copenhagen')
+
+tzinfos = {
+    None: default_timezone,
+    0: dateutil.tz.tzutc,
+    1 * 60**2: default_timezone,
+    2 * 60**2: default_timezone,
+}
 
 
 def unparsedate(d: datetime.date) -> str:
     return d.strftime('%d-%m-%Y')
 
 
-def parsedatetime(s: str, default: str=None) -> datetime.datetime:
-    if default is not None and not s:
-        return default
-    elif isinstance(s, datetime.date):
-        if s in (positive_infinity, negative_infinity):
-            return s
-        else:
-            return tzlocal.get_localzone().localize(
-                datetime.datetime.combine(s, datetime.time())
+def parsedatetime(s: str) -> datetime.datetime:
+    if isinstance(s, datetime.date):
+        dt = s
+
+        if dt in (positive_infinity, negative_infinity):
+            return dt
+
+        if not isinstance(dt, datetime.datetime):
+            dt = datetime.datetime.combine(
+                dt, datetime.time(),
             )
-    elif isinstance(s, datetime.datetime):
-        return s
 
-    for parser in DATETIME_PARSERS:
-        try:
-            return parser(s)
-        except (ValueError, KeyError, iso8601.ParseError):
-            pass
+        if not dt.tzinfo:
+            dt = dt.replace(tzinfo=default_timezone)
 
-    raise ValueError('unparsable date {!r}'.format(s))
+        return dt
+
+    elif s == 'infinity':
+        return positive_infinity
+    elif s == '-infinity':
+        return negative_infinity
+
+    if ' ' in s:
+        # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
+        # we get it as a space
+        s = re.sub(r' (?=\d\d:\d\d$)', '+', s)
+
+    try:
+        return iso8601.parse_date(s, default_timezone=default_timezone)
+    except iso8601.ParseError:
+        pass
+
+    try:
+        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
+    except ValueError:
+        raise ValueError('cannot parse {!r}'.format(s))
+
+    return dt
 
 
 def to_lora_time(s):
@@ -85,6 +104,20 @@ def to_lora_time(s):
         return '-infinity'
     else:
         return dt.isoformat()
+
+
+def to_iso_time(s):
+    dt = parsedatetime(s)
+
+    return (
+        dt.isoformat()
+        if dt not in (positive_infinity, negative_infinity)
+        else None
+    )
+
+
+def from_iso_time(s):
+    return iso8601.parse_date(s, default_timezone=default_timezone)
 
 
 def to_frontend_time(s):
@@ -102,44 +135,44 @@ def to_frontend_time(s):
 
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
-    return datetime.datetime.now(tzlocal.get_localzone())
+    return datetime.datetime.now().replace(tzinfo=default_timezone)
 
 
 def today() -> datetime.datetime:
     '''Get midnight of current date, localized to the current time zone.'''
-    dt = now()
-    t = datetime.time(tzinfo=dt.tzinfo)
-    return datetime.datetime.combine(dt.date(), t)
+    return datetime.datetime.combine(datetime.date.today(),
+                                     datetime.time(tzinfo=default_timezone))
 
 
-def fromtimestamp(t: int) -> datetime.datetime:
-    return datetime.datetime.fromtimestamp(int(t) / 1000, pytz.UTC)
-
-
-def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
+def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     '''Function decorator for checking and verifying Flask request arguments
 
     If any argument other than those listed is set and has a value,
     the function logs an error and return HTTP 501.
 
     '''
-    allowed = {v.lower() for v in allowed}
-    required = {v.lower() for v in required}
-    allallowed = allowed | required
+    allowed_values = {v.lower() for v in allowed}
+    required_values = {v.lower() for v in required}
+    all_allowed_values = allowed_values | required_values
 
     def wrap(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
+            if flask.g.get('are_args_valid'):
+                return f(*args, **kwargs)
+
             invalidargs = {
                 k for k, v in flask.request.args.items()
-                if v and k.lower() not in allallowed
+                if v and k.lower() not in all_allowed_values
             }
             missing = {
-                k for k in required
+                k for k in required_values
                 if not flask.request.args.get(k, None)
             }
 
-            if missing or invalidargs:
+            flask.g.are_args_valid = not (missing or invalidargs)
+
+            if not flask.g.are_args_valid:
                 msg = '\n'.join((
                     'Unsupported request arguments:',
                     'URL: {}',
@@ -150,8 +183,8 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
                     'Unsupported: {}'
                 )).format(
                     flask.request.url,
-                    ', '.join(sorted(required)),
-                    ', '.join(sorted(allowed)),
+                    ', '.join(sorted(required_values)),
+                    ', '.join(sorted(allowed_values)),
                     ', '.join(sorted(flask.request.args)),
                     ', '.join(sorted(missing)),
                     ', '.join(sorted(invalidargs)),
@@ -168,18 +201,72 @@ def restrictargs(*allowed: typing.List[str], required: typing.List[str]=[]):
     return wrap
 
 
-def update_config(mapping, config_path):
+def update_config(mapping, config_path, allow_environment=True):
     '''load the JSON configuration at the given path
 
     We disregard all entries in the configuration that lack a default
     within the mapping.
 
     '''
+
+    keys = {
+        k
+        for k, v in mapping.items()
+        if not k.startswith('_')
+    }
+
     try:
         with open(config_path) as fp:
             overrides = json.load(fp)
-    except IOError:
-        return
 
-    for key in mapping.keys() & overrides.keys():
-        mapping[key] = overrides[key]
+        for key in keys & overrides.keys():
+            mapping[key] = overrides[key]
+
+    except IOError:
+        pass
+
+    if allow_environment:
+        overrides = {
+            k[5:]: v
+            for k, v in os.environ.items()
+            if k.startswith('MORA_')
+        }
+
+        for key in keys & overrides.keys():
+            print(' * Using override MORA_{}={!r}'.format(key, overrides[key]),
+                  file=sys.stderr)
+            mapping[key] = overrides[key]
+
+
+def splitlist(xs, size):
+    if size <= 0:
+        raise ValueError('size must be positive!')
+
+    i = 0
+    nxs = len(xs)
+
+    while i < nxs:
+        yield xs[i:i + size]
+        i += size
+
+
+def is_uuid(v):
+    try:
+        uuid.UUID(v)
+        return True
+    except Exception:
+        return False
+
+
+# TODO: more thorough checking?
+_cpr_re = re.compile(r'\d{10}')
+
+
+def is_cpr_number(v):
+    return isinstance(v, str) and _cpr_re.fullmatch(v)
+
+
+def uniqueify(xs):
+    '''return the contents of xs as a list, but stable'''
+    # TODO: is this fast?
+    return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())

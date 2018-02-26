@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,10 +12,17 @@ import itertools
 import os
 import unittest
 
+from . import util
+
 import pycodestyle
 
 # upstream files; do not modify
 UPSTREAM_FILES = {
+}
+
+# TODO: re-enable style checks for these files as needed
+SKIP_LIST = {
+    'tests/test_selenium.py',
 }
 
 SKIP_DIRS = {
@@ -38,7 +45,7 @@ class CodeStyleTests(unittest.TestCase):
         for dirpath, dirs, fns in os.walk(self.rootdir):
             reldirpath = os.path.relpath(dirpath, self.rootdir)
 
-            if 'pip-selfcheck.json' in fns:
+            if 'pip-selfcheck.json' in fns or 'pyvenv.cfg' in fns:
                 dirs[:] = []
                 continue
 
@@ -82,7 +89,10 @@ class CodeStyleTests(unittest.TestCase):
         style.init_report(pycodestyle.StandardReport)
 
         with contextlib.redirect_stdout(io.StringIO()) as buf:
-            report = style.check_files(self.source_files)
+            report = style.check_files(
+                fn for fn in self.source_files
+                if os.path.relpath(fn, util.BASE_DIR) not in SKIP_LIST
+            )
 
         self.assertFalse(
             report.total_errors,

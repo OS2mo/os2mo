@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,15 +27,6 @@ class TestInactivateOrgUnit(unittest.TestCase):
                     'organisationenhedgyldighed': [
                         {
                             'virkning': {
-                                'from': '-infinity',
-                                'from_included': True,
-                                'to': '2010-01-01T00:00:00+01:00',
-                                'to_included': False,
-                            },
-                            'gyldighed': 'Inaktiv',
-                        },
-                        {
-                            'virkning': {
                                 'from': '2010-01-01T00:00:00+01:00',
                                 'from_included': True,
                                 'to': 'infinity',
@@ -51,15 +42,6 @@ class TestInactivateOrgUnit(unittest.TestCase):
             'note': 'Afslut enhed',
             'tilstande': {
                 'organisationenhedgyldighed': [
-                    {
-                        'virkning': {
-                            'from': '-infinity',
-                            'from_included': False,
-                            'to': '2009-01-01T00:00:00+01:00',
-                            'to_included': False,
-                        },
-                        'gyldighed': 'Inaktiv',
-                    },
                     {
                         'virkning': {
                             'from': '2009-01-01T00:00:00+01:00',

@@ -1,0 +1,95 @@
+<template>
+  <div>
+    <table class="table table-striped" v-show="!isLoading">
+      <thead>
+        <tr>
+          <th scope="col">Navn</th>
+          <th scope="col">Stillingsbetegnelse</th>
+          <th scope="col">Engagementstype</th>
+          <th scope="col">Startdato</th>
+          <th scope="col">Slutdato</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- <tr v-for="e in engagementsFuture" v-bind:key="e.uuid" style="color:#bbb">
+          <td>{{e['person-name']}}</td>
+          <td>{{e['job-title'].name}}</td>
+          <td><span v-if="e.type">{{e.type.name}}</span></td>
+          <td>{{e['valid-from']}}</td>
+          <td>{{e['valid-to']}}</td>
+        </tr> -->
+
+        <tr v-for="e in engagements" v-bind:key="e.uuid">
+          <td><router-link :to="{ name: 'EmployeeDetail', params: {'uuid': e.person.uuid} }">{{e.person.name}}</router-link></td>
+          <td><span v-if="e.job_function">{{e.job_function.name}}</span></td>
+          <td><span v-if="e.type">{{e.type.name}}</span></td>
+          <td><span>{{e.validity.from | moment("DD-MM-YYYY") }}</span></td>
+          <td><span>{{e.valididy.to | moment("DD-MM-YYYY") }}</span></td>
+        </tr>
+
+        <!-- <tr v-for="e in engagementsPast" v-bind:key="e.uuid" style="color:#bbb">
+          <td>{{e['person-name']}}</td>
+          <td>{{e['job-title'].name}}</td>
+          <td><span v-if="e.type">{{e.type.name}}</span></td>
+          <td>{{e['valid-from']}}</td>
+          <td>{{e['valid-to']}}</td>
+        </tr> -->
+      </tbody>
+    </table>
+
+    <loading v-show="isLoading"/>
+  </div>
+</template>
+
+<script>
+  import OrganisationUnit from '../api/OrganisationUnit'
+  import Loading from '../components/Loading'
+
+  export default {
+    components: {
+      Loading
+    },
+    props: {
+      uuid: String
+    },
+    data () {
+      return {
+        engagements: [],
+        engagementsPast: [],
+        engagementsFuture: [],
+        isLoading: true
+      }
+    },
+    created: function () {
+      this.getEngagements()
+    },
+    watch: {
+      uuid (newVal, oldVal) {
+        this.getEngagements()
+      }
+    },
+    methods: {
+      getEngagements: function () {
+        var vm = this
+        OrganisationUnit.getEngagementDetails(this.uuid)
+        .then(response => {
+          vm.engagements = response
+          vm.isLoading = false
+        })
+        // OrganisationUnit.getEngagementDetails(this.uuid, 'past')
+        // .then(response => {
+        //   vm.engagementsPast = response
+        // })
+        // OrganisationUnit.getEngagementDetails(this.uuid, 'future')
+        // .then(response => {
+        //   vm.engagementsFuture = response
+        // })
+      }
+    }
+  }
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+
+</style>
