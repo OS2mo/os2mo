@@ -136,31 +136,20 @@ export default {
     })
   },
 
-    /**
+  /**
    * Create a new organisation unit
    * @param {Object} orgUnit - new organisation unit
+   * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
-  create (orgUnit) {
-    return HTTP.post('/org-unit', orgUnit)
+  create (uuid, create) {
+    return Service.post('/ou/create', create)
     .then(response => {
-      EventBus.$emit('org-unit-create', response.data)
+      EventBus.$emit('organisation-unit-create', response.data)
       return response.data
     })
-  },
-
-    /**
-   * Rename an organisation unit
-   * @param {Object} orgUnit - organisation unit to rename
-   * @param {String} newName - new name of the organisation unit
-   * @returns {Object} organisation unit uuid
-   */
-  rename (orgUnit, newName) {
-    orgUnit.name = newName
-    return HTTP.post(`/org-unit/${orgUnit.uuid}?rename=true`, orgUnit)
-    .then(response => {
-      EventBus.$emit('org-unit-rename', response.data)
-      return response.data
+    .catch(error => {
+      console.log(error.response)
     })
   },
 
