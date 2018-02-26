@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="hasEntryComponent">
     <button 
       class="btn btn-outline-primary" 
       v-b-modal="'moCreate'+_uid" 
@@ -50,10 +50,7 @@
       label: String,
       content: Object,
       contentType: String,
-      entryComponent: {
-        type: Object,
-        required: true
-      },
+      entryComponent: Object,
       type: {
         type: String,
         required: true,
@@ -86,6 +83,10 @@
           case 'EDIT':
             return 'edit'
         }
+      },
+
+      hasEntryComponent () {
+        return this.entryComponent !== undefined
       }
     },
     created () {
