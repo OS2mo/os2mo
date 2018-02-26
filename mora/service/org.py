@@ -701,3 +701,63 @@ def terminate_org_unit(unitid):
     return flask.jsonify(unitid)
 
     # TODO: Afkort adresser?
+
+
+@blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
+def get_org_unit_history(unitid):
+    """
+    Get the history of an org unit
+    :param unitid: The UUID of the org unit
+
+    **Example response**:
+
+    :<jsonarr string from: When the change is active from
+    :<jsonarr string to: When the change is active to
+    :<jsonarr string action: The action performed
+    :<jsonarr string life_cycle_code: The type of action performed
+    :<jsonarr string user_ref: A reference to the user who made the change
+
+    .. sourcecode:: json
+
+      [
+        {
+          'from': '2018-02-21T13:25:24.391793+01:00',
+          'to': 'infinity',
+          'action': 'Afslut enhed',
+          'life_cycle_code': 'Rettet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        },
+        {
+          'from': '2018-02-21T13:25:24.343010+01:00',
+          'to': '2018-02-21T13:25:24.391793+01:00',
+          'action': 'Rediger organisationsenhed',
+          'life_cycle_code': 'Rettet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        },
+        {
+          'from': '2018-02-21T13:25:24.271516+01:00',
+          'to': '2018-02-21T13:25:24.343010+01:00',
+          'action': 'Rediger organisationsenhed',
+          'life_cycle_code': 'Rettet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        },
+        {
+          'from': '2018-02-21T13:25:24.214514+01:00',
+          'to': '2018-02-21T13:25:24.271516+01:00',
+          'action': 'Oprettet i MO',
+          'life_cycle_code': 'Opstaaet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        }
+      ]
+
+    """
+
+    c = lora.Connector()
+    unit_registrations = c.organisationenhed.get(uuid=unitid,
+                                                 registreretfra='-infinity',
+                                                 registrerettil='infinity')
+
+    history_entries = list(map(common.convert_reg_to_history,
+                               unit_registrations))
+
+    return flask.jsonify(history_entries)

@@ -378,9 +378,13 @@ class TestCaseMixin(object):
             return obj
 
         # drop lora-generated timestamps & users
-        del actual['fratidspunkt'], actual[
-            'tiltidspunkt'], actual[
-            'brugerref']
+        expected.pop('fratidspunkt', None)
+        expected.pop('tiltidspunkt', None)
+        expected.pop('brugerref', None)
+
+        actual.pop('fratidspunkt', None)
+        actual.pop('tiltidspunkt', None)
+        actual.pop('brugerref', None)
 
         # Sort all inner lists and compare
         return self.assertEqual(
@@ -416,10 +420,17 @@ class LoRATestCaseMixin(TestCaseMixin):
         if not silent and data:
             print(data.decode('utf-8').rstrip())
 
+    @staticmethod
+    def lora_port():
+        try:
+            return LoRATestCaseMixin.__lora_port
+        except AttributeError:
+            LoRATestCaseMixin.__lora_port = get_unused_port()
+            return LoRATestCaseMixin.__lora_port
+
     @unittest.skipUnless('MINIMOX_DIR' in os.environ, 'MINIMOX_DIR not set!')
     @classmethod
     def setUpClass(cls):
-        port = get_unused_port()
         MINIMOX_DIR = os.getenv('MINIMOX_DIR')
 
         # Start a 'minimox' instance -- which is LoRA with the testing
@@ -430,7 +441,7 @@ class LoRATestCaseMixin(TestCaseMixin):
         cls.minimox_log_offset = 0
         cls.minimox_log = tempfile.TemporaryFile(mode='w+')
         cls.minimox = subprocess.Popen(
-            [os.path.join(MINIMOX_DIR, 'run-mox.py'), str(port)],
+            [os.path.join(MINIMOX_DIR, 'run-mox.py'), str(cls.lora_port())],
             stdin=subprocess.DEVNULL,
             stdout=cls.minimox_log.fileno(),
             stderr=subprocess.STDOUT,
@@ -439,7 +450,7 @@ class LoRATestCaseMixin(TestCaseMixin):
         )
 
         cls._orig_lora = settings.LORA_URL
-        settings.LORA_URL = 'http://localhost:{}/'.format(port)
+        settings.LORA_URL = 'http://localhost:{}/'.format(cls.lora_port())
         settings.SAML_IDP_TYPE = None
 
         # This is the first such measure: if the interpreter abruptly
