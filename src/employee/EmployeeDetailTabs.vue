@@ -2,23 +2,61 @@
   <div>
     <loading v-show="isLoading"/>
     <b-tabs v-show="!isLoading">
-      <b-tab title="Engagement" active v-if="tabs.engagement"> 
-        <mo-engagement-detail :uuid="uuid"/>
+      <b-tab title="Engagement" active> 
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="engagement"
+          :columns="columns.engagement"
+          :entry-component="components.engagement"
+        />
       </b-tab>
-      <b-tab title="Adresser" v-if="tabs.address">
-        <mo-address-detail :uuid="uuid"/>
+      <b-tab title="Adresser">
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="address"
+          :columns="columns.address"
+          :entry-component="components.address"
+        />
       </b-tab>
-      <b-tab title="Rolle" v-if="tabs.role">
-        <mo-role-detail :uuid="uuid"/>
+      <b-tab title="Rolle">
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="role"
+          :columns="columns.role"
+          :entry-component="components.role"
+        />
       </b-tab>
-      <b-tab title="IT" v-if="tabs.it">
-        <mo-it-system-detail :uuid="uuid"/>
+      <b-tab title="IT">
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="it"
+          :columns="columns.it"
+          :entry-component="components.it"
+        />
       </b-tab>
-      <b-tab title="Tilknytning" v-if="tabs.association">
-        <mo-association-detail :uuid="uuid"/>
+      <b-tab title="Tilknytning">
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="association"
+          :columns="columns.association"
+          :entry-component="components.association"
+        />
       </b-tab>
-      <b-tab title="Orlov" v-if="tabs.leave">
-        <mo-leave-detail :uuid="uuid"/>
+      <b-tab title="Orlov">
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="leave"
+          :columns="columns.leave"
+          :entry-component="components.leave"
+        />
+      </b-tab>
+      <b-tab title="Leder" >
+        <mo-employee-detail 
+          :uuid="uuid" 
+          detail="manager"
+          :columns="columns.manager"
+          :entry-component="components.manager"
+        />
       </b-tab>
     </b-tabs>
   </div>
@@ -27,23 +65,20 @@
 
 <script>
   import Employee from '../api/Employee'
-  import MoEngagementDetail from './MoEngagement/MoEngagementDetail'
-  import MoAddressDetail from './MoAddress/MoAddressDetail'
-  import MoRoleDetail from './MoRole/MoRoleDetail'
-  import MoItSystemDetail from './MoItSystem/MoItSystemDetail'
-  import MoLeaveDetail from './MoLeave/MoLeaveDetail'
-  import MoAssociationDetail from './MoAssociation/MoAssociationDetail'
   import Loading from '../components/Loading'
+  import MoEmployeeDetail from './MoEmployeeDetail'
+  import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
+  import MoRoleEntry from './MoRole/MoRoleEntry'
+  import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
+  import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
+  import MoLeaveEntry from './MoLeave/MoLeaveEntry'
+  import MoManagerEntry from './MoManager/MoManagerEntry'
+  import MoAddressEntry from './MoAddress/MoAddressEntry'
 
   export default {
     components: {
-      MoEngagementDetail,
-      MoAddressDetail,
-      MoRoleDetail,
-      MoItSystemDetail,
-      MoAssociationDetail,
-      MoLeaveDetail,
-      Loading
+      Loading,
+      MoEmployeeDetail
     },
     props: {
       uuid: String
@@ -52,7 +87,24 @@
       return {
         tabs: {},
         isLoading: false,
-        details: {}
+        columns: {
+          engagement: ['org_unit', 'job_function', 'engagement_type'],
+          role: ['org_unit', 'role_type'],
+          it: ['it_system', 'user'],
+          association: ['org_unit', 'job_function', 'association_type'],
+          leave: ['leave_type'],
+          manager: ['org_unit', 'responsibility', 'manager_type', 'manager_level'],
+          address: ['address_type']
+        },
+        components: {
+          engagement: MoEngagementEntry,
+          role: MoRoleEntry,
+          it: MoItSystemEntry,
+          association: MoAssociationEntry,
+          leave: MoLeaveEntry,
+          manager: MoManagerEntry,
+          address: MoAddressEntry
+        }
       }
     },
     created () {
@@ -68,27 +120,6 @@
           vm.tabs = response
         })
       }
-
-      // this will be very smart at some point! We can essentially remove all table views
-      // populateTables () {
-      //   let vm = this
-      //   vm.isLoading = true
-      //   Employee.getDetailList(this.uuid)
-      //   .then(detail => {
-      //     let asyncArray = []
-      //     for (let key in detail) {
-      //       if (detail[key]) {
-      //         asyncArray.push(key)
-      //       }
-      //     }
-      //     asyncArray.forEach((element, index) => {
-      //       Employee.getDetail(vm.uuid, element)
-      //       .then(facet => {
-      //         vm.details[asyncArray[index]] = facet
-      //       })
-      //     })
-      //   })
-      // }
     }
   }
 </script>
