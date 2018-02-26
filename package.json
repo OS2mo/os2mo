@@ -1,8 +1,8 @@
 {
-  "name": "os2mo-frontend",
-  "version": "1.0.0",
-  "description": "A Vue.js project",
-  "author": "Anders Jepsen <anders@magenta.dk>",
+  "name": "mora",
+  "version": "0.1.0",
+  "description": "OS2 Mennesker + Organisation 2.0",
+  "author": "Magenta ApS <info@magenta.dk>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
