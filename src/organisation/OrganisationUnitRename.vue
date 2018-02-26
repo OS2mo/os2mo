@@ -35,7 +35,7 @@
 
     <div class="float-right">
       <button-submit 
-      :disabled="errors.any() || !isCompleted"
+      :disabled="errors.any() || isDisabled"
       :on-click-action="renameOrganisationUnit"
       />
     </div>

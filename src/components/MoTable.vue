@@ -81,7 +81,8 @@
           responsibility: 'Lederansvar',
           manager_type: 'Ledertype',
           manager_level: 'Lederniveau',
-          address_type: 'Adressetype'
+          address_type: 'Adressetype',
+          person: 'Navn'
         }
       }
     },
