@@ -34,6 +34,12 @@
       :validity="engagement.validity"
       @is-valid="isItSystemValid"
     />
+    <h4>Leder</h4>
+    <mo-manager-entry 
+      v-model="manager" 
+      :validity="engagement.validity" 
+      @is-valid="isManagerValid"
+    />
 
     <div class="float-right">
       <button-submit 
@@ -56,6 +62,7 @@ import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
 import MoRoleEntry from './MoRole/MoRoleEntry'
 import EmployeePicker from '../components/EmployeePicker'
 import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
+import MoManagerEntry from './MoManager/MoManagerEntry'
 
 export default {
   components: {
@@ -64,7 +71,8 @@ export default {
     MoEngagementEntry,
     MoRoleEntry,
     EmployeePicker,
-    MoItSystemEntry
+    MoItSystemEntry,
+    MoManagerEntry
   },
   data () {
     return {
@@ -74,12 +82,14 @@ export default {
       association: {},
       role: {},
       itSystem: {},
+      manager: {},
       isLoading: false,
       valid: {
         engagement: false,
         association: false,
         role: false,
-        itSysyem: false
+        itSystem: false,
+        manager: false
       }
     }
   },
@@ -87,8 +97,14 @@ export default {
     isDisabled () {
       let emp = Object.keys(this.employee).length > 0
       let ass = Object.keys(this.association).length > 2
-      let role = Object.keys(this.role).length > 2
-      return (!emp || !this.valid.engagement || (ass ? !this.valid.association : false) || (role ? !this.valid.role : false))
+      let role = Object.keys(this.role).length > 3
+      let it = Object.keys(this.itSystem).length > 2
+      let man = Object.keys(this.manager).length > 2
+      return (!emp || !this.valid.engagement ||
+              (ass ? !this.valid.association : false) ||
+              (role ? !this.valid.role : false) ||
+              (it ? !this.valid.itSystem : false) ||
+              (man ? !this.valid.manager : false))
     }
   },
   created () {
@@ -116,26 +132,20 @@ export default {
       this.valid.itSystem = val
     },
 
+    isManagerValid (val) {
+      this.valid.manager = val
+    },
+
     createEmployee () {
       let vm = this
       let create = []
       this.isLoading = true
 
-      if (Object.keys(this.engagement).length === 5) {
-        create.push(this.engagement)
-      }
-
-      if (Object.keys(this.association).length === 5) {
-        create.push(this.association)
-      }
-
-      if (Object.keys(this.role).length === 4) {
-        create.push(this.role)
-      }
-
-      if (Object.keys(this.itSystem).length === 3) {
-        create.push(this.itSystem)
-      }
+      if (this.valid.engagement) create.push(this.engagement)
+      if (this.valid.association) create.push(this.association)
+      if (this.valid.role) create.push(this.role)
+      if (this.valid.itSysyem) create.push(this.itSystem)
+      if (this.valid.manager) create.push(this.manager)
 
       Employee.create(this.employee.uuid, create)
       .then(response => {

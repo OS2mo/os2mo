@@ -1,8 +1,8 @@
 <template>
   <div>
-      <date-start-end v-model="itSystem.validity" initially-hidden/>
+      <date-start-end v-model="entry.validity" initially-hidden/>
       <div class="form-row">
-        <it-system-picker v-model="itSystem.itsystem"/>
+        <it-system-picker v-model="entry.itsystem"/>
       </div>
   </div>
 </template>
@@ -22,26 +22,28 @@ export default {
   },
   data () {
     return {
-      itSystem: {
+      entry: {
         validity: {}
       }
     }
   },
   watch: {
-    itSystem (newVal) {
-      newVal.type = 'it'
-      this.$emit('input', newVal)
-      let valid = false
-      if (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined) valid = true
-      this.$emit('is-valid', valid)
+    entry: {
+      handler (newVal) {
+        newVal.type = 'it'
+        this.$emit('input', newVal)
+        let valid = (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined)
+        this.$emit('is-valid', valid)
+      },
+      deep: true
     },
 
     validity (newVal) {
-      this.itSystem.validity = newVal
+      this.entry.validity = newVal
     }
   },
   created () {
-    this.itSystem = this.value
+    this.entry = this.value
   }
 }
 </script>

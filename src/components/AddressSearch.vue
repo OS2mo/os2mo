@@ -29,7 +29,7 @@
 
 
 <script>
-  import Property from '../api/Property'
+  import Search from '../api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
   import AddressSearchTemplate from './AddressSearchTemplate.vue'
@@ -61,7 +61,7 @@
       getGeographicalLocation (query) {
         let vm = this
         let local = this.searchCountry ? '' : this.org.uuid
-        Property.getGeographicalLocation(query, local)
+        Search.getGeographicalLocation(query, local)
         .then(response => {
           vm.addressSuggestions = response
         })

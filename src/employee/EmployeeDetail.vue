@@ -15,7 +15,6 @@
           </button>
         </div>
       </div>
-      <!-- Modal Component -->
       <employee-detail-tabs :uuid="$route.params.uuid"/>
     </div>
   </div>
@@ -57,8 +56,8 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.cpr {
-  color: #aaa
-}
-
+  .cpr {
+    color: #aaa
+  }
+  
 </style>

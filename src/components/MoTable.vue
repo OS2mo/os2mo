@@ -77,7 +77,11 @@
           role_type: 'Rolle',
           leave_type: 'Orlovstype',
           it_system: 'System',
-          user: 'Brugernavn'
+          user: 'Brugernavn',
+          responsibility: 'Lederansvar',
+          manager_type: 'Ledertype',
+          manager_level: 'Lederniveau',
+          address_type: 'Adressetype'
         }
       }
     },
