@@ -54,7 +54,7 @@ export default {
    * @param {String} uuid - Uuid for the current organisation unit
    * @returns {Array} A list of historical events for the organisation unit
    */
-  getHistory (uuid) {
+  history (uuid) {
     return HTTP.get(`/org-unit/${uuid}/history/`)
     .then(response => {
       return response.data
@@ -90,17 +90,19 @@ export default {
    * @see getDetail
    */
   getEngagementDetails (uuid, validity) {
-    return this.getDetailNew(uuid, 'engagement')
+    return this.getDetail(uuid, 'engagement', validity)
   },
 
   /**
    * Base call for getting details.
    * @param {String} uuid - organisation unit uuid
    * @param {String} detail - Name of the detail
+   * @param {String} validity - Can be either past, present or future
    * @returns {Array} A list of options for the detail
    */
-  getDetailNew (uuid, detail) {
-    return Service.get(`/ou/${uuid}/details/${detail}`)
+  getDetail (uuid, detail, validity) {
+    validity = validity || 'present'
+    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}`)
     .then(response => {
       return response.data
     })
@@ -110,29 +112,6 @@ export default {
     return Service.get(`/ou/${uuid}/details`)
     .then(response => {
       return response.data
-    })
-  },
-
-  /**
-   * Base call for getting details.
-   * @todo Need a fix to the api so the current handling of detail is not needed
-   * @todo validity could maybe get a better name
-   * @todo maybe create an enum for validity
-   * @param {String} uuid - Uuid for the current organisation unit
-   * @param {String} detail - Name of the detail to get
-   * @param {String} validity - Can be 'past', 'present' or 'future'
-   * @returns {Array} A list of options for the specififed detail
-   * @deprecated
-   */
-  getDetail (uuid, detail, validity) {
-    detail = detail === 'unit' ? '' : '/role-types/' + detail
-    validity = validity || 'present'
-    return HTTP.get(`/org-unit/${uuid}${detail}/?validity=${validity}`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
     })
   },
 

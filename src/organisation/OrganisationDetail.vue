@@ -12,13 +12,7 @@
           </p>
         </div>
         <div>
-          <button class="btn btn-outline-primary">
-            <icon name="edit" />
-          </button>
-          <!-- <button class="btn btn-outline-primary" v-b-modal.viewUnit>
-            <icon name="eye" />
-          </button> -->
-          <mo-history :uuid="orgUnit.uuid" type="ORG_UNIT"/>
+          <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
         </div>
       </div>
 
