@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group col">
+  <div>
     <label v-if="!noLabel">{{label}}</label>
     <loading v-show="isLoading"/>
     <select

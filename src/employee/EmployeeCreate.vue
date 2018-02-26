@@ -6,21 +6,41 @@
     title="Ny medarbejder"
     ref="employeeCreate"
   >
-    <div class="form-row">
-      <employee-picker :org="org" v-model="employee"/>
-    </div>
+    <employee-picker :org="org" v-model="employee"/>
+    
     <h4>Engagement</h4>
-    <employee-create-engagement :org="org" v-model="engagement" @is-valid="isEngagementValid"/>
-
+    <mo-engagement-entry
+      :org="org" 
+      v-model="engagement" 
+      @is-valid="isEngagementValid"
+    />
     <h4>Tilknytning</h4>
-    <employee-create-association :org="org" v-model="association" :validity="engagement.validity"/>
+    <mo-association-entry 
+      :org="org"
+      v-model="association"
+      :validity="engagement.validity"
+      @is-valid="isAssociationValid"
+    />
     <h4>Rolle</h4>
-    <employee-create-role :org="org" v-model="role" :validity="engagement.validity"/>
+    <mo-role-entry
+      :org="org" 
+      v-model="role" 
+      :validity="engagement.validity"
+      @is-valid="isRoleValid"
+    />
     <h4>IT systemer</h4>
-    <mo-it-system v-model="itSystem" :validity="engagement.validity"/>
+    <mo-it-system-entry 
+      v-model="itSystem" 
+      :validity="engagement.validity"
+      @is-valid="isItSystemValid"
+    />
 
     <div class="float-right">
-      <button-submit @click.native="createEmployee" :is-disabled="isDisabled" :is-loading="isLoading"/>
+      <button-submit 
+        :on-click-action="createEmployee" 
+        :is-disabled="isDisabled" 
+        :is-loading="isLoading"
+      />
     </div>
   </b-modal>
 
@@ -31,20 +51,20 @@ import Organisation from '../api/Organisation'
 import Employee from '../api/Employee'
 import { EventBus } from '../EventBus'
 import ButtonSubmit from '../components/ButtonSubmit'
-import EmployeeCreateAssociation from './EmployeeCreateAssociation'
-import EmployeeCreateEngagement from './EmployeeCreateEngagement'
-import EmployeeCreateRole from './EmployeeCreateRole'
+import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
+import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
+import MoRoleEntry from './MoRole/MoRoleEntry'
 import EmployeePicker from '../components/EmployeePicker'
-import MoItSystem from './MoItSystem/MoItSystem'
+import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
 
 export default {
   components: {
     ButtonSubmit,
-    EmployeeCreateAssociation,
-    EmployeeCreateEngagement,
-    EmployeeCreateRole,
+    MoAssociationEntry,
+    MoEngagementEntry,
+    MoRoleEntry,
     EmployeePicker,
-    MoItSystem
+    MoItSystemEntry
   },
   data () {
     return {
@@ -56,15 +76,19 @@ export default {
       itSystem: {},
       isLoading: false,
       valid: {
-        engagement: false
+        engagement: false,
+        association: false,
+        role: false,
+        itSysyem: false
       }
     }
   },
   computed: {
     isDisabled () {
       let emp = Object.keys(this.employee).length > 0
-
-      return (!emp || !this.valid.engagement)
+      let ass = Object.keys(this.association).length > 2
+      let role = Object.keys(this.role).length > 2
+      return (!emp || !this.valid.engagement || (ass ? !this.valid.association : false) || (role ? !this.valid.role : false))
     }
   },
   created () {
@@ -79,6 +103,19 @@ export default {
     isEngagementValid (val) {
       this.valid.engagement = val
     },
+
+    isAssociationValid (val) {
+      this.valid.association = val
+    },
+
+    isRoleValid (val) {
+      this.valid.role = val
+    },
+
+    isItSystemValid (val) {
+      this.valid.itSystem = val
+    },
+
     createEmployee () {
       let vm = this
       let create = []

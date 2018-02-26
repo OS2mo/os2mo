@@ -42,15 +42,39 @@
   </div>
 </template>
 
+<template>
+  <div>
+    <mo-table-collapsible-tense
+      :columns="columns"
+      :content="details"
+      content-type="leave"
+      :loading="loading"
+      :uuid="uuid"
+      :edit-component="entryComponent"
+    />
+
+    <mo-entry-modal-base 
+      type="CREATE" 
+      :uuid="uuid" 
+      label="Ny orlov" 
+      :entry-component="entryComponent"
+      content-type="leave"
+    />
+  </div>
+</template>
+
 
 <script>
-  import Employee from '../api/Employee'
-  import '../filters/GetProperty'
-  import Loading from '../components/Loading'
+  import Employee from '../../api/Employee'
+  import { EventBus } from '../../EventBus'
+  import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
+  import MoEntryModalBase from '../../components/MoEntryModalBase'
+  import MoLeaveEntry from './MoLeaveEntry'
 
   export default {
     components: {
-      Loading
+      MoTableCollapsibleTense,
+      MoEntryModalBase
     },
     props: {
       uuid: {
@@ -60,40 +84,46 @@
     },
     data () {
       return {
-        details: [],
-        detailsPast: [],
-        detailsFuture: [],
-        isLoading: false
+        details: {
+          present: [],
+          past: [],
+          future: []
+        },
+        loading: {
+          present: false,
+          past: false,
+          future: false
+        },
+        columns: ['leave_type'],
+        entryComponent: MoLeaveEntry
       }
     },
+    mounted () {
+      EventBus.$on('employee-changed', () => {
+        this.getAllDetails()
+      })
+    },
     created () {
-      this.getDetails()
+      this.getAllDetails()
     },
     methods: {
-      getDetails () {
-        var vm = this
-        vm.isLoading = true
-        Employee.getLeaveDetails(this.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.details = response
+      getAllDetails () {
+        let tense = ['past', 'present', 'future']
+
+        tense.forEach(t => {
+          this.getDetails(t)
         })
-        Employee.getLeaveDetails(this.uuid, 'past')
+      },
+
+      getDetails (tense) {
+        let vm = this
+        vm.loading.present = true
+        Employee.getLeaveDetails(this.uuid, tense)
         .then(response => {
-          vm.detailsPast = response
-        })
-        Employee.getLeaveDetails(this.uuid, 'future')
-        .then(response => {
-          vm.detailsFuture = response
+          vm.loading[tense] = false
+          vm.details[tense] = response
         })
       }
     }
   }
 </script>
-<style scoped>
-
-th{
-  background-color: #ffffff;
-}
-
-</style>

@@ -36,6 +36,9 @@ def get_one_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
+        if not org or not common.is_reg_valid(org):
+            return None
+
     attrs = org['attributter']['organisationegenskaber'][0]
 
     return {
@@ -124,10 +127,10 @@ def get_organisation(orgid):
         "child_count": 1,
         "unit_count": 6,
         "employment_count": 1,
-        'association_count': 1,
-        'leave_count': 1,
-        'role_count': 1,
-        'manager_count': 1
+        "association_count": 1,
+        "leave_count": 1,
+        "role_count": 1,
+        "manager_count": 1
       }
 
     '''
@@ -199,7 +202,7 @@ def get_one_orgunit(c, unitid, unit=None,
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
-        if not unit:
+        if not unit or not common.is_reg_valid(unit):
             return None
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]
@@ -402,7 +405,12 @@ def get_orgunit_tree(unitid):
     '''
     c = common.get_connector()
 
-    return flask.jsonify(get_one_orgunit(c, unitid, details=UnitDetails.FULL))
+    r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
+
+    if r:
+        return flask.jsonify(r)
+    else:
+        raise werkzeug.exceptions.NotFound('no such unit')
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
@@ -693,3 +701,63 @@ def terminate_org_unit(unitid):
     return flask.jsonify(unitid)
 
     # TODO: Afkort adresser?
+
+
+@blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
+def get_org_unit_history(unitid):
+    """
+    Get the history of an org unit
+    :param unitid: The UUID of the org unit
+
+    **Example response**:
+
+    :<jsonarr string from: When the change is active from
+    :<jsonarr string to: When the change is active to
+    :<jsonarr string action: The action performed
+    :<jsonarr string life_cycle_code: The type of action performed
+    :<jsonarr string user_ref: A reference to the user who made the change
+
+    .. sourcecode:: json
+
+      [
+        {
+          'from': '2018-02-21T13:25:24.391793+01:00',
+          'to': 'infinity',
+          'action': 'Afslut enhed',
+          'life_cycle_code': 'Rettet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        },
+        {
+          'from': '2018-02-21T13:25:24.343010+01:00',
+          'to': '2018-02-21T13:25:24.391793+01:00',
+          'action': 'Rediger organisationsenhed',
+          'life_cycle_code': 'Rettet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        },
+        {
+          'from': '2018-02-21T13:25:24.271516+01:00',
+          'to': '2018-02-21T13:25:24.343010+01:00',
+          'action': 'Rediger organisationsenhed',
+          'life_cycle_code': 'Rettet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        },
+        {
+          'from': '2018-02-21T13:25:24.214514+01:00',
+          'to': '2018-02-21T13:25:24.271516+01:00',
+          'action': 'Oprettet i MO',
+          'life_cycle_code': 'Opstaaet',
+          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+        }
+      ]
+
+    """
+
+    c = lora.Connector()
+    unit_registrations = c.organisationenhed.get(uuid=unitid,
+                                                 registreretfra='-infinity',
+                                                 registrerettil='infinity')
+
+    history_entries = list(map(common.convert_reg_to_history,
+                               unit_registrations))
+
+    return flask.jsonify(history_entries)

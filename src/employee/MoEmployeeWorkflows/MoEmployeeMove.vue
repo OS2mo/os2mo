@@ -7,12 +7,11 @@
     ref="employeeMove"
   >
     <div>
-      <div class="form-row">
+
         <employee-picker 
           v-model="employee" 
           :org="org"
         />
-      </div>
 
       <div class="form-row">
         <date-picker 
@@ -38,20 +37,20 @@
       </div>
 
     <div class="float-right">
-      <button-submit @click.native="moveEmployee" :is-loading="isLoading"/>
+      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading" :is-disabled="isDisabled"/>
     </div>
   </div>
 </b-modal>
 </template>
 
 <script>
-  import Employee from '../api/Employee'
-  import '../filters/GetProperty'
-  import DatePicker from '../components/DatePicker'
-  import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import EngagementPicker from '../components/EngagementPicker'
-  import EmployeePicker from '../components/EmployeePicker'
-  import ButtonSubmit from '../components/ButtonSubmit'
+  import Employee from '../../api/Employee'
+  import '../../filters/GetProperty'
+  import DatePicker from '../../components/DatePicker'
+  import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
+  import EngagementPicker from '../../components/EngagementPicker'
+  import EmployeePicker from '../../components/EmployeePicker'
+  import ButtonSubmit from '../../components/ButtonSubmit'
 
   export default {
     components: {
@@ -78,6 +77,11 @@
             validity: {}
           }
         }
+      }
+    },
+    computed: {
+      isDisabled () {
+        return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.move.original
       }
     },
     methods: {

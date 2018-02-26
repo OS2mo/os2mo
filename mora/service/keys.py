@@ -19,6 +19,8 @@ ORG_UNIT = 'org_unit'
 PERSON = 'person'
 JOB_FUNCTION = 'job_function'
 ITSYSTEM = 'itsystem'
+ADDRESS = 'address'
+ITSYSTEM_KEY = 'IT-system'
 
 # Address
 ADDRESS_KEY = 'Adresse'

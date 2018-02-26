@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1>DETTE BRUGER DET GAMLE API</h1>
     <table class="table table-striped">
       <thead>
         <tr>
@@ -26,7 +27,7 @@
 
 
 <script>
-  import Employee from '../api/Employee'
+  import Employee from '../../api/Employee'
 
   export default {
     components: {},
@@ -43,11 +44,11 @@
         detailsFuture: []
       }
     },
-    created: function () {
+    created () {
       this.getDetails()
     },
     methods: {
-      getDetails: function () {
+      getDetails () {
         var vm = this
         Employee.getContactDetails(this.uuid)
         .then(function (response) {
@@ -57,8 +58,3 @@
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

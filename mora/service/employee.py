@@ -16,10 +16,19 @@ This section describes how to interact with employees.
 '''
 
 import flask
+import werkzeug
 
-from mora import lora
-from . import association, common, engagement, itsystem, org, keys, leave, role
+from . import address
+from . import association
+from . import common
+from . import engagement
+from . import itsystem
+from . import keys
 from . import manager
+from . import leave
+from . import org
+from . import role
+from .. import lora
 from .. import util
 from ..converters import writing
 
@@ -30,6 +39,9 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
 def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
+
+        if not user or not common.is_reg_valid(user):
+            return None
 
     props = user['attributter']['brugeregenskaber'][0]
 
@@ -152,7 +164,12 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    return flask.jsonify(get_one_employee(c, id, full=True))
+    r = get_one_employee(c, id, full=True)
+
+    if r:
+        return flask.jsonify(r)
+    else:
+        raise werkzeug.exceptions.NotFound('no such user')
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
@@ -246,7 +263,7 @@ def create_employee(employee_uuid):
 
     :<json string type: ``"it"``
     :<json object itsystem: The IT system to create a relation to, as
-        returned by :http:get:`/o/(uuid:orgid)/it/`. The only
+        returned by :http:get:`/service/o/(uuid:orgid)/it/`. The only
         mandatory field is ``uuid``.
 
     .. sourcecode:: json
@@ -343,9 +360,40 @@ def create_employee(employee_uuid):
         }
       ]
 
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string address: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "address": "1234567890",
+          "address_type": {
+            "example": "5712345000014",
+            "name": "EAN",
+            "scope": "EAN",
+            "user_key": "EAN",
+            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
+        }
+      ]
+
     """
 
     handlers = {
+        'address': address.create_address,
         'engagement': engagement.create_engagement,
         'association': association.create_association,
         'it': itsystem.create_system,
@@ -354,6 +402,8 @@ def create_employee(employee_uuid):
         'manager': manager.create_manager,
         'leave': leave.create_leave,
     }
+
+    c = lora.Connector()
 
     reqs = flask.request.get_json()
     for req in reqs:
@@ -364,6 +414,12 @@ def create_employee(employee_uuid):
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
+
+        # Write a noop entry to the user, to be used for the history
+        common.add_bruger_history_entry(
+            employee_uuid,
+            "Opret {}".format(common.RELATION_TRANSLATIONS[role_type])
+        )
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
@@ -537,15 +593,15 @@ def edit_employee(employee_uuid):
             "validity": {
               "from": "2002-02-14T00:00:00+01:00",
               "to": null
-            },
+            }
           },
           "data": {
             "uuid": "11111111-1111-1111-1111-111111111111",
             "validity": {
               "to": "2020-01-01T00:00:00+01:00"
-            },
-          },
-        },
+            }
+          }
+        }
       ]
 
     **Role**:
@@ -706,6 +762,7 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
+        'address': address.edit_address,
         'engagement': engagement.edit_engagement,
         'association': association.edit_association,
         'role': role.edit_role,
@@ -717,6 +774,8 @@ def edit_employee(employee_uuid):
 
     reqs = flask.request.get_json()
 
+    c = lora.Connector()
+
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them
     for req in reqs:
@@ -727,6 +786,12 @@ def edit_employee(employee_uuid):
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
         handler(str(employee_uuid), req)
+
+        # Write a noop entry to the user, to be used for the history
+        common.add_bruger_history_entry(
+            employee_uuid,
+            "Rediger {}".format(common.RELATION_TRANSLATIONS[role_type])
+        )
 
     # TODO: Figure out the response -- probably just the edited object(s)?
     return flask.jsonify(employee_uuid), 200
@@ -778,5 +843,61 @@ def terminate_employee(employee_uuid):
                     "Afslut medarbejder"),
                 obj[0])
 
+    # Write a noop entry to the user, to be used for the history
+    common.add_bruger_history_entry(employee_uuid, "Afslut medarbejder")
+
     # TODO:
     return flask.jsonify(employee_uuid), 200
+
+
+@blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
+def get_employee_history(employee_uuid):
+    """
+    Get the history of an employee
+    :param employee_uuid: The UUID of the employee
+
+    **Example response**:
+
+    :<jsonarr string from: When the change is active from
+    :<jsonarr string to: When the change is active to
+    :<jsonarr string action: The action performed
+    :<jsonarr string life_cycle_code: The type of action performed
+    :<jsonarr string user_ref: A reference to the user who made the change
+
+    .. sourcecode:: json
+
+      [
+        {
+          "from": "2018-02-21T11:27:20.909206+01:00",
+          "to": "infinity",
+          "action": "Opret orlov",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+        },
+        {
+          "from": "2018-02-21T11:27:20.803682+01:00",
+          "to": "2018-02-21T11:27:20.909206+01:00",
+          "action": "Rediger engagement",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+        },
+        {
+          "from": "2018-02-21T11:27:20.619990+01:00",
+          "to": "2018-02-21T11:27:20.803682+01:00",
+          "action": None,
+          "life_cycle_code": "Importeret",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+        }
+      ]
+
+    """
+
+    c = lora.Connector()
+    user_registrations = c.bruger.get(uuid=employee_uuid,
+                                      registreretfra='-infinity',
+                                      registrerettil='infinity')
+
+    history_entries = list(map(common.convert_reg_to_history,
+                               user_registrations))
+
+    return flask.jsonify(history_entries)

@@ -971,14 +971,29 @@ class IntegrationTests(util.LoRATestCase):
                           '/f/leave_type/',
                   'user_key': 'Orlovstype',
                   'uuid': 'd9aa489a-ac93-4769-98e5-19d6d37a919c'},
+                 {'name': 'manager_level',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/manager_level/',
+                  'user_key': 'Lederniveau',
+                  'uuid': '5e1186f2-3b41-428e-97c1-ebd680b12488'},
+                 {'name': 'manager_type',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/manager_type/',
+                  'user_key': 'Ledertyper',
+                  'uuid': '7f63f302-5277-4ab6-b9d8-073b4a7ffc51'},
                  {'name': 'org_unit_type',
                   'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                  '/f/org_unit_type/',
+                          '/f/org_unit_type/',
                   'user_key': 'Enhedstype',
                   'uuid': 'd2a8b57a-5913-47c9-8ead-99b9822e27fa'},
+                 {'name': 'responsibility',
+                  'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
+                          '/f/responsibility/',
+                  'user_key': 'Lederansvar',
+                  'uuid': '035f1fc2-0d61-47ec-994b-a75a727de8c3'},
                  {'name': 'role_type',
                   'path': '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd'
-                  '/f/role_type/',
+                          '/f/role_type/',
                   'user_key': 'Rolletype',
                   'uuid': '09c93426-db19-4442-aea8-5ac9ba9573a6'},
                  ],
@@ -1203,6 +1218,130 @@ class IntegrationTests(util.LoRATestCase):
                          'user_key': 'Barselsorlov',
                          'uuid': 'd7ec3a18-3a9d-43c8-ad03-0202c0d044d4'}
                     ],
+                    'manager_level': [
+                        {'example': None,
+                         'name': 'Niveau 90',
+                         'scope': None,
+                         'user_key': 'Niveau 90',
+                         'uuid': '7d4d2609-7146-4a20-b9f0-fe4c19701217'}],
+                    'manager_type': [
+                        {'example': None,
+                         'name': 'Afsnitsleder',
+                         'scope': None,
+                         'user_key': 'Afsnitsleder',
+                         'uuid': '48f525f5-4420-49a0-9e95-096e26cfdc9f'},
+                        {'example': None,
+                         'name': 'Beredskabschef',
+                         'scope': None,
+                         'user_key': 'Beredskabschef',
+                         'uuid': '6a1e28d1-5c15-439b-bfcd-34de284a8c80'},
+                        {'example': None,
+                         'name': 'Borgmester',
+                         'scope': None,
+                         'user_key': 'Borgmester',
+                         'uuid': '6a6d5c82-a7d1-4488-b687-49daa3910ec1'},
+                        {'example': None,
+                         'name': 'Chef',
+                         'scope': None,
+                         'user_key': 'Chef',
+                         'uuid': 'ff13e6d0-d43b-4b39-8cd4-742a0365d6c2'},
+                        {'example': None,
+                         'name': 'Direktør',
+                         'scope': None,
+                         'user_key': 'Direktør',
+                         'uuid': 'd8043094-6f38-4349-9fbb-dc7c28668fa0'},
+                        {'example': None,
+                         'name': 'Institutionsafsnitsleder',
+                         'scope': None,
+                         'user_key': 'Institutionsafsnitsleder',
+                         'uuid': '42617c67-b516-4b41-be6f-0cb43bb455f9'},
+                        {'example': None,
+                         'name': 'Institutionsleder',
+                         'scope': None,
+                         'user_key': 'Institutionsleder',
+                         'uuid': 'a0a4db8c-a2cd-4e43-baae-288f2b0ed89d'},
+                        {'example': None,
+                         'name': 'Institutionsunderafsnitsleder',
+                         'scope': None,
+                         'user_key': 'Institutionsunderafsnitsleder',
+                         'uuid': '38639c7f-0f90-441b-9bc7-cb8681aa4f55'},
+                        {'example': None,
+                         'name': 'Kommunaldirektør',
+                         'scope': None,
+                         'user_key': 'Kommunaldirektør',
+                         'uuid': '08cedf73-852b-4a51-9e8e-d026d83c4915'},
+                        {'example': None,
+                         'name': 'Sekretariatschef',
+                         'scope': None,
+                         'user_key': 'Sekretariatschef',
+                         'uuid': '21f7d83f-5e80-4f16-9a44-8eb2a96014a2'},
+                        {'example': None,
+                         'name': 'Stedfortræder',
+                         'scope': None,
+                         'user_key': 'Stedfortræder',
+                         'uuid': '0b7e086c-7364-4337-8426-a97545249725'},
+                        {'example': None,
+                         'name': 'Systemadministrator',
+                         'scope': None,
+                         'user_key': 'Systemadministrator',
+                         'uuid': '1bc1d585-e0e8-43ac-b7d1-a1519e0b48e5'},
+                        {'example': None,
+                         'name': 'Teamleder',
+                         'scope': None,
+                         'user_key': 'Teamleder',
+                         'uuid': '58b4060b-b6b9-409a-81aa-9d390af71f61'}],
+                    'responsibility': [
+                        {'example': None,
+                         'name': 'Ansvar for bygninger og arealer',
+                         'scope': None,
+                         'user_key': 'Ansvar for bygninger og arealer',
+                         'uuid': '31388038-b979-47c8-be08-42d8846661af'},
+                        {'example': None,
+                         'name': 'Beredskabsledelse',
+                         'scope': None,
+                         'user_key': 'Beredskabsledelse',
+                         'uuid': '149a6f1e-3bda-40f8-a5a2-545fb3c12c8f'},
+                        {'example': None,
+                         'name': 'Faglig ledelse',
+                         'scope': None,
+                         'user_key': 'Faglig ledelse',
+                         'uuid': '4f1ae448-dfac-4287-99a1-87cc5b4ee9b3'},
+                        {'example': None,
+                         'name': 'IT ledelse',
+                         'scope': None,
+                         'user_key': 'IT ledelse',
+                         'uuid': '1b2f87ac-44ad-402b-8083-e5a399d6e5fb'},
+                        {'example': None,
+                         'name': 'Personale: Ansættelse/afskedigelse',
+                         'scope': None,
+                         'user_key': 'Personale: Ansættelse/afskedigelse',
+                         'uuid': '7b587287-af54-421f-b6b2-f1bcd1f1d178'},
+                        {'example': None,
+                         'name': 'Personale: MUS kompetence',
+                         'scope': None,
+                         'user_key': 'Personale: MUS kompetence',
+                         'uuid': 'fd438fda-7f94-488a-8345-b05b68b6eac6'},
+                        {'example': None,
+                         'name': 'Personale: Sygefravær',
+                         'scope': None,
+                         'user_key': 'Personale: Sygefravær',
+                         'uuid': '29df9de4-b624-4abc-8946-33d39bf1c5ac'},
+                        {'example': None,
+                         'name': 'Personale: Øvrige administrative opgaver',
+                         'scope': None,
+                         'user_key': 'Personale: Øvrige '
+                                     'administrative opgaver',
+                         'uuid': '3aefba7a-026f-478c-8cef-48ab176c3c53'},
+                        {'example': None,
+                         'name': 'Økonomi: Løbende kontering',
+                         'scope': None,
+                         'user_key': 'Økonomi: Løbende kontering',
+                         'uuid': 'a295b388-7d65-4a2b-82eb-2a401a51baeb'},
+                        {'example': None,
+                         'name': 'Økonomi: Overordnet',
+                         'scope': None,
+                         'user_key': 'Økonomi: Overordnet',
+                         'uuid': '4ce843b3-8897-4558-8b9c-5765b4813151'}],
                 },
                 all_types)
 
@@ -1215,7 +1354,7 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/children',
-            [{'child_count': 0,
+            [{'child_count': 3,
               'name': 'Ballerup Kommune',
               'user_key': 'BALLERUP',
               'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'}],
@@ -1223,14 +1362,103 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/children',
-            [],
+            [
+                {
+                    "child_count": 0,
+                    "name": "Ballerup Bibliotek",
+                    "user_key": "BIBLIOTEK",
+                    "uuid": "921e44d3-2ec0-4c16-9935-2ec7976566dc"
+                },
+                {
+                    "child_count": 0,
+                    "name": "Ballerup Familiehus",
+                    "user_key": "FAMILIEHUS",
+                    "uuid": "c12393e9-ee1d-4b91-a6a9-a17508c055c9"
+                },
+                {
+                    "child_count": 0,
+                    "name": "Ballerup Idr\u00e6tspark",
+                    "user_key": "IDR\u00c6TSPARK",
+                    "uuid": "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
+                }
+            ],
+        )
+
+        for childid in (
+            "921e44d3-2ec0-4c16-9935-2ec7976566dc",
+            "c12393e9-ee1d-4b91-a6a9-a17508c055c9",
+            "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc",
+        ):
+            self.assertRequestResponse(
+                '/service/ou/{}/children'.format(childid),
+                [],
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/',
+            {'name': 'Ballerup Kommune',
+             'org': {'name': 'Ballerup Kommune',
+                     'user_key': 'Ballerup Kommune',
+                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+             'user_key': 'BALLERUP',
+             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/',
+            {'name': 'Ballerup Familiehus',
+             'org': {'name': 'Ballerup Kommune',
+                     'user_key': 'Ballerup Kommune',
+                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+             'user_key': 'FAMILIEHUS',
+             'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/tree',
+            {'children': [{'child_count': 0,
+                           'name': 'Ballerup Bibliotek',
+                           'user_key': 'BIBLIOTEK',
+                           'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc'},
+                          {'child_count': 0,
+                           'name': 'Ballerup Familiehus',
+                           'user_key': 'FAMILIEHUS',
+                           'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+                          {'child_count': 0,
+                           'name': 'Ballerup Idrætspark',
+                           'user_key': 'IDRÆTSPARK',
+                           'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}],
+             'name': 'Ballerup Kommune',
+             'parent': None,
+             'user_key': 'BALLERUP',
+             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/tree',
+            {'children': [],
+             'name': 'Ballerup Familiehus',
+             'parent': {'name': 'Ballerup Kommune',
+                        'user_key': 'BALLERUP',
+                        'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+             'user_key': 'FAMILIEHUS',
+             'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
         )
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/ou/',
-            [{'name': 'Ballerup Kommune',
+            [{'name': 'Ballerup Bibliotek',
+              'user_key': 'BIBLIOTEK',
+              'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc'},
+             {'name': 'Ballerup Kommune',
               'user_key': 'BALLERUP',
-              'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'}],
+              'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+             {'name': 'Ballerup Familiehus',
+              'user_key': 'FAMILIEHUS',
+              'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+             {'name': 'Ballerup Idrætspark',
+              'user_key': 'IDRÆTSPARK',
+              'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}],
         )
 
         self.assertRequestResponse(
@@ -1449,7 +1677,7 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': True,
                     'role': True,
-                    'manager': False,
+                    'manager': True,
                 },
             )
 
@@ -1462,6 +1690,45 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'role': True,
+                    'manager': True,
+                },
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/921e44d3-2ec0-4c16-9935-2ec7976566dc/details/',
+                {
+                    'address': True,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                    'manager': False,
+                },
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/details/',
+                {
+                    'address': True,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
+                    'manager': False,
+                },
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc/details/',
+                {
+                    'address': True,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'role': False,
                     'manager': False,
                 },
             )
@@ -1507,24 +1774,32 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
                 '/details/engagement',
-                [{'job_function': None,
-                  'org_unit': {'name': 'Ballerup Kommune',
-                               'user_key': 'BALLERUP',
-                               'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-                  'person': {'name': 'Sanne Schäff',
-                             'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
-                  'engagement_type': {
-                      'example': None,
-                      'name': 'Ansat',
-                      'scope': None,
-                      'user_key': 'Ansat',
-                      'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9'},
-                  'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
-                  "validity": {
-                      'from': '2018-01-01T00:00:00+01:00',
-                      'to': None
-                  },
-                  }],
+                [{
+                    'job_function': {
+                        'example': None,
+                        'name': 'Administrativ leder',
+                        'scope': None,
+                        'user_key': 'Administrativ leder',
+                        'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
+                    },
+                    'org_unit': {'name': 'Ballerup Kommune',
+                                 'user_key': 'BALLERUP',
+                                 'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                                 },
+                    'person': {'name': 'Sanne Schäff',
+                               'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
+                    'engagement_type': {
+                        'example': None,
+                        'name': 'Ansat',
+                        'scope': None,
+                        'user_key': 'Ansat',
+                        'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9'},
+                    'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
+                    "validity": {
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'to': None
+                    },
+                }],
             )
 
         with self.subTest('unit engagement'):
@@ -1533,7 +1808,13 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/engagement',
                 [
                     {
-                        'job_function': None,
+                        'job_function': {
+                            'example': None,
+                            'name': 'Administrativ leder',
+                            'scope': None,
+                            'user_key': 'Administrativ leder',
+                            'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
+                        },
                         'org_unit': {
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
@@ -1765,11 +2046,117 @@ class IntegrationTests(util.LoRATestCase):
                 [],
             )
 
+        with self.subTest('manager'):
+
+            self.assertRequestResponse(
+                '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
+                '/details/manager',
+                [
+                    {
+                        'person': {
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'manager_type': {
+                            'example': None,
+                            'name': 'Borgmester',
+                            'user_key': 'Borgmester',
+                            'scope': None,
+                            'uuid': '6a6d5c82-a7d1-4488-b687-49daa3910ec1',
+                        },
+                        'responsibility': {
+                            'example': None,
+                            'name': 'Ansvar for bygninger og arealer',
+                            'user_key': 'Ansvar for bygninger og arealer',
+                            'scope': None,
+                            'uuid': '31388038-b979-47c8-be08-42d8846661af',
+                        },
+                        'manager_level': {
+                            'example': None,
+                            'name': 'Niveau 90',
+                            'user_key': 'Niveau 90',
+                            'scope': None,
+                            'uuid': '7d4d2609-7146-4a20-b9f0-fe4c19701217',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/manager',
+                [
+                    {
+                        'person': {
+                            'name': 'Sanne Schäff',
+                            'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
+                        },
+                        'manager_type': {
+                            'example': None,
+                            'name': 'Borgmester',
+                            'user_key': 'Borgmester',
+                            'scope': None,
+                            'uuid': '6a6d5c82-a7d1-4488-b687-49daa3910ec1',
+                        },
+                        'responsibility': {
+                            'example': None,
+                            'name': 'Ansvar for bygninger og arealer',
+                            'user_key': 'Ansvar for bygninger og arealer',
+                            'scope': None,
+                            'uuid': '31388038-b979-47c8-be08-42d8846661af',
+                        },
+                        'manager_level': {
+                            'example': None,
+                            'name': 'Niveau 90',
+                            'user_key': 'Niveau 90',
+                            'scope': None,
+                            'uuid': '7d4d2609-7146-4a20-b9f0-fe4c19701217',
+                        },
+                        'org_unit': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
+                        "validity": {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
         with self.subTest('employee I address'):
             self.assertRequestResponse(
                 '/service/e/1ce40e25-6238-4202-9e93-526b348ec745'
                 '/details/address',
                 [
+                    {
+                        'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'href': 'tel:+4511221122',
+                        'pretty_value': 11221122,
+                        'raw_value': 'urn:magenta.dk:telefon:+4511221122',
+                        'validity': {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
                     {
                         'address_type': {
                             'example': '<UUID>',
@@ -1778,12 +2165,14 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'AdresseLokation',
                             'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
                         },
-                        'from': '2018-01-01T00:00:00+01:00',
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                         'pretty_value': 'Pilestræde 43, 3., 1112 København K',
                         'raw_value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
-                        'to': None,
+                        'validity': {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     {
                         'address_type': {
@@ -1793,25 +2182,13 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'Email',
                             'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
                         },
-                        'from': '2018-01-01T00:00:00+01:00',
                         'href': 'mailto:sanne@example.com',
                         'pretty_value': 'sanne@example.com',
                         'raw_value': 'urn:mailto:sanne@example.com',
-                        'to': None,
-                    },
-                    {
-                        'address_type': {
-                            'example': '+45 3334 9400',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        'validity': {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
                         },
-                        'from': '2018-01-01T00:00:00+01:00',
-                        'href': 'tel:+4511221122',
-                        'pretty_value': 11221122,
-                        'raw_value': 'urn:magenta.dk:telefon:+4511221122',
-                        'to': None,
                     },
                 ],
             )
@@ -1823,18 +2200,19 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Lokation',
-                            'scope': 'DAR',
-                            'user_key': 'AdresseLokation',
-                            'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
-                        'from': '2018-01-01T00:00:00+01:00',
-                        'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                        'pretty_value': 'Åbogade 15, 8200 Aarhus N',
-                        'raw_value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'to': None,
+                        'href': 'tel:+4511223344',
+                        'pretty_value': 11223344,
+                        'raw_value': 'urn:magenta.dk:telefon:+4511223344',
+                        'validity': {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     {
                         'address_type': {
@@ -1844,25 +2222,30 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'Email',
                             'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
                         },
-                        'from': '2018-01-01T00:00:00+01:00',
                         'href': 'mailto:sune@example.com',
                         'pretty_value': 'sune@example.com',
                         'raw_value': 'urn:mailto:sune@example.com',
-                        'to': None,
+                        'validity': {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     {
                         'address_type': {
-                            'example': '+45 3334 9400',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                            'example': '<UUID>',
+                            'name': 'Lokation',
+                            'scope': 'DAR',
+                            'user_key': 'AdresseLokation',
+                            'uuid': '031f93c3-6bab-462e-a998-87cad6db3128',
                         },
-                        'from': '2018-01-01T00:00:00+01:00',
-                        'href': 'tel:+4511223344',
-                        'pretty_value': 11223344,
-                        'raw_value': 'urn:magenta.dk:telefon:+4511223344',
-                        'to': None,
+                        'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                        'pretty_value': 'Åbogade 15, 8200 Aarhus N',
+                        'raw_value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'validity': {
+                            'from': '2018-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             )
@@ -1874,18 +2257,36 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'address_type': {
+                            'example': '+45 3334 9400',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        },
+                        'href': 'tel:+4544772000',
+                        'pretty_value': 44772000,
+                        'raw_value': 'urn:magenta.dk:telefon:+4544772000',
+                        'validity': {
+                            'from': '1964-05-24T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                    {
+                        'address_type': {
                             'example': '<UUID>',
                             'name': 'Postadresse',
                             'scope': 'DAR',
                             'user_key': 'AdressePost',
                             'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f',
                         },
-                        'from': '2007-01-01T00:00:00+01:00',
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.3647784&mlat=55.73404048&zoom=16',
                         'pretty_value': 'Hold-An Vej 7, 2750 Ballerup',
                         'raw_value': 'bd7e5317-4a9e-437b-8923-11156406b117',
-                        'to': None,
+                        'validity': {
+                            'from': '1964-05-24T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     {
                         'address_type': {
@@ -1895,27 +2296,108 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'Email',
                             'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
                         },
-                        'from': '2007-01-01T00:00:00+01:00',
                         'href': 'mailto:borger@balk.dk',
                         'pretty_value': 'borger@balk.dk',
                         'raw_value': 'urn:mailto:borger@balk.dk',
-                        'to': None,
-                    },
-                    {
-                        'address_type': {
-                            'example': '+45 3334 9400',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
+                        'validity': {
+                            'from': '1964-05-24T00:00:00+01:00',
+                            'to': None,
                         },
-                        'from': '2007-01-01T00:00:00+01:00',
-                        'href': 'tel:+4544772000',
-                        'pretty_value': 44772000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4544772000',
-                        'to': None,
                     },
                 ],
+            )
+
+        with self.subTest('unit address II'):
+            self.assertRequestResponse(
+                '/service/ou/921e44d3-2ec0-4c16-9935-2ec7976566dc'
+                '/details/address',
+                [{'address_type': {
+                    'example': '+45 3334 9400',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a'},
+                  'href': 'tel:+4544773333',
+                  'pretty_value': 44773333,
+                  'raw_value': 'urn:magenta.dk:telefon:+4544773333',
+                  'validity': {
+                      'from': '1993-01-01T00:00:00+01:00',
+                      'to': None}},
+                 {'address_type': {
+                     'example': '<UUID>',
+                     'name': 'Postadresse',
+                     'scope': 'DAR',
+                     'user_key': 'AdressePost',
+                     'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f'},
+                  'href': 'https://www.openstreetmap.org/'
+                  '?mlon=12.3597027&mlat=55.72970211&zoom=16',
+                  'pretty_value': 'Banegårdspladsen 1, 2750 Ballerup',
+                  'raw_value': '99b29a62-01fd-40be-b5fe-8bfc4be35e83',
+                  'validity': {
+                      'from': '1993-01-01T00:00:00+01:00',
+                      'to': None}},
+                 {'address_type': {
+                     'example': 'hpe@korsbaek.dk',
+                     'name': 'Emailadresse',
+                     'scope': 'EMAIL',
+                     'user_key': 'Email',
+                     'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
+                  'href': 'mailto:ballerup-bibliotek@balk.dk',
+                  'pretty_value': 'ballerup-bibliotek@balk.dk',
+                  'raw_value': 'urn:mailto:ballerup-bibliotek@balk.dk',
+                  'validity': {
+                      'from': '1993-01-01T00:00:00+01:00',
+                      'to': None}}],
+            )
+
+        with self.subTest('unit address III'):
+            self.assertRequestResponse(
+                '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9'
+                '/details/address',
+                [{'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Henvendelsessted',
+                    'scope': 'DAR',
+                    'user_key': 'AdresseHenvendelsesSted',
+                    'uuid': 'ff4ed3b4-18fc-42cf-af12-51ac7b9a069a'},
+                  'href': 'https://www.openstreetmap.org/'
+                  '?mlon=12.40661136&mlat=55.72347773&zoom=16',
+                  'pretty_value': 'Torvevej 21, 2740 Skovlunde',
+                  'raw_value': '45b40fc3-bb75-412c-b122-d9df7b0ade94',
+                  'validity': {
+                      'from': '2006-01-01T00:00:00+01:00',
+                      'to': None}}],
+            )
+
+        with self.subTest('unit address IV'):
+            self.assertRequestResponse(
+                '/service/ou/ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'
+                '/details/address',
+                [{'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Postadresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f'},
+                  'href': 'https://www.openstreetmap.org/'
+                  '?mlon=12.37008192&mlat=55.71904978&zoom=16',
+                  'pretty_value': 'Ballerup Idrætsby 38, 2750 Ballerup',
+                  'raw_value': '9ab45e95-a42a-47c0-b284-e5d2377fc429',
+                  'validity': {
+                      'from': '1993-01-01T00:00:00+01:00',
+                      'to': None}},
+                 {'address_type': {
+                     'example': 'hpe@korsbaek.dk',
+                     'name': 'Emailadresse',
+                     'scope': 'EMAIL',
+                     'user_key': 'Email',
+                     'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
+                  'href': 'mailto:tbri@balk.dk',
+                  'pretty_value': 'tbri@balk.dk',
+                  'raw_value': 'urn:mailto:tbri@balk.dk',
+                  'validity': {
+                      'from': '1993-01-01T00:00:00+01:00',
+                      'to': None}}],
             )
 
         with self.subTest('unit it systems'):

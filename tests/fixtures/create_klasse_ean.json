@@ -4,8 +4,8 @@
         "klasseegenskaber": [
             {
                 "brugervendtnoegle": "EAN",
-                "eksempel": "EAN",
-                "omfang": "INTEGER",
+                "eksempel": "5712345000014",
+                "omfang": "EAN",
                 "titel": "EAN",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",

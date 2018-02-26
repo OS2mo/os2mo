@@ -30,6 +30,13 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures(minimal=True)
 
+        with self.subTest('invalid'):
+            self.assertRequestFails(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
+                '?at=2000-01-01T00:00:00Z',
+                404,
+            )
+
         org_list = [
             {
                 'name': 'Aarhus Universitet',
@@ -330,6 +337,17 @@ class Tests(util.LoRATestCase):
                 404,
             )
 
+            self.assertRequestFails(
+                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/'
+                '?at=2000-01-01T00:00:00Z',
+                404,
+            )
+
+            self.assertRequestFails(
+                '/service/ou/00000000-0000-0000-0000-000000000000/tree',
+                404,
+            )
+
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
             {
@@ -436,6 +454,13 @@ class Tests(util.LoRATestCase):
             )
 
         self.load_sample_structures(minimal=True)
+
+        with self.subTest('invalid'):
+            self.assertRequestFails(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/'
+                '?at=2000-01-01T00:00:00Z',
+                404,
+            )
 
         self.assertRequestResponse(
             '/service/o/00000000-0000-0000-0000-000000000000/e/',
@@ -966,9 +991,9 @@ class Tests(util.LoRATestCase):
               'scope': 'DAR',
               'user_key': 'Adresse',
               'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
-             {'example': 'EAN',
+             {'example': '5712345000014',
               'name': 'EAN',
-              'scope': 'INTEGER',
+              'scope': 'EAN',
               'user_key': 'EAN',
               'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
              {'example': 'test@example.com',
@@ -1006,7 +1031,7 @@ class Tests(util.LoRATestCase):
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 '/details/',
                 {
-                    'address': False,
+                    'address': True,
                     'association': True,
                     'engagement': True,
                     'it': False,
