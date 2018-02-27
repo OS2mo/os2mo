@@ -22,6 +22,7 @@ import flask
 import werkzeug
 
 from . import common
+from . import facet
 from . import keys
 from . import mapping
 from . import org
@@ -71,18 +72,31 @@ def get_one_orgunit(c, unitid, unit=None,
     if validity is not None:
         r[keys.VALIDITY] = validity
 
-    if details is UnitDetails.ORG:
-        r[keys.ORG] = org.get_one_organisation(c, rels['tilhoerer'][0]['uuid'])
-
+    if details is UnitDetails.MINIMAL:
+        pass
     elif details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
 
         r['child_count'] = len(children)
 
-    elif details is UnitDetails.FULL:
-        r['parent'] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
-                                      details=UnitDetails.MINIMAL)
+    else:
+        r[keys.ORG_UNIT_TYPE] = facet.get_one_class(
+            c,
+            rels['enhedstype'][0]['uuid'],
+        )
 
+        r[keys.PARENT] = get_one_orgunit(
+            c,
+            rels['overordnet'][0]['uuid'],
+            details=UnitDetails.MINIMAL,
+        )
+
+        r[keys.ORG] = org.get_one_organisation(
+            c,
+            rels['tilhoerer'][0]['uuid'],
+        )
+
+    if details is UnitDetails.FULL:
         r['children'] = [
             get_one_orgunit(c, childid, child)
             for childid, child in
@@ -163,7 +177,7 @@ def get_children(type, parentid):
 
 @blueprint.route('/ou/<uuid:unitid>/')
 @util.restrictargs('at', 'validity')
-def get_orgunit(unitid):
+def get_org_unit(unitid):
     '''Retrieve an organisational unit.
 
     .. :quickref: Unit; Get
@@ -178,6 +192,10 @@ def get_orgunit(unitid):
     :<jsonarr string user_key: Short, unique key identifying the unit.
     :<jsonarr object org: The organisation that this unit belongs to, as
         yielded by :http:get:`/service/o/`.
+    :<jsonarr object parent: The parent of this unit, as yielded by
+        :http:get:`/service/o/(uuid:orgid)/ou/` or ``null`` if it's the root.
+    :<jsonarr object org_unit_type: The type of this unit, as yielded by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object validity: The validity of this entry.
 
     :status 200: Always.
@@ -193,6 +211,18 @@ def get_orgunit(unitid):
             "name": "Aarhus Universitet",
             "user_key": "AU",
             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+          },
+          "org_unit_type": {
+            "example": null,
+            "name": "Afdeling",
+            "scope": null,
+            "user_key": "afd",
+            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+          },
+          "parent": {
+            "name": "Historisk Institut",
+            "user_key": "hist",
+            "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
           },
           "user_key": "frem",
           "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",

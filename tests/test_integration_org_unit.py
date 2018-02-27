@@ -29,6 +29,18 @@ class Tests(util.LoRATestCase):
             [
                 {
                     "name": "Afdeling for Fremtidshistorik",
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
                     "org": {
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
@@ -55,6 +67,18 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "validity": {
@@ -75,6 +99,18 @@ class Tests(util.LoRATestCase):
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     },
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
@@ -97,6 +133,18 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "validity": {
@@ -111,6 +159,18 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "validity": {
@@ -124,6 +184,18 @@ class Tests(util.LoRATestCase):
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     },
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
