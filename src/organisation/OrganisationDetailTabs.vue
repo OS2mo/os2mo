@@ -15,6 +15,20 @@
           :columns="columns.association"
         />
       </b-tab>
+      <b-tab title="Rolle">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="role"
+          :columns="columns.role"
+        />
+      </b-tab>
+      <b-tab title="Leder">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="manager"
+          :columns="columns.manager"
+        />
+      </b-tab>
       <!--
       <b-tab title="Enhed" active> 
         <organisation-detail-unit :uuid="uuid"/>
@@ -62,7 +76,9 @@
         tabs: {},
         columns: {
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
-          association: ['person', 'association_type', 'job_function', 'org_unit']
+          association: ['person', 'association_type', 'job_function', 'org_unit'],
+          role: ['person', 'role_type'],
+          manager: ['person', 'responsibility', 'manager_type', 'manager_level']
         },
         components: {
         }
