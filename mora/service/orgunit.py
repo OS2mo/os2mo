@@ -180,8 +180,7 @@ def get_orgunit(unitid):
         yielded by :http:get:`/service/o/`.
     :<jsonarr object validity: The validity of this entry.
 
-    :status 404: If the organisational unit isn't found.
-    :status 200: Otherwise.
+    :status 200: Always.
 
     **Example Response**:
 
