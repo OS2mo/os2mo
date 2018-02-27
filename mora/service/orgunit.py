@@ -534,7 +534,7 @@ def terminate_org_unit(unitid):
     .. sourcecode:: json
 
       {
-        "validity: {
+        "validity": {
           "from": "2016-01-01T00:00:00+00:00"
         }
       }
@@ -575,32 +575,32 @@ def get_org_unit_history(unitid):
 
       [
         {
-          'from': '2018-02-21T13:25:24.391793+01:00',
-          'to': 'infinity',
-          'action': 'Afslut enhed',
-          'life_cycle_code': 'Rettet',
-          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+          "from": "2018-02-21T13:25:24.391793+01:00",
+          "to": "infinity",
+          "action": "Afslut enhed",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
         },
         {
-          'from': '2018-02-21T13:25:24.343010+01:00',
-          'to': '2018-02-21T13:25:24.391793+01:00',
-          'action': 'Rediger organisationsenhed',
-          'life_cycle_code': 'Rettet',
-          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+          "from": "2018-02-21T13:25:24.343010+01:00",
+          "to": "2018-02-21T13:25:24.391793+01:00",
+          "action": "Rediger organisationsenhed",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
         },
         {
-          'from': '2018-02-21T13:25:24.271516+01:00',
-          'to': '2018-02-21T13:25:24.343010+01:00',
-          'action': 'Rediger organisationsenhed',
-          'life_cycle_code': 'Rettet',
-          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+          "from": "2018-02-21T13:25:24.271516+01:00",
+          "to": "2018-02-21T13:25:24.343010+01:00",
+          "action": "Rediger organisationsenhed",
+          "life_cycle_code": "Rettet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
         },
         {
-          'from': '2018-02-21T13:25:24.214514+01:00',
-          'to': '2018-02-21T13:25:24.271516+01:00',
-          'action': 'Oprettet i MO',
-          'life_cycle_code': 'Opstaaet',
-          'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
+          "from": "2018-02-21T13:25:24.214514+01:00",
+          "to": "2018-02-21T13:25:24.271516+01:00",
+          "action": "Oprettet i MO",
+          "life_cycle_code": "Opstaaet",
+          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
         }
       ]
 
