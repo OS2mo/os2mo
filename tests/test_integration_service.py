@@ -332,15 +332,15 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         with self.subTest('invalid'):
-            self.assertRequestFails(
+            self.assertRequestResponse(
                 '/service/ou/00000000-0000-0000-0000-000000000000/',
-                404,
+                [],
             )
 
-            self.assertRequestFails(
+            self.assertRequestResponse(
                 '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/'
                 '?at=2000-01-01T00:00:00Z',
-                404,
+                [],
             )
 
             self.assertRequestFails(
@@ -350,16 +350,21 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            {
-                'name': 'Overordnet Enhed',
-                'user_key': 'root',
-                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+            [
+                {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    },
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    }
                 },
-            },
+            ],
         )
 
         self.assertRequestResponse(
@@ -377,16 +382,21 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            {
-                'name': 'Overordnet Enhed',
-                'user_key': 'root',
-                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+            [
+                {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    },
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    },
                 },
-            },
+            ],
         )
 
         self.assertRequestResponse(

@@ -48,7 +48,7 @@ class UnitDetails(enum.Enum):
 
 
 def get_one_orgunit(c, unitid, unit=None,
-                    details=UnitDetails.NCHILDREN) -> dict:
+                    details=UnitDetails.NCHILDREN, validity=None) -> dict:
     '''Internal API for returning one organisation unit.
 
     '''
@@ -67,6 +67,9 @@ def get_one_orgunit(c, unitid, unit=None,
         'user_key': attrs['brugervendtnoegle'],
         'uuid': unitid,
     }
+
+    if validity is not None:
+        r[keys.VALIDITY] = validity
 
     if details is UnitDetails.ORG:
         r[keys.ORG] = org.get_one_organisation(c, rels['tilhoerer'][0]['uuid'])
@@ -170,11 +173,12 @@ def get_orgunit(unitid):
         *future* values -- which the default being to show *present*
         values.
 
-    :<json string name: Human-readable name.
-    :<json string uuid: Machine-friendly UUID.
-    :<json string user_key: Short, unique key identifying the unit.
-    :<json object org: The organisation that this unit belongs to, as
+    :<jsonarr string name: Human-readable name.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string user_key: Short, unique key identifying the unit.
+    :<jsonarr object org: The organisation that this unit belongs to, as
         yielded by :http:get:`/service/o/`.
+    :<jsonarr object validity: The validity of this entry.
 
     :status 404: If the organisational unit isn't found.
     :status 200: Otherwise.
@@ -183,26 +187,52 @@ def get_orgunit(unitid):
 
     .. sourcecode:: json
 
-      {
-        "name": "Ballerup Kommune",
-        "org": {
-          "name": "Ballerup Kommune",
-          "user_key": "Ballerup Kommune",
-          "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd"
-        },
-        "user_key": "BALLERUP",
-        "uuid": "9f42976b-93be-4e0b-9a25-0dcb8af2f6b4"
-      }
+      [
+        {
+          "name": "Afdeling for Fortidshistorik",
+          "org": {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+          },
+          "user_key": "frem",
+          "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+          "validity": {
+            "from": "2018-01-01T00:00:00+01:00",
+            "to": "2019-01-01T00:00:00+01:00"
+          }
+        }
+      ]
 
     '''
     c = common.get_connector()
 
-    r = get_one_orgunit(c, unitid, details=UnitDetails.ORG)
-
-    if r:
-        return flask.jsonify(r)
-    else:
-        raise werkzeug.exceptions.NotFound('no such unit')
+    return flask.jsonify([
+        get_one_orgunit(
+            c, unitid, details=UnitDetails.ORG,
+            validity={
+                keys.FROM: util.to_iso_time(start),
+                keys.TO: util.to_iso_time(end),
+            },
+        )
+        for start, end, effect in c.organisationenhed.get_effects(
+            unitid,
+            {
+                'attributter': (
+                    'organisationenhedegenskaber',
+                ),
+                'relationer': (
+                    'enhedstype',
+                    'overordnet',
+                    'tilhoerer',
+                ),
+                'tilstande': (
+                    'organisationenhedgyldighed',
+                ),
+            },
+        )
+        if c.is_effect_relevant({'from': start, 'to': end})
+    ])
 
 
 @blueprint.route('/ou/<uuid:unitid>/tree')

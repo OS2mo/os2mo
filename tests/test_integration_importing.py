@@ -1396,22 +1396,40 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/',
-            {'name': 'Ballerup Kommune',
-             'org': {'name': 'Ballerup Kommune',
-                     'user_key': 'Ballerup Kommune',
-                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-             'user_key': 'BALLERUP',
-             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+            [
+                {
+                    'name': 'Ballerup Kommune',
+                    'org': {
+                        'name': 'Ballerup Kommune',
+                        'user_key': 'Ballerup Kommune',
+                        'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
+                    },
+                    'user_key': 'BALLERUP',
+                    'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                    'validity': {
+                        'from': '1964-05-24T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
         )
 
         self.assertRequestResponse(
             '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/',
-            {'name': 'Ballerup Familiehus',
-             'org': {'name': 'Ballerup Kommune',
-                     'user_key': 'Ballerup Kommune',
-                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-             'user_key': 'FAMILIEHUS',
-             'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+            [
+                {
+                    'name': 'Ballerup Familiehus',
+                    'org': {'name': 'Ballerup Kommune',
+                            'user_key': 'Ballerup Kommune',
+                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+                    'user_key': 'FAMILIEHUS',
+                    'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+                    'validity': {
+                        'from': '2006-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
         )
 
         self.assertRequestResponse(
