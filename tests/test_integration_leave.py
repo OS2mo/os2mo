@@ -16,7 +16,7 @@ mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.leave.uuid.uuid4', new=lambda: mock_uuid)
+@patch('uuid.uuid4', new=lambda: mock_uuid)
 class Tests(util.LoRATestCase):
     maxDiff = None
 

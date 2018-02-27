@@ -11,6 +11,7 @@ from . import engagement
 from . import facet
 from . import itsystem
 from . import org
+from . import orgunit
 
 blueprints = (
     employee.blueprint,
@@ -18,4 +19,5 @@ blueprints = (
     facet.blueprint,
     itsystem.blueprint,
     org.blueprint,
+    orgunit.blueprint,
 )
