@@ -403,8 +403,6 @@ def create_employee(employee_uuid):
         'leave': leave.create_leave,
     }
 
-    c = lora.Connector()
-
     reqs = flask.request.get_json()
     for req in reqs:
         role_type = req.get('type')
@@ -773,8 +771,6 @@ def edit_employee(employee_uuid):
     }
 
     reqs = flask.request.get_json()
-
-    c = lora.Connector()
 
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them

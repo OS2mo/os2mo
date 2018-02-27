@@ -7,7 +7,6 @@
 #
 
 import datetime
-from unittest.mock import patch
 
 import freezegun
 
