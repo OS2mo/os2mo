@@ -274,7 +274,7 @@ class Connector:
             dates = sorted(dates)
 
             for start, end in zip(dates, dates[1:]):
-                if self.tomorrow >= start and self.today <= end:
+                if self.tomorrow >= start and self.today < end:
                     yield start, end
 
             return
