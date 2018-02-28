@@ -1118,7 +1118,7 @@ class Tests(util.LoRATestCase):
             )
 
 
-class TestAddressLookup(util.LoRATestCase):
+class TestAddressLookup(util.TestCase):
     @freezegun.freeze_time('2016-06-06')
     @util.mock()
     def test_autocomplete_no_municipality(self, mock):
