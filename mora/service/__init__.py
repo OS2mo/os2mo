@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from . import address
 from . import employee
 from . import engagement
 from . import facet
@@ -14,6 +15,7 @@ from . import org
 from . import orgunit
 
 blueprints = (
+    address.blueprint,
     employee.blueprint,
     engagement.blueprint,
     facet.blueprint,
