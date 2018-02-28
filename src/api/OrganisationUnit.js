@@ -121,10 +121,10 @@ export default {
    * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
-  create (uuid, create) {
+  create (create) {
     return Service.post('/ou/create', create)
     .then(response => {
-      EventBus.$emit('organisation-unit-create', response.data)
+      EventBus.$emit('organisation-unit-created', response.data)
       return response.data
     })
     .catch(error => {
