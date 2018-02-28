@@ -1,13 +1,13 @@
 <template>
   <div>
     <b-tabs>
-      <!---<b-tab title="Enhed" active>
+      <b-tab title="Enhed" active>
         <mo-organisation-unit-detail 
           :uuid="uuid" 
-          detail="org_unit"
+          detail="info"
           :columns="columns.org_unit"
         />
-      </b-tab>-->
+      </b-tab>
       <b-tab title="Engagementer">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
