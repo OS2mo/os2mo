@@ -1106,25 +1106,25 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('hum'):
             self.assertRequestResponse(
-                '/service/e/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
                 '/details/',
                 {
-                    'address': False,
-                    'association': False,
-                    'engagement': False,
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
                     'it': False,
                     'leave': False,
-                    'manager': False,
-                    'role': False,
+                    'manager': True,
+                    'role': True,
                 },
             )
 
         with self.subTest('samf'):
             self.assertRequestResponse(
-                '/service/e/b688513d-11f7-4efc-b679-ab082a2055d0'
+                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
                 '/details/',
                 {
-                    'address': False,
+                    'address': True,
                     'association': False,
                     'engagement': False,
                     'it': False,
@@ -1136,10 +1136,10 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('fil'):
             self.assertRequestResponse(
-                '/service/e/85715fc7-925d-401b-822d-467eb4b163b6'
+                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
                 '/details/',
                 {
-                    'address': False,
+                    'address': True,
                     'association': False,
                     'engagement': False,
                     'it': False,
@@ -1151,10 +1151,10 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('hist'):
             self.assertRequestResponse(
-                '/service/e/da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                '/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa'
                 '/details/',
                 {
-                    'address': False,
+                    'address': True,
                     'association': False,
                     'engagement': False,
                     'it': False,
@@ -1166,10 +1166,10 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('frem'):
             self.assertRequestResponse(
-                '/service/e/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
                 '/details/',
                 {
-                    'address': False,
+                    'address': True,
                     'association': False,
                     'engagement': False,
                     'it': False,
