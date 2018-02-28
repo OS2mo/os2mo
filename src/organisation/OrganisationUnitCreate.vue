@@ -35,6 +35,7 @@
 
     <div class="float-right">
         <button-submit
+        :is-disabled="isDisabled"
         :on-click-action="createOrganisationUnit"
         />
       </div>
@@ -67,6 +68,11 @@
         orgUnit: {
           validity: {}
         }
+      }
+    },
+    computed: {
+      isDisabled () {
+        if (this.orgUnit.validity.from === undefined || this.orgUnit.name === '' || this.orgUnit.org_unit_type === undefined || this.orgUnit.parent === undefined) return true
       }
     },
     created () {

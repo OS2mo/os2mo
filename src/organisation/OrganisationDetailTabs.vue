@@ -1,7 +1,14 @@
 <template>
   <div>
     <b-tabs>
-      <b-tab title="Engagementer" active>
+      <!---<b-tab title="Enhed" active>
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="org_unit"
+          :columns="columns.org_unit"
+        />
+      </b-tab>-->
+      <b-tab title="Engagementer">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           detail="engagement"
@@ -75,6 +82,7 @@
       return {
         tabs: {},
         columns: {
+          org_unit: ['org_unit', 'org_unit_type', 'parent'],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
           association: ['person', 'association_type', 'job_function', 'org_unit'],
           role: ['person', 'role_type'],
