@@ -1,4 +1,4 @@
-import { Service } from './HttpCommon'
+import { Service, HTTP } from './HttpCommon'
 
 export default {
   /**
@@ -25,6 +25,19 @@ export default {
     })
     .catch(error => {
       console.log(error.response)
+    })
+  },
+
+  /**
+   * Get a list of possible addresses based on search query
+   * @param {String} query - the search query
+   * @param {String} local - organisation uuid to limit search to the local area of the organisation
+   * @returns {Array} A list of address suggestions based on search query
+   */
+  getGeographicalLocation (query, local) {
+    return HTTP.get(`/addressws/geographical-location?local=${local}&vejnavn=${query}`)
+    .then(response => {
+      return response.data
     })
   }
 }

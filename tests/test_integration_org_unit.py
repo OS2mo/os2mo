@@ -16,9 +16,208 @@ mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.org.uuid.uuid4', new=lambda: mock_uuid)
+@patch('mora.service.orgunit.uuid.uuid4', new=lambda: mock_uuid)
 class Tests(util.LoRATestCase):
     maxDiff = None
+
+    def test_org_unit_temporality(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
+            '?validity=past',
+            [
+                {
+                    "name": "Afdeling for Fremtidshistorik",
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01:00",
+                        "to": "2017-01-01T00:00:00+01:00"
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
+            '?validity=present',
+            [
+                {
+                    "name": "Afdeling for Samtidshistorik",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "validity": {
+                        "from": "2017-01-01T00:00:00+01:00",
+                        "to": "2018-01-01T00:00:00+01:00"
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
+            '?validity=future',
+            [
+                {
+                    "name": "Afdeling for Fortidshistorik",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "validity": {
+                        "from": "2018-01-01T00:00:00+01:00",
+                        "to": "2019-01-01T00:00:00+01:00"
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
+            '?validity=past&at=2020-01-01',
+            [
+                {
+                    "name": "Afdeling for Fortidshistorik",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01:00",
+                        "to": "2017-01-01T00:00:00+01:00"
+                    }
+                },
+                {
+                    "name": "Afdeling for Fortidshistorik",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "validity": {
+                        "from": "2017-01-01T00:00:00+01:00",
+                        "to": "2018-01-01T00:00:00+01:00"
+                    }
+                },
+                {
+                    "name": "Afdeling for Fortidshistorik",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': {
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    "validity": {
+                        "from": "2018-01-01T00:00:00+01:00",
+                        "to": "2019-01-01T00:00:00+01:00"
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
+            '?validity=present&at=2020-01-01',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
+            '?validity=future&at=2020-01-01',
+            [],
+        )
 
     def test_create_org_unit(self):
         self.load_sample_structures()

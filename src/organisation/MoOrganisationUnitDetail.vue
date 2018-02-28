@@ -3,29 +3,28 @@
     <mo-table-collapsible-tense
       :columns="columns"
       :content="details"
-      content-type="role"
+      :content-type="detail"
       :loading="loading"
-      :edit-component="entryComponent"
       :uuid="uuid"
+      :edit-component="entryComponent"
     />
 
-    <mo-entry-modal-base 
+    <mo-entry-modal-base
       type="CREATE" 
       :uuid="uuid" 
-      label="Ny rolle" 
+      :label="createLabel" 
       :entry-component="entryComponent"
-      content-type="role"
+      :content-type="detail"
     />
   </div>
 </template>
 
 
 <script>
-  import Employee from '../../api/Employee'
-  import { EventBus } from '../../EventBus'
-  import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
-  import MoEntryModalBase from '../../components/MoEntryModalBase'
-  import MoRoleEntry from './MoRoleEntry'
+  import OrganisationUnit from '../api/OrganisationUnit'
+  import { EventBus } from '../EventBus'
+  import MoTableCollapsibleTense from '../components/MoTableCollapsibleTense'
+  import MoEntryModalBase from '../components/MoEntryModalBase'
 
   export default {
     components: {
@@ -36,7 +35,18 @@
       uuid: {
         type: String,
         required: true
+      },
+      detail: {
+        type: String,
+        required: true
+      },
+      columns: Array,
+      entryComponent: Object,
+      createLabel: {
+        type: String,
+        default: 'Opret ny'
       }
+
     },
     data () {
       return {
@@ -49,13 +59,11 @@
           present: false,
           past: false,
           future: false
-        },
-        columns: ['org_unit', 'role_type'],
-        entryComponent: MoRoleEntry
+        }
       }
     },
     mounted () {
-      EventBus.$on('employee-changed', () => {
+      EventBus.$on('organisation-unit-changed', () => {
         this.getAllDetails()
       })
     },
@@ -73,8 +81,8 @@
 
       getDetails (tense) {
         let vm = this
-        vm.loading.present = true
-        Employee.getRoleDetails(this.uuid, tense)
+        vm.loading[tense] = true
+        OrganisationUnit.getDetail(this.uuid, this.detail, tense)
         .then(response => {
           vm.loading[tense] = false
           vm.details[tense] = response

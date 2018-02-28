@@ -32,6 +32,13 @@ export default {
     })
   },
 
+  history (uuid) {
+    return Service.get(`/e/${uuid}/history/`)
+    .then(response => {
+      return response.data
+    })
+  },
+
   /**
    * Get engagement details for employee
    * @param {String} uuid - employee uuid

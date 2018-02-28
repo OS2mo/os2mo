@@ -7,10 +7,7 @@
           label="Vælg enhed"
           v-model="role.org_unit"
         />
-        <role-picker 
-        :org="org" 
-        v-model="role.role_type"
-        />
+        <mo-facet-picker facet="role_type" v-model="role.role_type" label="Rolle"/>
       </div>
   </div>
 </template>
@@ -18,26 +15,21 @@
 <script>
 import DateStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import RolePicker from '../../components/RolePicker'
+import MoFacetPicker from '../../components/MoFacetPicker'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
-    RolePicker
+    MoFacetPicker
   },
   props: {
     value: Object,
-    org: {
-      type: Object,
-      required: true
-    },
     validity: Object
   },
   data () {
     return {
       role: {
-        type: 'role',
         validity: {}
       }
     }
@@ -48,7 +40,7 @@ export default {
         newVal.type = 'role'
         this.$emit('input', newVal)
         let valid = false
-        if (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined) valid = true
+        if (Object.keys(newVal).length >= 4 && newVal.validity.from !== undefined) valid = true
         this.$emit('is-valid', valid)
       },
       deep: true

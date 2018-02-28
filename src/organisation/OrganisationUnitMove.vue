@@ -38,8 +38,8 @@
 
     <div class="float-right">
       <button-submit 
-      :disabled="errors.any() || !isCompleted"
-      :on-click-action="moveUnit"
+      :disabled="errors.any() || isDisabled"
+      :on-click-action="moveOrganisationUnit"
       />
     </div> 
   </b-modal>

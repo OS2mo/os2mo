@@ -12,21 +12,7 @@
           </p>
         </div>
         <div>
-          <button class="btn btn-outline-primary">
-            <icon name="edit" />
-          </button>
-          <!-- <button class="btn btn-outline-primary" v-b-modal.viewUnit>
-            <icon name="eye" />
-          </button> -->
-          <button class="btn btn-outline-primary" v-b-modal.theHistory>
-            <icon name="book" />
-          </button>
-          <!-- <b-modal id="viewUnit" size="lg" hide-footer title="Vis enhed">
-            <organisation-detail-view/>
-          </b-modal> -->
-          <b-modal id="theHistory" size="lg" hide-footer title="Historik">
-            <the-history :unit-uuid="$route.params.uuid"/>
-          </b-modal>
+          <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
         </div>
       </div>
 
@@ -38,12 +24,12 @@
 
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
-  import TheHistory from '../components/TheHistory'
+  import MoHistory from '../components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
 
   export default {
     components: {
-      TheHistory,
+      MoHistory,
       OrganisationDetailTabs
     },
     data () {

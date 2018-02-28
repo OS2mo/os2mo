@@ -10,12 +10,9 @@
         <div class="mr-auto">
         </div>
         <div>
-          <button class="btn btn-outline-primary">
-            <icon name="book" />
-          </button>
+          <mo-history :uuid="$route.params.uuid" type="EMPLOYEE"/>
         </div>
       </div>
-      <!-- Modal Component -->
       <employee-detail-tabs :uuid="$route.params.uuid"/>
     </div>
   </div>
@@ -25,11 +22,13 @@
   import Employee from '../api/Employee'
   import '../filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
+  import MoHistory from '../components/MoHistory'
   import Loading from '../components/Loading'
 
   export default {
     components: {
       EmployeeDetailTabs,
+      MoHistory,
       Loading
     },
     data () {
@@ -57,8 +56,8 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.cpr {
-  color: #aaa
-}
-
+  .cpr {
+    color: #aaa
+  }
+  
 </style>

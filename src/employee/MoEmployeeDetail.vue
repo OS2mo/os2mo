@@ -3,7 +3,7 @@
     <mo-table-collapsible-tense
       :columns="columns"
       :content="details"
-      content-type="engagement"
+      :content-type="detail"
       :loading="loading"
       :uuid="uuid"
       :edit-component="entryComponent"
@@ -12,20 +12,19 @@
     <mo-entry-modal-base 
       type="CREATE" 
       :uuid="uuid" 
-      label="Nyt engagement" 
+      :label="createLabel" 
       :entry-component="entryComponent"
-      content-type="engagement"
+      :content-type="detail"
     />
   </div>
 </template>
 
 
 <script>
-  import Employee from '../../api/Employee'
-  import { EventBus } from '../../EventBus'
-  import MoTableCollapsibleTense from '../../components/MoTableCollapsibleTense'
-  import MoEntryModalBase from '../../components/MoEntryModalBase'
-  import MoEngagementEntry from './MoEngagementEntry'
+  import Employee from '../api/Employee'
+  import { EventBus } from '../EventBus'
+  import MoTableCollapsibleTense from '../components/MoTableCollapsibleTense'
+  import MoEntryModalBase from '../components/MoEntryModalBase'
 
   export default {
     components: {
@@ -36,7 +35,18 @@
       uuid: {
         type: String,
         required: true
+      },
+      detail: {
+        type: String,
+        required: true
+      },
+      columns: Array,
+      entryComponent: Object,
+      createLabel: {
+        type: String,
+        default: 'Opret ny'
       }
+
     },
     data () {
       return {
@@ -49,9 +59,7 @@
           present: false,
           past: false,
           future: false
-        },
-        columns: ['org_unit', 'job_function', 'engagement_type'],
-        entryComponent: MoEngagementEntry
+        }
       }
     },
     mounted () {
@@ -73,8 +81,8 @@
 
       getDetails (tense) {
         let vm = this
-        vm.loading.present = true
-        Employee.getEngagementDetails(this.uuid, tense)
+        vm.loading[tense] = true
+        Employee.getDetail(this.uuid, this.detail, tense)
         .then(response => {
           vm.loading[tense] = false
           vm.details[tense] = response
