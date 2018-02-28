@@ -15,9 +15,11 @@ This section describes how to interact with addresses.
 '''
 
 import itertools
+import re
 
 import flask
 import parse
+import requests
 
 from .. import lora
 from .. import util
@@ -32,6 +34,11 @@ HREF_FORMATS = {
     'PHONE': 'tel:+45{}',
     'WWW': '{}',
 }
+
+MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
+
+blueprint = flask.Blueprint('address', __name__, static_url_path='',
+                            url_prefix='/service')
 
 
 class Addresses(common.AbstractRelationDetail):
@@ -256,3 +263,77 @@ def edit_address(employee_uuid, req):
     }
 
     c.bruger.update(payload, employee_uuid)
+
+
+@blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
+@util.restrictargs('global', required=['q'])
+def address_autocomplete(orgid):
+    """Perform address autocomplete
+    :param orgid: The UUID of the organisation
+
+    .. :quickref: Address; Autocomplete
+
+    :queryparam str q: A query string to be used for lookup
+    :queryparam uuid global: Whether or not the lookup should be in the entire
+        country, or contained to the municipality of the organisation
+
+    **Example Response**:
+
+    :<jsonarr uuid uuid: A UUID of a DAR address
+    :<jsonarr str name: A human readable name for the address
+
+    .. sourcecode:: json
+
+      [
+        {
+          "location": {
+            "uuid": "f0396d0f-ef2d-41e5-a420-b4507b26b6fa",
+            "name": "Rybergsvej 1, Sønderby, 5631 Ebberup"
+          }
+        },
+        {
+          "location": {
+            "uuid": "0a3f50cb-05eb-32b8-e044-0003ba298018",
+            "name": "Wild Westvej 1, 9310 Vodskov"
+          }
+        }
+      ]
+    """
+    q = flask.request.args['q']
+    global_lookup = flask.request.args.get('global', False, type=bool)
+
+    if not global_lookup:
+        org = lora.Connector().organisation.get(orgid)
+
+        if not org:
+            raise KeyError('No local municipality found!')
+
+        for myndighed in org.get('relationer', {}).get('myndighed', []):
+            m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
+
+            if m:
+                code = int(m.group(1))
+                break
+        else:
+            raise KeyError('No local municipality found!')
+    else:
+        code = None
+
+    addrs = requests.get(
+        'http://dawa.aws.dk/adresser/autocomplete',
+        params={
+            'noformat': '1',
+            'kommunekode': code,
+            'q': q,
+        },
+    ).json()
+
+    return flask.jsonify([
+        {
+            "location": {
+                "uuid": addr['adresse']['id'],
+                "name": addr['tekst']
+            }
+        }
+        for addr in addrs
+    ])
