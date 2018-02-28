@@ -332,15 +332,15 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         with self.subTest('invalid'):
-            self.assertRequestFails(
+            self.assertRequestResponse(
                 '/service/ou/00000000-0000-0000-0000-000000000000/',
-                404,
+                [],
             )
 
-            self.assertRequestFails(
+            self.assertRequestResponse(
                 '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/'
                 '?at=2000-01-01T00:00:00Z',
-                404,
+                [],
             )
 
             self.assertRequestFails(
@@ -350,22 +350,47 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            {
-                'name': 'Overordnet Enhed',
-                'user_key': 'root',
-                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+            [
+                {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': None,
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    }
                 },
-            },
+            ],
         )
 
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/tree',
             {
                 'children': [],
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
                 'parent': None,
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
@@ -377,16 +402,29 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            {
-                'name': 'Overordnet Enhed',
-                'user_key': 'root',
-                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+            [
+                {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'parent': None,
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    },
                 },
-            },
+            ],
         )
 
         self.assertRequestResponse(
@@ -406,6 +444,18 @@ class Tests(util.LoRATestCase):
                         'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                     },
                 ],
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
                 'parent': None,
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
@@ -430,6 +480,18 @@ class Tests(util.LoRATestCase):
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     },
                 ],
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
                 'parent': {
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',

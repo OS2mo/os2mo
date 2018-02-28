@@ -1396,22 +1396,57 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/',
-            {'name': 'Ballerup Kommune',
-             'org': {'name': 'Ballerup Kommune',
-                     'user_key': 'Ballerup Kommune',
-                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-             'user_key': 'BALLERUP',
-             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+            [
+                {
+                    'name': 'Ballerup Kommune',
+                    'org': {
+                        'name': 'Ballerup Kommune',
+                        'user_key': 'Ballerup Kommune',
+                        'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Kommune',
+                        'scope': None,
+                        'user_key': 'Kommune',
+                        'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195',
+                    },
+                    'parent': None,
+                    'user_key': 'BALLERUP',
+                    'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                    'validity': {
+                        'from': '1964-05-24T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
         )
 
         self.assertRequestResponse(
             '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/',
-            {'name': 'Ballerup Familiehus',
-             'org': {'name': 'Ballerup Kommune',
-                     'user_key': 'Ballerup Kommune',
-                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-             'user_key': 'FAMILIEHUS',
-             'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+            [
+                {
+                    'name': 'Ballerup Familiehus',
+                    'org': {'name': 'Ballerup Kommune',
+                            'user_key': 'Ballerup Kommune',
+                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+                    'org_unit_type': {'example': None,
+                                      'name': 'Fagligt Center',
+                                      'scope': None,
+                                      'user_key': 'Fagligt Center',
+                                      'uuid': '59f10075-88f6-4758-bf61-'
+                                      '454858170776'},
+                    'parent': {'name': 'Ballerup Kommune',
+                               'user_key': 'BALLERUP',
+                               'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+                    'user_key': 'FAMILIEHUS',
+                    'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+                    'validity': {
+                        'from': '2006-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
         )
 
         self.assertRequestResponse(
@@ -1428,6 +1463,15 @@ class IntegrationTests(util.LoRATestCase):
                            'name': 'Ballerup Idrætspark',
                            'user_key': 'IDRÆTSPARK',
                            'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}],
+             'org': {'name': 'Ballerup Kommune',
+                     'user_key': 'Ballerup Kommune',
+                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+             'org_unit_type': {'example': None,
+                               'name': 'Kommune',
+                               'scope': None,
+                               'user_key': 'Kommune',
+                               'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195'},
+             'parent': None,
              'name': 'Ballerup Kommune',
              'parent': None,
              'user_key': 'BALLERUP',
@@ -1441,6 +1485,16 @@ class IntegrationTests(util.LoRATestCase):
              'parent': {'name': 'Ballerup Kommune',
                         'user_key': 'BALLERUP',
                         'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+             'org': {
+                 'name': 'Ballerup Kommune',
+                 'user_key': 'Ballerup Kommune',
+                 'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+             'org_unit_type': {
+                 'example': None,
+                 'name': 'Fagligt Center',
+                 'scope': None,
+                 'user_key': 'Fagligt Center',
+                 'uuid': '59f10075-88f6-4758-bf61-454858170776'},
              'user_key': 'FAMILIEHUS',
              'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
         )

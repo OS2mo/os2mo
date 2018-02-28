@@ -21,11 +21,18 @@ import itertools
 
 import flask
 
-from mora import lora
-from . import common, employee, facet, keys, mapping, org, itsystem, address
+from . import common
+from . import employee
+from . import facet
+from . import keys
+from . import mapping
+from . import orgunit
+from . import itsystem
+from . import address
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
                      update_payload)
+from .. import lora
 from .. import util
 
 blueprint = flask.Blueprint('engagements', __name__, static_url_path='',
@@ -378,8 +385,8 @@ def get_engagement(type, id, function):
     }
 
     unit_cache = {
-        unitid: org.get_one_orgunit(
-            c, unitid, unit, details=org.UnitDetails.MINIMAL,
+        unitid: orgunit.get_one_orgunit(
+            c, unitid, unit, details=orgunit.UnitDetails.MINIMAL,
         )
         for unitid, unit in
         c.organisationenhed.get_all(
