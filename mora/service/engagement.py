@@ -98,7 +98,7 @@ def list_details(type, id):
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
 @util.restrictargs('at', 'validity', 'start', 'limit')
-def get_engagement(type, id, function):
+def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
     :http:get:`/service/(any:type)/(uuid:id)/details/` for the
@@ -231,6 +231,8 @@ def get_engagement(type, id, function):
 
     if function in RELATION_TYPE_MODULES:
         return RELATION_TYPE_MODULES[function].get(type, id)
+    elif type == 'ou' and function == 'info':
+        return flask.redirect(flask.url_for('orgunit.get_org_unit', unitid=id))
 
     c = common.get_connector()
 
