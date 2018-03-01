@@ -1,7 +1,15 @@
 <template>
   <div>
     <b-tabs>
-      <b-tab title="Engagementer" active>
+      <b-tab title="Enhed" active>
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="info"
+          :columns="columns.org_unit"
+          :entry-component="components.orgUnit"
+        />
+      </b-tab>
+      <b-tab title="Engagementer">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           detail="engagement"
@@ -56,6 +64,7 @@
   import OrganisationDetailLocation from './OrganisationDetailLocation'
   import OrganisationDetailContact from './OrganisationDetailContact'
   import OrganisationDetailEngagement from './OrganisationDetailEngagement'
+  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
     components: {
@@ -75,12 +84,14 @@
       return {
         tabs: {},
         columns: {
+          org_unit: ['org_unit', 'org_unit_type', 'parent'],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
           association: ['person', 'association_type', 'job_function', 'org_unit'],
           role: ['person', 'role_type'],
           manager: ['person', 'responsibility', 'manager_type', 'manager_level']
         },
         components: {
+          orgUnit: MoOrganisationUnitEntry
         }
       }
     },

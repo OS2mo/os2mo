@@ -71,6 +71,8 @@
       return {
         label: {
           org_unit: 'Enhed',
+          org_unit_type: 'Enhedstype',
+          parent: 'Overenhed',
           job_function: 'Stillingsbetegnelse',
           engagement_type: 'Engagementstype',
           association_type: 'Tilknytningstype',

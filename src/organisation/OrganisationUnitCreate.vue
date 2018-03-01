@@ -6,31 +6,13 @@
     title="Opret enhed"
     ref="orgUnitCreate"
   >
-    <date-picker-start-end v-model="dateStartEnd"/>
+    <mo-organisation-unit-entry
+      :org="org" 
+      v-model="orgUnit" 
+      @is-valid="isOrgUnitValid"
+    />
 
-    <div class="form-row">
-      <div class="form-group col">
-        <label for="">Navn</label>
-        <input 
-          name="name"
-          data-vv-as="Navn"
-          v-model="orgUnit.name" 
-          type="text" 
-          class="form-control" 
-          v-validate="{ required: true }" 
-        >
-        <span v-show="errors.has('name')" class="text-danger">{{ errors.first('name') }}</span>
-      </div>
-
-      <organisation-unit-type-picker 
-        v-model="orgUnit.type" 
-        :orgUuid="org.uuid"
-      />
-    </div>
-
-    <organisation-unit-picker v-model="superUnit"/>
-
-    <address-search 
+    <!--<address-search 
       :org="org"
       v-model="orgUnit.locations[0]"
     />
@@ -50,11 +32,11 @@
       :disabled="channels.length > contactChannels.length"
     >
       <icon name="plus"/>
-    </button>
+    </button>-->
 
     <div class="float-right">
         <button-submit
-        :disabled="errors.any() || !isCompleted" 
+        :is-disabled="isDisabled"
         :on-click-action="createOrganisationUnit"
         />
       </div>
@@ -66,55 +48,36 @@
   import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
-  import DatePicker from '../components/DatePicker'
-  import DatePickerStartEnd from '../components/DatePickerStartEnd'
   import ButtonSubmit from '../components/ButtonSubmit'
   import AddressSearch from '../components/AddressSearch'
   import ContactChannel from '../components/ContactChannelInput'
-  import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import OrganisationUnitTypePicker from '../components/OrganisationUnitTypePicker'
+  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
     name: 'OrganisationUnitCreate',
     components: {
-      DatePicker,
-      DatePickerStartEnd,
       ButtonSubmit,
       AddressSearch,
       ContactChannel,
-      OrganisationUnitPicker,
-      OrganisationUnitTypePicker
+      MoOrganisationUnitEntry
     },
     data () {
       return {
         channels: ['ContactChannel'],
         contactChannels: [],
-        dateStartEnd: {},
-        superUnit: {},
         org: {},
         orgUnit: {
-          'valid-to': '',
-          'valid-from': '',
-          name: '',
-          type: {},
-          org: '',
-          parent: '',
-          locations: [{
-            location: '',
-            name: '',
-            'contact-channels': []
-          }]
+          validity: {}
+        },
+        valid: {
+          orgUnit: false
         }
       }
     },
     computed: {
-      isCompleted () {
-        return this.dateStartEnd.from && this.orgUnit.name && this.superUnit
+      isDisabled () {
+        return !this.valid.orgUnit
       }
-    },
-    updated () {
-      this.orgUnit['valid-from'] = this.dateStartEnd.from
-      this.orgUnit['valid-to'] = this.dateStartEnd.to !== '' ? this.dateStartEnd.to : 'infinity'
     },
     created () {
       this.org = Organisation.getSelectedOrganisation()
@@ -125,22 +88,22 @@
       })
     },
     methods: {
-      addContactChannel () {
-        this.channels.push('ContactChannel')
+      isOrgUnitValid (val) {
+        this.valid.orgUnit = val
       },
 
       createOrganisationUnit () {
-        this.orgUnit.org = this.superUnit.org
-        this.orgUnit.parent = this.superUnit.uuid
-        this.orgUnit['user-key'] = 'NULL'
-        this.orgUnit.locations[0].primaer = true
-        this.orgUnit.locations[0]['contact-channels'] = this.contactChannels
-
         let vm = this
+        this.isLoading = true
+
         OrganisationUnit.create(this.orgUnit)
         .then(response => {
           vm.$refs.orgUnitCreate.hide()
           console.log(response)
+        })
+        .catch(err => {
+          console.log(err)
+          vm.isLoading = false
         })
       }
     }
