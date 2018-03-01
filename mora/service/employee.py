@@ -440,7 +440,7 @@ def edit_employee(employee_uuid):
 
       {
         "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00"
       }
 
     Request payload contains a list of edit objects, each differentiated
@@ -811,7 +811,7 @@ def terminate_employee(employee_uuid):
     .. sourcecode:: json
 
       {
-        "validity: {
+        "validity": {
           "from": "2016-01-01T00:00:00+00:00"
         }
       }
@@ -880,7 +880,7 @@ def get_employee_history(employee_uuid):
         {
           "from": "2018-02-21T11:27:20.619990+01:00",
           "to": "2018-02-21T11:27:20.803682+01:00",
-          "action": None,
+          "action": null,
           "life_cycle_code": "Importeret",
           "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
         }
