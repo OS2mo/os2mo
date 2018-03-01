@@ -1,4 +1,4 @@
-import { HTTP, Service } from './HttpCommon'
+import { Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 export default {
@@ -55,7 +55,7 @@ export default {
    * @returns {Array} A list of historical events for the organisation unit
    */
   history (uuid) {
-    return HTTP.get(`/org-unit/${uuid}/history/`)
+    return Service.get(`/ou/${uuid}/history/`)
     .then(response => {
       return response.data
     })
