@@ -1,11 +1,11 @@
 <template>
   <div>
     <date-picker-start-end v-model="entry.validity" initially-hidden/> 
-    <organisation-unit-picker v-model="entry.org_unit"/>
+    <organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed"/>
     <div class="form-row">
-      <mo-facet-picker facet="manager_type" label="Ledertype" v-model="entry.manager_type" required/>
-      <mo-facet-picker facet="manager_level" label="Lederniveau" v-model="entry.manager_level" required/>  
-      <mo-facet-picker facet="responsibility" label="Lederansvar" v-model="entry.responsibility" required/> 
+      <mo-facet-picker facet="manager_type" label="Ledertype" v-model="entry.manager_type"/>
+      <mo-facet-picker facet="manager_level" label="Lederniveau" v-model="entry.manager_level"/>  
+      <mo-facet-picker facet="responsibility" label="Lederansvar" v-model="entry.responsibility"/> 
     </div>
   </div>
 </template>
@@ -37,7 +37,7 @@ export default {
       handler (newVal) {
         newVal.type = 'manager'
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 6 && newVal.validity.from !== undefined)
+        let valid = (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined)
         this.$emit('is-valid', valid)
       },
       deep: true
