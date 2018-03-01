@@ -298,75 +298,12 @@ def get_detail(type, id, function):
         except (KeyError, IndexError):
             return None
 
-    def convert_engagement(funcid, effect):
-        return {
-            "uuid": funcid,
-
-            keys.PERSON: user_cache[get_employee_id(effect)],
-            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
-            keys.JOB_FUNCTION: class_cache[get_title_id(effect)],
-            keys.ENGAGEMENT_TYPE: class_cache[get_type_id(effect)],
-        }
-
-    def convert_association(funcid, effect):
-        return {
-            "uuid": funcid,
-
-            keys.PERSON: user_cache[get_employee_id(effect)],
-            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
-            keys.JOB_FUNCTION: class_cache[get_title_id(effect)],
-            keys.ASSOCIATION_TYPE: class_cache[get_type_id(effect)],
-        }
-
-    def convert_role(funcid, effect):
-        return {
-            "uuid": funcid,
-
-            keys.PERSON: user_cache[get_employee_id(effect)],
-            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
-            keys.ROLE_TYPE: class_cache[get_type_id(effect)],
-        }
-
-    def convert_leave(funcid, effect):
-        return {
-            "uuid": funcid,
-
-            keys.PERSON: user_cache[get_employee_id(effect)],
-            keys.LEAVE_TYPE: class_cache[get_type_id(effect)],
-        }
-
-    def convert_manager(funcid, effect):
-        return {
-            "uuid": funcid,
-
-            keys.PERSON: user_cache[get_employee_id(effect)],
-            keys.ORG_UNIT: unit_cache[get_unit_id(effect)],
-            keys.RESPONSIBILITY: class_cache[get_responsibility(effect)],
-            keys.MANAGER_LEVEL: class_cache[get_manager_level(effect)],
-            keys.MANAGER_TYPE: class_cache[get_type_id(effect)],
-        }
-
-    def add_validity(start, end, func):
-        func[keys.VALIDITY] = {
-            keys.FROM: util.to_iso_time(start),
-            keys.TO: util.to_iso_time(end),
-        }
-        return func
-
     def get_classes(effect):
         rels = effect['relationer']
         return [obj.get('uuid') for obj in itertools.chain(
             rels.get('opgaver', []),
             rels.get('organisatoriskfunktionstype', [])
         )]
-
-    converters = {
-        'engagement': convert_engagement,
-        'association': convert_association,
-        'role': convert_role,
-        'leave': convert_leave,
-        'manager': convert_manager,
-    }
 
     class_cache = {
         classid: classid and facet.get_one_class(c, classid, classobj)
@@ -395,12 +332,53 @@ def get_detail(type, id, function):
 
     class_cache[None] = user_cache[None] = unit_cache[None] = None
 
-    return flask.jsonify([
-        add_validity(
-            start, end,
-            converters[function](funcid, effect)
-        )
+    converters = {
+        'engagement': {
+            keys.PERSON: (user_cache, get_employee_id),
+            keys.ORG_UNIT: (unit_cache, get_unit_id),
+            keys.JOB_FUNCTION: (class_cache, get_title_id),
+            keys.ENGAGEMENT_TYPE: (class_cache, get_type_id),
+        },
+        'association': {
+            keys.PERSON: (user_cache, get_employee_id),
+            keys.ORG_UNIT: (unit_cache, get_unit_id),
+            keys.JOB_FUNCTION: (class_cache, get_title_id),
+            keys.ASSOCIATION_TYPE: (class_cache, get_type_id),
+        },
+        'role': {
+            keys.PERSON: (user_cache, get_employee_id),
+            keys.ORG_UNIT: (unit_cache, get_unit_id),
+            keys.ROLE_TYPE: (class_cache, get_type_id),
+        },
+        'leave': {
+            keys.PERSON: (user_cache, get_employee_id),
+            keys.LEAVE_TYPE: (class_cache, get_type_id),
+        },
+        'manager': {
+            keys.PERSON: (user_cache, get_employee_id),
+            keys.ORG_UNIT: (unit_cache, get_unit_id),
+            keys.RESPONSIBILITY: (class_cache, get_responsibility),
+            keys.MANAGER_LEVEL: (class_cache, get_manager_level),
+            keys.MANAGER_TYPE: (class_cache, get_type_id),
+        }
+    }
 
+    def convert(start, end, funcid, effect):
+        func = {
+            key: cache[getter(effect)]
+            for key, (cache, getter) in converters[function].items()
+        }
+
+        func[keys.VALIDITY] = {
+            keys.FROM: util.to_iso_time(start),
+            keys.TO: util.to_iso_time(end),
+        }
+        func[keys.UUID] = funcid
+
+        return func
+
+    return flask.jsonify([
+        convert(start, end, funcid, effect)
         for funcid, funcobj in functions.items()
         for start, end, effect in c.organisationfunktion.get_effects(
             funcobj,
