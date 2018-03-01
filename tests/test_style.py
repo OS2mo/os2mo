@@ -80,8 +80,9 @@ class CodeStyleTests(unittest.TestCase):
                 # no need to assert our rights to empty files...
                 if text and header not in text:
                     missing.append(fn)
+                    missing.append('\n')
 
-        self.assertEqual(missing, [], 'files missing license header!')
+        self.assertEqual('', ''.join(missing), 'files missing license header!')
 
     def test_style(self):
         'Test that all Python source files pass the style check'

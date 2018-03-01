@@ -120,15 +120,7 @@ class Addresses(common.AbstractRelationDetail):
                     keys.ADDRESS_PRETTY: pretty_value,
                     keys.ADDRESS_RAW: raw_value,
                     keys.ADDRESS_TYPE: addrclass,
-
-                    keys.VALIDITY: {
-                        keys.FROM: util.to_iso_time(
-                            common.get_effect_from(addrrel),
-                        ),
-                        keys.TO: util.to_iso_time(
-                            common.get_effect_to(addrrel),
-                        ),
-                    }
+                    keys.VALIDITY: common.get_effect_validity(addrrel),
                 }
 
         return flask.jsonify(
