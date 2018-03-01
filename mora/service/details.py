@@ -37,6 +37,7 @@ blueprint = flask.Blueprint('details', __name__, static_url_path='',
 RELATION_TYPE_MODULES = {
     'it': itsystem.ITSystems,
     'address': address.Addresses,
+    'org_unit': orgunit.OrgUnit,
 }
 
 
@@ -222,6 +223,43 @@ def get_detail(type, id, function):
                   "to": null
               }
           ]
+
+    **Example org_unit response**:
+
+    An array of objects as returned by :http:get:`/service/ou/(uuid:unitid)/`.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "org": {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+          },
+          "org_unit": {
+            "name": "Afdeling for Fortidshistorik",
+            "user_key": "frem",
+            "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+          },
+          "org_unit_type": {
+            "example": null,
+            "name": "Afdeling",
+            "scope": null,
+            "user_key": "afd",
+            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+          },
+          "parent": {
+            "name": "Historisk Institut",
+            "user_key": "hist",
+            "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+          },
+          "validity": {
+            "from": "2018-01-01T00:00:00+01:00",
+            "to": "2019-01-01T00:00:00+01:00"
+          }
+        }
+      ]
 
     '''
 

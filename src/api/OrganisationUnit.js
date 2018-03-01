@@ -19,21 +19,6 @@ export default {
   },
 
   /**
-   * Get an tree unit
-   * @param {String} uuid - tree unit uuid
-   * @returns {Object} tree unit object
-   */
-  getTree (uuid) {
-    return Service.get(`/ou/${uuid}/tree`)
-    .then(response => {
-      return response.data
-    })
-    .catch(e => {
-      console.log(e)
-    })
-  },
-
-  /**
    * Get an organisation unit
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
