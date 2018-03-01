@@ -151,6 +151,13 @@ def get_effect_to(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['to'])
 
 
+def get_effect_validity(effect):
+    return {
+        keys.FROM: util.to_iso_time(get_effect_from(effect)),
+        keys.TO: util.to_iso_time(get_effect_to(effect)),
+    }
+
+
 def ensure_bounds(valid_from: datetime.datetime,
                   valid_to: datetime.datetime,
                   props: List[FieldTuple],

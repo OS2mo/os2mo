@@ -187,14 +187,7 @@ class ITSystems(common.AbstractRelationDetail):
                     "name": system_attrs['itsystemnavn'],
                     "user_name": attrs['brugernavn'],
 
-                    keys.VALIDITY: {
-                        keys.FROM: util.to_iso_time(
-                            common.get_effect_from(systemrel),
-                        ),
-                        keys.TO: util.to_iso_time(
-                            common.get_effect_to(systemrel),
-                        ),
-                    },
+                    keys.VALIDITY: common.get_effect_validity(systemrel),
                 }
 
         return flask.jsonify(
