@@ -1,4 +1,4 @@
-import {HTTP, Service} from './HttpCommon'
+import { Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 export default {
@@ -46,15 +46,6 @@ export default {
    */
   getEngagementDetails (uuid, validity) {
     return this.getDetail(uuid, 'engagement', validity)
-  },
-
-  /**
-   * Get contacts details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetails
-   */
-  getContactDetails (uuid, validity) {
-    return this.getDetails(uuid, 'contact', validity)
   },
 
   /**
@@ -117,25 +108,6 @@ export default {
    */
   getDetailList (uuid) {
     return Service.get(`e/${uuid}/details/`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
-  },
-
-  /**
-   * Base call for getting details about an employee.
-   * @param {String} uuid - Employee uuid
-   * @param {String} detail - Name of the detail to get
-   * @param {String} validity - Can be 'past', 'present' or 'future'
-   * @returns {Object} Detail data
-   * @deprecated
-   */
-  getDetails (uuid, detail, validity) {
-    validity = validity || 'present'
-    return HTTP.get(`/e/${uuid}/role-types/${detail}/?validity=${validity}`)
     .then(response => {
       return response.data
     })
