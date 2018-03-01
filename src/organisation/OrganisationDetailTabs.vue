@@ -6,6 +6,7 @@
           :uuid="uuid" 
           detail="info"
           :columns="columns.org_unit"
+          :entry-component="components.orgUnit"
         />
       </b-tab>
       <b-tab title="Engagementer">
@@ -63,6 +64,7 @@
   import OrganisationDetailLocation from './OrganisationDetailLocation'
   import OrganisationDetailContact from './OrganisationDetailContact'
   import OrganisationDetailEngagement from './OrganisationDetailEngagement'
+  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
     components: {
@@ -89,6 +91,7 @@
           manager: ['person', 'responsibility', 'manager_type', 'manager_level']
         },
         components: {
+          orgUnit: MoOrganisationUnitEntry
         }
       }
     },

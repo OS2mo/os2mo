@@ -9,6 +9,7 @@
     <mo-organisation-unit-entry
       :org="org" 
       v-model="orgUnit" 
+      @is-valid="isOrgUnitValid"
     />
 
     <!--<address-search 
@@ -67,12 +68,15 @@
         org: {},
         orgUnit: {
           validity: {}
+        },
+        valid: {
+          orgUnit: false
         }
       }
     },
     computed: {
       isDisabled () {
-        if (this.orgUnit.validity.from === undefined || this.orgUnit.name === '' || this.orgUnit.org_unit_type === undefined || this.orgUnit.parent === undefined) return true
+        return !this.valid.orgUnit
       }
     },
     created () {
@@ -84,6 +88,10 @@
       })
     },
     methods: {
+      isOrgUnitValid (val) {
+        this.valid.orgUnit = val
+      },
+
       createOrganisationUnit () {
         let vm = this
         this.isLoading = true

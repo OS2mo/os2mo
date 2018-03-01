@@ -46,6 +46,7 @@ export default {
   data () {
     return {
       orgUnit: {
+        name: '',
         validity: {}
       }
     }
@@ -54,7 +55,7 @@ export default {
     orgUnit: {
       handler (newVal) {
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 5 && newVal.validity.from !== undefined)
+        let valid = (Object.keys(newVal).length >= 4 && newVal.validity.from !== undefined && newVal.name !== '')
         this.$emit('is-valid', valid)
       },
       deep: true
