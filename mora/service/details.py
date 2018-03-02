@@ -27,17 +27,10 @@ from . import facet
 from . import keys
 from . import mapping
 from . import orgunit
-from . import itsystem
-from . import address
 from .. import util
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
                             url_prefix='/service')
-
-RELATION_TYPE_MODULES = {
-    'it': itsystem.ITSystems,
-    'address': address.Addresses,
-}
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
@@ -84,8 +77,8 @@ def list_details(type, id):
 
     reg = scope.get(id)
 
-    for relname, cls in RELATION_TYPE_MODULES.items():
-        r[relname] = bool(cls.has(type, reg))
+    for relname, cls in employee.RELATION_TYPES.items():
+        r[relname] = bool(cls(scope).has(reg))
 
     return flask.jsonify(r)
 
@@ -225,18 +218,21 @@ def get_detail(type, id, function):
 
     '''
 
-    if function in RELATION_TYPE_MODULES:
-        return RELATION_TYPE_MODULES[function].get(type, id)
-    elif type == 'ou' and function == 'info':
+    if type == 'ou' and function == 'info':
         return flask.redirect(flask.url_for('orgunit.get_org_unit', unitid=id))
 
     c = common.get_connector()
 
     if type == 'e':
         search = dict(tilknyttedebrugere=id)
+        scope = c.bruger
     else:
         assert type == 'ou', 'bad type ' + type
         search = dict(tilknyttedeenheder=id)
+        scope = c.organisationenhed
+
+    if function in employee.RELATION_TYPES:
+        return employee.RELATION_TYPES[function](scope).get(id)
 
     # ensure that we report an error correctly
     if function not in keys.FUNCTION_KEYS:
