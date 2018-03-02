@@ -70,7 +70,7 @@
     data () {
       return {
         label: {
-          org_unit: 'Enhed',
+          org: 'Enhedsnavn',
           org_unit_type: 'Enhedstype',
           parent: 'Overenhed',
           job_function: 'Stillingsbetegnelse',
@@ -84,7 +84,8 @@
           manager_type: 'Ledertype',
           manager_level: 'Lederniveau',
           address_type: 'Adressetype',
-          person: 'Navn'
+          person: 'Navn',
+          pretty_value: 'Værdi'
         }
       }
     },
