@@ -84,7 +84,7 @@
       return {
         tabs: {},
         columns: {
-          org_unit: ['org_unit', 'org_unit_type', 'parent'],
+          org_unit: ['org', 'org_unit_type', 'parent'],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
           association: ['person', 'association_type', 'job_function', 'org_unit'],
           role: ['person', 'role_type'],

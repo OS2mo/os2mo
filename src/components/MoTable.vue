@@ -70,7 +70,7 @@
     data () {
       return {
         label: {
-          org_unit: 'Enhed',
+          org: 'Enhedsnavn',
           org_unit_type: 'Enhedstype',
           parent: 'Overenhed',
           job_function: 'Stillingsbetegnelse',
