@@ -188,8 +188,8 @@ def get_detail(type, id, function):
                   "from": "2018-01-01T00:00:00+01:00",
                   "href": "https://www.openstreetmap.org/"
                   "?mlon=12.57924839&mlat=55.68113676&zoom=16",
-                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
-                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                  "name": "Pilestræde 43, 3., 1112 København K",
+                  "value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
                   "to": null
               }
           ]
@@ -210,8 +210,8 @@ def get_detail(type, id, function):
                   "from": "2018-01-01T00:00:00+01:00",
                   "href": "https://www.openstreetmap.org/"
                   "?mlon=12.57924839&mlat=55.68113676&zoom=16",
-                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
-                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                  "name": "Pilestræde 43, 3., 1112 København K",
+                  "value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
                   "to": null
               }
           ]
