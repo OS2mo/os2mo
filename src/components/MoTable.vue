@@ -71,6 +71,7 @@
       return {
         label: {
           org: 'Enhedsnavn',
+          org_unit: 'Enhedsnavn',
           org_unit_type: 'Enhedstype',
           parent: 'Overenhed',
           job_function: 'Stillingsbetegnelse',
