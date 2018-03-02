@@ -24,7 +24,7 @@
           v-bind:key="c.uuid"
         >
           <td v-for="col in columns" :key="col">
-            {{ c[col] | getProperty('name') }}
+            {{ col ? c[col] : c | getProperty('name') }}
           </td>
           <td>
             {{c.validity | getProperty('from') | date}}
@@ -70,7 +70,7 @@
     data () {
       return {
         label: {
-          org: 'Enhedsnavn',
+          null: 'Enhedsnavn',
           org_unit: 'Enhedsnavn',
           org_unit_type: 'Enhedstype',
           parent: 'Overenhed',

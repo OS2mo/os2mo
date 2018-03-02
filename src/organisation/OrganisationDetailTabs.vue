@@ -91,7 +91,7 @@
       return {
         tabs: {},
         columns: {
-          org_unit: ['org', 'org_unit_type', 'parent'],
+          org_unit: [null, 'org_unit_type', 'parent'],
           address: ['address_type', 'pretty_value'],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
           association: ['person', 'association_type', 'job_function', 'org_unit'],
