@@ -100,7 +100,7 @@
       getCurrentUnit (unitUuid) {
         let vm = this
         if (!unitUuid) return
-        OrganisationUnit.getTree(unitUuid)
+        OrganisationUnit.get(unitUuid)
         .then(response => {
           console.log(response)
           vm.currentUnit = response.parent.name

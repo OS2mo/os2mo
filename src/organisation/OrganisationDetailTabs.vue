@@ -4,7 +4,7 @@
       <b-tab title="Enhed" active>
         <mo-organisation-unit-detail 
           :uuid="uuid" 
-          detail="info"
+          detail="org_unit"
           :columns="columns.org_unit"
           :entry-component="components.orgUnit"
         />

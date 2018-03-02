@@ -27,6 +27,7 @@ from . import keys
 from . import manager
 from . import leave
 from . import org
+from . import orgunit
 from . import role
 from .. import lora
 from .. import util
@@ -39,6 +40,7 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
 RELATION_TYPES = {
     'it': itsystem.ITSystems,
     'address': address.Addresses,
+    'org_unit': orgunit.OrgUnit,
 }
 
 

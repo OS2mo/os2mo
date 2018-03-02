@@ -332,53 +332,23 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         with self.subTest('invalid'):
-            self.assertRequestResponse(
+            self.assertRequestFails(
                 '/service/ou/00000000-0000-0000-0000-000000000000/',
-                [],
-            )
-
-            self.assertRequestResponse(
-                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/'
-                '?at=2000-01-01T00:00:00Z',
-                [],
+                404,
             )
 
             self.assertRequestFails(
-                '/service/ou/00000000-0000-0000-0000-000000000000/tree',
+                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/'
+                '?at=2000-01-01T00:00:00Z',
                 404,
             )
 
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            [
-                {
-                    'name': 'Overordnet Enhed',
-                    'user_key': 'root',
-                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'org': {
-                        'name': 'Aarhus Universitet',
-                        'user_key': 'AU',
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    },
-                    'org_unit_type': {
-                        'example': None,
-                        'name': 'Afdeling',
-                        'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-                    },
-                    'parent': None,
-                    'validity': {
-                        'from': '2016-01-01T00:00:00+01:00', 'to': None,
-                    }
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/tree',
             {
-                'children': [],
+                'name': 'Overordnet Enhed',
+                'user_key': 'root',
+                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -392,58 +362,49 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'parent': None,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
+            '/details/org_unit',
+            [{
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-            },
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'parent': None,
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children',
+            [],
         )
 
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            [
-                {
-                    'name': 'Overordnet Enhed',
-                    'user_key': 'root',
-                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'org': {
-                        'name': 'Aarhus Universitet',
-                        'user_key': 'AU',
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    },
-                    'org_unit_type': {
-                        'example': None,
-                        'name': 'Afdeling',
-                        'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-                    },
-                    'parent': None,
-                    'validity': {
-                        'from': '2016-01-01T00:00:00+01:00', 'to': None,
-                    },
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/tree',
-            {
-                'children': [
-                    {
-                        'child_count': 2,
-                        'name': 'Humanistisk fakultet',
-                        'user_key': 'hum',
-                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    },
-                    {
-                        'child_count': 0,
-                        'name': 'Samfundsvidenskabelige fakultet',
-                        'user_key': 'samf',
-                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                    },
-                ],
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
+            '/details/org_unit',
+            [{
+                'name': 'Overordnet Enhed',
+                'user_key': 'root',
+                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -457,29 +418,18 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'parent': None,
-                'name': 'Overordnet Enhed',
-                'user_key': 'root',
-                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-            },
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+            }],
         )
 
         self.assertRequestResponse(
-            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/tree',
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
             {
-                'children': [
-                    {
-                        'child_count': 0,
-                        'name': 'Filosofisk Institut',
-                        'user_key': 'fil',
-                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                    },
-                    {
-                        'child_count': 1,
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                    },
-                ],
+                'name': 'Overordnet Enhed',
+                'user_key': 'root',
+                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -487,20 +437,25 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
-                    'name': 'Institut',
+                    'name': 'Afdeling',
                     'scope': None,
-                    'user_key': 'inst',
-                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
-                'parent': {
-                    'name': 'Overordnet Enhed',
-                    'user_key': 'root',
-                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                },
-                'name': 'Humanistisk fakultet',
-                'user_key': 'hum',
-                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'parent': None,
             },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children',
+            [{'child_count': 2,
+              'name': 'Humanistisk fakultet',
+              'user_key': 'hum',
+              'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+             {'child_count': 0,
+              'name': 'Samfundsvidenskabelige fakultet',
+              'user_key': 'samf',
+              'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0'}],
         )
 
     def test_employee(self):
@@ -1084,6 +1039,7 @@ class Tests(util.LoRATestCase):
                     'it': True,
                     'leave': False,
                     'manager': False,
+                    'org_unit': False,
                     'role': False,
                 },
             )
@@ -1098,8 +1054,9 @@ class Tests(util.LoRATestCase):
                     'engagement': True,
                     'it': False,
                     'leave': True,
-                    'role': True,
                     'manager': True,
+                    'org_unit': False,
+                    'role': True,
                 },
             )
 
@@ -1114,6 +1071,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'manager': True,
+                    'org_unit': True,
                     'role': True,
                 },
             )
@@ -1129,6 +1087,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'manager': False,
+                    'org_unit': True,
                     'role': False,
                 },
             )
@@ -1144,6 +1103,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'manager': False,
+                    'org_unit': True,
                     'role': False,
                 },
             )
@@ -1159,6 +1119,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'manager': False,
+                    'org_unit': True,
                     'role': False,
                 },
             )
@@ -1174,6 +1135,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'manager': False,
+                    'org_unit': True,
                     'role': False,
                 },
             )
