@@ -84,7 +84,8 @@
           manager_type: 'Ledertype',
           manager_level: 'Lederniveau',
           address_type: 'Adressetype',
-          person: 'Navn'
+          person: 'Navn',
+          pretty_value: 'Værdi'
         }
       }
     },

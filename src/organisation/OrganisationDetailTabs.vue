@@ -9,6 +9,13 @@
           :entry-component="components.orgUnit"
         />
       </b-tab>
+      <b-tab title="Adresse">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="address"
+          :columns="columns.address"
+        />
+      </b-tab>
       <b-tab title="Engagementer">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -85,6 +92,7 @@
         tabs: {},
         columns: {
           org_unit: ['org', 'org_unit_type', 'parent'],
+          address: ['address_type', 'pretty_value'],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
           association: ['person', 'association_type', 'job_function', 'org_unit'],
           role: ['person', 'role_type'],
