@@ -158,6 +158,7 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
     .then(response => {
+      EventBus.$emit('organisation-unit-terminate', response.data)
       return response.data
     })
     .catch(error => {

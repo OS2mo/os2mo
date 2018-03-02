@@ -41,6 +41,7 @@
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
+  import { EventBus } from '../EventBus'
 
   export default {
     name: 'treeViewItem',
@@ -80,6 +81,11 @@
         this.loadChildren()
       }
       this.open = this.firstOpen
+    },
+    mounted () {
+      EventBus.$on('organisation-unit-terminate', newOrg => {
+        this.loadChildren(this.org)
+      })
     },
     methods: {
       toggle () {
