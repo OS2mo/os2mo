@@ -75,8 +75,9 @@ def handle_invalid_usage(error):
     }), status_code
 
 
+@app.route('/')
 @app.route('/<path:path>')
-def v2_root(path):
+def v2_root(path=''):
     return flask.send_file('index.html')
 
 
