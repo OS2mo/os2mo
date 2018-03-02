@@ -32,7 +32,7 @@
             <b-form-checkbox :value="c"/>
           </td>
           <td v-for="col in columns" :key="col">
-            {{ col ? c[col] : c | getProperty('name') }}
+            <mo-link :value="c" :column="col"/>
           </td>
           <td>
             {{c.validity | getProperty('from') | date}}
@@ -63,10 +63,12 @@
   import '../filters/Date'
   import Loading from './Loading'
   import MoEntryModalBase from './MoEntryModalBase'
+  import MoLink from './MoLink'
 
   export default {
     components: {
       Loading,
+      MoLink,
       MoEntryModalBase
     },
     props: {
