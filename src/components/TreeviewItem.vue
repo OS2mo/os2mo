@@ -4,6 +4,7 @@
         <span @click="toggle">
           <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
         </span>
+          <icon class="icon" v-if="!hasChildren"/>
 
         <router-link 
           v-if="linkable"
@@ -122,6 +123,7 @@
   .item {
     cursor: pointer;
     list-style-type: none;
+    display: inline-block;
   }
   .nav-link {
     display: inline-block;
