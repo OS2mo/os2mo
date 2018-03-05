@@ -7,10 +7,12 @@
       :loading="loading"
       :uuid="uuid"
       :edit-component="entryComponent"
+      type="ORG_UNIT"
     />
 
     <mo-entry-modal-base
-      type="CREATE" 
+      action="CREATE" 
+      type="ORG_UNIT"
       :uuid="uuid" 
       :label="createLabel" 
       :entry-component="entryComponent"
