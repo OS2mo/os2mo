@@ -19,7 +19,6 @@
       <component 
         :is="entryComponent"
         v-if="showModal" 
-        :type="type"
         v-model="entry" 
         :org="org" 
         @is-valid="isValid"
@@ -27,7 +26,7 @@
 
       <div class="float-right">
         <button-submit 
-          :on-click-action="action" 
+          :on-click-action="onClickAction" 
           :is-loading="isLoading" 
           :is-disabled="isDisabled"
         />
@@ -40,6 +39,7 @@
   import Organisation from '../api/Organisation'
   import Employee from '../api/Employee'
   import ButtonSubmit from './ButtonSubmit'
+  import OrganisationUnit from '../api/OrganisationUnit'
 
   export default {
     components: {
@@ -50,13 +50,25 @@
       label: String,
       content: Object,
       contentType: String,
-      entryComponent: Object,
-      type: {
+      entryComponent: {
+        type: Object,
+        required: true
+      },
+      action: {
         type: String,
         required: true,
         validator (value) {
           if (value === 'EDIT' || value === 'CREATE') return true
-          console.warn('Type must be either EDIT or CREATE')
+          console.warn('Action must be either EDIT or CREATE')
+          return false
+        }
+      },
+      type: {
+        type: String,
+        required: true,
+        validator (value) {
+          if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
+          console.warn('Action must be either EMPLOYEE or ORG_UNIT')
           return false
         }
       }
@@ -77,7 +89,7 @@
       },
 
       iconLabel () {
-        switch (this.type) {
+        switch (this.action) {
           case 'CREATE':
             return 'plus'
           case 'EDIT':
@@ -102,8 +114,8 @@
         this.valid = val
       },
 
-      action () {
-        switch (this.type) {
+      onClickAction () {
+        switch (this.action) {
           case 'CREATE':
             this.create()
             break
@@ -114,21 +126,20 @@
       },
 
       create () {
-        let vm = this
-        vm.isLoading = true
+        this.isLoading = true
 
-        Employee.create(this.uuid, [this.entry])
-        .then(response => {
-          vm.isLoading = false
-          vm.showModal = false
-          vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+        switch (this.type) {
+          case 'EMPLOYEE':
+            this.createEmployee(this.entry)
+            break
+          case 'ORG_UNIT':
+            this.createOrganisationUnit([this.entry])
+            break
+        }
       },
 
       edit () {
-        let vm = this
-        vm.isLoading = true
+        this.isLoading = true
 
         let data = [{
           type: this.contentType,
@@ -137,7 +148,52 @@
           data: this.entry
         }]
 
-        Employee.edit(this.uuid, data)
+        switch (this.type) {
+          case 'EMPLOYEE':
+            this.editEmployee(data)
+            break
+          case 'ORG_UNIT':
+            this.editOrganisationUnit(data)
+            break
+        }
+      },
+
+      createEmployee (data) {
+        let vm = this
+        Employee.create(this.uuid, data)
+        .then(response => {
+          vm.isLoading = false
+          vm.showModal = false
+          vm.entry = {}
+          vm.$refs['moCreate' + vm._uid].hide()
+        })
+      },
+
+      editEmployee (data) {
+        let vm = this
+        return Employee.edit(this.uuid, data)
+        .then(response => {
+          vm.isLoading = false
+          vm.showModal = false
+          vm.entry = {}
+          vm.$refs['moCreate' + vm._uid].hide()
+        })
+      },
+
+      createOrganisationUnit (data) {
+        let vm = this
+        return OrganisationUnit.create(data)
+        .then(response => {
+          vm.isLoading = false
+          vm.showModal = false
+          vm.entry = {}
+          vm.$refs['moCreate' + vm._uid].hide()
+        })
+      },
+
+      editOrganisationUnit (data) {
+        let vm = this
+        return OrganisationUnit.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
           vm.showModal = false

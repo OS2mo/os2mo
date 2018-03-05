@@ -7,6 +7,7 @@
       :is-loading="isLoading"
       :edit-component="editComponent"
       :edit-uuid="uuid"
+      :type="type"
     />
   </mo-collapse>
 </template>
@@ -30,6 +31,10 @@
       content: Array,
       contentType: String,
       uuid: {
+        type: String,
+        required: true
+      },
+      type: {
         type: String,
         required: true
       }
