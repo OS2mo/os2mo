@@ -44,22 +44,6 @@
           :columns="columns.manager"
         />
       </b-tab>
-      <!--
-      <b-tab title="Enhed" active> 
-        <organisation-detail-unit :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Lokation">
-        <organisation-detail-location :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Kontaktkanal">
-        <organisation-detail-contact :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Engagementer" v-if="tabs.engagement">
-        <organisation-detail-engagement :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Tilknytninger" v-if="tabs.association">
-      </b-tab>
-      -->
     </b-tabs>
   </div>
 </template>

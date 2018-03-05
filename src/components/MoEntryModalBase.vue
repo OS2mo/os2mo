@@ -50,10 +50,7 @@
       label: String,
       content: Object,
       contentType: String,
-      entryComponent: {
-        type: Object,
-        required: true
-      },
+      entryComponent: Object,
       action: {
         type: String,
         required: true,
@@ -133,7 +130,7 @@
             this.createEmployee(this.entry)
             break
           case 'ORG_UNIT':
-            this.createOrganisationUnit([this.entry])
+            this.createOrganisationUnit(this.entry)
             break
         }
       },
@@ -141,16 +138,16 @@
       edit () {
         this.isLoading = true
 
-        let data = [{
+        let data = {
           type: this.contentType,
           uuid: this.entry.uuid,
           original: this.original,
           data: this.entry
-        }]
+        }
 
         switch (this.type) {
           case 'EMPLOYEE':
-            this.editEmployee(data)
+            this.editEmployee([data])
             break
           case 'ORG_UNIT':
             this.editOrganisationUnit(data)
