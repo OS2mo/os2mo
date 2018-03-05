@@ -1,6 +1,6 @@
 <template>
   <div>
-    <date-picker-start-end v-model="leave.validity"/>   
+    <date-picker-start-end v-model="leave.validity" :initially-hidden="validityHidden"/>   
     <leave-picker :org="org" v-model="leave.leave_type"/>  
   </div>
 </template>
@@ -19,7 +19,8 @@ export default {
     org: {
       type: Object,
       required: true
-    }
+    },
+    validityHidden: Boolean
   },
   data () {
     return {
