@@ -1,6 +1,6 @@
 <template>
   <div>
-      <date-start-end v-model="entry.validity" initially-hidden/>
+      <date-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
         <it-system-picker v-model="entry.itsystem"/>
       </div>
@@ -18,7 +18,8 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object
+    validity: Object,
+    validityHidden: Boolean
   },
   data () {
     return {

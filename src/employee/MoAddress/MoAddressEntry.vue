@@ -1,6 +1,6 @@
 <template>
   <div>
-    <date-picker-start-end v-model="entry.validity"/> 
+    <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/> 
     <div class="form-row">
       <mo-facet-picker facet="address_type" label="Adressetype" v-model="entry.address_type" required/>
     </div>
@@ -23,7 +23,8 @@ export default {
     org: {
       type: Object,
       required: true
-    }
+    },
+    validityHidden: Boolean
   },
   data () {
     return {
