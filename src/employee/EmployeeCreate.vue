@@ -20,6 +20,7 @@
       v-model="association"
       :validity="engagement.validity"
       @is-valid="isAssociationValid"
+      validity-hidden
     />
     <h4>Rolle</h4>
     <mo-role-entry
@@ -27,18 +28,21 @@
       v-model="role" 
       :validity="engagement.validity"
       @is-valid="isRoleValid"
+      validity-hidden
     />
     <h4>IT systemer</h4>
     <mo-it-system-entry 
       v-model="itSystem" 
       :validity="engagement.validity"
       @is-valid="isItSystemValid"
+      validity-hidden
     />
     <h4>Leder</h4>
     <mo-manager-entry 
       v-model="manager" 
       :validity="engagement.validity" 
       @is-valid="isManagerValid"
+      validity-hidden
     />
 
     <div class="float-right">

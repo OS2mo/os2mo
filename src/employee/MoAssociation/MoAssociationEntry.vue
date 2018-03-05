@@ -1,6 +1,6 @@
 <template>
   <div>
-      <date-start-end v-model="association.validity" initially-hidden/>
+      <date-start-end v-model="association.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
         <organisation-unit-picker 
           class="col" 
@@ -36,7 +36,8 @@ export default {
       type: Object,
       required: true
     },
-    validity: Object
+    validity: Object,
+    validityHidden: Boolean
   },
   data () {
     return {
