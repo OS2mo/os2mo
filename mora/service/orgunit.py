@@ -15,6 +15,7 @@ This section describes how to interact with organisational units.
 '''
 
 import enum
+import functools
 import operator
 import uuid
 
@@ -340,9 +341,14 @@ def list_orgunits(orgid):
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
+    :<json string items: The returned items.
+    :<json string offset: Pagination offset.
+    :<json string total: Total number of items available on this query.
+
     :<jsonarr string name: Human-readable name.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Short, unique key identifying the unit.
+
 
     :status 200: Always.
 
@@ -350,13 +356,17 @@ def list_orgunits(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Samfundsvidenskabelige fakultet",
-          "user_key": "samf",
-          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
-        }
-      ]
+      {
+        "items": [
+          {
+            "name": "Samfundsvidenskabelige fakultet",
+            "user_key": "samf",
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
+          }
+        ],
+        "offset": 0,
+        "total": 1
+      }
 
     '''
     c = common.get_connector()
@@ -366,19 +376,19 @@ def list_orgunits(orgid):
     kwargs = dict(
         limit=int(args.get('limit', 0)) or 20,
         start=int(args.get('start', 0)) or 0,
+        tilhoerer=str(orgid),
+        gyldighed='Aktiv',
     )
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify([
-        get_one_orgunit(c, unitid, unit, details=UnitDetails.MINIMAL)
-        for unitid, unit in c.organisationenhed.get_all(
-            tilhoerer=str(orgid),
-            gyldighed='Aktiv',
-            **kwargs,
+    return flask.jsonify(
+        c.organisationenhed.paged_get(
+            functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
+            **kwargs
         )
-    ])
+    )
 
 
 @blueprint.route('/ou/create', methods=['POST'])
