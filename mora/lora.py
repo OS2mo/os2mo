@@ -225,33 +225,33 @@ class Connector:
         klassifikation='klassifikation/klassifikation',
     )
 
-    def __init__(self, **overrides):
-        self.__validity = overrides.pop('validity', None) or 'present'
+    def __init__(self, **defaults):
+        self.__validity = defaults.pop('validity', None) or 'present'
 
         self.today = util.parsedatetime(
-            overrides.pop('effective_date', None) or util.today(),
+            defaults.pop('effective_date', None) or util.today(),
         )
         self.tomorrow = self.today + datetime.timedelta(days=1)
 
         if self.__validity == 'past':
-            overrides.update(
+            defaults.update(
                 virkningfra='-infinity',
                 virkningtil=util.to_lora_time(self.today),
             )
 
         elif self.__validity == 'future':
-            overrides.update(
+            defaults.update(
                 virkningfra=util.to_lora_time(self.tomorrow),
                 virkningtil='infinity',
             )
 
         elif self.__validity == 'present':
-            if 'virkningfra' in overrides or 'virkningtil' in overrides:
-                self.today = util.parsedatetime(overrides['virkningfra'])
-                self.tomorrow = util.parsedatetime(overrides['virkningtil'])
+            if 'virkningfra' in defaults or 'virkningtil' in defaults:
+                self.today = util.parsedatetime(defaults['virkningfra'])
+                self.tomorrow = util.parsedatetime(defaults['virkningtil'])
 
             else:
-                overrides.update(
+                defaults.update(
                     virkningfra=util.to_lora_time(self.today),
                     virkningtil=util.to_lora_time(self.tomorrow),
                 )
@@ -259,11 +259,11 @@ class Connector:
         else:
             raise ValueError('invalid validity {!r}'.format(self.__validity))
 
-        self.__overrides = overrides
+        self.__defaults = defaults
 
     @property
-    def overrides(self):
-        return self.__overrides
+    def defaults(self):
+        return self.__defaults
 
     @property
     def validity(self):
@@ -300,12 +300,6 @@ class Connector:
 
         return scope
 
-    def override(self, overrides):
-        new_overrides = self.__overrides.copy()
-        new_overrides.update(overrides)
-
-        return Connector(new_overrides)
-
     def is_effect_relevant(self, effect):
         if self.validity == 'future':
             return util.parsedatetime(effect['from']) >= self.tomorrow
@@ -325,9 +319,11 @@ class Scope:
         return settings.LORA_URL + self.path
 
     def fetch(self, **params):
-        params.update(self.connector.overrides)
+        r = session.get(self.base_path, params={
+            **self.connector.defaults,
+            **params,
+        })
 
-        r = session.get(self.base_path, params=params)
         _check_response(r)
 
         try:

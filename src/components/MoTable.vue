@@ -42,11 +42,12 @@
           </td>
           <td>
             <mo-entry-modal-base
+              action="EDIT"
+              :type="type"
+              :uuid="editUuid"
               :entry-component="editComponent"
-              type="EDIT"
               :content="c"
               :content-type="contentType"
-              :uuid="editUuid"
             />
           </td>
         </tr>
@@ -75,7 +76,11 @@
       isLoading: Boolean,
       editComponent: Object,
       editUuid: String,
-      multiSelect: Boolean
+      multiSelect: Boolean,
+      type: {
+        type: String,
+        required: true
+      }
     },
     data () {
       return {

@@ -8,6 +8,7 @@
       :is-loading="loading.future"
       :edit-component="editComponent"
       :uuid="uuid"
+      :type="type"
     />
 
     <mo-table-collapsible
@@ -18,6 +19,7 @@
       :is-loading="loading.present"
       :edit-component="editComponent"
       :uuid="uuid"
+      :type="type"
       initially-open
     />
 
@@ -29,6 +31,7 @@
       :is-loading="loading.past"
       :edit-component="editComponent"
       :uuid="uuid"
+      :type="type"
     />
   </div>
 </template>
@@ -48,6 +51,10 @@
       content: Object,
       contentType: String,
       uuid: {
+        type: String,
+        required: true
+      },
+      type: {
         type: String,
         required: true
       }

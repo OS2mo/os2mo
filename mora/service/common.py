@@ -45,12 +45,27 @@ class FieldTypes(enum.Enum):
 
 
 class AbstractRelationDetail(abc.ABC):
-    @abc.abstractstaticmethod
-    def has(objtype, registration):
+    __slots__ = (
+        'scope',
+    )
+
+    def __init__(self, scope):
+        self.scope = scope
+
+    @abc.abstractmethod
+    def has(self, registration):
         pass
 
-    @abc.abstractstaticmethod
-    def get(objtype, objid):
+    @abc.abstractmethod
+    def get(self, objid):
+        pass
+
+    @abc.abstractmethod
+    def create(self, id: str, req: dict):
+        pass
+
+    @abc.abstractmethod
+    def edit(self, id: str, req: dict):
         pass
 
 
@@ -169,7 +184,7 @@ def ensure_bounds(valid_from: datetime.datetime,
         if not props:
             continue
 
-        updated_props = []
+        updated_props = []  # type: List[FieldTuple]
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
             sorted_props = sorted(props, key=get_effect_from)
@@ -450,6 +465,7 @@ def create_organisationsenhed_payload(
             ],
         }
     }
+
     if adresser:
         org_unit['relationer']['adresser'] = adresser
 

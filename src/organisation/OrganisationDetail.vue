@@ -21,7 +21,6 @@
   </div>
 </template>
 
-
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
   import MoHistory from '../components/MoHistory'
@@ -45,7 +44,7 @@
         var vm = this
         OrganisationUnit.get(this.$route.params.uuid)
         .then(response => {
-          vm.orgUnit = response
+          vm.orgUnit = response[0]
         })
       }
     }

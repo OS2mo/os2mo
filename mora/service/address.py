@@ -43,10 +43,11 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
 
 class Addresses(common.AbstractRelationDetail):
     @staticmethod
-    def has(objtype, reg):
+    def has(reg):
         return(
             reg and
-            reg.get('relationer') and reg['relationer'].get('adresser') and
+            reg.get('relationer') and
+            reg['relationer'].get('adresser') and
             any(
                 rel.get('objekttype') == 'DAR' or
                 util.is_uuid(rel.get('objekttype'))
@@ -54,15 +55,8 @@ class Addresses(common.AbstractRelationDetail):
             )
         )
 
-    @staticmethod
-    def get(objtype, id):
-        c = common.get_connector()
-
-        if objtype == "e":
-            scope = c.bruger
-        else:
-            assert objtype == 'ou', 'bad type ' + objtype
-            scope = c.organisationenhed
+    def get(self, id):
+        c = self.scope.connector
 
         class_cache = common.cache(facet.get_one_class, c)
 
@@ -98,7 +92,7 @@ class Addresses(common.AbstractRelationDetail):
 
                     if not m:
                         raise ValueError('invalid {} value {!r}'.format(
-                            scope,
+                            self.scope,
                             addrrel['urn'],
                         ))
 
@@ -128,7 +122,7 @@ class Addresses(common.AbstractRelationDetail):
                 itertools.chain.from_iterable(
                     itertools.starmap(
                         convert,
-                        scope.get_effects(
+                        self.scope.get_effects(
                             id,
                             {
                                 'relationer': (
@@ -156,105 +150,109 @@ class Addresses(common.AbstractRelationDetail):
             ),
         )
 
+    @staticmethod
+    def get_relation_for(classobj, value, start, end):
+        scope = classobj['scope']
 
-def get_relation_for(classobj, value, start, end):
-    scope = classobj['scope']
-
-    effect = {
-        'from': util.to_lora_time(start),
-        'to': util.to_lora_time(end),
-    }
-
-    if scope == 'DAR':
-        if not util.is_uuid(value):
-            raise ValueError('{!r} is not a valid address UUID!'.format(value))
-
-        return {
-            'uuid': value,
-            'objekttype': classobj['uuid'],
-            'virkning': effect,
+        effect = {
+            'from': util.to_lora_time(start),
+            'to': util.to_lora_time(end),
         }
 
-    elif scope in addr.URN_FORMATS:
-        return {
-            'urn': addr.URN_FORMATS[scope].format(value),
-            'objekttype': classobj['uuid'],
-            'virkning': effect,
-        }
+        if scope == 'DAR':
+            if not util.is_uuid(value):
+                raise ValueError(
+                    '{!r} is not a valid address UUID!'.format(value),
+                )
 
-    else:
-        raise ValueError('unknown address scope {!r}!'.format(scope))
+            return {
+                'uuid': value,
+                'objekttype': classobj['uuid'],
+                'virkning': effect,
+            }
 
+        elif scope in addr.URN_FORMATS:
+            return {
+                'urn': addr.URN_FORMATS[scope].format(value),
+                'objekttype': classobj['uuid'],
+                'virkning': effect,
+            }
 
-def create_address(employee_uuid, req):
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.bruger.get(uuid=employee_uuid)
+        else:
+            raise ValueError('unknown address scope {!r}!'.format(scope))
 
-    # we're editing a many to many relation, so inline the logic for simplicity
-    orig_addresses = original['relationer']['adresser'][:]
-
-    new_addreses = [
-        get_relation_for(
-            req[keys.ADDRESS_TYPE],
-            req[keys.ADDRESS],
-            common.get_valid_from(req),
-            common.get_valid_to(req),
+    def create(self, id, req):
+        original = self.scope.get(
+            uuid=id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
         )
-    ]
 
-    payload = {
-        'relationer': {
-            'adresser': orig_addresses + new_addreses,
-        },
-        'note': 'Tilføj adresse',
-    }
+        # we're editing a many to many relation, so inline the logic
+        # for simplicity
+        orig_addresses = original['relationer']['adresser'][:]
 
-    c.bruger.update(payload, employee_uuid)
+        new_addresses = [
+            self.get_relation_for(
+                req[keys.ADDRESS_TYPE],
+                req[keys.ADDRESS],
+                common.get_valid_from(req),
+                common.get_valid_to(req),
+            )
+        ]
 
-
-def edit_address(employee_uuid, req):
-
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.bruger.get(uuid=employee_uuid)
-
-    old_entry = req.get('original')
-    new_entry = req.get('data')
-
-    valid_from = common.get_valid_from(new_entry, old_entry)
-    valid_to = common.get_valid_to(new_entry, old_entry)
-
-    if not old_entry:
-        raise ValueError('original required!')
-
-    old_from = common.get_valid_from(old_entry)
-    old_to = common.get_valid_to(old_entry)
-
-    old_rel = get_relation_for(
-        old_entry[keys.ADDRESS_TYPE],
-        old_entry[keys.ADDRESS_PRETTY],
-        start=old_from,
-        end=old_to,
-    )
-
-    new_rel = get_relation_for(
-        new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
-        new_entry.get('value') or old_entry[keys.ADDRESS_PRETTY],
-        start=valid_from,
-        end=valid_to,
-    )
-
-    addresses = common.replace_relation_value(
-        original['relationer']['adresser'],
-        old_rel, new_rel,
-    )
-
-    payload = {
-        'relationer': {
-            'adresser': addresses,
+        payload = {
+            'relationer': {
+                'adresser': orig_addresses + new_addresses,
+            },
+            'note': 'Tilføj adresse',
         }
-    }
 
-    c.bruger.update(payload, employee_uuid)
+        self.scope.update(payload, id)
+
+    def edit(self, id, req):
+        original = self.scope.get(uuid=id)
+
+        old_entry = req.get('original')
+        new_entry = req.get('data')
+
+        valid_from = common.get_valid_from(new_entry, old_entry)
+        valid_to = common.get_valid_to(new_entry, old_entry)
+
+        if not old_entry:
+            raise ValueError('original required!')
+
+        old_from = common.get_valid_from(old_entry)
+        old_to = common.get_valid_to(old_entry)
+
+        old_rel = self.get_relation_for(
+            old_entry[keys.ADDRESS_TYPE],
+            old_entry[keys.ADDRESS_PRETTY],
+            start=old_from,
+            end=old_to,
+        )
+
+        new_rel = self.get_relation_for(
+            new_entry.get(keys.ADDRESS_TYPE) or
+            old_entry[keys.ADDRESS_TYPE],
+            new_entry.get('value') or
+            old_entry[keys.ADDRESS_PRETTY],
+            start=valid_from,
+            end=valid_to,
+        )
+
+        addresses = common.replace_relation_value(
+            original['relationer']['adresser'],
+            old_rel, new_rel,
+        )
+
+        payload = {
+            'relationer': {
+                'adresser': addresses,
+            }
+        }
+
+        self.scope.update(payload, id)
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
