@@ -21,6 +21,7 @@ import uuid
 import flask
 import werkzeug
 
+from . import address
 from . import common
 from . import facet
 from . import keys
@@ -87,6 +88,12 @@ class OrgUnit(common.AbstractRelationDetail):
 
     def create(self, id, req):
         raise werkzeug.exceptions.NotImplemented
+
+
+RELATION_TYPES = {
+    'address': address.Addresses,
+    'org_unit': OrgUnit,
+}
 
 
 def get_one_orgunit(c, unitid, unit=None,

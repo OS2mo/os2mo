@@ -1656,7 +1656,6 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'role': False,
-                    'org_unit': False,
                     'manager': False,
                 },
             )
@@ -1670,7 +1669,6 @@ class IntegrationTests(util.LoRATestCase):
                     'it': False,
                     'leave': True,
                     'role': True,
-                    'org_unit': False,
                     'manager': True,
                 },
             )
@@ -1681,7 +1679,6 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': True,
                     'engagement': True,
-                    'it': False,
                     'leave': False,
                     'role': True,
                     'org_unit': True,
@@ -1695,7 +1692,6 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
                     'leave': False,
                     'role': False,
                     'org_unit': True,
@@ -1709,7 +1705,6 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
                     'leave': False,
                     'role': False,
                     'org_unit': True,
@@ -1723,7 +1718,6 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
                     'leave': False,
                     'role': False,
                     'org_unit': True,
@@ -2402,14 +2396,14 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestFails(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
                 '/details/it',
-                404,
+                400,
             )
 
         with self.subTest('unit info on employee'):
             self.assertRequestFails(
                 '/service/e/34705881-8af9-4254-ac3f-31738eae0be8'
                 '/details/org_unit',
-                404,
+                400,
             )
 
         with self.subTest('unit info I'):
