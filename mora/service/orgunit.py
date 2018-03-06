@@ -341,9 +341,14 @@ def list_orgunits(orgid):
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
+    :<json string items: The returned items.
+    :<json string offset: Pagination offset.
+    :<json string total: Total number of items available on this query.
+
     :<jsonarr string name: Human-readable name.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Short, unique key identifying the unit.
+
 
     :status 200: Always.
 
@@ -351,13 +356,17 @@ def list_orgunits(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Samfundsvidenskabelige fakultet",
-          "user_key": "samf",
-          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
-        }
-      ]
+      {
+        "items": [
+          {
+            "name": "Samfundsvidenskabelige fakultet",
+            "user_key": "samf",
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
+          }
+        ],
+        "offset": 0,
+        "total": 1
+      }
 
     '''
     c = common.get_connector()

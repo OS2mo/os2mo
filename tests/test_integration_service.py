@@ -637,8 +637,8 @@ class Tests(util.LoRATestCase):
             {
                 'items': [
                     {
-                        'name': 'Anders And',
-                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                        'name': 'Andersine And',
+                        'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
                     }
                 ],
                 'offset': 0,

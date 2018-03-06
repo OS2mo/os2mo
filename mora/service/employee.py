@@ -78,6 +78,10 @@ def list_employees(orgid):
         Please note that this only applies to attributes of the user, not the
         relations or engagements they have.
 
+    :<json string items: The returned items.
+    :<json string offset: Pagination offset.
+    :<json string total: Total number of items available on this query.
+
     :<jsonarr string name: Human-readable name.
     :<jsonarr string uuid: Machine-friendly UUID.
 
@@ -87,16 +91,20 @@ def list_employees(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Hans Bruger",
-          "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
-        },
-        {
-          "name": "Joe User",
-          "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
-        }
-      ]
+      {
+        "items": [
+          {
+            "name": "Hans Bruger",
+            "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+          },
+          {
+            "name": "Joe User",
+            "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
+          }
+        ],
+        "offset": 0,
+        "total": 1
+      }
 
     '''
 
