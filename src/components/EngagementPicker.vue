@@ -22,6 +22,7 @@
 <script>
 import Employee from '../api/Employee'
 import Loading from './Loading'
+import { EventBus } from '../EventBus'
 
 export default {
   name: 'EngagementPicker',
@@ -57,6 +58,11 @@ export default {
     employee () {
       this.getEngagements()
     }
+  },
+  mounted () {
+    EventBus.$on('employee-changed', () => {
+      this.getEngagements()
+    })
   },
   methods: {
     getEngagements () {
