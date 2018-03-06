@@ -15,6 +15,7 @@ This section describes how to interact with organisational units.
 '''
 
 import enum
+import functools
 import operator
 import uuid
 
@@ -366,19 +367,19 @@ def list_orgunits(orgid):
     kwargs = dict(
         limit=int(args.get('limit', 0)) or 20,
         start=int(args.get('start', 0)) or 0,
+        tilhoerer=str(orgid),
+        gyldighed='Aktiv',
     )
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify([
-        get_one_orgunit(c, unitid, unit, details=UnitDetails.MINIMAL)
-        for unitid, unit in c.organisationenhed.get_all(
-            tilhoerer=str(orgid),
-            gyldighed='Aktiv',
-            **kwargs,
+    return flask.jsonify(
+        c.organisationenhed.paged_get(
+            functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
+            **kwargs
         )
-    ])
+    )
 
 
 @blueprint.route('/ou/create', methods=['POST'])

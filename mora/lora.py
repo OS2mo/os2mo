@@ -352,6 +352,20 @@ class Scope:
                 yield d['id'], (d['registreringer'] if wantregs
                                 else d['registreringer'][0])
 
+    def paged_get(self, func, *, start=0, limit=1000, **params):
+
+        uuids = self.fetch(**params)
+
+        return {
+            'total': len(uuids),
+            'offset': start,
+            'items': [
+                func(self.connector, obj_id, obj)
+                for obj_id, obj in self.get_all(
+                    start=start, limit=limit, **params)
+            ],
+        }
+
     def get(self, uuid, **params):
         d = self.fetch(uuid=str(uuid), **params)
 

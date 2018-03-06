@@ -110,18 +110,15 @@ def list_employees(orgid):
         limit=int(args.get('limit', 0)) or 20,
         start=int(args.get('start', 0)) or 0,
         tilhoerer=str(orgid),
-
-        # this makes the search go slow :(
         gyldighed='Aktiv',
     )
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify([
-        get_one_employee(c, brugerid, bruger)
-        for brugerid, bruger in c.bruger.get_all(**kwargs)
-    ])
+    return flask.jsonify(
+        c.bruger.paged_get(get_one_employee, **kwargs)
+    )
 
 
 @blueprint.route('/e/<uuid:id>/')
