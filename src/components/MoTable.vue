@@ -3,9 +3,14 @@
     <loading v-show="isLoading"/>
     <div v-show="!isLoading">
     <span v-if="!contentAvailable">Intet at vise</span>
+    <b-form-checkbox-group v-model="selected">
     <table v-if="contentAvailable" class="table table-striped">
       <thead>
         <tr>
+          <th v-if="multiSelect">
+             <!-- <b-form-checkbox
+              v-model="selectAll"/> -->
+          </th>
           <th 
             scope="col" 
             v-for="col in columns" 
@@ -23,6 +28,9 @@
           v-for="c in content" 
           v-bind:key="c.uuid"
         >
+          <td v-if="multiSelect">
+            <b-form-checkbox :value="c"/>
+          </td>
           <td v-for="col in columns" :key="col">
             {{ col ? c[col] : c | getProperty('name') }}
           </td>
@@ -44,6 +52,7 @@
         </tr>
       </tbody>
     </table>
+      </b-form-checkbox-group>
     </div>
   </div>
 </template>
@@ -65,10 +74,13 @@
       columns: Array,
       isLoading: Boolean,
       editComponent: Object,
-      editUuid: String
+      editUuid: String,
+      multiSelect: Boolean
     },
     data () {
       return {
+        selectAll: false,
+        selected: [],
         label: {
           null: 'Enhedsnavn',
           org_unit: 'Enhedsnavn',
@@ -93,6 +105,11 @@
     computed: {
       contentAvailable () {
         return this.content ? this.content.length > 0 : false
+      }
+    },
+    watch: {
+      selected (newVal) {
+        this.$emit('selected-changed', newVal)
       }
     }
   }
