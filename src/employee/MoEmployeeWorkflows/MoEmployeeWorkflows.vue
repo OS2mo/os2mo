@@ -2,15 +2,16 @@
   <div>
     <div id="workflows">
       <button-workflow label="Ny Medarbejder" icon="user-plus" v-b-modal.employeeCreate/>
-      <button-workflow label="Orlov" icon="user-md" target="EmployeeLeave" v-b-modal.employeeLeave/>
-      <button-workflow label="Flyt engagement" icon="share-square-o" target="EmployeeMove" v-b-modal.employeeMove/>
-      <button-workflow label="Flyt mange engagementer" icon="share-square-o" target="EmployeeMoveMany"/>
-      <button-workflow label="Afslut medarbejder" icon="user-times" target="employeeTerminate" v-b-modal.employeeTerminate/>
+      <button-workflow label="Orlov" icon="user-md" v-b-modal.employeeLeave/>
+      <button-workflow label="Flyt engagement" icon="share-square-o" v-b-modal.employeeMove/>
+      <button-workflow label="Flyt mange engagementer" icon="share-square-o" v-b-modal.employeeMoveMany/>
+      <button-workflow label="Afslut medarbejder" icon="user-times" v-b-modal.employeeTerminate/>
     </div>
     <!-- Modal Component -->
     <mo-employee-leave :org="org"/>
     <employee-create :org="org"/>
     <mo-employee-move :org="org"/>
+    <mo-employee-move-many/>
     <mo-employee-terminate/>
   </div>
 </template>
@@ -21,6 +22,7 @@
   import EmployeeCreate from '../EmployeeCreate'
   import MoEmployeeLeave from './MoEmployeeLeave'
   import MoEmployeeMove from './MoEmployeeMove'
+  import MoEmployeeMoveMany from './MoEmployeeMoveMany'
   import MoEmployeeTerminate from './MoEmployeeTerminate'
 
   export default {
@@ -29,6 +31,7 @@
       EmployeeCreate,
       MoEmployeeLeave,
       MoEmployeeMove,
+      MoEmployeeMoveMany,
       MoEmployeeTerminate
     },
     data () {

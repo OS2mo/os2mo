@@ -36,6 +36,12 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+RELATION_TYPES = {
+    'it': itsystem.ITSystems,
+    'address': address.Addresses,
+}
+
+
 def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
@@ -393,15 +399,15 @@ def create_employee(employee_uuid):
     """
 
     handlers = {
-        'address': address.create_address,
         'engagement': engagement.create_engagement,
         'association': association.create_association,
-        'it': itsystem.create_system,
         'role': role.create_role,
         'contact': writing.create_contact,
         'manager': manager.create_manager,
         'leave': leave.create_leave,
     }
+
+    handlers.update(RELATION_TYPES)
 
     reqs = flask.request.get_json()
     for req in reqs:
@@ -411,7 +417,14 @@ def create_employee(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
-        handler(str(employee_uuid), req)
+        elif issubclass(handler, common.AbstractRelationDetail):
+            handler(common.get_connector().bruger).create(
+                str(employee_uuid),
+                req,
+            )
+
+        else:
+            handler(str(employee_uuid), req)
 
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
@@ -760,15 +773,14 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
-        'address': address.edit_address,
         'engagement': engagement.edit_engagement,
         'association': association.edit_association,
         'role': role.edit_role,
-        'it': itsystem.edit_system,
         'leave': leave.edit_leave,
         'manager': manager.edit_manager,
-        # 'contact': edit_contact,
     }
+
+    handlers.update(RELATION_TYPES)
 
     reqs = flask.request.get_json()
 
@@ -781,7 +793,14 @@ def edit_employee(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
-        handler(str(employee_uuid), req)
+        elif issubclass(handler, common.AbstractRelationDetail):
+            handler(common.get_connector().bruger).edit(
+                str(employee_uuid),
+                req,
+            )
+
+        else:
+            handler(str(employee_uuid), req)
 
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
