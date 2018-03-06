@@ -11,6 +11,7 @@
       @click.stop="show"
       @focus="getSelectedOrganisation()"
       v-validate="{ required: true }" 
+      :disabled="isDisabled"
     >
     <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
     <div 
@@ -42,7 +43,8 @@
       label: {
         default: 'Angiv overenhed',
         type: String
-      }
+      },
+      isDisabled: Boolean
     },
     data () {
       return {
