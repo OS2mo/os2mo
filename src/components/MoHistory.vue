@@ -4,7 +4,13 @@
       <icon name="book" />
     </button>
 
-    <b-modal id="theHistory" size="lg" hide-footer title="Historik">
+    <b-modal 
+      id="theHistory" 
+      size="lg" 
+      hide-footer 
+      title="Historik"
+      lazy
+    >
       <table class="table table-striped">
         <thead>
           <tr>

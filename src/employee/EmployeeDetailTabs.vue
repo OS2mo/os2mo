@@ -1,7 +1,7 @@
 <template>
   <div>
     <loading v-show="isLoading"/>
-    <b-tabs v-show="!isLoading">
+    <b-tabs v-show="!isLoading" lazy>
       <b-tab title="Engagement" active> 
         <mo-employee-detail 
           :uuid="uuid" 

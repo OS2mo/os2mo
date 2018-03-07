@@ -5,6 +5,7 @@
     hide-footer 
     title="Meld orlov"
     ref="employeeLeave"
+    lazy
   >
     <employee-picker v-model="employee"/>
     <mo-leave-entry v-model="leave" :org="org" @is-valid="isValid"/>
