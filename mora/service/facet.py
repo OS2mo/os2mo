@@ -197,11 +197,11 @@ def get_classes(orgid: uuid.UUID, facet: str):
     .. sourcecode:: json
 
       {
-        'name': 'address_type',
-        'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                '/f/address_type/',
-        'user_key': 'Adressetype',
-        'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'
+        "name': "address_type",
+        "path': "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                "/f/address_type/",
+        "user_key": 'Adressetype',
+        "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
         "data": [
           {
             "example": "http://www.korsbaek.dk/",
@@ -253,12 +253,8 @@ def get_classes(orgid: uuid.UUID, facet: str):
             facetids[0],
             facet,
             orgid,
-            data=sorted(itertools.starmap(
-                functools.partial(get_one_class, c),
-                c.klasse.get_all(facet=facetids,
-                                 ansvarlig=str(orgid),
-                                 start=start, limit=limit),
-            ),
-                # use locale-aware sorting
-                key=lambda c: locale.strxfrm(c['name']),
-            )))
+            data=c.klasse.paged_get(get_one_class,
+                                    facet=facetids,
+                                    ansvarlig=str(orgid),
+                                    start=start, limit=limit),
+        ))

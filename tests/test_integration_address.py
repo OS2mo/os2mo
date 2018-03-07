@@ -132,8 +132,11 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/f/address_type/',
-                {'data': [address_class, ean_class, email_class, phone_class],
-                 'name': 'address_type',
+                {'data': {
+                    'offset': 0, 'total': 4,
+                    'items': [phone_class, address_class,
+                              email_class, ean_class]},
+                    'name': 'address_type',
                  'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                          '/f/address_type/',
                  'user_key': 'Adressetype',
@@ -418,8 +421,8 @@ class Writing(util.LoRATestCase):
             '/f/address_type/',
         ).json
 
-        self.assertIn(email_class, address_classes['data'])
-        self.assertIn(address_class, address_classes['data'])
+        self.assertIn(email_class, address_classes['data']['items'])
+        self.assertIn(address_class, address_classes['data']['items'])
 
         self.assertRequestResponse(
             '/service/e/{}/details/address'.format(userid),
