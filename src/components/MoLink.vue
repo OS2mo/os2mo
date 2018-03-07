@@ -25,7 +25,7 @@
         default: () => null
       }
     },
-    data() {
+    data () {
       return {
         column_handlers: {
           'org_unit': 'OrganisationDetail',
@@ -49,7 +49,7 @@
       },
 
       href () {
-        return this.contents.href
+        return this.contents ? this.contents.href : ''
       },
 
       contents () {

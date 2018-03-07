@@ -22,6 +22,7 @@
       v-if="sourceSelected"
       :content="employees" 
       :columns="columns"
+      type="EMPLOYEE"
       multi-select 
       @selected-changed="selectedEmployees"/>
 
@@ -103,7 +104,6 @@
         }
 
         vm.selected.forEach(engagement => {
-          console.log(engagement)
           move.uuid = engagement.uuid
           move.data.org_unit = vm.orgUnitDestination
           move.data.validity.from = vm.moveDate
