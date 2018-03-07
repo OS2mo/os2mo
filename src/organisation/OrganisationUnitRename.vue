@@ -83,7 +83,7 @@
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.original.uuid, this.rename)
+        OrganisationUnit.rename(this.original.uuid, this.rename)
         .then(response => {
           vm.$refs.orgUnitRename.hide()
         })

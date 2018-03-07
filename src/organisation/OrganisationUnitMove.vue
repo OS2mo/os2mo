@@ -88,7 +88,7 @@
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.original.uuid, this.move)
+        OrganisationUnit.move(this.original.uuid, this.move)
         .then(response => {
           vm.$refs.orgUnitMove.hide()
         })
