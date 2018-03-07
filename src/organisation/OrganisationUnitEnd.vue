@@ -40,7 +40,7 @@
     },
     computed: {
       isDisabled () {
-        if (this.org_unit.uuid === undefined || this.terminate.validity.from === null) return true
+        if (this.org_unit.uuid === undefined || this.terminate.validity.from === undefined) return true
       }
     },
     data () {
