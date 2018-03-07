@@ -18,6 +18,78 @@ from . import util
 @util.mock()
 @freezegun.freeze_time('2010-06-01')
 class Tests(util.TestCase):
+    def test_get_date_chunks(self, m):
+        def check(validity, dates, expected):
+            c = lora.Connector(validity=validity)
+
+            actual = [
+                (start.isoformat(), end.isoformat())
+                for start, end in c.get_date_chunks(
+                    map(mora_util.parsedatetime, dates),
+                )
+            ]
+
+            self.assertEqual(expected, actual)
+
+        dates = [
+            '2010-01-01',
+            '2010-05-31',
+            '2010-06-01',
+            '2010-06-01T12:00:00',
+            '2010-06-02',
+            '2010-06-03',
+            '2011-01-01',
+        ]
+
+        with self.subTest('present I'):
+            check('present', dates, [
+                ('2010-06-01T00:00:00+02:00', '2010-06-01T12:00:00+02:00'),
+                ('2010-06-01T12:00:00+02:00', '2010-06-02T00:00:00+02:00'),
+            ])
+
+        with self.subTest('past I'):
+            check('past', dates, [
+                ('2010-01-01T00:00:00+01:00', '2010-05-31T00:00:00+02:00'),
+                ('2010-05-31T00:00:00+02:00', '2010-06-01T00:00:00+02:00'),
+            ])
+
+        with self.subTest('future I'):
+            check('future', dates, [
+                ('2010-06-02T00:00:00+02:00', '2010-06-03T00:00:00+02:00'),
+                ('2010-06-03T00:00:00+02:00', '2011-01-01T00:00:00+01:00'),
+            ])
+
+        dates = [
+            '2010-05-31',
+            '2010-06-01',
+            '2010-06-02',
+            '2010-06-03',
+        ]
+
+        with self.subTest('present I'):
+            check('present', dates, [
+                ('2010-06-01T00:00:00+02:00', '2010-06-02T00:00:00+02:00'),
+            ])
+
+        with self.subTest('past I'):
+            check('past', dates, [
+                ('2010-05-31T00:00:00+02:00', '2010-06-01T00:00:00+02:00'),
+            ])
+
+        with self.subTest('future I'):
+            check('future', dates, [
+                ('2010-06-02T00:00:00+02:00', '2010-06-03T00:00:00+02:00'),
+            ])
+
+        with self.subTest('null'):
+            check('past', [], [])
+            check('present', [], [])
+            check('future', [], [])
+
+        with self.subTest('failing'):
+            with self.assertRaises(ValueError):
+                check('kaflaflibob', [], [])
+
     def test_get_effects(self, m):
         URL = (
             settings.LORA_URL + 'organisation/organisationenhed?'

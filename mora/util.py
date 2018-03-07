@@ -95,6 +95,10 @@ def parsedatetime(s: str) -> datetime.datetime:
     return dt
 
 
+def do_ranges_overlap(first_start, first_end, second_start, second_end):
+    return max(first_start, second_start) < min(first_end, second_end)
+
+
 def to_lora_time(s):
     dt = parsedatetime(s)
 
