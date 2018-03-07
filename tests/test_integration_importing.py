@@ -2067,6 +2067,8 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/manager',
                 [
                     {
+                        'address_type': None,
+                        'address': None,
                         'person': {
                             'name': 'Sanne Schäff',
                             'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',
@@ -2111,6 +2113,8 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/manager',
                 [
                     {
+                        'address_type': None,
+                        'address': None,
                         'person': {
                             'name': 'Sanne Schäff',
                             'uuid': '1ce40e25-6238-4202-9e93-526b348ec745',

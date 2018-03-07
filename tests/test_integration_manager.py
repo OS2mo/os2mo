@@ -167,6 +167,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
+                'address': None,
+                'address_type': None,
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -345,6 +347,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
+                'address': None,
+                'address_type': None,
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -488,6 +492,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
+                'address': None,
+                'address_type': None,
                 'manager_level': None,
                 'manager_type': None,
                 'org_unit': {
@@ -544,6 +550,18 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'urn': 'urn:mailto:ceo@example.com',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False,
+                        },
+                    },
+                ],
                 "opgaver": [
                     {
                         "objekttype": "lederniveau",
@@ -697,6 +715,18 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [{
+                'address': {
+                    'href': 'mailto:ceo@example.com',
+                    'name': 'ceo@example.com',
+                    'value': 'urn:mailto:ceo@example.com',
+                },
+                'address_type': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
@@ -739,6 +769,18 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
+                'address': {
+                    'href': 'mailto:ceo@example.com',
+                    'name': 'ceo@example.com',
+                    'value': 'urn:mailto:ceo@example.com',
+                },
+                'address_type': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
                 'manager_level': {
                     'example': '20304060',
                     'name': 'Telefonnummer',
@@ -770,7 +812,8 @@ class Tests(util.LoRATestCase):
             }],
         )
 
-    def test_edit_manager_overwrite(self):
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_edit_manager_overwrite(self, m):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -834,6 +877,28 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'urn': 'urn:mailto:ceo@example.com',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': "2018-04-01 00:00:00+02",
+                            'to_included': False,
+                        },
+                    },
+                    {
+                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'virkning': {
+                            'from': "2018-04-01 00:00:00+02",
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False,
+                        },
+                    },
+                ],
                 "opgaver": [
                     {
                         "objekttype": "lederansvar",
@@ -993,6 +1058,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
+                'address': {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                },
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
                 'manager_level': {
                     'example': '20304060',
                     'name': 'Telefonnummer',
@@ -1044,6 +1122,18 @@ class Tests(util.LoRATestCase):
         expected = {
             "note": "Afslut medarbejder",
             "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'urn': 'urn:mailto:ceo@example.com',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False,
+                        },
+                    },
+                ],
                 "opgaver": [
                     {
                         "objekttype": "lederansvar",
@@ -1160,6 +1250,18 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [{
+                'address': {
+                    'href': 'mailto:ceo@example.com',
+                    'name': 'ceo@example.com',
+                    'value': 'urn:mailto:ceo@example.com',
+                },
+                'address_type': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
@@ -1235,6 +1337,18 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'urn': 'urn:mailto:ceo@example.com',
+                        'virkning': {
+                            'from': '2014-04-01 00:00:00+02',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False,
+                        },
+                    },
+                ],
                 "opgaver": [
                     {
                         "objekttype": "lederansvar",
@@ -1341,6 +1455,18 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [{
+                'address': {
+                    'href': 'mailto:ceo@example.com',
+                    'name': 'ceo@example.com',
+                    'value': 'urn:mailto:ceo@example.com',
+                },
+                'address_type': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
