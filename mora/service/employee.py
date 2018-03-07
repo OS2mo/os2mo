@@ -84,6 +84,10 @@ def list_employees(orgid):
         Please note that this only applies to attributes of the user, not the
         relations or engagements they have.
 
+    :<json string items: The returned items.
+    :<json string offset: Pagination offset.
+    :<json string total: Total number of items available on this query.
+
     :<jsonarr string name: Human-readable name.
     :<jsonarr string uuid: Machine-friendly UUID.
 
@@ -93,16 +97,20 @@ def list_employees(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Hans Bruger",
-          "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
-        },
-        {
-          "name": "Joe User",
-          "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
-        }
-      ]
+      {
+        "items": [
+          {
+            "name": "Hans Bruger",
+            "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+          },
+          {
+            "name": "Joe User",
+            "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
+          }
+        ],
+        "offset": 0,
+        "total": 1
+      }
 
     '''
 
@@ -116,18 +124,15 @@ def list_employees(orgid):
         limit=int(args.get('limit', 0)) or 20,
         start=int(args.get('start', 0)) or 0,
         tilhoerer=str(orgid),
-
-        # this makes the search go slow :(
         gyldighed='Aktiv',
     )
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify([
-        get_one_employee(c, brugerid, bruger)
-        for brugerid, bruger in c.bruger.get_all(**kwargs)
-    ])
+    return flask.jsonify(
+        c.bruger.paged_get(get_one_employee, **kwargs)
+    )
 
 
 @blueprint.route('/e/<uuid:id>/')

@@ -400,12 +400,18 @@ class IntegrationTests(util.LoRATestCase):
 
             self.assertRequestResponse(
                 '/service/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566/e/',
-                [{'name': 'Hans Bruger',
-                  'uuid': '9917e91c-e3ee-41bf-9a60-b024c23b5fe3'},
-                 {'name': 'Joe User',
-                  'uuid': 'cd2dcfad-6d34-4553-9fee-a7023139a9e8'},
-                 {'name': 'MAAAAAM',
-                  'uuid': 'f715a2c9-a425-4cc9-b69b-7d89aaedece4'}],
+                {
+                    'items': [
+                        {'name': 'Hans Bruger',
+                         'uuid': '9917e91c-e3ee-41bf-9a60-b024c23b5fe3'},
+                        {'name': 'Joe User',
+                         'uuid': 'cd2dcfad-6d34-4553-9fee-a7023139a9e8'},
+                        {'name': 'MAAAAAM',
+                         'uuid': 'f715a2c9-a425-4cc9-b69b-7d89aaedece4'}
+                    ],
+                    'offset': 0,
+                    'total': 3
+                },
             )
 
             self.assertRequestResponse(
@@ -1501,18 +1507,24 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/ou/',
-            [{'name': 'Ballerup Bibliotek',
-              'user_key': 'BIBLIOTEK',
-              'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc'},
-             {'name': 'Ballerup Kommune',
-              'user_key': 'BALLERUP',
-              'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-             {'name': 'Ballerup Familiehus',
-              'user_key': 'FAMILIEHUS',
-              'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
-             {'name': 'Ballerup Idrætspark',
-              'user_key': 'IDRÆTSPARK',
-              'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}],
+            {
+                'items': [
+                    {'name': 'Ballerup Bibliotek',
+                     'user_key': 'BIBLIOTEK',
+                     'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc'},
+                    {'name': 'Ballerup Kommune',
+                     'user_key': 'BALLERUP',
+                     'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+                    {'name': 'Ballerup Familiehus',
+                     'user_key': 'FAMILIEHUS',
+                     'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+                    {'name': 'Ballerup Idrætspark',
+                     'user_key': 'IDRÆTSPARK',
+                     'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}
+                ],
+                'offset': 0,
+                'total': 4
+            }
         )
 
         self.assertRequestResponse(
@@ -1674,10 +1686,16 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/e/',
-            [{'name': 'Sanne Schäff',
-              'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
-             {'name': 'Sune Skriver',
-              'uuid': '34705881-8af9-4254-ac3f-31738eae0be8'}],
+            {
+                'items': [
+                    {'name': 'Sanne Schäff',
+                     'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
+                    {'name': 'Sune Skriver',
+                     'uuid': '34705881-8af9-4254-ac3f-31738eae0be8'}
+                ],
+                'offset': 0,
+                'total': 2
+            }
         )
 
         self.assertRequestResponse(

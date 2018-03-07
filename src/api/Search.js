@@ -10,7 +10,7 @@ export default {
     query = query || ''
     return Service.get(`/o/${orgUuid}/e/?query=${query}`)
     .then(response => {
-      return response.data
+      return response.data.items
     })
     .catch(error => {
       console.log(error.response)
@@ -21,7 +21,7 @@ export default {
     query = query || ''
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
     .then(response => {
-      return response.data
+      return response.data.items
     })
     .catch(error => {
       console.log(error.response)

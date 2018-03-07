@@ -84,7 +84,7 @@
       this.open = this.firstOpen
     },
     mounted () {
-      EventBus.$on('organisation-unit-terminate', newOrg => {
+      EventBus.$on('organisation-unit-changed', newOrg => {
         this.loadChildren(this.org)
       })
     },
