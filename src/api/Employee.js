@@ -25,6 +25,7 @@ export default {
   get (uuid) {
     return Service.get(`/e/${uuid}/`)
     .then(response => {
+      EventBus.$emit('organisation-changed', response.data.org)
       return response.data
     })
     .catch(error => {
