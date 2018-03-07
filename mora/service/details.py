@@ -18,6 +18,7 @@ API.
 
 import collections
 import itertools
+import operator
 
 import flask
 
@@ -360,18 +361,6 @@ def get_detail(type, id, function):
         funktionsnavn=keys.FUNCTION_KEYS[function],
     )
 
-    #
-    # all these caches might be overkill when just listing one
-    # engagement, but they are frequently helpful when listing all
-    # engagements for a unit
-    #
-    # we fetch the types preemptively so that we may rely on
-    # get_all(), and fetch them in as few requests as possible
-    #
-    functions = collections.OrderedDict(
-        c.organisationfunktion.get_all(**search),
-    )
-
     def get_address(effect):
         try:
             rel = effect['relationer']['adresser'][-1]
@@ -426,51 +415,17 @@ def get_detail(type, id, function):
         except (KeyError, IndexError):
             return None
 
-    def get_classes(effect):
-        rels = effect['relationer']
-
-        for reltype in 'opgaver', 'organisatoriskfunktionstype':
-            if reltype in rels:
-                for rel in rels[reltype]:
-                    try:
-                        yield rel['uuid']
-                    except KeyError:
-                        pass
-
-        if 'adresser' in rels:
-            for rel in rels['adresser']:
-                if util.is_uuid(rel.get('objekttype')):
-                    yield rel['objekttype']
-
-    class_cache = {
-        classid: classid and facet.get_one_class(c, classid, classobj)
-        for classid, classobj in c.klasse.get_all(
-            uuid=itertools.chain.from_iterable(
-                map(get_classes, functions.values()),
-            ),
-        )
-    }
-
-    user_cache = {
-        userid: employee.get_one_employee(c, userid, user)
-        for userid, user in
-        c.bruger.get_all(uuid={
-            get_employee_id(v) for v in functions.values()
-        })
-    }
-
-    unit_cache = {
-        unitid: orgunit.get_one_orgunit(
-            c, unitid, unit, details=orgunit.UnitDetails.MINIMAL,
-        )
-        for unitid, unit in
-        c.organisationenhed.get_all(
-            uuid=map(get_unit_id,
-                     functions.values()),
-        )
-    }
-
-    class_cache[None] = user_cache[None] = unit_cache[None] = None
+    #
+    # all these caches might be overkill when just listing one
+    # engagement, but they are frequently helpful when listing all
+    # engagements for a unit
+    #
+    # we fetch the types preemptively so that we may rely on
+    # get_all(), and fetch them in as few requests as possible
+    #
+    class_cache = {}
+    user_cache = {}
+    unit_cache = {}
 
     converters = {
         'engagement': {
@@ -505,6 +460,70 @@ def get_detail(type, id, function):
         }
     }
 
+    # first, extract all object ids
+    function_effects = sorted(
+        (
+            (start, end, funcid, effect)
+            for funcid, funcobj in c.organisationfunktion.get_all(**search)
+            for start, end, effect in c.organisationfunktion.get_effects(
+                funcobj,
+                {
+                    'relationer': (
+                        'opgaver',
+                        'adresser',
+                        'organisatoriskfunktionstype',
+                        'tilknyttedeenheder',
+                    ),
+                    'tilstande': (
+                        'organisationfunktiongyldighed',
+                    ),
+                },
+                {
+                    'attributter': (
+                        'organisationfunktionegenskaber',
+                    ),
+                    'relationer': (
+                        'tilhoerer',
+                        'tilknyttedebrugere',
+                        'tilknyttedeorganisationer',
+                    ),
+                },
+                virkningfra='-infinity',
+                virkningtil='infinity',
+            )
+            if effect.get('tilstande')
+            .get('organisationfunktiongyldighed')[0]
+            .get('gyldighed') == 'Aktiv'
+        ),
+        key=operator.itemgetter(slice(3)),
+    )
+
+    for cache, getter in converters[function].values():
+        if cache is not None:
+            for start, end, funcid, effect in function_effects:
+                cache[getter(effect)] = None
+
+    # now fetch them
+    class_cache.update({
+        classid: facet.get_one_class(c, classid, classobj)
+        for classid, classobj in c.klasse.get_all(uuid=class_cache)
+    })
+
+    user_cache.update({
+        userid: employee.get_one_employee(c, userid, user)
+        for userid, user in
+        c.bruger.get_all(uuid=user_cache)
+    })
+
+    unit_cache.update({
+        unitid: orgunit.get_one_orgunit(
+            c, unitid, unit, details=orgunit.UnitDetails.MINIMAL,
+        )
+        for unitid, unit in
+        c.organisationenhed.get_all(uuid=unit_cache)
+    })
+
+    # finally, convert them
     def convert(start, end, funcid, effect):
         func = {
             key: cache.get(getter(effect)) if cache else getter(effect)
@@ -519,36 +538,4 @@ def get_detail(type, id, function):
 
         return func
 
-    return flask.jsonify([
-        convert(start, end, funcid, effect)
-        for funcid, funcobj in functions.items()
-        for start, end, effect in c.organisationfunktion.get_effects(
-            funcobj,
-            {
-                'relationer': (
-                    'opgaver',
-                    'adresser',
-                    'organisatoriskfunktionstype',
-                    'tilknyttedeenheder',
-                ),
-                'tilstande': (
-                    'organisationfunktiongyldighed',
-                ),
-            },
-            {
-                'attributter': (
-                    'organisationfunktionegenskaber',
-                ),
-                'relationer': (
-                    'tilhoerer',
-                    'tilknyttedebrugere',
-                    'tilknyttedeorganisationer',
-                ),
-            },
-            virkningfra='-infinity',
-            virkningtil='infinity',
-        )
-        if effect.get('tilstande')
-                 .get('organisationfunktiongyldighed')[0]
-                 .get('gyldighed') == 'Aktiv'
-    ])
+    return flask.jsonify(list(itertools.starmap(convert, function_effects)))

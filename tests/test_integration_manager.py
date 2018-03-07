@@ -739,9 +739,25 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'manager_level': None,
-                'manager_type': None,
-                'org_unit': None,
+                'manager_level': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                },
+                'manager_type': {
+                    'example': '5712345000014',
+                    'name': 'EAN',
+                    'scope': 'EAN',
+                    'user_key': 'EAN',
+                    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                },
+                'org_unit': {
+                    'name': 'Filosofisk Institut',
+                    'user_key': 'fil',
+                    'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                },
                 'person': {
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
@@ -991,7 +1007,11 @@ class Tests(util.LoRATestCase):
                     'user_key': 'EAN',
                     'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
                 },
-                'org_unit': None,
+                'org_unit': {
+                    'name': 'Filosofisk Institut',
+                    'user_key': 'fil',
+                    'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                },
                 'person': {
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
