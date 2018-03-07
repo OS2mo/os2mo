@@ -10,7 +10,7 @@ export default {
   getAll (orgUuid) {
     return Service.get(`/o/${orgUuid}/e/`)
       .then(response => {
-        return response.data
+        return response.data.items
       })
       .catch(error => {
         console.log(error.response)

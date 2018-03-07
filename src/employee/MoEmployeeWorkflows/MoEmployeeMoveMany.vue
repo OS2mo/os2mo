@@ -67,7 +67,7 @@
       },
 
       isDisabled () {
-        return !this.moveDate || !this.orgUnitSource.uuid || !this.orgUnitDestination.uuid || this.selected.length == 0
+        return !this.moveDate || !this.orgUnitSource.uuid || !this.orgUnitDestination.uuid || this.selected.length === 0
       }
     },
     watch: {

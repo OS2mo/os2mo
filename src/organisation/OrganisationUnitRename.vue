@@ -9,7 +9,7 @@
       <organisation-unit-picker 
         label="Enhed" 
         class="col"
-        v-model="rename.original"
+        v-model="original"
         :preselected="preselectedUnit"
       />
     </div>
@@ -59,6 +59,7 @@
       return {
         orgUnit: {},
         preselectedUnit: {},
+        original: {},
         rename: {
           data: {
             name: '',
@@ -69,7 +70,7 @@
     },
     computed: {
       isDisabled () {
-        if (this.rename.data.validity.from === undefined || this.rename.original === undefined || this.rename.data.name === '') return true
+        if (this.rename.data.validity.from === undefined || this.original === undefined || this.rename.data.name === '') return true
       }
     },
     mounted () {
@@ -82,7 +83,7 @@
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.rename.original.uuid, this.rename)
+        OrganisationUnit.edit(this.original.uuid, this.rename)
         .then(response => {
           vm.$refs.orgUnitRename.hide()
         })

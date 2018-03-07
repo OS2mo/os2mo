@@ -15,7 +15,7 @@
     <div class="form-row">
       <div class="col">
         <organisation-unit-picker 
-          v-model="move.original"
+          v-model="original"
           label="Fremsøg enhed"
         />
       </div>
@@ -25,7 +25,7 @@
         <input 
           type="text" 
           class="form-control" 
-          :value="currentUnit" 
+          :value="currentUnit"
           disabled
         >
       </div>
@@ -60,12 +60,14 @@
     },
     computed: {
       isDisabled () {
-        if (this.move.data.validity.from === null || this.move.original === undefined || this.move.data.parent === undefined) return true
+        if (this.move.data.validity.from === null || this.original === undefined || this.move.data.parent === undefined) return true
       }
     },
     data () {
       return {
         currentUnit: '',
+        uuid: '',
+        original: {},
         move: {
           data: {
             validity: {}
@@ -74,20 +76,19 @@
       }
     },
     watch: {
-      move: {
+      original: {
         handler (newVal) {
-          if (!newVal) return
-          this.getCurrentUnit(newVal.original.uuid | this.Getproperty)
-        }
-      },
-      deep: true
+          this.getCurrentUnit(newVal.uuid)
+        },
+        deep: true
+      }
     },
     methods: {
       moveOrganisationUnit () {
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.move.original.uuid, this.move)
+        OrganisationUnit.edit(this.original.uuid, this.move)
         .then(response => {
           vm.$refs.orgUnitMove.hide()
         })
@@ -102,15 +103,9 @@
         if (!unitUuid) return
         OrganisationUnit.getTree(unitUuid)
         .then(response => {
-          console.log(response)
-          vm.currentUnit = response.parent.name
+          vm.currentUnit = response.parent ? response.parent.name : ''
         })
       }
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
