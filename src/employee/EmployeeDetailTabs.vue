@@ -94,7 +94,7 @@
           association: ['org_unit', 'job_function', 'association_type'],
           leave: ['leave_type'],
           manager: ['org_unit', 'responsibility', 'manager_type', 'manager_level'],
-          address: ['address_type']
+          address: ['address_type', null]
         },
         components: {
           engagement: MoEngagementEntry,

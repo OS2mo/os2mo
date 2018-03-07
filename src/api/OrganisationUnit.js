@@ -9,23 +9,10 @@ export default {
    * @returns {Object} organisation unit object
    */
   get (uuid) {
-    return Service.get(`/ou/${uuid}`)
+    return Service.get(`/ou/${uuid}/`)
     .then(response => {
-      return response.data
-    })
-    .catch(e => {
-      console.log(e)
-    })
-  },
-
-  /**
-   * Get an tree unit
-   * @param {String} uuid - tree unit uuid
-   * @returns {Object} tree unit object
-   */
-  getTree (uuid) {
-    return Service.get(`/ou/${uuid}/tree`)
-    .then(response => {
+      console.log(response.data[0].org)
+      EventBus.$emit('organisation-changed', response.data[0].org)
       return response.data
     })
     .catch(e => {
@@ -109,7 +96,7 @@ export default {
   },
 
   getDetailList (uuid) {
-    return Service.get(`/ou/${uuid}/details`)
+    return Service.get(`/ou/${uuid}/details/`)
     .then(response => {
       return response.data
     })
