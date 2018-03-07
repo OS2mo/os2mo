@@ -11,8 +11,7 @@ export default {
   get (uuid) {
     return Service.get(`/ou/${uuid}/`)
     .then(response => {
-      console.log(response.data[0].org)
-      EventBus.$emit('organisation-changed', response.data[0].org)
+      EventBus.$emit('organisation-changed', response.data.org)
       return response.data
     })
     .catch(e => {
