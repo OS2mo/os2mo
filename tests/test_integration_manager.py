@@ -158,6 +158,47 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_manager, expected)
 
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'manager_level': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                'responsibility': None,
+                'uuid': managerid,
+                'validity': {
+                    'from': '2017-12-01T00:00:00+01:00',
+                    'to': '2017-12-02T00:00:00+01:00',
+                },
+            }],
+        )
+
     def test_create_manager_no_valid_to(self):
         self.load_sample_structures()
 
@@ -295,6 +336,46 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_manager, expected)
 
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'manager_level': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                'responsibility': None,
+                'uuid': managerid,
+                'validity': {
+                    'from': '2017-12-01T00:00:00+01:00', 'to': None,
+                },
+            }],
+        )
+
     def test_create_manager_minimal(self):
         self.load_sample_structures()
 
@@ -391,6 +472,41 @@ class Tests(util.LoRATestCase):
         actual_manager = c.organisationfunktion.get(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'manager_level': None,
+                'manager_type': None,
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                'responsibility': None,
+                'uuid': managerid,
+                'validity': {
+                    'from': '2017-12-01T00:00:00+01:00',
+                    'to': '2017-12-02T00:00:00+01:00',
+                },
+            }],
+        )
 
     def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()
@@ -578,6 +694,66 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [{
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'responsibility': {
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                },
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': '2018-04-01T00:00:00+02:00',
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'manager_level': None,
+                'manager_type': None,
+                'org_unit': None,
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'responsibility': None,
+                'uuid': manager_uuid,
+                'validity': {
+                    'from': '2018-04-01T00:00:00+02:00', 'to': None,
+                },
+            }],
+        )
+
     def test_edit_manager_overwrite(self):
         self.load_sample_structures()
 
@@ -607,6 +783,16 @@ class Tests(util.LoRATestCase):
                 },
             },
             "data": {
+                "address_type": {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
+                "address": {
+                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                },
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
@@ -782,6 +968,42 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'manager_level': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                },
+                'manager_type': {
+                    'example': '5712345000014',
+                    'name': 'EAN',
+                    'scope': 'EAN',
+                    'user_key': 'EAN',
+                    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                },
+                'org_unit': None,
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'responsibility': None,
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'validity': {
+                    'from': '2018-04-01T00:00:00+02:00', 'to': None,
+                },
+            }],
+        )
+
     def test_terminate_manager(self):
         self.load_sample_structures()
 
@@ -914,6 +1136,53 @@ class Tests(util.LoRATestCase):
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [{
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'responsibility': {
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                },
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': '2017-12-01T00:00:00+01:00',
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [],
+        )
 
     def test_edit_manager_minimal(self):
         # We are expanding the validity times on the object, so we insert a
@@ -1048,3 +1317,37 @@ class Tests(util.LoRATestCase):
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(actual_manager, expected_manager)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [{
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'responsibility': None,
+                'uuid': '06137e23-dcd1-49e8-9247-09563bae4bcd',
+                'validity': {
+                    'from': '2014-04-01T00:00:00+02:00', 'to': None,
+                },
+            }]
+        )
