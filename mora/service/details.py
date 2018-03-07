@@ -184,6 +184,56 @@ def get_detail(type, id, function):
             }
         ]
 
+    **Example association response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "address": {
+            "href": "https://www.openstreetmap.org/"
+                    "?mlon=12.57924839&mlat=55.68113676&zoom=16",
+            "name": "Pilestr\u00e6de 43, 3., 1112 K\u00f8benhavn K",
+            "value": "0a3f50a0-23c9-32b8-e044-0003ba298018"
+          },
+          "address_type": {
+            "example": "<UUID>",
+            "name": "Adresse",
+            "scope": "DAR",
+            "user_key": "Adresse",
+            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+          },
+          "association_type": {
+            "example": null,
+            "name": "Medlem",
+            "scope": null,
+            "user_key": "medl",
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "job_function": {
+            "example": null,
+            "name": "Hund",
+            "scope": null,
+            "user_key": "hund",
+            "uuid": "c2b23c43-87c6-48bb-a99c-53396bfa99fb"
+          },
+          "org_unit": {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          },
+          "person": {
+            "name": "Fedtmule",
+            "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+          },
+          "uuid": "30cd25e1-b21d-46fe-b299-1c1265e9be66",
+          "validity": {
+            "from": "2017-01-01T00:00:00+01:00",
+            "to": "2018-01-01T00:00:00+01:00"
+          }
+        }
+      ]
+
     **Example IT response**:
 
     .. sourcecode:: json
