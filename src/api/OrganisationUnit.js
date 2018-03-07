@@ -124,7 +124,7 @@ export default {
   create (create) {
     return Service.post('/ou/create', create)
     .then(response => {
-      EventBus.$emit('organisation-unit-created', response.data)
+      EventBus.$emit('organisation-unit-changed', response.data)
       return response.data
     })
     .catch(error => {
@@ -158,7 +158,7 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
     .then(response => {
-      EventBus.$emit('organisation-unit-terminate', response.data)
+      EventBus.$emit('organisation-unit-changed', response.data)
       return response.data
     })
     .catch(error => {

@@ -59,7 +59,7 @@
       this.getChildren(this.org)
     },
     mounted () {
-      EventBus.$on('organisation-unit-terminate', newOrg => {
+      EventBus.$on('organisation-unit-changed', newOrg => {
         this.getChildren(this.org)
       })
     },
