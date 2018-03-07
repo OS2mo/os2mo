@@ -5,6 +5,7 @@
     hide-footer 
     title="Opret enhed"
     ref="orgUnitCreate"
+    lazy
   >
     <mo-organisation-unit-entry
       :org="org" 

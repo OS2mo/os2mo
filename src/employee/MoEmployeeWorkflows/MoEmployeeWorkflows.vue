@@ -7,9 +7,10 @@
       <button-workflow label="Flyt mange engagementer" icon="share-square-o" v-b-modal.employeeMoveMany/>
       <button-workflow label="Afslut medarbejder" icon="user-times" v-b-modal.employeeTerminate/>
     </div>
+
     <!-- Modal Component -->
+    <mo-employee-create :org="org"/>
     <mo-employee-leave :org="org"/>
-    <employee-create :org="org"/>
     <mo-employee-move :org="org"/>
     <mo-employee-move-many/>
     <mo-employee-terminate/>
@@ -19,7 +20,7 @@
 <script>
   import { EventBus } from '../../EventBus'
   import ButtonWorkflow from '../../components/ButtonWorkflow'
-  import EmployeeCreate from '../EmployeeCreate'
+  import MoEmployeeCreate from './MoEmployeeCreate'
   import MoEmployeeLeave from './MoEmployeeLeave'
   import MoEmployeeMove from './MoEmployeeMove'
   import MoEmployeeMoveMany from './MoEmployeeMoveMany'
@@ -28,7 +29,7 @@
   export default {
     components: {
       ButtonWorkflow,
-      EmployeeCreate,
+      MoEmployeeCreate,
       MoEmployeeLeave,
       MoEmployeeMove,
       MoEmployeeMoveMany,

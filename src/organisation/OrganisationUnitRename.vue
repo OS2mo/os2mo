@@ -4,7 +4,9 @@
     ref="orgUnitRename"  
     size="lg" 
     hide-footer 
-    title="Omdøb enhed">
+    title="Omdøb enhed"
+    lazy
+  >
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
