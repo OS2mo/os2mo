@@ -5,6 +5,7 @@
     hide-footer 
     title="Flyt mange engagementer"
     ref="employeeMoveMany"
+    lazy
   >
     <div class="form-row">
       <date-picker 

@@ -5,6 +5,7 @@
     hide-footer 
     title="Ny medarbejder"
     ref="employeeCreate"
+    lazy
   >
     <employee-picker :org="org" v-model="employee"/>
     

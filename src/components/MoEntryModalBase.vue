@@ -3,7 +3,6 @@
     <button 
       class="btn btn-outline-primary" 
       v-b-modal="'moCreate'+_uid" 
-      @click="showModal=true"
     >
       <icon :name="iconLabel" />
       {{label}}
@@ -15,10 +14,10 @@
       hide-footer 
       title="Opret"
       :ref="'moCreate'+_uid"
+      lazy
     >
       <component 
         :is="entryComponent"
-        v-if="showModal" 
         v-model="entry" 
         :org="org" 
         @is-valid="isValid"
@@ -76,7 +75,6 @@
         original: {},
         org: Object,
         isLoading: false,
-        showModal: false,
         valid: false
       }
     },
@@ -160,7 +158,6 @@
         Employee.create(this.uuid, data)
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
           vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
@@ -171,7 +168,6 @@
         return Employee.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
           vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
@@ -182,7 +178,6 @@
         return OrganisationUnit.create(data)
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
           vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
@@ -193,7 +188,6 @@
         return OrganisationUnit.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
           vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })

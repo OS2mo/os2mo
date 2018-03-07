@@ -5,6 +5,7 @@
     hide-footer 
     title="Flyt medarbejder"
     ref="employeeMove"
+    lazy
   >
     <div>
 

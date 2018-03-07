@@ -5,6 +5,7 @@
     hide-footer 
     title="Afslut medarbejder"
     ref="employeeTerminate"
+    lazy
   >
   <div class="col">
     <employee-picker v-model="employee"/>

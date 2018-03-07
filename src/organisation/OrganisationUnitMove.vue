@@ -4,7 +4,9 @@
     ref="orgUnitMove"
     size="lg" 
     hide-footer 
-    title="Flyt enhed">
+    title="Flyt enhed"
+    lazy
+  >
     <div class="form-row">
       <date-picker 
       label="Dato for flytning"

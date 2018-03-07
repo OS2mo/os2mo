@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-tabs>
+    <b-tabs lazy>
       <b-tab title="Enhed" active>
         <mo-organisation-unit-detail 
           :uuid="uuid" 
