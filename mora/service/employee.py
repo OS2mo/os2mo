@@ -410,9 +410,8 @@ def create_employee(employee_uuid):
         'contact': writing.create_contact,
         'manager': manager.create_manager,
         'leave': leave.create_leave,
+        **RELATION_TYPES,
     }
-
-    handlers.update(RELATION_TYPES)
 
     reqs = flask.request.get_json()
     for req in reqs:
@@ -783,9 +782,8 @@ def edit_employee(employee_uuid):
         'role': role.edit_role,
         'leave': leave.edit_leave,
         'manager': manager.edit_manager,
+        **RELATION_TYPES,
     }
-
-    handlers.update(RELATION_TYPES)
 
     reqs = flask.request.get_json()
 

@@ -12,6 +12,8 @@ VALID_TO = 'valid_to'
 TO = 'to'
 FROM = 'from'
 NAME = 'name'
+VALUE = 'value'
+HREF = 'href'
 UUID = 'uuid'
 VALIDITY = 'validity'
 ORG = 'org'
@@ -25,10 +27,6 @@ ITSYSTEM_KEY = 'IT-system'
 # Address
 ADDRESS_KEY = 'Adresse'
 ADDRESS_TYPE = 'address_type'
-ADDRESS_HREF = 'href'
-ADDRESS_PRETTY = 'pretty_value'
-ADDRESS_RAW = 'raw_value'
-
 
 # Employee
 CPR_NO = 'cpr_no'
