@@ -377,7 +377,7 @@ class TestCaseMixin(object):
             elif isinstance(obj, (list, tuple)):
                 return sorted(
                     map(sort_inner_lists, obj),
-                    key=json.dumps,
+                    key=(lambda p: json.dumps(p, sort_keys=True)),
                 )
             else:
                 return obj

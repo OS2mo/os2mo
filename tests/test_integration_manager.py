@@ -156,12 +156,7 @@ class Tests(util.LoRATestCase):
 
         actual_manager = c.organisationfunktion.get(managerid)
 
-        # drop lora-generated timestamps & users
-        del actual_manager['fratidspunkt'], actual_manager[
-            'tiltidspunkt'], actual_manager[
-            'brugerref']
-
-        self.assertEqual(actual_manager, expected)
+        self.assertRegistrationsEqual(actual_manager, expected)
 
     def test_create_manager_no_valid_to(self):
         self.load_sample_structures()
@@ -298,12 +293,7 @@ class Tests(util.LoRATestCase):
 
         actual_manager = c.organisationfunktion.get(managerid)
 
-        # drop lora-generated timestamps & users
-        del actual_manager['fratidspunkt'], actual_manager[
-            'tiltidspunkt'], actual_manager[
-            'brugerref']
-
-        self.assertEqual(actual_manager, expected)
+        self.assertRegistrationsEqual(actual_manager, expected)
 
     def test_create_manager_minimal(self):
         self.load_sample_structures()
@@ -586,12 +576,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_manager['fratidspunkt'], actual_manager[
-            'tiltidspunkt'], actual_manager[
-            'brugerref']
-
-        self.assertEqual(expected_manager, actual_manager)
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
 
     def test_edit_manager_overwrite(self):
         self.load_sample_structures()
@@ -795,12 +780,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_manager['fratidspunkt'], actual_manager[
-            'tiltidspunkt'], actual_manager[
-            'brugerref']
-
-        self.assertEqual(expected_manager, actual_manager)
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
 
     def test_terminate_manager(self):
         self.load_sample_structures()
@@ -933,12 +913,7 @@ class Tests(util.LoRATestCase):
 
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_manager['fratidspunkt'], actual_manager[
-            'tiltidspunkt'], actual_manager[
-            'brugerref']
-
-        self.assertEqual(actual_manager, expected)
+        self.assertRegistrationsEqual(actual_manager, expected)
 
     def test_edit_manager_minimal(self):
         # We are expanding the validity times on the object, so we insert a
@@ -1072,9 +1047,4 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_manager['fratidspunkt'], actual_manager[
-            'tiltidspunkt'], actual_manager[
-            'brugerref']
-
-        self.assertEqual(actual_manager, expected_manager)
+        self.assertRegistrationsEqual(actual_manager, expected_manager)
