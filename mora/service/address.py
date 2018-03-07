@@ -76,8 +76,8 @@ class Addresses(common.AbstractRelationDetail):
                 if addrclass['scope'] == 'DAR':
                     addrobj = addr.get_address(addrrel['uuid'])
 
-                    pretty_value = addrobj['adressebetegnelse']
-                    raw_value = addrrel['uuid']
+                    name = addrobj['adressebetegnelse']
+                    value = addrrel['uuid']
                     href = (
                         'https://www.openstreetmap.org/'
                         '?mlon={}&mlat={}&zoom=16'.format(
@@ -96,10 +96,10 @@ class Addresses(common.AbstractRelationDetail):
                             addrrel['urn'],
                         ))
 
-                    pretty_value = m[0]
-                    raw_value = addrrel['urn']
+                    name = m[0]
+                    value = addrrel['urn']
                     href = (
-                        HREF_FORMATS[addrclass['scope']].format(pretty_value)
+                        HREF_FORMATS[addrclass['scope']].format(name)
                         if addrclass['scope'] in HREF_FORMATS else None
                     )
 
@@ -109,10 +109,10 @@ class Addresses(common.AbstractRelationDetail):
                     )
 
                 yield {
-                    keys.ADDRESS_HREF: href,
+                    keys.HREF: href,
 
-                    keys.ADDRESS_PRETTY: pretty_value,
-                    keys.ADDRESS_RAW: raw_value,
+                    keys.NAME: name,
+                    keys.VALUE: value,
                     keys.ADDRESS_TYPE: addrclass,
                     keys.VALIDITY: common.get_effect_validity(addrrel),
                 }
@@ -144,7 +144,7 @@ class Addresses(common.AbstractRelationDetail):
                     lambda v: (
                         common.get_valid_from(v) or util.negative_infinity,
                         common.get_valid_to(v) or util.positive_infinity,
-                        str(v[keys.ADDRESS_PRETTY]),
+                        str(v[keys.NAME]),
                     )
                 ),
             ),
@@ -227,7 +227,7 @@ class Addresses(common.AbstractRelationDetail):
 
         old_rel = self.get_relation_for(
             old_entry[keys.ADDRESS_TYPE],
-            old_entry[keys.ADDRESS_PRETTY],
+            old_entry[keys.NAME],
             start=old_from,
             end=old_to,
         )
@@ -235,8 +235,8 @@ class Addresses(common.AbstractRelationDetail):
         new_rel = self.get_relation_for(
             new_entry.get(keys.ADDRESS_TYPE) or
             old_entry[keys.ADDRESS_TYPE],
-            new_entry.get('value') or
-            old_entry[keys.ADDRESS_PRETTY],
+            new_entry.get(keys.VALUE) or
+            old_entry[keys.NAME],
             start=valid_from,
             end=valid_to,
         )

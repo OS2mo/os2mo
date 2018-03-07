@@ -32,7 +32,7 @@
             <b-form-checkbox :value="c"/>
           </td>
           <td v-for="col in columns" :key="col">
-            {{ col ? c[col] : c | getProperty('name') }}
+            <mo-link :value="c" :column="col"/>
           </td>
           <td>
             {{c.validity | getProperty('from') | date}}
@@ -63,10 +63,12 @@
   import '../filters/Date'
   import Loading from './Loading'
   import MoEntryModalBase from './MoEntryModalBase'
+  import MoLink from './MoLink'
 
   export default {
     components: {
       Loading,
+      MoLink,
       MoEntryModalBase
     },
     props: {
@@ -83,28 +85,30 @@
       }
     },
     data () {
+      const labels = {
+        address: 'Adresse',
+        org_unit: 'Enhed',
+        org_unit_type: 'Enhedstype',
+        parent: 'Overenhed',
+        job_function: 'Stillingsbetegnelse',
+        engagement_type: 'Engagementstype',
+        association_type: 'Tilknytningstype',
+        role_type: 'Rolle',
+        leave_type: 'Orlovstype',
+        it_system: 'System',
+        user: 'Brugernavn',
+        responsibility: 'Lederansvar',
+        manager_type: 'Ledertype',
+        manager_level: 'Lederniveau',
+        address_type: 'Adressetype',
+        person: 'Navn'
+      }
+      labels[null] = labels[this.contentType]
+
       return {
         selectAll: false,
         selected: [],
-        label: {
-          null: 'Enhedsnavn',
-          org_unit: 'Enhedsnavn',
-          org_unit_type: 'Enhedstype',
-          parent: 'Overenhed',
-          job_function: 'Stillingsbetegnelse',
-          engagement_type: 'Engagementstype',
-          association_type: 'Tilknytningstype',
-          role_type: 'Rolle',
-          leave_type: 'Orlovstype',
-          it_system: 'System',
-          user: 'Brugernavn',
-          responsibility: 'Lederansvar',
-          manager_type: 'Ledertype',
-          manager_level: 'Lederniveau',
-          address_type: 'Adressetype',
-          person: 'Navn',
-          pretty_value: 'Værdi'
-        }
+        label: labels
       }
     },
     computed: {

@@ -119,8 +119,8 @@ class Writing(util.LoRATestCase):
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'href': 'mailto:bruger@example.com',
-                'pretty_value': 'bruger@example.com',
-                'raw_value': 'urn:mailto:bruger@example.com',
+                'name': 'bruger@example.com',
+                'value': 'urn:mailto:bruger@example.com',
                 'validity': {
                     'from': '2002-02-14T00:00:00+01:00',
                     'to': None,
@@ -202,8 +202,8 @@ class Writing(util.LoRATestCase):
                     'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
                 },
                 'href': None,
-                'pretty_value': '1234567890',
-                'raw_value': 'urn:magenta.dk:ean:1234567890',
+                'name': '1234567890',
+                'value': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
                     'from': '2013-01-01T00:00:00+01:00',
                     'to': None,
@@ -270,8 +270,8 @@ class Writing(util.LoRATestCase):
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'href': 'mailto:hest@example.com',
-                'pretty_value': 'hest@example.com',
-                'raw_value': 'urn:mailto:hest@example.com',
+                'name': 'hest@example.com',
+                'value': 'urn:mailto:hest@example.com',
                 'validity': {
                     'from': '2014-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -286,8 +286,8 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.20320628&mlat=56.15263055&zoom=16',
-                'pretty_value': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
-                'raw_value': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
+                'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
+                'value': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
                 'validity': {
                     'from': '2015-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -301,8 +301,8 @@ class Writing(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'href': 'tel:+4533369696',
-                'pretty_value': 33369696,
-                'raw_value': 'urn:magenta.dk:telefon:+4533369696',
+                'name': 33369696,
+                'value': 'urn:magenta.dk:telefon:+4533369696',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -422,8 +422,8 @@ class Writing(util.LoRATestCase):
                 {
                     'address_type': email_class,
                     'href': 'mailto:bruger@example.com',
-                    'pretty_value': 'bruger@example.com',
-                    'raw_value': 'urn:mailto:bruger@example.com',
+                    'name': 'bruger@example.com',
+                    'value': 'urn:mailto:bruger@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': None,
@@ -447,8 +447,8 @@ class Writing(util.LoRATestCase):
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'href': 'mailto:bruger@example.com',
-                    'pretty_value': 'bruger@example.com',
-                    'raw_value': 'urn:mailto:bruger@example.com',
+                    'name': 'bruger@example.com',
+                    'value': 'urn:mailto:bruger@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': None,
@@ -470,8 +470,8 @@ class Writing(util.LoRATestCase):
                 {
                     'address_type': email_class,
                     'href': 'mailto:user@example.com',
-                    'pretty_value': 'user@example.com',
-                    'raw_value': 'urn:mailto:user@example.com',
+                    'name': 'user@example.com',
+                    'value': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': '2040-01-01T00:00:00+01:00',
@@ -495,8 +495,8 @@ class Writing(util.LoRATestCase):
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'href': 'mailto:user@example.com',
-                    'pretty_value': 'user@example.com',
-                    'raw_value': 'urn:mailto:user@example.com',
+                    'name': 'user@example.com',
+                    'value': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': '2040-01-01T00:00:00+01:00',
@@ -526,8 +526,8 @@ class Writing(util.LoRATestCase):
                     },
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=12.57924839&mlat=55.68113676&zoom=16',
-                    'pretty_value': 'Pilestræde 43, 3., 1112 København K',
-                    'raw_value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'name': 'Pilestræde 43, 3., 1112 København K',
+                    'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': None,
@@ -589,8 +589,8 @@ class Writing(util.LoRATestCase):
                     'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
                 },
                 'href': None,
-                'pretty_value': '5798000420229',
-                'raw_value': 'urn:magenta.dk:ean:5798000420229',
+                'name': '5798000420229',
+                'value': 'urn:magenta.dk:ean:5798000420229',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -604,8 +604,8 @@ class Writing(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'href': 'tel:+4587150000',
-                'pretty_value': 87150000,
-                'raw_value': 'urn:magenta.dk:telefon:+4587150000',
+                'name': 87150000,
+                'value': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -620,8 +620,8 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -703,9 +703,9 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.58176945&mlat=55.67563739&zoom=16',
-                        'pretty_value':
+                        'name':
                         'Christiansborg Slotsplads 1, 1218 København K',
-                        'raw_value': 'bae093df-3b06-4f23-90a8-92eabedb3622',
+                        'value': 'bae093df-3b06-4f23-90a8-92eabedb3622',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -720,8 +720,8 @@ class Reading(util.LoRATestCase):
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'href': 'mailto:goofy@example.com',
-                        'pretty_value': 'goofy@example.com',
-                        'raw_value': 'urn:mailto:goofy@example.com',
+                        'name': 'goofy@example.com',
+                        'value': 'urn:mailto:goofy@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -736,8 +736,8 @@ class Reading(util.LoRATestCase):
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'href': 'mailto:goofy@example.com',
-                        'pretty_value': 'goofy@example.com',
-                        'raw_value': 'urn:mailto:goofy@example.com',
+                        'name': 'goofy@example.com',
+                        'value': 'urn:mailto:goofy@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -760,8 +760,8 @@ class Reading(util.LoRATestCase):
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'href': 'mailto:bruger@example.com',
-                        'pretty_value': 'bruger@example.com',
-                        'raw_value': 'urn:mailto:bruger@example.com',
+                        'name': 'bruger@example.com',
+                        'value': 'urn:mailto:bruger@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -784,8 +784,8 @@ class Reading(util.LoRATestCase):
                             'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
                         },
                         'href': None,
-                        'pretty_value': '5798000420229',
-                        'raw_value': 'urn:magenta.dk:ean:5798000420229',
+                        'name': '5798000420229',
+                        'value': 'urn:magenta.dk:ean:5798000420229',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -800,8 +800,8 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'pretty_value': 87150000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4587150000',
+                        'name': 87150000,
+                        'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -817,8 +817,8 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -841,8 +841,8 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'pretty_value': 87150000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4587150000',
+                        'name': 87150000,
+                        'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -858,8 +858,8 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -882,8 +882,8 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'pretty_value': 87150000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4587150000',
+                        'name': 87150000,
+                        'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2017-01-01T00:00:00+01:00',
                             'to': None,
@@ -899,8 +899,8 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2017-01-01T00:00:00+01:00',
                             'to': None,
@@ -923,8 +923,8 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'pretty_value': 87150000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4587150000',
+                        'name': 87150000,
+                        'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -940,8 +940,8 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -965,8 +965,8 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'raw_value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': '2019-01-01T00:00:00+01:00',
@@ -1089,8 +1089,8 @@ class Reading(util.LoRATestCase):
                             },
                             'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                            'pretty_value': 'Nordre Ringgade 1, 8000 Aarhus C',
-                            'raw_value':
+                            'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                            'value':
                             'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',
