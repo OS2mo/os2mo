@@ -38,7 +38,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "manager_level": {
-                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
@@ -91,16 +91,6 @@ class Tests(util.LoRATestCase):
                 ],
                 "opgaver": [
                     {
-                        "objekttype": "lederniveau",
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                    },
-                    {
                         "objekttype": "lederansvar",
                         "virkning": {
                             "to_included": False,
@@ -109,6 +99,16 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    },
+                    {
+                        "objekttype": "lederniveau",
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                     },
                 ],
                 "organisatoriskfunktionstype": [
@@ -181,7 +181,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "manager_level": {
-                    "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
@@ -233,16 +233,6 @@ class Tests(util.LoRATestCase):
                 ],
                 "opgaver": [
                     {
-                        "objekttype": "lederniveau",
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
-                    },
-                    {
                         "objekttype": "lederansvar",
                         "virkning": {
                             "to_included": False,
@@ -251,6 +241,16 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    },
+                    {
+                        "objekttype": "lederniveau",
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                     },
                 ],
                 "organisatoriskfunktionstype": [
@@ -414,16 +414,16 @@ class Tests(util.LoRATestCase):
             "uuid": manager_uuid,
             "data": {
                 "org_unit": {
-                    'uuid': "6dcc5b0e-789f-46a0-85be-f7a67a507f0e"
+                    'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "responsibility": {
                     'uuid': "64dcaca7-daff-4d9f-b4a9-78f2920e8e50"
                 },
                 "manager_level": {
-                    "uuid": "49c40b10-3c49-4396-88b0-792cca787a3a"
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                 },
                 "manager_type": {
-                    'uuid': "052c7457-6bbe-4014-9149-c5f75af2058f"
+                    'uuid': "e34d4426-9845-4c72-b31e-709be85d6fa2"
                 },
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
@@ -441,7 +441,7 @@ class Tests(util.LoRATestCase):
                 "opgaver": [
                     {
                         "objekttype": "lederniveau",
-                        "uuid": "49c40b10-3c49-4396-88b0-792cca787a3a",
+                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -482,7 +482,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "052c7457-6bbe-4014-9149-c5f75af2058f",
+                        "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -513,7 +513,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
-                        "uuid": "6dcc5b0e-789f-46a0-85be-f7a67a507f0e",
+                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -611,7 +611,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                 },
                 "manager_level": {
-                    "uuid": "8f36a442-3066-468d-b186-52c6b7c14c39"
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
                 "manager_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"
@@ -623,16 +623,16 @@ class Tests(util.LoRATestCase):
             },
             "data": {
                 "org_unit": {
-                    'uuid': "6dcc5b0e-789f-46a0-85be-f7a67a507f0e"
+                    'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "responsibility": {
                     'uuid': "64dcaca7-daff-4d9f-b4a9-78f2920e8e50"
                 },
                 "manager_level": {
-                    "uuid": "49c40b10-3c49-4396-88b0-792cca787a3a"
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                 },
                 "manager_type": {
-                    'uuid': "052c7457-6bbe-4014-9149-c5f75af2058f"
+                    'uuid': "e34d4426-9845-4c72-b31e-709be85d6fa2"
                 },
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
@@ -649,8 +649,28 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "opgaver": [
                     {
+                        "objekttype": "lederansvar",
+                        "uuid": "64dcaca7-daff-4d9f-b4a9-78f2920e8e50",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
+                    {
+                        "objekttype": "lederansvar",
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
                         "objekttype": "lederniveau",
-                        "uuid": "49c40b10-3c49-4396-88b0-792cca787a3a",
+                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -668,37 +688,8 @@ class Tests(util.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02"
                         }
                     },
-                    {
-                        "objekttype": "lederansvar",
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "objekttype": "lederansvar",
-                        "uuid": "64dcaca7-daff-4d9f-b4a9-78f2920e8e50",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
                 ],
                 "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "052c7457-6bbe-4014-9149-c5f75af2058f",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
                     {
                         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                         "virkning": {
@@ -706,6 +697,15 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
                             "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
                         }
                     },
                 ],
@@ -722,7 +722,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
-                        "uuid": "6dcc5b0e-789f-46a0-85be-f7a67a507f0e",
+                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
