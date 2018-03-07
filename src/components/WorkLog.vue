@@ -35,23 +35,24 @@
     },
 
     mounted () {
-      EventBus.$on('org-unit-create', org => {
-        let msg = 'Organisationsenheden med UUID ' + org.uuid + ' er oprettet med success'
+      EventBus.$on('organisation-unit-create', org => {
+        let msg = 'Organisationsenheden med UUID ' + org + ' er oprettet med success'
         this.workLogs.push(msg)
       })
 
-      EventBus.$on('org-unit-rename', org => {
-        let msg = 'Organisationsenheden med UUID ' + org.uuid + ' er omdøbt med success'
+      EventBus.$on('organisation-unit-rename', org => {
+        console.log(org)
+        let msg = 'Organisationsenheden med UUID ' + org + ' er omdøbt med success'
         this.workLogs.push(msg)
       })
 
-      EventBus.$on('org-unit-move', org => {
-        let msg = 'Organisationsenheden med UUID ' + org.uuid + ' er flyttet korrekt'
+      EventBus.$on('organisation-unit-move', org => {
+        let msg = 'Organisationsenheden med UUID ' + org + ' er flyttet korrekt'
         this.workLogs.push(msg)
       })
 
-      EventBus.$on('org-unit-end-date', org => {
-        let msg = 'Organisationsenheden med UUID ' + org.uuid + ' er afsluttet korrekt'
+      EventBus.$on('organisation-unit-terminate', org => {
+        let msg = 'Organisationsenheden med UUID ' + org + ' er afsluttet korrekt'
         this.workLogs.push(msg)
       })
     },
