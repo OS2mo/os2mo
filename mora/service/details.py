@@ -21,6 +21,7 @@ import itertools
 
 import flask
 
+from . import address
 from . import common
 from . import employee
 from . import facet
@@ -203,23 +204,53 @@ def get_detail(type, id, function):
 
     .. sourcecode:: json
 
-          [
-              {
-                  "address_type": {
-                      "example": "<UUID>",
-                      "name": "Lokation",
-                      "scope": "DAR",
-                      "user_key": "AdresseLokation",
-                      "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
-                  },
-                  "from": "2018-01-01T00:00:00+01:00",
-                  "href": "https://www.openstreetmap.org/"
-                  "?mlon=12.57924839&mlat=55.68113676&zoom=16",
-                  "name": "Pilestræde 43, 3., 1112 København K",
-                  "value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                  "to": null
-              }
-          ]
+     [
+        {
+          "name": "Christiansborg Slotsplads 1, 1218 København K",
+          "value": "bae093df-3b06-4f23-90a8-92eabedb3622"
+          "href": "https://www.openstreetmap.org/"
+              "?mlon=12.58176945&mlat=55.67563739&zoom=16",
+          "address_type": {
+            "scope": "DAR"
+          },
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          },
+        },
+        {
+          "name": "goofy@example.com",
+          "href": "mailto:goofy@example.com",
+          "value": "urn:mailto:goofy@example.com"
+          "address_type": {
+            "example": "test@example.com",
+            "name": "Emailadresse",
+            "scope": "EMAIL",
+            "user_key": "Email",
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+          },
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          },
+        },
+        {
+          "name": "goofy@example.com",
+          "href": "mailto:goofy@example.com",
+          "value": "urn:mailto:goofy@example.com"
+          "address_type": {
+            "example": "test@example.com",
+            "name": "Emailadresse",
+            "scope": "EMAIL",
+            "user_key": "Email",
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+          },
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          },
+        }
+      ]
 
     **Example org_unit response**:
 
@@ -291,6 +322,22 @@ def get_detail(type, id, function):
         c.organisationfunktion.get_all(**search),
     )
 
+    def get_address(effect):
+        try:
+            rel = effect['relationer']['adresser'][-1]
+        except KeyError:
+            return None
+
+        return address.get_one_address(c, rel, class_cache)
+
+    def get_address_type(effect):
+        try:
+            rel = effect['relationer']['adresser'][-1]
+        except KeyError:
+            return None
+
+        return rel['objekttype']
+
     def get_employee_id(effect):
         return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
 
@@ -331,15 +378,27 @@ def get_detail(type, id, function):
 
     def get_classes(effect):
         rels = effect['relationer']
-        return [obj.get('uuid') for obj in itertools.chain(
-            rels.get('opgaver', []),
-            rels.get('organisatoriskfunktionstype', [])
-        )]
+
+        for reltype in 'opgaver', 'organisatoriskfunktionstype':
+            if reltype in rels:
+                for rel in rels[reltype]:
+                    try:
+                        yield rel['uuid']
+                    except KeyError:
+                        pass
+
+        if 'adresser' in rels:
+            for rel in rels['adresser']:
+                if util.is_uuid(rel.get('objekttype')):
+                    yield rel['objekttype']
 
     class_cache = {
         classid: classid and facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(
-            uuid=itertools.chain(*map(get_classes, functions.values())))
+            uuid=itertools.chain.from_iterable(
+                map(get_classes, functions.values()),
+            ),
+        )
     }
 
     user_cache = {
@@ -375,6 +434,8 @@ def get_detail(type, id, function):
             keys.ORG_UNIT: (unit_cache, get_unit_id),
             keys.JOB_FUNCTION: (class_cache, get_title_id),
             keys.ASSOCIATION_TYPE: (class_cache, get_type_id),
+            keys.ADDRESS: (None, get_address),
+            keys.ADDRESS_TYPE: (class_cache, get_address_type),
         },
         'role': {
             keys.PERSON: (user_cache, get_employee_id),
@@ -396,7 +457,7 @@ def get_detail(type, id, function):
 
     def convert(start, end, funcid, effect):
         func = {
-            key: cache[getter(effect)]
+            key: cache.get(getter(effect)) if cache else getter(effect)
             for key, (cache, getter) in converters[function].items()
         }
 
@@ -416,6 +477,7 @@ def get_detail(type, id, function):
             {
                 'relationer': (
                     'opgaver',
+                    'adresser',
                     'organisatoriskfunktionstype',
                     'tilknyttedeenheder',
                 ),
