@@ -11,16 +11,14 @@
             <th scope="col">Dato</th>
             <th scope="col">Sektion</th>
             <th scope="col">Handling</th>
-            <th scope="col">Ændringer aktive fra</th>
             <th scope="col">Udført af</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="h in history" v-bind:key="h.date">
-            <td>{{h.to}}</td>
+            <td>{{h.from | date}}</td>
             <td>{{h.life_cycle_code}}</td>
             <td>{{h.action}}</td>
-            <td>{{h.from | date}}</td>
             <td>{{h.user_ref}}</td>
           </tr>
         </tbody>
