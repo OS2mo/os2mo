@@ -57,8 +57,8 @@
       },
 
       text () {
-        if(this.column === 'it_system') return this.value.name || '\u2014'
-        if(this.column === 'user_name') return this.value.user_name || '\u2014'
+        if (this.column === 'it_system') return this.value.name || '\u2014'
+        if (this.column === 'user_name') return this.value.user_name || '\u2014'
         return (this.contents && this.contents[this.field]) || '\u2014'
       }
     }
