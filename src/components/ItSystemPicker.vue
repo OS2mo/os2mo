@@ -12,7 +12,7 @@
       <option 
         v-for="it in itSystems" 
         v-bind:key="it.uuid"
-        :value="it">
+        :value="it.uuid">
           {{it.name}}
       </option>
     </select>
@@ -33,7 +33,8 @@ import { EventBus } from '../EventBus'
 export default {
   name: 'ItSystemPicker',
   props: {
-    value: Object
+    value: Object,
+    preselected: String
   },
   data () {
     return {
@@ -48,7 +49,7 @@ export default {
     })
   },
   created () {
-    this.selected = this.value
+    this.selected = this.preselected
     this.getItSystems()
   },
   methods: {
@@ -63,7 +64,10 @@ export default {
     },
 
     updateSelectedItSystem () {
-      this.$emit('input', this.selected)
+      let data = {
+        uuid: this.selected
+      }
+      this.$emit('input', data)
     }
   }
 }
