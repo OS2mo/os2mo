@@ -500,9 +500,12 @@ def edit_org_unit(unitid):
     ))
 
     if keys.NAME in data.keys():
+        attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
+        attrs['enhedsnavn'] = data[keys.NAME]
+
         update_fields.append((
             mapping.ORG_UNIT_EGENSKABER_FIELD,
-            {'enhedsnavn': data[keys.NAME]}
+            attrs,
         ))
 
     if keys.ORG_UNIT_TYPE in data.keys():

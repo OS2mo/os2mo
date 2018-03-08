@@ -742,6 +742,74 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    def test_rename_org_unit_early(self):
+        # Test that we can rename a unit to a date *earlier* than its
+        # creation date. We are expanding the validity times on the
+        # object, so we insert a separate copy as to not 'taint' the
+        # fixtures, as LoRa is unable to properly delete objects
+        # without the validities bleeding through.
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '930f078b-30ac-4970-8004-66ab8cbd1f3d'
+
+        util.load_fixture(
+            'organisation/organisationenhed',
+            'create_organisationenhed_fil.json', org_unit_uuid)
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            org_unit_uuid, json={
+                "data": {
+                    "name": "Filosofisk Institut II",
+                    "validity": {
+                        "from": "2015-01-01T00:00:00+01",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/org_unit'
+            '?validity=past'.format(org_unit_uuid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/org_unit'.format(org_unit_uuid),
+            [{
+                'name': 'Filosofisk Institut II',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'parent': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'user_key': 'fil',
+                'uuid': org_unit_uuid,
+                'validity': {
+                    'from': '2015-01-01T00:00:00+01:00', 'to': None,
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/org_unit'
+            '?validity=future'.format(org_unit_uuid),
+            [],
+        )
+
     def test_move_org_unit(self):
         # A generic example of editing an org unit
 
