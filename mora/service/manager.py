@@ -32,20 +32,25 @@ def create_manager(employee_uuid, req):
     org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    manager_type_uuid = req.get(keys.MANAGER_TYPE).get('uuid')
-    responsibility_uuid = req.get(keys.RESPONSIBILITY).get('uuid')
-    manager_level_uuid = req.get(keys.MANAGER_LEVEL).get('uuid')
+    manager_type_uuid = common.get_obj_value(req, (keys.MANAGER_TYPE, 'uuid'))
+    responsibility_uuid = common.get_obj_value(req,
+                                               (keys.RESPONSIBILITY, 'uuid'))
+    manager_level_uuid = common.get_obj_value(req,
+                                              (keys.MANAGER_LEVEL, 'uuid'))
 
-    opgaver = [
-        {
+    opgaver = list()
+
+    if responsibility_uuid:
+        opgaver.append({
             'objekttype': 'lederansvar',
             'uuid': responsibility_uuid
-        },
-        {
+        })
+
+    if manager_level_uuid:
+        opgaver.append({
             'objekttype': 'lederniveau',
             'uuid': manager_level_uuid
-        },
-    ]
+        })
 
     # TODO: Figure out what to do with this
     # location_uuid = req.get(keys.LOCATION).get('uuid')

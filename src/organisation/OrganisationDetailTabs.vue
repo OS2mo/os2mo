@@ -78,7 +78,7 @@
           org_unit: [null, 'org_unit_type', 'parent'],
           address: ['address_type', null],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
-          association: ['person', 'association_type', 'job_function', 'org_unit'],
+          association: ['person', 'association_type', 'job_function', 'address', 'address_type', 'org_unit'],
           role: ['person', 'role_type'],
           manager: ['person', 'responsibility', 'manager_type', 'manager_level']
         },

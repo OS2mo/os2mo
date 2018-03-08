@@ -1020,6 +1020,11 @@ class Tests(util.LoRATestCase):
               '/f/address_type/',
               'user_key': 'Adressetype',
               'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
+             {'name': 'association_type',
+              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+              '/f/association_type/',
+              'user_key': 'Tilknytningstype',
+              'uuid': 'ef71fe9c-7901-48e2-86d8-84116e210202'},
              {'name': 'org_unit_type',
               'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
               '/f/org_unit_type/',
