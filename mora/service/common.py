@@ -158,6 +158,13 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
+def get_field_value(field: FieldTuple, obj):
+    return get_obj_value(obj, field.path, field.filter_fn)
+
+
+FieldTuple.get = get_field_value
+
+
 def get_effect_from(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['from'])
 
