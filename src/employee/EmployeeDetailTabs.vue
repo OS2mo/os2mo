@@ -90,7 +90,7 @@
         columns: {
           engagement: ['org_unit', 'job_function', 'engagement_type'],
           role: ['org_unit', 'role_type'],
-          it: ['it_system', 'user'],
+          it: ['it_system', 'user_name'],
           association: ['org_unit', 'job_function', 'association_type', 'address', 'address_type'],
           leave: ['leave_type'],
           manager: ['org_unit', 'responsibility', 'manager_type', 'manager_level'],
