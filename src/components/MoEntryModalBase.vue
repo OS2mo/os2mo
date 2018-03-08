@@ -12,7 +12,7 @@
       :id="'moCreate'+_uid"
       size="lg"
       hide-footer 
-      title="Opret"
+      :title="modalTitle"
       :ref="'moCreate'+_uid"
       lazy
     >
@@ -92,10 +92,28 @@
         }
       },
 
+      modalTitle () {
+        switch (this.action) {
+          case 'CREATE':
+            return 'Opret'
+          case 'EDIT':
+            return 'Rediger'
+        }
+      },
+
       hasEntryComponent () {
         return this.entryComponent !== undefined
       }
     },
+    watch: {
+      content: {
+        handler (newVal) {
+          this.entry = JSON.parse(JSON.stringify(newVal))
+        },
+        deep: true
+      }
+    },
+
     created () {
       this.org = Organisation.getSelectedOrganisation()
 
@@ -158,7 +176,7 @@
         Employee.create(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
@@ -168,7 +186,7 @@
         return Employee.edit(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
@@ -178,7 +196,7 @@
         return OrganisationUnit.create(data)
         .then(response => {
           vm.isLoading = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
@@ -188,7 +206,7 @@
         return OrganisationUnit.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       }
