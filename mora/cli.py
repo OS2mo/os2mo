@@ -11,6 +11,7 @@ import functools
 import json
 import os
 import posixpath
+import random
 import signal
 import ssl
 import subprocess
@@ -178,6 +179,8 @@ def load_cli(app):
                   'e.g. "Safari", "Firefox" or "Chrome".')
     @click.option('--list', '-l', 'do_list', is_flag=True,
                   help='List all available tests',)
+    @click.option('--randomise', 'randomise', is_flag=True,
+                  help='Randomise execution order',)
     @click.option('--keyword', '-k', 'keywords', multiple=True,
                   help='Only run or list tests matching the given keyword',)
     @click.argument('tests', nargs=-1)
@@ -208,16 +211,23 @@ def load_cli(app):
                 else:
                     yield member
 
+        tests = list(expand_suite(suite))
+
         if keywords:
-            suite = unittest.TestSuite(
+            tests = [
                 case
                 for k in keywords
-                for case in expand_suite(suite)
+                for case in tests
                 if k in str(case)
-            )
+            ]
+
+        if kwargs.pop('randomise'):
+            random.SystemRandom().shuffle(tests)
+
+        suite = unittest.TestSuite(tests)
 
         if do_list:
-            for case in expand_suite(suite):
+            for case in suite:
                 if verbose:
                     print(case)
                 elif not quiet:

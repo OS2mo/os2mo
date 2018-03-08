@@ -1892,6 +1892,8 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/association',
                 [
                     {
+                        'address': None,
+                        'address_type': None,
                         'job_function': {
                             'example': None,
                             'name': '… (≈400 flere)',
@@ -1929,6 +1931,8 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/association',
                 [
                     {
+                        'address': None,
+                        'address_type': None,
                         'job_function': {
                             'example': None,
                             'name': '… (≈400 flere)',

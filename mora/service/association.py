@@ -17,7 +17,10 @@ This section describes how to interact with employee associations.
 import flask
 
 from mora import lora
-from . import common, keys, mapping
+from . import address
+from . import common
+from . import keys
+from . import mapping
 from .common import (create_organisationsfunktion_payload, ensure_bounds,
                      inactivate_old_interval, update_payload)
 
@@ -35,7 +38,8 @@ def create_association(employee_uuid, req):
     job_function_uuid = req.get(keys.JOB_FUNCTION).get('uuid') if req.get(
         keys.JOB_FUNCTION) else None
     association_type_uuid = req.get(keys.ASSOCIATION_TYPE).get('uuid')
-    # location_uuid = req.get(LOCATION).get('uuid')
+    address_obj = req.get(keys.ADDRESS)
+    address_type = req.get(keys.ADDRESS_TYPE)
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
@@ -50,8 +54,10 @@ def create_association(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=association_type_uuid,
-        opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else None
-        # adresser=[location_uuid]
+        opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else None,
+        adresser=[
+            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+        ] if address_obj and address_type else None,
     )
 
     c.organisationfunktion.create(association)
@@ -106,11 +112,16 @@ def edit_association(employee_uuid, req):
             {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
         ))
 
-    # if LOCATION in data.keys():
-    #     update_fields.append((
-    #         ADDRESSES_FIELD,
-    #         {'uuid': data.get(LOCATION).get('uuid')},
-    #     ))
+    if keys.ADDRESS in data or keys.ADDRESS_TYPE in data:
+        address_obj = data.get(keys.ADDRESS) or original_data[keys.ADDRESS]
+        address_type = (
+            data.get(keys.ADDRESS_TYPE) or original_data[keys.ADDRESS_TYPE]
+        )
+
+        update_fields.append((
+            mapping.SINGLE_ADDRESS_FIELD,
+            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+        ))
 
     payload = update_payload(new_from, new_to, update_fields, original,
                              payload)

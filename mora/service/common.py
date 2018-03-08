@@ -408,9 +408,7 @@ def create_organisationsfunktion_payload(
         org_funk['relationer']['opgaver'] = opgaver
 
     if adresser:
-        org_funk['relationer']['adresser'] = [{
-            'uuid': uuid
-        } for uuid in adresser]
+        org_funk['relationer']['adresser'] = adresser
 
     org_funk = _set_virkning(org_funk, virkning)
 
@@ -498,6 +496,16 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         elif valid_to:
             return util.from_iso_time(valid_to)
     return util.positive_infinity
+
+
+def get_validity_effect(entry, fallback=None):
+    if keys.VALIDITY not in entry and keys.VALIDITY not in (fallback or {}):
+        return None
+
+    return {
+        keys.FROM: util.to_lora_time(get_valid_from(entry, fallback)),
+        keys.TO: util.to_lora_time(get_valid_to(entry, fallback)),
+    }
 
 
 def replace_relation_value(relations: List[dict],
