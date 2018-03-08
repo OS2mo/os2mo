@@ -1,20 +1,17 @@
 <template>
   <div>
     <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>   
-    <leave-picker :org="org" v-model="entry.leave_type"/> 
     <mo-facet-picker facet="leave_type" label="Orlovstype" v-model="entry.leave_type"/>
   </div>
 </template>
 
 <script>
 import DatePickerStartEnd from '../../components/DatePickerStartEnd'
-import LeavePicker from '../../components/LeavePicker'
 import MoFacetPicker from '../../components/MoFacetPicker'
 
 export default {
   components: {
     DatePickerStartEnd,
-    LeavePicker,
     MoFacetPicker
   },
   props: {

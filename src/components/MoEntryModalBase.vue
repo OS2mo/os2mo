@@ -145,7 +145,7 @@
 
         switch (this.type) {
           case 'EMPLOYEE':
-            this.editEmployee([data])
+            this.editEmployee(data)
             break
           case 'ORG_UNIT':
             this.editOrganisationUnit(data)
@@ -155,7 +155,7 @@
 
       createEmployee (data) {
         let vm = this
-        Employee.create(this.uuid, data)
+        Employee.create(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
           vm.entry = {}
@@ -165,7 +165,7 @@
 
       editEmployee (data) {
         let vm = this
-        return Employee.edit(this.uuid, data)
+        return Employee.edit(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
           vm.entry = {}
