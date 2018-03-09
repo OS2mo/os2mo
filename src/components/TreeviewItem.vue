@@ -4,6 +4,7 @@
         <span @click="toggle">
           <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
         </span>
+          <icon class="icon" v-if="!hasChildren"/>
 
         <router-link 
           v-if="linkable"
@@ -41,6 +42,7 @@
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
+  import { EventBus } from '../EventBus'
 
   export default {
     name: 'treeViewItem',
@@ -81,6 +83,11 @@
       }
       this.open = this.firstOpen
     },
+    mounted () {
+      EventBus.$on('organisation-unit-changed', newOrg => {
+        this.loadChildren(this.org)
+      })
+    },
     methods: {
       toggle () {
         this.open = !this.open
@@ -116,6 +123,7 @@
   .item {
     cursor: pointer;
     list-style-type: none;
+    display: inline-block;
   }
   .nav-link {
     display: inline-block;

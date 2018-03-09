@@ -2,7 +2,7 @@
   <div class="form-row">
     <div v-show="hidden">
       <button class="btn btn-link" @click="hidden=false">
-        Vælg anden validity
+        Vælg anden dato
       </button>
     </div>
     <date-picker 

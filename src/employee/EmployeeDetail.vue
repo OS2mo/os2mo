@@ -41,7 +41,7 @@
       this.getEmployee(this.$route.params.uuid)
     },
     methods: {
-      getEmployee: function (uuid) {
+      getEmployee (uuid) {
         var vm = this
         vm.isLoading = true
         Employee.get(uuid)

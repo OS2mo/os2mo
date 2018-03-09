@@ -24,11 +24,13 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
-            '?validity=past',
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/details/org_unit?validity=past',
             [
                 {
                     "name": "Afdeling for Fremtidshistorik",
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -46,8 +48,6 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "validity": {
                         "from": "2016-01-01T00:00:00+01:00",
                         "to": "2017-01-01T00:00:00+01:00"
@@ -57,11 +57,13 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
-            '?validity=present',
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/details/org_unit?validity=present',
             [
                 {
                     "name": "Afdeling for Samtidshistorik",
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
@@ -79,8 +81,6 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     },
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "validity": {
                         "from": "2017-01-01T00:00:00+01:00",
                         "to": "2018-01-01T00:00:00+01:00"
@@ -90,11 +90,13 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
-            '?validity=future',
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/details/org_unit?validity=future',
             [
                 {
                     "name": "Afdeling for Fortidshistorik",
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
@@ -112,8 +114,6 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     },
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "validity": {
                         "from": "2018-01-01T00:00:00+01:00",
                         "to": "2019-01-01T00:00:00+01:00"
@@ -123,99 +123,99 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
-            '?validity=past&at=2020-01-01',
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/details/org_unit?validity=past&at=2020-01-01',
             [
                 {
-                    "name": "Afdeling for Fortidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    'name': 'Afdeling for Fremtidshistorik',
+                    'user_key': 'frem',
+                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
                         'scope': None,
                         'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                     },
                     'parent': {
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
                     },
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {
-                        "from": "2016-01-01T00:00:00+01:00",
-                        "to": "2017-01-01T00:00:00+01:00"
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2017-01-01T00:00:00+01:00'
                     }
                 },
                 {
-                    "name": "Afdeling for Fortidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    'name': 'Afdeling for Samtidshistorik',
+                    'user_key': 'frem',
+                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
                         'scope': None,
                         'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                     },
                     'parent': {
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
                     },
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {
-                        "from": "2017-01-01T00:00:00+01:00",
-                        "to": "2018-01-01T00:00:00+01:00"
+                    'validity': {
+                        'from': '2017-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 },
                 {
-                    "name": "Afdeling for Fortidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    'name': 'Afdeling for Fortidshistorik',
+                    'user_key': 'frem',
+                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
                         'scope': None,
                         'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                     },
                     'parent': {
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
                     },
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {
-                        "from": "2018-01-01T00:00:00+01:00",
-                        "to": "2019-01-01T00:00:00+01:00"
+                    'validity': {
+                        'from': '2018-01-01T00:00:00+01:00',
+                        'to': '2019-01-01T00:00:00+01:00'
                     }
                 }
             ],
         )
 
         self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
-            '?validity=present&at=2020-01-01',
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/details/org_unit?validity=present&at=2020-01-01',
             [],
         )
 
         self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/'
-            '?validity=future&at=2020-01-01',
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+            '/details/org_unit?validity=future&at=2020-01-01',
             [],
         )
 
@@ -741,6 +741,74 @@ class Tests(util.LoRATestCase):
         actual = c.organisationenhed.get(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
+
+    def test_rename_org_unit_early(self):
+        # Test that we can rename a unit to a date *earlier* than its
+        # creation date. We are expanding the validity times on the
+        # object, so we insert a separate copy as to not 'taint' the
+        # fixtures, as LoRa is unable to properly delete objects
+        # without the validities bleeding through.
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '930f078b-30ac-4970-8004-66ab8cbd1f3d'
+
+        util.load_fixture(
+            'organisation/organisationenhed',
+            'create_organisationenhed_fil.json', org_unit_uuid)
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            org_unit_uuid, json={
+                "data": {
+                    "name": "Filosofisk Institut II",
+                    "validity": {
+                        "from": "2015-01-01T00:00:00+01",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/org_unit'
+            '?validity=past'.format(org_unit_uuid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/org_unit'.format(org_unit_uuid),
+            [{
+                'name': 'Filosofisk Institut II',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'parent': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'user_key': 'fil',
+                'uuid': org_unit_uuid,
+                'validity': {
+                    'from': '2015-01-01T00:00:00+01:00', 'to': None,
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/org_unit'
+            '?validity=future'.format(org_unit_uuid),
+            [],
+        )
 
     def test_move_org_unit(self):
         # A generic example of editing an org unit

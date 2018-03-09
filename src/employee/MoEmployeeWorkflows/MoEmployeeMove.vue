@@ -5,6 +5,7 @@
     hide-footer 
     title="Flyt medarbejder"
     ref="employeeMove"
+    lazy
   >
     <div>
 
@@ -23,7 +24,7 @@
       
       <div class="form-row">
         <engagement-picker 
-          v-model="move.original"
+          v-model="original"
           :employee="employee"
         />
       </div>
@@ -71,6 +72,7 @@
       return {
         employee: {},
         isLoading: false,
+        original: {},
         move: {
           type: 'engagement',
           data: {
@@ -81,14 +83,14 @@
     },
     computed: {
       isDisabled () {
-        return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.move.original
+        return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.original
       }
     },
     methods: {
       moveEmployee () {
         let vm = this
         vm.isLoading = true
-        vm.move.uuid = this.move.original.uuid
+        vm.move.uuid = this.original.uuid
 
         Employee.edit(this.employee.uuid, [this.move])
         .then(response => {
@@ -103,8 +105,3 @@
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

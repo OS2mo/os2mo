@@ -15,20 +15,16 @@ This section describes how to interact with IT systems.
 
 '''
 
-import copy
-import functools
 import itertools
 import uuid
 
 import flask
 import werkzeug
 
-from .. import lora
 from .. import util
 
 from . import common
 from . import keys
-from . import mapping
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
@@ -90,18 +86,16 @@ def list_it_systems(orgid: uuid.UUID):
 
 
 class ITSystems(common.AbstractRelationDetail):
-    @staticmethod
-    def has(objtype, reg):
+    def has(self, reg):
         return (
-            objtype == 'e' and
+            self.scope.path == 'organisation/bruger' and
             reg and reg.get('relationer') and
             reg['relationer'].get('tilknyttedeitsystemer') and
             any(util.is_uuid(rel.get('uuid'))
                 for rel in reg['relationer']['tilknyttedeitsystemer'])
         )
 
-    @staticmethod
-    def get(objtype, id):
+    def get(self, id):
         '''Obtain the list of engagements corresponding to a user.
 
         .. :quickref: IT system; Get by user
@@ -162,10 +156,10 @@ class ITSystems(common.AbstractRelationDetail):
 
         '''
 
-        if objtype != 'e':
+        if self.scope.path != 'organisation/bruger':
             raise werkzeug.exceptions.NotFound('no IT systems on units, yet!')
 
-        c = common.get_connector()
+        c = self.scope.connector
 
         system_cache = common.cache(c.itsystem.get)
 
@@ -187,14 +181,7 @@ class ITSystems(common.AbstractRelationDetail):
                     "name": system_attrs['itsystemnavn'],
                     "user_name": attrs['brugernavn'],
 
-                    keys.VALIDITY: {
-                        keys.FROM: util.to_iso_time(
-                            common.get_effect_from(systemrel),
-                        ),
-                        keys.TO: util.to_iso_time(
-                            common.get_effect_to(systemrel),
-                        ),
-                    },
+                    keys.VALIDITY: common.get_effect_validity(systemrel),
                 }
 
         return flask.jsonify(
@@ -224,120 +211,73 @@ class ITSystems(common.AbstractRelationDetail):
             ),
         )
 
+    @staticmethod
+    def get_relation_for(value, start, end):
+        return {
+            'uuid': value,
+            'objekttype': 'itsystem',
+            'virkning': {
+                'from': util.to_lora_time(start),
+                'to': util.to_lora_time(end),
+            },
+        }
 
-def validate_it(func):
-    @functools.wraps(func)
-    def wrapper(employee_uuid, req):
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    def create(self, id, req):
+        original = self.scope.get(
+            uuid=id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
 
-        errors = []
+        rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        # TODO: cache anything from LoRA and reuse it in the actual request?
+        rels.append(self.get_relation_for(
+            req[keys.ITSYSTEM]['uuid'],
+            common.get_valid_from(req),
+            common.get_valid_to(req),
+        ))
 
-        if not req.get(keys.ITSYSTEM):
-            errors.append('missing "itsystem"')
-        else:
-            if not util.is_uuid(req[keys.ITSYSTEM].get('uuid')):
-                errors.append('missing or invalid "itsystem" UUID')
-
-            elif not c.itsystem.get(uuid=req[keys.ITSYSTEM]['uuid']):
-                errors.append('no such it system')
-
-        if common.get_valid_from(req) == util.negative_infinity:
-            errors.append('missing or invalid start date')
-
-        if not c.bruger.get(uuid=employee_uuid):
-            errors.append('no such user')
-
-        # TODO: ensure effective time is within both user and itsystem
-
-        if errors:
-            # TODO: add granular, consistent and documented error reporting
-            raise ValueError('; '.join(errors))
-
-        return func(employee_uuid, req)
-
-    return wrapper
-
-
-@validate_it
-def create_system(employee_uuid, req):
-    systemid = req[keys.ITSYSTEM].get('uuid')
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
-
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.bruger.get(uuid=employee_uuid)
-
-    payload = common.update_payload(
-        valid_from,
-        valid_to,
-        [(
-            mapping.ITSYSTEMS_FIELD,
-            {
-                'objekttype': 'itsystem',
-                'uuid': systemid,
-            }
-        )],
-        original,
-        {
+        payload = {
+            'relationer': {
+                'tilknyttedeitsystemer': rels,
+            },
             'note': 'Tilføj IT-system',
-        },
-    )
+        }
 
-    c.bruger.update(payload, employee_uuid)
+        self.scope.update(payload, id)
 
+    def edit(self, id, req):
+        original = self.scope.get(uuid=id)
 
-def edit_system(employee_uuid, req):
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.bruger.get(uuid=employee_uuid)
+        old_entry = req.get('original')
+        old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
 
-    old_entry = req.get('original')
-    old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
+        if not old_entry:
+            raise ValueError('original required!')
 
-    if not old_entry:
-        raise ValueError('original required!')
+        # We are performing an update of a pre-existing effect
+        old_rel = self.get_relation_for(
+            old_entry['uuid'],
+            common.get_valid_from(old_entry),
+            common.get_valid_to(old_entry),
+        )
 
-    # We are performing an update of a pre-existing effect
-    old_id = old_entry['uuid']
-    old_from = common.get_valid_from(old_entry)
-    old_to = common.get_valid_to(old_entry)
+        new_entry = req['data']
 
-    new_entry = req['data']
+        new_rel = self.get_relation_for(
+            new_entry.get('uuid', old_entry['uuid']),
+            common.get_valid_from(new_entry, old_entry),
+            common.get_valid_to(new_entry, old_entry),
+        )
 
-    new_id = new_entry.get('uuid') or old_id
-    new_from = common.get_valid_from(new_entry, old_entry)
-    new_to = common.get_valid_to(new_entry, old_entry)
-
-    new_rel = [
-        rel
-        for rel in old_rel
-        if not (common.get_effect_from(rel) == old_from and
-                common.get_effect_to(rel) == old_to and
-                rel.get('uuid') == old_id)
-    ]
-
-    # FIXME: this should be a validation error!
-    if len(new_rel) == len(old_rel):
-        raise ValueError('original entry not found')
-
-    replacement = copy.deepcopy(original)
-    replacement['relationer']['tilknyttedeitsystemer'] = new_rel
-
-    payload = common.update_payload(
-        new_from,
-        new_to,
-        [(
-            mapping.ITSYSTEMS_FIELD,
-            {
-                'objekttype': 'itsystem',
-                'uuid': new_id,
-            }
-        )],
-        replacement,
-        {
+        payload = {
+            'relationer': {
+                'tilknyttedeitsystemer': common.replace_relation_value(
+                    original['relationer'].get('tilknyttedeitsystemer') or [],
+                    old_rel, new_rel,
+                ),
+            },
             'note': 'Rediger IT-system',
-        },
-    )
+        }
 
-    c.bruger.update(payload, employee_uuid)
+        self.scope.update(payload, id)

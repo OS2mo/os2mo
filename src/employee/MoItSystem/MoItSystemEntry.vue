@@ -1,8 +1,8 @@
 <template>
   <div>
-      <date-start-end v-model="entry.validity" initially-hidden/>
+      <date-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
-        <it-system-picker v-model="entry.itsystem"/>
+        <it-system-picker v-model="entry.itsystem" :preselected="entry.uuid"/>
       </div>
   </div>
 </template>
@@ -18,7 +18,8 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object
+    validity: Object,
+    validityHidden: Boolean
   },
   data () {
     return {
@@ -31,6 +32,7 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'it'
+        newVal.uuid = newVal.itsystem ? newVal.itsystem.uuid : ''
         this.$emit('input', newVal)
         let valid = (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined)
         this.$emit('is-valid', valid)

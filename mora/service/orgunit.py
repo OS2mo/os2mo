@@ -15,12 +15,14 @@ This section describes how to interact with organisational units.
 '''
 
 import enum
+import functools
 import operator
 import uuid
 
 import flask
 import werkzeug
 
+from . import address
 from . import common
 from . import facet
 from . import keys
@@ -38,14 +40,61 @@ class UnitDetails(enum.Enum):
     # name & userkey only
     MINIMAL = 0
 
-    # with organisation
-    ORG = 1
-
     # with child count
-    NCHILDREN = 2
+    NCHILDREN = 1
 
-    # with children and parent
-    FULL = 3
+    # with everything except child count
+    FULL = 2
+
+
+class OrgUnit(common.AbstractRelationDetail):
+    def has(self, reg):
+        return self.scope.path == 'organisation/organisationenhed' and reg
+
+    def get(self, objid):
+        if self.scope.path != 'organisation/organisationenhed':
+            raise werkzeug.exceptions.NotFound('not an organisation unit!')
+
+        c = common.get_connector()
+
+        return flask.jsonify([
+            get_one_orgunit(
+                c, objid, effect, details=UnitDetails.FULL,
+                validity={
+                    keys.FROM: util.to_iso_time(start),
+                    keys.TO: util.to_iso_time(end),
+                },
+            )
+            for start, end, effect in c.organisationenhed.get_effects(
+                objid,
+                {
+                    'attributter': (
+                        'organisationenhedegenskaber',
+                    ),
+                    'relationer': (
+                        'enhedstype',
+                        'overordnet',
+                        'tilhoerer',
+                    ),
+                    'tilstande': (
+                        'organisationenhedgyldighed',
+                    ),
+                },
+            )
+            if c.is_effect_relevant({'from': start, 'to': end})
+        ])
+
+    def edit(self, id, req):
+        raise werkzeug.exceptions.NotImplemented
+
+    def create(self, id, req):
+        raise werkzeug.exceptions.NotImplemented
+
+
+RELATION_TYPES = {
+    'address': address.Addresses,
+    'org_unit': OrgUnit,
+}
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -69,17 +118,15 @@ def get_one_orgunit(c, unitid, unit=None,
         'uuid': unitid,
     }
 
-    if validity is not None:
-        r[keys.VALIDITY] = validity
-
     if details is UnitDetails.MINIMAL:
         pass
+
     elif details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
 
         r['child_count'] = len(children)
 
-    else:
+    elif details is UnitDetails.FULL:
         r[keys.ORG_UNIT_TYPE] = facet.get_one_class(
             c,
             rels['enhedstype'][0]['uuid'],
@@ -96,13 +143,11 @@ def get_one_orgunit(c, unitid, unit=None,
             rels['tilhoerer'][0]['uuid'],
         )
 
-    if details is UnitDetails.FULL:
-        r['children'] = [
-            get_one_orgunit(c, childid, child)
-            for childid, child in
-            c.organisationenhed.get_all(overordnet=unitid, gyldighed='Aktiv')
-        ]
-        r['children'].sort(key=operator.itemgetter('name'))
+    else:
+        raise ValueError('invalid details {!r}'.format(details))
+
+    if validity is not None:
+        r[keys.VALIDITY] = validity
 
     return r
 
@@ -176,143 +221,44 @@ def get_children(type, parentid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at', 'validity')
-def get_org_unit(unitid):
-    '''Retrieve an organisational unit.
+@util.restrictargs('at')
+def get_orgunit(unitid):
+    '''Query organisational units in an organisation.
 
     .. :quickref: Unit; Get
 
-    :queryparam date at: Current time in ISO-8601 format.
-    :queryparam string validity: Only show *past*, *present* or
-        *future* values -- which the default being to show *present*
-        values.
-
-    :<jsonarr string name: Human-readable name.
-    :<jsonarr string uuid: Machine-friendly UUID.
-    :<jsonarr string user_key: Short, unique key identifying the unit.
-    :<jsonarr object org: The organisation that this unit belongs to, as
-        yielded by :http:get:`/service/o/`.
-    :<jsonarr object parent: The parent of this unit, as yielded by
-        :http:get:`/service/o/(uuid:orgid)/ou/` or ``null`` if it's the root.
-    :<jsonarr object org_unit_type: The type of this unit, as yielded by
-        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr object validity: The validity of this entry.
-
-    :status 200: Always.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "name": "Afdeling for Fortidshistorik",
-          "org": {
-            "name": "Aarhus Universitet",
-            "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-          },
-          "org_unit_type": {
-            "example": null,
-            "name": "Afdeling",
-            "scope": null,
-            "user_key": "afd",
-            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-          },
-          "parent": {
-            "name": "Historisk Institut",
-            "user_key": "hist",
-            "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
-          },
-          "user_key": "frem",
-          "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-          "validity": {
-            "from": "2018-01-01T00:00:00+01:00",
-            "to": "2019-01-01T00:00:00+01:00"
-          }
-        }
-      ]
-
-    '''
-    c = common.get_connector()
-
-    return flask.jsonify([
-        get_one_orgunit(
-            c, unitid, details=UnitDetails.ORG,
-            validity={
-                keys.FROM: util.to_iso_time(start),
-                keys.TO: util.to_iso_time(end),
-            },
-        )
-        for start, end, effect in c.organisationenhed.get_effects(
-            unitid,
-            {
-                'attributter': (
-                    'organisationenhedegenskaber',
-                ),
-                'relationer': (
-                    'enhedstype',
-                    'overordnet',
-                    'tilhoerer',
-                ),
-                'tilstande': (
-                    'organisationenhedgyldighed',
-                ),
-            },
-        )
-        if c.is_effect_relevant({'from': start, 'to': end})
-    ])
-
-
-@blueprint.route('/ou/<uuid:unitid>/tree')
-@util.restrictargs('at')
-def get_orgunit_tree(unitid):
-    '''Retrieve information about an organisational unit, including parent
-    and children.
-
-    .. :quickref: Unit; Tree
+    :param uuid unitid: UUID of the unit to retrieve.
 
     :queryparam date at: Current time in ISO-8601 format.
 
-    :<json string name: Human-readable name.
-    :<json string uuid: Machine-friendly UUID.
-    :<json string user_key: Short, unique key identifying the unit.
-    :<json array children: Array of child units, as output by
-        :http:get:`/service/ou/(uuid:unitid)/`.
-    :<json object parent: Parent unit, as output by
-        :http:get:`/service/ou/(uuid:unitid)/` or ``null`` if this the
-        top-most unit.
-
-    :status 404: If the organisational unit isn't found.
-    :status 200: Otherwise.
+    :status 200: Whenever the object exists.
+    :status 404: Otherwise.
 
     **Example Response**:
 
     .. sourcecode:: json
 
       {
-        "children": [
-          {
-            "child_count": 0,
-            "name": "Filosofisk Institut",
-            "user_key": "fil",
-            "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
-          },
-          {
-            "child_count": 1,
-            "name": "Historisk Institut",
-            "user_key": "hist",
-            "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
-          }
-        ],
-        "name": "Humanistisk fakultet",
-        "parent": {
-          "name": "Overordnet Enhed",
-          "user_key": "root",
-          "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
+        "name": "Afdeling for Fortidshistorik",
+        "user_key": "frem",
+        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        "org": {
+          "name": "Aarhus Universitet",
+          "user_key": "AU",
+          "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
         },
-        "user_key": "hum",
-        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        "org_unit_type": {
+          "example": null,
+          "name": "Afdeling",
+          "scope": null,
+          "user_key": "afd",
+          "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+        },
+        "parent": {
+          "name": "Historisk Institut",
+          "user_key": "hist",
+          "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+        }
       }
 
     '''
@@ -320,10 +266,10 @@ def get_orgunit_tree(unitid):
 
     r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
 
-    if r:
-        return flask.jsonify(r)
-    else:
-        raise werkzeug.exceptions.NotFound('no such unit')
+    if not r:
+        raise werkzeug.exceptions.NotFound('no such unit!')
+
+    return flask.jsonify(r)
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
@@ -340,9 +286,14 @@ def list_orgunits(orgid):
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
+    :<json string items: The returned items.
+    :<json string offset: Pagination offset.
+    :<json string total: Total number of items available on this query.
+
     :<jsonarr string name: Human-readable name.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Short, unique key identifying the unit.
+
 
     :status 200: Always.
 
@@ -350,13 +301,17 @@ def list_orgunits(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Samfundsvidenskabelige fakultet",
-          "user_key": "samf",
-          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
-        }
-      ]
+      {
+        "items": [
+          {
+            "name": "Samfundsvidenskabelige fakultet",
+            "user_key": "samf",
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
+          }
+        ],
+        "offset": 0,
+        "total": 1
+      }
 
     '''
     c = common.get_connector()
@@ -366,19 +321,19 @@ def list_orgunits(orgid):
     kwargs = dict(
         limit=int(args.get('limit', 0)) or 20,
         start=int(args.get('start', 0)) or 0,
+        tilhoerer=str(orgid),
+        gyldighed='Aktiv',
     )
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify([
-        get_one_orgunit(c, unitid, unit, details=UnitDetails.MINIMAL)
-        for unitid, unit in c.organisationenhed.get_all(
-            tilhoerer=str(orgid),
-            gyldighed='Aktiv',
-            **kwargs,
+    return flask.jsonify(
+        c.organisationenhed.paged_get(
+            functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
+            **kwargs
         )
-    ])
+    )
 
 
 @blueprint.route('/ou/create', methods=['POST'])
@@ -545,9 +500,12 @@ def edit_org_unit(unitid):
     ))
 
     if keys.NAME in data.keys():
+        attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
+        attrs['enhedsnavn'] = data[keys.NAME]
+
         update_fields.append((
             mapping.ORG_UNIT_EGENSKABER_FIELD,
-            {'enhedsnavn': data[keys.NAME]}
+            attrs,
         ))
 
     if keys.ORG_UNIT_TYPE in data.keys():

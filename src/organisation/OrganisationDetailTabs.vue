@@ -1,7 +1,22 @@
 <template>
   <div>
-    <b-tabs>
-      <b-tab title="Engagementer" active>
+    <b-tabs lazy>
+      <b-tab title="Enhed" active>
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="org_unit"
+          :columns="columns.org_unit"
+          :entry-component="components.orgUnit"
+        />
+      </b-tab>
+      <b-tab title="Adresse">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          detail="address"
+          :columns="columns.address"
+        />
+      </b-tab>
+      <b-tab title="Engagementer">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           detail="engagement"
@@ -29,22 +44,6 @@
           :columns="columns.manager"
         />
       </b-tab>
-      <!--
-      <b-tab title="Enhed" active> 
-        <organisation-detail-unit :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Lokation">
-        <organisation-detail-location :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Kontaktkanal">
-        <organisation-detail-contact :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Engagementer" v-if="tabs.engagement">
-        <organisation-detail-engagement :uuid="uuid"/>
-      </b-tab>
-      <b-tab title="Tilknytninger" v-if="tabs.association">
-      </b-tab>
-      -->
     </b-tabs>
   </div>
 </template>
@@ -56,6 +55,7 @@
   import OrganisationDetailLocation from './OrganisationDetailLocation'
   import OrganisationDetailContact from './OrganisationDetailContact'
   import OrganisationDetailEngagement from './OrganisationDetailEngagement'
+  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
     components: {
@@ -75,12 +75,15 @@
       return {
         tabs: {},
         columns: {
+          org_unit: [null, 'org_unit_type', 'parent'],
+          address: ['address_type', null],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
-          association: ['person', 'association_type', 'job_function', 'org_unit'],
+          association: ['person', 'association_type', 'job_function', 'address', 'address_type', 'org_unit'],
           role: ['person', 'role_type'],
           manager: ['person', 'responsibility', 'manager_type', 'manager_level']
         },
         components: {
+          orgUnit: MoOrganisationUnitEntry
         }
       }
     },

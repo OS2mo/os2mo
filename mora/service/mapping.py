@@ -92,6 +92,12 @@ ADDRESSES_FIELD = FieldTuple(
     filter_fn=lambda x: True
 )
 
+SINGLE_ADDRESS_FIELD = FieldTuple(
+    path=('relationer', 'adresser'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: True
+)
+
 MANAGER_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
@@ -134,7 +140,7 @@ ASSOCIATION_FIELDS = {
     ASSOCIATED_ORG_UNIT_FIELD,
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
-    # ADDRESSES_FIELD
+    SINGLE_ADDRESS_FIELD,
 }
 
 ROLE_FIELDS = {

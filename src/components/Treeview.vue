@@ -19,6 +19,7 @@
   import Organisation from '../api/Organisation'
   import TreeItem from './TreeviewItem'
   import Loading from './Loading'
+  import { EventBus } from '../EventBus'
 
   export default {
     components: {
@@ -56,6 +57,11 @@
     },
     created () {
       this.getChildren(this.org)
+    },
+    mounted () {
+      EventBus.$on('organisation-unit-changed', newOrg => {
+        this.getChildren(this.org)
+      })
     },
     methods: {
       getChildren (org) {

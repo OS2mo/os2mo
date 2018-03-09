@@ -1,35 +1,36 @@
 <template>
   <div>
-    <date-picker-start-end v-model="leave.validity"/>   
-    <leave-picker :org="org" v-model="leave.leave_type"/>  
+    <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>   
+    <mo-facet-picker facet="leave_type" label="Orlovstype" v-model="entry.leave_type"/>
   </div>
 </template>
 
 <script>
 import DatePickerStartEnd from '../../components/DatePickerStartEnd'
-import LeavePicker from '../../components/LeavePicker'
+import MoFacetPicker from '../../components/MoFacetPicker'
 
 export default {
   components: {
     DatePickerStartEnd,
-    LeavePicker
+    MoFacetPicker
   },
   props: {
     value: Object,
     org: {
       type: Object,
       required: true
-    }
+    },
+    validityHidden: Boolean
   },
   data () {
     return {
-      leave: {
+      entry: {
         validity: {}
       }
     }
   },
   watch: {
-    leave: {
+    entry: {
       handler (newVal) {
         newVal.type = 'leave'
         this.$emit('input', newVal)
@@ -40,7 +41,7 @@ export default {
     }
   },
   created () {
-    this.leave = this.value
+    this.entry = this.value
   }
 }
 </script>

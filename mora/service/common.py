@@ -45,12 +45,27 @@ class FieldTypes(enum.Enum):
 
 
 class AbstractRelationDetail(abc.ABC):
-    @abc.abstractstaticmethod
-    def has(objtype, registration):
+    __slots__ = (
+        'scope',
+    )
+
+    def __init__(self, scope):
+        self.scope = scope
+
+    @abc.abstractmethod
+    def has(self, registration):
         pass
 
-    @abc.abstractstaticmethod
-    def get(objtype, objid):
+    @abc.abstractmethod
+    def get(self, objid):
+        pass
+
+    @abc.abstractmethod
+    def create(self, id: str, req: dict):
+        pass
+
+    @abc.abstractmethod
+    def edit(self, id: str, req: dict):
         pass
 
 
@@ -143,12 +158,26 @@ def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
         return props
 
 
+def get_field_value(field: FieldTuple, obj):
+    return get_obj_value(obj, field.path, field.filter_fn)
+
+
+FieldTuple.get = get_field_value
+
+
 def get_effect_from(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['from'])
 
 
 def get_effect_to(effect: dict) -> datetime.datetime:
     return util.parsedatetime(effect['virkning']['to'])
+
+
+def get_effect_validity(effect):
+    return {
+        keys.FROM: util.to_iso_time(get_effect_from(effect)),
+        keys.TO: util.to_iso_time(get_effect_to(effect)),
+    }
 
 
 def ensure_bounds(valid_from: datetime.datetime,
@@ -162,7 +191,7 @@ def ensure_bounds(valid_from: datetime.datetime,
         if not props:
             continue
 
-        updated_props = []
+        updated_props = []  # type: List[FieldTuple]
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
             sorted_props = sorted(props, key=get_effect_from)
@@ -386,9 +415,7 @@ def create_organisationsfunktion_payload(
         org_funk['relationer']['opgaver'] = opgaver
 
     if adresser:
-        org_funk['relationer']['adresser'] = [{
-            'uuid': uuid
-        } for uuid in adresser]
+        org_funk['relationer']['adresser'] = adresser
 
     org_funk = _set_virkning(org_funk, virkning)
 
@@ -443,6 +470,7 @@ def create_organisationsenhed_payload(
             ],
         }
     }
+
     if adresser:
         org_unit['relationer']['adresser'] = adresser
 
@@ -475,6 +503,16 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         elif valid_to:
             return util.from_iso_time(valid_to)
     return util.positive_infinity
+
+
+def get_validity_effect(entry, fallback=None):
+    if keys.VALIDITY not in entry and keys.VALIDITY not in (fallback or {}):
+        return None
+
+    return {
+        keys.FROM: util.to_lora_time(get_valid_from(entry, fallback)),
+        keys.TO: util.to_lora_time(get_valid_to(entry, fallback)),
+    }
 
 
 def replace_relation_value(relations: List[dict],

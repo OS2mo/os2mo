@@ -59,8 +59,10 @@ export default {
    * @param {Object} org - the organisation to set
    */
   setSelectedOrganisation (org) {
-    selectedOrganisation = org
-    EventBus.$emit('organisation-changed', selectedOrganisation)
+    if (selectedOrganisation.uuid !== org.uuid) {
+      selectedOrganisation = org
+      EventBus.$emit('organisation-changed', selectedOrganisation)
+    }
   },
 
   /**

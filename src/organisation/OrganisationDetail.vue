@@ -21,7 +21,6 @@
   </div>
 </template>
 
-
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
   import MoHistory from '../components/MoHistory'
@@ -51,8 +50,3 @@
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

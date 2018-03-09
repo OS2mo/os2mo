@@ -1,7 +1,7 @@
 <template>
   <div>
     <loading v-show="isLoading"/>
-    <b-tabs v-show="!isLoading">
+    <b-tabs v-show="!isLoading" lazy>
       <b-tab title="Engagement" active> 
         <mo-employee-detail 
           :uuid="uuid" 
@@ -90,11 +90,11 @@
         columns: {
           engagement: ['org_unit', 'job_function', 'engagement_type'],
           role: ['org_unit', 'role_type'],
-          it: ['it_system', 'user'],
-          association: ['org_unit', 'job_function', 'association_type'],
+          it: ['it_system', 'user_name'],
+          association: ['org_unit', 'job_function', 'association_type', 'address', 'address_type'],
           leave: ['leave_type'],
           manager: ['org_unit', 'responsibility', 'manager_type', 'manager_level'],
-          address: ['address_type']
+          address: ['address_type', null]
         },
         components: {
           engagement: MoEngagementEntry,

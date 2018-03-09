@@ -76,12 +76,15 @@ def handle_invalid_usage(error):
 
 
 @app.route('/')
-def v2_root(path=None):
+@app.route('/<path:path>')
+def v2_root(path=''):
+    if path.split('/', 1)[0] == 'service':
+        return flask.jsonify({
+            'message': 'no such endpoint',
+            'error': True,
+        }), 404
+
     return flask.send_file('index.html')
-
-
-for prefix in 'organisation', 'medarbejder', 'login', 'hjaelp', 'tidsmaskine':
-    app.add_url_rule('/{}/<path:path>'.format(prefix), 'v2_root')
 
 
 @app.route('/mo/')

@@ -3,9 +3,14 @@
     <loading v-show="isLoading"/>
     <div v-show="!isLoading">
     <span v-if="!contentAvailable">Intet at vise</span>
+    <b-form-checkbox-group v-model="selected">
     <table v-if="contentAvailable" class="table table-striped">
       <thead>
         <tr>
+          <th v-if="multiSelect">
+             <!-- <b-form-checkbox
+              v-model="selectAll"/> -->
+          </th>
           <th 
             scope="col" 
             v-for="col in columns" 
@@ -23,8 +28,11 @@
           v-for="c in content" 
           v-bind:key="c.uuid"
         >
+          <td v-if="multiSelect">
+            <b-form-checkbox :value="c"/>
+          </td>
           <td v-for="col in columns" :key="col">
-            {{ c[col] | getProperty('name') }}
+            <mo-link :value="c" :column="col"/>
           </td>
           <td>
             {{c.validity | getProperty('from') | date}}
@@ -34,16 +42,18 @@
           </td>
           <td>
             <mo-entry-modal-base
+              action="EDIT"
+              :type="type"
+              :uuid="editUuid"
               :entry-component="editComponent"
-              type="EDIT"
               :content="c"
               :content-type="contentType"
-              :uuid="editUuid"
             />
           </td>
         </tr>
       </tbody>
     </table>
+      </b-form-checkbox-group>
     </div>
   </div>
 </template>
@@ -53,10 +63,12 @@
   import '../filters/Date'
   import Loading from './Loading'
   import MoEntryModalBase from './MoEntryModalBase'
+  import MoLink from './MoLink'
 
   export default {
     components: {
       Loading,
+      MoLink,
       MoEntryModalBase
     },
     props: {
@@ -65,30 +77,48 @@
       columns: Array,
       isLoading: Boolean,
       editComponent: Object,
-      editUuid: String
+      editUuid: String,
+      multiSelect: Boolean,
+      type: {
+        type: String,
+        required: true
+      }
     },
     data () {
+      const labels = {
+        address: 'Adresse',
+        org_unit: 'Enhed',
+        org_unit_type: 'Enhedstype',
+        parent: 'Overenhed',
+        job_function: 'Stillingsbetegnelse',
+        engagement_type: 'Engagementstype',
+        association_type: 'Tilknytningstype',
+        role_type: 'Rolle',
+        leave_type: 'Orlovstype',
+        it_system: 'System',
+        user: 'Brugernavn',
+        responsibility: 'Lederansvar',
+        manager_type: 'Ledertype',
+        manager_level: 'Lederniveau',
+        address_type: 'Adressetype',
+        person: 'Navn'
+      }
+      labels[null] = labels[this.contentType]
+
       return {
-        label: {
-          org_unit: 'Enhed',
-          job_function: 'Stillingsbetegnelse',
-          engagement_type: 'Engagementstype',
-          association_type: 'Tilknytningstype',
-          role_type: 'Rolle',
-          leave_type: 'Orlovstype',
-          it_system: 'System',
-          user: 'Brugernavn',
-          responsibility: 'Lederansvar',
-          manager_type: 'Ledertype',
-          manager_level: 'Lederniveau',
-          address_type: 'Adressetype',
-          person: 'Navn'
-        }
+        selectAll: false,
+        selected: [],
+        label: labels
       }
     },
     computed: {
       contentAvailable () {
         return this.content ? this.content.length > 0 : false
+      }
+    },
+    watch: {
+      selected (newVal) {
+        this.$emit('selected-changed', newVal)
       }
     }
   }

@@ -4,12 +4,14 @@
     ref="orgUnitRename"  
     size="lg" 
     hide-footer 
-    title="Omdøb enhed">
+    title="Omdøb enhed"
+    lazy
+  >
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
         class="col"
-        v-model="rename.original"
+        v-model="original"
         :preselected="preselectedUnit"
       />
     </div>
@@ -35,7 +37,7 @@
 
     <div class="float-right">
       <button-submit 
-      :disabled="errors.any() || isDisabled"
+      :is-disabled="isDisabled"
       :on-click-action="renameOrganisationUnit"
       />
     </div>
@@ -59,6 +61,7 @@
       return {
         orgUnit: {},
         preselectedUnit: {},
+        original: {},
         rename: {
           data: {
             name: '',
@@ -69,7 +72,7 @@
     },
     computed: {
       isDisabled () {
-        if (this.rename.data.validity.from === undefined || this.rename.original === undefined || this.rename.data.name === '') return true
+        if (this.rename.data.validity.from === undefined || this.original === undefined || this.rename.data.name === '') return true
       }
     },
     mounted () {
@@ -82,7 +85,7 @@
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.rename.original.uuid, this.rename)
+        OrganisationUnit.rename(this.original.uuid, this.rename)
         .then(response => {
           vm.$refs.orgUnitRename.hide()
         })

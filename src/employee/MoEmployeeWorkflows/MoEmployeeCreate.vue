@@ -5,6 +5,7 @@
     hide-footer 
     title="Ny medarbejder"
     ref="employeeCreate"
+    lazy
   >
     <employee-picker :org="org" v-model="employee"/>
     
@@ -20,6 +21,7 @@
       v-model="association"
       :validity="engagement.validity"
       @is-valid="isAssociationValid"
+      validity-hidden
     />
     <h4>Rolle</h4>
     <mo-role-entry
@@ -27,18 +29,21 @@
       v-model="role" 
       :validity="engagement.validity"
       @is-valid="isRoleValid"
+      validity-hidden
     />
     <h4>IT systemer</h4>
     <mo-it-system-entry 
       v-model="itSystem" 
       :validity="engagement.validity"
       @is-valid="isItSystemValid"
+      validity-hidden
     />
     <h4>Leder</h4>
     <mo-manager-entry 
       v-model="manager" 
       :validity="engagement.validity" 
       @is-valid="isManagerValid"
+      validity-hidden
     />
 
     <div class="float-right">
@@ -49,20 +54,19 @@
       />
     </div>
   </b-modal>
-
 </template>
 
 <script>
-import Organisation from '../api/Organisation'
-import Employee from '../api/Employee'
-import { EventBus } from '../EventBus'
-import ButtonSubmit from '../components/ButtonSubmit'
-import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
-import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
-import MoRoleEntry from './MoRole/MoRoleEntry'
-import EmployeePicker from '../components/EmployeePicker'
-import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
-import MoManagerEntry from './MoManager/MoManagerEntry'
+import Organisation from '../../api/Organisation'
+import Employee from '../../api/Employee'
+import { EventBus } from '../../EventBus'
+import ButtonSubmit from '../../components/ButtonSubmit'
+import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
+import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
+import MoRoleEntry from '../MoRole/MoRoleEntry'
+import EmployeePicker from '../../components/EmployeePicker'
+import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
+import MoManagerEntry from '../MoManager/MoManagerEntry'
 
 export default {
   components: {
@@ -151,6 +155,7 @@ export default {
       .then(response => {
         vm.isLoading = false
         vm.$refs.employeeCreate.hide()
+        vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
       })
       .catch(err => {
         console.log(err)

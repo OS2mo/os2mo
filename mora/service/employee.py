@@ -36,6 +36,12 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+RELATION_TYPES = {
+    'it': itsystem.ITSystems,
+    'address': address.Addresses,
+}
+
+
 def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
@@ -78,6 +84,10 @@ def list_employees(orgid):
         Please note that this only applies to attributes of the user, not the
         relations or engagements they have.
 
+    :<json string items: The returned items.
+    :<json string offset: Pagination offset.
+    :<json string total: Total number of items available on this query.
+
     :<jsonarr string name: Human-readable name.
     :<jsonarr string uuid: Machine-friendly UUID.
 
@@ -87,16 +97,20 @@ def list_employees(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Hans Bruger",
-          "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
-        },
-        {
-          "name": "Joe User",
-          "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
-        }
-      ]
+      {
+        "items": [
+          {
+            "name": "Hans Bruger",
+            "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
+          },
+          {
+            "name": "Joe User",
+            "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
+          }
+        ],
+        "offset": 0,
+        "total": 1
+      }
 
     '''
 
@@ -110,18 +124,15 @@ def list_employees(orgid):
         limit=int(args.get('limit', 0)) or 20,
         start=int(args.get('start', 0)) or 0,
         tilhoerer=str(orgid),
-
-        # this makes the search go slow :(
         gyldighed='Aktiv',
     )
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify([
-        get_one_employee(c, brugerid, bruger)
-        for brugerid, bruger in c.bruger.get_all(**kwargs)
-    ])
+    return flask.jsonify(
+        c.bruger.paged_get(get_one_employee, **kwargs)
+    )
 
 
 @blueprint.route('/e/<uuid:id>/')
@@ -393,17 +404,14 @@ def create_employee(employee_uuid):
     """
 
     handlers = {
-        'address': address.create_address,
         'engagement': engagement.create_engagement,
         'association': association.create_association,
-        'it': itsystem.create_system,
         'role': role.create_role,
         'contact': writing.create_contact,
         'manager': manager.create_manager,
         'leave': leave.create_leave,
+        **RELATION_TYPES,
     }
-
-    c = lora.Connector()
 
     reqs = flask.request.get_json()
     for req in reqs:
@@ -413,7 +421,14 @@ def create_employee(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
-        handler(str(employee_uuid), req)
+        elif issubclass(handler, common.AbstractRelationDetail):
+            handler(common.get_connector().bruger).create(
+                str(employee_uuid),
+                req,
+            )
+
+        else:
+            handler(str(employee_uuid), req)
 
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
@@ -442,7 +457,7 @@ def edit_employee(employee_uuid):
 
       {
         "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00"
       }
 
     Request payload contains a list of edit objects, each differentiated
@@ -762,19 +777,15 @@ def edit_employee(employee_uuid):
     """
 
     handlers = {
-        'address': address.edit_address,
         'engagement': engagement.edit_engagement,
         'association': association.edit_association,
         'role': role.edit_role,
-        'it': itsystem.edit_system,
         'leave': leave.edit_leave,
         'manager': manager.edit_manager,
-        # 'contact': edit_contact,
+        **RELATION_TYPES,
     }
 
     reqs = flask.request.get_json()
-
-    c = lora.Connector()
 
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them
@@ -785,7 +796,14 @@ def edit_employee(employee_uuid):
         if not handler:
             return flask.jsonify('Unknown role type: ' + role_type), 400
 
-        handler(str(employee_uuid), req)
+        elif issubclass(handler, common.AbstractRelationDetail):
+            handler(common.get_connector().bruger).edit(
+                str(employee_uuid),
+                req,
+            )
+
+        else:
+            handler(str(employee_uuid), req)
 
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
@@ -815,7 +833,7 @@ def terminate_employee(employee_uuid):
     .. sourcecode:: json
 
       {
-        "validity: {
+        "validity": {
           "from": "2016-01-01T00:00:00+00:00"
         }
       }
@@ -884,7 +902,7 @@ def get_employee_history(employee_uuid):
         {
           "from": "2018-02-21T11:27:20.619990+01:00",
           "to": "2018-02-21T11:27:20.803682+01:00",
-          "action": None,
+          "action": null,
           "life_cycle_code": "Importeret",
           "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
         }

@@ -6,8 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from __future__ import generator_stop
+
 import collections
 import datetime
+import itertools
 import functools
 import uuid
 
@@ -225,69 +228,80 @@ class Connector:
         klassifikation='klassifikation/klassifikation',
     )
 
-    def __init__(self, **overrides):
-        self.__validity = overrides.pop('validity', None) or 'present'
+    def __init__(self, **defaults):
+        self.__validity = defaults.pop('validity', None) or 'present'
 
         self.today = util.parsedatetime(
-            overrides.pop('effective_date', None) or util.today(),
+            defaults.pop('effective_date', None) or util.today(),
         )
         self.tomorrow = self.today + datetime.timedelta(days=1)
 
         if self.__validity == 'past':
-            overrides.update(
+            self.__daterange = (util.negative_infinity, self.today)
+            defaults.update(
                 virkningfra='-infinity',
                 virkningtil=util.to_lora_time(self.today),
             )
 
         elif self.__validity == 'future':
-            overrides.update(
+            self.__daterange = (self.tomorrow, util.positive_infinity)
+
+            defaults.update(
                 virkningfra=util.to_lora_time(self.tomorrow),
                 virkningtil='infinity',
             )
 
         elif self.__validity == 'present':
-            if 'virkningfra' in overrides or 'virkningtil' in overrides:
-                self.today = util.parsedatetime(overrides['virkningfra'])
-                self.tomorrow = util.parsedatetime(overrides['virkningtil'])
+            if 'virkningfra' in defaults or 'virkningtil' in defaults:
+                self.today = util.parsedatetime(defaults['virkningfra'])
+                self.tomorrow = util.parsedatetime(defaults['virkningtil'])
 
             else:
-                overrides.update(
+                defaults.update(
                     virkningfra=util.to_lora_time(self.today),
                     virkningtil=util.to_lora_time(self.tomorrow),
                 )
 
+            self.__daterange = (self.today, self.tomorrow)
+
         else:
             raise ValueError('invalid validity {!r}'.format(self.__validity))
 
-        self.__overrides = overrides
+        self.__defaults = defaults
 
     @property
-    def overrides(self):
-        return self.__overrides
+    def defaults(self):
+        return self.__defaults
 
     @property
     def validity(self):
         return self.__validity
 
-    def get_date_chunks(self, dates):
-        if self.__validity == 'present':
-            dates = sorted(dates)
+    def __is_range_relevant(self, start, end):
+        if self.validity == 'present':
+            return util.do_ranges_overlap(
+                start, end,
+                *self.__daterange,
+            )
 
-            for start, end in zip(dates, dates[1:]):
-                if self.tomorrow >= start and self.today < end:
-                    yield start, end
-
-            return
-
-        elif self.__validity == 'past':
-            dates = sorted(filter(lambda d: d <= self.today, dates))
-
-        elif self.__validity == 'future':
-            dates = sorted(filter(lambda d: d > self.tomorrow, dates))
         else:
-            raise ValueError('no validity!')
+            return (
+                util.do_ranges_overlap(start, end, *self.__daterange) and
+                not util.do_ranges_overlap(start, end,
+                                           self.today, self.tomorrow)
+            )
 
-        yield from zip(dates, dates[1:])
+    def get_date_chunks(self, dates):
+        a, b = itertools.tee(sorted(dates))
+
+        # drop the first item -- doing a raw next() fails in Python 3.7
+        for x in itertools.islice(b, 1):
+            pass
+
+        yield from filter(
+            lambda s: self.__is_range_relevant(*s),
+            zip(a, b),
+        )
 
     def __getattr__(self, attr):
         try:
@@ -300,19 +314,9 @@ class Connector:
 
         return scope
 
-    def override(self, overrides):
-        new_overrides = self.__overrides.copy()
-        new_overrides.update(overrides)
-
-        return Connector(new_overrides)
-
     def is_effect_relevant(self, effect):
-        if self.validity == 'future':
-            return util.parsedatetime(effect['from']) >= self.tomorrow
-        elif self.validity == 'past':
-            return util.parsedatetime(effect['to']) <= self.today
-        else:
-            return True
+        return self.__is_range_relevant(util.parsedatetime(effect['from']),
+                                        util.parsedatetime(effect['to']))
 
 
 class Scope:
@@ -325,9 +329,11 @@ class Scope:
         return settings.LORA_URL + self.path
 
     def fetch(self, **params):
-        params.update(self.connector.overrides)
+        r = session.get(self.base_path, params={
+            **self.connector.defaults,
+            **params,
+        })
 
-        r = session.get(self.base_path, params=params)
         _check_response(r)
 
         try:
@@ -351,6 +357,20 @@ class Scope:
             for d in self.fetch(uuid=chunk):
                 yield d['id'], (d['registreringer'] if wantregs
                                 else d['registreringer'][0])
+
+    def paged_get(self, func, *, start=0, limit=1000, **params):
+
+        uuids = self.fetch(**params)
+
+        return {
+            'total': len(uuids),
+            'offset': start,
+            'items': [
+                func(self.connector, obj_id, obj)
+                for obj_id, obj in self.get_all(
+                    start=start, limit=limit, **params)
+            ],
+        }
 
     def get(self, uuid, **params):
         d = self.fetch(uuid=str(uuid), **params)

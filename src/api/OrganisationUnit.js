@@ -1,4 +1,4 @@
-import { HTTP, Service } from './HttpCommon'
+import { Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 export default {
@@ -9,23 +9,9 @@ export default {
    * @returns {Object} organisation unit object
    */
   get (uuid) {
-    return Service.get(`/ou/${uuid}`)
+    return Service.get(`/ou/${uuid}/`)
     .then(response => {
-      return response.data
-    })
-    .catch(e => {
-      console.log(e)
-    })
-  },
-
-  /**
-   * Get an tree unit
-   * @param {String} uuid - tree unit uuid
-   * @returns {Object} tree unit object
-   */
-  getTree (uuid) {
-    return Service.get(`/ou/${uuid}/tree`)
-    .then(response => {
+      EventBus.$emit('organisation-changed', response.data.org)
       return response.data
     })
     .catch(e => {
@@ -55,7 +41,7 @@ export default {
    * @returns {Array} A list of historical events for the organisation unit
    */
   history (uuid) {
-    return HTTP.get(`/org-unit/${uuid}/history/`)
+    return Service.get(`/ou/${uuid}/history/`)
     .then(response => {
       return response.data
     })
@@ -109,7 +95,7 @@ export default {
   },
 
   getDetailList (uuid) {
-    return Service.get(`/ou/${uuid}/details`)
+    return Service.get(`/ou/${uuid}/details/`)
     .then(response => {
       return response.data
     })
@@ -121,14 +107,45 @@ export default {
    * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
-  create (uuid, create) {
+  create (create) {
     return Service.post('/ou/create', create)
     .then(response => {
+      EventBus.$emit('organisation-unit-changed', response.data)
       EventBus.$emit('organisation-unit-create', response.data)
       return response.data
     })
     .catch(error => {
       console.log(error.response)
+    })
+  },
+
+  /**
+   * Rename a new organisation unit
+   * @param {String} uuid - organisation unit uuid
+   * @param {Array} edit - A list of elements to edit
+   * @returns {Object} organisation unit uuid
+   * @see edit
+  */
+  rename (uuid, edit) {
+    return this.edit(uuid, edit)
+    .then(response => {
+      EventBus.$emit('organisation-unit-rename', response)
+      return response
+    })
+  },
+
+  /**
+   * Move a new organisation unit
+   * @param {String} uuid - organisation unit uuid
+   * @param {Array} edit - A list of elements to edit
+   * @returns {Object} organisation unit uuid
+   * @see edit
+  */
+  move (uuid, edit) {
+    return this.edit(uuid, edit)
+    .then(response => {
+      EventBus.$emit('organisation-unit-move', response)
+      return response
     })
   },
 
@@ -158,6 +175,8 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
     .then(response => {
+      EventBus.$emit('organisation-unit-changed', response.data)
+      EventBus.$emit('organisation-unit-terminate', response.data)
       return response.data
     })
     .catch(error => {
