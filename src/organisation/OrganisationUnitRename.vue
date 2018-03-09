@@ -79,6 +79,9 @@
       EventBus.$on('organisation-unit-changed', selectedUnit => {
         this.preselectedUnit = selectedUnit
       })
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
     },
     methods: {
       renameOrganisationUnit () {
