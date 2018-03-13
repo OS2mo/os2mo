@@ -87,6 +87,9 @@
       EventBus.$on('organisation-changed', newOrg => {
         this.org = newOrg
       })
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
     },
     methods: {
       isOrgUnitValid (val) {
