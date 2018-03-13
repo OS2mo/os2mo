@@ -80,6 +80,11 @@
         deep: true
       }
     },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
     methods: {
       selectedEmployees (val) {
         this.selected = val

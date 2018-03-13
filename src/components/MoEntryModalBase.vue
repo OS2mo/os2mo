@@ -73,7 +73,7 @@
       return {
         entry: {},
         original: {},
-        org: Object,
+        org: {},
         isLoading: false,
         valid: false
       }
@@ -113,7 +113,13 @@
         deep: true
       }
     },
-
+    mounted () {
+      if (this.action === 'CREATE') {
+        this.$root.$on('bv::modal::hidden', resetData => {
+          Object.assign(this.$data, this.$options.data())
+        })
+      }
+    },
     created () {
       this.org = Organisation.getSelectedOrganisation()
 
