@@ -155,15 +155,15 @@ export default {
       if (this.valid.manager) create.push(this.manager)
 
       Employee.create(this.employee.uuid, create)
-      .then(response => {
-        vm.isLoading = false
-        vm.$refs.employeeCreate.hide()
-        vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
-      })
-      .catch(err => {
-        console.log(err)
-        vm.isLoading = false
-      })
+        .then(response => {
+          vm.isLoading = false
+          vm.$refs.employeeCreate.hide()
+          vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
+        })
+        .catch(err => {
+          console.log(err)
+          vm.isLoading = false
+        })
     }
   }
 }

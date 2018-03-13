@@ -61,10 +61,10 @@
         let org = Organisation.getSelectedOrganisation()
         if (org.uuid === undefined) return
         Employee.getAll(org.uuid)
-        .then(response => {
-          vm.employees = response
-          vm.isLoading = false
-        })
+          .then(response => {
+            vm.employees = response
+            vm.isLoading = false
+          })
       }
     }
   }

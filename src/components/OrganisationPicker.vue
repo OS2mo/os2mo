@@ -57,10 +57,10 @@ export default {
     getAll () {
       let vm = this
       Organisation.getAll(this.atDate)
-      .then(response => {
-        vm.orgs = response
-        vm.selectedOrganisation = response[0]
-      })
+        .then(response => {
+          vm.orgs = response
+          vm.selectedOrganisation = response[0]
+        })
     },
 
     // resets the route back to base. So if we're viewing an employee, it goes back to the employee list

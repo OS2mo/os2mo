@@ -62,9 +62,9 @@
         let vm = this
         let local = this.searchCountry ? '' : this.org.uuid
         Search.getGeographicalLocation(query, local)
-        .then(response => {
-          vm.addressSuggestions = response
-        })
+          .then(response => {
+            vm.addressSuggestions = response
+          })
       },
 
       selected (item) {

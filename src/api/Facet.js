@@ -9,12 +9,12 @@ export default {
    */
   itSystems (uuid) {
     return Service.get(`/o/${uuid}/it/`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -24,12 +24,12 @@ export default {
    */
   getFacet (uuid, facet) {
     return Service.get(`/o/${uuid}/f/${facet}/`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -95,7 +95,7 @@ export default {
     return this.getFacet(uuid, 'job_function')
   },
 
-   /**
+  /**
    * Return a list of leave type options
    * @param {String} uuid - organisation uuid
    * @see getFacet

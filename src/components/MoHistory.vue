@@ -77,17 +77,17 @@
       getOrgUnitHistory (uuid) {
         let vm = this
         OrganisationUnit.history(uuid)
-        .then(response => {
-          vm.history = response
-        })
+          .then(response => {
+            vm.history = response
+          })
       },
 
       getEmployeeHistory (uuid) {
         let vm = this
         Employee.history(uuid)
-        .then(response => {
-          vm.history = response
-        })
+          .then(response => {
+            vm.history = response
+          })
       }
     }
   }

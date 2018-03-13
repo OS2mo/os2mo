@@ -40,7 +40,7 @@ export default {
       required: true
     },
     required: Boolean,
-    noLabel: Boolean,
+    noLabel: Boolean
   },
   data () {
     return {
@@ -64,10 +64,10 @@ export default {
       let org = Organisation.getSelectedOrganisation()
       if (org.uuid === undefined) return
       Facet.getFacet(org.uuid, this.facet)
-      .then(response => {
-        vm.facets = response.data.items
-        vm.label = response.user_key
-      })
+        .then(response => {
+          vm.facets = response.data.items
+          vm.label = response.user_key
+        })
     },
 
     updateSelectedRoleTypes () {

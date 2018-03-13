@@ -63,16 +63,16 @@
         let org = Organisation.getSelectedOrganisation()
         if (vm.routeName === 'EmployeeDetail') {
           Search.employees(org.uuid, query)
-          .then(response => {
-            vm.results = response
-          })
+            .then(response => {
+              vm.results = response
+            })
         }
 
         if (vm.routeName === 'OrganisationDetail') {
           Search.organisations(org.uuid, query)
-          .then(response => {
-            vm.results = response
-          })
+            .then(response => {
+              vm.results = response
+            })
         }
       },
 

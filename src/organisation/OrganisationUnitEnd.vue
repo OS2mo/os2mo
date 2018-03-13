@@ -61,9 +61,9 @@
       endOrganisationUnit () {
         let vm = this
         OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
-        .then(response => {
-          vm.$refs.orgUnitTerminate.hide()
-        })
+          .then(response => {
+            vm.$refs.orgUnitTerminate.hide()
+          })
       }
     }
   }
