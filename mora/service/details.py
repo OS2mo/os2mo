@@ -21,6 +21,7 @@ import itertools
 
 import flask
 
+from . import address
 from . import common
 from . import employee
 from . import facet
@@ -31,6 +32,19 @@ from .. import util
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
                             url_prefix='/service')
+
+DetailType = collections.namedtuple('DetailType', [
+    'search',
+    'scope',
+    'relation_types',
+])
+
+DETAIL_TYPES = {
+    'e': DetailType('tilknyttedebrugere', 'bruger',
+                    employee.RELATION_TYPES),
+    'ou': DetailType('tilknyttedeenheder', 'organisationenhed',
+                     orgunit.RELATION_TYPES),
+}
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
@@ -58,15 +72,13 @@ def list_details(type, id):
 
     r = []
 
-    if type == 'e':
-        search = dict(tilknyttedebrugere=id)
-        scope = c.bruger
-    else:
-        assert type == 'ou', 'bad type ' + type
-        search = dict(tilknyttedeenheder=id)
-        scope = c.organisationenhed
-
-    search.update(virkningfra='-infinity', virkningtil='infinity')
+    info = DETAIL_TYPES[type]
+    search = {
+        info.search: id,
+        'virkningfra': '-infinity',
+        'virkningtil': 'infinity',
+    }
+    scope = getattr(c, info.scope)
 
     r = {
         functype: bool(
@@ -77,7 +89,7 @@ def list_details(type, id):
 
     reg = scope.get(id)
 
-    for relname, cls in employee.RELATION_TYPES.items():
+    for relname, cls in info.relation_types.items():
         r[relname] = bool(cls(scope).has(reg))
 
     return flask.jsonify(r)
@@ -172,67 +184,171 @@ def get_detail(type, id, function):
             }
         ]
 
+    **Example association response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "address": {
+            "href": "https://www.openstreetmap.org/"
+                    "?mlon=12.57924839&mlat=55.68113676&zoom=16",
+            "name": "Pilestr\u00e6de 43, 3., 1112 K\u00f8benhavn K",
+            "value": "0a3f50a0-23c9-32b8-e044-0003ba298018"
+          },
+          "address_type": {
+            "example": "<UUID>",
+            "name": "Adresse",
+            "scope": "DAR",
+            "user_key": "Adresse",
+            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+          },
+          "association_type": {
+            "example": null,
+            "name": "Medlem",
+            "scope": null,
+            "user_key": "medl",
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "job_function": {
+            "example": null,
+            "name": "Hund",
+            "scope": null,
+            "user_key": "hund",
+            "uuid": "c2b23c43-87c6-48bb-a99c-53396bfa99fb"
+          },
+          "org_unit": {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          },
+          "person": {
+            "name": "Fedtmule",
+            "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+          },
+          "uuid": "30cd25e1-b21d-46fe-b299-1c1265e9be66",
+          "validity": {
+            "from": "2017-01-01T00:00:00+01:00",
+            "to": "2018-01-01T00:00:00+01:00"
+          }
+        }
+      ]
+
     **Example IT response**:
 
     .. sourcecode:: json
 
-          [
-              {
-                  "address_type": {
-                      "example": "<UUID>",
-                      "name": "Lokation",
-                      "scope": "DAR",
-                      "user_key": "AdresseLokation",
-                      "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
-                  },
-                  "from": "2018-01-01T00:00:00+01:00",
-                  "href": "https://www.openstreetmap.org/"
-                  "?mlon=12.57924839&mlat=55.68113676&zoom=16",
-                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
-                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                  "to": null
-              }
-          ]
+      [
+        {
+          "name": "Active Directory",
+          "user_name": "Fedtmule",
+          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          }
+        }
+      ]
 
     **Example address response**:
 
     .. sourcecode:: json
 
-          [
-              {
-                  "address_type": {
-                      "example": "<UUID>",
-                      "name": "Lokation",
-                      "scope": "DAR",
-                      "user_key": "AdresseLokation",
-                      "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
-                  },
-                  "from": "2018-01-01T00:00:00+01:00",
-                  "href": "https://www.openstreetmap.org/"
-                  "?mlon=12.57924839&mlat=55.68113676&zoom=16",
-                  "pretty_value": "Pilestræde 43, 3., 1112 København K",
-                  "raw_value": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                  "to": null
-              }
-          ]
+     [
+        {
+          "name": "Christiansborg Slotsplads 1, 1218 København K",
+          "value": "bae093df-3b06-4f23-90a8-92eabedb3622"
+          "href": "https://www.openstreetmap.org/"
+              "?mlon=12.58176945&mlat=55.67563739&zoom=16",
+          "address_type": {
+            "scope": "DAR"
+          },
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          },
+        },
+        {
+          "name": "goofy@example.com",
+          "href": "mailto:goofy@example.com",
+          "value": "urn:mailto:goofy@example.com"
+          "address_type": {
+            "example": "test@example.com",
+            "name": "Emailadresse",
+            "scope": "EMAIL",
+            "user_key": "Email",
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+          },
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          },
+        },
+        {
+          "name": "goofy@example.com",
+          "href": "mailto:goofy@example.com",
+          "value": "urn:mailto:goofy@example.com"
+          "address_type": {
+            "example": "test@example.com",
+            "name": "Emailadresse",
+            "scope": "EMAIL",
+            "user_key": "Email",
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+          },
+          "validity": {
+            "from": "2002-02-14T00:00:00+01:00",
+            "to": null
+          },
+        }
+      ]
+
+    **Example org_unit response**:
+
+    An array of objects as returned by :http:get:`/service/ou/(uuid:unitid)/`.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "name": "Afdeling for Fortidshistorik",
+          "user_key": "frem",
+          "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+          "org": {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+          },
+          "org_unit_type": {
+            "example": null,
+            "name": "Afdeling",
+            "scope": null,
+            "user_key": "afd",
+            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+          },
+          "parent": {
+            "name": "Historisk Institut",
+            "user_key": "hist",
+            "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+          },
+          "validity": {
+            "from": "2018-01-01T00:00:00+01:00",
+            "to": "2019-01-01T00:00:00+01:00"
+          }
+        }
+      ]
 
     '''
 
-    if type == 'ou' and function == 'info':
-        return flask.redirect(flask.url_for('orgunit.get_org_unit', unitid=id))
-
     c = common.get_connector()
 
-    if type == 'e':
-        search = dict(tilknyttedebrugere=id)
-        scope = c.bruger
-    else:
-        assert type == 'ou', 'bad type ' + type
-        search = dict(tilknyttedeenheder=id)
-        scope = c.organisationenhed
+    info = DETAIL_TYPES[type]
+    search = {
+        info.search: id,
+    }
+    scope = getattr(c, info.scope)
 
-    if function in employee.RELATION_TYPES:
-        return employee.RELATION_TYPES[function](scope).get(id)
+    if function in info.relation_types:
+        return info.relation_types[function](scope).get(id)
 
     # ensure that we report an error correctly
     if function not in keys.FUNCTION_KEYS:
@@ -255,6 +371,22 @@ def get_detail(type, id, function):
     functions = collections.OrderedDict(
         c.organisationfunktion.get_all(**search),
     )
+
+    def get_address(effect):
+        try:
+            rel = effect['relationer']['adresser'][-1]
+        except KeyError:
+            return None
+
+        return address.get_one_address(c, rel, class_cache)
+
+    def get_address_type(effect):
+        try:
+            rel = effect['relationer']['adresser'][-1]
+        except KeyError:
+            return None
+
+        return rel['objekttype']
 
     def get_employee_id(effect):
         return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
@@ -296,15 +428,27 @@ def get_detail(type, id, function):
 
     def get_classes(effect):
         rels = effect['relationer']
-        return [obj.get('uuid') for obj in itertools.chain(
-            rels.get('opgaver', []),
-            rels.get('organisatoriskfunktionstype', [])
-        )]
+
+        for reltype in 'opgaver', 'organisatoriskfunktionstype':
+            if reltype in rels:
+                for rel in rels[reltype]:
+                    try:
+                        yield rel['uuid']
+                    except KeyError:
+                        pass
+
+        if 'adresser' in rels:
+            for rel in rels['adresser']:
+                if util.is_uuid(rel.get('objekttype')):
+                    yield rel['objekttype']
 
     class_cache = {
         classid: classid and facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(
-            uuid=itertools.chain(*map(get_classes, functions.values())))
+            uuid=itertools.chain.from_iterable(
+                map(get_classes, functions.values()),
+            ),
+        )
     }
 
     user_cache = {
@@ -340,6 +484,8 @@ def get_detail(type, id, function):
             keys.ORG_UNIT: (unit_cache, get_unit_id),
             keys.JOB_FUNCTION: (class_cache, get_title_id),
             keys.ASSOCIATION_TYPE: (class_cache, get_type_id),
+            keys.ADDRESS: (None, get_address),
+            keys.ADDRESS_TYPE: (class_cache, get_address_type),
         },
         'role': {
             keys.PERSON: (user_cache, get_employee_id),
@@ -361,7 +507,7 @@ def get_detail(type, id, function):
 
     def convert(start, end, funcid, effect):
         func = {
-            key: cache[getter(effect)]
+            key: cache.get(getter(effect)) if cache else getter(effect)
             for key, (cache, getter) in converters[function].items()
         }
 
@@ -381,6 +527,7 @@ def get_detail(type, id, function):
             {
                 'relationer': (
                     'opgaver',
+                    'adresser',
                     'organisatoriskfunktionstype',
                     'tilknyttedeenheder',
                 ),

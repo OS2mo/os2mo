@@ -4,6 +4,7 @@
       class="form-control" 
       id="organisation-picker"
       v-model="selectedOrganisation"
+      @change="resetToBaseRoute"
     >
       <option disabled>Vælg organisation</option>
       <option 
@@ -19,6 +20,7 @@
 
 <script>
 import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
 
 export default {
   name: 'OrganisationPicker',
@@ -36,12 +38,14 @@ export default {
   created () {
     this.getAll()
   },
+  mounted () {
+    EventBus.$on('organisation-changed', newOrg => {
+      this.selectedOrganisation = newOrg
+    })
+  },
   watch: {
     selectedOrganisation (newVal) {
       Organisation.setSelectedOrganisation(newVal)
-      if (this.resetRoute) {
-        this.resetToBaseRoute()
-      }
       this.$emit('input', newVal)
     },
 
@@ -61,11 +65,13 @@ export default {
 
     // resets the route back to base. So if we're viewing an employee, it goes back to the employee list
     resetToBaseRoute () {
-      if (this.$route.name.indexOf('Organisation') > -1) {
-        this.$router.push({name: 'Organisation'})
-      }
-      if (this.$route.name.indexOf('Employee') > -1) {
-        this.$router.push({name: 'Employee'})
+      if (this.resetRoute) {
+        if (this.$route.name.indexOf('Organisation') > -1) {
+          this.$router.push({name: 'Organisation'})
+        }
+        if (this.$route.name.indexOf('Employee') > -1) {
+          this.$router.push({name: 'Employee'})
+        }
       }
     }
   }

@@ -5,6 +5,7 @@
     hide-footer 
     title="Flyt mange engagementer"
     ref="employeeMoveMany"
+    lazy
   >
     <div class="form-row">
       <date-picker 
@@ -22,6 +23,7 @@
       v-if="sourceSelected"
       :content="employees" 
       :columns="columns"
+      type="EMPLOYEE"
       multi-select 
       @selected-changed="selectedEmployees"/>
 
@@ -103,12 +105,14 @@
         }
 
         vm.selected.forEach(engagement => {
-          console.log(engagement)
           move.uuid = engagement.uuid
           move.data.org_unit = vm.orgUnitDestination
           move.data.validity.from = vm.moveDate
 
-          Employee.edit(engagement.person.uuid, [move])
+          let uuid = engagement.person.uuid
+          let data = [move]
+
+          Employee.move(uuid, data)
             .then(response => {
               vm.isLoading = false
               vm.$refs.employeeMoveMany.hide()

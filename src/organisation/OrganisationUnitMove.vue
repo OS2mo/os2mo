@@ -4,7 +4,9 @@
     ref="orgUnitMove"
     size="lg" 
     hide-footer 
-    title="Flyt enhed">
+    title="Flyt enhed"
+    lazy
+  >
     <div class="form-row">
       <date-picker 
       label="Dato for flytning"
@@ -88,7 +90,7 @@
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.original.uuid, this.move)
+        OrganisationUnit.move(this.original.uuid, this.move)
         .then(response => {
           vm.$refs.orgUnitMove.hide()
         })
@@ -101,7 +103,7 @@
       getCurrentUnit (unitUuid) {
         let vm = this
         if (!unitUuid) return
-        OrganisationUnit.getTree(unitUuid)
+        OrganisationUnit.get(unitUuid)
         .then(response => {
           vm.currentUnit = response.parent ? response.parent.name : ''
         })

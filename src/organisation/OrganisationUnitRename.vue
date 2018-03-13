@@ -4,7 +4,9 @@
     ref="orgUnitRename"  
     size="lg" 
     hide-footer 
-    title="Omdøb enhed">
+    title="Omdøb enhed"
+    lazy
+  >
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
@@ -83,7 +85,7 @@
         let vm = this
         vm.isLoading = true
 
-        OrganisationUnit.edit(this.original.uuid, this.rename)
+        OrganisationUnit.rename(this.original.uuid, this.rename)
         .then(response => {
           vm.$refs.orgUnitRename.hide()
         })

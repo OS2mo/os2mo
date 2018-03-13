@@ -5,6 +5,7 @@
     hide-footer 
     title="Meld orlov"
     ref="employeeLeave"
+    lazy
   >
     <employee-picker v-model="employee"/>
     <mo-leave-entry v-model="leave" :org="org" @is-valid="isValid"/>
@@ -60,7 +61,7 @@ export default {
     createLeave () {
       let vm = this
       vm.isLoading = true
-      Employee.create(this.employee.uuid, [this.leave])
+      Employee.leave(this.employee.uuid, [this.leave])
       .then(response => {
         vm.isLoading = false
         vm.$refs.employeeLeave.hide()

@@ -3,7 +3,6 @@
     <button 
       class="btn btn-outline-primary" 
       v-b-modal="'moCreate'+_uid" 
-      @click="showModal=true"
     >
       <icon :name="iconLabel" />
       {{label}}
@@ -13,12 +12,12 @@
       :id="'moCreate'+_uid"
       size="lg"
       hide-footer 
-      title="Opret"
+      :title="modalTitle"
       :ref="'moCreate'+_uid"
+      lazy
     >
       <component 
         :is="entryComponent"
-        v-if="showModal" 
         v-model="entry" 
         :org="org" 
         @is-valid="isValid"
@@ -76,7 +75,6 @@
         original: {},
         org: Object,
         isLoading: false,
-        showModal: false,
         valid: false
       }
     },
@@ -94,10 +92,28 @@
         }
       },
 
+      modalTitle () {
+        switch (this.action) {
+          case 'CREATE':
+            return 'Opret'
+          case 'EDIT':
+            return 'Rediger'
+        }
+      },
+
       hasEntryComponent () {
         return this.entryComponent !== undefined
       }
     },
+    watch: {
+      content: {
+        handler (newVal) {
+          this.entry = JSON.parse(JSON.stringify(newVal))
+        },
+        deep: true
+      }
+    },
+
     created () {
       this.org = Organisation.getSelectedOrganisation()
 
@@ -147,7 +163,7 @@
 
         switch (this.type) {
           case 'EMPLOYEE':
-            this.editEmployee([data])
+            this.editEmployee(data)
             break
           case 'ORG_UNIT':
             this.editOrganisationUnit(data)
@@ -157,22 +173,20 @@
 
       createEmployee (data) {
         let vm = this
-        Employee.create(this.uuid, data)
+        Employee.createEntry(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
 
       editEmployee (data) {
         let vm = this
-        return Employee.edit(this.uuid, data)
+        return Employee.edit(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
@@ -182,8 +196,7 @@
         return OrganisationUnit.create(data)
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       },
@@ -193,8 +206,7 @@
         return OrganisationUnit.edit(this.uuid, data)
         .then(response => {
           vm.isLoading = false
-          vm.showModal = false
-          vm.entry = {}
+          // vm.entry = {}
           vm.$refs['moCreate' + vm._uid].hide()
         })
       }

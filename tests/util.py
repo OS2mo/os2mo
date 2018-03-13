@@ -120,6 +120,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
     facets = {
         'enhedstype': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
         'adressetype': 'e337bab4-635f-49ce-aa31-b44047a43aa1',
+        'tilknytningstype': 'ef71fe9c-7901-48e2-86d8-84116e210202',
     }
 
     # TODO: add classifications, etc.
@@ -158,6 +159,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False):
             'telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
             'adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
             'ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+            'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
         })
 
     for facetkey, facetid in facets.items():

@@ -6,8 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from __future__ import generator_stop
+
 import collections
 import datetime
+import itertools
 import functools
 import uuid
 
@@ -234,12 +237,15 @@ class Connector:
         self.tomorrow = self.today + datetime.timedelta(days=1)
 
         if self.__validity == 'past':
+            self.__daterange = (util.negative_infinity, self.today)
             defaults.update(
                 virkningfra='-infinity',
                 virkningtil=util.to_lora_time(self.today),
             )
 
         elif self.__validity == 'future':
+            self.__daterange = (self.tomorrow, util.positive_infinity)
+
             defaults.update(
                 virkningfra=util.to_lora_time(self.tomorrow),
                 virkningtil='infinity',
@@ -256,6 +262,8 @@ class Connector:
                     virkningtil=util.to_lora_time(self.tomorrow),
                 )
 
+            self.__daterange = (self.today, self.tomorrow)
+
         else:
             raise ValueError('invalid validity {!r}'.format(self.__validity))
 
@@ -269,25 +277,31 @@ class Connector:
     def validity(self):
         return self.__validity
 
-    def get_date_chunks(self, dates):
-        if self.__validity == 'present':
-            dates = sorted(dates)
+    def __is_range_relevant(self, start, end):
+        if self.validity == 'present':
+            return util.do_ranges_overlap(
+                start, end,
+                *self.__daterange,
+            )
 
-            for start, end in zip(dates, dates[1:]):
-                if self.tomorrow >= start and self.today < end:
-                    yield start, end
-
-            return
-
-        elif self.__validity == 'past':
-            dates = sorted(filter(lambda d: d <= self.today, dates))
-
-        elif self.__validity == 'future':
-            dates = sorted(filter(lambda d: d > self.tomorrow, dates))
         else:
-            raise ValueError('no validity!')
+            return (
+                util.do_ranges_overlap(start, end, *self.__daterange) and
+                not util.do_ranges_overlap(start, end,
+                                           self.today, self.tomorrow)
+            )
 
-        yield from zip(dates, dates[1:])
+    def get_date_chunks(self, dates):
+        a, b = itertools.tee(sorted(dates))
+
+        # drop the first item -- doing a raw next() fails in Python 3.7
+        for x in itertools.islice(b, 1):
+            pass
+
+        yield from filter(
+            lambda s: self.__is_range_relevant(*s),
+            zip(a, b),
+        )
 
     def __getattr__(self, attr):
         try:
@@ -301,12 +315,8 @@ class Connector:
         return scope
 
     def is_effect_relevant(self, effect):
-        if self.validity == 'future':
-            return util.parsedatetime(effect['from']) >= self.tomorrow
-        elif self.validity == 'past':
-            return util.parsedatetime(effect['to']) <= self.today
-        else:
-            return True
+        return self.__is_range_relevant(util.parsedatetime(effect['from']),
+                                        util.parsedatetime(effect['to']))
 
 
 class Scope:

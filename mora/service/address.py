@@ -41,6 +41,90 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+def get_relation_for(classobj, value):
+    scope = classobj['scope']
+
+    if scope == 'DAR':
+        if not util.is_uuid(value):
+            raise ValueError(
+                '{!r} is not a valid address UUID!'.format(value),
+            )
+
+        r = {
+            'uuid': value,
+            'objekttype': classobj['uuid'],
+        }
+
+    elif scope in addr.URN_FORMATS:
+        r = {
+            'urn': addr.URN_FORMATS[scope].format(value),
+            'objekttype': classobj['uuid'],
+        }
+
+    else:
+        raise ValueError('unknown address scope {!r}!'.format(scope))
+
+    return r
+
+
+def get_address_class(c, addrrel, class_cache):
+    addrtype = addrrel.get('objekttype', 'DAR')
+
+    if not util.is_uuid(addrtype):
+        return {'scope': addrtype}
+    else:
+        return (
+            class_cache[addrtype]
+            if class_cache
+            else facet.get_one_class(c, addrtype)
+        )
+
+
+def get_one_address(c, addrrel, class_cache=None):
+    addrclass = get_address_class(c, addrrel, class_cache)
+
+    if addrclass['scope'] == 'DAR':
+        addrobj = addr.get_address(addrrel['uuid'])
+
+        name = addrobj['adressebetegnelse']
+        value = addrrel['uuid']
+        href = (
+            'https://www.openstreetmap.org/'
+            '?mlon={}&mlat={}&zoom=16'.format(
+                *addrobj['adgangsadresse']
+                ['adgangspunkt']['koordinater']
+            )
+        )
+
+    elif addrclass['scope'] in addr.URN_FORMATS:
+        m = parse.parse(addr.URN_FORMATS[addrclass['scope']],
+                        addrrel['urn'])
+
+        if not m:
+            raise ValueError('invalid value {!r}'.format(
+                addrrel['urn'],
+            ))
+
+        name = m[0]
+        value = addrrel['urn']
+        href = (
+            HREF_FORMATS[addrclass['scope']].format(name)
+            if addrclass['scope'] in HREF_FORMATS else None
+        )
+
+    else:
+        raise ValueError('invalid address scope {!r}'.format(
+            addrclass['scope']),
+        )
+
+    return {
+        keys.HREF: href,
+
+        keys.NAME: name,
+        keys.VALUE: value,
+    }
+
+
 class Addresses(common.AbstractRelationDetail):
     @staticmethod
     def has(reg):
@@ -65,55 +149,10 @@ class Addresses(common.AbstractRelationDetail):
                 if not c.is_effect_relevant(addrrel['virkning']):
                     continue
 
-                addrtype = addrrel.get('objekttype', 'DAR')
-
-                addrclass = (
-                    class_cache[addrtype]
-                    if util.is_uuid(addrtype)
-                    else dict(scope=addrtype)
-                )
-
-                if addrclass['scope'] == 'DAR':
-                    addrobj = addr.get_address(addrrel['uuid'])
-
-                    pretty_value = addrobj['adressebetegnelse']
-                    raw_value = addrrel['uuid']
-                    href = (
-                        'https://www.openstreetmap.org/'
-                        '?mlon={}&mlat={}&zoom=16'.format(
-                            *addrobj['adgangsadresse']
-                            ['adgangspunkt']['koordinater']
-                        )
-                    )
-
-                elif addrclass['scope'] in addr.URN_FORMATS:
-                    m = parse.parse(addr.URN_FORMATS[addrclass['scope']],
-                                    addrrel['urn'])
-
-                    if not m:
-                        raise ValueError('invalid {} value {!r}'.format(
-                            self.scope,
-                            addrrel['urn'],
-                        ))
-
-                    pretty_value = m[0]
-                    raw_value = addrrel['urn']
-                    href = (
-                        HREF_FORMATS[addrclass['scope']].format(pretty_value)
-                        if addrclass['scope'] in HREF_FORMATS else None
-                    )
-
-                else:
-                    raise ValueError('invalid address scope {!r}'.format(
-                        addrclass['scope']),
-                    )
-
                 yield {
-                    keys.ADDRESS_HREF: href,
-
-                    keys.ADDRESS_PRETTY: pretty_value,
-                    keys.ADDRESS_RAW: raw_value,
-                    keys.ADDRESS_TYPE: addrclass,
+                    **get_one_address(c, addrrel, class_cache),
+                    keys.ADDRESS_TYPE: get_address_class(c, addrrel,
+                                                         class_cache),
                     keys.VALIDITY: common.get_effect_validity(addrrel),
                 }
 
@@ -144,42 +183,11 @@ class Addresses(common.AbstractRelationDetail):
                     lambda v: (
                         common.get_valid_from(v) or util.negative_infinity,
                         common.get_valid_to(v) or util.positive_infinity,
-                        str(v[keys.ADDRESS_PRETTY]),
+                        str(v[keys.NAME]),
                     )
                 ),
             ),
         )
-
-    @staticmethod
-    def get_relation_for(classobj, value, start, end):
-        scope = classobj['scope']
-
-        effect = {
-            'from': util.to_lora_time(start),
-            'to': util.to_lora_time(end),
-        }
-
-        if scope == 'DAR':
-            if not util.is_uuid(value):
-                raise ValueError(
-                    '{!r} is not a valid address UUID!'.format(value),
-                )
-
-            return {
-                'uuid': value,
-                'objekttype': classobj['uuid'],
-                'virkning': effect,
-            }
-
-        elif scope in addr.URN_FORMATS:
-            return {
-                'urn': addr.URN_FORMATS[scope].format(value),
-                'objekttype': classobj['uuid'],
-                'virkning': effect,
-            }
-
-        else:
-            raise ValueError('unknown address scope {!r}!'.format(scope))
 
     def create(self, id, req):
         original = self.scope.get(
@@ -188,22 +196,17 @@ class Addresses(common.AbstractRelationDetail):
             virkningtil='infinity',
         )
 
-        # we're editing a many to many relation, so inline the logic
-        # for simplicity
-        orig_addresses = original['relationer']['adresser'][:]
-
-        new_addresses = [
-            self.get_relation_for(
-                req[keys.ADDRESS_TYPE],
-                req[keys.ADDRESS],
-                common.get_valid_from(req),
-                common.get_valid_to(req),
-            )
-        ]
+        # we're editing a many-to-many relation, so inline the
+        # create_organisationsenhed_payload logic for simplicity
+        rel = get_relation_for(
+            req[keys.ADDRESS_TYPE],
+            req[keys.ADDRESS],
+        )
+        rel['virkning'] = common.get_validity_effect(req)
 
         payload = {
             'relationer': {
-                'adresser': orig_addresses + new_addresses,
+                'adresser': original['relationer']['adresser'] + [rel],
             },
             'note': 'Tilføj adresse',
         }
@@ -216,30 +219,20 @@ class Addresses(common.AbstractRelationDetail):
         old_entry = req.get('original')
         new_entry = req.get('data')
 
-        valid_from = common.get_valid_from(new_entry, old_entry)
-        valid_to = common.get_valid_to(new_entry, old_entry)
-
         if not old_entry:
             raise ValueError('original required!')
 
-        old_from = common.get_valid_from(old_entry)
-        old_to = common.get_valid_to(old_entry)
-
-        old_rel = self.get_relation_for(
+        old_rel = get_relation_for(
             old_entry[keys.ADDRESS_TYPE],
-            old_entry[keys.ADDRESS_PRETTY],
-            start=old_from,
-            end=old_to,
+            old_entry[keys.NAME],
         )
+        old_rel['virkning'] = common.get_validity_effect(old_entry)
 
-        new_rel = self.get_relation_for(
-            new_entry.get(keys.ADDRESS_TYPE) or
-            old_entry[keys.ADDRESS_TYPE],
-            new_entry.get('value') or
-            old_entry[keys.ADDRESS_PRETTY],
-            start=valid_from,
-            end=valid_to,
+        new_rel = get_relation_for(
+            new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
+            new_entry.get(keys.VALUE) or old_entry[keys.NAME],
         )
+        new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
         addresses = common.replace_relation_value(
             original['relationer']['adresser'],

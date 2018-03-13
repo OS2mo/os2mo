@@ -33,7 +33,7 @@
     },
     mounted () {
       EventBus.$on('organisation-changed', newOrg => {
-        this.org = newOrg
+        if (this.org.uuid !== newOrg.uuid) this.org = newOrg
       })
     }
   }

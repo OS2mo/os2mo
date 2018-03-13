@@ -1559,107 +1559,45 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/',
-            [
-                {
+            {
+                'name': 'Ballerup Kommune',
+                'user_key': 'BALLERUP',
+                'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                'org': {
                     'name': 'Ballerup Kommune',
-                    'org': {
-                        'name': 'Ballerup Kommune',
-                        'user_key': 'Ballerup Kommune',
-                        'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
-                    },
-                    'org_unit_type': {
-                        'example': None,
-                        'name': 'Kommune',
-                        'scope': None,
-                        'user_key': 'Kommune',
-                        'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195',
-                    },
-                    'parent': None,
-                    'user_key': 'BALLERUP',
-                    'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
-                    'validity': {
-                        'from': '1964-05-24T00:00:00+01:00',
-                        'to': None,
-                    },
+                    'user_key': 'Ballerup Kommune',
+                    'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
                 },
-            ],
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Kommune',
+                    'scope': None,
+                    'user_key': 'Kommune',
+                    'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195',
+                },
+                'parent': None,
+            },
         )
 
         self.assertRequestResponse(
             '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/',
-            [
-                {
-                    'name': 'Ballerup Familiehus',
-                    'org': {'name': 'Ballerup Kommune',
-                            'user_key': 'Ballerup Kommune',
-                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-                    'org_unit_type': {'example': None,
-                                      'name': 'Fagligt Center',
-                                      'scope': None,
-                                      'user_key': 'Fagligt Center',
-                                      'uuid': '59f10075-88f6-4758-bf61-'
-                                      '454858170776'},
-                    'parent': {'name': 'Ballerup Kommune',
-                               'user_key': 'BALLERUP',
-                               'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-                    'user_key': 'FAMILIEHUS',
-                    'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
-                    'validity': {
-                        'from': '2006-01-01T00:00:00+01:00',
-                        'to': None,
-                    },
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/tree',
-            {'children': [{'child_count': 0,
-                           'name': 'Ballerup Bibliotek',
-                           'user_key': 'BIBLIOTEK',
-                           'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc'},
-                          {'child_count': 0,
-                           'name': 'Ballerup Familiehus',
-                           'user_key': 'FAMILIEHUS',
-                           'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
-                          {'child_count': 0,
-                           'name': 'Ballerup Idrætspark',
-                           'user_key': 'IDRÆTSPARK',
-                           'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}],
-             'org': {'name': 'Ballerup Kommune',
-                     'user_key': 'Ballerup Kommune',
-                     'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-             'org_unit_type': {'example': None,
-                               'name': 'Kommune',
-                               'scope': None,
-                               'user_key': 'Kommune',
-                               'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195'},
-             'parent': None,
-             'name': 'Ballerup Kommune',
-             'parent': None,
-             'user_key': 'BALLERUP',
-             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/tree',
-            {'children': [],
-             'name': 'Ballerup Familiehus',
-             'parent': {'name': 'Ballerup Kommune',
-                        'user_key': 'BALLERUP',
-                        'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-             'org': {
-                 'name': 'Ballerup Kommune',
-                 'user_key': 'Ballerup Kommune',
-                 'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-             'org_unit_type': {
-                 'example': None,
-                 'name': 'Fagligt Center',
-                 'scope': None,
-                 'user_key': 'Fagligt Center',
-                 'uuid': '59f10075-88f6-4758-bf61-454858170776'},
-             'user_key': 'FAMILIEHUS',
-             'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
+            {
+                'name': 'Ballerup Familiehus',
+                'user_key': 'FAMILIEHUS',
+                'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+                'org': {'name': 'Ballerup Kommune',
+                        'user_key': 'Ballerup Kommune',
+                        'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
+                'org_unit_type': {'example': None,
+                                  'name': 'Fagligt Center',
+                                  'scope': None,
+                                  'user_key': 'Fagligt Center',
+                                  'uuid': '59f10075-88f6-4758-bf61-'
+                                  '454858170776'},
+                'parent': {'name': 'Ballerup Kommune',
+                           'user_key': 'BALLERUP',
+                           'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+            },
         )
 
         self.assertRequestResponse(
@@ -1946,9 +1884,9 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': True,
                     'engagement': True,
-                    'it': False,
                     'leave': False,
                     'role': True,
+                    'org_unit': True,
                     'manager': True,
                 },
             )
@@ -1959,9 +1897,9 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
                     'leave': False,
                     'role': False,
+                    'org_unit': True,
                     'manager': False,
                 },
             )
@@ -1972,9 +1910,9 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
                     'leave': False,
                     'role': False,
+                    'org_unit': True,
                     'manager': False,
                 },
             )
@@ -1985,9 +1923,9 @@ class IntegrationTests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
                     'leave': False,
                     'role': False,
+                    'org_unit': True,
                     'manager': False,
                 },
             )
@@ -2141,6 +2079,8 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/association',
                 [
                     {
+                        'address': None,
+                        'address_type': None,
                         'job_function': {
                             'example': None,
                             'name': '… (≈400 flere)',
@@ -2178,6 +2118,8 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/association',
                 [
                     {
+                        'address': None,
+                        'address_type': None,
                         'job_function': {
                             'example': None,
                             'name': '… (≈400 flere)',
@@ -2409,8 +2351,8 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'href': 'tel:+4511221122',
-                        'pretty_value': 11221122,
-                        'raw_value': 'urn:magenta.dk:telefon:+4511221122',
+                        'name': 11221122,
+                        'value': 'urn:magenta.dk:telefon:+4511221122',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2426,8 +2368,8 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.57924839&mlat=55.68113676&zoom=16',
-                        'pretty_value': 'Pilestræde 43, 3., 1112 København K',
-                        'raw_value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                        'name': 'Pilestræde 43, 3., 1112 København K',
+                        'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2442,8 +2384,8 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
                         },
                         'href': 'mailto:sanne@example.com',
-                        'pretty_value': 'sanne@example.com',
-                        'raw_value': 'urn:mailto:sanne@example.com',
+                        'name': 'sanne@example.com',
+                        'value': 'urn:mailto:sanne@example.com',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2466,8 +2408,8 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'href': 'tel:+4511223344',
-                        'pretty_value': 11223344,
-                        'raw_value': 'urn:magenta.dk:telefon:+4511223344',
+                        'name': 11223344,
+                        'value': 'urn:magenta.dk:telefon:+4511223344',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2482,8 +2424,8 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
                         },
                         'href': 'mailto:sune@example.com',
-                        'pretty_value': 'sune@example.com',
-                        'raw_value': 'urn:mailto:sune@example.com',
+                        'name': 'sune@example.com',
+                        'value': 'urn:mailto:sune@example.com',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2499,8 +2441,8 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                        'pretty_value': 'Åbogade 15, 8200 Aarhus N',
-                        'raw_value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'name': 'Åbogade 15, 8200 Aarhus N',
+                        'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2523,8 +2465,8 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'href': 'tel:+4544772000',
-                        'pretty_value': 44772000,
-                        'raw_value': 'urn:magenta.dk:telefon:+4544772000',
+                        'name': 44772000,
+                        'value': 'urn:magenta.dk:telefon:+4544772000',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
                             'to': None,
@@ -2540,8 +2482,8 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.3647784&mlat=55.73404048&zoom=16',
-                        'pretty_value': 'Hold-An Vej 7, 2750 Ballerup',
-                        'raw_value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                        'name': 'Hold-An Vej 7, 2750 Ballerup',
+                        'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
                             'to': None,
@@ -2556,8 +2498,8 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea',
                         },
                         'href': 'mailto:borger@balk.dk',
-                        'pretty_value': 'borger@balk.dk',
-                        'raw_value': 'urn:mailto:borger@balk.dk',
+                        'name': 'borger@balk.dk',
+                        'value': 'urn:mailto:borger@balk.dk',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
                             'to': None,
@@ -2577,8 +2519,8 @@ class IntegrationTests(util.LoRATestCase):
                     'user_key': 'Telefon',
                     'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a'},
                   'href': 'tel:+4544773333',
-                  'pretty_value': 44773333,
-                  'raw_value': 'urn:magenta.dk:telefon:+4544773333',
+                  'name': 44773333,
+                  'value': 'urn:magenta.dk:telefon:+4544773333',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}},
@@ -2590,8 +2532,8 @@ class IntegrationTests(util.LoRATestCase):
                      'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f'},
                   'href': 'https://www.openstreetmap.org/'
                   '?mlon=12.3597027&mlat=55.72970211&zoom=16',
-                  'pretty_value': 'Banegårdspladsen 1, 2750 Ballerup',
-                  'raw_value': '99b29a62-01fd-40be-b5fe-8bfc4be35e83',
+                  'name': 'Banegårdspladsen 1, 2750 Ballerup',
+                  'value': '99b29a62-01fd-40be-b5fe-8bfc4be35e83',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}},
@@ -2602,8 +2544,8 @@ class IntegrationTests(util.LoRATestCase):
                      'user_key': 'Email',
                      'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
                   'href': 'mailto:ballerup-bibliotek@balk.dk',
-                  'pretty_value': 'ballerup-bibliotek@balk.dk',
-                  'raw_value': 'urn:mailto:ballerup-bibliotek@balk.dk',
+                  'name': 'ballerup-bibliotek@balk.dk',
+                  'value': 'urn:mailto:ballerup-bibliotek@balk.dk',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}}],
@@ -2621,8 +2563,8 @@ class IntegrationTests(util.LoRATestCase):
                     'uuid': 'ff4ed3b4-18fc-42cf-af12-51ac7b9a069a'},
                   'href': 'https://www.openstreetmap.org/'
                   '?mlon=12.40661136&mlat=55.72347773&zoom=16',
-                  'pretty_value': 'Torvevej 21, 2740 Skovlunde',
-                  'raw_value': '45b40fc3-bb75-412c-b122-d9df7b0ade94',
+                  'name': 'Torvevej 21, 2740 Skovlunde',
+                  'value': '45b40fc3-bb75-412c-b122-d9df7b0ade94',
                   'validity': {
                       'from': '2006-01-01T00:00:00+01:00',
                       'to': None}}],
@@ -2640,8 +2582,8 @@ class IntegrationTests(util.LoRATestCase):
                     'uuid': 'a8c8fe66-2ab1-46ed-ba99-ed05e855d65f'},
                   'href': 'https://www.openstreetmap.org/'
                   '?mlon=12.37008192&mlat=55.71904978&zoom=16',
-                  'pretty_value': 'Ballerup Idrætsby 38, 2750 Ballerup',
-                  'raw_value': '9ab45e95-a42a-47c0-b284-e5d2377fc429',
+                  'name': 'Ballerup Idrætsby 38, 2750 Ballerup',
+                  'value': '9ab45e95-a42a-47c0-b284-e5d2377fc429',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}},
@@ -2652,8 +2594,8 @@ class IntegrationTests(util.LoRATestCase):
                      'user_key': 'Email',
                      'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
                   'href': 'mailto:tbri@balk.dk',
-                  'pretty_value': 'tbri@balk.dk',
-                  'raw_value': 'urn:mailto:tbri@balk.dk',
+                  'name': 'tbri@balk.dk',
+                  'value': 'urn:mailto:tbri@balk.dk',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}}],
@@ -2663,5 +2605,144 @@ class IntegrationTests(util.LoRATestCase):
             self.assertRequestFails(
                 '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
                 '/details/it',
-                404,
+                400,
+            )
+
+        with self.subTest('unit info on employee'):
+            self.assertRequestFails(
+                '/service/e/34705881-8af9-4254-ac3f-31738eae0be8'
+                '/details/org_unit',
+                400,
+            )
+
+        with self.subTest('unit info I'):
+            self.assertRequestResponse(
+                '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
+                '/details/org_unit',
+                [
+                    {
+                        'name': 'Ballerup Kommune',
+                        'user_key': 'BALLERUP',
+                        'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        'org': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'Ballerup Kommune',
+                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Kommune',
+                            'scope': None,
+                            'user_key': 'Kommune',
+                            'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195',
+                        },
+                        'parent': None,
+                        'validity': {
+                            'from': '1964-05-24T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+        with self.subTest('unit info II'):
+            self.assertRequestResponse(
+                '/service/ou/921e44d3-2ec0-4c16-9935-2ec7976566dc'
+                '/details/org_unit',
+                [
+                    {
+                        'name': 'Ballerup Bibliotek',
+                        'user_key': 'BIBLIOTEK',
+                        'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc',
+                        'org': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'Ballerup Kommune',
+                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institution',
+                            'scope': None,
+                            'user_key': 'Institution',
+                            'uuid': '547e6946-abdb-4dc2-ad99-b6042e05a7e4',
+                        },
+                        'parent': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'validity': {
+                            'from': '1993-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+        with self.subTest('unit info III'):
+            self.assertRequestResponse(
+                '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9'
+                '/details/org_unit',
+                [
+                    {
+                        'user_key': 'FAMILIEHUS',
+                        'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+                        'name': 'Ballerup Familiehus',
+                        'org': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'Ballerup Kommune',
+                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Fagligt Center',
+                            'scope': None,
+                            'user_key': 'Fagligt Center',
+                            'uuid': '59f10075-88f6-4758-bf61-454858170776',
+                        },
+                        'parent': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'validity': {
+                            'from': '2006-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+        with self.subTest('unit info IV'):
+            self.assertRequestResponse(
+                '/service/ou/ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'
+                '/details/org_unit',
+                [
+                    {
+                        'name': 'Ballerup Idrætspark',
+                        'user_key': 'IDRÆTSPARK',
+                        'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc',
+                        'org': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'Ballerup Kommune',
+                            'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd',
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institution',
+                            'scope': None,
+                            'user_key': 'Institution',
+                            'uuid': '547e6946-abdb-4dc2-ad99-b6042e05a7e4',
+                        },
+                        'parent': {
+                            'name': 'Ballerup Kommune',
+                            'user_key': 'BALLERUP',
+                            'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        },
+                        'validity': {
+                            'from': '1993-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                ],
             )

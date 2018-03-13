@@ -5,6 +5,7 @@
     hide-footer 
     title="Ny medarbejder"
     ref="employeeCreate"
+    lazy
   >
     <employee-picker :org="org" v-model="employee"/>
     
@@ -53,20 +54,19 @@
       />
     </div>
   </b-modal>
-
 </template>
 
 <script>
-import Organisation from '../api/Organisation'
-import Employee from '../api/Employee'
-import { EventBus } from '../EventBus'
-import ButtonSubmit from '../components/ButtonSubmit'
-import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
-import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
-import MoRoleEntry from './MoRole/MoRoleEntry'
-import EmployeePicker from '../components/EmployeePicker'
-import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
-import MoManagerEntry from './MoManager/MoManagerEntry'
+import Organisation from '../../api/Organisation'
+import Employee from '../../api/Employee'
+import { EventBus } from '../../EventBus'
+import ButtonSubmit from '../../components/ButtonSubmit'
+import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
+import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
+import MoRoleEntry from '../MoRole/MoRoleEntry'
+import EmployeePicker from '../../components/EmployeePicker'
+import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
+import MoManagerEntry from '../MoManager/MoManagerEntry'
 
 export default {
   components: {
@@ -102,7 +102,7 @@ export default {
       let emp = Object.keys(this.employee).length > 0
       let ass = Object.keys(this.association).length > 2
       let role = Object.keys(this.role).length > 3
-      let it = Object.keys(this.itSystem).length > 2
+      let it = Object.keys(this.itSystem).length > 3
       let man = Object.keys(this.manager).length > 2
       return (!emp || !this.valid.engagement ||
               (ass ? !this.valid.association : false) ||

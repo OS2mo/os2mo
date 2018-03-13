@@ -5,6 +5,7 @@
     size="lg" 
     hide-footer 
     title="Afslut enhed"
+    lazy
   >
     <div class="form-row">
       <organisation-unit-picker 

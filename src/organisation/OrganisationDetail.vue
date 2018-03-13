@@ -44,14 +44,9 @@
         var vm = this
         OrganisationUnit.get(this.$route.params.uuid)
         .then(response => {
-          vm.orgUnit = response[0]
+          vm.orgUnit = response
         })
       }
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
