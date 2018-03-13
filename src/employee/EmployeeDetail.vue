@@ -45,10 +45,10 @@
         var vm = this
         vm.isLoading = true
         Employee.get(uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.employee = response
-        })
+          .then(response => {
+            vm.isLoading = false
+            vm.employee = response
+          })
       }
     }
   }

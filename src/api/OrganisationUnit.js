@@ -10,13 +10,13 @@ export default {
    */
   get (uuid) {
     return Service.get(`/ou/${uuid}/`)
-    .then(response => {
-      EventBus.$emit('organisation-changed', response.data.org)
-      return response.data
-    })
-    .catch(e => {
-      console.log(e)
-    })
+      .then(response => {
+        EventBus.$emit('organisation-changed', response.data.org)
+        return response.data
+      })
+      .catch(e => {
+        console.log(e)
+      })
   },
 
   /**
@@ -27,12 +27,12 @@ export default {
   getChildren (uuid, atDate) {
     atDate = atDate || new Date()
     return Service.get(`/ou/${uuid}/children?at=${atDate.toISOString()}`)
-    .then(response => {
-      return response.data
-    })
-    .catch(e => {
-      console.log(e)
-    })
+      .then(response => {
+        return response.data
+      })
+      .catch(e => {
+        console.log(e)
+      })
   },
 
   /**
@@ -42,12 +42,12 @@ export default {
    */
   history (uuid) {
     return Service.get(`/ou/${uuid}/history/`)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   },
 
-   /**
+  /**
    * Get organisation unit details
    * @see getDetail
    */
@@ -89,16 +89,16 @@ export default {
   getDetail (uuid, detail, validity) {
     validity = validity || 'present'
     return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}`)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   },
 
   getDetailList (uuid) {
     return Service.get(`/ou/${uuid}/details/`)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   },
 
   /**
@@ -109,14 +109,14 @@ export default {
    */
   create (create) {
     return Service.post('/ou/create', create)
-    .then(response => {
-      EventBus.$emit('organisation-unit-changed', response.data)
-      EventBus.$emit('organisation-unit-create', response.data)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-create', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -128,10 +128,10 @@ export default {
   */
   rename (uuid, edit) {
     return this.edit(uuid, edit)
-    .then(response => {
-      EventBus.$emit('organisation-unit-rename', response)
-      return response
-    })
+      .then(response => {
+        EventBus.$emit('organisation-unit-rename', response)
+        return response
+      })
   },
 
   /**
@@ -143,10 +143,10 @@ export default {
   */
   move (uuid, edit) {
     return this.edit(uuid, edit)
-    .then(response => {
-      EventBus.$emit('organisation-unit-move', response)
-      return response
-    })
+      .then(response => {
+        EventBus.$emit('organisation-unit-move', response)
+        return response
+      })
   },
 
   /**
@@ -157,13 +157,13 @@ export default {
    */
   edit (uuid, edit) {
     return Service.post(`/ou/${uuid}/edit`, edit)
-    .then(response => {
-      EventBus.$emit('organisation-unit-changed', response.data)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -174,13 +174,13 @@ export default {
    */
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
-    .then(response => {
-      EventBus.$emit('organisation-unit-changed', response.data)
-      EventBus.$emit('organisation-unit-terminate', response.data)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-terminate', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   }
 }

@@ -57,10 +57,10 @@
         let vm = this
         vm.isLoading = true
         Employee.terminate(this.employee.uuid, this.terminate)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeTerminate.hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeTerminate.hide()
+          })
       }
     }
   }

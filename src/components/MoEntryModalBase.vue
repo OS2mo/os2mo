@@ -185,41 +185,41 @@
       createEmployee (data) {
         let vm = this
         Employee.createEntry(this.uuid, [data])
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       },
 
       editEmployee (data) {
         let vm = this
         return Employee.edit(this.uuid, [data])
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       },
 
       createOrganisationUnit (data) {
         let vm = this
         return OrganisationUnit.create(data)
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       },
 
       editOrganisationUnit (data) {
         let vm = this
         return OrganisationUnit.edit(this.uuid, data)
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       }
     }
   }

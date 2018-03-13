@@ -9,23 +9,23 @@ export default {
   employees (orgUuid, query) {
     query = query || ''
     return Service.get(`/o/${orgUuid}/e/?query=${query}`)
-    .then(response => {
-      return response.data.items
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        return response.data.items
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   organisations (orgUuid, query) {
     query = query || ''
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
-    .then(response => {
-      return response.data.items
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        return response.data.items
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -36,8 +36,8 @@ export default {
    */
   getGeographicalLocation (query, local) {
     return HTTP.get(`/addressws/geographical-location?local=${local}&vejnavn=${query}`)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   }
 }

@@ -69,10 +69,10 @@ export default {
       var vm = this
       vm.isLoading = true
       Employee.getEngagementDetails(this.employee.uuid)
-      .then(response => {
-        vm.isLoading = false
-        vm.engagements = response
-      })
+        .then(response => {
+          vm.isLoading = false
+          vm.engagements = response
+        })
     },
 
     updateSelectedEngagement () {

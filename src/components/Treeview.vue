@@ -69,10 +69,10 @@
         let vm = this
         vm.isLoading = true
         Organisation.getChildren(org.uuid, this.atDate)
-        .then(response => {
-          vm.isLoading = false
-          vm.children = response
-        })
+          .then(response => {
+            vm.isLoading = false
+            vm.children = response
+          })
       }
     }
   }

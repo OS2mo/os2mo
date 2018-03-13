@@ -70,10 +70,10 @@ export default {
       let org = Organisation.getSelectedOrganisation()
       if (org.uuid === undefined) return
       Search.employees(org.uuid)
-      .then(response => {
-        vm.isLoading = false
-        vm.employees = response
-      })
+        .then(response => {
+          vm.isLoading = false
+          vm.employees = response
+        })
     },
 
     updateSelectedEmployee () {

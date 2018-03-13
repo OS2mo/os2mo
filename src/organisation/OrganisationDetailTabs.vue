@@ -52,18 +52,12 @@
   import OrganisationUnit from '../api/OrganisationUnit'
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import OrganisationDetailUnit from './OrganisationDetailUnit'
-  import OrganisationDetailLocation from './OrganisationDetailLocation'
-  import OrganisationDetailContact from './OrganisationDetailContact'
-  import OrganisationDetailEngagement from './OrganisationDetailEngagement'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
     components: {
       MoOrganisationUnitDetail,
-      OrganisationDetailUnit,
-      OrganisationDetailLocation,
-      OrganisationDetailContact,
-      OrganisationDetailEngagement
+      OrganisationDetailUnit
     },
     props: {
       uuid: {
@@ -93,9 +87,9 @@
     methods: {
       getTabs () {
         OrganisationUnit.getDetailList(this.uuid)
-        .then(respone => {
-          this.tabs = respone
-        })
+          .then(respone => {
+            this.tabs = respone
+          })
       }
     }
   }

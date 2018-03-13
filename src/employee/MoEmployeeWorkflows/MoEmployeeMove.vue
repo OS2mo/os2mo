@@ -98,14 +98,14 @@
         vm.move.uuid = this.original.uuid
 
         Employee.move(this.employee.uuid, [this.move])
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeMove.hide()
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
-        })
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeMove.hide()
+          })
+          .catch(err => {
+            console.log(err)
+            vm.isLoading = false
+          })
       }
     }
   }

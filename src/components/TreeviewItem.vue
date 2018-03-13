@@ -103,10 +103,10 @@
         vm.loading = true
         vm.model.children = undefined
         OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
-        .then(response => {
-          vm.model.children = response
-          vm.loading = false
-        })
+          .then(response => {
+            vm.model.children = response
+            vm.loading = false
+          })
       }
     }
   }

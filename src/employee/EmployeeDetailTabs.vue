@@ -115,10 +115,10 @@
         let vm = this
         vm.isLoading = true
         Employee.getDetailList(this.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.tabs = response
-        })
+          .then(response => {
+            vm.isLoading = false
+            vm.tabs = response
+          })
       }
     }
   }

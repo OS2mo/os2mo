@@ -89,19 +89,14 @@
         vm.isLoading = true
 
         OrganisationUnit.rename(this.original.uuid, this.rename)
-        .then(response => {
-          vm.$refs.orgUnitRename.hide()
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
-        })
+          .then(response => {
+            vm.$refs.orgUnitRename.hide()
+          })
+          .catch(err => {
+            console.log(err)
+            vm.isLoading = false
+          })
       }
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

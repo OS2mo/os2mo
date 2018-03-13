@@ -67,10 +67,10 @@ export default {
       let vm = this
       vm.isLoading = true
       Employee.leave(this.employee.uuid, [this.leave])
-      .then(response => {
-        vm.isLoading = false
-        vm.$refs.employeeLeave.hide()
-      })
+        .then(response => {
+          vm.isLoading = false
+          vm.$refs.employeeLeave.hide()
+        })
     }
   }
 }

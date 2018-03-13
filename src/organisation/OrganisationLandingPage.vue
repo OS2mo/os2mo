@@ -47,10 +47,10 @@
         let org = Organisation.getSelectedOrganisation()
         if (org.uuid === undefined) return
         Organisation.get(org.uuid)
-        .then(response => {
-          vm.org = response
-          vm.isLoading = false
-        })
+          .then(response => {
+            vm.org = response
+            vm.isLoading = false
+          })
       }
     }
   }

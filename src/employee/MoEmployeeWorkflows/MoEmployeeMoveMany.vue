@@ -93,9 +93,9 @@
       getEmployees (orgUnitUuid) {
         let vm = this
         OrganisationUnit.getDetail(orgUnitUuid, 'engagement')
-        .then(response => {
-          vm.employees = response
-        })
+          .then(response => {
+            vm.employees = response
+          })
       },
 
       moveMany () {

@@ -60,31 +60,26 @@
       getDetails () {
         let vm = this
         OrganisationUnit.getUnitDetails(this.uuid)
-        .then(response => {
-          vm.details = response
-        })
+          .then(response => {
+            vm.details = response
+          })
       },
 
       getDetailsPast () {
         let vm = this
         OrganisationUnit.getUnitDetails(this.uuid, 'past')
-        .then(response => {
-          vm.detailsPast = response
-        })
+          .then(response => {
+            vm.detailsPast = response
+          })
       },
 
       getDetailsFuture () {
         let vm = this
         OrganisationUnit.getUnitDetails(this.uuid, 'future')
-        .then(response => {
-          vm.detailsFuture = response
-        })
+          .then(response => {
+            vm.detailsFuture = response
+          })
       }
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

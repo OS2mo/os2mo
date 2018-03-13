@@ -85,10 +85,10 @@
         let vm = this
         vm.loading[tense] = true
         Employee.getDetail(this.uuid, this.detail, tense)
-        .then(response => {
-          vm.loading[tense] = false
-          vm.details[tense] = response
-        })
+          .then(response => {
+            vm.loading[tense] = false
+            vm.details[tense] = response
+          })
       }
     }
   }
