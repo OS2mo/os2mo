@@ -7,12 +7,9 @@
           label="Vælg enhed"
           v-model="association.org_unit"
         />
-        <job-function-picker 
-          v-model="association.job_function"
-        />
-        <association-type-picker 
-          v-model="association.association_type"
-        />
+        <mo-facet-picker facet="job_function" v-model="association.job_function" required/>
+        <mo-facet-picker facet="association_type" v-model="association.association_type" required/>
+        
       </div>
   </div>
 </template>
@@ -20,15 +17,13 @@
 <script>
 import DateStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import JobFunctionPicker from '../../components/JobFunctionPicker'
-import AssociationTypePicker from '../../components/AssociationTypePicker'
+import MoFacetPicker from '../../components/MoFacetPicker'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
-    JobFunctionPicker,
-    AssociationTypePicker
+    MoFacetPicker
   },
   props: {
     value: Object,

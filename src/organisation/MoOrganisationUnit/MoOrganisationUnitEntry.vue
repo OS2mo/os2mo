@@ -14,7 +14,6 @@
 
       <mo-facet-picker 
       facet="org_unit_type" 
-      label="Enhedstype" 
       v-model="orgUnit.org_unit_type"
       />
       </div>
