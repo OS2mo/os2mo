@@ -33,6 +33,8 @@ def create_manager(employee_uuid, req):
     org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    address_obj = req.get(keys.ADDRESS)
+    address_type = req.get(keys.ADDRESS_TYPE)
     manager_type_uuid = common.get_obj_value(req, (keys.MANAGER_TYPE, 'uuid'))
     responsibility_uuid = common.get_obj_value(req,
                                                (keys.RESPONSIBILITY, 'uuid'))
@@ -70,7 +72,9 @@ def create_manager(employee_uuid, req):
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=manager_type_uuid,
         opgaver=opgaver,
-        # adresser=[location_uuid]
+        adresser=[
+            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+        ] if address_obj and address_type else None,
     )
 
     c.organisationfunktion.create(manager)

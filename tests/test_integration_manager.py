@@ -20,7 +20,8 @@ mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    def test_create_manager(self):
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_create_manager(self, m):
         self.load_sample_structures()
 
         # Check the POST request
@@ -32,6 +33,19 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                'address': {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                },
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
                 "responsibility": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "manager_type": {
@@ -67,6 +81,18 @@ class Tests(util.LoRATestCase):
             },
             "note": "Oprettet i MO",
             "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-12-02 00:00:00+01',
+                            'to_included': False,
+                        },
+                    },
+                ],
                 "tilknyttedeorganisationer": [
                     {
                         "virkning": {
@@ -167,8 +193,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': None,
-                'address_type': None,
+                'address': {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                },
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
