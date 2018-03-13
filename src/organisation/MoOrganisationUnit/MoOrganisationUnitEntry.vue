@@ -20,6 +20,7 @@
 
       <organisation-unit-picker 
         v-model="orgUnit.parent"
+        :is-disabled="disableOrgUnitPicker"
       />
   </div>
 </template>
@@ -40,7 +41,8 @@ export default {
     org: {
       type: Object,
       required: true
-    }
+    },
+    disableOrgUnitPicker: Boolean
   },
   data () {
     return {

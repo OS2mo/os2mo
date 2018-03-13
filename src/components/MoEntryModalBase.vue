@@ -20,6 +20,7 @@
         :is="entryComponent"
         v-model="entry" 
         :org="org" 
+        :disable-org-unit-picker="disableOrgUnitPicker"
         @is-valid="isValid"
       />
 
@@ -81,6 +82,10 @@
     computed: {
       isDisabled () {
         return !this.valid
+      },
+
+      disableOrgUnitPicker () {
+        return this.type === 'ORG_UNIT' && this.action === 'EDIT'
       },
 
       iconLabel () {
