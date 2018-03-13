@@ -102,7 +102,7 @@ export default {
       let emp = Object.keys(this.employee).length > 0
       let ass = Object.keys(this.association).length > 2
       let role = Object.keys(this.role).length > 3
-      let it = Object.keys(this.itSystem).length > 2
+      let it = Object.keys(this.itSystem).length > 3
       let man = Object.keys(this.manager).length > 2
       return (!emp || !this.valid.engagement ||
               (ass ? !this.valid.association : false) ||

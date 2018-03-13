@@ -117,7 +117,7 @@
           let uuid = engagement.person.uuid
           let data = [move]
 
-          Employee.edit(uuid, data)
+          Employee.move(uuid, data)
             .then(response => {
               vm.isLoading = false
               vm.$refs.employeeMoveMany.hide()

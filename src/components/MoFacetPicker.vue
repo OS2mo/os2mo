@@ -41,15 +41,12 @@ export default {
     },
     required: Boolean,
     noLabel: Boolean,
-    label: {
-      type: String,
-      default: 'Rolle'
-    }
   },
   data () {
     return {
       selected: {},
-      facets: []
+      facets: [],
+      label: ''
     }
   },
   mounted () {
@@ -68,7 +65,8 @@ export default {
       if (org.uuid === undefined) return
       Facet.getFacet(org.uuid, this.facet)
       .then(response => {
-        vm.facets = response
+        vm.facets = response.data.items
+        vm.label = response.user_key
       })
     },
 

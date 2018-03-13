@@ -7,7 +7,7 @@
           label="Vælg enhed"
           v-model="role.org_unit"
         />
-        <mo-facet-picker facet="role_type" v-model="role.role_type" label="Rolle"/>
+        <mo-facet-picker facet="role_type" v-model="role.role_type" required/>
       </div>
   </div>
 </template>

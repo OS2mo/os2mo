@@ -97,7 +97,7 @@
         vm.isLoading = true
         vm.move.uuid = this.original.uuid
 
-        Employee.edit(this.employee.uuid, [this.move])
+        Employee.move(this.employee.uuid, [this.move])
         .then(response => {
           vm.isLoading = false
           vm.$refs.employeeMove.hide()

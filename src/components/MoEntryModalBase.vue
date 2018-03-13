@@ -179,7 +179,7 @@
 
       createEmployee (data) {
         let vm = this
-        Employee.create(this.uuid, [data])
+        Employee.createEntry(this.uuid, [data])
         .then(response => {
           vm.isLoading = false
           // vm.entry = {}

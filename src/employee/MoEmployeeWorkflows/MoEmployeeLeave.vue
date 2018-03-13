@@ -66,7 +66,7 @@ export default {
     createLeave () {
       let vm = this
       vm.isLoading = true
-      Employee.create(this.employee.uuid, [this.leave])
+      Employee.leave(this.employee.uuid, [this.leave])
       .then(response => {
         vm.isLoading = false
         vm.$refs.employeeLeave.hide()

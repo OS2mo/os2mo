@@ -81,7 +81,10 @@ class OrgUnit(common.AbstractRelationDetail):
                     ),
                 },
             )
-            if c.is_effect_relevant({'from': start, 'to': end})
+            if c.is_effect_relevant({'from': start, 'to': end}) and
+            effect.get('tilstande')
+                  .get('organisationenhedgyldighed')[0]
+                  .get('gyldighed') == 'Aktiv'
         ])
 
     def edit(self, id, req):
