@@ -47,6 +47,11 @@
         return !this.employee.uuid || !this.terminate.validity.from
       }
     },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
     methods: {
       endEmployee () {
         let vm = this

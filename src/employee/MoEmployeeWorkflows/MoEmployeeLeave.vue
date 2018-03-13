@@ -53,6 +53,11 @@ export default {
       return !this.leaveValid || !this.employee.uuid
     }
   },
+  mounted () {
+    this.$root.$on('bv::modal::hidden', resetData => {
+      Object.assign(this.$data, this.$options.data())
+    })
+  },
   methods: {
     isValid (val) {
       this.leaveValid = val

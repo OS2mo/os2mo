@@ -86,6 +86,11 @@
         return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.original
       }
     },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
     methods: {
       moveEmployee () {
         let vm = this
