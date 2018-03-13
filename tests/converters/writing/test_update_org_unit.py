@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,13 +33,17 @@ class TestExtendAddressesWithContactChannels(TestSetup):
     def test_should_add_zero_contact_channels_correctly(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._add_contact_channels(self.org_unit, None, []),
+            writing._add_contact_channels(self.org_unit,
+                                          location=None,
+                                          contact_channels=[]),
             'Extending incorrectly with an empty list of channels')
 
     def test_should_handle_contact_channels_is_none(self):
         self.assertEqual(
             self.org_unit['relationer']['adresser'].copy(),
-            writing._add_contact_channels(self.org_unit, None, None),
+            writing._add_contact_channels(self.org_unit,
+                                          location=None,
+                                          contact_channels=None),
             'Extending incorrectly when contact channels is None')
 
     @freezegun.freeze_time('2017-01-01', tz_offset=2)
@@ -48,7 +52,7 @@ class TestExtendAddressesWithContactChannels(TestSetup):
             {
                 'contact-info': '12345678',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': 'b7ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -63,7 +67,7 @@ class TestExtendAddressesWithContactChannels(TestSetup):
             {
                 'contact-info': '87654321',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': '00ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -87,25 +91,25 @@ class TestExtendAddressesWithContactChannels(TestSetup):
                                    'to': 'infinity',
                                    'to_included': False}},
                      {'urn': 'urn:magenta.dk:telefon:12345678',
+                      'objekttype': 'v0:N/A:1337',
                       'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                    'from_included': True,
-                                   'notetekst': 'v0:N/A:1337',
                                    'to': 'infinity',
                                    'to_included': False}},
                      {'urn': 'urn:magenta.dk:telefon:87654321',
+                      'objekttype': 'v0:N/A:1337',
                       'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                    'from_included': True,
-                                   'notetekst': 'v0:N/A:1337',
                                    'to': 'infinity',
                                    'to_included': False}}]
         self.assertEqual(
             addresses,
             writing._add_contact_channels(
                 self.org_unit,
-                {
+                location={
                     'uuid': '1337',
                 },
-                contact_channels
+                contact_channels=contact_channels
             ),
             'Extending incorrectly with two contact channels',
         )
@@ -138,10 +142,10 @@ class TestUpdateExistingAddressesForLocations(TestSetup):
             primary=True,
         )
         expected_addresses = [{'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                               'objekttype': 'v0:1:The name',
                                'virkning': {
                                    'from': '2017-01-01T00:00:00+01:00',
                                    'from_included': True,
-                                   'notetekst': 'v0:1:The name',
                                    'to': 'infinity',
                                    'to_included': False}},
                               {'urn': 'urn:magenta.dk:telefon:12345678',
@@ -176,9 +180,9 @@ class TestAddNewLocations(TestSetup):
                           'to': 'infinity',
                           'to_included': False}},
             {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+             'objekttype': 'v0:1:The name',
              'virkning': {'from': '2020-01-01T00:00:00+01:00',
                           'from_included': True,
-                          'notetekst': 'v0:1:The name',
                           'to': 'infinity',
                           'to_included': False}},
         ]
@@ -208,7 +212,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             {
                 'contact-info': '12345678',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': 'b7ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -223,7 +227,7 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             {
                 'contact-info': '87654321',
                 'type': {
-                    'name': 'Phone Number',
+                    'name': 'Telefonnummer',
                     'prefix': 'urn:magenta.dk:telefon:',
                     'uuid': '00ccfb21-f623-4e8f-80ce-89731f726224'
                 },
@@ -250,15 +254,15 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                                            'to': 'infinity',
                                            'to_included': False}},
                              {'urn': 'urn:magenta.dk:telefon:12345678',
+                              'objekttype': 'v0:N/A:1337',
                               'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                            'from_included': True,
-                                           'notetekst': 'v0:N/A:1337',
                                            'to': 'infinity',
                                            'to_included': False}},
                              {'urn': 'urn:magenta.dk:telefon:87654321',
+                              'objekttype': 'v0:N/A:1337',
                               'virkning': {'from': '2017-06-20T00:00:00+02:00',
                                            'from_included': True,
-                                           'notetekst': 'v0:N/A:1337',
                                            'to': 'infinity',
                                            'to_included': False}}]
             }
@@ -296,10 +300,10 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'relationer': {
                 'adresser': [
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                     'objekttype': 'v0:1:Null Location',
                      'virkning': {
                          'from': '2016-12-31T00:00:00+01:00',
                          'from_included': True,
-                         'notetekst': 'v0:1:Null Location',
                          'to': 'infinity',
                          'to_included': False}},
                     {'urn': 'urn:magenta.dk:telefon:12345678',
@@ -341,9 +345,9 @@ class TestUpdateOrgUnitAddresses(TestSetup):
                                   'to': 'infinity',
                                   'to_included': False}},
                     {'uuid': '0a3f50c3-df71-32b8-e044-0003ba298018',
+                     'objekttype': 'v0:0:Null Location',
                      'virkning': {'from': '2020-01-01T00:00:00+01:00',
                                   'from_included': True,
-                                  'notetekst': 'v0:0:Null Location',
                                   'to': 'infinity',
                                   'to_included': False}},
                 ]
@@ -380,3 +384,134 @@ class TestUpdateOrgUnitAddresses(TestSetup):
             'contact-channel',
             location=None,
         ))
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=2)
+    @util.mock()
+    def test_should_add_first_location(self, mock):
+        org = {
+            "attributter": {
+                "organisationenhedegenskaber": [
+                    {
+                        "brugervendtnoegle": "MAGENTA",
+                        "enhedsnavn": "Magenta ApS",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ]
+            },
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "fratidspunkt": {
+                "graenseindikator": True,
+                "tidsstempeldatotid": "2017-12-06T13:05:37.03371+01:00"
+            },
+            "livscykluskode": "Importeret",
+            "note": "Dette er en note.",
+            "relationer": {
+                "enhedstype": [
+                    {
+                        "uuid": "5b6d3b8c-7047-4c32-8fde-5d6e0e6c972f",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ],
+                "overordnet": [
+                    {
+                        "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ],
+                "tilhoerer": [
+                    {
+                        "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ]
+            },
+            "tilstande": {
+                "organisationenhedgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from": "1999-11-15 00:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False
+                        }
+                    }
+                ]
+            },
+            "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+            }
+        }
+
+        mock.get('http://mox/organisation/organisationenhed?'
+                 'uuid=01e479c4-66ef-42aa-877e-15f0512f792c&'
+                 'virkningtil=infinity&virkningfra=-infinity',
+                 json={
+                     "results": [
+                         [
+                             {
+                                 "id": "01e479c4-66ef-42aa-877e-15f0512f792c",
+                                 "registreringer": [
+                                     org
+                                 ]
+                             }
+                         ]
+                     ]
+                 })
+        mock.put('http://mox/organisation/organisationenhed'
+                 '/01e479c4-66ef-42aa-877e-15f0512f792c',
+                 json={
+                     'uuid': '01e479c4-66ef-42aa-877e-15f0512f792c',
+                 })
+
+        self.assertRequestResponse(
+            '/mo/o/8efbd074-ad2a-4e6a-afec-1d0b1891f566/org-unit'
+            '/01e479c4-66ef-42aa-877e-15f0512f792c/role-types/location',
+            {
+                'uuid': '01e479c4-66ef-42aa-877e-15f0512f792c',
+            },
+            json={
+                "valid-from": "10-04-2017",
+                "location": {
+                    "UUID_EnhedsAdresse":
+                    "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                    "postdistrikt": "København K",
+                    "postnr": "1112",
+                    "vejnavn": "Pilestræde 43, 3., 1112 København K"
+                },
+                "primaer": True,
+                "name": "Hovedkontoret",
+                "valid-to": "infinity",
+                "$$hashKey": "1TG"
+            },
+        )

@@ -13,11 +13,9 @@ MedarbejderOrganisation + LoRa. Indholdet er opdelt i følgende sektioner:
    docs/apidoc.rst
 
 
-.. Indices and tables
-   ==================
+Indices and tables
+==================
 
    * :ref:`genindex`
    * :ref:`modindex`
    * :ref:`search`
-
-

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,7 +33,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL='http://idp'):
             self.assertRequestResponse(
-                '/o/',
+                '/mo/o/',
                 {
                     'message': 'No Authorization header present',
                     'status': 401,
@@ -53,7 +53,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {
                     'message': (
                         'The security token could not be authenticated or '
@@ -79,7 +79,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {
                     'message': (
                         'ID3242: The security token could not be '
@@ -105,14 +105,14 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'password': 's3cr1t!',
                 },
             )
 
-            with self.subTest('raw'):
+            with self.subTest('raw'), self.app.app_context():
                 self.assertEquals(
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/wso2-assertion.xml', 'rb'),
@@ -130,24 +130,25 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'password': 's3cr1t!',
                 },
             )
 
-            self.assertEquals(
-                tokens.get_token('X', 'Y', raw=True),
-                util.get_mock_text('auth/adfs-assertion.xml', 'rb')
-            )
+            with self.subTest('raw'), self.app.app_context():
+                self.assertEquals(
+                    tokens.get_token('X', 'Y', raw=True),
+                    util.get_mock_text('auth/adfs-assertion.xml', 'rb')
+                )
 
     @util.mock()
     def test_disabled_login(self, mock):
         with util.override_settings(SAML_IDP_TYPE=None,
                                     SAML_IDP_URL=None):
             self.assertRequestResponse(
-                '/service/user/USER/login',
+                '/mo/service/user/USER/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'password': 's3cr1t!',

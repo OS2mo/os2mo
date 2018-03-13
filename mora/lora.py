@@ -1,15 +1,18 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import copy
+from __future__ import generator_stop
+
+import collections
 import datetime
+import itertools
 import functools
-import typing
+import uuid
 
 import requests
 
@@ -18,17 +21,141 @@ from . import settings
 from . import util
 
 session = requests.Session()
-session.verify = True
+session.verify = settings.CA_BUNDLE or True
 session.auth = auth.SAMLAuth()
+session.headers = {
+    'User-Agent': 'MORA/0.1',
+}
+
+ALL_RELATION_NAMES = {
+    'adresse',
+    'adresser',
+    'afgiftsobjekt',
+    'afleveringsarkiv',
+    'aktivitetdokument',
+    'aktivitetgrundlag',
+    'aktivitetresultat',
+    'aktivitetstype',
+    'andetarkiv',
+    'andrebehandlere',
+    'andredokumenter',
+    'andreklasser',
+    'andresager',
+    'ansatte',
+    'ansvarlig',
+    'ansvarligklasse',
+    'arkiver',
+    'begrundelse',
+    'behandlingarkiv',
+    'besvarelser',
+    'bilag',
+    'branche',
+    'bruger',
+    'brugerrolle',
+    'brugertyper',
+    'byggeri',
+    'deltager',
+    'deltagerklasse',
+    'ejendomsskat',
+    'ejer',
+    'emne',
+    'enhedstype',
+    'erstatter',
+    'facet',
+    'facettilhoerer',
+    'facilitet',
+    'facilitetklasse',
+    'foelsomhedklasse',
+    'foelsomhedsklasse',
+    'fordelttil',
+    'fredning',
+    'geoobjekt',
+    'grundlagklasse',
+    'handlingsklasse',
+    'indsatsaktoer',
+    'indsatsdokument',
+    'indsatsklasse',
+    'indsatskvalitet',
+    'indsatsmodtager',
+    'indsatssag',
+    'indsatstype',
+    # NB: also an attribute :(
+    # 'interessefaellesskabstype',
+    'journalpost',
+    'kommentarer',
+    'kontoklasse',
+    'kopiparter',
+    'lokale',
+    'lovligekombinationer',
+    'mapninger',
+    'myndighed',
+    'myndighedstype',
+    'nyrevision',
+    'objekt',
+    'objektklasse',
+    'opgaveklasse',
+    'opgaver',
+    'organisatoriskfunktionstype',
+    'overordnet',
+    'overordnetklasse',
+    'oversag',
+    'parter',
+    'position',
+    'praecedens',
+    'primaerbehandler',
+    'primaerklasse',
+    'primaerpart',
+    'produktionsenhed',
+    'redaktoerer',
+    'rekvirentklasse',
+    'resultatklasse',
+    'samtykke',
+    'sekundaerpart',
+    'sideordnede',
+    'sikkerhedsklasse',
+    'skatteenhed',
+    'systemtyper',
+    'tilfoejelser',
+    'tilhoerer',
+    'tilknyttedebrugere',
+    'tilknyttedeenheder',
+    'tilknyttedefunktioner',
+    'tilknyttedeinteressefaellesskaber',
+    'tilknyttedeitsystemer',
+    'tilknyttedeorganisationer',
+    'tilknyttedepersoner',
+    'tilknyttedesager',
+    'tilstandsaktoer',
+    'tilstandsdokument',
+    'tilstandskvalitet',
+    'tilstandsobjekt',
+    'tilstandstype',
+    'tilstandsudstyr',
+    'tilstandsvaerdi',
+    'tilstandsvurdering',
+    'udfoerer',
+    'udfoererklasse',
+    'udgangspunkter',
+    'udlaanttil',
+    'virksomhed',
+    'virksomhedstype',
+    'ydelsesklasse',
+    'ydelsesmodtager',
+}
 
 
 def _check_response(r):
     try:
         r.raise_for_status()
     except requests.exceptions.HTTPError as e:
-        if r.status_code == 400 and r.json():
+        try:
+            d = r.json()
+        except ValueError:
+            raise ValueError(r.text)
+
+        if r.status_code == 400 and d:
             raise ValueError(r.json()['message'])
-        elif r.status_code in (401, 403) and r.json():
+        elif r.status_code in (401, 403) and d:
             raise PermissionError(r.json()['message'])
         else:
             raise
@@ -36,145 +163,33 @@ def _check_response(r):
     return r
 
 
-def _get_restrictions_for(*,
-                          effective_date: str = None, validity: str = None,
-                          **params) -> (dict, typing.Callable):
-    '''Get URL parameters for restricting effects by the specified period
-    rather than today/now.
-
-    All other parameters wind up in the dict as-is.
-
-    Return a pair containing the mapping/parameters, and a function
-    for processing elements.
-
-    '''
-
-    restrictions = {}
-
-    if not effective_date:
-        today = util.today()
-    else:
-        today = util.parsedatetime(effective_date)
-
-    tomorrow = today + datetime.timedelta(days=1)
-
-    if not validity or validity == 'present':
-        should_include = None
-
-        #
-        # restrict the search to anything affecting 'today' --
-        # although LoRA implicitly matches anything effective 'now',
-        # we want any hypothetical changes that took affect during
-        # this day
-        #
-        # also, our use of freezegun during tests means that 'now'
-        # from LoRAs perspective isn't what we want
-        #
-        restrictions.update(
-            {
-                'virkningfra': util.to_lora_time(today),
-                'virkningtil': util.to_lora_time(tomorrow),
-            }
-        )
-
-    elif validity == 'future':
-        def should_include(o):
-            s = o['virkning']['from']
-            return util.parsedatetime(s) > today
-
-        restrictions.update(
-            {
-                'virkningfra': util.to_lora_time(tomorrow),
-                'virkningtil': 'infinity',
-            }
-        )
-
-    elif validity == 'past':
-
-        def should_include(o):
-            s = o['virkning']['to']
-            return util.parsedatetime(s) <= today
-
-        restrictions.update(
-            {
-                'virkningfra': '-infinity',
-                'virkningtil': util.to_lora_time(today),
-            }
-        )
-
-    else:
-        raise ValueError('invalid validity {!r}'.format(validity))
-
-    restrictions.update(params)
-
-    if should_include:
-        def apply_restriction_func(entries):
-
-            keys = 'relationer', 'attributter', 'tilstande'
-            r = []
-
-            for entry in copy.deepcopy(entries):
-                for typekey in keys:
-                    typeval = entry.get(typekey, {})
-
-                    for itemkey in list(typeval):
-                        typeval[itemkey][:] = filter(should_include,
-                                                     typeval[itemkey])
-
-                if any(entry.get(typekey) and any(entry[typekey].values())
-                       for typekey in keys):
-                    r.append(entry)
-                else:
-                    r.append(None)
-
-            return r
-
-    else:
-        def apply_restriction_func(entries):
-            return entries
-
-    return restrictions, apply_restriction_func
-
-
 def get(path, uuid, **params):
-    uuid = str(uuid)
 
-    loraparams, apply_restriction_func = _get_restrictions_for(**params)
+    d = fetch(path, uuid=str(uuid), **params)
 
-    r = session.get('{}{}/{}'.format(settings.LORA_URL, path, uuid),
-                    params=loraparams)
-
-    _check_response(r)
-
-    assert len(r.json()) == 1
-
-    if r.json()[uuid] is None:
+    if not d or not d[0]:
         return None
 
-    assert len(r.json()[uuid]) == 1
+    registrations = d[0]['registreringer']
 
-    registrations = r.json()[uuid][0]['registreringer']
+    assert len(d) == 1
 
     if params.keys() & {'registreretfra', 'registrerettil'}:
         return registrations
+    else:
+        assert len(registrations) == 1
 
-    assert len(registrations) == 1
-
-    return apply_restriction_func(registrations)[0]
+        return registrations[0]
 
 
 def fetch(path, **params):
-    loraparams, apply_restriction_func = _get_restrictions_for(**params)
-
-    r = session.get(settings.LORA_URL + path, params=loraparams)
+    r = session.get(settings.LORA_URL + path, params=params)
     _check_response(r)
 
     try:
-        objs = r.json()['results'][0]
+        return r.json()['results'][0]
     except IndexError:
         return []
-
-    return apply_restriction_func(objs)
 
 
 def create(path, obj, uuid=None):
@@ -200,6 +215,263 @@ def update(path, obj):
     return r.json()['uuid']
 
 
+class Connector:
+
+    scope_map = dict(
+        organisation='organisation/organisation',
+        organisationenhed='organisation/organisationenhed',
+        organisationfunktion='organisation/organisationfunktion',
+        bruger='organisation/bruger',
+        itsystem='organisation/itsystem',
+        klasse='klassifikation/klasse',
+        facet='klassifikation/facet',
+        klassifikation='klassifikation/klassifikation',
+    )
+
+    def __init__(self, **defaults):
+        self.__validity = defaults.pop('validity', None) or 'present'
+
+        self.today = util.parsedatetime(
+            defaults.pop('effective_date', None) or util.today(),
+        )
+        self.tomorrow = self.today + datetime.timedelta(days=1)
+
+        if self.__validity == 'past':
+            self.__daterange = (util.negative_infinity, self.today)
+            defaults.update(
+                virkningfra='-infinity',
+                virkningtil=util.to_lora_time(self.today),
+            )
+
+        elif self.__validity == 'future':
+            self.__daterange = (self.tomorrow, util.positive_infinity)
+
+            defaults.update(
+                virkningfra=util.to_lora_time(self.tomorrow),
+                virkningtil='infinity',
+            )
+
+        elif self.__validity == 'present':
+            if 'virkningfra' in defaults or 'virkningtil' in defaults:
+                self.today = util.parsedatetime(defaults['virkningfra'])
+                self.tomorrow = util.parsedatetime(defaults['virkningtil'])
+
+            else:
+                defaults.update(
+                    virkningfra=util.to_lora_time(self.today),
+                    virkningtil=util.to_lora_time(self.tomorrow),
+                )
+
+            self.__daterange = (self.today, self.tomorrow)
+
+        else:
+            raise ValueError('invalid validity {!r}'.format(self.__validity))
+
+        self.__defaults = defaults
+
+    @property
+    def defaults(self):
+        return self.__defaults
+
+    @property
+    def validity(self):
+        return self.__validity
+
+    def __is_range_relevant(self, start, end):
+        if self.validity == 'present':
+            return util.do_ranges_overlap(
+                start, end,
+                *self.__daterange,
+            )
+
+        else:
+            return (
+                util.do_ranges_overlap(start, end, *self.__daterange) and
+                not util.do_ranges_overlap(start, end,
+                                           self.today, self.tomorrow)
+            )
+
+    def get_date_chunks(self, dates):
+        a, b = itertools.tee(sorted(dates))
+
+        # drop the first item -- doing a raw next() fails in Python 3.7
+        for x in itertools.islice(b, 1):
+            pass
+
+        yield from filter(
+            lambda s: self.__is_range_relevant(*s),
+            zip(a, b),
+        )
+
+    def __getattr__(self, attr):
+        try:
+            path = self.scope_map[attr]
+        except KeyError:
+            raise AttributeError(attr)
+
+        scope = Scope(self, path)
+        setattr(self, attr, scope)
+
+        return scope
+
+    def is_effect_relevant(self, effect):
+        return self.__is_range_relevant(util.parsedatetime(effect['from']),
+                                        util.parsedatetime(effect['to']))
+
+
+class Scope:
+    def __init__(self, connector, path):
+        self.connector = connector
+        self.path = path
+
+    @property
+    def base_path(self):
+        return settings.LORA_URL + self.path
+
+    def fetch(self, **params):
+        r = session.get(self.base_path, params={
+            **self.connector.defaults,
+            **params,
+        })
+
+        _check_response(r)
+
+        try:
+            return r.json()['results'][0]
+        except IndexError:
+            return []
+
+    __call__ = fetch
+
+    def get_all(self, *, start=0, limit=1000, **params):
+        params['maximalantalresultater'] = start + limit
+
+        if 'uuid' in params:
+            uuids = util.uniqueify(params['uuid'])
+        else:
+            uuids = self.fetch(**params)[start:start + limit]
+
+        wantregs = params.keys() & {'registreretfra', 'registrerettil'}
+
+        for chunk in util.splitlist(uuids, 20):
+            for d in self.fetch(uuid=chunk):
+                yield d['id'], (d['registreringer'] if wantregs
+                                else d['registreringer'][0])
+
+    def paged_get(self, func, *, start=0, limit=1000, **params):
+
+        uuids = self.fetch(**params)
+
+        return {
+            'total': len(uuids),
+            'offset': start,
+            'items': [
+                func(self.connector, obj_id, obj)
+                for obj_id, obj in self.get_all(
+                    start=start, limit=limit, **params)
+            ],
+        }
+
+    def get(self, uuid, **params):
+        d = self.fetch(uuid=str(uuid), **params)
+
+        if not d or not d[0]:
+            return None
+
+        registrations = d[0]['registreringer']
+
+        assert len(d) == 1
+
+        if params.keys() & {'registreretfra', 'registrerettil'}:
+            return registrations
+        else:
+            assert len(registrations) == 1
+
+            return registrations[0]
+
+    def create(self, obj, uuid=None):
+        if uuid:
+            r = session.put('{}/{}'.format(self.base_path, uuid),
+                            json=obj)
+            _check_response(r)
+            return uuid
+        else:
+            r = session.post(self.base_path, json=obj)
+            _check_response(r)
+            return r.json()['uuid']
+
+    def delete(self, uuid):
+        r = session.delete('{}/{}'.format(self.base_path, uuid))
+        _check_response(r)
+
+    def update(self, obj, uuid):
+        r = session.put('{}/{}'.format(self.base_path, uuid), json=obj)
+        _check_response(r)
+        return r.json()['uuid']
+
+    def get_effects(self, obj, relevant, also=None, **params):
+        reg = (
+            self.get(obj, **params)
+            if isinstance(obj, (str, uuid.UUID))
+            else obj
+        )
+
+        if not reg:
+            return
+
+        chunks = set()
+
+        everything = collections.defaultdict(tuple)
+
+        for group in relevant:
+            everything[group] += relevant[group]
+        for group in also or {}:
+            everything[group] += also[group]
+
+        # extract all beginning and end timestamps for all effects
+        for group, keys in relevant.items():
+            if group not in reg:
+                continue
+
+            entries = reg[group]
+
+            for key in keys:
+                if key not in entries:
+                    continue
+
+                for entry in entries[key]:
+                    chunks.update((
+                        util.parsedatetime(entry['virkning']['from']),
+                        util.parsedatetime(entry['virkning']['to']),
+                    ))
+
+        # sort them, and apply the filter, if given
+        chunks = self.connector.get_date_chunks(chunks)
+
+        def filter_list(entries, start, end):
+            for entry in entries:
+                entry_start = util.parsedatetime(entry['virkning']['from'])
+                entry_end = util.parsedatetime(entry['virkning']['to'])
+
+                if entry_start < end and entry_end > start:
+                    yield entry
+
+        # finally, extract chunks corresponding to each cut-off
+        for start, end in chunks:
+            effect = {
+                group: {
+                    key: list(filter_list(reg[group][key], start, end))
+                    for key in everything[group]
+                    if key in everything[group] and key in reg[group]
+                }
+                for group in everything
+                if group in reg
+            }
+
+            if any(k for g in effect.values() for k in g.values()):
+                yield start, end, effect
+
+
 organisation = functools.partial(fetch, 'organisation/organisation')
 organisation.get = functools.partial(get, 'organisation/organisation')
 organisation.delete = functools.partial(delete, 'organisation/organisation')
@@ -213,6 +485,10 @@ organisationenhed.delete = \
 klasse = functools.partial(fetch, 'klassifikation/klasse')
 klasse.get = functools.partial(get, 'klassifikation/klasse')
 klasse.delete = functools.partial(delete, 'klassifikation/klasse')
+
+# organisation = Connector('organisation/organisation')
+# organisationenhed = Connector('organisation/organisationenhed')
+# klasse = Connector('klassifikation/klasse')
 
 
 # TODO: this function is used a lot, but should we put it elsewhere...

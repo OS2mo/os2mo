@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -38,30 +38,21 @@ class MoraTestCase(TestSetup):
         return self.lora_url + self.lora_urls[key]
 
     def test_acl(self):
-        rv = self.client.get('/acl/')
+        rv = self.client.get('/mo/acl/')
         self.assertEqual(b'[]\n', rv.data,
                          'Acl route should return empty list')
 
-    @util.mock()
-    def test_list_classes(self, mock):
-        lora_klasse_response = util.get_mock_data(
-            'lora/klassifikation/klasse/get_klasse_from_uuidx2.json',
+    def test_list_role_types(self):
+        self.assertRequestResponse(
+            '/mo/role-types/',
+            [
+                "contact",
+                "contact-channel",
+                "engagement",
+                "it",
+                "location",
+            ],
         )
-        mock.get(self._get_lora_url('klassifikation_klasse_bvn'), json={
-            'results': [
-                [
-                    'eb3dc9d3-297d-4c3d-9056-435d7696a8e9',
-                    '14cf4675-e8c9-410f-aef4-abe3e4c1a9b7'
-                ]
-            ]
-        })
-        mock.get(self._get_lora_url('klassifikation_klasse_uuidx2'),
-                 json=lora_klasse_response)
-
-        expected_response = util.get_mock_data('mo/list_classes.json')
-        actual_response = self._request('/org-unit/type')
-
-        self.assertEqual(actual_response, expected_response, 'Hurra')
 
     @util.mock()
     def test_invalid_operations(self, mock):
@@ -69,28 +60,24 @@ class MoraTestCase(TestSetup):
         # verifies that
 
         self.assertRequestResponse(
-            '/o/00000000-0000-0000-0000-000000000000'
+            '/mo/o/00000000-0000-0000-0000-000000000000'
             '/org-unit/00000000-0000-0000-0000-000000000000/?query=fail',
             {
-                'message': 'unitid and query cannot both be set!',
+                'message': 'sub-tree searching not supported!',
                 'status': 400,
             },
             status_code=400,
         )
 
-        self.assertRequestResponse(
-            '/o/00000000-0000-0000-0000-000000000000'
+        self.assertRequestFails(
+            '/mo/o/00000000-0000-0000-0000-000000000000'
             '/org-unit/00000000-0000-0000-0000-000000000000/'
             'role-types/fail/',
-            {
-                'message': "unsupported role 'fail'",
-                'status': 400,
-            },
-            status_code=400,
+            404,
         )
 
         self.assertRequestResponse(
-            '/o/00000000-0000-0000-0000-000000000000'
+            '/mo/o/00000000-0000-0000-0000-000000000000'
             '/full-hierarchy?query=fail',
             {
                 'message': 'sub-tree searching is unsupported!',
@@ -140,7 +127,7 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
             '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5',
             json={'uuid': '65db58f8-a8b9-48e3-b1e3-b0b73636aaa5'})
         r = self.client.post(
-            '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
+            '/mo/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
                 'uuid'] + '?rename=true',
             data=json.dumps(frontend_req),
             content_type='application/json')
@@ -158,7 +145,7 @@ class TestRenameAndRetypeOrgUnit(TestSetup):
             '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe',
             json={'uuid': '383e5dfd-e41c-4a61-9cdc-f8c5ea9b1cbe'})
         r = self.client.post(
-            '/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
+            '/mo/o/' + frontend_req['org'] + '/org-unit/' + frontend_req[
                 'uuid'], data=json.dumps(frontend_req),
             content_type='application/json')
         actual_response = json.loads(r.data.decode())

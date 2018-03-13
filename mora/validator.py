@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,21 +54,46 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
     :return: True if the date range is valid and false otherwise.
     """
 
-    if util.parsedatetime(startdate) >= util.parsedatetime(enddate):
+    startdate = util.parsedatetime(startdate)
+    enddate = util.parsedatetime(enddate)
+
+    if startdate >= enddate:
         return False
 
-    parent = lora.organisationenhed.get(
-        uuid=parent,
+    c = lora.Connector(
         virkningfra=util.to_lora_time(startdate),
         virkningtil=util.to_lora_time(enddate),
     )
 
-    validity = parent['tilstande']['organisationenhedgyldighed']
+    previous_end = None
 
-    if len(validity) == 1 and validity[0]['gyldighed'] == 'Aktiv':
-        return True
+    for start, end, effect in c.organisationenhed.get_effects(
+        parent,
+        {
+            'tilstande': (
+                'organisationenhedgyldighed',
+            )
+        },
+    ):
+        if previous_end is None:
+            # initial case
+            if startdate < start:
+                # start is too late!
+                return False
+        elif start != previous_end:
+            # non-consecutive chunk - so not valid for that time
+            return False
 
-    return False
+        vs = effect['tilstande']['organisationenhedgyldighed']
+
+        if not vs or any(v['gyldighed'] != 'Aktiv' for v in vs):
+            # not valid for the given time
+            return False
+
+        previous_end = end
+
+    # verify that we've achieved full coverage - and return a bool
+    return previous_end is not None and previous_end >= enddate
 
 
 def is_create_org_unit_request_valid(req: dict) -> bool:
@@ -151,9 +176,11 @@ def _get_org_unit_endpoint_date(org_unit: dict,
         if g['gyldighed'] == 'Aktiv':
             virkning = g['virkning']
             if enddate:
-                return lora.util.parsedatetime(virkning['to'])
+                return util.parsedatetime(virkning['to'])
             else:
-                return lora.util.parsedatetime(virkning['from'])
+                return util.parsedatetime(virkning['from'])
+
+    raise ValueError('the unit did not have an end date!')
 
 
 def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:

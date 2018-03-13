@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,36 +7,40 @@
 #
 
 import collections
+import copy
 import datetime
+import functools
 
-from .. import lora
-from .. import util
-from .. import exceptions
+from typing import List
 
 from . import meta
+from .. import exceptions, lora, util
 
 
-def _set_virkning(lora_obj: dict, virkning: dict) -> dict:
+def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
     """
     Adds virkning to the "leafs" of the given LoRa JSON (tree) object.
 
-    :param lora_obj: A LoRa object with or without virkning. All virknings that
-        are already set will be preserved.
+    :param lora_obj: A LoRa object with or without virkning.
     :param virkning: The virkning to set in the LoRa object
+    :param overwrite: Whether any original virknings should be overwritten
     :return: The LoRa object with the new virkning
 
     """
     for k, v in lora_obj.items():
         if isinstance(v, dict):
-            _set_virkning(v, virkning)
+            _set_virkning(v, virkning, overwrite)
         elif isinstance(v, list):
             for d in v:
-                d.setdefault('virkning', virkning.copy())
+                if overwrite:
+                    d['virkning'] = virkning.copy()
+                else:
+                    d.setdefault('virkning', virkning.copy())
     return lora_obj
 
 
 def _create_virkning(From: str, to: str, from_included=True,
-                     to_included=False, note=None) -> dict:
+                     to_included=False) -> dict:
     """
     Create virkning from frontend request.
 
@@ -46,15 +50,12 @@ def _create_virkning(From: str, to: str, from_included=True,
     :param to_included: Specify if the to-date should be included or not.
     :return: The virkning object.
     """
-    d = {
+    return {
         'from': util.to_lora_time(From),
         'to': util.to_lora_time(to),
         'from_included': from_included if not From == '-infinity' else False,
         'to_included': to_included if not to == 'infinity' else False
     }
-    if note:
-        d['notetekst'] = str(note)
-    return d
 
 
 def create_org_unit(req: dict) -> dict:
@@ -70,7 +71,8 @@ def create_org_unit(req: dict) -> dict:
 
     # NOTE: 'to' date is always infinity here but if the 'valid-to' is set in
     # the frontend request, the org unit end-date will be changed below
-    virkning = _create_virkning('-infinity', 'infinity')
+    virkning = _create_virkning(req.get('valid-from'),
+                                req.get('valid-to', 'infinity'))
 
     # Create the organisation unit object
     org_unit = {
@@ -96,11 +98,8 @@ def create_org_unit(req: dict) -> dict:
                 {
                     'uuid': location['location'][
                         'UUID_EnhedsAdresse'],
-                    'virkning': dict(
-                        **virkning,
-                        notetekst=str(
-                            meta.Address.fromdict(location)),
-                    ),
+                    'objekttype': str(meta.Address.fromdict(location)),
+                    'virkning': virkning,
                 }
 
                 # TODO: will we ever have more than one location?
@@ -113,15 +112,12 @@ def create_org_unit(req: dict) -> dict:
                     'urn': 'urn:magenta.dk:telefon:{}'.format(
                         channel['contact-info'],
                     ),
-                    'virkning': dict(
-                        **virkning,
-                        notetekst=str(meta.PhoneNumber(
-                            location=location['location']
-                            ['UUID_EnhedsAdresse'],
-                            visibility=channel['visibility'][
-                                'user-key'],
-                        )),
-                    ),
+                    'objekttype': str(meta.PhoneNumber(
+                        location=location['location']
+                        ['UUID_EnhedsAdresse'],
+                        visibility=channel['visibility']['user-key'],
+                    )),
+                    'virkning': virkning,
                 }
                 for location in req.get('locations', [])
                 for channel in location.get('contact-channels', [])
@@ -147,30 +143,79 @@ def create_org_unit(req: dict) -> dict:
     }
 
     org_unit = _set_virkning(org_unit, virkning)
-    org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
-        'from'] = util.to_lora_time(req.get('valid-from'))
-    org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
-        'from_included'] = True
-
-    # TODO: refactor - lines below are also found in the retype function
-    org_unit['tilstande']['organisationenhedgyldighed'].append(
-        {
-            'gyldighed': 'Inaktiv',
-            'virkning': _create_virkning('-infinity', req.get('valid-from'),
-                                         False, False)
-        }
-    )
-    if 'valid-to' in req:
-        org_unit['tilstande']['organisationenhedgyldighed'][0]['virkning'][
-            'to'] = util.to_lora_time(req.get('valid-to'))
-        org_unit['tilstande']['organisationenhedgyldighed'].append(
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': _create_virkning(req['valid-to'], 'infinity')
-            }
-        )
 
     return org_unit
+
+
+def update_org_funktion_payload(from_time, to_time, note, fields, original,
+                                payload):
+    for field in fields:
+        payload = _create_payload(
+            from_time, to_time,
+            field[0],
+            field[1],
+            note,
+            payload,
+            original)
+
+    paths = [field[0] for field in fields]
+
+    payload = _ensure_object_effect_bounds(
+        from_time, to_time,
+        original, payload,
+        get_remaining_org_funk_fields(paths)
+    )
+
+    return payload
+
+
+def get_remaining_org_funk_fields(obj_paths: List[List[str]]):
+    # TODO: Maybe fetch this information dynamically from LoRa?
+    fields = {
+        ('attributter', 'organisationfunktionegenskaber'),
+        ('tilstande', 'organisationfunktiongyldighed'),
+        ('relationer', 'organisatoriskfunktionstype'),
+        ('relationer', 'opgaver'),
+        ('relationer', 'tilknyttedebrugere'),
+        ('relationer', 'tilknyttedeenheder'),
+        ('relationer', 'tilknyttedeorganisationer'),
+    }
+
+    tupled_set = {tuple(x) for x in obj_paths}
+    diff = fields.difference(tupled_set)
+
+    return [list(x) for x in diff]
+
+
+def move_org_funktion_payload(move_date, from_time, to_time,
+                              overwrite, org_unit_uuid, orgfunk):
+    note = "Flyt engagement"
+    fields = [(
+        ['relationer', 'tilknyttedeenheder'],
+        {'uuid': org_unit_uuid}
+    )]
+
+    payload = {}
+
+    if overwrite:
+        return update_org_funktion_payload(move_date, to_time, note, fields,
+                                           orgfunk, payload)
+    else:
+        return update_org_funktion_payload(move_date, from_time, note, fields,
+                                           orgfunk, payload)
+
+
+def inactivate_org_funktion(startdate, enddate):
+    obj_path = ['tilstande', 'organisationfunktiongyldighed']
+    props_active = {'gyldighed': 'Aktiv'}
+    props_inactive = {'gyldighed': 'Inaktiv'}
+
+    payload = _create_payload(startdate, enddate, obj_path, props_active,
+                              'Afslut funktion')
+    payload = _create_payload(enddate, 'infinity', obj_path, props_inactive,
+                              'Afslut funktion', payload)
+
+    return payload
 
 
 def inactivate_org_unit(startdate: str, enddate: str) -> dict:
@@ -186,10 +231,8 @@ def inactivate_org_unit(startdate: str, enddate: str) -> dict:
     props_active = {'gyldighed': 'Aktiv'}
     props_inactive = {'gyldighed': 'Inaktiv'}
 
-    payload = _create_payload('-infinity', startdate, obj_path, props_inactive,
-                              'Afslut enhed')
     payload = _create_payload(startdate, enddate, obj_path, props_active,
-                              'Afslut enhed', payload)
+                              'Afslut enhed')
     payload = _create_payload(enddate, 'infinity', obj_path, props_inactive,
                               'Afslut enhed', payload)
 
@@ -258,21 +301,26 @@ def retype_org_unit(req: dict) -> dict:
                                   'Ret enhedstype og start dato'
                                   if payload else 'Ret start dato', payload)
 
-        # TODO: maybe the adding-more-stuff-to-a-payload functionality below
-        # should be moved into the _create_payload function
-
-        payload['tilstande']['organisationenhedgyldighed'].append(
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': _create_virkning('-infinity', From, False, False)
-            }
-        )
-
     return payload
 
 
+def _zero_to_many_rels() -> List[str]:
+    # TODO: Load and cache from LoRa
+    return [
+        "adresser",
+        "opgaver",
+        "tilknyttedebrugere",
+        "tilknyttedeenheder",
+        "tilknyttedeorganisationer",
+        "tilknyttedeitsystemer",
+        "tilknyttedeinteressefaellesskaber",
+        "tilknyttedepersoner"
+    ]
+
+
 def _create_payload(From: str, to: str, obj_path: list,
-                    props: dict, note: str, payload: dict = None) -> dict:
+                    props: dict, note: str, payload: dict = None,
+                    original: dict = None) -> dict:
     """
     Generate payload to send to LoRa when updating or writing new data. See
     the example below.
@@ -284,6 +332,9 @@ def _create_payload(From: str, to: str, obj_path: list,
     :param note: Note to add to the payload.
     :param payload: An already existing payload that should have extra
         properties added.
+    :param original: An optional, existing object containing properties on
+        "obj_path" which should be merged with props, in case of adding props
+        to a zero-to-many relation.
     :return: The resulting payload (see example below).
 
     :Example:
@@ -330,7 +381,15 @@ def _create_payload(From: str, to: str, obj_path: list,
             current_value = current_value[key]
         else:
             props_copy['virkning'] = _create_virkning(From, to)
-            if key in current_value.keys():
+            if key in _zero_to_many_rels() and original:
+                if key in current_value.keys():
+                    merge_obj = payload
+                else:
+                    merge_obj = original
+                orig_list = functools.reduce(lambda x, y: x.get(y),
+                                             obj_path, merge_obj)
+                current_value[key] = _merge_obj_effects(orig_list, props_copy)
+            elif key in current_value.keys():
                 current_value[key].append(props_copy)
             else:
                 current_value[key] = [props_copy]
@@ -338,34 +397,191 @@ def _create_payload(From: str, to: str, obj_path: list,
     return payload
 
 
+def _ensure_object_effect_bounds(lower_bound: str, upper_bound: str,
+                                 original: dict, payload: dict,
+                                 paths: List[List[str]]) -> dict:
+    """
+    Given an original object and a set of time bounds from a prospective
+    update, ensure that ranges on object validities are sane, when the
+    update is performed. Operates under the assumption that we do not have
+    any overlapping intervals in validity ranges
+
+    :param lower_bound: The lower bound, in ISO-8601
+    :param upper_bound: The upper bound, in ISO-8601
+    :param original: The original object, as it exists in LoRa
+    :param payload: An existing payload to add the updates to
+    :param paths: A list of paths to be checked on the original object
+    :return: The payload with the additional updates applied, if relevant
+    """
+
+    note = payload.get('note')
+
+    for path in paths:
+        # Get list of original relevant properties, sorted by start_date
+        orig_list = functools.reduce(lambda x, y: x.get(y, {}), path, original)
+        if not orig_list:
+            continue
+        sorted_rel = sorted(orig_list, key=lambda x: x['virkning']['from'])
+        first = sorted_rel[0]
+        last = sorted_rel[-1]
+
+        # Handle lower bound
+        if lower_bound < first['virkning']['from']:
+            props = copy.deepcopy(first)
+            del props['virkning']
+            payload = _create_payload(
+                lower_bound,
+                first['virkning']['to'],
+                path,
+                props,
+                note,
+                payload,
+                original
+            )
+
+        # Handle upper bound
+        if last['virkning']['to'] < upper_bound:
+            props = copy.deepcopy(last)
+            del props['virkning']
+            payload = _create_payload(
+                last['virkning']['from'],
+                upper_bound,
+                path,
+                props,
+                note,
+                payload,
+                original
+            )
+
+    return payload
+
+
+def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
+    """
+    Performs LoRa-like merging of a relation object, with a current list of
+    relation objects, with regards to virkningstider,
+    producing a merged list of relation to be inserted into LoRa, similar to
+    how LoRa performs merging of zero-to-one relations.
+
+    We assume that the list of objects satisfy the same contraints as a list
+    of objects from a zero-to-one relation, i.e. no overlapping time periods
+
+    :param orig_objs: A list of objects with virkningstider
+    :param new: A new object with virkningstid, to be merged
+                into the original list.
+    :return: A list of merged objects
+    """
+    # TODO: Implement merging of two lists?
+
+    sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
+
+    result = [new]
+    new_from = util.parsedatetime(new['virkning']['from'])
+    new_to = util.parsedatetime(new['virkning']['to'])
+
+    for orig in sorted_orig:
+        orig_from = util.parsedatetime(orig['virkning']['from'])
+        orig_to = util.parsedatetime(orig['virkning']['to'])
+
+        if new_to <= orig_from or orig_to <= new_from:
+            # Not affected, add orig as-is
+            result.append(orig)
+            continue
+
+        if new_from <= orig_from:
+            if orig_to <= new_to:
+                # Orig is completely contained in new, ignore
+                continue
+            else:
+                # New end overlaps orig beginning
+                new_rel = copy.deepcopy(orig)
+                new_rel['virkning']['from'] = util.to_lora_time(new_to)
+                result.append(new_rel)
+        elif new_from < orig_to:
+            # New beginning overlaps with orig end
+            new_obj_before = copy.deepcopy(orig)
+            new_obj_before['virkning']['to'] = util.to_lora_time(new_from)
+            result.append(new_obj_before)
+            if new_to < orig_to:
+                # New is contained in orig
+                new_obj_after = copy.deepcopy(orig)
+                new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
+                result.append(new_obj_after)
+
+    return sorted(result, key=lambda x: x['virkning']['from'])
+
+
+def _inactivate_old_interval(old_from: str, old_to: str, new_from: str,
+                             new_to: str, payload: dict,
+                             path: List[str]) -> dict:
+    """
+    Create 'inactivation' updates based on two sets of from/to dates
+    :param old_from: The old 'from' time, in ISO-8601
+    :param old_to: The old 'to' time, in ISO-8601
+    :param new_from: The new 'from' time, in ISO-8601
+    :param new_to: The new 'to' time, in ISO-8601
+    :param payload: An existing payload to add the updates to
+    :param path: The path to where the object's 'gyldighed' is located
+    :return: The payload with the inactivation updates added, if relevant
+    """
+    if old_from < new_from:
+        payload = _create_payload(
+            old_from,
+            new_from,
+            path,
+            {
+                'gyldighed': "Inaktiv"
+            },
+            payload.get('note'),
+            payload
+        )
+    if new_to < old_to:
+        payload = _create_payload(
+            new_to,
+            old_to,
+            path,
+            {
+                'gyldighed': "Inaktiv"
+            },
+            payload.get('note'),
+            payload
+        )
+    return payload
+
 # ---------------------------- Updating addresses -------------------------- #
 
 # ---- Handling of role types: contact-channel, location and None ---- #
 
 
-def _add_contact_channels(org_unit: dict, location: dict,
-                          contact_channels: list) -> dict:
+def _add_contact_channels(obj: dict, *, location: dict=None,
+                          contact_channels: list=None) -> dict:
     """
     Adds new contact channels to the address list.
 
-    :param org_unit: The org unit to update.
+    :param obj: The org unit to update.
     :param location: The location to attach the contact channel to.
     :param contact_channels: List of contact channels to add.
     :return: The updated list of addresses.
     """
-    addresses = org_unit['relationer']['adresser'].copy()
+    addresses = obj['relationer'].get('adresser', []).copy()
 
     if contact_channels:
         addresses.extend([
             {
-                'urn': info['type']['prefix'] + info['contact-info'],
+                'urn': (
+                    (info.get('type') or info['phone-type'])['prefix'] +
+                    info['contact-info']
+                ),
+                'objekttype': str(meta.PhoneNumber(
+                    location=location and location['uuid'],
+                    visibility=(
+                        (info.get('visibility') or info['properties'])
+                        ['user-key']
+                    ),
+                )),
                 'virkning': _create_virkning(
                     info['valid-from'],
-                    info['valid-to'],
-                    note=meta.PhoneNumber(
-                        location=location['uuid'],
-                        visibility=info['visibility']['user-key'],
-                    ),
+                    info.get('valid-to', 'infinity'),
                 ),
             }
             for info in contact_channels
@@ -397,9 +613,10 @@ def _update_existing_address(org_unit: dict,
 
     addresses = [
         address if address.get('uuid') != address_uuid else {
-            'uuid': (location.get('UUID_EnhedsAdresse') or location['uuid']),
-            'virkning': _create_virkning(From, to,
-                                         note=meta.Address(**kwargs)),
+            'uuid': (location.get('UUID_EnhedsAdresse') or
+                     location['uuid']),
+            'objekttype': str(meta.Address(**kwargs)),
+            'virkning': _create_virkning(From, to),
         }
         for address in org_unit['relationer']['adresser']
     ]
@@ -427,11 +644,11 @@ def _add_location(org_unit: dict, location: dict, From: str, to: str,
 
     new_addr = {
         'uuid': location['UUID_EnhedsAdresse'],
-        'virkning': _create_virkning(From, to,
-                                     note=meta.Address(**kwargs)),
+        'objekttype': str(meta.Address(**kwargs)),
+        'virkning': _create_virkning(From, to),
     }
 
-    addresses = org_unit['relationer']['adresser'].copy()
+    addresses = org_unit['relationer'].get('adresser', []).copy()
     addresses.append(new_addr)
 
     return addresses
@@ -476,6 +693,14 @@ def create_update_kwargs(req: dict) -> dict:
             kwargs = {
                 'roletype': roletype,
             }
+    # NB: consistency - employees use contact, not contact-channe
+    elif roletype == 'contact':
+        kwargs = {
+            'contact_channels': [req],
+            'roletype': roletype,
+            'emplid': req['person'],
+            'location': None,
+        }
     elif roletype == 'location':
         kwargs = {
             'roletype': roletype,
@@ -499,6 +724,35 @@ def create_update_kwargs(req: dict) -> dict:
         }
 
     return kwargs
+
+
+def update_employee_addresses(emplid: str, roletype: str, **kwargs):
+    assert roletype == 'contact', roletype
+
+    c = lora.Connector()
+    employee = c.bruger.get(emplid)
+
+    if roletype == 'contact':
+        if 'contact_channels' in kwargs:
+            # Adding contact channels
+            note = 'Tilføj kontaktkanal'
+            updated_addresses = _add_contact_channels(
+                employee, **kwargs)
+        else:
+            # Contact channel already exists
+            note = 'Tilføj eksisterende kontaktkanal'
+            updated_addresses = []
+    else:
+        raise NotImplementedError(roletype)
+
+    payload = {
+        'note': note,
+        'relationer': {
+            'adresser': updated_addresses
+        }
+    }
+
+    return payload
 
 
 def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
@@ -528,6 +782,11 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
             # Contact channel already exists
             note = 'Tilføj eksisterende kontaktkanal'
             updated_addresses = []
+    elif roletype == 'contact':
+        # Adding contact channels
+        note = 'Tilføj kontaktoplysninger'
+        updated_addresses = _add_contact_channels(
+            org_unit, **kwargs)
     elif roletype == 'location':
         # Updating an existing address
         _check_arguments(['address_uuid', 'location', 'From', 'to',
@@ -550,3 +809,13 @@ def update_org_unit_addresses(unitid: str, roletype: str, **kwargs):
     }
 
     return payload
+
+
+def create_contact(req):
+    # TODO: Validation
+    kwargs = create_update_kwargs(req)
+
+    payload = update_employee_addresses(**kwargs)
+
+    if payload['relationer']['adresser']:
+        lora.update('organisation/bruger/%s' % req['person'], payload)

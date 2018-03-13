@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,6 +13,7 @@ import json
 import freezegun
 
 from mora import lora
+from mora import util as mora_util
 from . import util
 
 
@@ -24,7 +25,7 @@ class TestWritingIntegration(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         LOCATION_URL = (
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
             '/role-types/location/'
         )
@@ -34,20 +35,20 @@ class TestWritingIntegration(util.LoRATestCase):
             [
                 {
                     'location': {
-                        'name': 'Kontor',
+                        'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'user-key': '07515902___1_______',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                     },
-                    'name': 'Kontor',
+                    'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
+                    'primaer': False,
                     'role-type': 'location',
                     'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                     'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'valid-from': '-infinity',
+                    'valid-from': '01-01-2016',
                     'valid-to': 'infinity',
                 },
             ],
@@ -63,9 +64,9 @@ class TestWritingIntegration(util.LoRATestCase):
                     "UUID_EnhedsAdresse":
                         "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
-                "name": "Kontor",
+                "name": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                 "org-unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "primaer": True,
+                "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "valid-from": "01-01-2016",
@@ -80,16 +81,16 @@ class TestWritingIntegration(util.LoRATestCase):
             [
                 {
                     'location': {
-                        'name': 'Kontor',
+                        'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'user-key': '07519651__15_______',
                         'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                        'valid-from': '2014-05-05T19:07:48.577000+02:00',
                         'valid-to': 'infinity',
                         'vejnavn': 'Åbogade 15, 8200 Aarhus N',
                     },
-                    'name': 'Kontor',
+                    'name': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     'org-unit': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'primaer': True,
+                    'primaer': False,
                     'role-type': 'location',
                     'user-key': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
@@ -104,7 +105,7 @@ class TestWritingIntegration(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         LOCATION_URL = (
-            '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/org-unit/2874e1dc-85e6-4269-823a-e1125484dfd3'
             '/role-types/location/'
         )
@@ -118,7 +119,7 @@ class TestWritingIntegration(util.LoRATestCase):
                             'name': name,
                             'user-key': '07515902___1_______',
                             'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                            'valid-from': '2014-05-05T19:07:48.577000+00:00',
+                            'valid-from': '2014-05-05T19:07:48.577000+02:00',
                             'valid-to': 'infinity',
                             'vejnavn': 'Nordre Ringgade 1, 8000 Aarhus C',
                         },
@@ -128,14 +129,14 @@ class TestWritingIntegration(util.LoRATestCase):
                         'role-type': 'location',
                         'user-key': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'valid-from': '-infinity',
+                        'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
                     },
                 ],
             )
 
         # Initial sanity check
-        check(True, 'Kontor')
+        check(False, '4e337d8e-1fd2-4449-8110-e0c8a22958ed')
 
         # Edit primary only
         self.assertRequestResponse(
@@ -153,7 +154,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "-infinity",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity"
             },
         )
@@ -176,7 +177,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": False,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "-infinity",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity"
             },
         )
@@ -199,7 +200,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "primaer": True,
                 "role-type": "location",
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "valid-from": "-infinity",
+                "valid-from": "01-01-2016",
                 "valid-to": "infinity"
             },
         )
@@ -214,14 +215,19 @@ class TestWritingIntegration(util.LoRATestCase):
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
         self.assertEquals(
-            self.client.get('/o/{}/org-unit/{}/'.format(org, root)).json[0],
+            self.client.get('/mo/o/{}/org-unit/{}/'.format(org, root)).json[0],
             {
                 'activeName': 'Overordnet Enhed',
                 'name': 'Overordnet Enhed',
                 'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 'parent': None,
                 'parent-object': None,
-                'type': {'name': 'Afdeling'},
+                'type': {
+                    'name': 'Afdeling',
+                    'user-key': 'afd',
+                    'userKey': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
                 'user-key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'valid-from': '01-01-2016',
@@ -233,15 +239,18 @@ class TestWritingIntegration(util.LoRATestCase):
         # before the actual POST request are working
 
         self.assert200(
-            self.client.get('/role-types/contact/facets/type/classes/'
+            self.client.get('/mo/role-types/contact/facets/type/classes/'
                             '?facetKey=Contact_channel_location'))
         self.assert200(
-            self.client.get('/role-types/contact/facets/properties/classes/'))
+            self.client.get(
+                '/mo/role-types/contact/facets/properties/classes/',
+            ),
+        )
         self.assert200(
-            self.client.get('/o/%s/full-hierarchy?effective-date='
+            self.client.get('/mo/o/%s/full-hierarchy?effective-date='
                             '01-06-2016&query=&treeType=treeType' % org))
         self.assert200(self.client.get(
-            '/addressws/geographical-location?local=%s&vejnavn=pile' % org))
+            '/mo/addressws/geographical-location?local=%s&vejnavn=pile' % org))
 
         # Check POST request
 
@@ -253,6 +262,7 @@ class TestWritingIntegration(util.LoRATestCase):
             "parent": root,
             "type": {
                 "name": "Afdeling",
+                "user-key": "Afdeling",
                 "userKey": "Afdeling",
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
             },
@@ -276,7 +286,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -285,7 +295,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 }
             ]
         }
-        r = self.client.post('/o/' + org + '/org-unit',
+        r = self.client.post('/mo/o/' + org + '/org-unit',
                              data=json.dumps(payload),
                              content_type='application/json')
         self.assertEqual(201, r.status_code)
@@ -309,14 +319,19 @@ class TestWritingIntegration(util.LoRATestCase):
         now = datetime.datetime.today().strftime('%s') + '000'
 
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=treeType&t=%s' % (org, now)))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
         with self.subTest('rename'):
-            r = self.client.get('/o/{}/org-unit/{}/'.format(org, uuid), )
+            self.assertRequestFails(
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                404,
+            )
+
+            r = self.client.get('/mo/o/{}/org-unit/{}/'.format(org, uuid), )
 
             self.assert200(r)
 
@@ -332,13 +347,23 @@ class TestWritingIntegration(util.LoRATestCase):
                         'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                         'parent': None,
                         'parent-object': None,
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                         'valid-from': '01-01-2016',
                         'valid-to': 'infinity',
                     },
-                    'type': {'name': 'Afdeling'},
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'userKey': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
                     'user-key': 'NyEnhed',
                     'uuid': uuid,
                     'valid-from': '01-02-2016',
@@ -350,8 +375,13 @@ class TestWritingIntegration(util.LoRATestCase):
             postdata["name"] = "MindreNyEnhed"
             postdata["valid-from"] = "05-02-2016"
 
+            self.assertLess(
+                mora_util.parsedatetime(postdata["valid-from"]),
+                mora_util.now(),
+            )
+
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}?rename=true'.format(org, uuid),
                 {
                     'uuid': uuid,
                 },
@@ -359,8 +389,9 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             with self.subTest('history'):
-                r = self.client.get('/o/{}/org-unit/{}/history/'.format(org,
-                                                                        uuid))
+                r = self.client.get(
+                    '/mo/o/{}/org-unit/{}/history/'.format(org, uuid),
+                )
                 self.assertEqual(r.status_code, 200)
 
                 entries = r.json
@@ -384,11 +415,11 @@ class TestWritingIntegration(util.LoRATestCase):
                     },
                 ])
 
-            r = self.client.get('/o/{}/org-unit/{}/?validity=past'
+            r = self.client.get('/mo/o/{}/org-unit/{}/?validity=past'
                                 .format(org, uuid))
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 [
                     {
                         'activeName': 'NyEnhed',
@@ -401,13 +432,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-02-2016',
-                            'valid-to': '05-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-02-2016',
@@ -422,7 +463,7 @@ class TestWritingIntegration(util.LoRATestCase):
             postdata["valid-to"] = "infinity"
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}?rename=true'.format(org, uuid),
                 {
                     'uuid': uuid,
                 },
@@ -430,7 +471,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 [
                     {
                         'activeName': 'NyEnhed',
@@ -443,13 +484,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-02-2016',
-                            'valid-to': '05-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-02-2016',
@@ -466,13 +517,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '05-02-2016',
-                            'valid-to': '08-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '05-02-2016',
@@ -481,14 +542,14 @@ class TestWritingIntegration(util.LoRATestCase):
                 ]
             )
 
-            r = self.client.get('/o/{}/org-unit/{}/?validity=past'
+            r = self.client.get('/mo/o/{}/org-unit/{}/?validity=past'
                                 .format(org, uuid))
 
             postdata["name"] = "KommendeEnhed"
             postdata["valid-from"] = "1-10-2016"
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}?rename=true'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}?rename=true'.format(org, uuid),
                 {
                     'uuid': uuid,
                 },
@@ -496,7 +557,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, uuid),
                 [
                     {
                         'activeName': 'NyEnhed',
@@ -509,13 +570,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-02-2016',
-                            'valid-to': '05-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-02-2016',
@@ -532,13 +603,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '05-02-2016',
-                            'valid-to': '08-02-2016',
+                            'valid-from': '01-01-2016',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '05-02-2016',
@@ -548,7 +629,7 @@ class TestWritingIntegration(util.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=present'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=present'.format(org, uuid),
                 [
                     {
                         'activeName': 'EndnuMindreNyEnhed',
@@ -561,24 +642,33 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'valid-from': '01-01-2016',
                             'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
-                        # FIXME: is this right?
-                        'valid-from': '01-02-2016',
-                        'valid-to': 'infinity',
+                        'valid-from': '08-02-2016',
+                        'valid-to': '01-10-2016',
                     },
                 ]
             )
 
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=future'.format(org, uuid),
+                '/mo/o/{}/org-unit/{}/?validity=future'.format(org, uuid),
                 [
                     {
                         'activeName': 'KommendeEnhed',
@@ -591,13 +681,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'valid-from': '01-10-2016',
+                            'valid-from': '01-01-2016',
                             'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Afdeling'},
+                        'type': {
+                            'name': 'Afdeling',
+                            'user-key': 'afd',
+                            'userKey': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        },
                         'user-key': 'NyEnhed',
                         'uuid': uuid,
                         'valid-from': '01-10-2016',
@@ -622,6 +722,7 @@ class TestWritingIntegration(util.LoRATestCase):
             "parent": root,
             "type": {
                 "name": "Afdeling",
+                "user-key": "Afdeling",
                 "userKey": "Afdeling",
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
             },
@@ -645,7 +746,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                 "uuid": "00000000-0000-0000-0000-000000000000"
                             },
                             "type": {
-                                "name": "Phone Number",
+                                "name": "Telefonnummer",
                                 "prefix": "urn:magenta.dk:telefon:",
                                 "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
                             }
@@ -654,7 +755,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 }
             ]
         }
-        r = self.client.post('/o/' + org + '/org-unit',
+        r = self.client.post('/mo/o/' + org + '/org-unit',
                              data=json.dumps(payload),
                              content_type='application/json')
         self.assertEqual(201, r.status_code)
@@ -685,9 +786,9 @@ class TestWritingIntegration(util.LoRATestCase):
         # before the actual POST request are working
 
         self.assert200(self.client.get(
-            '/o/%s/org-unit/?query=Humanistisk+fakultet' % ORGID))
+            '/mo/o/%s/org-unit/?query=Humanistisk+fakultet' % ORGID))
         self.assert200(self.client.get(
-            '/o/%s/org-unit/?query=%s&effective-date='
+            '/mo/o/%s/org-unit/?query=%s&effective-date='
             '2017-01-01T12:00:00+00:00' % (ORGID, UNITID)))
 
         expected = {
@@ -701,13 +802,23 @@ class TestWritingIntegration(util.LoRATestCase):
                 "org": ORGID,
                 "parent": None,
                 "parent-object": None,
-                "type": {"name": "Afdeling"},
+                'type': {
+                    'name': 'Afdeling',
+                    'user-key': 'afd',
+                    'userKey': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
                 "user-key": "root",
                 "uuid": PARENTID,
                 "valid-from": "01-01-2016",
                 "valid-to": "infinity",
             },
-            'type': {'name': 'Institut'},
+            'type': {
+                'name': 'Institut',
+                'user-key': 'inst',
+                'userKey': 'inst',
+                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+            },
             "user-key": "hum",
             "uuid": UNITID,
             "valid-from": "01-01-2016",
@@ -715,7 +826,7 @@ class TestWritingIntegration(util.LoRATestCase):
         }
 
         self.assertRequestResponse(
-            '/o/{}/org-unit/{}/'.format(ORGID, UNITID),
+            '/mo/o/{}/org-unit/{}/'.format(ORGID, UNITID),
             [expected],
         )
 
@@ -725,7 +836,7 @@ class TestWritingIntegration(util.LoRATestCase):
         del postdata["valid-to"]
 
         r = self.client.post(
-            '/o/{}/org-unit/{}?rename=true'.format(ORGID, UNITID),
+            '/mo/o/{}/org-unit/{}?rename=true'.format(ORGID, UNITID),
             data=json.dumps(postdata),
             content_type='application/json',
         )
@@ -740,10 +851,10 @@ class TestWritingIntegration(util.LoRATestCase):
         now = datetime.datetime.today().strftime('%s') + '000'
 
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=treeType&t=%s' % (ORGID, now)))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (ORGID, PARENTID, now)))
 
     @freezegun.freeze_time('2017-07-01', tz_offset=+1)
@@ -754,7 +865,7 @@ class TestWritingIntegration(util.LoRATestCase):
         ORG_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?rename=true' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s?rename=true' % (ORG, ORG_UNIT),
             {'uuid': ORG_UNIT},
             json={
                 "activeName": "Samfundsvidenskabelige fakultet",
@@ -767,16 +878,22 @@ class TestWritingIntegration(util.LoRATestCase):
                     "org": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     "parent": None,
                     "parent-object": None,
-                    "type": {
-                        "name": "Afdeling"
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'userKey': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
                     "user-key": "root",
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "valid-from": "2015-12-31T23:00:00+00:00",
+                    "valid-from": "2015-12-31T23:00:00+01:00",
                     "valid-to": "infinity"
                 },
-                "type": {
-                    "name": "Fakultet"
+                'type': {
+                    'name': 'Fakultet',
+                    'user-key': 'fak',
+                    'userKey': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
                 "user-key": "samf",
                 "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
@@ -801,7 +918,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 'brugervendtnoegle': 'samf',
                 'enhedsnavn': 'Samfundsvidenskabelige fakultet',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
                     'to': '2017-08-01 00:00:00+02',
                     'to_included': False
@@ -828,26 +945,29 @@ class TestWritingIntegration(util.LoRATestCase):
             now = datetime.datetime.today().strftime('%s') + '000'
 
             self.assert200(self.client.get(
-                '/o/%s/org-unit/?query=Afdeling+for+Samtidshistorik' % ORGID))
+                '/mo/o/%s/org-unit/?query=Afdeling+for+Samtidshistorik' % (
+                    ORGID,
+                ),
+            ))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/?query=%s'
+                '/mo/o/%s/org-unit/?query=%s'
                 '&effective-date=2017-07-01T12:00:00+00:00' % (ORGID, UNITID)))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/%s/?validity='
+                '/mo/o/%s/org-unit/%s/?validity='
                 '&effective-date=01-03-2017&t=%s' % (ORGID, UNITID, now)))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/%s/role-types/location/'
+                '/mo/o/%s/org-unit/%s/role-types/location/'
                 '?validity=&effective-date=01-03-2017&t=%s' % (
                     ORGID, UNITID, now)))
 
             hierarchy_path = (
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62/full-hierarchy?'
                 'treeType=specific'
                 '&orgUnitId=da77153e-30f3-4dc2-a611-ee912a28d8aa'
             )
 
             orgunit_path = (
-                '/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/mo/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/org-unit/04c78fc2-72d2-4d02-b55f-807af19eac48'
             )
 
@@ -859,7 +979,12 @@ class TestWritingIntegration(util.LoRATestCase):
                     'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'parent': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'user-key': 'frem',
-                    'type': {'name': 'Afdeling'},
+                    'type': {
+                        'name': 'Afdeling',
+                        'user-key': 'afd',
+                        'userKey': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'valid-from': '01-01-2016',
                     'valid-to': '01-01-2019',
@@ -883,24 +1008,6 @@ class TestWritingIntegration(util.LoRATestCase):
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': '2019-01-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '-infinity',
-                                'from_included': True,
-                                'to': '2016-01-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '2019-01-01 00:00:00+01',
-                                'from_included': True,
-                                'to': 'infinity',
                                 'to_included': False,
                             },
                         },
@@ -928,15 +1035,6 @@ class TestWritingIntegration(util.LoRATestCase):
                                 'from': '2016-01-01 00:00:00+01',
                                 'from_included': True,
                                 'to': '2017-03-01 00:00:00+01',
-                                'to_included': False,
-                            },
-                        },
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                'from': '-infinity',
-                                'from_included': True,
-                                'to': '2016-01-01 00:00:00+01',
                                 'to_included': False,
                             },
                         },
@@ -975,13 +1073,13 @@ class TestWritingIntegration(util.LoRATestCase):
 
         with freezegun.freeze_time('2017-08-03'):
             self.assert404(self.client.get(
-                '/o/%s/org-unit/%s/?validity=present&effective-date='
+                '/mo/o/%s/org-unit/%s/?validity=present&effective-date='
                 '&t=1501766568577' % (ORGID, UNITID)))
             self.assert200(self.client.get(
-                '/o/%s/org-unit/%s/role-types/location/?validity=present'
+                '/mo/o/%s/org-unit/%s/role-types/location/?validity=present'
                 '&effective-date=&t=1501766568577' % (ORGID, UNITID)))
             self.assert200(self.client.get(
-                '/o/%s/full-hierarchy?effective-date=&query='
+                '/mo/o/%s/full-hierarchy?effective-date=&query='
                 '&treeType=treeType&t=1501766568624' % ORGID))
 
     @freezegun.freeze_time('2016-01-01', tz_offset=+1)
@@ -994,7 +1092,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Expire the unit at 1 March 2017
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=01-03-2017' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s?endDate=01-03-2017' % (ORG, ORG_UNIT),
             {
                 'uuid': ORG_UNIT,
             },
@@ -1008,15 +1106,6 @@ class TestWritingIntegration(util.LoRATestCase):
                     'from': '2016-01-01 00:00:00+01',
                     'from_included': True,
                     'to': '2017-03-01 00:00:00+01',
-                    'to_included': False
-                }
-            },
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': {
-                    'from': '-infinity',
-                    'from_included': True,
-                    'to': '2016-01-01 00:00:00+01',
                     'to_included': False
                 }
             },
@@ -1039,7 +1128,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # ... and then again on 14 March 2017
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s?endDate=14-03-2017' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s?endDate=14-03-2017' % (ORG, ORG_UNIT),
             {
                 'uuid': ORG_UNIT,
             },
@@ -1053,15 +1142,6 @@ class TestWritingIntegration(util.LoRATestCase):
                     'from': '2016-01-01 00:00:00+01',
                     'from_included': True,
                     'to': '2017-03-14 00:00:00+01',
-                    'to_included': False
-                }
-            },
-            {
-                'gyldighed': 'Inaktiv',
-                'virkning': {
-                    'from': '-infinity',
-                    'from_included': True,
-                    'to': '2016-01-01 00:00:00+01',
                     'to_included': False
                 }
             },
@@ -1097,20 +1177,20 @@ class TestWritingIntegration(util.LoRATestCase):
         now = datetime.datetime.today().strftime('%s') + '000'
 
         self.assert200(
-            self.client.get('/o/%s/full-hierarchy?effective-date='
+            self.client.get('/mo/o/%s/full-hierarchy?effective-date='
                             '01-06-2017&query=&treeType=treeType' % org))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
         self.assert200(
             self.client.get(
-                '/o/%s/org-unit/?query=%s&effective-date=01-06-2016' % (
+                '/mo/o/%s/org-unit/?query=%s&effective-date=01-06-2016' % (
                     org, root)))
 
         # Check the POST request
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/actions/move' % (org, org_unit),
+            '/mo/o/%s/org-unit/%s/actions/move' % (org, org_unit),
             {'uuid': org_unit},
             json={
                 'moveDate': '01-05-2017',
@@ -1122,10 +1202,10 @@ class TestWritingIntegration(util.LoRATestCase):
         # after the actual POST request are working
 
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date='
+            '/mo/o/%s/full-hierarchy?effective-date='
             '&query=&treeType=treeType&t=%s' % (org, now)))
         self.assert200(self.client.get(
-            '/o/%s/full-hierarchy?effective-date=&query='
+            '/mo/o/%s/full-hierarchy?effective-date=&query='
             '&treeType=specific&orgUnitId=%s&t=%s' % (org, root, now)))
 
         entry = lora.get_org_unit(org_unit)
@@ -1142,7 +1222,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         with self.subTest('present'):
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=present'.format(org, org_unit),
+                '/mo/o/{}/org-unit/{}/?validity=present'.format(org, org_unit),
                 [
                     {
                         'activeName': 'Humanistisk fakultet',
@@ -1155,16 +1235,26 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'parent-object': None,
-                            'type': {'name': 'Fakultet'},
+                            'type': {
+                                'name': 'Fakultet',
+                                'user-key': 'fak',
+                                'userKey': 'fak',
+                                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                            },
                             'user-key': 'samf',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                             'valid-from': '01-01-2017',
                             'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Institut'},
+                        'type': {
+                            'name': 'Institut',
+                            'user-key': 'inst',
+                            'userKey': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        },
                         'user-key': 'hum',
                         'uuid': org_unit,
-                        'valid-from': '01-01-2016',
+                        'valid-from': '01-05-2017',
                         'valid-to': 'infinity',
                     },
                 ],
@@ -1172,7 +1262,7 @@ class TestWritingIntegration(util.LoRATestCase):
 
         with self.subTest('past'):
             self.assertRequestResponse(
-                '/o/{}/org-unit/{}/?validity=past'.format(org, org_unit),
+                '/mo/o/{}/org-unit/{}/?validity=past'.format(org, org_unit),
                 [
                     {
                         'activeName': 'Humanistisk fakultet',
@@ -1185,13 +1275,23 @@ class TestWritingIntegration(util.LoRATestCase):
                             'org': '456362c4-0ee4-4e5e-a72c-751239745e62',
                             'parent': None,
                             'parent-object': None,
-                            'type': {'name': 'Afdeling'},
+                            'type': {
+                                'name': 'Afdeling',
+                                'user-key': 'afd',
+                                'userKey': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                            },
                             'user-key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'valid-from': '01-01-2016',
-                            'valid-to': '01-05-2017',
+                            'valid-to': 'infinity',
                         },
-                        'type': {'name': 'Institut'},
+                        'type': {
+                            'name': 'Institut',
+                            'user-key': 'inst',
+                            'userKey': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        },
                         'user-key': 'hum',
                         'uuid': org_unit,
                         'valid-from': '01-01-2016',
@@ -1203,7 +1303,9 @@ class TestWritingIntegration(util.LoRATestCase):
         with self.subTest('future'):
             self.assert404(
                 self.client.get(
-                    '/o/{}/org-unit/{}/?validity=future'.format(org, org_unit),
+                    '/mo/o/{}/org-unit/{}/?validity=future'.format(
+                        org, org_unit,
+                    ),
                 ),
             )
 
@@ -1214,7 +1316,7 @@ class TestWritingIntegration(util.LoRATestCase):
         org = '456362c4-0ee4-4e5e-a72c-751239745e62'
 
         r = self.client.post(
-            '/o/{}/org-unit'.format(org),
+            '/mo/o/{}/org-unit'.format(org),
             content_type='application/json',
             data=json.dumps({
                 "user-key": "NULL",
@@ -1224,6 +1326,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                 "type": {
                     "name": "Afdeling",
+                    "user-key": "afd",
                     "userKey": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
@@ -1247,7 +1350,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "uuid": "N/A",
                                 },
                                 "type": {
-                                    "name": "Phone Number",
+                                    "name": "Telefonnummer",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
                                         "b7ccfb21-f623-4e8f-80ce-89731f726224",
@@ -1261,7 +1364,7 @@ class TestWritingIntegration(util.LoRATestCase):
                                     "uuid": "N/A",
                                 },
                                 "type": {
-                                    "name": "Phone Number",
+                                    "name": "Telefonnummer",
                                     "prefix": "urn:magenta.dk:telefon:",
                                     "uuid":
                                         "b7ccfb21-f623-4e8f-80ce-89731f726224",
@@ -1276,56 +1379,70 @@ class TestWritingIntegration(util.LoRATestCase):
         self.assertEqual(r.status_code, 201)
 
         unitid = r.json['uuid']
-        unitpath = '/o/{}/org-unit/{}/'.format(org, unitid)
+        unitpath = '/mo/o/{}/org-unit/{}/'.format(org, unitid)
 
-        self.assertRequestResponse(unitpath + 'role-types/contact-channel/', [
-            {
-                'contact-info': '1337',
-                'location': {
-                    "name": "Åbovej 5, Åbo, 8260 Viby J",
-                    'user-key': '07519659___5_______',
-                    'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
-                    'valid-from': '2000-02-05T15:27:05+00:00',
-                    'valid-to': 'infinity',
-                    'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
-                },
-                'type': {
+        self.assertRequestFails(unitpath + 'role-types/contact-channel/', 404)
+        self.assertRequestResponse(
+            unitpath + 'role-types/contact-channel/?validity=future', [
+                {
+                    'contact-info': '1337',
+                    'location': {
+                        "name": "Åbovej 5, Åbo, 8260 Viby J",
+                        'user-key': '07519659___5_______',
+                        'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
+                        'valid-from': '2000-02-05T15:27:05+01:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    },
                     'name': 'Telefonnummer',
-                    'prefix': 'urn:magenta.dk:telefon:',
-                    'user-key': 'Telephone_number',
-                },
-                'valid-from': '-infinity',
-                'valid-to': 'infinity',
-                'visibility': {
-                    'name': 'Må vises eksternt',
-                    'user-key': 'external',
-                    'uuid': 'c67d7315-a0a2-4238-a883-f33aa7ddabc2',
-                },
-            },
-            {
-                'contact-info': '42',
-                'location': {
-                    "name": "Åbovej 5, Åbo, 8260 Viby J",
-                    'user-key': '07519659___5_______',
-                    'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
-                    'valid-from': '2000-02-05T15:27:05+00:00',
+                    'phone-type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
+                    'type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
+                    'valid-from': '01-08-2017',
                     'valid-to': 'infinity',
-                    'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    'visibility': {
+                        'name': 'Må vises eksternt',
+                        'user-key': 'external',
+                        'uuid': 'c67d7315-a0a2-4238-a883-f33aa7ddabc2',
+                    },
                 },
-                'type': {
+                {
+                    'contact-info': '42',
+                    'location': {
+                        "name": "Åbovej 5, Åbo, 8260 Viby J",
+                        'user-key': '07519659___5_______',
+                        'uuid': '0a3f50c4-c4ba-32b8-e044-0003ba298018',
+                        'valid-from': '2000-02-05T15:27:05+01:00',
+                        'valid-to': 'infinity',
+                        'vejnavn': 'Åbovej 5, Åbo, 8260 Viby J'
+                    },
                     'name': 'Telefonnummer',
-                    'prefix': 'urn:magenta.dk:telefon:',
-                    'user-key': 'Telephone_number',
+                    'phone-type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
+                    'type': {
+                        'name': 'Telefonnummer',
+                        'prefix': 'urn:magenta.dk:telefon:',
+                        'user-key': 'Telephone_number',
+                    },
+                    'valid-from': '01-08-2017',
+                    'valid-to': 'infinity',
+                    'visibility': {
+                        'name': 'Hemmeligt',
+                        'user-key': 'secret',
+                        'uuid': '8d37a1ec-3d58-461f-821f-c2a7bb6bc861',
+                    },
                 },
-                'valid-from': '-infinity',
-                'valid-to': 'infinity',
-                'visibility': {
-                    'name': 'Hemmeligt',
-                    'user-key': 'secret',
-                    'uuid': '8d37a1ec-3d58-461f-821f-c2a7bb6bc861',
-                },
-            },
-        ])
+            ])
 
     @freezegun.freeze_time('2017-08-01', tz_offset=+1)
     def test_should_new_add_past_and_future_locations_correctly(self):
@@ -1337,7 +1454,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # First add an address in the past
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
             {'uuid': ORG_UNIT},
             json={
                 "valid-from": "01-07-2017",
@@ -1357,31 +1474,30 @@ class TestWritingIntegration(util.LoRATestCase):
         expected_addresses = [
             {
                 'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'objekttype': 'v0:0:fortid',
                 'virkning': {
                     'from': '2017-07-01 00:00:00+02',
                     'from_included': True,
-                    'notetekst': 'v0:0:fortid',
                     'to': '2017-07-19 00:00:00+02',
                     'to_included': False
                 }
             },
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
                     'to_included': False
                 }
             },
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:external:b1f1817d-5f02-'
-                                 '4331-b8b3-97330a5d3197',
                     'to': 'infinity',
                     'to_included': False
                 }
@@ -1396,7 +1512,7 @@ class TestWritingIntegration(util.LoRATestCase):
         # Then add an address in the future
 
         self.assertRequestResponse(
-            '/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
+            '/mo/o/%s/org-unit/%s/role-types/location' % (ORG, ORG_UNIT),
             {'uuid': ORG_UNIT},
             json={
                 "valid-from": "01-09-2017",
@@ -1416,41 +1532,40 @@ class TestWritingIntegration(util.LoRATestCase):
         expected_addresses = [
             {
                 'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'objekttype': 'v0:0:fremtid',
                 'virkning': {
                     'from': '2017-09-01 00:00:00+02',
                     'from_included': True,
-                    'notetekst': 'v0:0:fremtid',
                     'to': '2017-09-19 00:00:00+02',
                     'to_included': False
                 }
             },
             {
                 'uuid': '0a3f50c2-6f16-32b8-e044-0003ba298018',
+                'objekttype': 'v0:0:fortid',
                 'virkning': {
                     'from': '2017-07-01 00:00:00+02',
                     'from_included': True,
-                    'notetekst': 'v0:0:fortid',
                     'to': '2017-07-19 00:00:00+02',
                     'to_included': False
                 }
             },
             {
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:1:Kontor',
                     'to': 'infinity',
                     'to_included': False
                 }
             },
             {
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 'virkning': {
-                    'from': '-infinity',
+                    'from': '2017-01-01 00:00:00+01',
                     'from_included': True,
-                    'notetekst': 'v0:external:b1f1817d-5f02-'
-                                 '4331-b8b3-97330a5d3197',
                     'to': 'infinity',
                     'to_included': False
                 }
@@ -1461,3 +1576,206 @@ class TestWritingIntegration(util.LoRATestCase):
             'relationer']['adresser']
 
         self.assertEqual(expected_addresses, actual_addresses)
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_effect_shortening(self):
+        expected = {
+            "relationer": {
+                "myndighed": [
+                    {
+                        "urn": "urn:dk:kommune:751",
+                        "virkning": {
+                            "to": "infinity",
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "from_included": True
+                        }
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationegenskaber": [
+                    {
+                        "organisationsnavn": "Aarhus Universitet",
+                        "brugervendtnoegle": "AU",
+                        "virkning": {
+                            "to": "infinity",
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "from_included": True
+                        }
+                    }
+                ]
+            },
+            "note": "Automatisk indl\u00e6sning",
+            "tilstande": {
+                "organisationgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "to": "infinity",
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "from_included": True
+                        }
+                    }
+                ]
+            }
+        }
+
+        uuid = lora.create('organisation/organisation', expected)
+        current = lora.organisation.get(uuid)
+
+        del current['fratidspunkt']
+        del current['tiltidspunkt']
+        del current['livscykluskode']
+        del current['brugerref']
+
+        self.assertEqual(expected, current)
+
+        lora.delete('organisation/organisation', uuid)
+
+        import time
+        time.sleep(1)
+
+        # these are the only changes made by deletion!
+        deleted = expected.copy()
+        deleted['livscykluskode'] = 'Slettet'
+        del deleted['note']
+
+        current = lora.organisation.get(uuid,
+                                        virkningfra='-infinity',
+                                        virkningtil='infinity')
+
+        del current['fratidspunkt']
+        del current['tiltidspunkt']
+        del current['brugerref']
+
+        self.assertEqual(current, deleted)
+
+        # totally new thing! (-ish...)
+        expected = {
+            "relationer": {
+            },
+            "attributter": {
+                "organisationegenskaber": [
+                    {
+                        "organisationsnavn": "HEST",
+                        "brugervendtnoegle": None,
+                        "virkning": {
+                            "from": "2016-01-01 00:00:00+01",
+                            "from_included": True,
+                            "to": "2016-06-01 00:00:00+01",
+                            "to_included": False,
+                        },
+                    },
+                    {
+                        "organisationsnavn": "NAAAAAAAAM",
+                        "brugervendtnoegle": "NM",
+                        "virkning": {
+                            "to": "2017-06-01 00:00:00+01",
+                            "to_included": False,
+                            "from": "2016-06-01 00:00:00+01",
+                            "from_included": True
+                        },
+                    },
+                ],
+            },
+            "note": "Automatisk indl\u00e6sning",
+            "tilstande": {
+                "organisationgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "to": "2017-06-01 00:00:00+01",
+                            "to_included": False,
+                            "from": "2016-06-01 00:00:00+01",
+                            "from_included": True
+                        }
+                    }
+                ]
+            }
+        }
+
+        lora.create('organisation/organisation', expected, uuid)
+
+        current = lora.organisation.get(uuid,
+                                        virkningfra='-infinity',
+                                        virkningtil='infinity')
+
+        del current['fratidspunkt']
+        del current['tiltidspunkt']
+        del current['livscykluskode']
+        del current['brugerref']
+
+        self.assertEqual({
+            "attributter": {
+                "organisationegenskaber": [
+                    {
+                        # revived :(
+                        "virkning": {
+                            "from_included": True,
+                            "from": "2017-06-01 01:00:00+02",
+                            "to_included": False,
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "AU",
+                        "organisationsnavn": "Aarhus Universitet"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to_included": False,
+                            "to": "2016-06-01 01:00:00+02"
+                        },
+                        # was "None", so merged...
+                        "brugervendtnoegle": "AU",
+                        # explicitly set...
+                        "organisationsnavn": "HEST"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "from": "2016-06-01 01:00:00+02",
+                            "to_included": False,
+                            "to": "2017-06-01 01:00:00+02"
+                        },
+                        "brugervendtnoegle": "NM",
+                        "organisationsnavn": "NAAAAAAAAM"
+                    },
+                ]
+            },
+            "note": "Automatisk indl\u00e6sning",
+            "tilstande": {
+                "organisationgyldighed": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to_included": False,
+                            "to": "2016-06-01 01:00:00+02"
+                        },
+                        "gyldighed": "Aktiv"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "from": "2016-06-01 01:00:00+02",
+                            "to_included": False,
+                            "to": "2017-06-01 01:00:00+02"
+                        },
+                        "gyldighed": "Aktiv"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "from": "2017-06-01 01:00:00+02",
+                            "to_included": False,
+                            "to": "infinity"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            }
+        }, current)

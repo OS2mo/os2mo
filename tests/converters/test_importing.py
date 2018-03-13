@@ -1,11 +1,12 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import json
 import os
 
 from mora.converters import importing
@@ -13,274 +14,80 @@ from mora.converters import importing
 from .. import util
 
 
-class ImportTest(util.LoRATestCase):
+class MockTests(util.TestCase):
     maxDiff = None
 
-    def test_import(self):
-        virkning_inf = {
-            'from': '-infinity',
-            'from_included': False,
-            'to': 'infinity',
-            'to_included': False,
-        }
+    @util.mock('importing.json')
+    def test_load(self, m):
+        expected = util.get_fixture('MAGENTA_01.json')
 
-        expected = [
-            (
-                'PUT',
-                '/organisation/organisation'
-                '/59141156-ed0b-457c-9535-884447c5220b',
-                {
-                    'attributter': {
-                        'organisationegenskaber': [
-                            {
-                                'brugervendtnoegle': 'Aarhus Kommune',
-                                'organisationsnavn': 'Aarhus Kommune',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'note': None,
-                    'relationer': {
-                        'myndighed': [
-                            {
-                                'urn': 'urn:dk:kommune:751',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'myndighedstype': [
-                            {
-                                'urn': 'urn:oio:objekttype:Kommune',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'virksomhed': [
-                            {
-                                'urn': 'urn:dk:cvr:55133018',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'tilstande': {
-                        'organisationgyldighed': [
-                            {
-                                'gyldighed': 'Aktiv',
-                                'virkning': {
-                                    'from': '2012-01-01T00:00:00+01:00',
-                                    'from_included': True,
-                                    'to': 'infinity',
-                                    'to_included': False,
-                                },
-                            },
-                        ],
-                    },
-                },
-            ),
-            (
-                'PUT',
-                '/klassifikation/klasse/0034fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                {
-                    'attributter': {
-                        'klasseegenskaber': [
-                            {
-                                'beskrivelse': 'Dette er en afdeling',
-                                'brugervendtnoegle': 'Afdeling003',
-                                'titel': 'Afdeling 003',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'tilstande': {
-                        'klassepubliceret': [
-                            {
-                                'publiceret': 'Publiceret',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                },
-            ),
-            (
-                'PUT',
-                '/klassifikation/klasse/9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                {
-                    'attributter': {
-                        'klasseegenskaber': [
-                            {
-                                'beskrivelse': 'Dette er en afdeling',
-                                'brugervendtnoegle': 'Afdeling933',
-                                'titel': 'Afdeling 933',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'tilstande': {
-                        'klassepubliceret': [
-                            {
-                                'publiceret': 'Publiceret',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                },
-            ),
-            (
-                'PUT',
-                '/organisation/organisationenhed'
-                '/0c388d43-a88a-42e0-9f37-4107cac08836',
-                {
-                    'attributter': {
-                        'organisationenhedegenskaber': [
-                            {
-                                'brugervendtnoegle': 'HAVNEN',
-                                'enhedsnavn': 'Aarhus Havn',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'note': None,
-                    'relationer': {
-                        'adresser': [
-                            {
-                                'gyldighed': 'Aktiv',
-                                'urn': 'urn:magenta.dk:telefon:+4512345678',
-                                'virkning': virkning_inf,
-                            },
-                            {
-                                'gyldighed': 'Aktiv',
-                                'uuid': 'afc933a9-2468-40a8-b1b7-919ccc18667b',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'enhedstype': [
-                            {
-                                'uuid': '9334fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'overordnet': [
-                            {
-                                'uuid': '85219a34-a9ca-4fc6-ad34-48019f5dfc44',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'tilhoerer': [
-                            {
-                                'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'tilknyttedeenheder': [
-                            {
-                                'urn': ('urn:kmd.dk:'
-                                        'administrativenhedsid:70070'),
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'tilstande': {
-                        'organisationenhedgyldighed': [
-                            {
-                                'gyldighed': 'Aktiv',
-                                'virkning': {
-                                    'from': '2016-01-01T00:00:00+01:00',
-                                    'from_included': True,
-                                    'to': 'infinity',
-                                    'to_included': False,
-                                },
-                            },
-                            {
-                                'gyldighed': 'Inaktiv',
-                                'virkning': {
-                                    'from': '-infinity',
-                                    'from_included': False,
-                                    'to': '2016-01-01T00:00:00+01:00',
-                                    'to_included': False,
-                                },
-                            },
-                        ],
-                    },
-                },
-            ),
-            (
-                'PUT',
-                '/organisation/organisationenhed'
-                '/85219a34-a9ca-4fc6-ad34-48019f5dfc44',
-                {
-                    'attributter': {
-                        'organisationenhedegenskaber': [
-                            {
-                                'brugervendtnoegle': 'ÅRHUS',
-                                'enhedsnavn': 'Aarhus Kommune',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'note': None,
-                    'relationer': {
-                        'adresser': [
-                            {
-                                'gyldighed': 'Aktiv',
-                                'urn': 'urn:magenta.dk:telefon:+4587654321',
-                                'virkning': virkning_inf,
-                            },
-                            {
-                                'gyldighed': 'Aktiv',
-                                'uuid': '9b9a6a18-ffb7-4ece-a7f1-5368812e4719',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'enhedstype': [
-                            {
-                                'uuid': '0034fa1f-b1ef-4764-8505-c5b9ca43aaa9',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'overordnet': [
-                            {
-                                'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'tilhoerer': [
-                            {
-                                'uuid': '59141156-ed0b-457c-9535-884447c5220b',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                        'tilknyttedeenheder': [
-                            {
-                                'urn': 'urn:kmd.dk:administrativenhedsid:325',
-                                'virkning': virkning_inf,
-                            },
-                        ],
-                    },
-                    'tilstande': {
-                        'organisationenhedgyldighed': [
-                            {
-                                'gyldighed': 'Aktiv',
-                                'virkning': {
-                                    'from': '2016-01-01T00:00:00+01:00',
-                                    'from_included': True,
-                                    'to': 'infinity',
-                                    'to_included': False,
-                                },
-                            },
-                            {
-                                'gyldighed': 'Inaktiv',
-                                'virkning': {
-                                    'from': '-infinity',
-                                    'from_included': False,
-                                    'to': '2016-01-01T00:00:00+01:00',
-                                    'to_included': False,
-                                },
-                            },
-                        ],
-                    },
-                },
-            ),
-        ]
+        self.assertEqual(expected, dict(importing.load_data([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+        ])))
 
-        with open(os.path.join(util.BASE_DIR, 'sandbox', 'AAK',
-                               'AARHUS_minified.xlsx'),
-                  'rb') as fp:
-            self.assertEqual(expected, list(importing.convert(fp)))
+        self.assertEqual(expected, dict(importing.load_data([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+        ], exact=True)))
+
+        self.assertEqual(expected, dict(importing.load_data([
+            os.path.join(util.IMPORTING_DIR, 'MAGENTA_01.csv'),
+        ])))
+
+    @util.mock()
+    def test_convert(self, m):
+        def keyfunc(val):
+            fromdates = {
+                f['virkning']['from']
+                for group in val[2].values()
+                if isinstance(group, dict)
+                for effects in group.values()
+                for f in effects
+            }
+            return val[0], val[1], fromdates
+
+        # JSON converts tuples to lists - the map() converts them back
+        expected = sorted(
+            map(
+                tuple,
+                util.get_fixture('MAGENTA_01-expected.json'),
+            ),
+            key=keyfunc,
+        )
+
+        actual = sorted(importing.convert([
+            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
+        ]), key=keyfunc)
+        actual_path = os.path.join(util.FIXTURE_DIR, 'MAGENTA_01-actual.json')
+
+        # for resetting the test
+        with open(actual_path, 'w') as fp:
+            json.dump(actual, fp, indent=2, sort_keys=True)
+
+        self.assertEqual(expected, actual)
+
+    @util.mock('importing-wash.json')
+    def test_addr_wash(self, m):
+        w = importing._wash_address
+
+        w.cache_clear()
+
+        self.assertEqual(w('', None, None),
+                         None)
+
+        self.assertEqual(w('Rådhuspladsen', 8100, 'Århus C'),
+                         '9b9a6a18-ffb7-4ece-a7f1-5368812e4719')
+
+        self.assertEqual(w('Rådhuset', '8100', 'Aarhus C'),
+                         '9b9a6a18-ffb7-4ece-a7f1-5368812e4719')
+
+        self.assertEqual(w('Skejbygårdsvej 14-16', 8240, 'Risskov'),
+                         None)
+
+        self.assertEqual(w('Runevej 107-109', 8210, 'Aarhus V'),
+                         '209b75e7-a662-4224-9e3d-64ef1f16eab0')
+
+        self.assertEqual(w('Jettesvej 2, Hus 1', 8220, 'Brabrand'),
+                         '2240aef2-7636-40b6-8c19-8f3e4dd65710')
+
+        self.assertEqual(w('Grundtvigsvej 14, kld.', 8260, 'Viby J'),
+                         None)

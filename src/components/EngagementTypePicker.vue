@@ -1,0 +1,72 @@
+<template>
+  <div class="form-group col">
+    <label v-if="!noLabel">{{label}}</label>
+    <select 
+      name="engagement-type-picker"
+      :data-vv-as="label"
+      class="form-control col" 
+      v-model="selected"
+      @change="updateEngagementType()"
+      v-validate="{ required: true }"
+    >
+      <option disabled>{{label}}</option>
+      <option 
+        v-for="etype in engagementTypes" 
+        :key="etype.uuid"
+        :value="etype"
+      >
+        {{etype.name}}
+      </option>
+    </select>
+    <span
+      v-show="errors.has('engagement-type-picker')" 
+      class="text-danger"
+    >
+      {{ errors.first('engagement-type-picker') }}
+    </span>
+  </div>
+</template>
+
+<script>
+import Facet from '../api/Facet'
+import Organisation from '../api/Organisation'
+import { EventBus } from '../EventBus'
+
+export default {
+  props: {
+    value: Object,
+    noLabel: Boolean
+  },
+  data () {
+    return {
+      label: 'Engagementstype',
+      selected: {},
+      engagementTypes: []
+    }
+  },
+  mounted () {
+    EventBus.$on('organisation-changed', () => {
+      this.getEngagementTypes()
+    })
+  },
+  created () {
+    this.getEngagementTypes()
+    this.selected = this.value
+  },
+  methods: {
+    getEngagementTypes () {
+      let vm = this
+      let org = Organisation.getSelectedOrganisation()
+      if (org.uuid === undefined) return
+      Facet.engagementTypes(org.uuid)
+      .then(response => {
+        vm.engagementTypes = response
+      })
+    },
+
+    updateEngagementType () {
+      this.$emit('input', this.selected)
+    }
+  }
+}
+</script>

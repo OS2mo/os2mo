@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -71,9 +71,14 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
         expires=expires.isoformat(),
     )
 
+    if insecure:
+        verify = False
+    else:
+        verify = settings.CA_BUNDLE or True
+
     with requests.post(
             settings.SAML_IDP_URL,
-            data=requestxml, verify=not insecure, headers={
+            data=requestxml, verify=verify, headers={
                 'Content-Type': 'application/soap+xml; charset=utf-8',
             },
             stream=True,
@@ -100,4 +105,6 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
     return assertion if raw else _pack(assertion)
 
 
-__all__ = ('get_token')
+__all__ = (
+    'get_token',
+)

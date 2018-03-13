@@ -1,105 +1,107 @@
 {
-  "http://mox/organisation/organisationenhed/4b8fa170-d30e-43ff-aff3-b9792acfaa7d?virkningfra=2017-07-28T00%3A00%3A00%2B02%3A00&virkningtil=2017-07-29T00%3A00%3A00%2B02%3A00": {
-    "4b8fa170-d30e-43ff-aff3-b9792acfaa7d": [
-      {
-        "id": "4b8fa170-d30e-43ff-aff3-b9792acfaa7d",
-        "registreringer": [
-          {
-            "attributter": {
-              "organisationenhedegenskaber": [
-                {
-                  "brugervendtnoegle": "tid3",
-                  "enhedsnavn": "tid3omd\u00f8b",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
+  "http://mox/organisation/organisationenhed?uuid=4b8fa170-d30e-43ff-aff3-b9792acfaa7d&virkningfra=2017-07-28T00%3A00%3A00%2B02%3A00&virkningtil=2017-07-29T00%3A00%3A00%2B02%3A00": {
+    "results": [
+      [
+        {
+          "id": "4b8fa170-d30e-43ff-aff3-b9792acfaa7d",
+          "registreringer": [
+            {
+              "attributter": {
+                "organisationenhedegenskaber": [
+                  {
+                    "brugervendtnoegle": "tid3",
+                    "enhedsnavn": "tid3omd\u00f8b",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
                   }
-                }
-              ]
-            },
-            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
-            "fratidspunkt": {
-              "graenseindikator": true,
-              "tidsstempeldatotid": "2017-07-28T10:54:33.120331+02:00"
-            },
-            "livscykluskode": "Rettet",
-            "note": "Omd\u00f8b enhed",
-            "relationer": {
-              "adresser": [
-                {
-                  "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2017-11-10T14:58:39.149827+01:00"
+              },
+              "livscykluskode": "Rettet",
+              "note": "Omd\u00f8b enhed",
+              "relationer": {
+                "adresser": [
+                  {
+                    "uuid": "9b9a6a18-ffb7-4ece-a7f1-5368812e4719",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "urn": "urn:magenta.dk:telefon:29208081",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
                   }
-                },
-                {
-                  "urn": "urn:magenta.dk:telefon:29208081",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
+                ],
+                "enhedstype": [
+                  {
+                    "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
                   }
-                }
-              ],
-              "enhedstype": [
-                {
-                  "uuid": "9334fa1f-b1ef-4764-8505-c5b9ca43aaa9",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
+                ],
+                "overordnet": [
+                  {
+                    "uuid": "82d01385-7c4c-4cde-8cd9-cd5b71e3623e",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
                   }
-                }
-              ],
-              "overordnet": [
-                {
-                  "uuid": "82d01385-7c4c-4cde-8cd9-cd5b71e3623e",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "59141156-ed0b-457c-9535-884447c5220b",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
                   }
-                }
-              ],
-              "tilhoerer": [
-                {
-                  "uuid": "59141156-ed0b-457c-9535-884447c5220b",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
+                ]
+              },
+              "tilstande": {
+                "organisationenhedgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2017-07-28 00:00:00+02",
+                      "from_included": true,
+                      "to": "2017-12-06 00:00:00+01",
+                      "to_included": false
+                    }
                   }
-                }
-              ]
-            },
-            "tilstande": {
-              "organisationenhedgyldighed": [
-                {
-                  "gyldighed": "Aktiv",
-                  "virkning": {
-                    "from": "2017-07-28 00:00:00+02",
-                    "from_included": true,
-                    "to": "2017-12-06 00:00:00+01",
-                    "to_included": false
-                  }
-                }
-              ]
-            },
-            "tiltidspunkt": {
-              "tidsstempeldatotid": "infinity"
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
             }
-          }
-        ]
-      }
+          ]
+        }
+      ]
     ]
   }
 }

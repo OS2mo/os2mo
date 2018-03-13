@@ -5,7 +5,7 @@
                 "brugervendtnoegle": "hum",
                 "enhedsnavn": "Humanistisk fakultet",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -19,13 +19,6 @@
                     "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
-            },
-            {
-                "gyldighed": "Inaktiv",
-                "virkning": {
-                    "from": "-infinity",
-                    "to": "2016-01-01 00:00:00+01:00"
-                }
             }
         ]
     },
@@ -34,7 +27,7 @@
             {
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -43,7 +36,7 @@
             {
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -52,7 +45,7 @@
             {
                 "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
                 "virkning": {
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -60,17 +53,17 @@
         "adresser": [
             {
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                 "virkning": {
-                    "notetekst": "v0:1:Kontor",
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             },
             {
                 "urn": "urn:magenta.dk:telefon:+4587150000",
+                "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                 "virkning": {
-                    "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                    "from": "-infinity",
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }

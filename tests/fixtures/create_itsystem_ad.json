@@ -1,0 +1,46 @@
+{
+    "attributter": {
+        "itsystemegenskaber": [
+            {
+                "itsystemnavn": "Active Directory",
+                "brugervendtnoegle": "AD",
+                "itsystemtype": null,
+                "konfigurationreference": null,
+                "virkning": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "note": null,
+    "relationer": {
+        "tilhoerer": [
+            {
+                "objekttype": null,
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "itsystemgyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}

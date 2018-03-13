@@ -61,7 +61,9 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/out/
+/docs/out/
+/docs/blueprints/
+/docs/backend.rst
 
 # PyBuilder
 target/
@@ -91,19 +93,22 @@ ENV/
 
 # Bower/Grunt/Node stuff
 /node_modules
-/bower_components
-/mora/static/scripts/core.js
-/mora/static/scripts/core.js.map
-/mora/static/styles/core.css
-/mora/static/styles/core.min.css
-/mora/static/styles/custom.css
-/mora/static/styles/custom.min.css
+.DS_Store
+/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/test/unit/coverage/
+/test/e2e/reports/
+selenium-debug.log
 
 # IDE config files
 .idea/
-
-sandbox/andreas
-.DS_Store
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 
 # configuration
-config.json
+config/mora.json

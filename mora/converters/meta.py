@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, Magenta ApS
+# Copyright (c) 2017-2018, Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,6 +39,9 @@ class Address(collections.namedtuple('Address', ['name', 'primary'])):
         return 'v0:{:d}:{:s}'.format(self.primary, self.name)
 
 
+MAIL_PREFIX = 'urn:mailto:'
+MAIL_ADDRESS_DESC = 'Mail'
+
 PHONE_PREFIX = 'urn:magenta.dk:telefon:'
 PHONE_NUMBER_DESC = 'Telefonnummer'
 
@@ -68,10 +71,15 @@ class PhoneNumber(collections.namedtuple(
             visibility, location = DEFAULT_PHONE_VISIBILITY, None
         elif s.startswith('v0:'):
             visibility, location = s.split(':', 2)[1:]
+        elif ':' not in s:
+            visibility, location = s, None
         else:
             raise ValueError('unsupported PhoneNumber version: ' + s)
 
         return cls(location, visibility)
 
     def __str__(self):
-        return 'v0:{:s}:{:s}'.format(self.visibility, self.location)
+        if self.location:
+            return 'v0:{:s}:{:s}'.format(self.visibility, self.location)
+        else:
+            return self.visibility

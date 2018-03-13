@@ -10,15 +10,6 @@
           "from_included": true
         },
         "gyldighed": "Aktiv"
-      },
-      {
-        "gyldighed": "Inaktiv",
-        "virkning": {
-          "from": "-infinity",
-          "from_included": true,
-          "to": "2016-01-01 00:00:00+01",
-          "to_included": false
-        }
       }
     ]
   },
@@ -27,7 +18,7 @@
       {
         "virkning": {
           "to": "infinity",
-          "from": "-infinity",
+          "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
@@ -42,7 +33,7 @@
       {
         "virkning": {
           "to": "infinity",
-          "from": "-infinity",
+          "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
@@ -52,22 +43,22 @@
     "adresser": [
       {
         "virkning": {
-          "notetekst": "v0:1:Kontor",
           "to": "infinity",
-          "from": "-infinity",
+          "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
+        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
         "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
       },
       {
         "virkning": {
-          "notetekst": "v0:external:b1f1817d-5f02-4331-b8b3-97330a5d3197",
           "to": "infinity",
-          "from": "-infinity",
+          "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
+        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
         "urn": "urn:magenta.dk:telefon:+4587150000"
       }
     ],
@@ -75,7 +66,7 @@
       {
         "virkning": {
           "to": "2017-05-01 00:00:00+02",
-          "from": "-infinity",
+          "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
@@ -95,7 +86,7 @@
       {
         "virkning": {
           "to": "infinity",
-          "from": "-infinity",
+          "from": "2016-01-01 00:00:00+01",
           "to_included": false,
           "from_included": true
         },
