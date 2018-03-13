@@ -80,7 +80,7 @@
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
           association: ['person', 'association_type', 'job_function', 'address', 'address_type', 'org_unit'],
           role: ['person', 'role_type'],
-          manager: ['person', 'responsibility', 'manager_type', 'manager_level']
+          manager: ['person', 'responsibility', 'manager_type', 'manager_level', 'address_type', 'address']
         },
         components: {
           orgUnit: MoOrganisationUnitEntry
