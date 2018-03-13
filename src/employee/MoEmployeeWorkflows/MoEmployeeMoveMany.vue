@@ -109,7 +109,10 @@
           move.data.org_unit = vm.orgUnitDestination
           move.data.validity.from = vm.moveDate
 
-          Employee.edit(engagement.person.uuid, [move])
+          let uuid = engagement.person.uuid
+          let data = [move]
+
+          Employee.edit(uuid, data)
             .then(response => {
               vm.isLoading = false
               vm.$refs.employeeMoveMany.hide()
