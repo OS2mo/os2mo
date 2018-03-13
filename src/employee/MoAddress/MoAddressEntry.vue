@@ -2,7 +2,7 @@
   <div>
     <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/> 
     <div class="form-row">
-      <mo-facet-picker facet="address_type" label="Adressetype" v-model="entry.address_type" required/>
+      <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
     </div>
   </div>
 </template>
