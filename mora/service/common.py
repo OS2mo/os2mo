@@ -517,7 +517,7 @@ def get_validity_effect(entry, fallback=None):
 
 def replace_relation_value(relations: List[dict],
                            old_entry: dict,
-                           new_entry: dict) -> List[dict]:
+                           new_entry: dict=None) -> List[dict]:
     old_from = get_effect_from(old_entry)
     old_to = get_effect_to(old_entry)
 
@@ -535,7 +535,10 @@ def replace_relation_value(relations: List[dict],
         ):
             new_rels = copy.deepcopy(relations)
 
-            new_rels[i] = new_entry
+            if new_entry:
+                new_rels[i] = new_entry
+            else:
+                del new_rels[i]
 
             return new_rels
 

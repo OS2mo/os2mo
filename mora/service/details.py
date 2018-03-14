@@ -18,7 +18,6 @@ API.
 
 import collections
 import itertools
-import operator
 
 import flask
 
@@ -361,6 +360,9 @@ def get_detail(type, id, function):
         funktionsnavn=keys.FUNCTION_KEYS[function],
     )
 
+    # TODO: the logic encoded in the functions below belong in the
+    # 'mapping' module, as part of e.g. FieldTuples
+
     def get_address(effect):
         try:
             rel = effect['relationer']['adresser'][-1]
@@ -462,50 +464,46 @@ def get_detail(type, id, function):
         }
     }
 
-    # first, extract all object ids
-    function_effects = sorted(
-        (
-            (start, end, funcid, effect)
-            for funcid, funcobj in c.organisationfunktion.get_all(**search)
-            for start, end, effect in c.organisationfunktion.get_effects(
-                funcobj,
-                {
-                    'relationer': (
-                        'opgaver',
-                        'adresser',
-                        'organisatoriskfunktionstype',
-                        'tilknyttedeenheder',
-                    ),
-                    'tilstande': (
-                        'organisationfunktiongyldighed',
-                    ),
-                },
-                {
-                    'attributter': (
-                        'organisationfunktionegenskaber',
-                    ),
-                    'relationer': (
-                        'tilhoerer',
-                        'tilknyttedebrugere',
-                        'tilknyttedeorganisationer',
-                    ),
-                },
-                virkningfra='-infinity',
-                virkningtil='infinity',
-            )
-            if effect.get('tilstande')
-            .get('organisationfunktiongyldighed')[0]
-            .get('gyldighed') == 'Aktiv'
-        ),
-        key=operator.itemgetter(slice(3)),
-    )
+    # first, extract all the effects
+    function_effects = [
+        (start, end, funcid, effect)
+        for funcid, funcobj in c.organisationfunktion.get_all(**search)
+        for start, end, effect in c.organisationfunktion.get_effects(
+            funcobj,
+            {
+                'relationer': (
+                    'opgaver',
+                    'adresser',
+                    'organisatoriskfunktionstype',
+                    'tilknyttedeenheder',
+                ),
+                'tilstande': (
+                    'organisationfunktiongyldighed',
+                ),
+            },
+            {
+                'attributter': (
+                    'organisationfunktionegenskaber',
+                ),
+                'relationer': (
+                    'tilhoerer',
+                    'tilknyttedebrugere',
+                    'tilknyttedeorganisationer',
+                ),
+            },
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
+        if common.is_reg_valid(effect)
+    ]
 
+    # extract all object IDs
     for cache, getter in converters[function].values():
         if cache is not None:
             for start, end, funcid, effect in function_effects:
                 cache[getter(effect)] = None
 
-    # now fetch them
+    # fetch and convert each object once, rather than multiple times
     class_cache.update({
         classid: facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(uuid=class_cache)
@@ -525,7 +523,7 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
-    # finally, convert them
+    # finally, gather it all in the appropriate objects
     def convert(start, end, funcid, effect):
         func = {
             key: cache.get(getter(effect)) if cache else getter(effect)
@@ -540,4 +538,14 @@ def get_detail(type, id, function):
 
         return func
 
-    return flask.jsonify(list(itertools.starmap(convert, function_effects)))
+    def sort_key(obj):
+        return (
+            obj[keys.VALIDITY][keys.FROM],
+            common.get_obj_value(obj, (keys.PERSON, keys.NAME)),
+            common.get_obj_value(obj, (keys.ORG_UNIT, keys.NAME)),
+        )
+
+    return flask.jsonify(sorted(
+        itertools.starmap(convert, function_effects),
+        key=sort_key
+    ))

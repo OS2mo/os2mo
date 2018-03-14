@@ -693,6 +693,174 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(original['relationer']['adresser'], address_rels)
 
+    @util.mock('aabogade.json', allow_mox=True)
+    @unittest.mock.patch('uuid.uuid4',
+                         new=lambda: '00000000-0000-0000-0000-000000000000')
+    def test_create_org_unit(self, m):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = {
+            "name": "Fake Corp",
+            "parent": {
+                'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            "org_unit_type": {
+                'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+            },
+            "addresses": [
+                {
+                    "address_type": {
+                        "example": "20304060",
+                        "name": "Telefonnummer",
+                        "scope": "PHONE",
+                        "user_key": "Telefon",
+                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                    },
+                    "value": "11 22 33 44",
+                },
+                {
+                    "address_type": {
+                        "example": "<UUID>",
+                        "name": "Adresse",
+                        "scope": "DAR",
+                        "user_key": "Adresse",
+                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                    },
+                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                },
+            ],
+            "validity": {
+                "from": "2010-02-04T00:00:00+01",
+                "to": "2017-10-22T00:00:00+02",
+            }
+        }
+
+        r = self._perform_request('/service/ou/create', json=payload)
+        unitid = r.json
+
+        address_rels = [
+            {
+                'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                'virkning': {
+                    'from': '2010-02-04 00:00:00+01',
+                    'to_included': False,
+                    'to': '2017-10-22 00:00:00+02',
+                    'from_included': True,
+                },
+            },
+            {
+                'virkning': {
+                    'from': '2010-02-04 00:00:00+01',
+                    'to_included': False,
+                    'to': '2017-10-22 00:00:00+02',
+                    'from_included': True,
+                },
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                'urn': 'urn:magenta.dk:telefon:+4511223344',
+            },
+        ]
+
+        self.assertEqual(
+            address_rels,
+            c.organisationenhed.get(unitid)['relationer']['adresser'],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/'.format(unitid),
+            {
+                'name': 'Fake Corp',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'parent': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                },
+                'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
+                'uuid': unitid,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/'.format(unitid),
+            {
+                'address': True,
+                'association': False,
+                'engagement': False,
+                'leave': False,
+                'manager': False,
+                'org_unit': True,
+                'role': False,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [
+                {
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    },
+                    'href': 'tel:+4511223344',
+                    'name': '1122 3344',
+                    'validity': {
+                        'from': '2010-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'value': 'urn:magenta.dk:telefon:+4511223344',
+                },
+                {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'validity': {
+                        'from': '2010-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address?validity=future'.format(unitid),
+            [],
+        )
+
+        self.assertEqual(
+            address_rels,
+            c.organisationenhed.get(unitid)['relationer']['adresser'],
+        )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):

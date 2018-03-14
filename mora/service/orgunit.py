@@ -388,7 +388,10 @@ def create_org_unit():
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
     org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
     org_unit_type_uuid = req.get(keys.ORG_UNIT_TYPE).get('uuid')
-    # addresses = req.get(keys.ADDRESSES)
+    addresses = [
+        address.get_relation_for(addr[keys.ADDRESS_TYPE], addr[keys.VALUE])
+        for addr in req.get(keys.ADDRESSES) or []
+    ]
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
@@ -405,7 +408,7 @@ def create_org_unit():
         tilhoerer=org_uuid,
         enhedstype=org_unit_type_uuid,
         overordnet=parent_uuid,
-        # adresser=addresses,
+        adresser=addresses,
     )
 
     unitid = c.organisationenhed.create(org_unit)
