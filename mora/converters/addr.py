@@ -16,13 +16,6 @@ session = requests.Session()
 
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
 
-URN_FORMATS = {
-    'EMAIL': 'urn:mailto:{}',
-    'PHONE': 'urn:magenta.dk:telefon:+45{:08d}',
-    'EAN': 'urn:magenta.dk:ean:{}',
-    'WWW': 'urn:magenta.dk:www:{}',
-}
-
 
 def get_address(addrid: str):
     'Obtain an address from DAWA'

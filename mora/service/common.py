@@ -551,9 +551,11 @@ def is_reg_valid(reg):
     :param reg: A registration object
     """
 
-    return any([gyldighed_obj.get('gyldighed') == 'Aktiv'
-                for tilstand in reg.get('tilstande', {}).values()
-                for gyldighed_obj in tilstand])
+    return any(
+        gyldighed_obj.get('gyldighed') == 'Aktiv'
+        for tilstand in reg.get('tilstande', {}).values()
+        for gyldighed_obj in tilstand
+    )
 
 
 def add_bruger_history_entry(employee_uuid, note: str):

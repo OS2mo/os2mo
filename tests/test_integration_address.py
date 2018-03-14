@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import unittest
+import unittest.mock
 import copy
 
 import freezegun
@@ -260,7 +260,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": phone_class,
-                    "address": 33369696,
+                    "address": '3336 9696',
                     "validity": {
                         "from": "2016-01-01T00:00:00+01",
                     },
@@ -309,7 +309,7 @@ class Writing(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'href': 'tel:+4533369696',
-                'name': 33369696,
+                'name': '3336 9696',
                 'value': 'urn:magenta.dk:telefon:+4533369696',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
@@ -612,7 +612,7 @@ class Writing(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'href': 'tel:+4587150000',
-                'name': 87150000,
+                'name': '8715 0000',
                 'value': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
@@ -808,7 +808,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': 87150000,
+                        'name': '8715 0000',
                         'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
@@ -849,7 +849,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': 87150000,
+                        'name': '8715 0000',
                         'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
@@ -890,7 +890,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': 87150000,
+                        'name': '8715 0000',
                         'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2017-01-01T00:00:00+01:00',
@@ -931,7 +931,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': 87150000,
+                        'name': '8715 0000',
                         'value': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
