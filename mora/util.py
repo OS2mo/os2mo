@@ -254,6 +254,10 @@ def splitlist(xs, size):
         i += size
 
 
+def is_urn(v):
+    return v and isinstance(v, str) and v.startswith('urn:')
+
+
 def is_uuid(v):
     try:
         uuid.UUID(v)
