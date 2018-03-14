@@ -56,30 +56,6 @@ export default {
   },
 
   /**
-   * Get location details
-   * @see getDetail
-   */
-  getLocationDetails (uuid, validity) {
-    return this.getDetail(uuid, 'location', validity)
-  },
-
-  /**
-   * Get contact channel details
-   * @see getDetail
-   */
-  getContactDetails (uuid, validity) {
-    return this.getDetail(uuid, 'contact-channel', validity)
-  },
-
-  /**
-   * Get engagement details
-   * @see getDetail
-   */
-  getEngagementDetails (uuid, validity) {
-    return this.getDetail(uuid, 'engagement', validity)
-  },
-
-  /**
    * Base call for getting details.
    * @param {String} uuid - organisation unit uuid
    * @param {String} detail - Name of the detail
