@@ -4,14 +4,16 @@
       <b-tab title="Enhed" active>
         <mo-organisation-unit-detail 
           :uuid="uuid" 
+          :at-date="atDate"
           detail="org_unit"
           :columns="columns.org_unit"
-          :entry-component="components.orgUnit"
+          :entry-component="timemachineFriendly ? undefined : components.orgUnit"
         />
       </b-tab>
       <b-tab title="Adresse">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
+          :at-date="atDate"
           detail="address"
           :columns="columns.address"
         />
@@ -19,6 +21,7 @@
       <b-tab title="Engagementer">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
+          :at-date="atDate"
           detail="engagement"
           :columns="columns.engagement"
         />
@@ -26,6 +29,7 @@
       <b-tab title="Tilknytninger">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
+          :at-date="atDate"
           detail="association"
           :columns="columns.association"
         />
@@ -33,6 +37,7 @@
       <b-tab title="Rolle">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
+          :at-date="atDate"
           detail="role"
           :columns="columns.role"
         />
@@ -40,6 +45,7 @@
       <b-tab title="Leder">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
+          :at-date="atDate"
           detail="manager"
           :columns="columns.manager"
         />
@@ -49,7 +55,6 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import OrganisationDetailUnit from './OrganisationDetailUnit'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
@@ -63,11 +68,12 @@
       uuid: {
         type: String,
         required: true
-      }
+      },
+      atDate: [Date, String],
+      timemachineFriendly: Boolean
     },
     data () {
       return {
-        tabs: {},
         columns: {
           org_unit: [null, 'org_unit_type', 'parent'],
           address: ['address_type', null],
@@ -79,17 +85,6 @@
         components: {
           orgUnit: MoOrganisationUnitEntry
         }
-      }
-    },
-    created () {
-      this.getTabs()
-    },
-    methods: {
-      getTabs () {
-        OrganisationUnit.getDetailList(this.uuid)
-          .then(respone => {
-            this.tabs = respone
-          })
       }
     }
   }

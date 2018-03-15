@@ -38,6 +38,7 @@
         type: String,
         required: true
       },
+      atDate: [Date, String],
       detail: {
         type: String,
         required: true
@@ -48,7 +49,6 @@
         type: String,
         default: 'Opret ny'
       }
-
     },
     data () {
       return {
@@ -69,6 +69,11 @@
         this.getAllDetails()
       })
     },
+    watch: {
+      uuid () {
+        this.getAllDetails()
+      }
+    },
     created () {
       this.getAllDetails()
     },
@@ -84,7 +89,7 @@
       getDetails (tense) {
         let vm = this
         vm.loading[tense] = true
-        OrganisationUnit.getDetail(this.uuid, this.detail, tense)
+        OrganisationUnit.getDetail(this.uuid, this.detail, tense, this.atDate)
           .then(response => {
             vm.loading[tense] = false
             vm.details[tense] = response

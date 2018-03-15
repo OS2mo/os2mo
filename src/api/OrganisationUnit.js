@@ -62,9 +62,10 @@ export default {
    * @param {String} validity - Can be either past, present or future
    * @returns {Array} A list of options for the detail
    */
-  getDetail (uuid, detail, validity) {
+  getDetail (uuid, detail, validity, atDate) {
     validity = validity || 'present'
-    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}`)
+    atDate = atDate || new Date()
+    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate.toISOString()}`)
       .then(response => {
         return response.data
       })

@@ -32,6 +32,7 @@
           v-model="selected"
           @click="selectOrgUnit(selected)"
           :model="model"
+          :at-date="atDate"
           :linkable="linkable">
         </tree-view-item>
       </ul>
