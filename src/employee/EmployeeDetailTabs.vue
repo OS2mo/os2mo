@@ -64,7 +64,6 @@
 
 
 <script>
-  import Employee from '../api/Employee'
   import Loading from '../components/Loading'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
@@ -85,7 +84,6 @@
     },
     data () {
       return {
-        tabs: {},
         isLoading: false,
         columns: {
           engagement: ['org_unit', 'job_function', 'engagement_type'],
@@ -106,21 +104,6 @@
           address: MoAddressEntry
         }
       }
-    },
-    created () {
-      this.getTabs()
-    },
-    methods: {
-      getTabs () {
-        let vm = this
-        vm.isLoading = true
-        Employee.getDetailList(this.uuid)
-          .then(response => {
-            vm.isLoading = false
-            vm.tabs = response
-          })
-      }
     }
   }
 </script>
-i
