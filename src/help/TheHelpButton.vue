@@ -1,6 +1,6 @@
 <template>
   <router-link :to="{ name: 'Help'}">
-    <button type="button" class="btn btn-link">
+    <button type="button" class="btn btn-link" v-shortkey.once="['h']" @shortkey="theAction()">
       <icon name="question-circle"></icon>
     </button>
   </router-link>
@@ -13,7 +13,11 @@
       return {}
     },
     created: function () {},
-    methods: {}
+    methods: {
+      theAction () {
+        this.$router.push({name: 'Help'})
+      }
+    }
   }
 </script>
 

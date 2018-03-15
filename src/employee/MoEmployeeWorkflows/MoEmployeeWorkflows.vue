@@ -1,5 +1,12 @@
 <template>
-  <div>
+  <div 
+    v-shortkey="{employeeCreate: ['ctrl', 'alt', 'n'], 
+    employeeLeave: ['ctrl', 'alt', 'o'], 
+    employeeMove: ['ctrl', 'alt', 'm'], 
+    employeeMoveMany: ['ctrl', 'alt', 'y'],
+    employeeTerminate: ['ctrl', 'alt', 'd']}" 
+    @shortkey="theAction()"
+  >
     <div id="workflows">
       <button-workflow label="Ny Medarbejder" icon="user-plus" v-b-modal.employeeCreate/>
       <button-workflow label="Orlov" icon="user-md" v-b-modal.employeeLeave/>
@@ -44,6 +51,11 @@
       EventBus.$on('organisation-changed', (org) => {
         this.org = org
       })
+    },
+    methods: {
+      theAction () {
+        this.$root.$emit('bv::show::modal', event.srcKey)
+      }
     }
   }
 </script>
