@@ -262,13 +262,13 @@ class Addresses(common.AbstractRelationDetail):
 
         old_rel = get_relation_for(
             old_entry[keys.ADDRESS_TYPE],
-            old_entry[keys.NAME],
+            old_entry[keys.VALUE],
         )
         old_rel['virkning'] = common.get_validity_effect(old_entry)
 
         new_rel = get_relation_for(
             new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
-            new_entry.get(keys.VALUE) or old_entry[keys.NAME],
+            new_entry.get(keys.VALUE) or old_entry[keys.VALUE],
         )
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
