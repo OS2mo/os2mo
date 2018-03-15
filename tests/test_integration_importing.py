@@ -2355,7 +2355,7 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'href': 'tel:+4511221122',
-                        'name': 11221122,
+                        'name': '1122 1122',
                         'value': 'urn:magenta.dk:telefon:+4511221122',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
@@ -2412,7 +2412,7 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'href': 'tel:+4511223344',
-                        'name': 11223344,
+                        'name': '1122 3344',
                         'value': 'urn:magenta.dk:telefon:+4511223344',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
@@ -2469,7 +2469,7 @@ class IntegrationTests(util.LoRATestCase):
                             'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a',
                         },
                         'href': 'tel:+4544772000',
-                        'name': 44772000,
+                        'name': '4477 2000',
                         'value': 'urn:magenta.dk:telefon:+4544772000',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
@@ -2523,7 +2523,7 @@ class IntegrationTests(util.LoRATestCase):
                     'user_key': 'Telefon',
                     'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a'},
                   'href': 'tel:+4544773333',
-                  'name': 44773333,
+                  'name': '4477 3333',
                   'value': 'urn:magenta.dk:telefon:+4544773333',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',

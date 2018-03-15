@@ -18,21 +18,31 @@ import itertools
 import re
 
 import flask
-import parse
 import requests
 
 from .. import lora
 from .. import util
-from ..converters import addr
 
 from . import common
 from . import facet
 from . import keys
 
-HREF_FORMATS = {
-    'EMAIL': 'mailto:{}',
-    'PHONE': 'tel:+45{}',
-    'WWW': '{}',
+session = requests.Session()
+session.headers = {
+    'User-Agent': 'MORA/0.1',
+}
+
+URN_PREFIXES = {
+    'EMAIL': 'urn:mailto:',
+    'PHONE': 'urn:magenta.dk:telefon:',
+    'EAN': 'urn:magenta.dk:ean:',
+    'WWW': 'urn:magenta.dk:www:',
+}
+
+HREF_PREFIXES = {
+    'EMAIL': 'mailto:',
+    'PHONE': 'tel:',
+    'WWW': '',
 }
 
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
@@ -43,6 +53,9 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
 
 def get_relation_for(classobj, value):
     scope = classobj['scope']
+
+    if not isinstance(value, str):
+        value = str(value)
 
     if scope == 'DAR':
         if not util.is_uuid(value):
@@ -55,9 +68,20 @@ def get_relation_for(classobj, value):
             'objekttype': classobj['uuid'],
         }
 
-    elif scope in addr.URN_FORMATS:
+    elif scope in URN_PREFIXES:
+        prefix = URN_PREFIXES[scope]
+
+        if scope == 'PHONE':
+            value = re.sub(r'\s+', '', value)
+
+            if not value.startswith('+'):
+                value = '+45' + value
+
+        if not util.is_urn(value):
+            value = prefix + value
+
         r = {
-            'urn': addr.URN_FORMATS[scope].format(value),
+            'urn': value,
             'objekttype': classobj['uuid'],
         }
 
@@ -82,9 +106,21 @@ def get_address_class(c, addrrel, class_cache):
 
 def get_one_address(c, addrrel, class_cache=None):
     addrclass = get_address_class(c, addrrel, class_cache)
+    addrformat = addrclass['scope']
 
-    if addrclass['scope'] == 'DAR':
-        addrobj = addr.get_address(addrrel['uuid'])
+    if addrformat == 'DAR':
+        # unfortunately, we cannot live with struktur=mini, as it omits
+        # the formatted address :(
+        r = session.get(
+            'http://dawa.aws.dk/adresser/' + addrrel['uuid'],
+            params={
+                'noformat': '1',
+            },
+        )
+
+        r.raise_for_status()
+
+        addrobj = r.json()
 
         name = addrobj['adressebetegnelse']
         value = addrrel['uuid']
@@ -96,26 +132,28 @@ def get_one_address(c, addrrel, class_cache=None):
             )
         )
 
-    elif addrclass['scope'] in addr.URN_FORMATS:
-        m = parse.parse(addr.URN_FORMATS[addrclass['scope']],
-                        addrrel['urn'])
+    elif addrformat in URN_PREFIXES:
+        prefix = URN_PREFIXES[addrformat]
 
-        if not m:
+        value = addrrel['urn']
+
+        if not value.startswith(prefix):
             raise ValueError('invalid value {!r}'.format(
                 addrrel['urn'],
             ))
 
-        name = m[0]
-        value = addrrel['urn']
+        name = value[len(prefix):]
         href = (
-            HREF_FORMATS[addrclass['scope']].format(name)
-            if addrclass['scope'] in HREF_FORMATS else None
+            HREF_PREFIXES[addrformat] + name
+            if addrformat in HREF_PREFIXES
+            else None
         )
 
+        if addrformat == 'PHONE':
+            name = re.sub(r'^(\+45)(\d{4})(\d{4})$', r'\2 \3', name)
+
     else:
-        raise ValueError('invalid address scope {!r}'.format(
-            addrclass['scope']),
-        )
+        raise ValueError('invalid address scope {!r}'.format(addrformat))
 
     return {
         keys.HREF: href,
