@@ -861,6 +861,71 @@ class Writing(util.LoRATestCase):
             c.organisationenhed.get(unitid)['relationer']['adresser'],
         )
 
+    def test_edit_org_unit_overwrite(self):
+        self.load_sample_structures()
+
+        unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        orig_address = {
+            "href": "https://www.openstreetmap.org/"
+            "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+            "name": "Nordre Ringgade 1, 8000 Aarhus C",
+            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": {
+                "example": "<UUID>",
+                "name": "Adresse",
+                "scope": "DAR",
+                "user_key": "Adresse",
+                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+            },
+            "validity": {
+                "from": "2016-01-01T00:00:00+01:00",
+                "to": "2019-01-01T00:00:00+01:00",
+            },
+        }
+
+        new_address_type = {
+            'example': '20304060',
+            'name': 'Telefonnummer',
+            'scope': 'PHONE',
+            'user_key': 'Telefon',
+            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [orig_address],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "address",
+                    "original": orig_address,
+                    "data": {
+                        "address_type": new_address_type,
+                        'value': '87150000',
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': new_address_type,
+                'href': 'tel:+4587150000',
+                'name': '8715 0000',
+                'value': 'urn:magenta.dk:telefon:+4587150000',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
+            }],
+        )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):
