@@ -71,13 +71,6 @@ export default {
       })
   },
 
-  getDetailList (uuid) {
-    return Service.get(`/ou/${uuid}/details/`)
-      .then(response => {
-        return response.data
-      })
-  },
-
   /**
    * Create a new organisation unit
    * @param {Object} orgUnit - new organisation unit
@@ -97,6 +90,31 @@ export default {
   },
 
   /**
+   * Edit an organisation unit
+   * @param {String} uuid - organisation unit uuid
+   * @param {Array} edit - A list of elements to edit
+   * @returns {Object} organisation unit uuid
+   */
+  editEntry (uuid, edit) {
+    return Service.post(`/ou/${uuid}/edit`, edit)
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
+
+  edit (uuid, edit) {
+    return this.editEntry(uuid, edit)
+      .then(response => {
+        EventBus.$emit('organisation-unit-edit', response)
+        return response
+      })
+  },
+
+  /**
    * Rename a new organisation unit
    * @param {String} uuid - organisation unit uuid
    * @param {Array} edit - A list of elements to edit
@@ -104,7 +122,7 @@ export default {
    * @see edit
   */
   rename (uuid, edit) {
-    return this.edit(uuid, edit)
+    return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-rename', response)
         return response
@@ -119,27 +137,10 @@ export default {
    * @see edit
   */
   move (uuid, edit) {
-    return this.edit(uuid, edit)
+    return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-move', response)
         return response
-      })
-  },
-
-  /**
-   * Edit an organisation unit
-   * @param {String} uuid - organisation unit uuid
-   * @param {Array} edit - A list of elements to edit
-   * @returns {Object} organisation unit uuid
-   */
-  edit (uuid, edit) {
-    return Service.post(`/ou/${uuid}/edit`, edit)
-      .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
-        return response.data
-      })
-      .catch(error => {
-        console.log(error.response)
       })
   },
 
