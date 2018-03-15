@@ -581,6 +581,84 @@ def edit_org_unit(unitid):
     return flask.jsonify(unitid), 200
 
 
+@blueprint.route('/ou/<uuid:unitid>/create', methods=['POST'])
+def create_org_unit_relation(unitid):
+    """Creates new unit relations
+
+    .. :quickref: Unit; Create relation
+
+    :statuscode 200: Creation succeeded.
+
+    :param employee_uuid: The UUID of the employee.
+
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00",
+      }
+
+    Request payload contains a list of creation objects, each differentiated
+    by the attribute 'type'. Each of these object types are detailed below:
+
+
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string address: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "address": "1234567890",
+          "address_type": {
+            "example": "5712345000014",
+            "name": "EAN",
+            "scope": "EAN",
+            "user_key": "EAN",
+            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
+        }
+      ]
+
+    """
+
+    reqs = flask.request.get_json()
+
+    if not isinstance(reqs, list):
+        return flask.jsonify('Root object must be a list!'), 400
+
+    if not all('type' in r and r['type'] in RELATION_TYPES for r in reqs):
+        return flask.jsonify('Invalid role types!'), 400
+
+    for req in reqs:
+        RELATION_TYPES.get(req['type'])(
+            common.get_connector().organisationenhed,
+        ).create(
+            str(unitid),
+            req,
+        )
+
+    # TODO:
+    return flask.jsonify(unitid), 200
+
+
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.

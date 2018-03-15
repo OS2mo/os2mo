@@ -544,7 +544,6 @@ class Writing(util.LoRATestCase):
             ],
         )
 
-    @unittest.expectedFailure
     def test_create_unit_address(self):
         self.load_sample_structures()
 
@@ -652,7 +651,7 @@ class Writing(util.LoRATestCase):
             self.client.get(
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                 '/f/address_type/',
-            ).json,
+            ).json['data']['items'],
         )
 
         self.assertRequestResponse(
@@ -670,7 +669,7 @@ class Writing(util.LoRATestCase):
             [],
         )
 
-        self.assertEqual(original['relationer']['adresser'], address_rels)
+        self.assertEqual(address_rels, original['relationer']['adresser'])
 
         # NOW CREATE IT
 
@@ -689,9 +688,20 @@ class Writing(util.LoRATestCase):
                 },
             ])
 
+        address_rels.append({
+            'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            'urn': 'urn:mailto:hallo@exmaple.com',
+            'virkning': {
+                'from': '2013-01-01 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False,
+            },
+        })
+
         original = c.organisationenhed.get(unitid)
 
-        self.assertEqual(original['relationer']['adresser'], address_rels)
+        self.assertEqual(address_rels, original['relationer']['adresser'])
 
     @util.mock('aabogade.json', allow_mox=True)
     @unittest.mock.patch('uuid.uuid4',
@@ -924,6 +934,177 @@ class Writing(util.LoRATestCase):
                     'to': '2019-01-01T00:00:00+01:00',
                 },
             }],
+        )
+
+    def test_add_org_unit_address(self):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+
+        address_rels = [
+            {
+                'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'to': 'infinity',
+                    'from_included': True,
+                    'to_included': False,
+                },
+            },
+            {
+                'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                'urn': 'urn:magenta.dk:ean:5798000420229',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'to': 'infinity',
+                    'from_included': True,
+                    'to_included': False,
+                },
+            },
+            {
+                'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'virkning': {
+                    'from': '2016-01-01 00:00:00+01',
+                    'to': 'infinity',
+                    'from_included': True,
+                    'to_included': False,
+                },
+            },
+        ]
+
+        addresses = [
+            {
+                'address_type': {
+                    'example': '5712345000014',
+                    'name': 'EAN',
+                    'scope': 'EAN',
+                    'user_key': 'EAN',
+                    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                },
+                'href': None,
+                'name': '5798000420229',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+                'value': 'urn:magenta.dk:ean:5798000420229',
+            },
+            {
+                'address_type': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                },
+                'href': 'tel:+4587150000',
+                'name': '8715 0000',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+                'value': 'urn:magenta.dk:telefon:+4587150000',
+            },
+            {
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
+                'href': 'https://www.openstreetmap.org/'
+                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                },
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+            },
+        ]
+
+        with self.subTest('sanity check'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'
+                '?validity=past'.format(unitid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'
+                '?validity=future'.format(unitid),
+                [],
+            )
+
+            self.assertEqual(
+                address_rels,
+                c.organisationenhed.get(unitid)['relationer']['adresser'],
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "address",
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'address': 'root@example.com',
+                    "validity": {
+                        "from": "2017-01-01T00:00:00+01",
+                    },
+                },
+            ],
+        )
+
+        address_rels.append({
+            'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            'urn': 'urn:mailto:root@example.com',
+            'virkning': {
+                'from': '2017-01-01 00:00:00+01',
+                'to': 'infinity',
+                'from_included': True,
+                'to_included': False,
+            },
+        })
+
+        addresses.append({
+            'address_type': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            },
+            'href': 'mailto:root@example.com',
+            'name': 'root@example.com',
+            'validity': {
+                'from': '2017-01-01T00:00:00+01:00',
+                'to': None,
+            },
+            'value': 'urn:mailto:root@example.com',
+        })
+
+        self.assertEqual(
+            address_rels,
+            c.organisationenhed.get(unitid)['relationer']['adresser'],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            addresses,
         )
 
 
