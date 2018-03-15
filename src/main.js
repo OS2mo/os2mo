@@ -7,6 +7,7 @@ import router from './router'
 import VueI18n from 'vue-i18n'
 import VeeValidate, { Validator } from 'vee-validate'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
+import VueShortKey from 'vue-shortkey'
 
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
@@ -33,6 +34,7 @@ Vue.use(VeeValidate, veeConfig)
 Vue.use(require('vue-moment'), {
   moment
 })
+Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
 Vue.component('icon', Icon)
 
 /* eslint-disable no-new */
