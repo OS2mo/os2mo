@@ -27,7 +27,8 @@ export default {
   props: {
     value: Object,
     atDate: Date,
-    resetRoute: Boolean
+    resetRoute: Boolean,
+    ignoreEvent: Boolean
   },
   data () {
     return {
@@ -40,7 +41,7 @@ export default {
   },
   mounted () {
     EventBus.$on('organisation-changed', newOrg => {
-      this.selectedOrganisation = newOrg
+      if (!this.ignoreEvent) this.selectedOrganisation = newOrg
     })
   },
   watch: {

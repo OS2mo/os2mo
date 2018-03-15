@@ -58,6 +58,11 @@
         this.workLogs.push(msg)
       })
 
+      EventBus.$on('organisation-unit-edit', org => {
+        let msg = 'Organisationsenheden med UUID ' + org + ' er blevet redigeret.'
+        this.workLogs.push(msg)
+      })
+
       EventBus.$on('employee-create', emp => {
         let msg = 'Medarbejderen med UUID ' + emp + ' er blevet oprettet.'
         this.workLogs.push(msg)
@@ -75,6 +80,11 @@
 
       EventBus.$on('employee-terminate', emp => {
         let msg = 'Medarbejderen med UUID ' + emp + ' er afsluttet korrekt.'
+        this.workLogs.push(msg)
+      })
+
+      EventBus.$on('employee-edit', emp => {
+        let msg = 'Medarbejderen med UUID ' + emp + ' er blevet redigeret.'
         this.workLogs.push(msg)
       })
     },

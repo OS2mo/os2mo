@@ -3,13 +3,13 @@
     <loading v-show="isLoading"/>
     <ul v-show="!isLoading">
       <tree-item
-      v-for="c in children"
-      v-bind:key="c.uuid"
-      v-model="selectedOrgUnit"
-      :model="c"
-      :linkable="linkable"
-      :at-date="atDate"
-      first-open
+        v-for="c in children"
+        v-bind:key="c.uuid"
+        v-model="selectedOrgUnit"
+        :model="c"
+        :linkable="linkable"
+        :at-date="atDate"
+        first-open
       />
     </ul>
   </div>
@@ -48,7 +48,7 @@
       },
 
       atDate () {
-        this.getChildren()
+        this.getChildren(this.org)
       },
 
       selectedOrgUnit (newVal, oldVal) {

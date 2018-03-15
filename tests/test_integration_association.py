@@ -174,7 +174,7 @@ class Tests(util.LoRATestCase):
         expected = [{
             'address': {
                 'href': 'tel:+4533369696',
-                'name': 33369696,
+                'name': '3336 9696',
                 'value': 'urn:magenta.dk:telefon:+4533369696',
             },
             'address_type': {

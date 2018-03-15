@@ -56,46 +56,16 @@ export default {
   },
 
   /**
-   * Get location details
-   * @see getDetail
-   */
-  getLocationDetails (uuid, validity) {
-    return this.getDetail(uuid, 'location', validity)
-  },
-
-  /**
-   * Get contact channel details
-   * @see getDetail
-   */
-  getContactDetails (uuid, validity) {
-    return this.getDetail(uuid, 'contact-channel', validity)
-  },
-
-  /**
-   * Get engagement details
-   * @see getDetail
-   */
-  getEngagementDetails (uuid, validity) {
-    return this.getDetail(uuid, 'engagement', validity)
-  },
-
-  /**
    * Base call for getting details.
    * @param {String} uuid - organisation unit uuid
    * @param {String} detail - Name of the detail
    * @param {String} validity - Can be either past, present or future
    * @returns {Array} A list of options for the detail
    */
-  getDetail (uuid, detail, validity) {
+  getDetail (uuid, detail, validity, atDate) {
     validity = validity || 'present'
-    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}`)
-      .then(response => {
-        return response.data
-      })
-  },
-
-  getDetailList (uuid) {
-    return Service.get(`/ou/${uuid}/details/`)
+    atDate = atDate || new Date()
+    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate.toISOString()}`)
       .then(response => {
         return response.data
       })
@@ -120,6 +90,31 @@ export default {
   },
 
   /**
+   * Edit an organisation unit
+   * @param {String} uuid - organisation unit uuid
+   * @param {Array} edit - A list of elements to edit
+   * @returns {Object} organisation unit uuid
+   */
+  editEntry (uuid, edit) {
+    return Service.post(`/ou/${uuid}/edit`, edit)
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
+
+  edit (uuid, edit) {
+    return this.editEntry(uuid, edit)
+      .then(response => {
+        EventBus.$emit('organisation-unit-edit', response)
+        return response
+      })
+  },
+
+  /**
    * Rename a new organisation unit
    * @param {String} uuid - organisation unit uuid
    * @param {Array} edit - A list of elements to edit
@@ -127,7 +122,7 @@ export default {
    * @see edit
   */
   rename (uuid, edit) {
-    return this.edit(uuid, edit)
+    return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-rename', response)
         return response
@@ -142,27 +137,10 @@ export default {
    * @see edit
   */
   move (uuid, edit) {
-    return this.edit(uuid, edit)
+    return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-move', response)
         return response
-      })
-  },
-
-  /**
-   * Edit an organisation unit
-   * @param {String} uuid - organisation unit uuid
-   * @param {Array} edit - A list of elements to edit
-   * @returns {Object} organisation unit uuid
-   */
-  edit (uuid, edit) {
-    return Service.post(`/ou/${uuid}/edit`, edit)
-      .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
-        return response.data
-      })
-      .catch(error => {
-        console.log(error.response)
       })
   },
 

@@ -18,7 +18,6 @@ API.
 
 import collections
 import itertools
-import operator
 
 import flask
 
@@ -59,11 +58,13 @@ def list_details(type, id):
     .. sourcecode:: json
 
       {
+        "address": false,
         "association": false,
         "engagement": true,
-        "role": false,
+        "it": false,
         "leave": true,
-        "manager": false
+        "manager": false,
+        "role": false
       }
 
     The value above informs you that at least one entry exists for each of
@@ -338,6 +339,62 @@ def get_detail(type, id, function):
         }
       ]
 
+    **Example manager response**:
+
+    .. sourcecode: json
+
+      [
+        {
+          "address": {
+            "href": "mailto:ceo@example.com",
+            "name": "ceo@example.com",
+            "value": "urn:mailto:ceo@example.com"
+          },
+          "address_type": {
+            "example": "test@example.com",
+            "name": "Emailadresse",
+            "scope": "EMAIL",
+            "user_key": "Email",
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+          },
+          "manager_level": {
+            "example": null,
+            "name": "Institut",
+            "scope": null,
+            "user_key": "inst",
+            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
+          },
+          "manager_type": {
+            "example": null,
+            "name": "Afdeling",
+            "scope": null,
+            "user_key": "afd",
+            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+          },
+          "org_unit": {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          },
+          "person": {
+            "name": "Anders And",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+          },
+          "responsibility": {
+            "example": null,
+            "name": "Fakultet",
+            "scope": null,
+            "user_key": "fak",
+            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+          },
+          "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+          "validity": {
+            "from": "2017-01-01T00:00:00+01:00",
+            "to": null
+          }
+        }
+      ]
+
     '''
 
     c = common.get_connector()
@@ -360,6 +417,9 @@ def get_detail(type, id, function):
         start=int(flask.request.args.get('start', 0)),
         funktionsnavn=keys.FUNCTION_KEYS[function],
     )
+
+    # TODO: the logic encoded in the functions below belong in the
+    # 'mapping' module, as part of e.g. FieldTuples
 
     def get_address(effect):
         try:
@@ -462,50 +522,46 @@ def get_detail(type, id, function):
         }
     }
 
-    # first, extract all object ids
-    function_effects = sorted(
-        (
-            (start, end, funcid, effect)
-            for funcid, funcobj in c.organisationfunktion.get_all(**search)
-            for start, end, effect in c.organisationfunktion.get_effects(
-                funcobj,
-                {
-                    'relationer': (
-                        'opgaver',
-                        'adresser',
-                        'organisatoriskfunktionstype',
-                        'tilknyttedeenheder',
-                    ),
-                    'tilstande': (
-                        'organisationfunktiongyldighed',
-                    ),
-                },
-                {
-                    'attributter': (
-                        'organisationfunktionegenskaber',
-                    ),
-                    'relationer': (
-                        'tilhoerer',
-                        'tilknyttedebrugere',
-                        'tilknyttedeorganisationer',
-                    ),
-                },
-                virkningfra='-infinity',
-                virkningtil='infinity',
-            )
-            if effect.get('tilstande')
-            .get('organisationfunktiongyldighed')[0]
-            .get('gyldighed') == 'Aktiv'
-        ),
-        key=operator.itemgetter(slice(3)),
-    )
+    # first, extract all the effects
+    function_effects = [
+        (start, end, funcid, effect)
+        for funcid, funcobj in c.organisationfunktion.get_all(**search)
+        for start, end, effect in c.organisationfunktion.get_effects(
+            funcobj,
+            {
+                'relationer': (
+                    'opgaver',
+                    'adresser',
+                    'organisatoriskfunktionstype',
+                    'tilknyttedeenheder',
+                ),
+                'tilstande': (
+                    'organisationfunktiongyldighed',
+                ),
+            },
+            {
+                'attributter': (
+                    'organisationfunktionegenskaber',
+                ),
+                'relationer': (
+                    'tilhoerer',
+                    'tilknyttedebrugere',
+                    'tilknyttedeorganisationer',
+                ),
+            },
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
+        if common.is_reg_valid(effect)
+    ]
 
+    # extract all object IDs
     for cache, getter in converters[function].values():
         if cache is not None:
             for start, end, funcid, effect in function_effects:
                 cache[getter(effect)] = None
 
-    # now fetch them
+    # fetch and convert each object once, rather than multiple times
     class_cache.update({
         classid: facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(uuid=class_cache)
@@ -525,7 +581,7 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
-    # finally, convert them
+    # finally, gather it all in the appropriate objects
     def convert(start, end, funcid, effect):
         func = {
             key: cache.get(getter(effect)) if cache else getter(effect)
@@ -540,4 +596,14 @@ def get_detail(type, id, function):
 
         return func
 
-    return flask.jsonify(list(itertools.starmap(convert, function_effects)))
+    def sort_key(obj):
+        return (
+            obj[keys.VALIDITY][keys.FROM],
+            common.get_obj_value(obj, (keys.PERSON, keys.NAME)),
+            common.get_obj_value(obj, (keys.ORG_UNIT, keys.NAME)),
+        )
+
+    return flask.jsonify(sorted(
+        itertools.starmap(convert, function_effects),
+        key=sort_key
+    ))

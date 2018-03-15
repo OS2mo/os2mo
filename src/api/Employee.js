@@ -50,42 +50,6 @@ export default {
   },
 
   /**
-   * Get role details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getRoleDetails (uuid, validity) {
-    return this.getDetail(uuid, 'role', validity)
-  },
-
-  /**
-   * Get IT details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getItDetails (uuid, validity) {
-    return this.getDetail(uuid, 'it', validity)
-  },
-
-  /**
-   * Get association details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getAssociationDetails (uuid, validity) {
-    return this.getDetail(uuid, 'association', validity)
-  },
-
-  /**
-   * Get leave details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getLeaveDetails (uuid, validity) {
-    return this.getDetail(uuid, 'leave', validity)
-  },
-
-  /**
    * Base call for getting details.
    * @param {String} uuid - employee uuid
    * @param {String} detail - Name of the detail
@@ -94,21 +58,6 @@ export default {
   getDetail (uuid, detail, validity) {
     validity = validity || 'present'
     return Service.get(`/e/${uuid}/details/${detail}?validity=${validity}`)
-      .then(response => {
-        return response.data
-      })
-      .catch(error => {
-        console.log(error.response)
-      })
-  },
-
-  /**
-   * Get a list of available details
-   * @param {String} uuid - employee uuid
-   * @returns {Object} A list of available tabs
-   */
-  getDetailList (uuid) {
-    return Service.get(`e/${uuid}/details/`)
       .then(response => {
         return response.data
       })
@@ -158,6 +107,7 @@ export default {
     return Service.post(`/e/${uuid}/edit`, edit)
       .then(response => {
         EventBus.$emit('employee-changed', response.data)
+        EventBus.$emit('employee-edit', response.data)
         return response.data
       })
       .catch(error => {

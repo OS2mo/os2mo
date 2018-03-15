@@ -75,7 +75,7 @@
     watch: {
       orgUnitSource: {
         handler (newVal) {
-          this.getEmployees(newVal.uuid)
+          if (newVal.uuid) this.getEmployees(newVal.uuid)
         },
         deep: true
       }

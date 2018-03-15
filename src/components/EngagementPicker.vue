@@ -66,13 +66,15 @@ export default {
   },
   methods: {
     getEngagements () {
-      var vm = this
-      vm.isLoading = true
-      Employee.getEngagementDetails(this.employee.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.engagements = response
-        })
+      if (this.employeeDefined) {
+        let vm = this
+        vm.isLoading = true
+        Employee.getEngagementDetails(this.employee.uuid)
+          .then(response => {
+            vm.isLoading = false
+            vm.engagements = response
+          })
+      }
     },
 
     updateSelectedEngagement () {
@@ -81,8 +83,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>
