@@ -28,7 +28,7 @@
       @selected-changed="selectedEmployees"/>
 
     <div class="float-right">
-      <button-submit :is-disabled="isDisabled" :is-loading="isLoading" :on-click-action="moveMany"/>
+      <button-submit :is-disabled="isDisabled" :is-loading="isLoading" :on-click-action="moveMany()"/>
     </div>
   </b-modal>
 </template>

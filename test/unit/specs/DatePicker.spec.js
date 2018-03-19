@@ -12,7 +12,7 @@ describe('DatePicker.vue', () => {
   xit('should render its default label', () => {
     const vm = new Constructor().$mount()
     expect(vm.$el.querySelector('label#date-label').textContent)
-    .to.equal('Dato')
+      .to.equal('Dato')
   })
 
   xit('should render a custom label', () => {
@@ -25,6 +25,6 @@ describe('DatePicker.vue', () => {
     }).$mount()
 
     expect(vm.$el.querySelector('label#date-label').textContent)
-    .to.equal(customLabel)
+      .to.equal(customLabel)
   })
 })

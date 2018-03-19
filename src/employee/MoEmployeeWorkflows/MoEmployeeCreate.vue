@@ -151,7 +151,7 @@ export default {
       if (this.valid.engagement) create.push(this.engagement)
       if (this.valid.association) create.push(this.association)
       if (this.valid.role) create.push(this.role)
-      if (this.valid.itSysyem) create.push(this.itSystem)
+      if (this.valid.itSystem) create.push(this.itSystem)
       if (this.valid.manager) create.push(this.manager)
 
       Employee.create(this.employee.uuid, create)
