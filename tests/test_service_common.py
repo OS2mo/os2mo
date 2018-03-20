@@ -1771,19 +1771,35 @@ class TestClass(TestCase):
         )
 
     def test_get_validities(self):
-        # nothing
+        # start time required
+        self.assertRaises(
+            ValueError,
+            common.get_valid_from, {}, {},
+        )
+
+        self.assertRaises(
+            ValueError,
+            common.get_valid_from, {}, {
+                'validity': None,
+            },
+        )
+
+        self.assertRaises(
+            ValueError,
+            common.get_valid_from, {}, {
+                'validity': {
+                    'from': None,
+                },
+            },
+        )
+
+        # still nothing
         self.assertEqual(
             common.get_valid_to({}, {}),
             util.positive_infinity,
         )
 
         self.assertEqual(
-            common.get_valid_from({}, {}),
-            util.negative_infinity,
-        )
-
-        # still nothing
-        self.assertEqual(
             common.get_valid_to({}, {
                 'validity': None,
             }),
@@ -1791,65 +1807,48 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            common.get_valid_from({}, {
-                'validity': None,
-            }),
-            util.negative_infinity,
-        )
-
-        # actually set
-        self.assertEqual(
-            common.get_valid_from({}, {
-                'validity': {
-                    'from': None,
-                },
-            }),
-            util.negative_infinity,
-        )
-
-        self.assertEqual(
+            util.positive_infinity,
             common.get_valid_to({}, {
                 'validity': {
                     'to': None,
                 },
             }),
-            util.positive_infinity,
         )
 
         # actually set
         self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
             common.get_valid_from({
                 'validity': {
                     'from': '2018-03-05',
                 },
             }),
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
         )
 
         self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
             common.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
                 },
             }),
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
         )
 
         # actually set in the fallback
         self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
             common.get_valid_from({}, {
                 'validity': {
                     'from': '2018-03-05',
                 },
             }),
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
         )
 
         self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
             common.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
                 },
             }),
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
         )

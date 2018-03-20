@@ -82,12 +82,8 @@ def parsedatetime(s: str) -> datetime.datetime:
         s = re.sub(r' (?=\d\d:\d\d$)', '+', s)
 
     try:
-        dt = dateutil.parser.isoparse(s)
+        return from_iso_time(s)
 
-        if not dt.tzinfo:
-            dt = dt.replace(tzinfo=default_timezone)
-
-        return dt
     except ValueError:
         pass
 
@@ -125,7 +121,12 @@ def to_iso_time(s):
 
 
 def from_iso_time(s):
-    return dateutil.parser.isoparse(s)
+    dt = dateutil.parser.isoparse(s)
+
+    if not dt.tzinfo:
+        dt = dt.replace(tzinfo=default_timezone)
+
+    return dt
 
 
 def to_frontend_time(s):

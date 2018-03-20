@@ -18,7 +18,7 @@ import enum
 import datetime
 import functools
 import uuid
-from typing import Callable, Hashable, List, Tuple
+import typing
 
 import flask
 
@@ -94,8 +94,8 @@ def get_connector():
 
 def checked_get(
     mapping: dict,
-    key: Hashable,
-    default: Hashable,
+    key: typing.Hashable,
+    default: typing.Hashable,
     required=True,
 ):
     sentinel = object()
@@ -113,7 +113,7 @@ def checked_get(
 
 def get_uuid(
     mapping: dict,
-    key: Hashable=keys.UUID,
+    key: typing.Hashable=keys.UUID,
 ):
     v = checked_get(mapping, key, '')
 
@@ -162,7 +162,7 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
     return payload
 
 
-def set_object_value(obj: dict, path: tuple, val: List[dict]):
+def set_object_value(obj: dict, path: tuple, val: typing.List[dict]):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
 
@@ -180,7 +180,7 @@ def set_object_value(obj: dict, path: tuple, val: List[dict]):
     return obj_copy
 
 
-def get_obj_value(obj, path: tuple, filter_fn: Callable = None):
+def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
     props = functools.reduce(lambda x, y: x.get(y, {}), path, obj)
     if filter_fn:
         return list(filter(filter_fn, props))
@@ -212,7 +212,7 @@ def get_effect_validity(effect):
 
 def ensure_bounds(valid_from: datetime.datetime,
                   valid_to: datetime.datetime,
-                  props: List[FieldTuple],
+                  props: typing.List[FieldTuple],
                   obj: dict,
                   payload: dict):
 
@@ -221,7 +221,7 @@ def ensure_bounds(valid_from: datetime.datetime,
         if not props:
             continue
 
-        updated_props = []  # type: List[FieldTuple]
+        updated_props = []  # type: typing.List[FieldTuple]
         if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
             sorted_props = sorted(props, key=get_effect_from)
@@ -258,11 +258,13 @@ def ensure_bounds(valid_from: datetime.datetime,
     return payload
 
 
-def update_payload(valid_from: datetime.datetime,
-                   valid_to: datetime.datetime,
-                   relevant_fields: List[Tuple[FieldTuple, dict]],
-                   obj: dict,
-                   payload: dict):
+def update_payload(
+        valid_from: datetime.datetime,
+        valid_to: datetime.datetime,
+        relevant_fields: typing.List[typing.Tuple[FieldTuple, dict]],
+        obj: dict,
+        payload: dict,
+):
     for field in relevant_fields:
         field_tuple, val = field
         val['virkning'] = _create_virkning(valid_from, valid_to)
@@ -286,7 +288,10 @@ def update_payload(valid_from: datetime.datetime,
     return payload
 
 
-def _merge_obj_effects(orig_objs: List[dict], new: dict) -> List[dict]:
+def _merge_obj_effects(
+        orig_objs: typing.List[dict],
+        new: dict,
+) -> typing.List[dict]:
     """
     Performs LoRa-like merging of a relation object, with a current list of
     relation objects, with regards to virkningstider,
@@ -391,12 +396,12 @@ def create_organisationsfunktion_payload(
     valid_from: str,
     valid_to: str,
     brugervendtnoegle: str,
-    tilknyttedebrugere: List[str],
-    tilknyttedeorganisationer: List[str],
-    tilknyttedeenheder: List[str] = None,
+    tilknyttedebrugere: typing.List[str],
+    tilknyttedeorganisationer: typing.List[str],
+    tilknyttedeenheder: typing.List[str] = None,
     funktionstype: str = None,
-    opgaver: List[dict] = None,
-    adresser: List[str] = None
+    opgaver: typing.List[dict] = None,
+    adresser: typing.List[str] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -460,7 +465,7 @@ def create_organisationsenhed_payload(
     tilhoerer: str,
     enhedstype: str,
     overordnet: str,
-    adresser: List[dict] = None,
+    adresser: typing.List[dict] = None,
 ) -> dict:
 
     virkning = _create_virkning(valid_from, valid_to)
@@ -515,31 +520,34 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
-
-        if valid_from and valid_from is not sentinel:
+        if valid_from is None:
+            raise ValueError('missing start date!')
+        elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
-        elif fallback:
-            return get_valid_from(fallback)
 
-    raise ValueError('missing start date!')
+    if fallback is not None:
+        return get_valid_from(fallback)
+    else:
+        raise ValueError('missing start date!')
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)
 
-    if validity is not sentinel:
+    if validity and validity is not sentinel:
         valid_to = validity.get(keys.TO, sentinel)
 
-        if valid_to is sentinel:
-            if fallback:
-                return get_valid_to(fallback)
+        if valid_to is None:
+            return util.positive_infinity
 
-        elif valid_to:
+        elif valid_to is not sentinel:
             return util.from_iso_time(valid_to)
 
-    return util.positive_infinity
-
+    if fallback is not None:
+        return get_valid_to(fallback)
+    else:
+        return util.positive_infinity
 
 
 def get_validity_effect(entry, fallback=None):
@@ -552,9 +560,9 @@ def get_validity_effect(entry, fallback=None):
     }
 
 
-def replace_relation_value(relations: List[dict],
+def replace_relation_value(relations: typing.List[dict],
                            old_entry: dict,
-                           new_entry: dict=None) -> List[dict]:
+                           new_entry: dict=None) -> typing.List[dict]:
     old_from = get_effect_from(old_entry)
     old_to = get_effect_to(old_entry)
 
