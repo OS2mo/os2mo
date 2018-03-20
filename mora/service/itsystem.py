@@ -223,19 +223,24 @@ class ITSystems(common.AbstractRelationDetail):
         }
 
     def create(self, id, req):
+        systemobj = common.checked_get(req, keys.ITSYSTEM, {})
+        systemid = common.get_uuid(systemobj)
+
         original = self.scope.get(
             uuid=id,
             virkningfra='-infinity',
             virkningtil='infinity',
         )
 
+        if not original:
+            raise KeyError('no such user!')
+
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        rels.append(self.get_relation_for(
-            req[keys.ITSYSTEM]['uuid'],
-            common.get_valid_from(req),
-            common.get_valid_to(req),
-        ))
+        start = common.get_valid_from(req)
+        end = common.get_valid_to(req)
+
+        rels.append(self.get_relation_for(systemid, start, end))
 
         payload = {
             'relationer': {
