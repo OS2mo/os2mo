@@ -28,7 +28,7 @@
       @selected-changed="selectedEmployees"/>
 
     <div class="float-right">
-      <button-submit :is-disabled="isDisabled" :is-loading="isLoading" :on-click-action="moveMany()"/>
+      <button-submit :is-disabled="isDisabled" :is-loading="isLoading" :on-click-action="moveMany"/>
     </div>
   </b-modal>
 </template>
@@ -102,14 +102,14 @@
         let vm = this
         vm.isLoading = true
 
-        let move = {
-          type: 'engagement',
-          data: {
-            validity: {}
-          }
-        }
-
         vm.selected.forEach(engagement => {
+          let move = {
+            type: 'engagement',
+            data: {
+              validity: {}
+            }
+          }
+
           move.uuid = engagement.uuid
           move.data.org_unit = vm.orgUnitDestination
           move.data.validity.from = vm.moveDate

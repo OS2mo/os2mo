@@ -53,6 +53,7 @@ export default {
   },
   watch: {
     selected (newVal) {
+      newVal.setUTCHours(0, 0, 0, 0)
       this.$emit('input', newVal)
     },
 
