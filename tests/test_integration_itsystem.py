@@ -90,7 +90,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing or invalid start date',
+                'message': 'missing or invalid start date!',
                 'status': 400,
             },
             json=[
@@ -181,7 +181,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'missing or invalid start date',
+                'message': 'original entry not found!',
                 'status': 400,
             },
             json=[

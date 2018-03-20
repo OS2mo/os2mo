@@ -170,7 +170,12 @@ class ITSystems(common.AbstractRelationDetail):
             for systemrel in rels.get('tilknyttedeitsystemer', []):
                 if not c.is_effect_relevant(systemrel['virkning']):
                     continue
-                systemid = systemrel['uuid']
+
+                try:
+                    systemid = systemrel['uuid']
+                except KeyError:
+                    continue
+
                 system = system_cache[systemid]
 
                 system_attrs = system['attributter']['itsystemegenskaber'][0]
@@ -239,6 +244,9 @@ class ITSystems(common.AbstractRelationDetail):
 
         start = common.get_valid_from(req)
         end = common.get_valid_to(req)
+
+        if start == util.negative_infinity:
+            raise ValueError('missing or invalid start date!')
 
         rels.append(self.get_relation_for(systemid, start, end))
 
