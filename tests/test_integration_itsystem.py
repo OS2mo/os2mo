@@ -191,12 +191,16 @@ class Writing(util.LoRATestCase):
                         'name': 'Active Directory',
                         'user_name': 'Fedtmule',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                        # WRONG:
-                        'valid_from': '2010-02-14T00:00:00+01:00',
-                        'valid_to': None,
+                        "validity": {
+                            # WRONG:
+                            'from': '2010-02-14T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     "data": {
-                        "valid_to": '2020-01-01T00:00:00+01:00',
+                        "validity": {
+                            "from": '2020-01-01T00:00:00+01:00',
+                        },
                     },
                 },
             ],
@@ -227,6 +231,32 @@ class Writing(util.LoRATestCase):
                         "validity": {
                             "to": '2020-01-01T00:00:00+01:00',
                         },
+                    },
+                },
+            ],
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            {
+                'message': "invalid 'uuid', expected str, got None",
+                'status': 400,
+            },
+            json=[
+                {
+                    "type": "it",
+                    "original": {
+                        'name': 'Active Directory',
+                        'user_name': 'Fedtmule',
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                        "validity": {
+                            'from': '2002-02-14T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                    "data": {
+                        'uuid': None,
                     },
                 },
             ],

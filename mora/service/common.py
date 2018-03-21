@@ -96,13 +96,18 @@ def checked_get(
     mapping: dict,
     key: typing.Hashable,
     default: typing.Hashable,
-    required=True,
+    fallback: dict=None,
+    required: bool=True,
 ):
     sentinel = object()
     v = mapping.get(key, sentinel)
 
-    if v is sentinel and required:
-        raise ValueError('missing {!r}'.format(key))
+    if v is sentinel:
+        if fallback is not None:
+            return checked_get(fallback, key, default, None, required)
+        elif required:
+            raise ValueError('missing {!r}'.format(key))
+
     elif not isinstance(v, type(default)):
         raise ValueError('invalid {!r}, expected {}, got {!r}'.format(
             key, type(default).__name__, v,
@@ -113,9 +118,11 @@ def checked_get(
 
 def get_uuid(
     mapping: dict,
-    key: typing.Hashable=keys.UUID,
+    fallback: dict=None,
+    *,
+    key: typing.Hashable=keys.UUID
 ):
-    v = checked_get(mapping, key, '')
+    v = checked_get(mapping, key, '', fallback=fallback)
 
     if not util.is_uuid(v):
         raise ValueError('invalid uuid for {!r}: {!r}'.format(key, v))

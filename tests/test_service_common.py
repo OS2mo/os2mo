@@ -1852,3 +1852,31 @@ class TestClass(TestCase):
                 },
             }),
         )
+
+    def test_get_uuid(self):
+        testid = '00000000-0000-0000-0000-000000000000'
+
+        self.assertEqual(
+            testid,
+            common.get_uuid({
+                'uuid': testid,
+            }),
+        )
+
+        self.assertEqual(
+            testid,
+            common.get_uuid(
+                {},
+                {
+                    'uuid': testid,
+                },
+            ),
+        )
+
+        self.assertRaises(
+            ValueError,
+            common.get_uuid,
+            {
+                'uuid': 42,
+            },
+        )
