@@ -12,10 +12,6 @@ from unittest import TestCase
 
 from mora import util
 from mora.service import common
-from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
-                                 update_payload, inactivate_old_interval,
-                                 ensure_bounds, _merge_obj_effects,
-                                 set_object_value)
 
 
 class TestClass(TestCase):
@@ -36,7 +32,7 @@ class TestClass(TestCase):
         expected_props = ['something']
 
         # Act
-        actual_props = get_obj_value(obj, path)
+        actual_props = common.get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
@@ -45,9 +41,9 @@ class TestClass(TestCase):
         # Arrange
         fields = [
             (
-                FieldTuple(
+                common.FieldTuple(
                     ('test1', 'prop1'),
-                    FieldTypes.ADAPTED_ZERO_TO_MANY,
+                    common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -55,9 +51,9 @@ class TestClass(TestCase):
                 }
             ),
             (
-                FieldTuple(
+                common.FieldTuple(
                     ('test1', 'prop2'),
-                    FieldTypes.ZERO_TO_MANY,
+                    common.FieldTypes.ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -65,9 +61,9 @@ class TestClass(TestCase):
                 }
             ),
             (
-                FieldTuple(
+                common.FieldTuple(
                     ('test2', 'prop3'),
-                    FieldTypes.ZERO_TO_ONE,
+                    common.FieldTypes.ZERO_TO_ONE,
                     lambda x: True,
                 ),
                 {
@@ -177,7 +173,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_payload = update_payload(
+        actual_payload = common.update_payload(
             '2017-01-01T00:00:00+00:00',
             '2021-01-01T00:00:00+00:00',
             fields,
@@ -224,8 +220,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = inactivate_old_interval(old_from, old_to, new_from,
-                                                new_to, payload, path)
+        actual_result = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload, path,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -248,8 +245,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = inactivate_old_interval(old_from, old_to, new_from,
-                                                new_to, payload, path)
+        actual_result = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload, path,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -272,8 +270,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = inactivate_old_interval(old_from, old_to, new_from,
-                                                new_to, payload, path)
+        actual_result = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload, path,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -325,9 +324,9 @@ class TestClass(TestCase):
             'note': 'NOTE'
         }
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -341,8 +340,10 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original,
+            payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -395,9 +396,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -426,8 +427,9 @@ class TestClass(TestCase):
             'whatever': ['I should remain untouched, please']}
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -480,9 +482,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -498,8 +500,10 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original,
+            payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -552,9 +556,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -583,8 +587,9 @@ class TestClass(TestCase):
             'whatever': ['I should remain untouched, please']}
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -637,9 +642,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -655,8 +660,10 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original,
+            payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -709,9 +716,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ZERO_TO_MANY,
+                common.FieldTypes.ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -756,8 +763,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -810,9 +818,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -839,8 +847,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -893,10 +902,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -923,8 +932,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -977,10 +987,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -996,8 +1006,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1050,10 +1061,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1089,8 +1100,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1125,10 +1137,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1155,8 +1167,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1180,10 +1193,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1199,8 +1212,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1270,7 +1284,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1334,7 +1348,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1407,7 +1421,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1462,7 +1476,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1517,7 +1531,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1563,7 +1577,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1588,7 +1602,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = set_object_value(obj, path, val)
+        actual_result = common.set_object_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1609,7 +1623,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = set_object_value(obj, path, val)
+        actual_result = common.set_object_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
