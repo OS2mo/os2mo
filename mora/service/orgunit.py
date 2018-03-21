@@ -87,8 +87,90 @@ class OrgUnit(common.AbstractRelationDetail):
                   .get('gyldighed') == 'Aktiv'
         ])
 
-    def edit(self, id, req):
-        raise werkzeug.exceptions.NotImplemented
+    def edit(self, unitid, req):
+        # Get the current org-unit which the user wants to change
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        original = c.organisationenhed.get(uuid=unitid)
+
+        data = req.get('data')
+        new_from = common.get_valid_from(data)
+        new_to = common.get_valid_to(data)
+
+        payload = dict()
+        payload['note'] = 'Rediger organisationsenhed'
+
+        original_data = req.get('original')
+        if original_data:
+            # We are performing an update
+            old_from = common.get_valid_from(original_data)
+            old_to = common.get_valid_to(original_data)
+            payload = common.inactivate_old_interval(
+                old_from, old_to, new_from, new_to, payload,
+                ('tilstande', 'organisationenhedgyldighed')
+            )
+
+        update_fields = list()
+
+        # Always update gyldighed
+        update_fields.append((
+            mapping.ORG_UNIT_GYLDIGHED_FIELD,
+            {'gyldighed': "Aktiv"}
+        ))
+
+        if keys.NAME in data.keys():
+            attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
+            attrs['enhedsnavn'] = data[keys.NAME]
+
+            update_fields.append((
+                mapping.ORG_UNIT_EGENSKABER_FIELD,
+                attrs,
+            ))
+
+        if keys.ORG_UNIT_TYPE in data.keys():
+            update_fields.append((
+                mapping.ORG_UNIT_TYPE_FIELD,
+                {'uuid': data[keys.ORG_UNIT_TYPE]['uuid']}
+            ))
+
+        if keys.PARENT in data.keys():
+            update_fields.append((
+                mapping.PARENT_FIELD,
+                {'uuid': data[keys.PARENT]['uuid']}
+            ))
+
+        if keys.ADDRESS in data and keys.ADDRESS_TYPE in data:
+            addrs = original['relationer']['adresser']
+
+            if original_data and keys.ADDRESS in original_data:
+                addrs = common.replace_relation_value(
+                    addrs,
+                    address.get_relation_for(
+                        original_data[keys.ADDRESS_TYPE],
+                        original_data[keys.VALUE],
+                        original_data[keys.VALIDITY],
+                    ),
+                )
+
+            common.set_object_value(
+                payload,
+                ('relationer', 'adresser'),
+                addrs + [
+                    address.get_relation_for(
+                        data[keys.ADDRESS_TYPE],
+                        data[keys.ADDRESS][keys.VALUE],
+                    ),
+                ],
+            )
+
+        payload = common.update_payload(new_from, new_to, update_fields,
+                                        original, payload)
+
+        bounds_fields = list(
+            mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                       original, payload)
+
+        c.organisationenhed.update(payload, unitid)
 
     def create(self, id, req):
         raise werkzeug.exceptions.NotImplemented
@@ -424,27 +506,92 @@ def edit_org_unit(unitid):
 
     :statuscode 200: The edit succeeded.
 
-    **Example Request**:
-
     :param unitid: The UUID of the organisational unit.
 
-    :<json object original: An **optional** object containing the original
+    :<jsonarr string type: The type of the operation, defaulting to
+        ``org_unit``.
+    :<jsonarr object original: An **optional** object containing the original
         state of the org unit to be overwritten. If supplied, the change will
         modify the existing registration on the org unit object.
         Detailed below.
-    :<json object data: An object containing the changes to be made to the
+    :<jsonarr object data: An object containing the changes to be made to the
         org unit. Detailed below.
 
     The **original** and **data** objects follow the same structure.
     Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
-    :<jsonarr string name: The name of the org unit
-    :<jsonarr string parent: The parent org unit
-    :<jsonarr string org_unit_type: The type of org unit
-    :<jsonarr object validity: The validities of the changes.
+    :<json string name: The name of the org unit
+    :<json string parent: The parent org unit
+    :<json string org_unit_type: The type of org unit
+    :<json object validity: The validities of the changes.
 
     Validity objects are defined as such:
+
+    :<json string from: The from date, in ISO 8601.
+    :<json string to: The to date, in ISO 8601.
+
+    **Example Request**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "original": {
+            "name": "Pandekagehuset",
+            "parent": {
+              "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+            },
+            "org_unit_type": {
+              "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+            },
+            "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": null
+            }
+          },
+          "data": {
+            "name": "Vaffelhuset",
+            "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+            }
+          }
+        }
+      ]
+    """
+
+    reqs = flask.request.get_json()
+
+    if isinstance(reqs, dict):
+        reqs = [reqs]
+
+    for req in reqs:
+        role_type = req.get('type', 'org_unit')
+        handler = RELATION_TYPES.get(role_type)
+
+        if not handler:
+            return flask.jsonify('Unknown role type: ' + role_type), 400
+
+        handler(common.get_connector().organisationenhed).edit(
+            str(unitid),
+            req,
+        )
+
+    # TODO:
+    return flask.jsonify(unitid), 200
+
+
+@blueprint.route('/ou/<uuid:unitid>/create', methods=['POST'])
+def create_org_unit_relation(unitid):
+    """Creates new unit relations
+
+    .. :quickref: Unit; Create relation
+
+    :statuscode 200: Creation succeeded.
+
+    :param employee_uuid: The UUID of the employee.
+
+    All requests contain validity objects on the following form:
 
     :<jsonarr string from: The from date, in ISO 8601.
     :<jsonarr string to: The to date, in ISO 8601.
@@ -452,91 +599,64 @@ def edit_org_unit(unitid):
     .. sourcecode:: json
 
       {
-        "original": {
-          "name": "Pandekagehuset",
-          "parent": {
-            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+        "from": "2016-01-01T00:00:00+00:00",
+        "to": "2018-01-01T00:00:00+00:00",
+      }
+
+    Request payload contains a list of creation objects, each differentiated
+    by the attribute 'type'. Each of these object types are detailed below:
+
+
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string address: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "address": "1234567890",
+          "address_type": {
+            "example": "5712345000014",
+            "name": "EAN",
+            "scope": "EAN",
+            "user_key": "EAN",
+            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
           },
-          "org_unit_type": {
-            "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
-          },
+          "type": "address",
           "validity": {
             "from": "2016-01-01T00:00:00+00:00",
-            "to": null
-          }
-        },
-        "data": {
-          "name": "Vaffelhuset",
-          "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
           }
         }
-      }
+      ]
+
     """
 
-    req = flask.request.get_json()
+    reqs = flask.request.get_json()
 
-    # Get the current org-unit which the user wants to change
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.organisationenhed.get(uuid=unitid)
+    if not isinstance(reqs, list):
+        return flask.jsonify('Root object must be a list!'), 400
 
-    data = req.get('data')
-    new_from = common.get_valid_from(data)
-    new_to = common.get_valid_to(data)
+    if not all('type' in r and r['type'] in RELATION_TYPES for r in reqs):
+        return flask.jsonify('Invalid role types!'), 400
 
-    payload = dict()
-    payload['note'] = 'Rediger organisationsenhed'
-
-    original_data = req.get('original')
-    if original_data:
-        # We are performing an update
-        old_from = common.get_valid_from(original_data)
-        old_to = common.get_valid_to(original_data)
-        payload = common.inactivate_old_interval(
-            old_from, old_to, new_from, new_to, payload,
-            ('tilstande', 'organisationenhedgyldighed')
+    for req in reqs:
+        RELATION_TYPES.get(req['type'])(
+            common.get_connector().organisationenhed,
+        ).create(
+            str(unitid),
+            req,
         )
 
-    update_fields = list()
-
-    # Always update gyldighed
-    update_fields.append((
-        mapping.ORG_UNIT_GYLDIGHED_FIELD,
-        {'gyldighed': "Aktiv"}
-    ))
-
-    if keys.NAME in data.keys():
-        attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
-        attrs['enhedsnavn'] = data[keys.NAME]
-
-        update_fields.append((
-            mapping.ORG_UNIT_EGENSKABER_FIELD,
-            attrs,
-        ))
-
-    if keys.ORG_UNIT_TYPE in data.keys():
-        update_fields.append((
-            mapping.ORG_UNIT_TYPE_FIELD,
-            {'uuid': data[keys.ORG_UNIT_TYPE]['uuid']}
-        ))
-
-    if keys.PARENT in data.keys():
-        update_fields.append((
-            mapping.PARENT_FIELD,
-            {'uuid': data[keys.PARENT]['uuid']}
-        ))
-
-    payload = common.update_payload(new_from, new_to, update_fields, original,
-                                    payload)
-
-    bounds_fields = list(
-        mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
-    payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
-                                   payload)
-
-    c.organisationenhed.update(payload, unitid)
-
-    return flask.jsonify(unitid)
+    # TODO:
+    return flask.jsonify(unitid), 200
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])

@@ -6,9 +6,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import datetime
+
 from unittest import TestCase
 
 from mora import util
+from mora.service import common
 from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
                                  update_payload, inactivate_old_interval,
                                  ensure_bounds, _merge_obj_effects,
@@ -1610,3 +1613,87 @@ class TestClass(TestCase):
 
         # Assert
         self.assertEqual(expected_result, actual_result)
+
+    def test_get_validities(self):
+        # nothing
+        self.assertEqual(
+            common.get_valid_to({}, {}),
+            util.positive_infinity,
+        )
+
+        self.assertEqual(
+            common.get_valid_from({}, {}),
+            util.negative_infinity,
+        )
+
+        # still nothing
+        self.assertEqual(
+            common.get_valid_to({}, {
+                'validity': None,
+            }),
+            util.positive_infinity,
+        )
+
+        self.assertEqual(
+            common.get_valid_from({}, {
+                'validity': None,
+            }),
+            util.negative_infinity,
+        )
+
+        # actually set
+        self.assertEqual(
+            common.get_valid_from({}, {
+                'validity': {
+                    'from': None,
+                },
+            }),
+            util.negative_infinity,
+        )
+
+        self.assertEqual(
+            common.get_valid_to({}, {
+                'validity': {
+                    'to': None,
+                },
+            }),
+            util.positive_infinity,
+        )
+
+        # actually set
+        self.assertEqual(
+            common.get_valid_from({
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+        )
+
+        self.assertEqual(
+            common.get_valid_to({
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+        )
+
+        # actually set in the fallback
+        self.assertEqual(
+            common.get_valid_from({}, {
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+        )
+
+        self.assertEqual(
+            common.get_valid_to({}, {
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+        )
