@@ -19,7 +19,6 @@ from tests import util
 class Writing(util.LoRATestCase):
     maxDiff = None
 
-    @unittest.expectedFailure
     def test_errors(self):
         self.load_sample_structures(minimal=True)
 
@@ -28,7 +27,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing "itsystem"',
+                'message': (
+                    'invalid \'itsystem\', expected dict, got None'
+                ),
                 'status': 400,
             },
             json=[
@@ -47,8 +48,8 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
-                'message': 'no such it system; no such user',
-                'status': 400,
+                'message': 'no such user!',
+                'status': 404,
             },
             json=[
                 {
@@ -62,13 +63,15 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
+            status_code=404,
         )
 
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
-                'message': 'missing "itsystem"; no such user',
+                'message': (
+                    'invalid \'itsystem\', expected dict, got None'
+                ),
                 'status': 400,
             },
             json=[
@@ -87,7 +90,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing or invalid start date',
+                'message': 'missing or invalid start date!',
                 'status': 400,
             },
             json=[
@@ -108,7 +111,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing "itsystem"; missing or invalid start date',
+                'message': "missing 'uuid'",
                 'status': 400,
             },
             json=[
@@ -127,7 +130,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing or invalid "itsystem" UUID',
+                'message': "invalid uuid for 'uuid': '42'",
                 'status': 400,
             },
             json=[

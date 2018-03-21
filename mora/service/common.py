@@ -18,7 +18,7 @@ import enum
 import datetime
 import functools
 import uuid
-from typing import Callable, List, Tuple
+from typing import Callable, Hashable, List, Tuple
 
 import flask
 import iso8601
@@ -91,6 +91,37 @@ def get_connector():
         loraparams['validity'] = args['validity']
 
     return lora.Connector(**loraparams)
+
+
+def checked_get(
+    mapping: dict,
+    key: Hashable,
+    default: Hashable,
+    required=True,
+):
+    sentinel = object()
+    v = mapping.get(key, sentinel)
+
+    if v is sentinel and required:
+        raise ValueError('missing {!r}'.format(key))
+    elif not isinstance(v, type(default)):
+        raise ValueError('invalid {!r}, expected {}, got {!r}'.format(
+            key, type(default).__name__, v,
+        ))
+
+    return v
+
+
+def get_uuid(
+    mapping: dict,
+    key: Hashable=keys.UUID,
+):
+    v = checked_get(mapping, key, '')
+
+    if not util.is_uuid(v):
+        raise ValueError('invalid uuid for {!r}: {!r}'.format(key, v))
+
+    return v
 
 
 class cache(collections.defaultdict):
