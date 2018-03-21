@@ -56,13 +56,11 @@
 
 <script>
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
-  import OrganisationDetailUnit from './OrganisationDetailUnit'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
     components: {
-      MoOrganisationUnitDetail,
-      OrganisationDetailUnit
+      MoOrganisationUnitDetail
     },
     props: {
       uuid: {

@@ -52,6 +52,9 @@ export default {
     this.selected = this.preselected
     this.getItSystems()
   },
+  beforeDestroy () {
+    EventBus.$off(['organisation-changed'])
+  },
   methods: {
     getItSystems () {
       var vm = this

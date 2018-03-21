@@ -58,6 +58,9 @@ export default {
     this.getFacet()
     this.selected = this.value
   },
+  beforeDestroy () {
+    EventBus.$off(['organisation-changed'])
+  },
   methods: {
     getFacet () {
       var vm = this

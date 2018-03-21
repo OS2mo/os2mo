@@ -40,6 +40,9 @@
         this.getOrganisationDetails()
       })
     },
+    beforeDestroy () {
+      EventBus.$off(['organisation-changed'])
+    },
     methods: {
       getOrganisationDetails () {
         let vm = this

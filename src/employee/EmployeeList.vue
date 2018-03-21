@@ -50,9 +50,12 @@
       this.getEmployees()
     },
     mounted () {
-      EventBus.$on('organisation-changed', (newOrg) => {
-        this.getEmployees(newOrg)
+      EventBus.$on('organisation-changed', () => {
+        this.getEmployees()
       })
+    },
+    beforeDestroy () {
+      EventBus.$off(['organisation-changed'])
     },
     methods: {
       getEmployees () {

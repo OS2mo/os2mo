@@ -64,6 +64,9 @@ export default {
       this.getEngagements()
     })
   },
+  beforeDestroy () {
+    EventBus.$off(['employee-changed'])
+  },
   methods: {
     getEngagements () {
       if (this.employeeDefined) {

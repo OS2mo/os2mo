@@ -85,9 +85,12 @@
       this.open = this.firstOpen
     },
     mounted () {
-      EventBus.$on('organisation-unit-changed', newOrg => {
-        this.loadChildren(this.org)
+      EventBus.$on('organisation-unit-changed', () => {
+        this.loadChildren()
       })
+    },
+    beforeDestroy () {
+      EventBus.$off(['organisation-unit-changed'])
     },
     methods: {
       toggle () {
