@@ -77,6 +77,9 @@
     created () {
       this.getAllDetails()
     },
+    beforeDestroy () {
+      EventBus.$off(['organisation-unit-changed'])
+    },
     methods: {
       getAllDetails () {
         let tense = ['past', 'present', 'future']

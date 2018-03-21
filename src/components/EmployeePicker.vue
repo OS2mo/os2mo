@@ -63,6 +63,9 @@ export default {
     this.getEmployees()
     this.selected = this.value
   },
+  beforeDestroy () {
+    EventBus.$off(['organisation-changed'])
+  },
   methods: {
     getEmployees () {
       var vm = this
