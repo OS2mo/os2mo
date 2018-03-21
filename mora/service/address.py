@@ -323,7 +323,7 @@ def address_autocomplete(orgid):
 
     """
     q = flask.request.args['q']
-    global_lookup = flask.request.args.get('global', False, type=bool)
+    global_lookup = common.get_args_flag('global')
 
     if not global_lookup:
         org = lora.Connector().organisation.get(orgid)

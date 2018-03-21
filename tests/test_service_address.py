@@ -185,8 +185,8 @@ class TestAddressLookup(util.TestCase):
                 }
             }])
 
-    @freezegun.freeze_time('2016-06-06')
-    @util.mock()
+    @freezegun.freeze_time('2017-07-28')
+    @util.mock('reading-organisation.json')
     def test_autocomplete_global(self, mock):
         mock.get(
             'http://dawa.aws.dk/adresser/autocomplete?noformat=1&q=42',
@@ -207,6 +207,24 @@ class TestAddressLookup(util.TestCase):
                     "stormodtagerpostnrnavn": None
                 }
             }])
+        mock.get(
+            'http://dawa.aws.dk/adresser/autocomplete'
+            '?noformat=1&q=42&kommunekode=751',
+            json=[{
+                "tekst": "Hestfestegade 42, 8000 Aarhus C",
+                "adresse": {
+                    "id": "00000000-0000-0000-0000-000000000000",
+                    "href": "http://dawa.aws.dk/adresser/"
+                            "00000000-0000-0000-0000-000000000000",
+                    "vejnavn": "Hestfestegade",
+                    "husnr": "42",
+                    "supplerendebynavn": None,
+                    "postnr": "8000",
+                    "postnrnavn": "Aarhus C",
+                    "stormodtagerpostnr": None,
+                    "stormodtagerpostnrnavn": None
+                }
+            }])
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
@@ -215,5 +233,45 @@ class TestAddressLookup(util.TestCase):
                 'location': {
                     'uuid': "00002732-733c-433a-a5da-a7d428a980cf",
                     'name': 'Strandlodsvej 25M, 7. tv, 2300 København S'
+                }
+            }])
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
+            'address_autocomplete/?q=42&global=true',
+            [{
+                'location': {
+                    'uuid': "00002732-733c-433a-a5da-a7d428a980cf",
+                    'name': 'Strandlodsvej 25M, 7. tv, 2300 København S'
+                }
+            }])
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
+            'address_autocomplete/?q=42',
+            [{
+                'location': {
+                    'uuid': "00000000-0000-0000-0000-000000000000",
+                    'name': 'Hestfestegade 42, 8000 Aarhus C'
+                }
+            }])
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
+            'address_autocomplete/?q=42&global=0',
+            [{
+                'location': {
+                    'uuid': "00000000-0000-0000-0000-000000000000",
+                    'name': 'Hestfestegade 42, 8000 Aarhus C'
+                }
+            }])
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
+            'address_autocomplete/?q=42&global=false',
+            [{
+                'location': {
+                    'uuid': "00000000-0000-0000-0000-000000000000",
+                    'name': 'Hestfestegade 42, 8000 Aarhus C'
                 }
             }])

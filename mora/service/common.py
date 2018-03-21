@@ -641,3 +641,19 @@ def convert_reg_to_history(reg):
         'life_cycle_code': reg['livscykluskode'],
         'action': reg.get('note')
     }
+
+
+def get_args_flag(name: str):
+    '''Get an argument from the Flask request as a boolean flag.
+
+    A 'flag' argument is false either when not set or one of the
+    values '0', 'false' and 'False'. Anything else is true.
+
+    '''
+
+    v = flask.request.args.get(name, False)
+
+    if v in ('0', 'false', 'False'):
+        return False
+    else:
+        return bool(v)
