@@ -7,7 +7,6 @@
 #
 
 import copy
-import unittest
 
 import freezegun
 
@@ -90,7 +89,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing or invalid start date!',
+                'message': 'missing start date!',
                 'status': 400,
             },
             json=[

@@ -245,9 +245,6 @@ class ITSystems(common.AbstractRelationDetail):
         start = common.get_valid_from(req)
         end = common.get_valid_to(req)
 
-        if start == util.negative_infinity:
-            raise ValueError('missing or invalid start date!')
-
         rels.append(self.get_relation_for(systemid, start, end))
 
         payload = {

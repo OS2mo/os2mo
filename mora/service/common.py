@@ -515,31 +515,31 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
-        if valid_from is None:
-            return util.negative_infinity
-        elif valid_from is not sentinel:
-            return util.from_iso_time(valid_from)
 
-    if fallback is not None:
-        return get_valid_from(fallback)
-    else:
-        return util.negative_infinity
+        if valid_from and valid_from is not sentinel:
+            return util.from_iso_time(valid_from)
+        elif fallback:
+            return get_valid_from(fallback)
+
+    raise ValueError('missing start date!')
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)
-    if validity and validity is not sentinel:
+
+    if validity is not sentinel:
         valid_to = validity.get(keys.TO, sentinel)
-        if valid_to is None:
-            return util.positive_infinity
-        elif valid_to is not sentinel:
+
+        if valid_to is sentinel:
+            if fallback:
+                return get_valid_to(fallback)
+
+        elif valid_to:
             return util.from_iso_time(valid_to)
 
-    if fallback is not None:
-        return get_valid_to(fallback)
-    else:
-        return util.positive_infinity
+    return util.positive_infinity
+
 
 
 def get_validity_effect(entry, fallback=None):

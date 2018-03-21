@@ -10,6 +10,8 @@ import datetime
 
 from unittest import TestCase
 
+import dateutil
+
 from mora import util
 from mora.service import common
 
@@ -1627,6 +1629,146 @@ class TestClass(TestCase):
 
         # Assert
         self.assertEqual(expected_result, actual_result)
+
+    def test_get_valid_from(self):
+        ts = '2018-03-21T00:00:00+01:00'
+        dt = datetime.datetime(2018, 3, 21,
+                               tzinfo=dateutil.tz.tzoffset(None, 3600))
+
+        self.assertEqual(dt, common.get_valid_from(
+            {
+                'validity': {
+                    'from': ts,
+                }
+            },
+        ))
+
+        self.assertEqual(dt, common.get_valid_from(
+            {
+                'validity': {
+                },
+            },
+            {
+                'validity': {
+                    'from': ts,
+                }
+            }
+        ))
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {},
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {
+                'validity': {},
+            },
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {},
+            {
+                'validity': {
+                }
+            },
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {
+
+            },
+            {
+                'validity': {
+                }
+            },
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {
+
+            },
+            {
+                'validity': {
+                    'from': None,
+                }
+            },
+        )
+
+    def test_get_valid_to(self):
+        ts = '2018-03-21T00:00:00+01:00'
+        dt = datetime.datetime(2018, 3, 21,
+                               tzinfo=dateutil.tz.tzoffset(None, 3600))
+
+        self.assertEqual(dt, common.get_valid_to(
+            {
+                'validity': {
+                    'to': ts,
+                }
+            },
+        ))
+
+        self.assertEqual(dt, common.get_valid_to(
+            {
+                'validity': {
+                },
+            },
+            {
+                'validity': {
+                    'to': ts,
+                }
+            }
+        ))
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to({}),
+        )
+
+        self.assertEqual(
+            common.get_valid_to({
+                'validity': {},
+            }),
+            util.positive_infinity,
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to(
+                {},
+                {
+                    'validity': {
+                    }
+                },
+            ),
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to(
+                {
+                    'validity': {
+                        'to': None,
+                    }
+                },
+            ),
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to(
+                {},
+                {
+                    'validity': {
+                        'to': None,
+                    }
+                },
+            ),
+        )
 
     def test_get_validities(self):
         # nothing
