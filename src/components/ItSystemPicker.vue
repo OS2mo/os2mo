@@ -52,15 +52,18 @@ export default {
     this.selected = this.preselected
     this.getItSystems()
   },
+  beforeDestroy () {
+    EventBus.$off(['organisation-changed'])
+  },
   methods: {
     getItSystems () {
       var vm = this
       let org = Organisation.getSelectedOrganisation()
       if (org.uuid === undefined) return
       Facet.itSystems(org.uuid)
-      .then(response => {
-        vm.itSystems = response
-      })
+        .then(response => {
+          vm.itSystems = response
+        })
     },
 
     updateSelectedItSystem () {

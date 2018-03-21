@@ -16,10 +16,11 @@ import uuid
 
 import flask
 
-from mora import lora
+from . import address
+from . import common
 from . import keys
 from . import mapping
-from . import common
+from .. import lora
 
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
@@ -32,6 +33,8 @@ def create_manager(employee_uuid, req):
     org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    address_obj = req.get(keys.ADDRESS)
+    address_type = req.get(keys.ADDRESS_TYPE)
     manager_type_uuid = common.get_obj_value(req, (keys.MANAGER_TYPE, 'uuid'))
     responsibility_uuid = common.get_obj_value(req,
                                                (keys.RESPONSIBILITY, 'uuid'))
@@ -69,7 +72,9 @@ def create_manager(employee_uuid, req):
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=manager_type_uuid,
         opgaver=opgaver,
-        # adresser=[location_uuid]
+        adresser=[
+            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+        ] if address_obj and address_type else None,
     )
 
     c.organisationfunktion.create(manager)
@@ -126,6 +131,7 @@ def edit_manager(employee_uuid, req):
                 'uuid': data.get(keys.RESPONSIBILITY).get('uuid')
             },
         ))
+
     if keys.MANAGER_LEVEL in data.keys():
         update_fields.append((
             mapping.MANAGER_LEVEL_FIELD,
@@ -133,6 +139,17 @@ def edit_manager(employee_uuid, req):
                 'objekttype': 'lederniveau',
                 'uuid': data.get(keys.MANAGER_LEVEL).get('uuid')
             },
+        ))
+
+    if keys.ADDRESS in data or keys.ADDRESS_TYPE in data:
+        address_obj = data.get(keys.ADDRESS) or original_data[keys.ADDRESS]
+        address_type = (
+            data.get(keys.ADDRESS_TYPE) or original_data[keys.ADDRESS_TYPE]
+        )
+
+        update_fields.append((
+            mapping.SINGLE_ADDRESS_FIELD,
+            address.get_relation_for(address_type, address_obj[keys.VALUE]),
         ))
 
     payload = common.update_payload(new_from, new_to, update_fields, original,

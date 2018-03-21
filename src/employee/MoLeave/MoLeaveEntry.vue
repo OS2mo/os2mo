@@ -1,7 +1,7 @@
 <template>
   <div>
     <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>   
-    <mo-facet-picker facet="leave_type" label="Orlovstype" v-model="entry.leave_type"/>
+    <mo-facet-picker facet="leave_type" v-model="entry.leave_type" required/>
   </div>
 </template>
 

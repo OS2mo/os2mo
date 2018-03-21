@@ -47,15 +47,20 @@
         return !this.employee.uuid || !this.terminate.validity.from
       }
     },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
     methods: {
       endEmployee () {
         let vm = this
         vm.isLoading = true
         Employee.terminate(this.employee.uuid, this.terminate)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeTerminate.hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeTerminate.hide()
+          })
       }
     }
   }

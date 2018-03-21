@@ -11,36 +11,50 @@
             <organisation-picker
               v-model="orgLeft"
               :at-date="dateLeft"
+              ignore-event
             />
 
             <treeview 
               v-model="orgUnitLeft"
-              :org-uuid="orgLeft.uuid"
               :at-date="dateLeft"
+              :org="orgLeft"
             />
           </div>
 
           <div class="card margin-top" v-if="orgUnitLeft">
-            Navn: {{orgUnitLeft.name}}
-            <organisation-detail-tabs :uuid="orgUnitLeft.uuid"/>
+            <h4>{{orgUnitLeft.name}}</h4>
+            <organisation-detail-tabs 
+              :uuid="orgUnitLeft.uuid"
+              :at-date="dateLeft"
+              timemachine-friendly
+            />
           </div>
         </div>
 
         <div class="col">
           <div class="card">
             <div class="form-row">
-              <date-picker/>
+              <date-picker v-model="dateRight"/>
             </div>
-            <organisation-picker v-model="orgRight"/>
+            <organisation-picker 
+              :at-date="dateRight"
+              v-model="orgRight"
+              ignore-event
+              />
+              
             <treeview 
-              :org-uuid="orgRight.uuid"
+              :org="orgRight"
+              :at-date="dateRight"
               v-model="orgUnitRight"
             />
           </div>
 
           <div class="card margin-top" v-if="orgUnitRight">
-            Navn: {{orgUnitRight.name}}
-            <organisation-detail-tabs :uuid="orgUnitRight.uuid"/>
+            <h4>{{orgUnitRight.name}}</h4>
+            <organisation-detail-tabs 
+              :uuid="orgUnitRight.uuid"
+              :at-date="dateRight"
+              timemachine-friendly/>
           </div>
         </div>
     </div>
@@ -62,16 +76,22 @@
     },
     data () {
       return {
-        dateLeft: null,
-        dateRight: null,
+        dateLeft: new Date(),
+        dateRight: new Date(),
         orgLeft: {},
         orgRight: {},
         orgUnitLeft: null,
         orgUnitRight: null
       }
     },
-    created () {},
-    methods: {}
+    watch: {
+      orgLeft () {
+        this.orgUnitLeft = null
+      },
+      orgRight () {
+        this.orgUnitRight = null
+      }
+    }
   }
 </script>
 

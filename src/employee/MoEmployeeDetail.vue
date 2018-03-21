@@ -72,9 +72,12 @@
     created () {
       this.getAllDetails()
     },
+    beforeDestroy () {
+      EventBus.$off(['employee-changed'])
+    },
     methods: {
       getAllDetails () {
-        let tense = ['past', 'present', 'future']
+        let tense = ['present', 'future', 'past']
 
         tense.forEach(t => {
           this.getDetails(t)
@@ -85,10 +88,10 @@
         let vm = this
         vm.loading[tense] = true
         Employee.getDetail(this.uuid, this.detail, tense)
-        .then(response => {
-          vm.loading[tense] = false
-          vm.details[tense] = response
-        })
+          .then(response => {
+            vm.loading[tense] = false
+            vm.details[tense] = response
+          })
       }
     }
   }

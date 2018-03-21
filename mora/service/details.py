@@ -58,11 +58,13 @@ def list_details(type, id):
     .. sourcecode:: json
 
       {
+        "address": false,
         "association": false,
         "engagement": true,
-        "role": false,
+        "it": false,
         "leave": true,
-        "manager": false
+        "manager": false,
+        "role": false
       }
 
     The value above informs you that at least one entry exists for each of
@@ -337,6 +339,62 @@ def get_detail(type, id, function):
         }
       ]
 
+    **Example manager response**:
+
+    .. sourcecode: json
+
+      [
+        {
+          "address": {
+            "href": "mailto:ceo@example.com",
+            "name": "ceo@example.com",
+            "value": "urn:mailto:ceo@example.com"
+          },
+          "address_type": {
+            "example": "test@example.com",
+            "name": "Emailadresse",
+            "scope": "EMAIL",
+            "user_key": "Email",
+            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+          },
+          "manager_level": {
+            "example": null,
+            "name": "Institut",
+            "scope": null,
+            "user_key": "inst",
+            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
+          },
+          "manager_type": {
+            "example": null,
+            "name": "Afdeling",
+            "scope": null,
+            "user_key": "afd",
+            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+          },
+          "org_unit": {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          },
+          "person": {
+            "name": "Anders And",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+          },
+          "responsibility": {
+            "example": null,
+            "name": "Fakultet",
+            "scope": null,
+            "user_key": "fak",
+            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+          },
+          "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+          "validity": {
+            "from": "2017-01-01T00:00:00+01:00",
+            "to": null
+          }
+        }
+      ]
+
     '''
 
     c = common.get_connector()
@@ -360,17 +418,8 @@ def get_detail(type, id, function):
         funktionsnavn=keys.FUNCTION_KEYS[function],
     )
 
-    #
-    # all these caches might be overkill when just listing one
-    # engagement, but they are frequently helpful when listing all
-    # engagements for a unit
-    #
-    # we fetch the types preemptively so that we may rely on
-    # get_all(), and fetch them in as few requests as possible
-    #
-    functions = collections.OrderedDict(
-        c.organisationfunktion.get_all(**search),
-    )
+    # TODO: the logic encoded in the functions below belong in the
+    # 'mapping' module, as part of e.g. FieldTuples
 
     def get_address(effect):
         try:
@@ -426,51 +475,17 @@ def get_detail(type, id, function):
         except (KeyError, IndexError):
             return None
 
-    def get_classes(effect):
-        rels = effect['relationer']
-
-        for reltype in 'opgaver', 'organisatoriskfunktionstype':
-            if reltype in rels:
-                for rel in rels[reltype]:
-                    try:
-                        yield rel['uuid']
-                    except KeyError:
-                        pass
-
-        if 'adresser' in rels:
-            for rel in rels['adresser']:
-                if util.is_uuid(rel.get('objekttype')):
-                    yield rel['objekttype']
-
-    class_cache = {
-        classid: classid and facet.get_one_class(c, classid, classobj)
-        for classid, classobj in c.klasse.get_all(
-            uuid=itertools.chain.from_iterable(
-                map(get_classes, functions.values()),
-            ),
-        )
-    }
-
-    user_cache = {
-        userid: employee.get_one_employee(c, userid, user)
-        for userid, user in
-        c.bruger.get_all(uuid={
-            get_employee_id(v) for v in functions.values()
-        })
-    }
-
-    unit_cache = {
-        unitid: orgunit.get_one_orgunit(
-            c, unitid, unit, details=orgunit.UnitDetails.MINIMAL,
-        )
-        for unitid, unit in
-        c.organisationenhed.get_all(
-            uuid=map(get_unit_id,
-                     functions.values()),
-        )
-    }
-
-    class_cache[None] = user_cache[None] = unit_cache[None] = None
+    #
+    # all these caches might be overkill when just listing one
+    # engagement, but they are frequently helpful when listing all
+    # engagements for a unit
+    #
+    # we fetch the types preemptively so that we may rely on
+    # get_all(), and fetch them in as few requests as possible
+    #
+    class_cache = {}
+    user_cache = {}
+    unit_cache = {}
 
     converters = {
         'engagement': {
@@ -502,26 +517,15 @@ def get_detail(type, id, function):
             keys.RESPONSIBILITY: (class_cache, get_responsibility),
             keys.MANAGER_LEVEL: (class_cache, get_manager_level),
             keys.MANAGER_TYPE: (class_cache, get_type_id),
+            keys.ADDRESS: (None, get_address),
+            keys.ADDRESS_TYPE: (class_cache, get_address_type),
         }
     }
 
-    def convert(start, end, funcid, effect):
-        func = {
-            key: cache.get(getter(effect)) if cache else getter(effect)
-            for key, (cache, getter) in converters[function].items()
-        }
-
-        func[keys.VALIDITY] = {
-            keys.FROM: util.to_iso_time(start),
-            keys.TO: util.to_iso_time(end),
-        }
-        func[keys.UUID] = funcid
-
-        return func
-
-    return flask.jsonify([
-        convert(start, end, funcid, effect)
-        for funcid, funcobj in functions.items()
+    # first, extract all the effects
+    function_effects = [
+        (start, end, funcid, effect)
+        for funcid, funcobj in c.organisationfunktion.get_all(**search)
         for start, end, effect in c.organisationfunktion.get_effects(
             funcobj,
             {
@@ -548,7 +552,58 @@ def get_detail(type, id, function):
             virkningfra='-infinity',
             virkningtil='infinity',
         )
-        if effect.get('tilstande')
-                 .get('organisationfunktiongyldighed')[0]
-                 .get('gyldighed') == 'Aktiv'
-    ])
+        if common.is_reg_valid(effect)
+    ]
+
+    # extract all object IDs
+    for cache, getter in converters[function].values():
+        if cache is not None:
+            for start, end, funcid, effect in function_effects:
+                cache[getter(effect)] = None
+
+    # fetch and convert each object once, rather than multiple times
+    class_cache.update({
+        classid: facet.get_one_class(c, classid, classobj)
+        for classid, classobj in c.klasse.get_all(uuid=class_cache)
+    })
+
+    user_cache.update({
+        userid: employee.get_one_employee(c, userid, user)
+        for userid, user in
+        c.bruger.get_all(uuid=user_cache)
+    })
+
+    unit_cache.update({
+        unitid: orgunit.get_one_orgunit(
+            c, unitid, unit, details=orgunit.UnitDetails.MINIMAL,
+        )
+        for unitid, unit in
+        c.organisationenhed.get_all(uuid=unit_cache)
+    })
+
+    # finally, gather it all in the appropriate objects
+    def convert(start, end, funcid, effect):
+        func = {
+            key: cache.get(getter(effect)) if cache else getter(effect)
+            for key, (cache, getter) in converters[function].items()
+        }
+
+        func[keys.VALIDITY] = {
+            keys.FROM: util.to_iso_time(start),
+            keys.TO: util.to_iso_time(end),
+        }
+        func[keys.UUID] = funcid
+
+        return func
+
+    def sort_key(obj):
+        return (
+            obj[keys.VALIDITY][keys.FROM],
+            common.get_obj_value(obj, (keys.PERSON, keys.NAME)),
+            common.get_obj_value(obj, (keys.ORG_UNIT, keys.NAME)),
+        )
+
+    return flask.jsonify(sorted(
+        itertools.starmap(convert, function_effects),
+        key=sort_key
+    ))

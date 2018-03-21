@@ -1,7 +1,15 @@
 <template>
   <div>
   <loading v-show="isLoading"/>
-  <button :disabled="isDisabled" @click="onClickAction" type="button" class="btn btn-primary" v-show="!isLoading">
+  <button 
+    :disabled="isDisabled" 
+    @click="onClickAction" 
+    type="button" 
+    class="btn btn-primary" 
+    v-show="!isLoading"
+    v-shortkey.once="['enter']"
+    @shortkey="onClickAction"
+  >
     <icon name="check"/>
   </button>
   </div>

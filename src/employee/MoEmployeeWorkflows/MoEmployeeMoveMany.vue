@@ -75,10 +75,15 @@
     watch: {
       orgUnitSource: {
         handler (newVal) {
-          this.getEmployees(newVal.uuid)
+          if (newVal.uuid) this.getEmployees(newVal.uuid)
         },
         deep: true
       }
+    },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
     },
     methods: {
       selectedEmployees (val) {
@@ -88,28 +93,31 @@
       getEmployees (orgUnitUuid) {
         let vm = this
         OrganisationUnit.getDetail(orgUnitUuid, 'engagement')
-        .then(response => {
-          vm.employees = response
-        })
+          .then(response => {
+            vm.employees = response
+          })
       },
 
       moveMany () {
         let vm = this
         vm.isLoading = true
 
-        let move = {
-          type: 'engagement',
-          data: {
-            validity: {}
-          }
-        }
-
         vm.selected.forEach(engagement => {
+          let move = {
+            type: 'engagement',
+            data: {
+              validity: {}
+            }
+          }
+
           move.uuid = engagement.uuid
           move.data.org_unit = vm.orgUnitDestination
           move.data.validity.from = vm.moveDate
 
-          Employee.edit(engagement.person.uuid, [move])
+          let uuid = engagement.person.uuid
+          let data = [move]
+
+          Employee.move(uuid, data)
             .then(response => {
               vm.isLoading = false
               vm.$refs.employeeMoveMany.hide()

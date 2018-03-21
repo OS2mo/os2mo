@@ -14,13 +14,13 @@
 
       <mo-facet-picker 
       facet="org_unit_type" 
-      label="Enhedstype" 
       v-model="orgUnit.org_unit_type"
       />
       </div>
 
       <organisation-unit-picker 
         v-model="orgUnit.parent"
+        :is-disabled="disableOrgUnitPicker"
       />
   </div>
 </template>
@@ -41,7 +41,8 @@ export default {
     org: {
       type: Object,
       required: true
-    }
+    },
+    disableOrgUnitPicker: Boolean
   },
   data () {
     return {

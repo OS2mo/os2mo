@@ -32,6 +32,7 @@
           v-model="selected"
           @click="selectOrgUnit(selected)"
           :model="model"
+          :at-date="atDate"
           :linkable="linkable">
         </tree-view-item>
       </ul>
@@ -84,9 +85,12 @@
       this.open = this.firstOpen
     },
     mounted () {
-      EventBus.$on('organisation-unit-changed', newOrg => {
-        this.loadChildren(this.org)
+      EventBus.$on('organisation-unit-changed', () => {
+        this.loadChildren()
       })
+    },
+    beforeDestroy () {
+      EventBus.$off(['organisation-unit-changed'])
     },
     methods: {
       toggle () {
@@ -103,10 +107,10 @@
         vm.loading = true
         vm.model.children = undefined
         OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
-        .then(response => {
-          vm.model.children = response
-          vm.loading = false
-        })
+          .then(response => {
+            vm.model.children = response
+            vm.loading = false
+          })
       }
     }
   }

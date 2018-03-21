@@ -24,20 +24,20 @@ export default {
    */
   get (uuid) {
     return Service.get(`/e/${uuid}/`)
-    .then(response => {
-      EventBus.$emit('organisation-changed', response.data.org)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('organisation-changed', response.data.org)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   history (uuid) {
     return Service.get(`/e/${uuid}/history/`)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   },
 
   /**
@@ -50,42 +50,6 @@ export default {
   },
 
   /**
-   * Get role details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getRoleDetails (uuid, validity) {
-    return this.getDetail(uuid, 'role', validity)
-  },
-
-  /**
-   * Get IT details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getItDetails (uuid, validity) {
-    return this.getDetail(uuid, 'it', validity)
-  },
-
-  /**
-   * Get association details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getAssociationDetails (uuid, validity) {
-    return this.getDetail(uuid, 'association', validity)
-  },
-
-  /**
-   * Get leave details for employee
-   * @param {String} uuid - Employee uuid
-   * @see getDetail
-   */
-  getLeaveDetails (uuid, validity) {
-    return this.getDetail(uuid, 'leave', validity)
-  },
-
-  /**
    * Base call for getting details.
    * @param {String} uuid - employee uuid
    * @param {String} detail - Name of the detail
@@ -94,27 +58,12 @@ export default {
   getDetail (uuid, detail, validity) {
     validity = validity || 'present'
     return Service.get(`/e/${uuid}/details/${detail}?validity=${validity}`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
-  },
-
-  /**
-   * Get a list of available details
-   * @param {String} uuid - employee uuid
-   * @returns {Object} A list of available tabs
-   */
-  getDetailList (uuid) {
-    return Service.get(`e/${uuid}/details/`)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
   /**
@@ -123,15 +72,29 @@ export default {
    * @param {Array} create - A list of elements to create
    * @returns {Object} employee uuid
    */
-  create (uuid, create) {
+  createEntry (uuid, create) {
     return Service.post(`/e/${uuid}/create`, create)
-    .then(response => {
-      EventBus.$emit('employee-changed', response.data)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('employee-changed', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
+
+  create (uuid, create) {
+    return this.createEntry(uuid, create)
+      .then(response => {
+        EventBus.$emit('employee-create', response)
+      })
+  },
+
+  leave (uuid, leave) {
+    return this.createEntry(uuid, leave)
+      .then(response => {
+        EventBus.$emit('employee-leave', response)
+      })
   },
 
   /**
@@ -142,16 +105,24 @@ export default {
    */
   edit (uuid, edit) {
     return Service.post(`/e/${uuid}/edit`, edit)
-    .then(response => {
-      EventBus.$emit('employee-changed', response.data)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('employee-changed', response.data)
+        EventBus.$emit('employee-edit', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   },
 
-   /**
+  move (uuid, move) {
+    return this.edit(uuid, move)
+      .then(response => {
+        EventBus.$emit('employee-move', response)
+      })
+  },
+
+  /**
    * End an employee
    * @param {String} uuid - employee uuid
    * @param {Object} end - Object containing the end date
@@ -159,12 +130,13 @@ export default {
    */
   terminate (uuid, end) {
     return Service.post(`/e/${uuid}/terminate`, end)
-    .then(response => {
-      EventBus.$emit('employee-changed', response.data)
-      return response.data
-    })
-    .catch(error => {
-      console.log(error.response)
-    })
+      .then(response => {
+        EventBus.$emit('employee-changed', response.data)
+        EventBus.$emit('employee-terminate', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
   }
 }

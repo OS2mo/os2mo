@@ -1,0 +1,318 @@
+{
+  "http://mox/organisation/bruger?virkningtil=2018-03-21T00%3A00%3A00%2B01%3A00&virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&uuid=34705881-8af9-4254-ac3f-31738eae0be8": {
+    "results": [
+      [
+        {
+          "id": "34705881-8af9-4254-ac3f-31738eae0be8",
+          "registreringer": [
+            {
+              "attributter": {
+                "brugeregenskaber": [
+                  {
+                    "brugernavn": "Sune Skriver",
+                    "brugertype": "demo",
+                    "brugervendtnoegle": "sunes",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2018-03-20T09:21:08.259463+01:00"
+              },
+              "livscykluskode": "Rettet",
+              "note": "Opret it-system",
+              "relationer": {
+                "adresser": [
+                  {
+                    "objekttype": "eb520fe5-eb72-4110-b81d-9c1a129dc22a",
+                    "urn": "urn:magenta.dk:telefon:+4511223344",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "objekttype": "80764a2f-6a7b-492c-92d9-96d24ac845ea",
+                    "urn": "urn:mailto:sune@example.com",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "objekttype": "031f93c3-6bab-462e-a998-87cad6db3128",
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "brugertyper": [
+                  {
+                    "urn": "urn:email",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilhoerer": [
+                  {
+                    "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilknyttedeitsystemer": [
+                  {
+                    "objekttype": "itsystem",
+                    "virkning": {
+                      "from": "2018-03-20 08:57:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "objekttype": "itsystem",
+                    "uuid": "990255f7-44c7-4fec-9ef8-27fe73763afd",
+                    "virkning": {
+                      "from": "2018-03-05 08:47:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "objekttype": "itsystem",
+                    "uuid": "990255f7-44c7-4fec-9ef8-27fe73763afd",
+                    "virkning": {
+                      "from": "2018-03-19 08:57:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "objekttype": "itsystem",
+                    "uuid": "990255f7-44c7-4fec-9ef8-27fe73763afd",
+                    "virkning": {
+                      "from": "2018-03-19 09:21:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  },
+                  {
+                    "objekttype": "itsystem",
+                    "uuid": "a7ecd46a-9d70-4170-bde9-9bf44cf8632b",
+                    "virkning": {
+                      "from": "2018-03-14 08:58:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilknyttedepersoner": [
+                  {
+                    "urn": "urn:dk:cpr:person:0101001010",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "brugergyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2018-01-01 00:00:00+01",
+                      "from_included": true,
+                      "notetekst": "0fc9e102-a459-44ae-898f-f37c6a98d2fc",
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/itsystem?uuid=a7ecd46a-9d70-4170-bde9-9bf44cf8632b&virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&virkningtil=2018-03-21T00%3A00%3A00%2B01%3A00": {
+    "results": [
+      [
+        {
+          "id": "a7ecd46a-9d70-4170-bde9-9bf44cf8632b",
+          "registreringer": [
+            {
+              "attributter": {
+                "itsystemegenskaber": [
+                  {
+                    "brugervendtnoegle": "AD",
+                    "itsystemnavn": "Active Directory",
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2018-03-13T14:21:55.048941+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "relationer": {
+                "tilhoerer": [
+                  {
+                    "objekttype": "organisation",
+                    "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd",
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilknyttedeorganisationer": [
+                  {
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "itsystemgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "http://mox/organisation/itsystem?virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&uuid=990255f7-44c7-4fec-9ef8-27fe73763afd&virkningtil=2018-03-21T00%3A00%3A00%2B01%3A00": {
+    "results": [
+      [
+        {
+          "id": "990255f7-44c7-4fec-9ef8-27fe73763afd",
+          "registreringer": [
+            {
+              "attributter": {
+                "itsystemegenskaber": [
+                  {
+                    "brugervendtnoegle": "LoRA",
+                    "itsystemnavn": "Lokal Rammearkitektur",
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+              "fratidspunkt": {
+                "graenseindikator": true,
+                "tidsstempeldatotid": "2018-03-13T14:21:55.177777+01:00"
+              },
+              "livscykluskode": "Importeret",
+              "relationer": {
+                "tilhoerer": [
+                  {
+                    "objekttype": "organisation",
+                    "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd",
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ],
+                "tilknyttedeorganisationer": [
+                  {
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tilstande": {
+                "itsystemgyldighed": [
+                  {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                      "from": "2010-01-01 00:00:00+01",
+                      "from_included": true,
+                      "to": "infinity",
+                      "to_included": false
+                    }
+                  }
+                ]
+              },
+              "tiltidspunkt": {
+                "tidsstempeldatotid": "infinity"
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  }
+}

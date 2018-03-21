@@ -102,7 +102,7 @@ export default {
       let emp = Object.keys(this.employee).length > 0
       let ass = Object.keys(this.association).length > 2
       let role = Object.keys(this.role).length > 3
-      let it = Object.keys(this.itSystem).length > 2
+      let it = Object.keys(this.itSystem).length > 3
       let man = Object.keys(this.manager).length > 2
       return (!emp || !this.valid.engagement ||
               (ass ? !this.valid.association : false) ||
@@ -117,6 +117,9 @@ export default {
   mounted () {
     EventBus.$on('organisation-changed', newOrg => {
       this.org = newOrg
+    })
+    this.$root.$on('bv::modal::hidden', resetData => {
+      Object.assign(this.$data, this.$options.data())
     })
   },
   methods: {
@@ -148,19 +151,19 @@ export default {
       if (this.valid.engagement) create.push(this.engagement)
       if (this.valid.association) create.push(this.association)
       if (this.valid.role) create.push(this.role)
-      if (this.valid.itSysyem) create.push(this.itSystem)
+      if (this.valid.itSystem) create.push(this.itSystem)
       if (this.valid.manager) create.push(this.manager)
 
       Employee.create(this.employee.uuid, create)
-      .then(response => {
-        vm.isLoading = false
-        vm.$refs.employeeCreate.hide()
-        vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
-      })
-      .catch(err => {
-        console.log(err)
-        vm.isLoading = false
-      })
+        .then(response => {
+          vm.isLoading = false
+          vm.$refs.employeeCreate.hide()
+          vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
+        })
+        .catch(err => {
+          console.log(err)
+          vm.isLoading = false
+        })
     }
   }
 }

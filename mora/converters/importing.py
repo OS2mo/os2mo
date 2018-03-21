@@ -21,7 +21,7 @@ import pyexcel
 from .. import util
 from .. import lora
 
-from . import addr
+from ..service import address
 
 
 # TODO: don't hardcode these, look into the imported data instead?
@@ -88,7 +88,12 @@ def _make_addresses_relation(obj):
 
         elif v:
             if not isinstance(v, str) or not v.startswith('urn:'):
-                v = addr.URN_FORMATS[scope].format(v)
+                if scope == 'PHONE':
+                    v = str(v)
+                    if not v.startswith('+45'):
+                        v = '+45' + v.zfill(8)
+
+                v = address.URN_PREFIXES[scope] + str(v)
 
             r.append({
                 'urn': v,

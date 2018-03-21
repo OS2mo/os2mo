@@ -85,28 +85,33 @@
         deep: true
       }
     },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
     methods: {
       moveOrganisationUnit () {
         let vm = this
         vm.isLoading = true
 
         OrganisationUnit.move(this.original.uuid, this.move)
-        .then(response => {
-          vm.$refs.orgUnitMove.hide()
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
-        })
+          .then(response => {
+            vm.$refs.orgUnitMove.hide()
+          })
+          .catch(err => {
+            console.log(err)
+            vm.isLoading = false
+          })
       },
 
       getCurrentUnit (unitUuid) {
         let vm = this
         if (!unitUuid) return
         OrganisationUnit.get(unitUuid)
-        .then(response => {
-          vm.currentUnit = response.parent ? response.parent.name : ''
-        })
+          .then(response => {
+            vm.currentUnit = response.parent ? response.parent.name : ''
+          })
       }
     }
   }

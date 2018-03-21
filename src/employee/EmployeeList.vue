@@ -50,9 +50,12 @@
       this.getEmployees()
     },
     mounted () {
-      EventBus.$on('organisation-changed', (newOrg) => {
-        this.getEmployees(newOrg)
+      EventBus.$on('organisation-changed', () => {
+        this.getEmployees()
       })
+    },
+    beforeDestroy () {
+      EventBus.$off(['organisation-changed'])
     },
     methods: {
       getEmployees () {
@@ -61,10 +64,10 @@
         let org = Organisation.getSelectedOrganisation()
         if (org.uuid === undefined) return
         Employee.getAll(org.uuid)
-        .then(response => {
-          vm.employees = response
-          vm.isLoading = false
-        })
+          .then(response => {
+            vm.employees = response
+            vm.isLoading = false
+          })
       }
     }
   }

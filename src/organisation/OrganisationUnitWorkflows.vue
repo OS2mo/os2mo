@@ -1,5 +1,11 @@
 <template>
-  <div>
+  <div 
+    v-shortkey="{orgUnitCreate: ['ctrl', 'alt', 'n'], 
+    orgUnitRename: ['ctrl', 'alt', 'r'], 
+    orgUnitMove: ['ctrl', 'alt', 'm'], 
+    orgUnitTerminate: ['ctrl', 'alt', 'd']}" 
+    @shortkey="theAction()"
+  >
     <div id="workflows">
       <button-workflow label="Opret enhed" icon="plus-circle" v-b-modal.orgUnitCreate/>
       <button-workflow label="Omdøb enhed" icon="pencil-square-o" v-b-modal.orgUnitRename/>
@@ -32,6 +38,11 @@
     data () {
       return {
         org: {}
+      }
+    },
+    methods: {
+      theAction () {
+        this.$root.$emit('bv::show::modal', event.srcKey)
       }
     }
   }

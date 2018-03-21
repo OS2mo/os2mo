@@ -86,21 +86,26 @@
         return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.original
       }
     },
+    mounted () {
+      this.$root.$on('bv::modal::hidden', resetData => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    },
     methods: {
       moveEmployee () {
         let vm = this
         vm.isLoading = true
         vm.move.uuid = this.original.uuid
 
-        Employee.edit(this.employee.uuid, [this.move])
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeMove.hide()
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
-        })
+        Employee.move(this.employee.uuid, [this.move])
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeMove.hide()
+          })
+          .catch(err => {
+            console.log(err)
+            vm.isLoading = false
+          })
       }
     }
   }

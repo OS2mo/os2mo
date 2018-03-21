@@ -53,6 +53,11 @@ export default {
       return !this.leaveValid || !this.employee.uuid
     }
   },
+  mounted () {
+    this.$root.$on('bv::modal::hidden', resetData => {
+      Object.assign(this.$data, this.$options.data())
+    })
+  },
   methods: {
     isValid (val) {
       this.leaveValid = val
@@ -61,11 +66,11 @@ export default {
     createLeave () {
       let vm = this
       vm.isLoading = true
-      Employee.create(this.employee.uuid, [this.leave])
-      .then(response => {
-        vm.isLoading = false
-        vm.$refs.employeeLeave.hide()
-      })
+      Employee.leave(this.employee.uuid, [this.leave])
+        .then(response => {
+          vm.isLoading = false
+          vm.$refs.employeeLeave.hide()
+        })
     }
   }
 }

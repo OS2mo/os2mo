@@ -20,6 +20,7 @@
         :is="entryComponent"
         v-model="entry" 
         :org="org" 
+        :disable-org-unit-picker="disableOrgUnitPicker"
         @is-valid="isValid"
       />
 
@@ -73,7 +74,7 @@
       return {
         entry: {},
         original: {},
-        org: Object,
+        org: {},
         isLoading: false,
         valid: false
       }
@@ -81,6 +82,10 @@
     computed: {
       isDisabled () {
         return !this.valid
+      },
+
+      disableOrgUnitPicker () {
+        return this.type === 'ORG_UNIT' && this.action === 'EDIT'
       },
 
       iconLabel () {
@@ -113,7 +118,13 @@
         deep: true
       }
     },
-
+    mounted () {
+      if (this.action === 'CREATE') {
+        this.$root.$on('bv::modal::hidden', resetData => {
+          Object.assign(this.$data, this.$options.data())
+        })
+      }
+    },
     created () {
       this.org = Organisation.getSelectedOrganisation()
 
@@ -174,41 +185,41 @@
       createEmployee (data) {
         let vm = this
         Employee.create(this.uuid, [data])
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       },
 
       editEmployee (data) {
         let vm = this
         return Employee.edit(this.uuid, [data])
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       },
 
       createOrganisationUnit (data) {
         let vm = this
         return OrganisationUnit.create(data)
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       },
 
       editOrganisationUnit (data) {
         let vm = this
         return OrganisationUnit.edit(this.uuid, data)
-        .then(response => {
-          vm.isLoading = false
-          // vm.entry = {}
-          vm.$refs['moCreate' + vm._uid].hide()
-        })
+          .then(response => {
+            vm.isLoading = false
+            // vm.entry = {}
+            vm.$refs['moCreate' + vm._uid].hide()
+          })
       }
     }
   }

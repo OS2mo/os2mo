@@ -170,7 +170,12 @@ class ITSystems(common.AbstractRelationDetail):
             for systemrel in rels.get('tilknyttedeitsystemer', []):
                 if not c.is_effect_relevant(systemrel['virkning']):
                     continue
-                systemid = systemrel['uuid']
+
+                try:
+                    systemid = systemrel['uuid']
+                except KeyError:
+                    continue
+
                 system = system_cache[systemid]
 
                 system_attrs = system['attributter']['itsystemegenskaber'][0]
@@ -223,19 +228,27 @@ class ITSystems(common.AbstractRelationDetail):
         }
 
     def create(self, id, req):
+        systemobj = common.checked_get(req, keys.ITSYSTEM, {})
+        systemid = common.get_uuid(systemobj)
+
         original = self.scope.get(
             uuid=id,
             virkningfra='-infinity',
             virkningtil='infinity',
         )
 
+        if not original:
+            raise KeyError('no such user!')
+
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        rels.append(self.get_relation_for(
-            req[keys.ITSYSTEM]['uuid'],
-            common.get_valid_from(req),
-            common.get_valid_to(req),
-        ))
+        start = common.get_valid_from(req)
+        end = common.get_valid_to(req)
+
+        if start == util.negative_infinity:
+            raise ValueError('missing or invalid start date!')
+
+        rels.append(self.get_relation_for(systemid, start, end))
 
         payload = {
             'relationer': {

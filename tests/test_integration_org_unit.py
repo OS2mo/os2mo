@@ -219,7 +219,8 @@ class Tests(util.LoRATestCase):
             [],
         )
 
-    def test_create_org_unit(self):
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_create_org_unit(self, m):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -230,11 +231,30 @@ class Tests(util.LoRATestCase):
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
             },
             "org_unit_type": {
-                'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
             # TODO
             "addresses": [
-
+                {
+                    "address_type": {
+                        "example": "20304060",
+                        "name": "Telefonnummer",
+                        "scope": "PHONE",
+                        "user_key": "Telefon",
+                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                    },
+                    "value": "11 22 33 44",
+                },
+                {
+                    "address_type": {
+                        "example": "<UUID>",
+                        "name": "Adresse",
+                        "scope": "DAR",
+                        "user_key": "Adresse",
+                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                    },
+                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                },
             ],
             "validity": {
                 "from": "2010-02-04T00:00:00+01",
@@ -264,6 +284,28 @@ class Tests(util.LoRATestCase):
                 ]
             },
             "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        'urn': 'urn:magenta.dk:telefon:+4511223344',
+                        'virkning': {
+                            'from': '2010-02-04 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-10-22 00:00:00+02',
+                            'to_included': False,
+                        },
+                    },
+                    {
+                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'virkning': {
+                            'from': '2010-02-04 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-10-22 00:00:00+02',
+                            'to_included': False,
+                        },
+                    },
+                ],
                 "overordnet": [
                     {
                         "virkning": {
@@ -294,20 +336,9 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2010-02-04 00:00:00+01"
                         },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                     }
                 ],
-                # "addresser": [
-                #     {
-                #         "virkning": {
-                #             "to_included": False,
-                #             "to": "2017-10-22 00:00:00+02",
-                #             "from_included": True,
-                #             "from": "2010-02-04 00:00:00+01"
-                #         },
-                #         "uuid": "f494ad89-039d-478e-91f2-a63566554bd6"
-                #     }
-                # ]
             },
             "tilstande": {
                 "organisationenhedgyldighed": [
@@ -327,6 +358,45 @@ class Tests(util.LoRATestCase):
         actual_org_unit = c.organisationenhed.get(unitid)
 
         self.assertRegistrationsEqual(expected, actual_org_unit)
+
+        self.assertRequestResponse(
+            '/service/ou/{}/'.format(unitid),
+            {
+                'name': 'Fake Corp',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'parent': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                },
+                'user_key': 'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
+                'uuid': unitid,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/'.format(unitid),
+            {
+                'address': True,
+                'association': False,
+                'engagement': False,
+                'leave': False,
+                'manager': False,
+                'org_unit': True,
+                'role': False,
+            },
+        )
 
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
@@ -946,120 +1016,43 @@ class Tests(util.LoRATestCase):
     def test_terminate_org_unit(self):
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
         payload = {
             "validity": {
-                "from": "2017-10-22T00:00:00+02"
+                "from": "2016-10-22T00:00:00+02"
             }
         }
 
         self._perform_request('/service/ou/{}/terminate'.format(unitid),
                               json=payload)
 
-        expected = {
-            'attributter': {
-                'organisationenhedegenskaber': [
-                    {
-                        'brugervendtnoegle': 'fil',
-                        'enhedsnavn': 'Filosofisk '
-                                      'Institut',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ]
-            },
-            'livscykluskode': 'Rettet',
-            'note': 'Afslut enhed',
-            'relationer': {
-                'adresser': [
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    },
-                    {
-                        'objekttype':
-                            '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ],
-                'enhedstype': [
-                    {
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ],
-                'overordnet': [
-                    {
-                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ],
-                'tilhoerer': [
-                    {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ]
-            },
-            'tilstande': {
-                'organisationenhedgyldighed': [
-                    {
-                        'gyldighed': 'Aktiv',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-10-22 '
-                                  '00:00:00+02',
-                            'to_included': False
-                        }
-                    },
-                    {
-                        'gyldighed': 'Inaktiv',
-                        'virkning': {
-                            'from': '2017-10-22 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ]
-            }
-        }
+        self.assertRequestResponse(
+            '/service/ou/{}'.format(unitid) +
+            '/details/org_unit?validity=past',
+            [
+                {'name': 'Filosofisk Institut',
+                 'org': {'name': 'Aarhus Universitet',
+                         'user_key': 'AU',
+                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'},
+                 'org_unit_type': {'example': None,
+                                   'name': 'Institut',
+                                   'scope': None,
+                                   'user_key': 'inst',
+                                   'uuid': 'ca76a441-6226-404f-'
+                                           '88a9-31e02e420e52'},
+                 'parent': {'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+                 'user_key': 'fil',
+                 'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                 'validity': {'from': '2016-01-01T00:00:00+01:00',
+                              'to': '2016-10-22T00:00:00+02:00'}}]
+        )
 
-        actual_org_unit = c.organisationenhed.get(unitid)
-
-        self.assertRegistrationsEqual(expected, actual_org_unit)
+        # Verify that we are no longer able to see org unit
+        self.assertRequestResponse(
+            '/service/ou/{}'.format(unitid) +
+            '/details/org_unit?validity=present',
+            [],
+        )

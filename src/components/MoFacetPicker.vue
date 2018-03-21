@@ -40,16 +40,13 @@ export default {
       required: true
     },
     required: Boolean,
-    noLabel: Boolean,
-    label: {
-      type: String,
-      default: 'Rolle'
-    }
+    noLabel: Boolean
   },
   data () {
     return {
       selected: {},
-      facets: []
+      facets: [],
+      label: ''
     }
   },
   mounted () {
@@ -61,15 +58,19 @@ export default {
     this.getFacet()
     this.selected = this.value
   },
+  beforeDestroy () {
+    EventBus.$off(['organisation-changed'])
+  },
   methods: {
     getFacet () {
       var vm = this
       let org = Organisation.getSelectedOrganisation()
       if (org.uuid === undefined) return
       Facet.getFacet(org.uuid, this.facet)
-      .then(response => {
-        vm.facets = response
-      })
+        .then(response => {
+          vm.facets = response.data.items
+          vm.label = response.user_key
+        })
     },
 
     updateSelectedRoleTypes () {

@@ -38,6 +38,7 @@
         type: String,
         required: true
       },
+      atDate: [Date, String],
       detail: {
         type: String,
         required: true
@@ -48,7 +49,6 @@
         type: String,
         default: 'Opret ny'
       }
-
     },
     data () {
       return {
@@ -69,8 +69,16 @@
         this.getAllDetails()
       })
     },
+    watch: {
+      uuid () {
+        this.getAllDetails()
+      }
+    },
     created () {
       this.getAllDetails()
+    },
+    beforeDestroy () {
+      EventBus.$off(['organisation-unit-changed'])
     },
     methods: {
       getAllDetails () {
@@ -84,11 +92,11 @@
       getDetails (tense) {
         let vm = this
         vm.loading[tense] = true
-        OrganisationUnit.getDetail(this.uuid, this.detail, tense)
-        .then(response => {
-          vm.loading[tense] = false
-          vm.details[tense] = response
-        })
+        OrganisationUnit.getDetail(this.uuid, this.detail, tense, this.atDate)
+          .then(response => {
+            vm.loading[tense] = false
+            vm.details[tense] = response
+          })
       }
     }
   }

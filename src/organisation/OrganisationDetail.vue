@@ -43,9 +43,9 @@
       updateDetails () {
         var vm = this
         OrganisationUnit.get(this.$route.params.uuid)
-        .then(response => {
-          vm.orgUnit = response
-        })
+          .then(response => {
+            vm.orgUnit = response
+          })
       }
     }
   }

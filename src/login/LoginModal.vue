@@ -51,11 +51,11 @@
       gotoMo () {
         let vm = this
         Auth.setUser(vm.user)
-        .then(response => {
-          vm.$router.push({
-            name: 'home'
+          .then(response => {
+            vm.$router.push({
+              name: 'home'
+            })
           })
-        })
       }
     }
   }
