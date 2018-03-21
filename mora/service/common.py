@@ -21,7 +21,6 @@ import uuid
 from typing import Callable, Hashable, List, Tuple
 
 import flask
-import iso8601
 
 from mora import util
 from . import keys
@@ -85,7 +84,7 @@ def get_connector():
     loraparams = dict()
 
     if args.get('at'):
-        loraparams['effective_date'] = iso8601.parse_date(args['at'])
+        loraparams['effective_date'] = util.from_iso_time(args['at'])
 
     if args.get('validity'):
         loraparams['validity'] = args['validity']
