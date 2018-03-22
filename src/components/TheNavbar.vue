@@ -68,7 +68,7 @@
     methods: {
       logout () {
         this.$router.push({
-          name: 'login'
+          name: 'Login'
         })
       }
     }

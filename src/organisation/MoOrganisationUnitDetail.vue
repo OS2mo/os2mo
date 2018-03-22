@@ -72,7 +72,7 @@
     },
     watch: {
       uuid () {
-        //listener for the time machine
+        // listener for the time machine
         this.getAllDetails()
       }
     },

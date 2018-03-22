@@ -40,6 +40,9 @@
 
   export default {
     name: 'login-modal',
+    props: {
+      destination: {type: String, required: true}
+    },
     data () {
       return {
         user: {
@@ -53,7 +56,7 @@
         Auth.setUser(vm.user)
           .then(response => {
             vm.$router.push({
-              name: 'home'
+              name: this.destination
             })
           })
       }

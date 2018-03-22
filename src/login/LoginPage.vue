@@ -7,16 +7,16 @@
       </div>
     </nav>
     <div id="login-wrapper" class="col">
-      <button class="btn btn-primary btn-bg" v-b-modal.login>
+      <button class="btn btn-primary btn-bg" @click="setDestination('Employee')" v-b-modal.login>
         <icon name="user" scale="1.8"/>
         <span class="btn-text">Medarbejder</span>
       </button>
         <br>
-      <button class="btn btn-success btn-bg-2" v-b-modal.login>
+      <button class="btn btn-success btn-bg-2" @click="setDestination('Organisation')" v-b-modal.login>
         <icon name="share-alt" scale="1.8"/>
         <span class="btn-text">Organisation</span>
       </button>
-      <login-modal/>
+      <login-modal :destination="destination"/>
     </div>
   </div>
 
@@ -28,6 +28,16 @@
   export default {
     components: {
       LoginModal
+    },
+    data () {
+      return {
+        destination: ''
+      }
+    },
+    methods: {
+      setDestination (val) {
+        this.destination = val
+      }
     }
   }
 </script>
