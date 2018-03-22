@@ -3,7 +3,7 @@ import Router from 'vue-router'
 const LoginPage = () => import('@/login/LoginPage')
 const MoBase = () => import('@/MoBase')
 const Organisation = () => import('@/organisation/Organisation')
-const OrganisationLandingPage = () => import('@/organisation/OrganisationlandingPage')
+const OrganisationLandingPage = () => import('@/organisation/OrganisationLandingPage')
 const OrganisationDetail = () => import('@/organisation/OrganisationDetail')
 const Employee = () => import('@/employee/Employee')
 const EmployeeList = () => import('@/employee/EmployeeList')
