@@ -12,7 +12,7 @@
         <strong>{{title}}</strong>
     </div>
   </div>
-  <b-collapse :id="id" :visible="open">
+  <b-collapse :id="id" :visible="open" @shown="$emit('shown')">
     <slot>
       Put some content here
     </slot>

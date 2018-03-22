@@ -8,6 +8,7 @@
       :uuid="uuid"
       :edit-component="entryComponent"
       type="EMPLOYEE"
+      @shown="getDetails"
     />
 
     <mo-entry-modal-base 
@@ -70,7 +71,7 @@
       })
     },
     created () {
-      this.getAllDetails()
+      this.getDetails('present')
     },
     beforeDestroy () {
       EventBus.$off(['employee-changed'])
@@ -86,6 +87,7 @@
 
       getDetails (tense) {
         let vm = this
+        if (vm.details[tense].length > 0) return
         vm.loading[tense] = true
         Employee.getDetail(this.uuid, this.detail, tense)
           .then(response => {

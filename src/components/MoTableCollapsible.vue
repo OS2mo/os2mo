@@ -1,5 +1,5 @@
 <template>
-  <mo-collapse :title="title" :initially-open="initiallyOpen">
+  <mo-collapse :title="title" :initially-open="initiallyOpen" @shown="$emit('shown')">
     <mo-table 
       :columns="columns"
       :content="content"
@@ -37,6 +37,11 @@
       type: {
         type: String,
         required: true
+      }
+    },
+    methods: {
+      isCollapsed (val) {
+        this.$emit('is-collapsed', val)
       }
     }
   }
