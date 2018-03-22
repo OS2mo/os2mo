@@ -2,18 +2,18 @@
   <div v-if="hasEntryComponent">
     <button 
       class="btn btn-outline-primary" 
-      v-b-modal="'moCreate'+_uid" 
+      v-b-modal="idLabel" 
     >
       <icon :name="iconLabel" />
       {{label}}
     </button>
 
     <b-modal
-      :id="'moCreate'+_uid"
+      :id="idLabel"
       size="lg"
       hide-footer 
       :title="modalTitle"
-      :ref="'moCreate'+_uid"
+      :ref="idLabel"
       lazy
     >
       <component 
@@ -80,6 +80,9 @@
       }
     },
     computed: {
+      idLabel () {
+        return 'moCreate' + this._uid
+      },
       isDisabled () {
         return !this.valid
       },
@@ -124,6 +127,13 @@
           Object.assign(this.$data, this.$options.data())
         })
       }
+
+      this.$root.$on('bv::modal::shown', data => {
+        if (this.content) {
+          this.entry = JSON.parse(JSON.stringify(this.content))
+          this.original = JSON.parse(JSON.stringify(this.content))
+        }
+      })
     },
     created () {
       this.org = Organisation.getSelectedOrganisation()
@@ -132,6 +142,10 @@
         this.entry = JSON.parse(JSON.stringify(this.content))
         this.original = JSON.parse(JSON.stringify(this.content))
       }
+    },
+    beforeDestroy () {
+      this.$root.$off(['bv::modal::hidden'])
+      this.$root.$off(['bv::modal::shown'])
     },
     methods: {
       isValid (val) {
@@ -187,7 +201,6 @@
         Employee.create(this.uuid, [data])
           .then(response => {
             vm.isLoading = false
-            // vm.entry = {}
             vm.$refs['moCreate' + vm._uid].hide()
           })
       },
@@ -197,7 +210,6 @@
         return Employee.edit(this.uuid, [data])
           .then(response => {
             vm.isLoading = false
-            // vm.entry = {}
             vm.$refs['moCreate' + vm._uid].hide()
           })
       },
@@ -207,7 +219,6 @@
         return OrganisationUnit.create(data)
           .then(response => {
             vm.isLoading = false
-            // vm.entry = {}
             vm.$refs['moCreate' + vm._uid].hide()
           })
       },
@@ -217,7 +228,6 @@
         return OrganisationUnit.edit(this.uuid, data)
           .then(response => {
             vm.isLoading = false
-            // vm.entry = {}
             vm.$refs['moCreate' + vm._uid].hide()
           })
       }
