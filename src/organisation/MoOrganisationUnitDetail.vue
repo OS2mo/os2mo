@@ -8,6 +8,7 @@
       :uuid="uuid"
       :edit-component="entryComponent"
       type="ORG_UNIT"
+      @shown="getDetails"
     />
 
     <mo-entry-modal-base
@@ -71,11 +72,12 @@
     },
     watch: {
       uuid () {
+        //listener for the time machine
         this.getAllDetails()
       }
     },
     created () {
-      this.getAllDetails()
+      this.getDetails('present')
     },
     beforeDestroy () {
       EventBus.$off(['organisation-unit-changed'])
