@@ -1,7 +1,6 @@
 argon2-cffi~=16.3.0
 Flask~=0.12.2
 requests~=2.18.2
-iso8601~=0.1.12
 lxml~=4.0.0
 Sphinx~=1.6.3
 sphinx_rtd_theme>=0.2.4
@@ -12,4 +11,4 @@ pyexcel>=0.5.7
 pyexcel-xlsx>=0.5.5
 pyexcel-ods>=0.5.2
 gevent~=1.2.2
-python-dateutil>=2.6.1
+python-dateutil>=2.7.0

@@ -295,8 +295,9 @@ def address_autocomplete(orgid):
     .. :quickref: Address; Autocomplete
 
     :queryparam str q: A query string to be used for lookup
-    :queryparam uuid global: Whether or not the lookup should be in the entire
-        country, or contained to the municipality of the organisation
+    :queryparam boolean global: Whether or not the lookup should be in
+        the entire country, or contained to the municipality of the
+        organisation
 
     **Example Response**:
 
@@ -319,9 +320,10 @@ def address_autocomplete(orgid):
           }
         }
       ]
+
     """
     q = flask.request.args['q']
-    global_lookup = flask.request.args.get('global', False, type=bool)
+    global_lookup = common.get_args_flag('global')
 
     if not global_lookup:
         org = lora.Connector().organisation.get(orgid)

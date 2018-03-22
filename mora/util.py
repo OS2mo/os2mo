@@ -18,7 +18,6 @@ import typing
 import uuid
 
 import flask
-import iso8601
 import dateutil.parser
 import dateutil.tz
 
@@ -83,8 +82,9 @@ def parsedatetime(s: str) -> datetime.datetime:
         s = re.sub(r' (?=\d\d:\d\d$)', '+', s)
 
     try:
-        return iso8601.parse_date(s, default_timezone=default_timezone)
-    except iso8601.ParseError:
+        return from_iso_time(s)
+
+    except ValueError:
         pass
 
     try:
@@ -121,7 +121,12 @@ def to_iso_time(s):
 
 
 def from_iso_time(s):
-    return iso8601.parse_date(s, default_timezone=default_timezone)
+    dt = dateutil.parser.isoparse(s)
+
+    if not dt.tzinfo:
+        dt = dt.replace(tzinfo=default_timezone)
+
+    return dt
 
 
 def to_frontend_time(s):

@@ -245,9 +245,6 @@ class ITSystems(common.AbstractRelationDetail):
         start = common.get_valid_from(req)
         end = common.get_valid_to(req)
 
-        if start == util.negative_infinity:
-            raise ValueError('missing or invalid start date!')
-
         rels.append(self.get_relation_for(systemid, start, end))
 
         payload = {
@@ -270,7 +267,7 @@ class ITSystems(common.AbstractRelationDetail):
 
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(
-            old_entry['uuid'],
+            common.get_uuid(old_entry),
             common.get_valid_from(old_entry),
             common.get_valid_to(old_entry),
         )
@@ -278,7 +275,7 @@ class ITSystems(common.AbstractRelationDetail):
         new_entry = req['data']
 
         new_rel = self.get_relation_for(
-            new_entry.get('uuid', old_entry['uuid']),
+            common.get_uuid(new_entry, old_entry),
             common.get_valid_from(new_entry, old_entry),
             common.get_valid_to(new_entry, old_entry),
         )
