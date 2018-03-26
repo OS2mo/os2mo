@@ -608,10 +608,25 @@ class Writing(util.LoRATestCase):
                 "data": {
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'to': '2040-01-01T00:00:00+01:00',
+                        'to': '2016-06-01T00:00:00+02:00',
                     },
                 }
             }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it?validity=past'.format(userid),
+            [
+                {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2016-06-01T00:00:00+02:00'
+                    },
+                },
+            ],
         )
 
         self.assertRequestResponse(
@@ -622,25 +637,58 @@ class Writing(util.LoRATestCase):
               "validity": {
                   'from': '2002-02-14T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
-              },
-             {'name': 'Active Directory',
-              'user_name': 'Fedtmule',
-              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
-                  'to': '2040-01-01T00:00:00+01:00'
-              },
               }],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/it?validity=past'.format(userid),
-            [],
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/it?validity=future'.format(userid),
             [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "it",
+                "original": {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2016-06-01T00:00:00+02:00'
+                    },
+                },
+                "data": {
+                    "validity": {
+                        'to': None,
+                    },
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it'.format(userid),
+            [
+                {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': '2020-01-01T00:00:00+01:00',
+                    },
+                },
+                {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
         )
 
 

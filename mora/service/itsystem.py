@@ -257,7 +257,11 @@ class ITSystems(common.AbstractRelationDetail):
         self.scope.update(payload, id)
 
     def edit(self, id, req):
-        original = self.scope.get(uuid=id)
+        original = self.scope.get(
+            uuid=id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
 
         old_entry = req.get('original')
         old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
