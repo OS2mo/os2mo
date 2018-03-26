@@ -1,24 +1,19 @@
 <template>
   <div>
     <label v-if="!noLabel">{{label}}</label>
-    <loading v-show="isLoading"/>
-    <select
-      v-show="!isLoading" 
+    <!-- <loading v-show="isLoading"/> -->
+    <v-autocomplete
       name="employee-picker"
-      :data-vv-as="label"
-      class="form-control col" 
-      v-model="selected"
-      @change="updateSelectedEmployee()"
-      v-validate="{ required: true }"
-    >
-      <option disabled>{{label}}</option>
-      <option 
-        v-for="e in employees" 
-        v-bind:key="e.uuid"
-        :value="e">
-          {{e.name}}
-      </option>
-    </select>
+      :items="items" 
+      v-model="item" 
+      :get-label="getLabel" 
+      :component-item="template" 
+      @item-selected="selected"
+      @update-items="updateItems"
+      :auto-select-one-item="false"
+      :min-len="2"
+      placeholder=""
+    />
     <span
       v-show="errors.has('employee-picker')" 
       class="text-danger"
@@ -31,13 +26,14 @@
 <script>
 import Search from '../api/Search'
 import Organisation from '../api/Organisation'
-import { EventBus } from '../EventBus'
-import Loading from './Loading'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import TheSearchBarTemplate from './TheSearchBarTemplate.vue'
 
 export default {
   name: 'EmployeePicker',
   components: {
-    Loading
+    VAutocomplete
   },
   props: {
     value: Object,
@@ -49,38 +45,28 @@ export default {
   },
   data () {
     return {
-      selected: {},
-      employees: [],
-      isLoading: false
+      item: null,
+      items: [],
+      template: TheSearchBarTemplate
     }
   },
-  mounted () {
-    EventBus.$on('organisation-changed', () => {
-      this.getEmployees()
-    })
-  },
-  created () {
-    this.getEmployees()
-    this.selected = this.value
-  },
-  beforeDestroy () {
-    EventBus.$off(['organisation-changed'])
-  },
   methods: {
-    getEmployees () {
-      var vm = this
-      vm.isLoading = true
+    getLabel (item) {
+      return item ? item.name : null
+    },
+
+    updateItems (query) {
+      let vm = this
+      vm.items = []
       let org = Organisation.getSelectedOrganisation()
-      if (org.uuid === undefined) return
-      Search.employees(org.uuid)
+      Search.employees(org.uuid, query)
         .then(response => {
-          vm.isLoading = false
-          vm.employees = response
+          vm.items = response
         })
     },
 
-    updateSelectedEmployee () {
-      this.$emit('input', this.selected)
+    selected (value) {
+      this.$emit('input', value)
     }
   }
 }
