@@ -643,6 +643,137 @@ class Writing(util.LoRATestCase):
             [],
         )
 
+    @freezegun.freeze_time('2018-03-22', tz_offset=1)
+    def test_like_frontend(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/create',
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            json=[{
+                "type": "it",
+                "itsystem": {
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+                },
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "validity": {
+                    "from": "2018-03-01T00:00:00.000Z"
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": None,
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/edit',
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            json=[{
+                "type": "it",
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "original": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": None
+                    }
+                },
+                "data": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T00:00:00.000Z",
+                        "to": "2018-04-01T00:00:00.000Z"
+                    },
+                    "type": "it",
+                    "itsystem": {
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+                    }
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": "2018-04-01T02:00:00+02:00",
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/edit',
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            json=[{
+                "type": "it",
+                "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                "original": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": "2018-04-01T02:00:00+02:00"
+                    }
+                },
+                "data": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                    "validity": {
+                        "from": "2018-03-01T00:00:00.000Z",
+                        "to": "2018-04-01T00:00:00.000Z"
+                    },
+                    "type": "it",
+                    "itsystem": {
+                        "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+                    }
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    "name": "Active Directory",
+                    "user_name": "Anders And",
+                    "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": "2018-04-01T02:00:00+02:00",
+                    }
+                }
+            ],
+        )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):
