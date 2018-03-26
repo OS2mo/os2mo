@@ -465,7 +465,7 @@ class Writing(util.LoRATestCase):
                 "data": {
                     'value': 'user@example.com',
                     "validity": {
-                        'to': '2040-01-01T00:00:00+01:00',
+                        'to': '2010-01-01T00:00:00+01:00',
                     },
                 }
             }],
@@ -473,7 +473,7 @@ class Writing(util.LoRATestCase):
 
         # verify our edit
         self.assertRequestResponse(
-            '/service/e/{}/details/address'.format(userid),
+            '/service/e/{}/details/address?validity=past'.format(userid),
             [
                 {
                     'address_type': email_class,
@@ -482,10 +482,20 @@ class Writing(util.LoRATestCase):
                     'value': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
-                        'to': '2040-01-01T00:00:00+01:00',
+                        'to': '2010-01-01T00:00:00+01:00',
                     },
                 },
             ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=future'.format(userid),
+            [],
         )
 
         # second, test editing type, value, and removing the end date
@@ -507,7 +517,7 @@ class Writing(util.LoRATestCase):
                     'value': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
-                        'to': '2040-01-01T00:00:00+01:00',
+                        'to': '2010-01-01T00:00:00+01:00',
                     },
                 },
                 "data": {
@@ -521,6 +531,11 @@ class Writing(util.LoRATestCase):
         )
 
         # verify the result
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=past'.format(userid),
+            [],
+        )
+
         self.assertRequestResponse(
             '/service/e/{}/details/address'.format(userid),
             [
@@ -542,6 +557,11 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=future'.format(userid),
+            [],
         )
 
     def test_create_unit_address(self):
