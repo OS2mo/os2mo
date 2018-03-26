@@ -643,6 +643,11 @@ class Writing(util.LoRATestCase):
             [],
         )
 
+
+@freezegun.freeze_time('2017-01-01', tz_offset=1)
+class Writing2(util.LoRATestCase):
+    maxDiff = None
+
     @freezegun.freeze_time('2018-03-22', tz_offset=1)
     def test_like_frontend(self):
         self.load_sample_structures()
