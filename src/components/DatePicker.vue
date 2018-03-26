@@ -53,8 +53,10 @@ export default {
   },
   watch: {
     selected (newVal) {
-      if (newVal != null) newVal.setUTCHours(0, 0, 0, 0)
-      this.$emit('input', newVal)
+      if (newVal != null) {
+        let date = new Date(newVal).toISOString().split('T')[0]
+        this.$emit('input', date)
+      }
     },
 
     disabledTo (newVal) {
