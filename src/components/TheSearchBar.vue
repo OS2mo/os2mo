@@ -4,16 +4,15 @@
         <icon name="search"/>
       </span>
       <v-autocomplete 
-        :items="results"
-        :get-label="getLabel" 
-        :component-item="template" 
-        @update-items="getSearchResults"
-        @item-selected="selected"
-        @blur="results=[]"
-        :auto-select-one-item="false"
-        :min-len="2"
-        placeholder="Søg"
-      />
+      :items="items" 
+      v-model="item" 
+      :get-label="getLabel" 
+      :component-item='template' 
+      @item-selected="selected"
+      @update-items="updateItems"
+      :auto-select-one-item="false"
+      :min-len="2"
+      placeholder="Søg"/>
     </div>
 </template>
 
@@ -30,7 +29,8 @@
     },
     data () {
       return {
-        results: [],
+        item: null,
+        items: [],
         routeName: '',
         template: TheSearchBarTemplate
       }
@@ -45,7 +45,7 @@
     },
     methods: {
       getLabel (item) {
-        return item.name
+        return item ? item.name : null
       },
 
       getRouteName (route) {
@@ -58,25 +58,28 @@
         }
       },
 
-      getSearchResults (query) {
+      updateItems (query) {
         let vm = this
+        vm.items = []
         let org = Organisation.getSelectedOrganisation()
         if (vm.routeName === 'EmployeeDetail') {
           Search.employees(org.uuid, query)
             .then(response => {
-              vm.results = response
+              vm.items = response
             })
         }
 
         if (vm.routeName === 'OrganisationDetail') {
           Search.organisations(org.uuid, query)
             .then(response => {
-              vm.results = response
+              vm.items = response
             })
         }
       },
 
       selected (item) {
+        if (item == null) return
+        this.items = []
         this.$router.push({name: this.routeName, params: { uuid: item.uuid }})
       }
     }
