@@ -827,6 +827,124 @@ class Writing2(util.LoRATestCase):
             ],
         )
 
+    @freezegun.freeze_time('2018-03-26', tz_offset=1)
+    def test_temporal_oddities(self):
+        self.load_sample_structures()
+
+        userid = '1ce40e25-6238-4202-9e93-526b348ec745'
+
+        lora.update(
+            'organisation/bruger/' + userid,
+            util.get_fixture('temporal-it-oddities.json'),
+        )
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/it?validity=past'.format(userid),
+                [{'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-07T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-07T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Lokal Rammearkitektur',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                  'validity': {'from': '2018-03-08T00:00:00+01:00',
+                               'to': '2018-03-09T00:00:00+01:00'}}],
+
+            )
+
+        with self.subTest('present'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/it?validity=present'.format(userid),
+                [{'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-05T01:00:00+01:00',
+                               'to': None}}],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/it?validity=future'.format(userid),
+                [],
+            )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):

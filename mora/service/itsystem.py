@@ -164,7 +164,6 @@ class ITSystems(common.AbstractRelationDetail):
         system_cache = common.cache(c.itsystem.get)
 
         def convert(start, end, effect):
-            attrs = effect['attributter']['brugeregenskaber'][0]
             rels = effect['relationer']
 
             for systemrel in rels.get('tilknyttedeitsystemer', []):
@@ -172,13 +171,15 @@ class ITSystems(common.AbstractRelationDetail):
                     continue
 
                 try:
+                    attrs = effect['attributter']['brugeregenskaber'][0]
                     systemid = systemrel['uuid']
-                except KeyError:
+
+                    system_attrs = (
+                        system_cache[systemid]
+                        ['attributter']['itsystemegenskaber'][0]
+                    )
+                except (TypeError, LookupError):
                     continue
-
-                system = system_cache[systemid]
-
-                system_attrs = system['attributter']['itsystemegenskaber'][0]
 
                 yield {
                     "uuid": systemid,
