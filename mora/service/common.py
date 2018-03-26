@@ -188,7 +188,9 @@ def set_object_value(obj: dict, path: tuple, val: typing.List[dict]):
 
 
 def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
-    props = functools.reduce(lambda x, y: x.get(y, {}), path, obj)
+    props = functools.reduce(lambda x, y: x and x.get(y, {}),
+                             path, obj)
+
     if filter_fn:
         return list(filter(filter_fn, props))
     else:

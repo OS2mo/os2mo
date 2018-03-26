@@ -39,6 +39,23 @@ class TestClass(TestCase):
         # Assert
         self.assertEqual(expected_props, actual_props)
 
+    def test_get_obj_path_missing(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+            'test1': None,
+        }
+
+        path = ('test1', 'test2')
+
+        expected_props = None
+
+        # Act
+        actual_props = common.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
     def test_update_payload_complex(self):
         # Arrange
         fields = [
