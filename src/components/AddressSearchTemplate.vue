@@ -1,13 +1,15 @@
 <template>
   <div>
-    <label>{{ item.vejnavn }}</label>
+    <label>{{ item.location.name }}</label>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    item: { required: true }
+    item: {
+      required: true
+    }
   }
 }
 </script>
