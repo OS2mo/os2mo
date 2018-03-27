@@ -1,4 +1,4 @@
-import { Service, HTTP } from './HttpCommon'
+import { Service } from './HttpCommon'
 
 export default {
   /**
@@ -30,12 +30,15 @@ export default {
 
   /**
    * Get a list of possible addresses based on search query
-   * @param {String} query - the search query
-   * @param {String} local - organisation uuid to limit search to the local area of the organisation
-   * @returns {Array} A list of address suggestions based on search query
+   * @param {String} orgUuid - the uuid of the organisation
+   * @param {String} query - a query string to be used for lookup
+   * @param {String} global - whether or not the lookup should be in the entire country, or contained to the municipality of the organisation
+   * @returns {Array} a list of address suggestions based on search query
    */
-  getGeographicalLocation (query, local) {
-    return HTTP.get(`/addressws/geographical-location?local=${local}&vejnavn=${query}`)
+  getGeographicalLocation (orgUuid, query, global) {
+    global = global || null
+    let location = global ? '&global=1' : '&global=0'
+    return Service.get(`/o/${orgUuid}/address_autocomplete/?q=${query}${location}`)
       .then(response => {
         return response.data
       })
