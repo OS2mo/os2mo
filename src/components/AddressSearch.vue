@@ -1,7 +1,6 @@
 <template>
   <div class="form-row">
     <div class="form-group col">
-      <label for="exampleFormControlInput1">Adressesøg</label>
       <v-autocomplete 
         :items="addressSuggestions"
         name="address"
@@ -19,8 +18,8 @@
         <input 
           class="form-check-input" 
           type="checkbox" 
-          v-model="searchCountry" 
-        > 
+          v-model="global" 
+        /> 
         Søg i hele landet
       </label>
     </div>
@@ -33,6 +32,7 @@
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
   import AddressSearchTemplate from './AddressSearchTemplate.vue'
+  import Organisation from '../api/Organisation'
 
   export default {
     components: {
@@ -42,36 +42,34 @@
       $validator: '$validator'
     },
     props: {
-      org: {
-        type: Object,
-        required: true
-      },
-      value: Object
+      value: [Object, String]
     },
     data () {
       return {
         addressSuggestions: [],
         template: AddressSearchTemplate,
-        searchCountry: false
+        location: false,
+        global: false
       }
     },
     methods: {
       getLabel (item) {
-        return item.vejnavn
+        return item.location.name
       },
 
       // Update address suggestions based on search query
       getGeographicalLocation (query) {
         let vm = this
-        let local = this.searchCountry ? '' : this.org.uuid
-        Search.getGeographicalLocation(query, local)
+        let org = Organisation.getSelectedOrganisation()
+        if (org.uuid === undefined) return
+        Search.getGeographicalLocation(org.uuid, query, this.global)
           .then(response => {
             vm.addressSuggestions = response
           })
       },
 
       selected (item) {
-        this.$emit('input', item)
+        this.$emit('input', item.location.uuid)
       }
     }
   }

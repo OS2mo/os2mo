@@ -27,7 +27,6 @@
   import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
   import ButtonSubmit from '../components/ButtonSubmit'
-  import AddressSearch from '../components/AddressSearch'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
@@ -37,7 +36,6 @@
     name: 'OrganisationUnitCreate',
     components: {
       ButtonSubmit,
-      AddressSearch,
       MoOrganisationUnitEntry
     },
     data () {
