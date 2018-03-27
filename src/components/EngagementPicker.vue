@@ -29,6 +29,9 @@ export default {
   components: {
     Loading
   },
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: Object,
     employee: {

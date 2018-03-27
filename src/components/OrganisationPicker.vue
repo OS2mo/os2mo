@@ -24,6 +24,9 @@ import { EventBus } from '../EventBus'
 
 export default {
   name: 'OrganisationPicker',
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: Object,
     atDate: Date,

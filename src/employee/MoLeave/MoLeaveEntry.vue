@@ -10,6 +10,7 @@ import DatePickerStartEnd from '../../components/DatePickerStartEnd'
 import MoFacetPicker from '../../components/MoFacetPicker'
 
 export default {
+
   components: {
     DatePickerStartEnd,
     MoFacetPicker
@@ -34,8 +35,6 @@ export default {
       handler (newVal) {
         newVal.type = 'leave'
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 3 && Object.keys(newVal.validity).length === 2)
-        this.$emit('is-valid', valid)
       },
       deep: true
     }

@@ -38,6 +38,9 @@
     components: {
       TreeView
     },
+    inject: {
+      $validator: '$validator'
+    },
     props: {
       value: Object,
       label: {

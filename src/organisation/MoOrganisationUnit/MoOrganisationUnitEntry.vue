@@ -7,14 +7,24 @@
         <label for="">Navn</label>
         <input 
           v-model="orgUnit.name" 
+          data-vv-as="Navn"
           type="text" 
-          class="form-control" 
+          class="form-control"
+          name="unit-name"
+          v-validate="{required: true}"
         >
+            <span
+              v-show="errors.has('unit-name')" 
+              class="text-danger"
+            >
+              {{ errors.first('unit-name') }}
+          </span>
       </div>
       
       <mo-facet-picker 
         facet="org_unit_type" 
         v-model="orgUnit.org_unit_type"
+        required
       />
       </div>
       
@@ -55,6 +65,9 @@ export default {
     MoFacetPicker,
     AddressTypeEntry
   },
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: Object,
     org: {
@@ -79,8 +92,6 @@ export default {
     orgUnit: {
       handler (newVal) {
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 4 && newVal.validity.from !== undefined && newVal.name !== '')
-        this.$emit('is-valid', valid)
       },
       deep: true
     },

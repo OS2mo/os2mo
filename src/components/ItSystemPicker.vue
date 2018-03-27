@@ -36,6 +36,9 @@ export default {
     value: Object,
     preselected: String
   },
+  inject: {
+    $validator: '$validator'
+  },
   data () {
     return {
       label: 'IT systemer',

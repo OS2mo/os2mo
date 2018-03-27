@@ -10,12 +10,11 @@
     <mo-organisation-unit-entry
       :org="org" 
       v-model="orgUnit" 
-      @is-valid="isOrgUnitValid"
     />
 
     <div class="float-right">
       <button-submit
-      :is-disabled="isDisabled"
+      :is-disabled="!formValid"
       :on-click-action="createOrganisationUnit"
       />
     </div>
@@ -31,6 +30,9 @@
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     name: 'OrganisationUnitCreate',
     components: {
       ButtonSubmit,
@@ -48,8 +50,11 @@
       }
     },
     computed: {
-      isDisabled () {
-        return !this.valid.orgUnit
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       }
     },
     created () {
@@ -64,10 +69,6 @@
       })
     },
     methods: {
-      isOrgUnitValid (val) {
-        this.valid.orgUnit = val
-      },
-
       createOrganisationUnit () {
         let vm = this
         this.isLoading = true

@@ -22,8 +22,10 @@ require('moment/locale/da')
 Vue.config.productionTip = false
 
 const veeConfig = {
-  delay: 200,
-  locale: 'da'
+  dateFormat: 'DD-MM-YYYY',
+  delay: 100,
+  locale: 'da',
+  inject: false
 }
 
 Validator.localize('da', messagesDA)
