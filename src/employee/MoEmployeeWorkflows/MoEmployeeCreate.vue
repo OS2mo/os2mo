@@ -7,7 +7,7 @@
     ref="employeeCreate"
     lazy
   >
-    <employee-picker :org="org" v-model="employee"/>
+    <employee-picker :org="org" v-model="employee" required/>
     
     <h4>Engagement</h4>
     <mo-engagement-entry

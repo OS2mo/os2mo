@@ -38,6 +38,9 @@
     components: {
       VAutocomplete
     },
+    inject: {
+      $validator: '$validator'
+    },
     props: {
       org: {
         type: Object,

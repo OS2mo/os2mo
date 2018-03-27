@@ -2,7 +2,7 @@
   <div class="form-group col">
     <label>{{label}}</label>
     <select 
-      name="role-picker"
+      :name="facet"
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
@@ -18,10 +18,10 @@
       </option>
     </select>
     <span
-      v-show="errors.has('role-picker')" 
+      v-show="errors.has(facet)" 
       class="text-danger"
     >
-      {{ errors.first('role-picker') }}
+      {{ errors.first(facet) }}
     </span>
   </div>
 </template>
@@ -33,6 +33,9 @@ import { EventBus } from '../EventBus'
 
 export default {
   name: 'MoFacetPicker',
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: Object,
     facet: {

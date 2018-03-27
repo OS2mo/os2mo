@@ -7,17 +7,18 @@
     ref="employeeLeave"
     lazy
   >
-    <employee-picker v-model="employee"/>
-    <mo-leave-entry v-model="leave" :org="org" @is-valid="isValid"/>
+    <form>
+      <employee-picker v-model="employee" required/>
+      <mo-leave-entry v-model="leave" :org="org"/>
 
-    <div class="float-right">
-      <button-submit 
-      :is-disabled="isDisabled"
-      :is-loading="isLoading"
-      :on-click-action="createLeave"/>
-    </div>
+      <div class="float-right">
+        <button-submit 
+        :is-disabled="!formValid"
+        :is-loading="isLoading"
+        :on-click-action="createLeave"/>
+      </div>
+    </form>
   </b-modal>
-
 </template>
 
 <script>
@@ -27,6 +28,9 @@ import MoLeaveEntry from '../MoLeave/MoLeaveEntry'
 import ButtonSubmit from '../../components/ButtonSubmit'
 
 export default {
+  $_veeValidate: {
+    validator: 'new'
+  },
   components: {
     EmployeePicker,
     MoLeaveEntry,
@@ -41,7 +45,6 @@ export default {
   data () {
     return {
       isLoading: false,
-      leaveValid: false,
       employee: {},
       leave: {
         validity: {}
@@ -49,8 +52,11 @@ export default {
     }
   },
   computed: {
-    isDisabled () {
-      return !this.leaveValid || !this.employee.uuid
+    formValid () {
+      // loop over all contents of the fields object and check if they exist and valid.
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
     }
   },
   mounted () {
@@ -59,10 +65,6 @@ export default {
     })
   },
   methods: {
-    isValid (val) {
-      this.leaveValid = val
-    },
-
     createLeave () {
       let vm = this
       vm.isLoading = true
@@ -75,8 +77,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

@@ -2,8 +2,6 @@
     <div class="form-group col">
       <label v-if="!noLabel" id="date-label" for="date">{{label}}</label>
       <date-time-picker 
-        name="date-picker"
-        :data-vv-as="label"
         v-model="selected" 
         format="dd-MM-yyyy"
         language="da" 
@@ -11,14 +9,20 @@
         bootstrapStyling
         clear-button
         :disabled="disabled"
-        v-validate="{ required: true }"
       />
 
+      <input 
+        :name="id"
+        :data-vv-as="label" 
+        v-model="selected"
+        type="hidden"
+        v-validate="{ date_format: 'YYYY-MM-DD', required: required }">
+
       <span
-        v-show="errors.has('date-picker')" 
+        v-show="errors.has(id)" 
         class="text-danger"
       >
-        {{ errors.first('date-picker') }}
+        {{ errors.first(id) }}
       </span>
     </div>
 </template>
@@ -31,8 +35,12 @@ export default {
   components: {
     DateTimePicker
   },
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: [Date, String],
+    id: {type: String, default: 'date-picker'},
     required: Boolean,
     noLabel: Boolean,
     label: {

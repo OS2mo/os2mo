@@ -13,6 +13,7 @@
         class="col"
         v-model="original"
         :preselected="preselectedUnit"
+        required
       />
     </div>
 
@@ -24,6 +25,7 @@
           type="text"
           class="form-control"
           v-model="rename.data.name"
+          v-validate="{required: true}"
         >
       </div>
     </div>
@@ -37,7 +39,7 @@
 
     <div class="float-right">
       <button-submit 
-      :is-disabled="isDisabled"
+      :is-disabled="!formValid"
       :on-click-action="renameOrganisationUnit"
       />
     </div>
@@ -52,6 +54,9 @@
   import ButtonSubmit from '../components/ButtonSubmit'
   
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     components: {
       DatePickerStartEnd,
       OrganisationUnitPicker,
@@ -71,8 +76,11 @@
       }
     },
     computed: {
-      isDisabled () {
-        if (this.rename.data.validity.from === undefined || this.original === undefined || this.rename.data.name === '') return true
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       }
     },
     mounted () {
