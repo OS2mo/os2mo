@@ -128,7 +128,12 @@ def list_employees(orgid):
     )
 
     if 'query' in args:
-        kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+        if util.is_cpr_number(args['query']):
+            kwargs.update(
+                tilknyttedepersoner='urn:dk:cpr:person:' + args['query'],
+            )
+        else:
+            kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
     return flask.jsonify(
         c.bruger.paged_get(get_one_employee, **kwargs)

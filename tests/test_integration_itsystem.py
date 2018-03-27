@@ -608,10 +608,25 @@ class Writing(util.LoRATestCase):
                 "data": {
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'to': '2040-01-01T00:00:00+01:00',
+                        'to': '2016-06-01T00:00:00+02:00',
                     },
                 }
             }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it?validity=past'.format(userid),
+            [
+                {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2016-06-01T00:00:00+02:00'
+                    },
+                },
+            ],
         )
 
         self.assertRequestResponse(
@@ -622,26 +637,313 @@ class Writing(util.LoRATestCase):
               "validity": {
                   'from': '2002-02-14T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
-              },
-             {'name': 'Active Directory',
-              'user_name': 'Fedtmule',
-              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
-                  'to': '2040-01-01T00:00:00+01:00'
-              },
               }],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/it?validity=past'.format(userid),
-            [],
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/it?validity=future'.format(userid),
             [],
         )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "it",
+                "original": {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2016-06-01T00:00:00+02:00'
+                    },
+                },
+                "data": {
+                    "validity": {
+                        'to': None,
+                    },
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/it'.format(userid),
+            [
+                {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2002-02-14T00:00:00+01:00',
+                        'to': '2020-01-01T00:00:00+01:00',
+                    },
+                },
+                {
+                    'name': 'Active Directory',
+                    'user_name': 'Fedtmule',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    "validity": {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
+        )
+
+
+@freezegun.freeze_time('2017-01-01', tz_offset=1)
+class Writing2(util.LoRATestCase):
+    maxDiff = None
+
+    @freezegun.freeze_time('2018-03-22', tz_offset=1)
+    def test_like_frontend(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/create',
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            json=[{
+                "type": "it",
+                "itsystem": {
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+                },
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "validity": {
+                    "from": "2018-03-01T00:00:00.000Z"
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": None,
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/edit',
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            json=[{
+                "type": "it",
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "original": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": None
+                    }
+                },
+                "data": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T00:00:00.000Z",
+                        "to": "2018-04-01T00:00:00.000Z"
+                    },
+                    "type": "it",
+                    "itsystem": {
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+                    }
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": "2018-04-01T02:00:00+02:00",
+                    }
+                }
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/edit',
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            json=[{
+                "type": "it",
+                "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                "original": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": "2018-04-01T02:00:00+02:00"
+                    }
+                },
+                "data": {
+                    "name": "Lokal Rammearkitektur",
+                    "user_name": "Anders And",
+                    "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                    "validity": {
+                        "from": "2018-03-01T00:00:00.000Z",
+                        "to": "2018-04-01T00:00:00.000Z"
+                    },
+                    "type": "it",
+                    "itsystem": {
+                        "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+                    }
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    "name": "Active Directory",
+                    "user_name": "Anders And",
+                    "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                    "validity": {
+                        "from": "2018-03-01T01:00:00+01:00",
+                        "to": "2018-04-01T02:00:00+02:00",
+                    }
+                }
+            ],
+        )
+
+    @freezegun.freeze_time('2018-03-26', tz_offset=1)
+    def test_temporal_oddities(self):
+        self.load_sample_structures()
+
+        userid = '1ce40e25-6238-4202-9e93-526b348ec745'
+
+        lora.update(
+            'organisation/bruger/' + userid,
+            util.get_fixture('temporal-it-oddities.json'),
+        )
+
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/it?validity=past'.format(userid),
+                [{'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2017-12-15T01:00:00+01:00',
+                               'to': '2018-03-06T01:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-02T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-07T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-07T00:00:00+01:00',
+                               'to': '2018-03-08T00:00:00+01:00'}},
+                 {'name': 'Lokal Rammearkitektur',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                  'validity': {'from': '2018-03-08T00:00:00+01:00',
+                               'to': '2018-03-09T00:00:00+01:00'}}],
+
+            )
+
+        with self.subTest('present'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/it?validity=present'.format(userid),
+                [{'name': 'Active Directory',
+                  'user_name': 'Sanne Schäff',
+                  'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                  'validity': {'from': '2018-03-05T01:00:00+01:00',
+                               'to': None}}],
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/it?validity=future'.format(userid),
+                [],
+            )
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)

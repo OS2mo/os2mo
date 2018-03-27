@@ -252,7 +252,11 @@ class Addresses(common.AbstractRelationDetail):
         self.scope.update(payload, id)
 
     def edit(self, id, req):
-        original = self.scope.get(uuid=id)
+        original = self.scope.get(
+            uuid=id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
 
         old_entry = req.get('original')
         new_entry = req.get('data')
@@ -272,10 +276,12 @@ class Addresses(common.AbstractRelationDetail):
         )
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
-        addresses = common.replace_relation_value(
-            original['relationer']['adresser'],
-            old_rel, new_rel,
-        )
+        try:
+            addresses = original['relationer']['adresser']
+        except KeyError:
+            raise ValueError('no addresses to edit!')
+
+        addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 
         payload = {
             'relationer': {

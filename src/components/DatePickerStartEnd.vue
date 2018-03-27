@@ -62,7 +62,10 @@
     },
     methods: {
       updateDate () {
-        let obj = {}
+        let obj = {
+          from: null,
+          to: null
+        }
         if (this.validFrom) {
           obj.from = this.validFrom
         }

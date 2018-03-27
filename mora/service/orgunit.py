@@ -459,6 +459,9 @@ def create_org_unit():
         "valid_to": "2018-01-01T00:00:00+00:00"
       }
 
+    See also :http:post:`/service/e/(uuid:employee_uuid)/create` for
+    further examples for the individual types.
+
     """
 
     c = lora.Connector()
@@ -558,6 +561,10 @@ def edit_org_unit(unitid):
           }
         }
       ]
+
+    See also :http:post:`/service/e/(uuid:employee_uuid)/edit` for
+    further examples for the individual types.
+
     """
 
     reqs = flask.request.get_json()
