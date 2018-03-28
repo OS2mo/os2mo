@@ -1,43 +1,41 @@
 <template>
-  <div>
-    <li class="item">
-        <span @click="toggle">
-          <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
-        </span>
-          <icon class="icon" v-if="!hasChildren"/>
+  <li class="item">
+      <span @click="toggle">
+        <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
+      </span>
+        <icon class="icon" v-if="!hasChildren"/>
 
-        <router-link 
-          v-if="linkable"
-          class="link-color" 
-          :to="{ name: 'OrganisationDetail', params: { uuid: model.uuid } }"
-        >
-          <icon class="icon-color" name="users"/>
-          {{model.name}}
-        </router-link>
+      <router-link 
+        v-if="linkable"
+        class="link-color" 
+        :to="{ name: 'OrganisationDetail', params: { uuid: model.uuid } }"
+      >
+        <icon class="icon-color" name="users"/>
+        {{model.name}}
+      </router-link>
 
-        <span 
-        class="link-color"
-        v-if="!linkable"
-        
-        @click="selectOrgUnit(model)">
-          <icon class="icon" name="users"/>
-          {{model.name}}
-        </span>
+      <span 
+      class="link-color"
+      v-if="!linkable"
+      
+      @click="selectOrgUnit(model)">
+        <icon class="icon" name="users"/>
+        {{model.name}}
+      </span>
 
-      <ul v-show="open">
-        <loading v-show="loading"/>
-        <tree-view-item
-          v-for="model in model.children"
-          v-bind:key="model.uuid"
-          v-model="selected"
-          @click="selectOrgUnit(selected)"
-          :model="model"
-          :at-date="atDate"
-          :linkable="linkable">
-        </tree-view-item>
-      </ul>
-    </li>
-  </div>
+    <ul v-show="open">
+      <loading v-show="loading"/>
+      <tree-view-item
+        v-for="(model, index) in model.children"
+        :key="index"
+        v-model="selected"
+        @click="selectOrgUnit(selected)"
+        :model="model"
+        :at-date="atDate"
+        :linkable="linkable">
+      </tree-view-item>
+    </ul>
+  </li>
 </template>
 
 <script>
@@ -55,7 +53,7 @@
       model: Object,
       firstOpen: Boolean,
       linkable: Boolean,
-      atDate: Date
+      atDate: [Date, String]
     },
     data () {
       return {
@@ -105,11 +103,11 @@
       loadChildren () {
         let vm = this
         vm.loading = true
-        vm.model.children = undefined
+        vm.model.children = []
         OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
           .then(response => {
-            vm.model.children = response
             vm.loading = false
+            vm.model.children = response
           })
       }
     }
@@ -127,7 +125,7 @@
   .item {
     cursor: pointer;
     list-style-type: none;
-    display: inline-block;
+    display: block;
   }
   .nav-link {
     display: inline-block;

@@ -40,6 +40,7 @@
     <div class="float-right">
       <button-submit 
       :is-disabled="!formValid"
+      :is-loading="isLoading"
       :on-click-action="renameOrganisationUnit"
       />
     </div>
@@ -72,7 +73,8 @@
             name: '',
             validity: {}
           }
-        }
+        },
+        isLoading: false
       }
     },
     computed: {
