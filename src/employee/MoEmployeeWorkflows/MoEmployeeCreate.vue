@@ -7,49 +7,57 @@
     ref="employeeCreate"
     lazy
   >
-    <employee-picker :org="org" v-model="employee" required/>
-    
-    <h4>Engagement</h4>
-    <mo-engagement-entry
-      :org="org" 
-      v-model="engagement" 
-      @is-valid="isEngagementValid"
-    />
-    <h4>Tilknytning</h4>
-    <mo-association-entry 
-      :org="org"
-      v-model="association"
-      :validity="engagement.validity"
-      @is-valid="isAssociationValid"
-      validity-hidden
-    />
-    <h4>Rolle</h4>
-    <mo-role-entry
-      :org="org" 
-      v-model="role" 
-      :validity="engagement.validity"
-      @is-valid="isRoleValid"
-      validity-hidden
-    />
-    <h4>IT systemer</h4>
-    <mo-it-system-entry 
-      v-model="itSystem" 
-      :validity="engagement.validity"
-      @is-valid="isItSystemValid"
-      validity-hidden
-    />
-    <h4>Leder</h4>
-    <mo-manager-entry 
-      v-model="manager" 
-      :validity="engagement.validity" 
-      @is-valid="isManagerValid"
-      validity-hidden
-    />
+      <employee-picker 
+        :org="org" 
+        v-model="employee" 
+        required
+      />
+    <form data-vv-scope="engagement">
+      <h4>Engagement</h4>
+      <mo-engagement-entry
+        :org="org" 
+        v-model="engagement" 
+      />
+    </form>
+    <form data-vv-scope="association">
+      <h4>Tilknytning</h4>
+      <mo-association-entry 
+        :org="org"
+        v-model="association"
+        :validity="engagement.validity"
+        validity-hidden
+      />
+    </form>
+    <form data-vv-scope="role">
+      <h4>Rolle</h4>
+      <mo-role-entry
+        :org="org" 
+        v-model="role" 
+        :validity="engagement.validity"
+        validity-hidden
+      />
+    </form>
+    <form data-vv-scope="itSystem">
+      <h4>IT systemer</h4>
+      <mo-it-system-entry 
+        v-model="itSystem" 
+        :validity="engagement.validity"
+        validity-hidden
+      />
+    </form>
+    <form data-vv-scope="manager">
+      <h4>Leder</h4>
+      <mo-manager-entry 
+        v-model="manager" 
+        :validity="engagement.validity" 
+        validity-hidden
+      />
+    </form>
 
     <div class="float-right">
       <button-submit 
         :on-click-action="createEmployee" 
-        :is-disabled="isDisabled" 
+        :is-disabled="(!employeeValid || !engagementValid)" 
         :is-loading="isLoading"
       />
     </div>
@@ -69,6 +77,9 @@ import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
 import MoManagerEntry from '../MoManager/MoManagerEntry'
 
 export default {
+  $_veeValidate: {
+    validator: 'new'
+  },
   components: {
     ButtonSubmit,
     MoAssociationEntry,
@@ -87,28 +98,16 @@ export default {
       role: {},
       itSystem: {},
       manager: {},
-      isLoading: false,
-      valid: {
-        engagement: false,
-        association: false,
-        role: false,
-        itSystem: false,
-        manager: false
-      }
+      isLoading: false
     }
   },
   computed: {
-    isDisabled () {
-      let emp = Object.keys(this.employee).length > 0
-      let ass = Object.keys(this.association).length > 2
-      let role = Object.keys(this.role).length > 3
-      let it = Object.keys(this.itSystem).length > 3
-      let man = Object.keys(this.manager).length > 2
-      return (!emp || !this.valid.engagement ||
-              (ass ? !this.valid.association : false) ||
-              (role ? !this.valid.role : false) ||
-              (it ? !this.valid.itSystem : false) ||
-              (man ? !this.valid.manager : false))
+    employeeValid () {
+      return this.fields['employee-picker']
+    },
+
+    engagementValid () {
+      return this.formValid('$engagement')
     }
   },
   created () {
@@ -123,24 +122,11 @@ export default {
     })
   },
   methods: {
-    isEngagementValid (val) {
-      this.valid.engagement = val
-    },
-
-    isAssociationValid (val) {
-      this.valid.association = val
-    },
-
-    isRoleValid (val) {
-      this.valid.role = val
-    },
-
-    isItSystemValid (val) {
-      this.valid.itSystem = val
-    },
-
-    isManagerValid (val) {
-      this.valid.manager = val
+    formValid (scope) {
+      // loop over all contents of the fields object and check if they exist and valid.
+      return Object.keys(this.fields[scope]).every(field => {
+        return this.fields[scope][field] && this.fields[scope][field].valid
+      })
     },
 
     createEmployee () {
@@ -148,11 +134,11 @@ export default {
       let create = []
       this.isLoading = true
 
-      if (this.valid.engagement) create.push(this.engagement)
-      if (this.valid.association) create.push(this.association)
-      if (this.valid.role) create.push(this.role)
-      if (this.valid.itSystem) create.push(this.itSystem)
-      if (this.valid.manager) create.push(this.manager)
+      let forms = ['engagement', 'association', 'role', 'itSystem', 'manager']
+
+      forms.forEach(form => {
+        if (this.formValid('$' + form)) create.push(this[form])
+      })
 
       Employee.create(this.employee.uuid, create)
         .then(response => {
