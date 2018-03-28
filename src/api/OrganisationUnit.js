@@ -26,7 +26,8 @@ export default {
    */
   getChildren (uuid, atDate) {
     atDate = atDate || new Date()
-    return Service.get(`/ou/${uuid}/children?at=${atDate.toISOString().split('T')[0]}`)
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/children?at=${atDate}`)
       .then(response => {
         return response.data
       })
@@ -65,7 +66,8 @@ export default {
   getDetail (uuid, detail, validity, atDate) {
     validity = validity || 'present'
     atDate = atDate || new Date()
-    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate.toISOString().split('T')[0]}`)
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate}`)
       .then(response => {
         return response.data
       })

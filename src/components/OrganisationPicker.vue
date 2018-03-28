@@ -29,7 +29,7 @@ export default {
   },
   props: {
     value: Object,
-    atDate: Date,
+    atDate: [Date, String],
     resetRoute: Boolean,
     ignoreEvent: Boolean
   },

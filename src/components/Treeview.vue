@@ -33,7 +33,7 @@
         required: true
       },
       linkable: Boolean,
-      atDate: Date
+      atDate: [Date, String]
     },
     data () {
       return {
