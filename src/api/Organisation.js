@@ -13,7 +13,7 @@ export default {
   getAll (atDate) {
     atDate = atDate || new Date()
 
-    return Service.get(`/o/?at=${atDate.toISOString()}`)
+    return Service.get(`/o/?at=${atDate.toISOString().split('T')[0]}`)
       .then(response => {
         return response.data
       })
@@ -45,7 +45,7 @@ export default {
    */
   getChildren (uuid, atDate) {
     atDate = atDate || new Date()
-    return Service.get(`/o/${uuid}/children?at=${atDate.toISOString()}`)
+    return Service.get(`/o/${uuid}/children?at=${atDate.toISOString().split('T')[0]}`)
       .then(response => {
         return response.data
       })

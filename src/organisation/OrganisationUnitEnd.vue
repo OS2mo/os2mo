@@ -22,6 +22,7 @@
     <div class="float-right">
       <button-submit
       :is-disabled="!formValid"
+      :is-loading="isLoading"
       :on-click-action="endOrganisationUnit"
       />
     </div>
@@ -48,7 +49,8 @@
         org_unit: {},
         terminate: {
           validity: {}
-        }
+        },
+        isLoading: false
       }
     },
     computed: {
@@ -67,8 +69,10 @@
     methods: {
       endOrganisationUnit () {
         let vm = this
+        vm.isLoading = true
         OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
           .then(response => {
+            vm.isLoading = false
             vm.$refs.orgUnitTerminate.hide()
           })
       }

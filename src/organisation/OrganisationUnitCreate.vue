@@ -15,6 +15,7 @@
     <div class="float-right">
       <button-submit
       :is-disabled="!formValid"
+      :is-loading="isLoading"
       :on-click-action="createOrganisationUnit"
       />
     </div>
@@ -44,9 +45,7 @@
         orgUnit: {
           validity: {}
         },
-        valid: {
-          orgUnit: false
-        }
+        isLoading: false
       }
     },
     computed: {
@@ -76,7 +75,6 @@
         OrganisationUnit.create(this.orgUnit)
           .then(response => {
             vm.$refs.orgUnitCreate.hide()
-            console.log(response)
           })
           .catch(err => {
             console.log(err)

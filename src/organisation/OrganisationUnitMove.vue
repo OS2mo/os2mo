@@ -42,6 +42,7 @@
     <div class="float-right">
       <button-submit 
       :is-disabled="!formValid"
+      :is-loading="isLoading"
       :on-click-action="moveOrganisationUnit"
       />
     </div> 
@@ -81,7 +82,8 @@
           data: {
             validity: {}
           }
-        }
+        },
+        isLoading: false
       }
     },
     watch: {

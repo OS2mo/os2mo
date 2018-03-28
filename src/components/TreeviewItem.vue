@@ -1,5 +1,4 @@
 <template>
-  <div>
     <li class="item">
         <span @click="toggle">
           <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
@@ -27,8 +26,8 @@
       <ul v-show="open">
         <loading v-show="loading"/>
         <tree-view-item
-          v-for="model in model.children"
-          v-bind:key="model.uuid"
+          v-for="(model, index) in model.children"
+          :key="index"
           v-model="selected"
           @click="selectOrgUnit(selected)"
           :model="model"
@@ -37,7 +36,6 @@
         </tree-view-item>
       </ul>
     </li>
-  </div>
 </template>
 
 <script>
@@ -105,11 +103,11 @@
       loadChildren () {
         let vm = this
         vm.loading = true
-        vm.model.children = undefined
+        vm.model.children = []
         OrganisationUnit.getChildren(vm.model.uuid, vm.atDate)
           .then(response => {
-            vm.model.children = response
             vm.loading = false
+            vm.model.children = response
           })
       }
     }
@@ -127,7 +125,7 @@
   .item {
     cursor: pointer;
     list-style-type: none;
-    display: inline-block;
+    display: block;
   }
   .nav-link {
     display: inline-block;

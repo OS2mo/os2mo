@@ -3,8 +3,8 @@
     <loading v-show="isLoading"/>
     <ul v-show="!isLoading">
       <tree-item
-        v-for="c in children"
-        v-bind:key="c.uuid"
+        v-for="(c, index) in children"
+        :key="index"
         v-model="selectedOrgUnit"
         :model="c"
         :linkable="linkable"
@@ -37,7 +37,7 @@
     },
     data () {
       return {
-        children: null,
+        children: [],
         selectedOrgUnit: {},
         isLoading: false
       }
@@ -59,7 +59,7 @@
       this.getChildren(this.org)
     },
     mounted () {
-      EventBus.$on('organisation-unit-changed', newOrg => {
+      EventBus.$on('organisation-unit-changed', () => {
         this.getChildren(this.org)
       })
     },
