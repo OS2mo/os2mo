@@ -9,14 +9,15 @@ from unittest.mock import patch
 
 import freezegun
 
-from mora import lora
+from mora import lora, settings
+from mora.service import employee, orgunit
 from . import util
 
 mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.employee.uuid.uuid4', new=lambda: mock_uuid)
+@patch('mora.service.employee.uuid4', new=lambda: mock_uuid)
 class Tests(util.LoRATestCase):
     maxDiff = None
 
@@ -110,20 +111,14 @@ class Tests(util.LoRATestCase):
             },
         )
 
-    @patch('mora.service.cpr.get_citizen')
-    def test_cpr_lookup(self, mock_get_citizen):
+    def test_cpr_lookup_prod_mode_false(self):
         # Arrange
-
-        mock_get_citizen.return_value = {
-            'fornavn': 'First',
-            'mellemnavn': 'Middle',
-            'efternavn': 'Last'
-        }
+        settings.PROD_MODE = False
 
         cpr = "1234567890"
 
         expected = {
-            'name': 'First Middle Last',
+            'name': 'Sarah Kristensen',
             'cpr_no': cpr
         }
 

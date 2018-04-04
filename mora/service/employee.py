@@ -15,7 +15,7 @@ This section describes how to interact with employees.
 
 '''
 import datetime
-import uuid
+from uuid import uuid4
 
 import flask
 import werkzeug
@@ -964,7 +964,7 @@ def create_employee():
     valid_from = str(datetime.datetime.now())
     valid_to = util.positive_infinity
 
-    bvn = str(uuid.uuid4())
+    bvn = str(uuid4())
 
     user = common.create_bruger_payload(
         valid_from=valid_from,
