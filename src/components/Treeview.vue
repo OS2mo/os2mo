@@ -9,6 +9,7 @@
         :model="c"
         :linkable="linkable"
         :at-date="atDate"
+        :refresh="isLoading"
         first-open
       />
     </ul>
