@@ -1,15 +1,24 @@
 <template>
-  <div class="form-row" v-if="addressType != null">
-    <address-search
-      v-model="valueType"
-      v-if="addressType.scope=='DAR'"
-    />
-    <div class="form-group col">
+  <div class="form-row" v-if="addresses.address_type != null">
+    <div class="form-group col-4">
+      <mo-facet-picker 
+        facet="address_type" 
+        v-model="addresses.address_type"
+      />
+    </div>
+
+    <div class="form-group col-8">
+      <label>{{addresses.address_type.name}}</label>
+      <address-search
+        v-model="addresses.value"
+        v-if="addresses.address_type.scope=='DAR'"
+      />
+
       <input
-        v-model="valueType"
+        v-model="addresses.value"
         type="text" 
         class="form-control"
-        v-if="addressType.scope!='DAR'"
+        v-if="addresses.address_type.scope!='DAR'"
         :disabled="isDisabled"
       >
     </div>
@@ -18,50 +27,47 @@
 
 
 <script>
-  import AddressSearch from './AddressSearch.vue'
+  import AddressSearch from './AddressSearch'
+  import MoFacetPicker from './MoFacetPicker'
 
   export default {
     components: {
-      AddressSearch
+      AddressSearch,
+      MoFacetPicker
     },
     props: {
-      value: [String, Object],
-      addressType: {
-        type: Object
-      },
+      value: [String, Object, Array],
       item: {
         type: Object
       }
     },
     data () {
       return {
-        valueType: '',
-        valueAddress: {}
+        addresses: {
+          address_type: {},
+          value: ''
+        },
+        items: {}
       }
     },
     computed: {
       isDisabled () {
-        return !this.addressType.scope
+        return !this.addresses.address_type.scope
       }
     },
     watch: {
-      addressType: {
+      address_type: {
         handler () {
-          this.valueType = null
+          this.addresses.value = null
         },
         deep: true
       },
 
-      valueType: {
+      addresses: {
         handler (val) {
           this.$emit('input', val)
         },
         deep: true
-      }
-    },
-    methods: {
-      selected () {
-        this.$emit('input', this.valueType)
       }
     }
   }

@@ -22,38 +22,28 @@
         v-model="orgUnit.parent"
         :is-disabled="disableOrgUnitPicker"
       />
-      
-      <div class="form-row">
-        <div class="form-group col-4">
-          <mo-facet-picker 
-            facet="address_type" 
-            v-model="addresses.address_type"
-          />
-        </div>
 
-        <div class="form-group col-8">
-          <label>{{addresses.address_type.name}}</label>
-          <address-type-entry
-            v-model="addresses.value"
-            :address-type="addresses.address_type"
-          />
-        </div>
-      </div>
+      <add-many-components
+        :entry-component="addressTypeComponent"
+        v-model="addresses"
+      />
   </div>
 </template>
 
 <script>
 import DateStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import MoFacetPicker from '../../components/MoFacetPicker'
 import AddressTypeEntry from '../../components/AddressTypeEntry'
+import MoFacetPicker from '../../components/MoFacetPicker'
+import AddManyComponents from '../../components/AddManyComponents'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
     MoFacetPicker,
-    AddressTypeEntry
+    AddressTypeEntry,
+    AddManyComponents
   },
   props: {
     value: Object,
@@ -69,10 +59,8 @@ export default {
         name: '',
         validity: {}
       },
-      addresses: {
-        address_type: {},
-        value: ''
-      }
+      addresses: [],
+      addressTypeComponent: AddressTypeEntry
     }
   },
   watch: {
@@ -86,13 +74,15 @@ export default {
     },
     addresses: {
       handler (val) {
-        this.orgUnit.addresses = [val]
+        this.orgUnit.addresses = val
       },
       deep: true
     }
   },
   created () {
     this.orgUnit = this.value
+  },
+  methods: {
   }
 }
 </script>
