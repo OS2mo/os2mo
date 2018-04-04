@@ -37,7 +37,7 @@ def format_cpr_response(sp_data: dict, cpr: str):
     last_name = sp_data.get('efternavn')
 
     # Filter empty name components, and construct full name string
-    name = ' '.join(filter(lambda x: x, [first_name, middle_name, last_name]))
+    name = ' '.join(filter(None, [first_name, middle_name, last_name]))
 
     return {
         keys.NAME: name,

@@ -18,8 +18,6 @@ def get_citizen(cpr):
         try:
             # TBC when SP library is extracted from AVA repo
             raise NotImplementedError
-            # return _get_citizen(settings.SP_SERVICE_UUIDS,
-            #                     settings.SP_CERTIFICATE, cpr)
         except HTTPError as e:
             if "PNRNotFound" in e.response.text:
                 raise KeyError('CPR not found')
