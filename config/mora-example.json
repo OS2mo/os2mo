@@ -1,10 +1,10 @@
 {
     "LORA_URL": "http://mox.example.com/",
-    "SERVICE_UUIDS": {
+    "SP_SERVICE_UUIDS": {
         "service_agreement": "deadbeef-dead-beef-dead-beefdeadbeef",
         "user": "deadbeef-dead-beef-dead-beefdeadbeef",
         "user_system": "deadbeef-dead-beef-dead-beefdeadbeef",
         "service": "deadbeef-dead-beef-dead-beefdeadbeef"
     },
-    "CERTIFICATE": "/path/to/certificate.crt"
+    "SP_CERTIFICATE": "/path/to/certificate.crt"
 }

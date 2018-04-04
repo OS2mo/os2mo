@@ -1,7 +1,14 @@
+#
+# Copyright (c) 2017-2018, Magenta ApS
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
 import random
 
 from requests import HTTPError
-from service_person_stamdata_udvidet import get_citizen as _get_citizen
 
 from mora import settings
 
