@@ -231,7 +231,7 @@ class ContactChannelProps(db.Model):
     )
 
 
-@api()
+@api(include_methods=['ddkn'])
 class GeoDetail(db.Model):
     __tablename__ = 'GetGeographicDetails'
 
@@ -247,6 +247,15 @@ class GeoDetail(db.Model):
     coord_lat = db.Column('coordinate-lat', db.String(12))
     coord_long = db.Column('coordinate-long', db.String(12))
 
+    def ddkn(self):
+        return {
+            "m100": "100m_{}_{}".format(self.coord_lat[:5],
+                                        self.coord_long[:4]),
+            "km1": "1km_{}_{}".format(self.coord_lat[:4],
+                                      self.coord_long[:3]),
+            "km10": "10km_{}_{}".format(self.coord_lat[:3],
+                                        self.coord_long[:2]),
+        }
 
 @api(exclude_columns=['stillingUuid', 'personUuid', 'unitUuid'])
 class Engagement(db.Model):
