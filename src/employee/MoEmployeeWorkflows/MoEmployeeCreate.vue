@@ -65,7 +65,6 @@
 </template>
 
 <script>
-import Organisation from '../../api/Organisation'
 import Employee from '../../api/Employee'
 import { EventBus } from '../../EventBus'
 import ButtonSubmit from '../../components/ButtonSubmit'
@@ -111,7 +110,7 @@ export default {
     }
   },
   created () {
-    this.org = Organisation.getSelectedOrganisation()
+    this.org = this.$store.state.organisation
   },
   mounted () {
     EventBus.$on('organisation-changed', newOrg => {

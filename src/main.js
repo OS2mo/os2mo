@@ -8,6 +8,7 @@ import VueI18n from 'vue-i18n'
 import VeeValidate, { Validator } from 'vee-validate'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
+import store from './vuex/store'
 
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
@@ -43,6 +44,7 @@ Vue.component('icon', Icon)
 new Vue({
   el: '#app',
   router,
+  store,
   template: '<App/>',
   components: { App }
 })

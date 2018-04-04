@@ -9,30 +9,26 @@
       ref="orgUnitPicker"
       :value="selectedSuperUnit.name"
       @click.stop="show"
-      @focus="getSelectedOrganisation()"
       v-validate="{ required: true }" 
       :disabled="isDisabled"
     >
     <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
     <div 
       class="mo-input-group" 
-      v-show="showTree" 
-      v-click-outside="hide"
+      v-show="showTree"
     >
       <tree-view 
-        v-model="selectedSuperUnit" 
-        v-click-outside="hide"
-        :org="org" 
+        v-model="selectedSuperUnit"
+        :org-uuid="orgUuid" 
       />
     </div>
   </div>
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
-  import ClickOutside from '../directives/ClickOutside'
   import TreeView from '../components/Treeview'
+  import { mapGetters } from 'vuex'
 
   export default {
     components: {
@@ -51,32 +47,29 @@
     },
     data () {
       return {
-        org: {},
         selectedSuperUnit: {
           name: ''
         },
         showTree: false
       }
     },
-    directives: {
-      ClickOutside
+    computed: {
+      ...mapGetters({
+        orgUuid: 'organisation/getUuid'
+      })
     },
     watch: {
-      selectedSuperUnit (newVal, oldVal) {
+      selectedSuperUnit (newVal) {
         this.$refs.orgUnitPicker.blur()
 
         this.$emit('input', newVal)
         this.hide()
       }
     },
-    created () {
+    mounted () {
       this.selectedSuperUnit = this.value || this.selectedSuperUnit
     },
     methods: {
-      getSelectedOrganisation () {
-        this.org = Organisation.getSelectedOrganisation()
-      },
-
       getSelectedOrganistionUnit () {
         this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
       },

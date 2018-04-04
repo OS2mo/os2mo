@@ -6,34 +6,23 @@
         Overblik
       </h4>
       <tree-view 
-        :org="org" 
+        :org-uuid="orgUuid" 
         linkable/>
     </div>
   </div>
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
-  import { EventBus } from '../EventBus'
-  import OrganisationPicker from '../components/OrganisationPicker'
+  import { mapGetters } from 'vuex'
   import TreeView from '../components/Treeview'
 
   export default {
     components: {
-      OrganisationPicker,
       TreeView
     },
-    data () {
-      return {
-        org: {}
-      }
-    },
-    created () {
-      this.org = Organisation.getSelectedOrganisation()
-    },
-    mounted () {
-      EventBus.$on('organisation-changed', newOrg => {
-        if (this.org.uuid !== newOrg.uuid) this.org = newOrg
+    computed: {
+      ...mapGetters({
+        orgUuid: 'organisation/getUuid'
       })
     }
   }

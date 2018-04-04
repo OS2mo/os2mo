@@ -34,7 +34,6 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import Employee from '../api/Employee'
   import ButtonSubmit from './ButtonSubmit'
   import OrganisationUnit from '../api/OrganisationUnit'
@@ -138,7 +137,7 @@
       })
     },
     created () {
-      this.org = Organisation.getSelectedOrganisation()
+      this.org = this.$store.state.organisation
 
       if (this.content) {
         this.entry = JSON.parse(JSON.stringify(this.content))

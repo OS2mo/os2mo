@@ -27,7 +27,6 @@
 
 <script>
 import Facet from '../api/Facet'
-import Organisation from '../api/Organisation'
 import { EventBus } from '../EventBus'
 
 export default {
@@ -61,7 +60,7 @@ export default {
   methods: {
     getItSystems () {
       var vm = this
-      let org = Organisation.getSelectedOrganisation()
+      let org = this.$store.state.organisation
       if (org.uuid === undefined) return
       Facet.itSystems(org.uuid)
         .then(response => {

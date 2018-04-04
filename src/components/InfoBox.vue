@@ -17,10 +17,7 @@
         type: String,
         required: true
       },
-      info: {
-        type: Number,
-        required: true
-      }
+      info: Number
     }
   }
 </script>

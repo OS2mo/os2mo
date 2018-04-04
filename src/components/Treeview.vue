@@ -28,10 +28,7 @@
     },
     props: {
       value: Object,
-      org: {
-        type: Object,
-        required: true
-      },
+      orgUuid: String,
       linkable: Boolean,
       atDate: [Date, String]
     },
@@ -43,32 +40,30 @@
       }
     },
     watch: {
-      org (newOrg) {
-        this.getChildren(newOrg)
+      orgUuid () {
+        this.getChildren()
       },
 
       atDate () {
-        this.getChildren(this.org)
+        this.getChildren()
       },
 
-      selectedOrgUnit (newVal, oldVal) {
-        this.$emit('input', newVal)
+      selectedOrgUnit (val) {
+        this.$emit('input', val)
       }
     },
-    created () {
-      this.getChildren(this.org)
-    },
     mounted () {
+      this.getChildren()
       EventBus.$on('organisation-unit-changed', () => {
-        this.getChildren(this.org)
+        this.getChildren()
       })
     },
     methods: {
-      getChildren (org) {
-        if (org.uuid === undefined) return
+      getChildren () {
+        if (this.orgUuid === undefined) return
         let vm = this
         vm.isLoading = true
-        Organisation.getChildren(org.uuid, this.atDate)
+        Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
             vm.isLoading = false
             vm.children = response

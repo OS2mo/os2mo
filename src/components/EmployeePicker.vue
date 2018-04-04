@@ -27,7 +27,6 @@
 
 <script>
 import Search from '../api/Search'
-import Organisation from '../api/Organisation'
 import VAutocomplete from 'v-autocomplete'
 import 'v-autocomplete/dist/v-autocomplete.css'
 import TheSearchBarTemplate from './TheSearchBarTemplate.vue'
@@ -64,7 +63,7 @@ export default {
     updateItems (query) {
       let vm = this
       vm.items = []
-      let org = Organisation.getSelectedOrganisation()
+      let org = this.$store.state.organisation
       Search.employees(org.uuid, query)
         .then(response => {
           vm.items = response

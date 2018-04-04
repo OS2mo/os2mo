@@ -24,7 +24,6 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
   import { EventBus } from '../EventBus'
   import ButtonSubmit from '../components/ButtonSubmit'
@@ -57,7 +56,7 @@
       }
     },
     created () {
-      this.org = Organisation.getSelectedOrganisation()
+      this.org = this.$store.state.organisation
     },
     mounted () {
       EventBus.$on('organisation-changed', newOrg => {

@@ -28,7 +28,6 @@
 
 <script>
 import Facet from '../api/Facet'
-import Organisation from '../api/Organisation'
 import { EventBus } from '../EventBus'
 
 export default {
@@ -67,7 +66,7 @@ export default {
   methods: {
     getFacet () {
       var vm = this
-      let org = Organisation.getSelectedOrganisation()
+      let org = this.$store.state.organisation
       if (org.uuid === undefined) return
       Facet.getFacet(org.uuid, this.facet)
         .then(response => {
