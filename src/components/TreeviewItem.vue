@@ -15,10 +15,10 @@
       </router-link>
 
       <span 
-      class="link-color"
-      v-if="!linkable"
-      
-      @click="selectOrgUnit(model)">
+        class="link-color"
+        v-if="!linkable"
+        @click="selectOrgUnit(model)"
+      >
         <icon class="icon" name="users"/>
         {{model.name}}
       </span>
@@ -32,7 +32,8 @@
         @click="selectOrgUnit(selected)"
         :model="model"
         :at-date="atDate"
-        :linkable="linkable">
+        :linkable="linkable"
+        :refresh="refresh">
       </tree-view-item>
     </ul>
   </li>
@@ -41,7 +42,6 @@
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
   import Loading from './Loading'
-  import { EventBus } from '../EventBus'
 
   export default {
     name: 'treeViewItem',
@@ -53,7 +53,8 @@
       model: Object,
       firstOpen: Boolean,
       linkable: Boolean,
-      atDate: [Date, String]
+      atDate: [Date, String],
+      refresh: Boolean
     },
     data () {
       return {
@@ -68,6 +69,9 @@
       }
     },
     watch: {
+      refresh (val) {
+        if (val) { this.loadChildren() }
+      },
       selected (newVal) {
         this.selectOrgUnit(newVal)
       },
@@ -76,19 +80,11 @@
         this.loadChildren()
       }
     },
-    created () {
+    mounted () {
       if (this.firstOpen) {
         this.loadChildren()
       }
       this.open = this.firstOpen
-    },
-    mounted () {
-      EventBus.$on('organisation-unit-changed', () => {
-        this.loadChildren()
-      })
-    },
-    beforeDestroy () {
-      EventBus.$off(['organisation-unit-changed'])
     },
     methods: {
       toggle () {
