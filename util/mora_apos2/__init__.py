@@ -276,6 +276,9 @@ class Engagement(db.Model):
     unit = db.relationship('Unit')
     person = db.relationship('Person')
 
+    # NOT USED
+    location = db.relationship('Location')
+
 
 @api(exclude_columns=['stillingUuid', 'personUuid', 'unitUuid'])
 class Functions(db.Model):
@@ -300,10 +303,8 @@ class Functions(db.Model):
 
 
 @app.route('/test')
-@flask_jsontools.jsonapi
 def test():
-    '''Print out differences between the 'classes' and 'jobtitles'
-    tables.
+    '''Print out status of a few sanity checks.
 
     '''
 
@@ -340,10 +341,35 @@ def test():
             q.all(),
         ))
 
-    return {
-        objid: {
-            'class': to_dict(Class.query.filter_by(uuid=objid)),
-            'jobtitle': to_dict(JobTitle.query.filter_by(uuid=objid)),
-        }
-        for objid in sorted(bad)
-    }
+    def to_str(q):
+        return flask.json.dumps(list(map(
+            flask_restless.helpers.to_dict,
+            q.all(),
+        )), indent=2)
+
+    def generate():
+        yield 'inconsistencies between classes and jobtitles\n'
+
+        for objid in sorted(bad):
+            yield objid
+            yield '\n'
+            yield 'class '
+            yield to_str(Class.query.filter_by(uuid=objid))
+            yield '\n'
+            yield 'jobtitle '
+            yield to_str(JobTitle.query.filter_by(uuid=objid))
+            yield '\n'
+
+        yield '\n'
+
+        yield 'engagements with a location\n'
+        yield to_str(Engagement.query.filter(Engagement.location != None))
+        yield '\n\n'
+
+        yield 'bad contact channel owners\n'
+        for obj in ContactChannel.query.all():
+            if not any((obj.location, obj.engagement)):
+                yield obj.uuid
+                yield '\n'
+
+    return flask.Response(generate(), mimetype='text/plain')
