@@ -21,4 +21,9 @@ SAML_IDP_URL = None
 SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = True
 
+SP_SERVICE_UUIDS = {}
+SP_CERTIFICATE = ""
+
+PROD_MODE = False
+
 _util.update_config(globals(), CONFIG_FILE)
