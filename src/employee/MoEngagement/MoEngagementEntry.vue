@@ -42,8 +42,6 @@ export default {
       handler (newVal) {
         newVal.type = 'engagement'
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 5 && newVal.validity.from !== undefined)
-        this.$emit('is-valid', valid)
       },
       deep: true
     }

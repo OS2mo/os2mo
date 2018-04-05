@@ -31,7 +31,6 @@
 
 <script>
   import Employee from '../api/Employee'
-  import Organisation from '../api/Organisation'
   import { EventBus } from '../EventBus'
   import Loading from '../components/Loading'
   import '../filters/CPRNumber'
@@ -61,7 +60,7 @@
       getEmployees () {
         let vm = this
         vm.isLoading = true
-        let org = Organisation.getSelectedOrganisation()
+        let org = this.$store.state.organisation
         if (org.uuid === undefined) return
         Employee.getAll(org.uuid)
           .then(response => {

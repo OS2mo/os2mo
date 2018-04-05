@@ -32,11 +32,13 @@
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
   import AddressSearchTemplate from './AddressSearchTemplate.vue'
-  import Organisation from '../api/Organisation'
 
   export default {
     components: {
       VAutocomplete
+    },
+    inject: {
+      $validator: '$validator'
     },
     props: {
       value: [Object, String]
@@ -57,7 +59,7 @@
       // Update address suggestions based on search query
       getGeographicalLocation (query) {
         let vm = this
-        let org = Organisation.getSelectedOrganisation()
+        let org = this.$store.state.organisation
         if (org.uuid === undefined) return
         Search.getGeographicalLocation(org.uuid, query, this.global)
           .then(response => {

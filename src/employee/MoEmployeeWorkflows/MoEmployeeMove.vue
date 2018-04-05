@@ -12,6 +12,7 @@
         <employee-picker 
           v-model="employee" 
           :org="org"
+          required
         />
 
       <div class="form-row">
@@ -38,7 +39,7 @@
       </div>
 
     <div class="float-right">
-      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading" :is-disabled="isDisabled"/>
+      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading" :is-disabled="!formValid"/>
     </div>
   </div>
 </b-modal>
@@ -54,6 +55,9 @@
   import ButtonSubmit from '../../components/ButtonSubmit'
 
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     components: {
       Employee,
       DatePicker,
@@ -82,8 +86,11 @@
       }
     },
     computed: {
-      isDisabled () {
-        return !this.employee.uuid || !this.move.data.validity.from || !this.move.data.org_unit || !this.original
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       }
     },
     mounted () {

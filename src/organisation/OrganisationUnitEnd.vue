@@ -16,11 +16,13 @@
       <date-picker 
         label="Slutdato"
         v-model="terminate.validity.from"
+        required
       />
     </div>
     <div class="float-right">
       <button-submit
-      :is-disabled="isDisabled"
+      :is-disabled="!formValid"
+      :is-loading="isLoading"
       :on-click-action="endOrganisationUnit"
       />
     </div>
@@ -34,22 +36,29 @@
   import ButtonSubmit from '../components/ButtonSubmit'
 
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     components: {
       DatePicker,
       OrganisationUnitPicker,
       ButtonSubmit
-    },
-    computed: {
-      isDisabled () {
-        if (this.org_unit.uuid === undefined || this.terminate.validity.from === undefined) return true
-      }
     },
     data () {
       return {
         org_unit: {},
         terminate: {
           validity: {}
-        }
+        },
+        isLoading: false
+      }
+    },
+    computed: {
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       }
     },
     mounted () {
@@ -60,16 +69,13 @@
     methods: {
       endOrganisationUnit () {
         let vm = this
+        vm.isLoading = true
         OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
           .then(response => {
+            vm.isLoading = false
             vm.$refs.orgUnitTerminate.hide()
           })
       }
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

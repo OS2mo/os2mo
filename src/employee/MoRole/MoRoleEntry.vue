@@ -40,9 +40,6 @@ export default {
       handler (newVal) {
         newVal.type = 'role'
         this.$emit('input', newVal)
-        let valid = false
-        if (Object.keys(newVal).length >= 4 && newVal.validity.from !== undefined) valid = true
-        this.$emit('is-valid', valid)
       },
       deep: true
     },

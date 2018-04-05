@@ -21,14 +21,12 @@
         v-model="entry" 
         :org="org" 
         :disable-org-unit-picker="disableOrgUnitPicker"
-        @is-valid="isValid"
       />
-
       <div class="float-right">
         <button-submit 
           :on-click-action="onClickAction" 
           :is-loading="isLoading" 
-          :is-disabled="isDisabled"
+          :is-disabled="!formValid"
         />
       </div>
     </b-modal>
@@ -36,12 +34,14 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import Employee from '../api/Employee'
   import ButtonSubmit from './ButtonSubmit'
   import OrganisationUnit from '../api/OrganisationUnit'
 
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     components: {
       ButtonSubmit
     },
@@ -75,18 +75,19 @@
         entry: {},
         original: {},
         org: {},
-        isLoading: false,
-        valid: false
+        isLoading: false
       }
     },
     computed: {
       idLabel () {
         return 'moCreate' + this._uid
       },
-      isDisabled () {
-        return !this.valid
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       },
-
       disableOrgUnitPicker () {
         return this.type === 'ORG_UNIT' && this.action === 'EDIT'
       },
@@ -136,7 +137,7 @@
       })
     },
     created () {
-      this.org = Organisation.getSelectedOrganisation()
+      this.org = this.$store.state.organisation
 
       if (this.content) {
         this.entry = JSON.parse(JSON.stringify(this.content))
@@ -148,10 +149,6 @@
       this.$root.$off(['bv::modal::shown'])
     },
     methods: {
-      isValid (val) {
-        this.valid = val
-      },
-
       onClickAction () {
         switch (this.action) {
           case 'CREATE':

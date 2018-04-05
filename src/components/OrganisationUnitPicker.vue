@@ -3,40 +3,40 @@
     <label for="">{{ label }}</label>
     <input 
       name="unit"
+      data-vv-as="Enhed" 
+      ref="orgUnitPicker"
       type="text" 
       class="form-control" 
       placeholder="Vælg enhed"
-      ref="orgUnitPicker"
-      :value="selectedSuperUnit.name"
-      @click.stop="show"
-      @focus="getSelectedOrganisation()"
-      v-validate="{ required: true }" 
+      v-model="orgName"
+      @click.stop="toggleTree()"
       :disabled="isDisabled"
+      v-validate="{required: true}"
     >
-    <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
     <div 
       class="mo-input-group" 
-      v-show="showTree" 
-      v-click-outside="hide"
+      v-show="showTree"
     >
       <tree-view 
-        v-model="selectedSuperUnit" 
-        v-click-outside="hide"
-        :org="org" 
+        v-model="selectedSuperUnit"
+        :org-uuid="orgUuid" 
       />
     </div>
+    <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
   </div>
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
-  import ClickOutside from '../directives/ClickOutside'
   import TreeView from '../components/Treeview'
+  import { mapGetters } from 'vuex'
 
   export default {
     components: {
       TreeView
+    },
+    inject: {
+      $validator: '$validator'
     },
     props: {
       value: Object,
@@ -48,42 +48,36 @@
     },
     data () {
       return {
-        org: {},
-        selectedSuperUnit: {
-          name: ''
-        },
-        showTree: false
+        selectedSuperUnit: {},
+        showTree: false,
+        orgName: ''
       }
     },
-    directives: {
-      ClickOutside
+    computed: {
+      ...mapGetters({
+        orgUuid: 'organisation/getUuid'
+      })
     },
     watch: {
-      selectedSuperUnit (newVal, oldVal) {
+      selectedSuperUnit (newVal) {
+        this.orgName = newVal.name
+        this.$validator.validate('unit')
         this.$refs.orgUnitPicker.blur()
 
         this.$emit('input', newVal)
-        this.hide()
+        this.showTree = false
       }
     },
-    created () {
+    mounted () {
       this.selectedSuperUnit = this.value || this.selectedSuperUnit
     },
     methods: {
-      getSelectedOrganisation () {
-        this.org = Organisation.getSelectedOrganisation()
-      },
-
       getSelectedOrganistionUnit () {
         this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
       },
 
-      show () {
-        this.showTree = true
-      },
-
-      hide () {
-        this.showTree = false
+      toggleTree () {
+        this.showTree = !this.showTree
       }
     }
   }

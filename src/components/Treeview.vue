@@ -3,12 +3,13 @@
     <loading v-show="isLoading"/>
     <ul v-show="!isLoading">
       <tree-item
-        v-for="c in children"
-        v-bind:key="c.uuid"
+        v-for="(c, index) in children"
+        :key="index"
         v-model="selectedOrgUnit"
         :model="c"
         :linkable="linkable"
         :at-date="atDate"
+        :refresh="isLoading"
         first-open
       />
     </ul>
@@ -28,47 +29,42 @@
     },
     props: {
       value: Object,
-      org: {
-        type: Object,
-        required: true
-      },
+      orgUuid: String,
       linkable: Boolean,
-      atDate: Date
+      atDate: [Date, String]
     },
     data () {
       return {
-        children: null,
+        children: [],
         selectedOrgUnit: {},
         isLoading: false
       }
     },
     watch: {
-      org (newOrg) {
-        this.getChildren(newOrg)
+      orgUuid () {
+        this.getChildren()
       },
 
       atDate () {
-        this.getChildren(this.org)
+        this.getChildren()
       },
 
-      selectedOrgUnit (newVal, oldVal) {
-        this.$emit('input', newVal)
+      selectedOrgUnit (val) {
+        this.$emit('input', val)
       }
     },
-    created () {
-      this.getChildren(this.org)
-    },
     mounted () {
-      EventBus.$on('organisation-unit-changed', newOrg => {
-        this.getChildren(this.org)
+      this.getChildren()
+      EventBus.$on('organisation-unit-changed', () => {
+        this.getChildren()
       })
     },
     methods: {
-      getChildren (org) {
-        if (org.uuid === undefined) return
+      getChildren () {
+        if (this.orgUuid === undefined) return
         let vm = this
         vm.isLoading = true
-        Organisation.getChildren(org.uuid, this.atDate)
+        Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
             vm.isLoading = false
             vm.children = response

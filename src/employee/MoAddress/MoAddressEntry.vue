@@ -38,8 +38,6 @@ export default {
       handler (newVal) {
         newVal.type = 'address'
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 6 && newVal.validity.from !== undefined)
-        this.$emit('is-valid', valid)
       },
       deep: true
     }
