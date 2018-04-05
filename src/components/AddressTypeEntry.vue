@@ -56,13 +56,9 @@
       }
     },
     watch: {
-      address_type: {
-        handler () {
-          this.addresses.value = null
-        },
-        deep: true
+      value (val) {
+        this.addresses = val
       },
-
       addresses: {
         handler (val) {
           this.$emit('input', val)

@@ -1,36 +1,25 @@
 <template>
   <div>
-    <div v-for="(entry, index) in entries" :key="index">
-      <button 
-        @click="onClickRemove(index)" 
-        type="button" 
-        class="btn btn-primary float-right" 
-      >
-        <icon name="minus"/>
-      </button>
-    <component 
-      :is="entryComponent"
-      v-model="values[index]"
-    />
+    <div v-for="(v, index) in values" :key="index">
+      <mo-removable-component 
+        :entry-component="entryComponent" 
+        v-model="values[index]"
+      />
     </div>
 
-    <button 
-      @click="onClickAction" 
-      type="button" 
-      class="btn btn-primary" 
-    >
+    <button @click="add()" type="button" class="btn btn-primary">
       <icon name="plus"/>
     </button>
-    {{values}}
   </div>
 </template>
 
 <script>
+import MoRemovableComponent from './MoRemovableComponent'
 export default {
   components: {
+    MoRemovableComponent
   },
   props: {
-    value: Array,
     entryComponent: {
       type: Object,
       required: true
@@ -38,30 +27,19 @@ export default {
   },
   data () {
     return {
-      entries: [],
       values: []
     }
   },
-  computed: {
-    hasEntryComponent () {
-      return this.entryComponent !== undefined
-    }
+  updated () {
+    let data = this.values.filter(value => Object.keys(value).length !== 0)
+    this.$emit('input', data)
   },
-  watch: {
-    values: {
-      handler (val) {
-        this.$emit('input', val)
-      },
-      deep: true
-    }
+  mounted () {
+    this.add()
   },
   methods: {
-    onClickAction () {
-      this.entries.push(this.entryComponent)
-    },
-
-    onClickRemove (index) {
-      this.entries.splice(index, 1)
+    add () {
+      this.values.push({})
     }
   }
 }
