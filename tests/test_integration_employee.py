@@ -5,19 +5,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from unittest.mock import patch
 
 import freezegun
+import notsouid
 
-from mora import lora, settings
-from mora.service import employee, orgunit
+from mora import lora
 from . import util
-
-mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.employee.uuid4', new=lambda: mock_uuid)
 class Tests(util.LoRATestCase):
     maxDiff = None
 
@@ -34,7 +30,10 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        r = self._perform_request('/service/e/create', json=payload)
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+
+        with notsouid.freeze_uuid(mock_uuid):
+            r = self._perform_request('/service/e/create', json=payload)
         userid = r.json
 
         expected = {
@@ -113,8 +112,6 @@ class Tests(util.LoRATestCase):
 
     def test_cpr_lookup_prod_mode_false(self):
         # Arrange
-        settings.PROD_MODE = False
-
         cpr = "1234567890"
 
         expected = {
@@ -123,12 +120,15 @@ class Tests(util.LoRATestCase):
         }
 
         # Act
-        self.assertRequestResponse('/service/e/cpr_lookup/{}/'.format(cpr),
-                                   expected)
+        with util.override_settings(PROD_MODE=False):
+            self.assertRequestResponse(
+                '/service/e/cpr_lookup/?cpr={}'.format(cpr),
+                expected)
 
     def test_cpr_lookup_raises_on_wrong_length(self):
         # Arrange
 
         # Act
-        self.assertRequestFails('/service/e/cpr_lookup/1234/', 400)
-        self.assertRequestFails('/service/e/cpr_lookup/1234567890123/', 400)
+        self.assertRequestFails('/service/e/cpr_lookup/?cpr=1234/', 400)
+        self.assertRequestFails('/service/e/cpr_lookup/?cpr=1234567890123/',
+                                400)

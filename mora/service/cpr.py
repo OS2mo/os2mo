@@ -9,11 +9,12 @@
 -----------
 
 This section describes functionality for retrieving information about people
-based on CPR..
+based on their CPR number.
 '''
 
 import flask
 
+from mora import util
 from mora.integrations.serviceplatformen import get_citizen
 from mora.service import keys
 
@@ -21,16 +22,32 @@ blueprint = flask.Blueprint('cpr', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@blueprint.route('/e/cpr_lookup/<string:cpr>/')
-def search_cpr(cpr):
+@blueprint.route('/e/cpr_lookup/')
+@util.restrictargs(required=['cpr'])
+def search_cpr():
     """
-    Search for CPR in Serviceplatformen
+    Search for a CPR number in Serviceplatformen and retrieve the associated
+    information
 
-    :param cpr: The CPR no. of a person to be searched
+    :queryparam cpr: The CPR no. of a person to be searched
+
+    :<jsonarr string name: The name of the person
+    :<jsonarr string cpr_no: The person's CPR number.
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+      {
+        "name": "John Doe",
+        "cpr_no": "1234567890"
+      }
+
     """
+    cpr = flask.request.args['cpr']
 
     if len(cpr) != 10:
-        raise ValueError('CPR should be 10 characters long')
+        raise ValueError('CPR no. should be 10 characters long')
 
     sp_data = get_citizen(cpr)
 

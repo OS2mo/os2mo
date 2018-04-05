@@ -157,6 +157,7 @@ LAST_NAMES = [
 
 
 def _get_citizen_stub(cpr):
+    # Seed random with CPR number to ensure consistent output
     random.seed(cpr)
 
     if (int(cpr[-1]) % 2) == 0:
