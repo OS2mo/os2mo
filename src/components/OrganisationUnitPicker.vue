@@ -3,16 +3,16 @@
     <label for="">{{ label }}</label>
     <input 
       name="unit"
+      data-vv-as="Enhed" 
+      ref="orgUnitPicker"
       type="text" 
       class="form-control" 
       placeholder="Vælg enhed"
-      ref="orgUnitPicker"
-      :value="selectedSuperUnit.name"
-      @click.stop="show"
-      v-validate="{ required: true }" 
+      v-model="orgName"
+      @click.stop="toggleTree()"
       :disabled="isDisabled"
+      v-validate="{required: true}"
     >
-    <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
     <div 
       class="mo-input-group" 
       v-show="showTree"
@@ -22,6 +22,7 @@
         :org-uuid="orgUuid" 
       />
     </div>
+    <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
   </div>
 </template>
 
@@ -47,10 +48,9 @@
     },
     data () {
       return {
-        selectedSuperUnit: {
-          name: ''
-        },
-        showTree: false
+        selectedSuperUnit: {},
+        showTree: false,
+        orgName: ''
       }
     },
     computed: {
@@ -60,10 +60,12 @@
     },
     watch: {
       selectedSuperUnit (newVal) {
+        this.orgName = newVal.name
+        this.$validator.validate('unit')
         this.$refs.orgUnitPicker.blur()
 
         this.$emit('input', newVal)
-        this.hide()
+        this.showTree = false
       }
     },
     mounted () {
@@ -74,12 +76,8 @@
         this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
       },
 
-      show () {
-        this.showTree = true
-      },
-
-      hide () {
-        this.showTree = false
+      toggleTree () {
+        this.showTree = !this.showTree
       }
     }
   }
