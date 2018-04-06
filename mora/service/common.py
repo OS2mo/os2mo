@@ -14,11 +14,12 @@
 import abc
 import collections
 import copy
-import enum
 import datetime
+import enum
 import functools
-import uuid
+import json
 import typing
+import uuid
 
 import flask
 
@@ -109,8 +110,8 @@ def checked_get(
             raise ValueError('missing {!r}'.format(key))
 
     elif not isinstance(v, type(default)):
-        raise ValueError('invalid {!r}, expected {}, got {!r}'.format(
-            key, type(default).__name__, v,
+        raise ValueError('invalid {!r}, expected {}, got: {}'.format(
+            key, type(default).__name__, json.dumps(v),
         ))
 
     return v
