@@ -1897,3 +1897,62 @@ class TestClass(TestCase):
                 'uuid': 42,
             },
         )
+
+    def test_checked_get(self):
+        mapping = {
+            'list': [1337],
+            'dict': {1337: 1337},
+            'string': '1337',
+            'int': 1337,
+        }
+
+        # when it's there
+        self.assertIs(
+            common.checked_get(mapping, 'list', []),
+            mapping['list'],
+        )
+
+        self.assertIs(
+            common.checked_get(mapping, 'dict', {}),
+            mapping['dict'],
+        )
+
+        self.assertIs(
+            common.checked_get(mapping, 'string', ''),
+            mapping['string'],
+        )
+
+        self.assertIs(
+            common.checked_get(mapping, 'int', 1337),
+            mapping['int'],
+        )
+
+        # when it's not there
+        self.assertEqual(
+            common.checked_get(mapping, 'nonexistent', [], required=False),
+            [],
+        )
+
+        self.assertEqual(
+            common.checked_get(mapping, 'nonexistent', {}, required=False),
+            {},
+        )
+
+        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+            common.checked_get(mapping, 'nonexistent', [])
+
+        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+            common.checked_get(mapping, 'nonexistent', {})
+
+        # bad value
+        with self.assertRaisesRegex(
+                ValueError,
+                'invalid \'dict\', expected list, got: {"1337": 1337}',
+        ):
+            common.checked_get(mapping, 'dict', [])
+
+        with self.assertRaisesRegex(
+                ValueError,
+                r"invalid 'list', expected dict, got: \[1337\]",
+        ):
+            common.checked_get(mapping, 'list', {})

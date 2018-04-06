@@ -93,13 +93,18 @@ def get_connector():
     return lora.Connector(**loraparams)
 
 
+K = typing.TypeVar('K', bound=typing.Hashable)
+V = typing.TypeVar('V')
+D = typing.Dict[K, V]
+
+
 def checked_get(
-    mapping: dict,
-    key: typing.Hashable,
-    default: typing.Hashable,
-    fallback: dict=None,
+    mapping: D,
+    key: K,
+    default: V,
+    fallback: D=None,
     required: bool=True,
-):
+) -> V:
     sentinel = object()
     v = mapping.get(key, sentinel)
 
@@ -108,6 +113,8 @@ def checked_get(
             return checked_get(fallback, key, default, None, required)
         elif required:
             raise ValueError('missing {!r}'.format(key))
+        else:
+            return default
 
     elif not isinstance(v, type(default)):
         raise ValueError('invalid {!r}, expected {}, got: {}'.format(
@@ -118,11 +125,11 @@ def checked_get(
 
 
 def get_uuid(
-    mapping: dict,
-    fallback: dict=None,
+    mapping: D,
+    fallback: D=None,
     *,
     key: typing.Hashable=keys.UUID
-):
+) -> str:
     v = checked_get(mapping, key, '', fallback=fallback)
 
     if not util.is_uuid(v):
