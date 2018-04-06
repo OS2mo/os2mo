@@ -29,11 +29,10 @@
         v-for="(model, index) in model.children"
         :key="index"
         v-model="selected"
-        @click="selectOrgUnit(selected)"
         :model="model"
         :at-date="atDate"
         :linkable="linkable"
-        :refresh="refresh">
+      >
       </tree-view-item>
     </ul>
   </li>
@@ -53,8 +52,7 @@
       model: Object,
       firstOpen: Boolean,
       linkable: Boolean,
-      atDate: [Date, String],
-      refresh: Boolean
+      atDate: [Date, String]
     },
     data () {
       return {
@@ -69,9 +67,12 @@
       }
     },
     watch: {
-      refresh (val) {
-        if (val) { this.loadChildren() }
+      model (val) {
+        console.log('model watch:')
+        console.log(val)
+        this.loadChildren()
       },
+
       selected (newVal) {
         this.selectOrgUnit(newVal)
       },
