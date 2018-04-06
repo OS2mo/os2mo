@@ -68,8 +68,6 @@
     },
     watch: {
       model (val) {
-        console.log('model watch:')
-        console.log(val)
         this.loadChildren()
       },
 

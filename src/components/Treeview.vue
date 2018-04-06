@@ -59,11 +59,8 @@
         if (this.orgUuid === undefined) return
         let vm = this
         vm.isLoading = true
-        console.log(this.orgUuid)
         Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
-            console.log('organisation children')
-            console.log(response)
             vm.isLoading = false
             vm.children = response
           })
