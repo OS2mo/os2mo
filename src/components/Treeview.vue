@@ -9,7 +9,6 @@
         :model="c"
         :linkable="linkable"
         :at-date="atDate"
-        :refresh="isLoading"
         first-open
       />
     </ul>
@@ -20,7 +19,6 @@
   import Organisation from '../api/Organisation'
   import TreeItem from './TreeviewItem'
   import Loading from './Loading'
-  import { EventBus } from '../EventBus'
 
   export default {
     components: {
@@ -55,9 +53,6 @@
     },
     mounted () {
       this.getChildren()
-      EventBus.$on('organisation-unit-changed', () => {
-        this.getChildren()
-      })
     },
     methods: {
       getChildren () {
