@@ -112,7 +112,7 @@ def edit_association(employee_uuid, req):
             {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
         ))
 
-    if keys.ADDRESS in data or keys.ADDRESS_TYPE in data:
+    if data.get(keys.ADDRESS) or data.get(keys.ADDRESS_TYPE):
         address_obj = data.get(keys.ADDRESS) or original_data[keys.ADDRESS]
         address_type = (
             data.get(keys.ADDRESS_TYPE) or original_data[keys.ADDRESS_TYPE]

@@ -141,7 +141,7 @@ def edit_manager(employee_uuid, req):
             },
         ))
 
-    if keys.ADDRESS in data or keys.ADDRESS_TYPE in data:
+    if data.get(keys.ADDRESS) or data.get(keys.ADDRESS_TYPE):
         address_obj = data.get(keys.ADDRESS) or original_data[keys.ADDRESS]
         address_type = (
             data.get(keys.ADDRESS_TYPE) or original_data[keys.ADDRESS_TYPE]
