@@ -1929,20 +1929,20 @@ class TestClass(TestCase):
 
         # when it's not there
         self.assertEqual(
-            common.checked_get(mapping, 'nonexistent', [], required=False),
+            common.checked_get(mapping, 'nonexistent', []),
             [],
         )
 
         self.assertEqual(
-            common.checked_get(mapping, 'nonexistent', {}, required=False),
+            common.checked_get(mapping, 'nonexistent', {}),
             {},
         )
 
         with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
-            common.checked_get(mapping, 'nonexistent', [])
+            common.checked_get(mapping, 'nonexistent', [], required=True)
 
         with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
-            common.checked_get(mapping, 'nonexistent', {})
+            common.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(

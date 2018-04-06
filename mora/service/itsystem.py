@@ -229,7 +229,7 @@ class ITSystems(common.AbstractRelationDetail):
         }
 
     def create(self, id, req):
-        systemobj = common.checked_get(req, keys.ITSYSTEM, {})
+        systemobj = common.checked_get(req, keys.ITSYSTEM, {}, required=True)
         systemid = common.get_uuid(systemobj)
 
         original = self.scope.get(

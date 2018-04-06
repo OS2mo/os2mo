@@ -103,7 +103,7 @@ def checked_get(
     key: K,
     default: V,
     fallback: D=None,
-    required: bool=True,
+    required: bool=False,
 ) -> V:
     sentinel = object()
     v = mapping.get(key, sentinel)
@@ -130,7 +130,7 @@ def get_uuid(
     *,
     key: typing.Hashable=keys.UUID
 ) -> str:
-    v = checked_get(mapping, key, '', fallback=fallback)
+    v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_uuid(v):
         raise ValueError('invalid uuid for {!r}: {!r}'.format(key, v))
