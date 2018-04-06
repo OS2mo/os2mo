@@ -475,7 +475,7 @@ def create_org_unit():
     org_unit_type_uuid = req.get(keys.ORG_UNIT_TYPE).get('uuid')
     addresses = [
         address.get_relation_for(addr[keys.ADDRESS_TYPE], addr[keys.VALUE])
-        for addr in req.get(keys.ADDRESSES) or []
+        for addr in common.checked_get(req, keys.ADDRESSES, [], required=False)
     ]
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
