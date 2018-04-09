@@ -2,5 +2,5 @@
 
 set -e
 
-./manage.py build
-./manage.py sphinx
+./flask.sh build
+./flask.sh sphinx
