@@ -1,5 +1,5 @@
 <template>
-<b-modal 
+  <b-modal 
     id="employeeTerminate" 
     size="lg" 
     hide-footer 
@@ -7,22 +7,20 @@
     ref="employeeTerminate"
     lazy
   >
-  <div class="col">
-    <employee-picker v-model="employee" required/>
-    
-    <div class="form-row">
-      <date-picker label="Slutdato" v-model="terminate.validity.from" required/>
-    </div>
-    
-    <div class="float-right">
-      <button-submit 
-        :on-click-action="endEmployee" 
-        :is-loading="isLoading" 
-        :is-disabled="!formValid"
-      />
-    </div>
-  </div>
-</b-modal>
+    <form @submit.prevent="endEmployee">
+      <div class="col">
+        <employee-picker v-model="employee" required/>
+        
+        <div class="form-row">
+          <date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+        </div>
+        
+        <div class="float-right">
+          <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
+        </div>
+      </div>
+    </form>
+  </b-modal>
 </template>
 
 <script>

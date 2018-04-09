@@ -7,6 +7,7 @@
     title="Omdøb enhed"
     lazy
   >
+    <form @submit.prevent="renameOrganisationUnit">
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
@@ -38,12 +39,9 @@
     </div>
 
     <div class="float-right">
-      <button-submit 
-      :is-disabled="!formValid"
-      :is-loading="isLoading"
-      :on-click-action="renameOrganisationUnit"
-      />
+      <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
     </div>
+    </form>
   </b-modal>
 </template>
 
@@ -86,8 +84,8 @@
       }
     },
     mounted () {
-      EventBus.$on('organisation-unit-changed', selectedUnit => {
-        this.preselectedUnit = selectedUnit
+      EventBus.$on('organisation-unit-changed', () => {
+        this.preselectedUnit = this.$route.params.uuid
       })
       this.$root.$on('bv::modal::hidden', resetData => {
         Object.assign(this.$data, this.$options.data())

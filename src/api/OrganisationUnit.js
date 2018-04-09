@@ -14,8 +14,8 @@ export default {
         EventBus.$emit('organisation-changed', response.data.org)
         return response.data
       })
-      .catch(e => {
-        console.log(e)
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -31,8 +31,8 @@ export default {
       .then(response => {
         return response.data
       })
-      .catch(e => {
-        console.log(e)
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -71,6 +71,9 @@ export default {
       .then(response => {
         return response.data
       })
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
+      })
   },
 
   /**
@@ -82,12 +85,12 @@ export default {
   create (create) {
     return Service.post('/ou/create', create)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-changed')
         EventBus.$emit('organisation-unit-create', response.data)
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -100,11 +103,12 @@ export default {
   editEntry (uuid, edit) {
     return Service.post(`/ou/${uuid}/edit`, edit)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-changed')
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
+        EventBus.$emit('organisation-unit-changed')
       })
   },
 
@@ -155,12 +159,12 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-changed')
         EventBus.$emit('organisation-unit-terminate', response.data)
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
       })
   }
 }

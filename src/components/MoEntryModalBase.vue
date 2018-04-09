@@ -16,6 +16,7 @@
       :ref="idLabel"
       lazy
     >
+    <form @submit.stop.prevent="onClickAction">
       <component 
         :is="entryComponent"
         v-model="entry" 
@@ -23,12 +24,9 @@
         :disable-org-unit-picker="disableOrgUnitPicker"
       />
       <div class="float-right">
-        <button-submit 
-          :on-click-action="onClickAction" 
-          :is-loading="isLoading" 
-          :is-disabled="!formValid"
-        />
+        <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
       </div>
+    </form>
     </b-modal>
   </div>
 </template>

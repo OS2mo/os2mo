@@ -3,12 +3,10 @@
   <loading v-show="isLoading"/>
   <button 
     :disabled="isDisabled" 
-    @click="onClickAction" 
-    type="button" 
+    type="submit" 
     class="btn btn-primary" 
     v-show="!isLoading"
     v-shortkey.once="['enter']"
-    @shortkey="onClickAction"
   >
     <icon name="check"/>
   </button>
@@ -25,14 +23,6 @@ export default {
     isDisabled: Boolean,
     isLoading: Boolean,
     onClickAction: Function
-  },
-  data () {
-    return {}
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

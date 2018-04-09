@@ -2,7 +2,7 @@
     <div class="row">
     <div class="col-12 workflow-padding">
       <router-view :key="$route.params.uuid"/>
-      <work-log/>
+      <mo-log/>
     </div>
     
     <mo-employee-workflows/>
@@ -11,12 +11,12 @@
 
 <script>
   import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
-  import WorkLog from '../components/WorkLog'
+  import MoLog from '../components/MoLog/MoLog'
 
   export default {
     components: {
       MoEmployeeWorkflows,
-      WorkLog
+      MoLog
     }
   }
 </script>
