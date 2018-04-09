@@ -16,7 +16,7 @@
       :ref="idLabel"
       lazy
     >
-    <form @submit.prevent="onClickAction">
+    <form @submit.stop.prevent="onClickAction">
       <component 
         :is="entryComponent"
         v-model="entry" 

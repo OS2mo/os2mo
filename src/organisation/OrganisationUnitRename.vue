@@ -84,8 +84,8 @@
       }
     },
     mounted () {
-      EventBus.$on('organisation-unit-changed', selectedUnit => {
-        this.preselectedUnit = selectedUnit
+      EventBus.$on('organisation-unit-changed', () => {
+        this.preselectedUnit = this.$route.params.uuid
       })
       this.$root.$on('bv::modal::hidden', resetData => {
         Object.assign(this.$data, this.$options.data())
