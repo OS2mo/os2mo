@@ -7,25 +7,23 @@
     title="Afslut enhed"
     lazy
   >
-    <div class="form-row">
-      <organisation-unit-picker 
-        label="Enhed" 
-        class="col"
-        v-model="org_unit"
-      />
-      <date-picker 
-        label="Slutdato"
-        v-model="terminate.validity.from"
-        required
-      />
-    </div>
-    <div class="float-right">
-      <button-submit
-      :is-disabled="!formValid"
-      :is-loading="isLoading"
-      :on-click-action="endOrganisationUnit"
-      />
-    </div>
+    <form @submit.prevent="endOrganisationUnit">
+      <div class="form-row">
+        <organisation-unit-picker 
+          label="Enhed" 
+          class="col"
+          v-model="org_unit"
+        />
+        <date-picker 
+          label="Slutdato"
+          v-model="terminate.validity.from"
+          required
+        />
+      </div>
+      <div class="float-right">
+        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+      </div>
+    </form>
   </b-modal>
 </template>
 

@@ -7,15 +7,12 @@
     ref="employeeLeave"
     lazy
   >
-    <form>
+    <form @submit.prevent="createLeave">
       <employee-picker v-model="employee" required/>
       <mo-leave-entry v-model="leave" :org="org"/>
 
       <div class="float-right">
-        <button-submit 
-        :is-disabled="!formValid"
-        :is-loading="isLoading"
-        :on-click-action="createLeave"/>
+        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
       </div>
     </form>
   </b-modal>

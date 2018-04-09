@@ -7,18 +7,16 @@
     ref="orgUnitCreate"
     lazy
   >
-    <mo-organisation-unit-entry
-      :org="org" 
-      v-model="orgUnit" 
-    />
-
-    <div class="float-right">
-      <button-submit
-      :is-disabled="!formValid"
-      :is-loading="isLoading"
-      :on-click-action="createOrganisationUnit"
+    <form @submit.prevent="createOrganisationUnit">
+      <mo-organisation-unit-entry
+        :org="org" 
+        v-model="orgUnit" 
       />
-    </div>
+
+      <div class="float-right">
+        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+      </div>
+    </form>
   </b-modal>
 
 </template>

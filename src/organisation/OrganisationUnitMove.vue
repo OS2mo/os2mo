@@ -7,6 +7,7 @@
     title="Flyt enhed"
     lazy
   >
+    <form @submit.prevent="moveOrganisationUnit">
     <div class="form-row">
       <date-picker 
       label="Dato for flytning"
@@ -40,12 +41,9 @@
     />
 
     <div class="float-right">
-      <button-submit 
-      :is-disabled="!formValid"
-      :is-loading="isLoading"
-      :on-click-action="moveOrganisationUnit"
-      />
+      <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
     </div> 
+    </form>
   </b-modal>
 </template>
 

@@ -7,8 +7,7 @@
     ref="employeeMove"
     lazy
   >
-    <div>
-
+    <form @submit.prevent="moveEmployee">
         <employee-picker 
           v-model="employee" 
           :org="org"
@@ -39,9 +38,9 @@
       </div>
 
     <div class="float-right">
-      <button-submit :on-click-action="moveEmployee" :is-loading="isLoading" :is-disabled="!formValid"/>
+      <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
     </div>
-  </div>
+  </form>
 </b-modal>
 </template>
 
