@@ -115,12 +115,18 @@
     watch: {
       content: {
         handler (newVal) {
-          this.entry = JSON.parse(JSON.stringify(newVal))
+          this.handleContent(newVal)
         },
         deep: true
       }
     },
     mounted () {
+      this.org = this.$store.state.organisation
+
+      if (this.content) {
+        this.handleContent(this.content)
+      }
+
       if (this.action === 'CREATE') {
         this.$root.$on('bv::modal::hidden', resetData => {
           Object.assign(this.$data, this.$options.data())
@@ -129,24 +135,20 @@
 
       this.$root.$on('bv::modal::shown', data => {
         if (this.content) {
-          this.entry = JSON.parse(JSON.stringify(this.content))
-          this.original = JSON.parse(JSON.stringify(this.content))
+          this.handleContent(this.content)
         }
       })
-    },
-    created () {
-      this.org = this.$store.state.organisation
-
-      if (this.content) {
-        this.entry = JSON.parse(JSON.stringify(this.content))
-        this.original = JSON.parse(JSON.stringify(this.content))
-      }
     },
     beforeDestroy () {
       this.$root.$off(['bv::modal::hidden'])
       this.$root.$off(['bv::modal::shown'])
     },
     methods: {
+      handleContent (content) {
+        this.entry = JSON.parse(JSON.stringify(content))
+        this.original = JSON.parse(JSON.stringify(content))
+      },
+
       onClickAction () {
         switch (this.action) {
           case 'CREATE':
