@@ -5,12 +5,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-'''CPR
------------
+"""
+CPR
+---
 
 This section describes functionality for retrieving information about people
 based on their CPR number.
-'''
+"""
 
 import flask
 
@@ -23,13 +24,13 @@ blueprint = flask.Blueprint('cpr', __name__, static_url_path='',
 
 
 @blueprint.route('/e/cpr_lookup/')
-@util.restrictargs(required=['cpr'])
+@util.restrictargs(required=['q'])
 def search_cpr():
     """
     Search for a CPR number in Serviceplatformen and retrieve the associated
     information
 
-    :queryparam cpr: The CPR no. of a person to be searched
+    :queryparam q: The CPR no. of a person to be searched
 
     :<jsonarr string name: The name of the person
     :<jsonarr string cpr_no: The person's CPR number.
@@ -44,7 +45,7 @@ def search_cpr():
       }
 
     """
-    cpr = flask.request.args['cpr']
+    cpr = flask.request.args['q']
 
     if len(cpr) != 10:
         raise ValueError('CPR no. should be 10 characters long')

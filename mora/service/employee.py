@@ -952,6 +952,8 @@ def create_employee():
         }
       }
 
+    :returns: UUID of created employee
+
     """
 
     c = lora.Connector()

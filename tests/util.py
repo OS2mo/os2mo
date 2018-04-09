@@ -8,7 +8,6 @@
 
 import atexit
 import contextlib
-import functools
 import json
 import os
 import pprint
@@ -21,7 +20,6 @@ import tempfile
 import threading
 import time
 import unittest
-from unittest.mock import patch
 
 import flask_testing
 import requests
