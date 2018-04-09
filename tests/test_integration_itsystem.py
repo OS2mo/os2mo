@@ -27,7 +27,7 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'message': (
-                    'invalid \'itsystem\', expected dict, got None'
+                    'invalid \'itsystem\', expected dict, got: null'
                 ),
                 'status': 400,
             },
@@ -69,7 +69,7 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'message': (
-                    'invalid \'itsystem\', expected dict, got None'
+                    'invalid \'itsystem\', expected dict, got: null'
                 ),
                 'status': 400,
             },
@@ -240,7 +240,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': "invalid 'uuid', expected str, got None",
+                'message': "invalid 'uuid', expected str, got: null",
                 'status': 400,
             },
             json=[

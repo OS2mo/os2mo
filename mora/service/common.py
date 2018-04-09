@@ -14,11 +14,12 @@
 import abc
 import collections
 import copy
-import enum
 import datetime
+import enum
 import functools
-import uuid
+import json
 import typing
+import uuid
 
 import flask
 
@@ -92,13 +93,18 @@ def get_connector():
     return lora.Connector(**loraparams)
 
 
+K = typing.TypeVar('K', bound=typing.Hashable)
+V = typing.TypeVar('V')
+D = typing.Dict[K, V]
+
+
 def checked_get(
-    mapping: dict,
-    key: typing.Hashable,
-    default: typing.Hashable,
-    fallback: dict=None,
-    required: bool=True,
-):
+    mapping: D,
+    key: K,
+    default: V,
+    fallback: D=None,
+    required: bool=False,
+) -> V:
     sentinel = object()
     v = mapping.get(key, sentinel)
 
@@ -107,22 +113,24 @@ def checked_get(
             return checked_get(fallback, key, default, None, required)
         elif required:
             raise ValueError('missing {!r}'.format(key))
+        else:
+            return default
 
     elif not isinstance(v, type(default)):
-        raise ValueError('invalid {!r}, expected {}, got {!r}'.format(
-            key, type(default).__name__, v,
+        raise ValueError('invalid {!r}, expected {}, got: {}'.format(
+            key, type(default).__name__, json.dumps(v),
         ))
 
     return v
 
 
 def get_uuid(
-    mapping: dict,
-    fallback: dict=None,
+    mapping: D,
+    fallback: D=None,
     *,
     key: typing.Hashable=keys.UUID
-):
-    v = checked_get(mapping, key, '', fallback=fallback)
+) -> str:
+    v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_uuid(v):
         raise ValueError('invalid uuid for {!r}: {!r}'.format(key, v))
