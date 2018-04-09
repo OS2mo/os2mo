@@ -531,6 +531,53 @@ def create_organisationsenhed_payload(
     return org_unit
 
 
+def create_bruger_payload(
+    valid_from: str,
+    valid_to: str,
+    brugernavn: str,
+    brugervendtnoegle: str,
+    tilhoerer: str,
+    cpr: str
+):
+
+    virkning = _create_virkning(valid_from, valid_to)
+
+    user = {
+        'note': 'Oprettet i MO',
+        'attributter': {
+            'brugeregenskaber': [
+                {
+                    'brugernavn': brugernavn,
+                    'brugervendtnoegle': brugervendtnoegle
+                },
+            ],
+        },
+        'tilstande': {
+            'brugergyldighed': [
+                {
+                    'gyldighed': 'Aktiv',
+                },
+            ],
+        },
+        'relationer': {
+            'tilhoerer': [
+                {
+                    'uuid': tilhoerer
+                }
+            ],
+            'tilknyttedepersoner': [
+                {
+                    'urn': 'urn:dk:cpr:person:{}'.format(cpr),
+                }
+            ],
+        }
+    }
+
+    user = _set_virkning(user, virkning)
+
+    return user
+
+
 def get_valid_from(obj, fallback=None) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(keys.VALIDITY, sentinel)

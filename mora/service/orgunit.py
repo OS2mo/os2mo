@@ -431,9 +431,6 @@ def create_org_unit():
 
     **Example Request**:
 
-    Request payload contains a list of creation objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
-
     :<json string name: The name of the org unit
     :<json string parent: The parent org unit
     :<json string org_unit_type: The type of org unit
@@ -459,8 +456,7 @@ def create_org_unit():
         "valid_to": "2018-01-01T00:00:00+00:00"
       }
 
-    See also :http:post:`/service/e/(uuid:employee_uuid)/create` for
-    further examples for the individual types.
+    :returns: UUID of created org unit
 
     """
 

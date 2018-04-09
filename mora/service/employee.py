@@ -14,6 +14,8 @@ Employees
 This section describes how to interact with employees.
 
 '''
+import datetime
+import uuid
 
 import flask
 import werkzeug
@@ -189,10 +191,10 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
-def create_employee(employee_uuid):
+def create_employee_relation(employee_uuid):
     """Creates new employee relations
 
-    .. :quickref: Employee; Create
+    .. :quickref: Employee; Create relation
 
     :statuscode 200: Creation succeeded.
 
@@ -924,3 +926,57 @@ def get_employee_history(employee_uuid):
                                user_registrations))
 
     return flask.jsonify(history_entries)
+
+
+@blueprint.route('/e/create', methods=['POST'])
+def create_employee():
+    """Create a new employee
+
+    .. :quickref: Employee; Create
+
+    :statuscode 200: Creation succeeded.
+
+    **Example Request**:
+
+    :<json string name: The name of the employee
+    :<json string cpr_no: The CPR no of the employee
+    :<json object org: The organisation with which the employee is associated
+
+    .. sourcecode:: json
+
+      {
+        "name": "Name Name",
+        "cpr_no": "1234567890",
+        "org": {
+          "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+        }
+      }
+
+    :returns: UUID of created employee
+
+    """
+
+    c = lora.Connector()
+
+    req = flask.request.get_json()
+
+    name = req.get(keys.NAME)
+    org_uuid = req.get(keys.ORG).get('uuid')
+    cpr = req.get(keys.CPR_NO)
+    valid_from = str(datetime.datetime.now())
+    valid_to = util.positive_infinity
+
+    bvn = str(uuid.uuid4())
+
+    user = common.create_bruger_payload(
+        valid_from=valid_from,
+        valid_to=valid_to,
+        brugernavn=name,
+        brugervendtnoegle=bvn,
+        tilhoerer=org_uuid,
+        cpr=cpr,
+    )
+
+    userid = c.bruger.create(user)
+
+    return flask.jsonify(userid)
