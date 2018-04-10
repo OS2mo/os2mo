@@ -17,10 +17,6 @@ export default {
   },
   props: {
     value: Object,
-    org: {
-      type: Object,
-      required: true
-    },
     validityHidden: Boolean
   },
   data () {

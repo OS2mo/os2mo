@@ -2,7 +2,7 @@
   <div class="form-group col">
     <label>{{label}}</label>
     <select 
-      :name="facet"
+      :name="nameId"
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
@@ -18,17 +18,16 @@
       </option>
     </select>
     <span
-      v-show="errors.has(facet)" 
+      v-show="errors.has(nameId)" 
       class="text-danger"
     >
-      {{ errors.first(facet) }}
+      {{ errors.first(nameId) }}
     </span>
   </div>
 </template>
 
 <script>
 import Facet from '../api/Facet'
-import { EventBus } from '../EventBus'
 
 export default {
   name: 'MoFacetPicker',
@@ -46,22 +45,19 @@ export default {
   },
   data () {
     return {
-      selected: {},
+      selected: null,
       facets: [],
       label: ''
     }
   },
-  mounted () {
-    EventBus.$on('organisation-changed', () => {
-      this.getFacet()
-    })
+  computed: {
+    nameId () {
+      return 'mo-facet-picker-' + this._uid
+    }
   },
-  created () {
+  mounted () {
     this.getFacet()
     this.selected = this.value
-  },
-  beforeDestroy () {
-    EventBus.$off(['organisation-changed'])
   },
   methods: {
     getFacet () {

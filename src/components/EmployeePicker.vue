@@ -1,7 +1,6 @@
 <template>
   <div>
     <label v-if="!noLabel">{{label}}</label>
-    <!-- <loading v-show="isLoading"/> -->
     <v-autocomplete
       name="employee-picker"
       :data-vv-as="label"
@@ -40,12 +39,8 @@ export default {
     $validator: '$validator'
   },
   props: {
-    value: Object,
     noLabel: Boolean,
-    label: {
-      type: String,
-      default: 'Medarbejder'
-    },
+    label: {type: String, default: 'Medarbejder'},
     required: Boolean
   },
   data () {
@@ -62,7 +57,6 @@ export default {
 
     updateItems (query) {
       let vm = this
-      vm.items = []
       let org = this.$store.state.organisation
       Search.employees(org.uuid, query)
         .then(response => {

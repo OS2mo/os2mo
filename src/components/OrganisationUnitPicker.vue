@@ -2,7 +2,7 @@
   <div class="form-group">
     <label for="">{{ label }}</label>
     <input 
-      name="unit"
+      :name="nameId"
       data-vv-as="Enhed" 
       ref="orgUnitPicker"
       type="text" 
@@ -22,7 +22,7 @@
         :org-uuid="orgUuid" 
       />
     </div>
-    <span v-show="errors.has('unit')" class="text-danger">{{ errors.first('unit') }}</span>
+    <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
   </div>
 </template>
 
@@ -56,12 +56,16 @@
     computed: {
       ...mapGetters({
         orgUuid: 'organisation/getUuid'
-      })
+      }),
+
+      nameId () {
+        return 'org-unit-' + this._uid
+      }
     },
     watch: {
       selectedSuperUnit (newVal) {
         this.orgName = newVal.name
-        this.$validator.validate('unit')
+        this.$validator.validate(this.nameId)
         this.$refs.orgUnitPicker.blur()
 
         this.$emit('input', newVal)

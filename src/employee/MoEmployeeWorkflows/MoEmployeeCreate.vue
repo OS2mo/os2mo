@@ -2,72 +2,39 @@
   <b-modal 
     id="employeeCreate" 
     size="lg" 
-    hide-footer 
     title="Ny medarbejder"
     ref="employeeCreate"
+    hide-footer 
     lazy
   >
-      <employee-picker 
-        :org="org" 
-        v-model="employee" 
-        required
-      />
-    <form data-vv-scope="engagement">
-      <h4>Engagement</h4>
-      <mo-engagement-entry
-        :org="org" 
-        v-model="engagement" 
-      />
-    </form>
-    <form data-vv-scope="association">
-      <h4>Tilknytning</h4>
-      <mo-association-entry 
-        :org="org"
-        v-model="association"
-        :validity="engagement.validity"
-        validity-hidden
-      />
-    </form>
-    <form data-vv-scope="role">
-      <h4>Rolle</h4>
-      <mo-role-entry
-        :org="org" 
-        v-model="role" 
-        :validity="engagement.validity"
-        validity-hidden
-      />
-    </form>
-    <form data-vv-scope="itSystem">
-      <h4>IT systemer</h4>
-      <mo-it-system-entry 
-        v-model="itSystem" 
-        :validity="engagement.validity"
-        validity-hidden
-      />
-    </form>
-    <form data-vv-scope="manager">
-      <h4>Leder</h4>
-      <mo-manager-entry 
-        v-model="manager" 
-        :validity="engagement.validity" 
-        validity-hidden
-      />
-    </form>
+    <form @submit.stop.prevent="createEmployee()">
+    <employee-picker v-model="employee" required/>
+      <h5>Engagement</h5>
+      <mo-engagement-entry v-model="engagement"/>
+
+      <h5>Tilknytninger</h5>
+      <mo-add-many v-model="association" :entry-component="entry.engagement"/>
+      
+      <h5>Roller</h5>
+      <mo-add-many v-model="role" :entry-component="entry.role"/>
+
+      <h5>IT systemer</h5>
+      <mo-add-many v-model="itSystem" :entry-component="entry.it"/>
+
+      <h5>Leder</h5>
+      <mo-add-many v-model="manager" :entry-component="entry.manager"/>
 
     <div class="float-right">
-      <button-submit 
-        :on-click-action="createEmployee" 
-        :is-disabled="(!employeeValid || !engagementValid)" 
-        :is-loading="isLoading"
-      />
+      <button-submit :is-disabled="!formValid" :is-loading="isLoading" />
     </div>
+    </form>
   </b-modal>
 </template>
 
 <script>
 import Employee from '../../api/Employee'
-import { EventBus } from '../../EventBus'
 import ButtonSubmit from '../../components/ButtonSubmit'
+import MoAddMany from '../../components/MoAddMany'
 import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
 import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
 import MoRoleEntry from '../MoRole/MoRoleEntry'
@@ -81,6 +48,7 @@ export default {
   },
   components: {
     ButtonSubmit,
+    MoAddMany,
     MoAssociationEntry,
     MoEngagementEntry,
     MoRoleEntry,
@@ -91,63 +59,44 @@ export default {
   data () {
     return {
       employee: {},
-      org: {},
       engagement: {},
-      association: {},
-      role: {},
-      itSystem: {},
-      manager: {},
-      isLoading: false
+      association: [],
+      role: [],
+      itSystem: [],
+      manager: [],
+      isLoading: false,
+      entry: {
+        engagement: MoEngagementEntry,
+        role: MoRoleEntry,
+        it: MoItSystemEntry,
+        manager: MoManagerEntry
+      }
     }
   },
   computed: {
-    employeeValid () {
-      return this.fields['employee-picker']
-    },
-
-    engagementValid () {
-      return this.formValid('$engagement')
+    formValid () {
+      // loop over all contents of the fields object and check if they exist and valid.
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
     }
   },
-  created () {
-    this.org = this.$store.state.organisation
-  },
   mounted () {
-    EventBus.$on('organisation-changed', newOrg => {
-      this.org = newOrg
-    })
     this.$root.$on('bv::modal::hidden', resetData => {
       Object.assign(this.$data, this.$options.data())
     })
   },
   methods: {
-    formValid (scope) {
-      // loop over all contents of the fields object and check if they exist and valid.
-      return Object.keys(this.fields[scope]).every(field => {
-        return this.fields[scope][field] && this.fields[scope][field].valid
-      })
-    },
-
     createEmployee () {
       let vm = this
-      let create = []
       this.isLoading = true
-
-      let forms = ['engagement', 'association', 'role', 'itSystem', 'manager']
-
-      forms.forEach(form => {
-        if (this.formValid('$' + form)) create.push(this[form])
-      })
+      let create = [].concat(this.engagement, this.association, this.role, this.itSystem, this.manager)
 
       Employee.create(this.employee.uuid, create)
         .then(response => {
           vm.isLoading = false
           vm.$refs.employeeCreate.hide()
           vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
         })
     }
   }

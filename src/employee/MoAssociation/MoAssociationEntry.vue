@@ -27,10 +27,6 @@ export default {
   },
   props: {
     value: Object,
-    org: {
-      type: Object,
-      required: true
-    },
     validity: Object,
     validityHidden: Boolean
   },

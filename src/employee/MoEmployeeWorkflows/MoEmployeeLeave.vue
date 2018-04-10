@@ -2,14 +2,14 @@
   <b-modal 
     id="employeeLeave" 
     size="lg" 
-    hide-footer 
     title="Meld orlov"
     ref="employeeLeave"
+    hide-footer 
     lazy
   >
     <form @submit.prevent="createLeave">
       <employee-picker v-model="employee" required/>
-      <mo-leave-entry v-model="leave" :org="org"/>
+      <mo-leave-entry v-model="leave"/>
 
       <div class="float-right">
         <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
@@ -32,12 +32,6 @@ export default {
     EmployeePicker,
     MoLeaveEntry,
     ButtonSubmit
-  },
-  props: {
-    org: {
-      type: Object,
-      required: true
-    }
   },
   data () {
     return {

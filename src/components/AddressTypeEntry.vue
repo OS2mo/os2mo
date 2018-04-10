@@ -8,7 +8,7 @@
     </div>
 
     <div class="form-group col-8">
-      <label>{{addresses.address_type.name}}</label>
+      <label>{{entryLabel}}</label>
       <address-search
         v-model="addresses.value"
         v-if="addresses.address_type.scope=='DAR'"
@@ -51,6 +51,10 @@
       }
     },
     computed: {
+      entryLabel () {
+        return this.addresses.address_type.name || '\u00A0'
+      },
+
       isDisabled () {
         return !this.addresses.address_type.scope
       }
