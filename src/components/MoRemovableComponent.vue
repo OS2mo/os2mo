@@ -1,17 +1,18 @@
 <template>
   <div v-if="!removed">
-    <button 
-      @click="remove()" 
-      type="button" 
-      class="btn btn-primary float-right" 
-    >
-      <icon name="minus"/>
-    </button>
-
-    <component 
-      :is="entryComponent"
-      v-model="entryValue"
-    />
+    <div class="row">
+      <div class="col">
+        <component 
+          :is="entryComponent"
+          v-model="entryValue"
+        />
+      </div>
+      <div class="col-1 v-center">
+        <button @click="remove()" type="button" class="btn btn-outline-danger">
+          <icon name="minus"/>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -41,3 +42,9 @@ export default {
 }
 </script>
 
+<style scoped>
+ .v-center {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+</style>

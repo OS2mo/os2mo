@@ -33,9 +33,10 @@
         :is-disabled="disableOrgUnitPicker"
       />
 
-      <add-many-components
+      <mo-add-many
         :entry-component="addressTypeComponent"
         v-model="addresses"
+        has-initial-entry
       />
   </div>
 </template>
@@ -45,7 +46,7 @@ import DateStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
 import AddressTypeEntry from '../../components/AddressTypeEntry'
 import MoFacetPicker from '../../components/MoFacetPicker'
-import AddManyComponents from '../../components/AddManyComponents'
+import MoAddMany from '../../components/MoAddMany'
 
 export default {
   components: {
@@ -53,7 +54,7 @@ export default {
     OrganisationUnitPicker,
     MoFacetPicker,
     AddressTypeEntry,
-    AddManyComponents
+    MoAddMany
   },
   inject: {
     $validator: '$validator'

@@ -12,17 +12,17 @@
       />
 
       <input 
-        :name="id"
+        :name="nameId"
         :data-vv-as="label" 
         v-model="selected"
         type="hidden"
         v-validate="{ date_format: 'YYYY-MM-DD', required: required }">
 
       <span
-        v-show="errors.has(id)" 
+        v-show="errors.has(nameId)" 
         class="text-danger"
       >
-        {{ errors.first(id) }}
+        {{ errors.first(nameId) }}
       </span>
     </div>
 </template>
@@ -40,7 +40,6 @@ export default {
   },
   props: {
     value: [Date, String],
-    id: {type: String, default: 'date-picker'},
     required: Boolean,
     noLabel: Boolean,
     label: {
@@ -57,6 +56,11 @@ export default {
         from: null
       },
       selected: null
+    }
+  },
+  computed: {
+    nameId () {
+      return 'date-picker-' + this._uid
     }
   },
   watch: {

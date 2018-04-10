@@ -5,7 +5,7 @@
     employeeMove: ['ctrl', 'alt', 'm'], 
     employeeMoveMany: ['ctrl', 'alt', 'y'],
     employeeTerminate: ['ctrl', 'alt', 'd']}" 
-    @shortkey="theAction()"
+    @shortkey="shortcuts()"
   >
     <div id="workflows">
       <button-workflow label="Ny Medarbejder" icon="user-plus" v-b-modal.employeeCreate/>
@@ -16,16 +16,15 @@
     </div>
 
     <!-- Modal Component -->
-    <mo-employee-create :org="org"/>
-    <mo-employee-leave :org="org"/>
-    <mo-employee-move :org="org"/>
+    <mo-employee-create/>
+    <mo-employee-leave/>
+    <mo-employee-move/>
     <mo-employee-move-many/>
     <mo-employee-terminate/>
   </div>
 </template>
 
 <script>
-  import { EventBus } from '../../EventBus'
   import ButtonWorkflow from '../../components/ButtonWorkflow'
   import MoEmployeeCreate from './MoEmployeeCreate'
   import MoEmployeeLeave from './MoEmployeeLeave'
@@ -42,18 +41,8 @@
       MoEmployeeMoveMany,
       MoEmployeeTerminate
     },
-    data () {
-      return {
-        org: {}
-      }
-    },
-    mounted () {
-      EventBus.$on('organisation-changed', (org) => {
-        this.org = org
-      })
-    },
     methods: {
-      theAction () {
+      shortcuts () {
         this.$root.$emit('bv::show::modal', event.srcKey)
       }
     }

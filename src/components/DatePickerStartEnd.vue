@@ -7,7 +7,6 @@
     </div>
     <date-picker 
       label="Startdato"
-      id="start-date"
       v-model="validFrom"
       v-show="!hidden"
       :disabled-from="validTo"
@@ -17,7 +16,6 @@
 
     <date-picker 
       label="Slutdato"
-      id="end-date"
       v-model="validTo"
       v-show="!hidden"
       :disabled-to="validFrom"

@@ -7,7 +7,7 @@
       />
     </div>
 
-    <button @click="add()" type="button" class="btn btn-primary">
+    <button @click="add()" type="button" class="btn btn-outline-success">
       <icon name="plus"/>
     </button>
   </div>
@@ -23,7 +23,8 @@ export default {
     entryComponent: {
       type: Object,
       required: true
-    }
+    },
+    hasInitialEntry: Boolean
   },
   data () {
     return {
@@ -35,7 +36,9 @@ export default {
     this.$emit('input', data)
   },
   mounted () {
-    this.add()
+    if (this.hasInitialEntry) {
+      this.add()
+    }
   },
   methods: {
     add () {
@@ -44,4 +47,3 @@ export default {
   }
 }
 </script>
-
