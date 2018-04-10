@@ -111,10 +111,16 @@ def to_lora_time(s):
 
 
 def to_iso_time(s):
+    '''Return an ISO 8601 string representing the time and date given by `s`.
+
+    We always localise this to our ‘default’ timezone, since LoRA
+    might be running under something silly such as UTC.
+
+    '''
     dt = parsedatetime(s)
 
     return (
-        dt.isoformat()
+        dt.astimezone(default_timezone).isoformat()
         if dt not in (positive_infinity, negative_infinity)
         else None
     )
