@@ -17,6 +17,16 @@ export default {
       })
   },
 
+  cprLookup (query) {
+    return Service.get(`/e/cpr_lookup/?q=${query}`)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
+
   organisations (orgUuid, query) {
     query = query || ''
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)

@@ -66,6 +66,16 @@ export default {
       })
   },
 
+  new (employee) {
+    return Service.post(`/e/create`, employee)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
+      })
+  },
+
   /**
    * Create a new employee
    * @param {String} uuid - employee uuid
