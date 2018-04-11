@@ -1,10 +1,10 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="engagement.validity" :initially-hidden="validityHidden"/>
+      <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
-        <mo-organisation-unit-picker class="col" label="Vælg enhed" v-model="engagement.org_unit"/>
-        <mo-facet-picker facet="job_function" v-model="engagement.job_function" required/>
-        <mo-facet-picker facet="engagement_type" v-model="engagement.engagement_type" required/>
+        <mo-organisation-unit-picker class="col" label="Vælg enhed" v-model="entry.org_unit"/>
+        <mo-facet-picker facet="job_function" v-model="entry.job_function" required/>
+        <mo-facet-picker facet="engagement_type" v-model="entry.engagement_type" required/>
       </div>
   </div>
 </template>
@@ -26,11 +26,11 @@ export default {
   },
   data () {
     return {
-      engagement: {}
+      entry: {}
     }
   },
   watch: {
-    engagement: {
+    entry: {
       handler (newVal) {
         newVal.type = 'engagement'
         this.$emit('input', newVal)
@@ -39,7 +39,7 @@ export default {
     }
   },
   created () {
-    this.engagement = this.value
+    this.entry = this.value
   }
 }
 </script>

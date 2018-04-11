@@ -19,7 +19,7 @@
 
       <mo-organisation-picker reset-route class="ml-auto mr-auto"/>
 
-      <search-bar class="ml-auto mr-auto"/>
+      <mo-search-bar class="ml-auto mr-auto"/>
 
       <time-machine-button/>
       
@@ -42,14 +42,14 @@
   import { EventBus } from '@/EventBus'
   import HelpButton from '@/help/TheHelpButton'
   import TimeMachineButton from '@/timeMachine/TimeMachineButton'
-  import SearchBar from './MoSearchBar/TheSearchBar'
+  import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 
   export default {
     components: {
       HelpButton,
       TimeMachineButton,
-      SearchBar,
+      MoSearchBar,
       MoOrganisationPicker
     },
     data () {

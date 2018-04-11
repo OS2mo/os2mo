@@ -1,14 +1,14 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="association.validity" :initially-hidden="validityHidden"/>
+      <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
         <mo-organisation-unit-picker 
           class="col" 
           label="Vælg enhed"
-          v-model="association.org_unit"
+          v-model="entry.org_unit"
         />
-        <mo-facet-picker facet="job_function" v-model="association.job_function" required/>
-        <mo-facet-picker facet="association_type" v-model="association.association_type" required/>
+        <mo-facet-picker facet="job_function" v-model="entry.job_function" required/>
+        <mo-facet-picker facet="association_type" v-model="entry.association_type" required/>
         
       </div>
   </div>
@@ -32,13 +32,13 @@ export default {
   },
   data () {
     return {
-      association: {
+      entry: {
         validity: {}
       }
     }
   },
   watch: {
-    association: {
+    entry: {
       handler (newVal) {
         newVal.type = 'association'
         this.$emit('input', newVal)
@@ -47,11 +47,11 @@ export default {
     },
 
     validity (newVal) {
-      this.association.validity = newVal
+      this.entry.validity = newVal
     }
   },
   created () {
-    this.association = this.value
+    this.entry = this.value
   }
 }
 </script>

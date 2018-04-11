@@ -20,9 +20,10 @@
   import Search from '@/api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
-  import TheSearchBarTemplate from './TheSearchBarTemplate.vue'
+  import MoSearchBarTemplate from './MoSearchBarTemplate'
   
   export default {
+    name: 'MoSearchBar',
     components: {
       VAutocomplete
     },
@@ -31,7 +32,7 @@
         item: null,
         items: [],
         routeName: '',
-        template: TheSearchBarTemplate,
+        template: MoSearchBarTemplate,
         noItem: [{name: 'Ingen resultater matcher din søgning'}]
       }
     },

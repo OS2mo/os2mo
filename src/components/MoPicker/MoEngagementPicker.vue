@@ -9,10 +9,7 @@
       @change="updateSelectedEngagement()"
       :disabled="!employeeDefined">
       <option disabled>{{label}}</option>
-      <option 
-        v-for="e in engagements" 
-        v-bind:key="e.uuid"
-        :value="e">
+      <option v-for="e in engagements" :key="e.uuid" :value="e">
           {{e.engagement_type.name}}, {{e.org_unit.name}}
       </option>
     </select>
@@ -25,7 +22,7 @@ import Loading from '@/components/Loading'
 import { EventBus } from '@/EventBus'
 
 export default {
-  name: 'EngagementPicker',
+  name: 'MoEngagementPicker',
   components: {
     Loading
   },

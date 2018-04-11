@@ -11,7 +11,7 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal-base
+    <mo-entry-modal
       action="CREATE" 
       type="ORG_UNIT"
       :uuid="uuid" 
@@ -27,12 +27,12 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import { EventBus } from '@/EventBus'
   import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
-  import MoEntryModalBase from '@/components/MoEntryModalBase'
+  import MoEntryModal from '@/components/MoEntryModal'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoEntryModalBase
+      MoEntryModal
     },
     props: {
       uuid: {

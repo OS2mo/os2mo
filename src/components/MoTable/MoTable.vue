@@ -41,7 +41,7 @@
             {{c.validity.to | date}}
           </td>
           <td>
-            <mo-entry-modal-base
+            <mo-entry-modal
               action="EDIT"
               :type="type"
               :uuid="editUuid"
@@ -62,14 +62,14 @@
   import '@/filters/GetProperty'
   import '@/filters/Date'
   import Loading from '@/components/Loading'
-  import MoEntryModalBase from '@/components/MoEntryModalBase'
+  import MoEntryModal from '@/components/MoEntryModal'
   import MoLink from '@/components/MoLink'
 
   export default {
     components: {
       Loading,
       MoLink,
-      MoEntryModalBase
+      MoEntryModal
     },
     props: {
       content: Array,

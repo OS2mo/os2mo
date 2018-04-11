@@ -1,30 +1,25 @@
 <template>
   <div class="card">
-  <div class="card-body">
-    <loading v-show="isLoading"/>
-    <table class="table table-striped" v-show="!isLoading">
-      <thead>
-        <tr>
-          <th scope="col">Navn</th>
-        </tr>
-      </thead>
+    <div class="card-body">
+      <loading v-show="isLoading"/>
+      <table class="table table-striped" v-show="!isLoading">
+        <thead>
+          <tr>
+            <th scope="col">Navn</th>
+          </tr>
+        </thead>
 
-      <tbody>
-        <tr 
-          v-for="employee in employees" 
-          v-bind:key="employee.uuid"
-        >
-          <td>
-            <router-link 
-              class="nav-link" 
-              :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }"
-            >
-              {{employee.name}}
-            </router-link></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+        <tbody>
+          <tr v-for="employee in employees" :key="employee.uuid">
+            <td>
+              <router-link class="nav-link" :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }">
+                {{employee.name}}
+              </router-link>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -33,7 +28,6 @@
   import Employee from '@/api/Employee'
   import { EventBus } from '@/EventBus'
   import Loading from '@/components/Loading'
-  import '@/filters/CPRNumber'
 
   export default {
     components: {
@@ -45,10 +39,8 @@
         isLoading: true
       }
     },
-    created () {
-      this.getEmployees()
-    },
     mounted () {
+      this.getEmployees()
       EventBus.$on('organisation-changed', () => {
         this.getEmployees()
       })
@@ -71,8 +63,3 @@
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

@@ -11,7 +11,7 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal-base 
+    <mo-entry-modal 
       action="CREATE"
       type="EMPLOYEE" 
       :uuid="uuid" 
@@ -27,29 +27,19 @@
   import Employee from '@/api/Employee'
   import { EventBus } from '@/EventBus'
   import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
-  import MoEntryModalBase from '@/components/MoEntryModalBase'
+  import MoEntryModal from '@/components/MoEntryModal'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoEntryModalBase
+      MoEntryModal
     },
     props: {
-      uuid: {
-        type: String,
-        required: true
-      },
-      detail: {
-        type: String,
-        required: true
-      },
+      uuid: {type: String, required: true},
+      detail: {type: String, required: true},
       columns: Array,
       entryComponent: Object,
-      createLabel: {
-        type: String,
-        default: 'Opret ny'
-      }
-
+      createLabel: {type: String, default: 'Opret ny'}
     },
     data () {
       return {
@@ -66,12 +56,10 @@
       }
     },
     mounted () {
+      this.getDetails('present')
       EventBus.$on('employee-changed', () => {
         this.getAllDetails()
       })
-    },
-    created () {
-      this.getDetails('present')
     },
     methods: {
       getAllDetails () {

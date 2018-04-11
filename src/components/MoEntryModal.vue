@@ -33,8 +33,8 @@
 
 <script>
   import Employee from '@/api/Employee'
-  import ButtonSubmit from './ButtonSubmit'
   import OrganisationUnit from '@/api/OrganisationUnit'
+  import ButtonSubmit from './ButtonSubmit'
 
   export default {
     $_veeValidate: {

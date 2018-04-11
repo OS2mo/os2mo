@@ -5,9 +5,7 @@
         <icon name="folder-o"/>
         Overblik
       </h4>
-      <mo-tree-view 
-        :org-uuid="orgUuid" 
-        linkable/>
+      <mo-tree-view :org-uuid="orgUuid" linkable/>
     </div>
   </div>
 </template>

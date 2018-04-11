@@ -63,10 +63,7 @@
       MoOrganisationUnitDetail
     },
     props: {
-      uuid: {
-        type: String,
-        required: true
-      },
+      uuid: {type: String, required: true},
       atDate: [Date, String],
       timemachineFriendly: Boolean
     },

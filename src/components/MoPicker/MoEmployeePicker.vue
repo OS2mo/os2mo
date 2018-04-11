@@ -28,10 +28,10 @@
 import Search from '@/api/Search'
 import VAutocomplete from 'v-autocomplete'
 import 'v-autocomplete/dist/v-autocomplete.css'
-import TheSearchBarTemplate from './MoSearchBar/TheSearchBarTemplate.vue'
+import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
 
 export default {
-  name: 'EmployeePicker',
+  name: 'MoEmployeePicker',
   components: {
     VAutocomplete
   },
@@ -47,7 +47,7 @@ export default {
     return {
       item: null,
       items: [],
-      template: TheSearchBarTemplate
+      template: MoSearchBarTemplate
     }
   },
   methods: {

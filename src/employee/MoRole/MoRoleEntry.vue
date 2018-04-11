@@ -1,9 +1,9 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="role.validity" :initially-hidden="validityHidden"/>
+      <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
-        <organisation-unit-picker class="col" label="Vælg enhed" v-model="role.org_unit"/>
-        <mo-facet-picker facet="role_type" v-model="role.role_type" required/>
+        <organisation-unit-picker class="col" label="Vælg enhed" v-model="entry.org_unit"/>
+        <mo-facet-picker facet="role_type" v-model="entry.role_type" required/>
       </div>
   </div>
 </template>
@@ -26,13 +26,13 @@ export default {
   },
   data () {
     return {
-      role: {
+      entry: {
         validity: {}
       }
     }
   },
   watch: {
-    role: {
+    entry: {
       handler (newVal) {
         newVal.type = 'role'
         this.$emit('input', newVal)
@@ -41,16 +41,12 @@ export default {
     },
 
     validity (newVal) {
-      this.role.validity = newVal
+      this.entry.validity = newVal
     }
   },
   created () {
-    this.role = this.value
+    this.entry = this.value
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

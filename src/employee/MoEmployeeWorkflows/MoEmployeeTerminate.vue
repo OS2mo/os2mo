@@ -9,7 +9,7 @@
   >
     <form @submit.prevent="endEmployee">
       <div class="col">
-        <employee-picker v-model="employee" required/>
+        <mo-employee-picker v-model="employee" required/>
         
         <div class="form-row">
           <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
@@ -25,7 +25,7 @@
 
 <script>
 import Employee from '@/api/Employee'
-import EmployeePicker from '@/components/EmployeePicker'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 
@@ -34,7 +34,7 @@ export default {
     validator: 'new'
   },
   components: {
-    EmployeePicker,
+    MoEmployeePicker,
     MoDatePicker,
     ButtonSubmit
   },

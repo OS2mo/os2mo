@@ -8,14 +8,14 @@
     lazy
   >
     <form @submit.prevent="moveEmployee">
-      <employee-picker v-model="employee" required/>
+      <mo-employee-picker v-model="employee" required/>
 
       <div class="form-row">
         <mo-date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
       </div>
       
       <div class="form-row">
-        <engagement-picker v-model="original" :employee="employee"/>
+        <mo-engagement-picker v-model="original" :employee="employee"/>
       </div>
 
       <div class="form-row">
@@ -33,8 +33,8 @@
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import EngagementPicker from '@/components/EngagementPicker'
-  import EmployeePicker from '@/components/EmployeePicker'
+  import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
+  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
@@ -42,11 +42,10 @@
       validator: 'new'
     },
     components: {
-      Employee,
       MoDatePicker,
       MoOrganisationUnitPicker,
-      EngagementPicker,
-      EmployeePicker,
+      MoEngagementPicker,
+      MoEmployeePicker,
       ButtonSubmit
     },
     data () {
