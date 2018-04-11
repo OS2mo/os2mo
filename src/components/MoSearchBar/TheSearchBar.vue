@@ -17,7 +17,7 @@
 </template>
 
 <script>
-  import Search from '../api/Search'
+  import Search from '@/api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
   import TheSearchBarTemplate from './TheSearchBarTemplate.vue'
@@ -31,7 +31,8 @@
         item: null,
         items: [],
         routeName: '',
-        template: TheSearchBarTemplate
+        template: TheSearchBarTemplate,
+        noItem: [{name: 'Ingen resultater matcher din søgning'}]
       }
     },
     watch: {
@@ -64,7 +65,7 @@
         if (vm.routeName === 'EmployeeDetail') {
           Search.employees(org.uuid, query)
             .then(response => {
-              vm.items = response
+              vm.items = response.length > 0 ? response : vm.noItem
             })
         }
 
@@ -77,7 +78,7 @@
       },
 
       selected (item) {
-        if (item == null) return
+        if (item.uuid == null) return
         this.items = []
         this.$router.push({name: this.routeName, params: { uuid: item.uuid }})
       }

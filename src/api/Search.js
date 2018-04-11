@@ -2,9 +2,10 @@ import { Service } from './HttpCommon'
 
 export default {
   /**
-   * Get a list of all available facets
+   * Search for an employee in an organisation
    * @param {String} orgUuid - organisation uuid
-   * @returns {Array} a list of all available facets
+   * @param {String} query - search query. Can be either a name or FULL CPR number
+   * @returns {Array} a list of employees matching the query
    */
   employees (orgUuid, query) {
     query = query || ''
@@ -17,6 +18,11 @@ export default {
       })
   },
 
+    /**
+   * Look up a CPR number in the service platform
+   * @param {String} query - search query. Can ONLY be a FULL CPR number
+   * @returns {Object} the data matching the query
+   */
   cprLookup (query) {
     return Service.get(`/e/cpr_lookup/?q=${query}`)
       .then(response => {
@@ -27,6 +33,12 @@ export default {
       })
   },
 
+  /**
+   * Search for organisation units within an organisation
+   * @param {String} orgUuid - organisation uuid
+   * @param {String} query - search query.
+   * @returns {Array} a list of organisation units matching the query
+   */
   organisations (orgUuid, query) {
     query = query || ''
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
