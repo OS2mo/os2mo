@@ -5,7 +5,7 @@
         <div class="col">
           <div class="card">
             <div class="form-row">
-            <date-picker v-model="dateLeft"/>
+            <mo-date-picker v-model="dateLeft"/>
             </div>
 
             <organisation-picker
@@ -14,7 +14,7 @@
               ignore-event
             />
 
-            <treeview 
+            <mo-tree-view 
               v-model="orgUnitLeft"
               :at-date="dateLeft"
               :org-uuid="orgLeft.uuid"
@@ -34,7 +34,7 @@
         <div class="col">
           <div class="card">
             <div class="form-row">
-              <date-picker v-model="dateRight"/>
+              <mo-date-picker v-model="dateRight"/>
             </div>
             <organisation-picker 
               :at-date="dateRight"
@@ -42,7 +42,7 @@
               ignore-event
               />
               
-            <treeview 
+            <mo-tree-view 
               :org-uuid="orgRight.uuid"
               :at-date="dateRight"
               v-model="orgUnitRight"
@@ -62,16 +62,16 @@
 </template>
 
 <script>
-  import DatePicker from '../components/DatePicker'
-  import OrganisationPicker from '../components/OrganisationPicker'
-  import Treeview from '../components/Treeview'
-  import OrganisationDetailTabs from '../organisation/OrganisationDetailTabs'
+  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import OrganisationPicker from '@/components/OrganisationPicker'
+  import MoTreeView from '@/components/MoTreeView/MoTreeView'
+  import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
   export default {
     components: {
-      DatePicker,
+      MoDatePicker,
       OrganisationPicker,
-      Treeview,
+      MoTreeView,
       OrganisationDetailTabs
     },
     data () {

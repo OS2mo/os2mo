@@ -39,8 +39,8 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import Loading from './Loading'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import Loading from '@/components/Loading'
 
   export default {
     name: 'treeViewItem',

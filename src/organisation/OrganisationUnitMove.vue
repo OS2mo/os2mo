@@ -9,7 +9,7 @@
   >
     <form @submit.prevent="moveOrganisationUnit">
     <div class="form-row">
-      <date-picker 
+      <mo-date-picker 
       label="Dato for flytning"
       v-model="move.data.validity.from"
       required
@@ -48,11 +48,11 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import DatePicker from '../components/DatePicker'
-  import ButtonSubmit from '../components/ButtonSubmit'
-  import '../filters/GetProperty'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import '@/filters/GetProperty'
 
   export default {
     $_veeValidate: {
@@ -60,7 +60,7 @@
     },
     components: {
       OrganisationUnitPicker,
-      DatePicker,
+      MoDatePicker,
       ButtonSubmit
     },
     computed: {

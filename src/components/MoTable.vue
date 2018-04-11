@@ -59,8 +59,8 @@
 </template>
 
 <script>
-  import '../filters/GetProperty'
-  import '../filters/Date'
+  import '@/filters/GetProperty'
+  import '@/filters/Date'
   import Loading from './Loading'
   import MoEntryModalBase from './MoEntryModalBase'
   import MoLink from './MoLink'

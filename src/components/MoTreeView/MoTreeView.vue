@@ -16,9 +16,9 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
+  import Organisation from '@/api/Organisation'
   import TreeItem from './TreeviewItem'
-  import Loading from './Loading'
+  import Loading from '@/components/Loading'
 
   export default {
     components: {

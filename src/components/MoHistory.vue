@@ -34,9 +34,9 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import Employee from '../api/Employee'
-  import '../filters/Date'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import Employee from '@/api/Employee'
+  import '@/filters/Date'
 
   export default {
     props: {
@@ -59,7 +59,7 @@
         history: []
       }
     },
-    created () {
+    mounted () {
       this.getHistory()
     },
     methods: {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/> 
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
     <organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed"/>
     <div class="form-row">
       <mo-facet-picker facet="manager_type" v-model="entry.manager_type"/>
@@ -11,13 +11,13 @@
 </template>
 
 <script>
-import DatePickerStartEnd from '../../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import MoFacetPicker from '../../components/MoFacetPicker'
+import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+import MoFacetPicker from '@/components/MoFacetPicker'
 
 export default {
   components: {
-    DatePickerStartEnd,
+    MoDatePickerRange,
     OrganisationUnitPicker,
     MoFacetPicker
   },

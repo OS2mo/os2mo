@@ -1,6 +1,6 @@
 <template>
   <div>
-      <date-start-end v-model="orgUnit.validity"/>
+      <mo-date-picker-range v-model="orgUnit.validity"/>
 
       <div class="form-row">
       <div class="form-group col">
@@ -42,15 +42,15 @@
 </template>
 
 <script>
-import DateStartEnd from '../../components/DatePickerStartEnd'
-import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import AddressTypeEntry from '../../components/AddressTypeEntry'
-import MoFacetPicker from '../../components/MoFacetPicker'
-import MoAddMany from '../../components/MoAddMany'
+import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+import AddressTypeEntry from '@/components/AddressTypeEntry'
+import MoFacetPicker from '@/components/MoFacetPicker'
+import MoAddMany from '@/components/MoAddMany'
 
 export default {
   components: {
-    DateStartEnd,
+    MoDatePickerRange,
     OrganisationUnitPicker,
     MoFacetPicker,
     AddressTypeEntry,

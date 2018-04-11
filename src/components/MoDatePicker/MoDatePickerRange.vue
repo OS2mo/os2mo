@@ -5,7 +5,7 @@
         Vælg anden dato
       </button>
     </div>
-    <date-picker 
+    <mo-date-picker 
       label="Startdato"
       v-model="validFrom"
       v-show="!hidden"
@@ -14,7 +14,7 @@
       required
     />
 
-    <date-picker 
+    <mo-date-picker 
       label="Slutdato"
       v-model="validTo"
       v-show="!hidden"
@@ -25,11 +25,11 @@
 </template>
 
 <script>
-  import DatePicker from './DatePicker'
+  import MoDatePicker from './MoDatePicker'
 
   export default {
     components: {
-      DatePicker
+      MoDatePicker
     },
     props: {
       value: Object,

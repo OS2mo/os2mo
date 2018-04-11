@@ -17,7 +17,7 @@
       class="mo-input-group" 
       v-show="showTree"
     >
-      <tree-view 
+      <mo-tree-view 
         v-model="selectedSuperUnit"
         :org-uuid="orgUuid" 
       />
@@ -27,13 +27,13 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import TreeView from '../components/Treeview'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoTreeView from '@/components/MoTreeView/MoTreeView'
   import { mapGetters } from 'vuex'
 
   export default {
     components: {
-      TreeView
+      MoTreeView
     },
     inject: {
       $validator: '$validator'

@@ -5,7 +5,7 @@
         <icon name="folder-o"/>
         Overblik
       </h4>
-      <tree-view 
+      <mo-tree-view 
         :org-uuid="orgUuid" 
         linkable/>
     </div>
@@ -14,11 +14,11 @@
 
 <script>
   import { mapGetters } from 'vuex'
-  import TreeView from '../components/Treeview'
+  import MoTreeView from '@/components/MoTreeView/MoTreeView'
 
   export default {
     components: {
-      TreeView
+      MoTreeView
     },
     computed: {
       ...mapGetters({

@@ -14,7 +14,7 @@
           class="col"
           v-model="org_unit"
         />
-        <date-picker 
+        <mo-date-picker 
           label="Slutdato"
           v-model="terminate.validity.from"
           required
@@ -28,17 +28,17 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import DatePicker from '../components/DatePicker'
-  import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import ButtonSubmit from '../components/ButtonSubmit'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
     $_veeValidate: {
       validator: 'new'
     },
     components: {
-      DatePicker,
+      MoDatePicker,
       OrganisationUnitPicker,
       ButtonSubmit
     },

@@ -1,6 +1,6 @@
 <template>
   <div>
-      <date-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
+      <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
         <it-system-picker v-model="entry.itsystem" :preselected="entry.uuid"/>
       </div>
@@ -8,12 +8,12 @@
 </template>
 
 <script>
-import DateStartEnd from '../../components/DatePickerStartEnd'
-import ItSystemPicker from '../../components/ItSystemPicker'
+import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import ItSystemPicker from '@/components/ItSystemPicker'
 
 export default {
   components: {
-    DateStartEnd,
+    MoDatePickerRange,
     ItSystemPicker
   },
   props: {

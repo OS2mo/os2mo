@@ -32,7 +32,7 @@
     </div>
 
     <div class="form-row">
-      <date-picker-start-end 
+      <mo-date-picker-range
         class="col"
         v-model="rename.data.validity"
       />
@@ -46,18 +46,18 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import { EventBus } from '../EventBus'
-  import DatePickerStartEnd from '../components/DatePickerStartEnd'
-  import OrganisationUnitPicker from '../components/OrganisationUnitPicker'
-  import ButtonSubmit from '../components/ButtonSubmit'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import { EventBus } from '@/EventBus'
+  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
   
   export default {
     $_veeValidate: {
       validator: 'new'
     },
     components: {
-      DatePickerStartEnd,
+      MoDatePickerRange,
       OrganisationUnitPicker,
       ButtonSubmit
     },

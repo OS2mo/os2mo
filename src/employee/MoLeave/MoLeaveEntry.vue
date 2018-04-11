@@ -1,18 +1,18 @@
 <template>
   <div>
-    <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>   
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>   
     <mo-facet-picker facet="leave_type" v-model="entry.leave_type" required/>
   </div>
 </template>
 
 <script>
-import DatePickerStartEnd from '../../components/DatePickerStartEnd'
-import MoFacetPicker from '../../components/MoFacetPicker'
+import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import MoFacetPicker from '@/components/MoFacetPicker'
 
 export default {
 
   components: {
-    DatePickerStartEnd,
+    MoDatePickerRange,
     MoFacetPicker
   },
   props: {

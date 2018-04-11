@@ -11,7 +11,7 @@
       <employee-picker v-model="employee" required/>
 
       <div class="form-row">
-        <date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
+        <mo-date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
       </div>
       
       <div class="form-row">
@@ -30,12 +30,12 @@
 </template>
 
 <script>
-  import Employee from '../../api/Employee'
-  import DatePicker from '../../components/DatePicker'
-  import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-  import EngagementPicker from '../../components/EngagementPicker'
-  import EmployeePicker from '../../components/EmployeePicker'
-  import ButtonSubmit from '../../components/ButtonSubmit'
+  import Employee from '@/api/Employee'
+  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import EngagementPicker from '@/components/EngagementPicker'
+  import EmployeePicker from '@/components/EmployeePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
     $_veeValidate: {
@@ -43,7 +43,7 @@
     },
     components: {
       Employee,
-      DatePicker,
+      MoDatePicker,
       OrganisationUnitPicker,
       EngagementPicker,
       EmployeePicker,
