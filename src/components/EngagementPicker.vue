@@ -20,9 +20,9 @@
 </template>
 
 <script>
-import Employee from '../api/Employee'
-import Loading from './Loading'
-import { EventBus } from '../EventBus'
+import Employee from '@/api/Employee'
+import Loading from '@/components/Loading'
+import { EventBus } from '@/EventBus'
 
 export default {
   name: 'EngagementPicker',

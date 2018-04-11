@@ -14,7 +14,7 @@
 
 
 <script>
-  import MoCollapse from './MoCollapse'
+  import MoCollapse from '@/components/MoCollapse'
   import MoTable from './MoTable'
 
   export default {

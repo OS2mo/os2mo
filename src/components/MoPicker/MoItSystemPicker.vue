@@ -26,11 +26,11 @@
 </template>
 
 <script>
-import Facet from '../api/Facet'
-import { EventBus } from '../EventBus'
+import Facet from '@/api/Facet'
+import { EventBus } from '@/EventBus'
 
 export default {
-  name: 'ItSystemPicker',
+  name: 'MoItSystemPicker',
   props: {
     value: Object,
     preselected: String

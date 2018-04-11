@@ -24,10 +24,10 @@
 
 
 <script>
-  import Employee from '../api/Employee'
-  import { EventBus } from '../EventBus'
-  import MoTableCollapsibleTense from '../components/MoTableCollapsibleTense'
-  import MoEntryModalBase from '../components/MoEntryModalBase'
+  import Employee from '@/api/Employee'
+  import { EventBus } from '@/EventBus'
+  import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
+  import MoEntryModalBase from '@/components/MoEntryModalBase'
 
   export default {
     components: {

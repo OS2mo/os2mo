@@ -32,9 +32,9 @@
 </template>
 
 <script>
-  import Employee from '../api/Employee'
+  import Employee from '@/api/Employee'
   import ButtonSubmit from './ButtonSubmit'
-  import OrganisationUnit from '../api/OrganisationUnit'
+  import OrganisationUnit from '@/api/OrganisationUnit'
 
   export default {
     $_veeValidate: {

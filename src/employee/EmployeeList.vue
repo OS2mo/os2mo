@@ -30,10 +30,10 @@
 
 
 <script>
-  import Employee from '../api/Employee'
-  import { EventBus } from '../EventBus'
-  import Loading from '../components/Loading'
-  import '../filters/CPRNumber'
+  import Employee from '@/api/Employee'
+  import { EventBus } from '@/EventBus'
+  import Loading from '@/components/Loading'
+  import '@/filters/CPRNumber'
 
   export default {
     components: {

@@ -22,9 +22,9 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import { EventBus } from '../EventBus'
-  import ButtonSubmit from '../components/ButtonSubmit'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import { EventBus } from '@/EventBus'
+  import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
 
   export default {

@@ -12,9 +12,9 @@
 </template>
 
 <script>
-  import TheLeftMenu from '../components/TheLeftMenu'
+  import TheLeftMenu from '@/components/TheLeftMenu'
   import UnitWorkflows from './OrganisationUnitWorkflows'
-  import MoLog from '../components/MoLog/MoLog'
+  import MoLog from '@/components/MoLog/MoLog'
 
   export default {
     components: {

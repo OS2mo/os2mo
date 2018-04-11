@@ -7,7 +7,7 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoFacetPicker from '@/components/MoFacetPicker'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
 

@@ -19,10 +19,10 @@
 </template>
 
 <script>
-import Employee from '../../api/Employee'
-import EmployeePicker from '../../components/EmployeePicker'
+import Employee from '@/api/Employee'
+import EmployeePicker from '@/components/EmployeePicker'
 import MoLeaveEntry from '../MoLeave/MoLeaveEntry'
-import ButtonSubmit from '../../components/ButtonSubmit'
+import ButtonSubmit from '@/components/ButtonSubmit'
 
 export default {
   $_veeValidate: {

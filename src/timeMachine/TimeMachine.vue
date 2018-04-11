@@ -8,7 +8,7 @@
             <mo-date-picker v-model="dateLeft"/>
             </div>
 
-            <organisation-picker
+            <mo-organisation-picker
               v-model="orgLeft"
               :at-date="dateLeft"
               ignore-event
@@ -36,7 +36,7 @@
             <div class="form-row">
               <mo-date-picker v-model="dateRight"/>
             </div>
-            <organisation-picker 
+            <mo-organisation-picker 
               :at-date="dateRight"
               v-model="orgRight"
               ignore-event
@@ -63,14 +63,14 @@
 
 <script>
   import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
-  import OrganisationPicker from '@/components/OrganisationPicker'
+  import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import MoTreeView from '@/components/MoTreeView/MoTreeView'
   import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
   export default {
     components: {
       MoDatePicker,
-      OrganisationPicker,
+      MoOrganisationPicker,
       MoTreeView,
       OrganisationDetailTabs
     },

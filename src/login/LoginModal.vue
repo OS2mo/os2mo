@@ -36,7 +36,7 @@
 </template>
 
 <script>
-  import Auth from '../api/Auth'
+  import Auth from '@/api/Auth'
 
   export default {
     name: 'login-modal',

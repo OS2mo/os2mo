@@ -9,7 +9,7 @@
   >
     <form @submit.prevent="renameOrganisationUnit">
     <div class="form-row">
-      <organisation-unit-picker 
+      <mo-organisation-unit-picker 
         label="Enhed" 
         class="col"
         v-model="original"
@@ -32,10 +32,7 @@
     </div>
 
     <div class="form-row">
-      <mo-date-picker-range
-        class="col"
-        v-model="rename.data.validity"
-      />
+      <mo-date-picker-range class="col" v-model="rename.data.validity"/>
     </div>
 
     <div class="float-right">
@@ -49,7 +46,7 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import { EventBus } from '@/EventBus'
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   
   export default {
@@ -58,7 +55,7 @@
     },
     components: {
       MoDatePickerRange,
-      OrganisationUnitPicker,
+      MoOrganisationUnitPicker,
       ButtonSubmit
     },
     data () {

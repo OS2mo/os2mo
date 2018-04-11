@@ -22,8 +22,8 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import MoHistory from '../components/MoHistory'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
 
   export default {

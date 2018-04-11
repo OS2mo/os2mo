@@ -11,7 +11,7 @@
 
 <script>
   import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
-  import MoLog from '../components/MoLog/MoLog'
+  import MoLog from '@/components/MoLog/MoLog'
 
   export default {
     components: {

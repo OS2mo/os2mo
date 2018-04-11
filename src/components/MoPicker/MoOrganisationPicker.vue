@@ -19,11 +19,11 @@
 </template>
 
 <script>
-import Organisation from '../api/Organisation'
-import { EventBus } from '../EventBus'
+import Organisation from '@/api/Organisation'
+import { EventBus } from '@/EventBus'
 
 export default {
-  name: 'OrganisationPicker',
+  name: 'MoOrganisationPicker',
   inject: {
     $validator: '$validator'
   },

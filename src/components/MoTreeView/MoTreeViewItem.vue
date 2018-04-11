@@ -25,15 +25,14 @@
 
     <ul v-show="open">
       <loading v-show="loading"/>
-      <tree-view-item
+      <mo-tree-view-item
         v-for="(model, index) in model.children"
         :key="index"
         v-model="selected"
         :model="model"
         :at-date="atDate"
         :linkable="linkable"
-      >
-      </tree-view-item>
+      />
     </ul>
   </li>
 </template>
@@ -43,7 +42,7 @@
   import Loading from '@/components/Loading'
 
   export default {
-    name: 'treeViewItem',
+    name: 'MoTreeViewItem',
     components: {
       Loading
     },

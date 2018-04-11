@@ -25,7 +25,7 @@
 </template>
 
 <script>
-  import ButtonWorkflow from '../../components/ButtonWorkflow'
+  import ButtonWorkflow from '@/components/ButtonWorkflow'
   import MoEmployeeCreate from './MoEmployeeCreate'
   import MoEmployeeLeave from './MoEmployeeLeave'
   import MoEmployeeMove from './MoEmployeeMove'

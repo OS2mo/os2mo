@@ -9,21 +9,15 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoFacetPicker'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    OrganisationUnitPicker,
     MoFacetPicker
   },
   props: {
     value: Object,
-    org: {
-      type: Object,
-      required: true
-    },
     validityHidden: Boolean
   },
   data () {

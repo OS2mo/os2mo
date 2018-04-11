@@ -28,7 +28,7 @@
 
 <script>
   import AddressSearch from './AddressSearch'
-  import MoFacetPicker from './MoFacetPicker'
+  import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
   export default {
     components: {

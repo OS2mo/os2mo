@@ -17,7 +17,7 @@
         </li>
       </ul>
 
-      <organisation-picker reset-route class="ml-auto mr-auto"/>
+      <mo-organisation-picker reset-route class="ml-auto mr-auto"/>
 
       <search-bar class="ml-auto mr-auto"/>
 
@@ -43,14 +43,14 @@
   import HelpButton from '@/help/TheHelpButton'
   import TimeMachineButton from '@/timeMachine/TimeMachineButton'
   import SearchBar from './MoSearchBar/TheSearchBar'
-  import OrganisationPicker from './OrganisationPicker'
+  import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 
   export default {
     components: {
       HelpButton,
       TimeMachineButton,
       SearchBar,
-      OrganisationPicker
+      MoOrganisationPicker
     },
     data () {
       return {

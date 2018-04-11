@@ -21,7 +21,7 @@
 </template>
 
 <script>
-  import ButtonWorkflow from '../components/ButtonWorkflow'
+  import ButtonWorkflow from '@/components/ButtonWorkflow'
   import UnitCreate from './OrganisationUnitCreate'
   import UnitRename from './OrganisationUnitRename'
   import UnitMove from './OrganisationUnitMove'

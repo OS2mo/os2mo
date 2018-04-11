@@ -2,7 +2,7 @@
   <div>
       <mo-date-picker-range v-model="association.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
-        <organisation-unit-picker 
+        <mo-organisation-unit-picker 
           class="col" 
           label="Vælg enhed"
           v-model="association.org_unit"
@@ -16,13 +16,13 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoFacetPicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    OrganisationUnitPicker,
+    MoOrganisationUnitPicker,
     MoFacetPicker
   },
   props: {

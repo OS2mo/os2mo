@@ -32,6 +32,7 @@
   import { mapGetters } from 'vuex'
 
   export default {
+    name: 'MoOrganisationUnitPicker',
     components: {
       MoTreeView
     },

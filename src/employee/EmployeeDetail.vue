@@ -19,11 +19,11 @@
 </template>
 
 <script>
-  import Employee from '../api/Employee'
-  import '../filters/CPRNumber'
+  import Employee from '@/api/Employee'
+  import '@/filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
-  import MoHistory from '../components/MoHistory'
-  import Loading from '../components/Loading'
+  import MoHistory from '@/components/MoHistory'
+  import Loading from '@/components/Loading'
 
   export default {
     components: {

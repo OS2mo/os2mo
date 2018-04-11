@@ -19,7 +19,7 @@
       </div>
 
       <div class="form-row">
-        <organisation-unit-picker label="Angiv enhed" class="col" v-model="move.data.org_unit"/>       
+        <mo-organisation-unit-picker label="Angiv enhed" class="col" v-model="move.data.org_unit"/>       
       </div>
 
     <div class="float-right">
@@ -32,7 +32,7 @@
 <script>
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
-  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import EngagementPicker from '@/components/EngagementPicker'
   import EmployeePicker from '@/components/EmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
@@ -44,7 +44,7 @@
     components: {
       Employee,
       MoDatePicker,
-      OrganisationUnitPicker,
+      MoOrganisationUnitPicker,
       EngagementPicker,
       EmployeePicker,
       ButtonSubmit

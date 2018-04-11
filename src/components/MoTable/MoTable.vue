@@ -61,9 +61,9 @@
 <script>
   import '@/filters/GetProperty'
   import '@/filters/Date'
-  import Loading from './Loading'
-  import MoEntryModalBase from './MoEntryModalBase'
-  import MoLink from './MoLink'
+  import Loading from '@/components/Loading'
+  import MoEntryModalBase from '@/components/MoEntryModalBase'
+  import MoLink from '@/components/MoLink'
 
   export default {
     components: {

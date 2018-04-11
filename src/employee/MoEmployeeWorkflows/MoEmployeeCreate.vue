@@ -35,8 +35,8 @@
 <script>
 import Employee from '@/api/Employee'
 import ButtonSubmit from '@/components/ButtonSubmit'
-import MoCpr from '../../components/MoCpr/MoCpr'
-import MoAddMany from '@/components/MoAddMany'
+import MoCpr from '@/components/MoCpr/MoCpr'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
 import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
 import MoRoleEntry from '../MoRole/MoRoleEntry'

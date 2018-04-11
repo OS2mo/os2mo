@@ -16,10 +16,10 @@
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
-  import { EventBus } from '../EventBus'
-  import InfoBox from '../components/InfoBox'
-  import Loading from '../components/Loading'
+  import Organisation from '@/api/Organisation'
+  import { EventBus } from '@/EventBus'
+  import InfoBox from '@/components/InfoBox'
+  import Loading from '@/components/Loading'
   
   export default {
     components: {

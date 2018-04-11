@@ -2,19 +2,19 @@
   <div>
       <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
       <div class="form-row">
-        <it-system-picker v-model="entry.itsystem" :preselected="entry.uuid"/>
+        <mo-it-system-picker v-model="entry.itsystem" :preselected="entry.uuid"/>
       </div>
   </div>
 </template>
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import ItSystemPicker from '@/components/ItSystemPicker'
+import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    ItSystemPicker
+    MoItSystemPicker
   },
   props: {
     value: Object,

@@ -18,14 +18,11 @@
 
     <div class="form-row">
       <div class="col">
-        <organisation-unit-picker 
-          v-model="original"
-          label="Fremsøg enhed"
-        />
+        <mo-organisation-unit-picker v-model="original" label="Fremsøg enhed"/>
       </div>
 
       <div class="form-group col">
-        <label for="">Nuværende overenhed</label>
+        <label>Nuværende overenhed</label>
         <input 
           type="text" 
           class="form-control" 
@@ -35,10 +32,7 @@
       </div>
     </div>
 
-    <organisation-unit-picker 
-      v-model="move.data.parent"
-      label="Angiv ny overenhed"
-    />
+    <mo-organisation-unit-picker v-model="move.data.parent" label="Angiv ny overenhed"/>
 
     <div class="float-right">
       <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
@@ -49,7 +43,7 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import '@/filters/GetProperty'
@@ -59,7 +53,7 @@
       validator: 'new'
     },
     components: {
-      OrganisationUnitPicker,
+      MoOrganisationUnitPicker,
       MoDatePicker,
       ButtonSubmit
     },

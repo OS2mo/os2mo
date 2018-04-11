@@ -1,7 +1,7 @@
 <template>
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
-    <organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed"/>
+    <mo-organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed"/>
     <div class="form-row">
       <mo-facet-picker facet="manager_type" v-model="entry.manager_type"/>
       <mo-facet-picker facet="manager_level" v-model="entry.manager_level"/>  
@@ -12,13 +12,13 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoFacetPicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    OrganisationUnitPicker,
+    MoOrganisationUnitPicker,
     MoFacetPicker
   },
   props: {

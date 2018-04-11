@@ -9,16 +9,8 @@
   >
     <form @submit.prevent="endOrganisationUnit">
       <div class="form-row">
-        <organisation-unit-picker 
-          label="Enhed" 
-          class="col"
-          v-model="org_unit"
-        />
-        <mo-date-picker 
-          label="Slutdato"
-          v-model="terminate.validity.from"
-          required
-        />
+        <mo-organisation-unit-picker label="Enhed" class="col" v-model="org_unit"/>
+        <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
       </div>
       <div class="float-right">
         <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
@@ -30,7 +22,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
-  import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
@@ -39,7 +31,7 @@
     },
     components: {
       MoDatePicker,
-      OrganisationUnitPicker,
+      MoOrganisationUnitPicker,
       ButtonSubmit
     },
     data () {

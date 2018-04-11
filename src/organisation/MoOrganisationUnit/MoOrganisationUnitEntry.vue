@@ -28,7 +28,7 @@
       />
       </div>
       
-      <organisation-unit-picker 
+      <mo-organisation-unit-picker 
         v-model="orgUnit.parent"
         :is-disabled="disableOrgUnitPicker"
       />
@@ -43,15 +43,15 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import OrganisationUnitPicker from '@/components/OrganisationUnitPicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import AddressTypeEntry from '@/components/AddressTypeEntry'
-import MoFacetPicker from '@/components/MoFacetPicker'
-import MoAddMany from '@/components/MoAddMany'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
 export default {
   components: {
     MoDatePickerRange,
-    OrganisationUnitPicker,
+    MoOrganisationUnitPicker,
     MoFacetPicker,
     AddressTypeEntry,
     MoAddMany

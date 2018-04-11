@@ -64,7 +64,7 @@
 
 
 <script>
-  import Loading from '../components/Loading'
+  import Loading from '@/components/Loading'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
   import MoRoleEntry from './MoRole/MoRoleEntry'

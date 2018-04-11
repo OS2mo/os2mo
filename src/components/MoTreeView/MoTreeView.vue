@@ -2,7 +2,7 @@
   <div>
     <loading v-show="isLoading"/>
     <ul v-show="!isLoading">
-      <tree-item
+      <mo-tree-view-item
         v-for="(c, index) in children"
         :key="index"
         v-model="selectedOrgUnit"
@@ -17,12 +17,12 @@
 
 <script>
   import Organisation from '@/api/Organisation'
-  import TreeItem from './TreeviewItem'
+  import MoTreeViewItem from './MoTreeViewItem'
   import Loading from '@/components/Loading'
 
   export default {
     components: {
-      TreeItem,
+      MoTreeViewItem,
       Loading
     },
     props: {
