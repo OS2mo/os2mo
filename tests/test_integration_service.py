@@ -19,6 +19,14 @@ from . import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
+    @classmethod
+    def get_lora_environ(cls):
+        # force LoRA to run under a UTC timezone, ensuring that we
+        # handle this case correctly for reading
+        return {
+            'TZ': 'UTC',
+        }
+
     def test_organisation(self):
         with self.subTest('empty'):
             self.assertRequestResponse('/service/o/', [])

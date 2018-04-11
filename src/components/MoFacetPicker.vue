@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Facet from '../api/Facet'
+import Facet from '@/api/Facet'
 
 export default {
   name: 'MoFacetPicker',
@@ -57,11 +57,15 @@ export default {
   },
   mounted () {
     this.getFacet()
-    this.selected = this.value
+
+    if(this.value) {
+      this.selected = this.value
+      this.$validator.validate(this.nameId)
+    }
   },
   methods: {
     getFacet () {
-      var vm = this
+      let vm = this
       let org = this.$store.state.organisation
       if (org.uuid === undefined) return
       Facet.getFacet(org.uuid, this.facet)

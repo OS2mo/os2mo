@@ -65,11 +65,7 @@ export default {
   },
   watch: {
     selected (newVal) {
-      let date = newVal
-      if (newVal != null) {
-        date = new Date(newVal).toISOString().split('T')[0]
-      }
-      this.$emit('input', date)
+      this.$emit('input', newVal)
     },
 
     disabledTo (newVal) {
