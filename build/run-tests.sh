@@ -6,7 +6,7 @@ mkdir -p build/coverage build/reports
 
 yarn unit
 
-./manage.py python -- -m pytest \
+./flask.sh python -- -m pytest \
     --verbose \
     --cov=mora \
     --cov-report=xml:build/coverage/python.xml \

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec ./manage.py python -- -m flake8 --exit-zero
+exec ./flask.sh python -- -m flake8 --exit-zero
