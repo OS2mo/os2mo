@@ -8,7 +8,8 @@
     lazy
   >
     <form @submit.stop.prevent="createEmployee()">
-    <employee-picker v-model="employee" required/>
+      <mo-cpr v-model="employee"/>
+
       <h5>Engagement</h5>
       <mo-engagement-entry v-model="engagement"/>
 
@@ -32,13 +33,13 @@
 </template>
 
 <script>
-import Employee from '../../api/Employee'
-import ButtonSubmit from '../../components/ButtonSubmit'
-import MoAddMany from '../../components/MoAddMany'
+import Employee from '@/api/Employee'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoCpr from '../../components/MoCpr/MoCpr'
+import MoAddMany from '@/components/MoAddMany'
 import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
 import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
 import MoRoleEntry from '../MoRole/MoRoleEntry'
-import EmployeePicker from '../../components/EmployeePicker'
 import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
 import MoManagerEntry from '../MoManager/MoManagerEntry'
 
@@ -48,11 +49,11 @@ export default {
   },
   components: {
     ButtonSubmit,
+    MoCpr,
     MoAddMany,
     MoAssociationEntry,
     MoEngagementEntry,
     MoRoleEntry,
-    EmployeePicker,
     MoItSystemEntry,
     MoManagerEntry
   },
@@ -92,11 +93,20 @@ export default {
       this.isLoading = true
       let create = [].concat(this.engagement, this.association, this.role, this.itSystem, this.manager)
 
-      Employee.create(this.employee.uuid, create)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeCreate.hide()
-          vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
+      let newEmployee = {
+        name: this.employee.name,
+        cpr_no: this.employee.cpr_no,
+        org: this.$store.state.organisation
+      }
+
+      Employee.new(newEmployee)
+        .then(employeeUuid => {
+          Employee.create(employeeUuid, create)
+            .then(response => {
+              vm.isLoading = false
+              vm.$refs.employeeCreate.hide()
+              vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+            })
         })
     }
   }
