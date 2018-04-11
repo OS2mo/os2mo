@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import Search from '../api/Search'
+import Search from '@/api/Search'
 import VAutocomplete from 'v-autocomplete'
 import 'v-autocomplete/dist/v-autocomplete.css'
-import TheSearchBarTemplate from './TheSearchBarTemplate.vue'
+import TheSearchBarTemplate from './MoSearchBar/TheSearchBarTemplate.vue'
 
 export default {
   name: 'EmployeePicker',
