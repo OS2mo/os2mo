@@ -433,10 +433,21 @@ class LoRATestCaseMixin(TestCaseMixin):
             LoRATestCaseMixin.__lora_port = get_unused_port()
             return LoRATestCaseMixin.__lora_port
 
+    @classmethod
+    def get_lora_environ(cls):
+        '''Extra environment variables for the LoRA process.'''
+
+        return {}
+
     @unittest.skipUnless('MINIMOX_DIR' in os.environ, 'MINIMOX_DIR not set!')
     @classmethod
     def setUpClass(cls):
         MINIMOX_DIR = os.getenv('MINIMOX_DIR')
+
+        env = {
+            **os.environ,
+            **cls.get_lora_environ(),
+        }
 
         # Start a 'minimox' instance -- which is LoRA with the testing
         # tweaks in the 'minimox' branch. We use a separate process
@@ -452,6 +463,7 @@ class LoRATestCaseMixin(TestCaseMixin):
             stderr=subprocess.STDOUT,
             universal_newlines=True,
             cwd=MINIMOX_DIR,
+            env=env,
         )
 
         cls._orig_lora = settings.LORA_URL
