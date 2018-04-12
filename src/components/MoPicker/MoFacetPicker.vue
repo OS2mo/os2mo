@@ -10,8 +10,8 @@
       v-validate="{ required: required }"
     >
       <option disabled>{{label}}</option>
-      <option v-for="f in facets" :key="f.uuid" :value="f">
-          {{f.name}}
+      <option v-for="facet in facets" :key="facet.uuid" :value="facet">
+          {{facet.name}}
       </option>
     </select>
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -31,8 +31,7 @@ export default {
   props: {
     value: Object,
     facet: {type: String, required: true},
-    required: Boolean,
-    noLabel: Boolean
+    required: Boolean
   },
   data () {
     return {

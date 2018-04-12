@@ -6,7 +6,6 @@
     type="submit" 
     class="btn btn-primary" 
     v-show="!isLoading"
-    v-shortkey.once="['enter']"
   >
     <icon name="check"/>
   </button>

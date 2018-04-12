@@ -1,16 +1,11 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
-      <div class="form-row">
-        <mo-organisation-unit-picker 
-          class="col" 
-          label="Vælg enhed"
-          v-model="entry.org_unit"
-        />
-        <mo-facet-picker facet="job_function" v-model="entry.job_function" required/>
-        <mo-facet-picker facet="association_type" v-model="entry.association_type" required/>
-        
-      </div>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
+    <div class="form-row">
+      <mo-organisation-unit-picker class="col" label="Vælg enhed" v-model="entry.org_unit"/>
+      <mo-facet-picker facet="job_function" v-model="entry.job_function" required/>
+      <mo-facet-picker facet="association_type" v-model="entry.association_type" required/>
+    </div>
   </div>
 </template>
 
@@ -27,14 +22,18 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object,
-    validityHidden: Boolean
+    validity: Object
   },
   data () {
     return {
       entry: {
         validity: {}
       }
+    }
+  },
+  computed: {
+    datePickerHidden () {
+      return this.validity != null
     }
   },
   watch: {

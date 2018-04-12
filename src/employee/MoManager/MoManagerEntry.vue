@@ -1,6 +1,6 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/> 
     <mo-organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed"/>
     <div class="form-row">
       <mo-facet-picker facet="manager_type" v-model="entry.manager_type"/>
@@ -23,14 +23,18 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object,
-    validityHidden: Boolean
+    validity: Object
   },
   data () {
     return {
       entry: {
         validity: {}
       }
+    }
+  },
+  computed: {
+    datePickerHidden () {
+      return this.validity != null
     }
   },
   watch: {

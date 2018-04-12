@@ -1,7 +1,9 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>   
-    <mo-facet-picker facet="leave_type" v-model="entry.leave_type" required/>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
+    <div class="form-row">
+      <mo-facet-picker facet="leave_type" v-model="entry.leave_type" required/>
+    </div>
   </div>
 </template>
 
@@ -10,20 +12,24 @@ import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
-
   components: {
     MoDatePickerRange,
     MoFacetPicker
   },
   props: {
     value: Object,
-    validityHidden: Boolean
+    validity: Object
   },
   data () {
     return {
       entry: {
         validity: {}
       }
+    }
+  },
+  computed: {
+    datePickerHidden () {
+      return this.validity != null
     }
   },
   watch: {
@@ -33,6 +39,10 @@ export default {
         this.$emit('input', newVal)
       },
       deep: true
+    },
+
+    validity (newVal) {
+      this.entry.validity = newVal
     }
   },
   created () {
