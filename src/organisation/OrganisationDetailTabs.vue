@@ -58,13 +58,12 @@
 <script>
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
-  import AddressTypeEntry from '../components/MoAddressEntry/AddressTypeEntry'
+  import MoAddressEntry from '../components/MoAddressEntry/MoAddressEntry'
   import MoAddMany from '../components/MoAddMany'
 
   export default {
     components: {
       MoOrganisationUnitDetail,
-      AddressTypeEntry,
       MoAddMany
     },
     props: {
@@ -87,7 +86,7 @@
         },
         components: {
           orgUnit: MoOrganisationUnitEntry,
-          address: AddressTypeEntry
+          address: MoAddressEntry
         }
       }
     }

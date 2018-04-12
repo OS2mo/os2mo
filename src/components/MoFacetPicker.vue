@@ -58,7 +58,7 @@ export default {
   mounted () {
     this.getFacet()
 
-    if(this.value) {
+    if (this.value) {
       this.selected = this.value
       this.$validator.validate(this.nameId)
     }

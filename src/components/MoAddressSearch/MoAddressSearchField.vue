@@ -1,0 +1,66 @@
+<template>
+  <div class="form-group col">
+    <v-autocomplete 
+      v-model="selectedItem"
+      :items="addressSuggestions"
+      :name="nameId"
+      :get-label="getLabel" 
+      :component-item="template" 
+      @update-items="getGeographicalLocation"
+    />
+  </div>
+</template>
+
+
+<script>
+import Search from '@/api/Search'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import MoAddressSearchTemplate from './MoAddressSearchTemplate.vue'
+
+export default {
+  components: {
+    VAutocomplete
+  },
+  props: {
+    value: Object,
+    global: Boolean
+  },
+  data () {
+    return {
+      addressSuggestions: [],
+      template: MoAddressSearchTemplate,
+      selectedItem: null
+    }
+  },
+  computed: {
+    nameId () {
+      return 'address-search-field-' + this._uid
+    }
+  },
+  watch: {
+    selectedItem (val) {
+      this.$emit('input', val)
+    }
+  },
+  created () {
+    // this.selectedItem = this.value
+  },
+  methods: {
+    getLabel (item) {
+      return item ? item.location.name : ''
+    },
+
+    // Update address suggestions based on search query
+    getGeographicalLocation (query) {
+      let vm = this
+      let org = this.$store.state.organisation
+      if (org.uuid === undefined) return
+      Search.getGeographicalLocation(org.uuid, query, this.global)
+        .then(response => {
+          vm.addressSuggestions = response
+        })
+    }
+  }
+}
+</script>

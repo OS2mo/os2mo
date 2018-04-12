@@ -9,24 +9,22 @@
   >
     <form @submit.prevent="createOrganisationUnit">
       <mo-organisation-unit-entry
-        :org="org" 
-        v-model="orgUnit" 
+        v-model="entry" 
       />
 
       <mo-add-many
-        :org="org" 
-        :entry-component="addressTypeComponent"
-        v-model="orgUnit.addresses"
+        :entry-component="addressEntry"
+        v-model="addresses"
         has-initial-entry
       />
-      {{orgUnit}} 
-    <div class="float-right">
-      <button-submit
-      :is-disabled="!formValid"
-      :is-loading="isLoading"
-      :on-click-action="createOrganisationUnit"
-      />
-    </div>
+
+      <div class="float-right">
+        <button-submit
+        :is-disabled="!formValid"
+        :is-loading="isLoading"
+        :on-click-action="createOrganisationUnit"
+        />
+      </div>
     </form>
   </b-modal>
 
@@ -34,11 +32,10 @@
 
 <script>
   import OrganisationUnit from '../api/OrganisationUnit'
-  import { EventBus } from '../EventBus'
   import ButtonSubmit from '../components/ButtonSubmit'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
   import MoAddMany from '../components/MoAddMany'
-  import AddressTypeEntry from '../components/MoAddressEntry/AddressTypeEntry'
+  import MoAddressEntry from '../components/MoAddressEntry/MoAddressEntry'
 
   export default {
     $_veeValidate: {
@@ -48,19 +45,15 @@
     components: {
       ButtonSubmit,
       MoOrganisationUnitEntry,
-      MoAddMany,
-      AddressTypeEntry
+      MoAddMany
     },
     data () {
       return {
-        org: {},
-        orgUnit: {
-          validity: {},
-          addresses: {
-            validity: {}
-          }
+        entry: {
+          validity: {}
         },
-        addressTypeComponent: AddressTypeEntry,
+        addresses: [],
+        addressEntry: MoAddressEntry,
         isLoading: false
       }
     },
@@ -72,21 +65,7 @@
         })
       }
     },
-    watch: {
-      addresses: {
-        handler (val) {
-          this.orgUnit.addresses = [val]
-        },
-        deep: true
-      }
-    },
-    created () {
-      this.org = this.$store.state.organisation
-    },
     mounted () {
-      EventBus.$on('organisation-changed', newOrg => {
-        this.org = newOrg
-      })
       this.$root.$on('bv::modal::hidden', resetData => {
         Object.assign(this.$data, this.$options.data())
       })
@@ -96,7 +75,9 @@
         let vm = this
         this.isLoading = true
 
-        OrganisationUnit.create(this.orgUnit)
+        this.entry.addresses = this.addresses
+
+        OrganisationUnit.create(this.entry)
           .then(response => {
             vm.$refs.orgUnitCreate.hide()
           })
