@@ -12,9 +12,16 @@
         v-validate="{digits: 10}" 
         />
 
-      <button type="button" class="btn btn-outline-primary" @click="cprLookup()" :disabled="errors.has(nameId)">
+      <button 
+        type="button" 
+        class="btn btn-outline-primary" 
+        @click="cprLookup()" 
+        :disabled="errors.has(nameId)" 
+        v-show="!isLoading">
         <icon name="search"/>
       </button>
+
+      <loading v-show="isLoading"/>
     </div>
 
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -25,11 +32,15 @@
 
 <script>
 import Search from '@/api/Search'
+import Loading from '@/components/Loading'
 
 export default {
   name: 'MoCprSearch',
   inject: {
     $validator: '$validator'
+  },
+  components: {
+    Loading
   },
   props: {
     noLabel: Boolean,
@@ -39,7 +50,8 @@ export default {
   data () {
     return {
       nameId: 'cpr-search',
-      cprNo: ''
+      cprNo: '',
+      isLoading: false
     }
   },
   watch: {
@@ -49,9 +61,12 @@ export default {
   },
   methods: {
     cprLookup () {
+      let vm = this
+      vm.isLoading = true
       return Search.cprLookup(this.cprNo)
         .then(response => {
           this.$emit('input', response)
+          vm.isLoading = false
         })
     }
   }
