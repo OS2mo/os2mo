@@ -16,6 +16,7 @@
 </template>
 
 <script>
+  import { EventBus } from '@/EventBus'
   import Organisation from '@/api/Organisation'
   import MoTreeViewItem from './MoTreeViewItem'
   import Loading from '@/components/Loading'
@@ -53,6 +54,10 @@
     },
     mounted () {
       this.getChildren()
+      EventBus.$on('organisation-unit-changed', () => {
+        console.log('updated tree')
+        this.getChildren()
+      })
     },
     methods: {
       getChildren () {

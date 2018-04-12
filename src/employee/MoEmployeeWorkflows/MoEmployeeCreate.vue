@@ -14,7 +14,7 @@
       <mo-engagement-entry v-model="engagement"/>
 
       <h5>Tilknytninger</h5>
-      <mo-add-many v-model="association" :entry-component="entry.engagement"/>
+      <mo-add-many v-model="association" :entry-component="entry.association"/>
       
       <h5>Roller</h5>
       <mo-add-many v-model="role" :entry-component="entry.role"/>
@@ -67,7 +67,7 @@ export default {
       manager: [],
       isLoading: false,
       entry: {
-        engagement: MoEngagementEntry,
+        association: MoAssociationEntry,
         role: MoRoleEntry,
         it: MoItSystemEntry,
         manager: MoManagerEntry
