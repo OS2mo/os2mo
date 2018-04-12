@@ -37,11 +37,11 @@ import Employee from '@/api/Employee'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoCpr from '@/components/MoCpr/MoCpr'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
-import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
-import MoRoleEntry from '../MoRole/MoRoleEntry'
-import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
-import MoManagerEntry from '../MoManager/MoManagerEntry'
+import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
 
 export default {
   $_veeValidate: {

@@ -56,7 +56,7 @@
 
 <script>
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
-  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
+  import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
 
   export default {
     components: {

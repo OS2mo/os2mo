@@ -76,8 +76,6 @@ export default {
   },
   created () {
     this.orgUnit = this.value
-  },
-  methods: {
   }
 }
 </script>

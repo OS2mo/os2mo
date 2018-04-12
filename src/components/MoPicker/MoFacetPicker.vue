@@ -6,7 +6,7 @@
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
-      @change="updateSelectedRoleTypes()"
+      @change="$emit('input', selected)"
       v-validate="{ required: required }"
     >
       <option disabled>{{label}}</option>
@@ -63,10 +63,6 @@ export default {
           vm.facets = response.data.items
           vm.label = response.user_key
         })
-    },
-
-    updateSelectedRoleTypes () {
-      this.$emit('input', this.selected)
     }
   }
 }

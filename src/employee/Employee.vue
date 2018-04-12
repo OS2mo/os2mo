@@ -1,5 +1,5 @@
 <template>
-    <div class="row">
+  <div class="row">
     <div class="col-12 workflow-padding">
       <router-view :key="$route.params.uuid"/>
       <mo-log/>

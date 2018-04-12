@@ -66,13 +66,13 @@
 <script>
   import Loading from '@/components/Loading'
   import MoEmployeeDetail from './MoEmployeeDetail'
-  import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
-  import MoRoleEntry from './MoRole/MoRoleEntry'
-  import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
-  import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
-  import MoLeaveEntry from './MoLeave/MoLeaveEntry'
-  import MoManagerEntry from './MoManager/MoManagerEntry'
-  import MoAddressEntry from './MoAddress/MoAddressEntry'
+  import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+  import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+  import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+  import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+  import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
   export default {
     components: {

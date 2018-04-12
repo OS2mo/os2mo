@@ -21,7 +21,7 @@
 <script>
 import Employee from '@/api/Employee'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoLeaveEntry from '../MoLeave/MoLeaveEntry'
+import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
 import ButtonSubmit from '@/components/ButtonSubmit'
 
 export default {

@@ -21,7 +21,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
+  import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
 
   export default {
     $_veeValidate: {
