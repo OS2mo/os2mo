@@ -32,29 +32,21 @@
         v-model="orgUnit.parent"
         :is-disabled="disableOrgUnitPicker"
       />
-
-      <mo-add-many
-        :entry-component="addressTypeComponent"
-        v-model="addresses"
-        has-initial-entry
-      />
   </div>
 </template>
 
 <script>
 import DateStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import AddressTypeEntry from '../../components/AddressTypeEntry'
+import AddressTypeEntry from '@/components/MoAddressEntry/AddressTypeEntry'
 import MoFacetPicker from '../../components/MoFacetPicker'
-import MoAddMany from '../../components/MoAddMany'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
     MoFacetPicker,
-    AddressTypeEntry,
-    MoAddMany
+    AddressTypeEntry
   },
   inject: {
     $validator: '$validator'
@@ -72,9 +64,7 @@ export default {
       orgUnit: {
         name: '',
         validity: {}
-      },
-      addresses: [],
-      addressTypeComponent: AddressTypeEntry
+      }
     }
   },
   watch: {
@@ -83,18 +73,10 @@ export default {
         this.$emit('input', newVal)
       },
       deep: true
-    },
-    addresses: {
-      handler (val) {
-        this.orgUnit.addresses = val
-      },
-      deep: true
     }
   },
   created () {
     this.orgUnit = this.value
-  },
-  methods: {
   }
 }
 </script>

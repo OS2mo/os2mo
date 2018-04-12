@@ -2,6 +2,7 @@
   <div class="form-row">
     <div class="form-group col">
       <v-autocomplete 
+        v-model="selectedItem"
         :items="addressSuggestions"
         name="address"
         :get-label="getLabel" 
@@ -12,7 +13,6 @@
       />
       <span v-show="errors.has('address')" class="text-danger">{{ errors.first('address') }}</span>
     </div>
-
     <div class="form-check col">
       <label class="form-check-label">
         <input 
@@ -22,6 +22,7 @@
         /> 
         Søg i hele landet
       </label>
+
     </div>
   </div>
 </template>
@@ -47,9 +48,20 @@
       return {
         addressSuggestions: [],
         template: AddressSearchTemplate,
-        location: false,
-        global: false
+        global: false,
+        selectedItem: {}
       }
+    },
+    watch: {
+      selectedItem: {
+        handler (newVal) {
+          this.$emit('input', newVal.location.uuid)
+        },
+        deep: true
+      }
+    },
+    created () {
+      this.selectedItem = this.value
     },
     methods: {
       getLabel (item) {

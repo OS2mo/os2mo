@@ -13,9 +13,20 @@
         v-model="orgUnit" 
       />
 
-      <div class="float-right">
-        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
-      </div>
+      <mo-add-many
+        :org="org" 
+        :entry-component="addressTypeComponent"
+        v-model="orgUnit.addresses"
+        has-initial-entry
+      />
+      {{orgUnit}} 
+    <div class="float-right">
+      <button-submit
+      :is-disabled="!formValid"
+      :is-loading="isLoading"
+      :on-click-action="createOrganisationUnit"
+      />
+    </div>
     </form>
   </b-modal>
 
@@ -26,6 +37,8 @@
   import { EventBus } from '../EventBus'
   import ButtonSubmit from '../components/ButtonSubmit'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
+  import MoAddMany from '../components/MoAddMany'
+  import AddressTypeEntry from '../components/MoAddressEntry/AddressTypeEntry'
 
   export default {
     $_veeValidate: {
@@ -34,14 +47,20 @@
     name: 'OrganisationUnitCreate',
     components: {
       ButtonSubmit,
-      MoOrganisationUnitEntry
+      MoOrganisationUnitEntry,
+      MoAddMany,
+      AddressTypeEntry
     },
     data () {
       return {
         org: {},
         orgUnit: {
-          validity: {}
+          validity: {},
+          addresses: {
+            validity: {}
+          }
         },
+        addressTypeComponent: AddressTypeEntry,
         isLoading: false
       }
     },
@@ -51,6 +70,14 @@
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
+      }
+    },
+    watch: {
+      addresses: {
+        handler (val) {
+          this.orgUnit.addresses = [val]
+        },
+        deep: true
       }
     },
     created () {
