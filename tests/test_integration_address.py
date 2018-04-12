@@ -167,7 +167,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": ean_class,
-                    "address": 1234567890,
+                    "value": '1234567890',
                     "validity": {
                         "from": "2013-01-01T00:00:00+01:00",
                         "to": None,
@@ -244,7 +244,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": email_class,
-                    "address": "hest@example.com",
+                    "value": "hest@example.com",
                     "validity": {
                         "from": "2014-01-01T00:00:00+01",
                     },
@@ -252,7 +252,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": address_class,
-                    "address": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+                    "value": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
                     "validity": {
                         "from": "2015-01-01T00:00:00+01",
                     },
@@ -260,7 +260,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": phone_class,
-                    "address": '3336 9696',
+                    "value": '3336 9696',
                     "validity": {
                         "from": "2016-01-01T00:00:00+01",
                     },
@@ -700,7 +700,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": email_class,
-                    "address": "hallo@exmaple.com",
+                    "value": "hallo@exmaple.com",
                     "validity": {
                         "from": "2013-01-01T00:00:00+01:00",
                         "to": None,
@@ -1081,7 +1081,7 @@ class Writing(util.LoRATestCase):
                         'user_key': 'Email',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                    'address': 'root@example.com',
+                    'value': 'root@example.com',
                     "validity": {
                         "from": "2017-01-01T00:00:00+01",
                     },

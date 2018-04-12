@@ -238,7 +238,7 @@ class Addresses(common.AbstractRelationDetail):
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(
             req[keys.ADDRESS_TYPE],
-            req[keys.ADDRESS],
+            req[keys.VALUE],
         )
         rel['virkning'] = common.get_validity_effect(req)
 
