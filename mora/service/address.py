@@ -237,8 +237,8 @@ class Addresses(common.AbstractRelationDetail):
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(
-            req[keys.ADDRESS_TYPE],
-            req[keys.ADDRESS],
+            common.checked_get(req, keys.ADDRESS_TYPE, {}, required=True),
+            common.checked_get(req, keys.VALUE, '', required=True),
         )
         rel['virkning'] = common.get_validity_effect(req)
 
@@ -258,21 +258,24 @@ class Addresses(common.AbstractRelationDetail):
             virkningtil='infinity',
         )
 
-        old_entry = req.get('original')
-        new_entry = req.get('data')
+        old_entry = common.checked_get(req, 'original', {}, required=True)
+        new_entry = common.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
             raise ValueError('original required!')
 
         old_rel = get_relation_for(
-            old_entry[keys.ADDRESS_TYPE],
-            old_entry[keys.VALUE],
+            common.checked_get(old_entry, keys.ADDRESS_TYPE, {},
+                               required=True),
+            common.checked_get(old_entry, keys.VALUE, '', required=True),
         )
         old_rel['virkning'] = common.get_validity_effect(old_entry)
 
         new_rel = get_relation_for(
-            new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
-            new_entry.get(keys.VALUE) or old_entry[keys.VALUE],
+            common.checked_get(new_entry, keys.ADDRESS_TYPE, {},
+                               fallback=old_entry, required=True),
+            common.checked_get(new_entry, keys.VALUE, '',
+                               fallback=old_entry, required=True),
         )
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
