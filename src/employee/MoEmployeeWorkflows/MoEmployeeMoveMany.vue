@@ -42,7 +42,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import Employee from '@/api/Employee'
-  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'

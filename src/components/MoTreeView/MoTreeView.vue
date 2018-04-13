@@ -1,6 +1,6 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
+    <mo-loader v-show="isLoading"/>
     <ul v-show="!isLoading">
       <mo-tree-view-item
         v-for="(c, index) in children"
@@ -19,12 +19,12 @@
   import { EventBus } from '@/EventBus'
   import Organisation from '@/api/Organisation'
   import MoTreeViewItem from './MoTreeViewItem'
-  import Loading from '@/components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     components: {
       MoTreeViewItem,
-      Loading
+      MoLoader
     },
     props: {
       value: Object,

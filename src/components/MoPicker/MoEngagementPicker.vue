@@ -1,7 +1,7 @@
 <template>
   <div class="form-group col">
     <label>{{label}}</label>
-    <loading v-show="isLoading"/>
+    <mo-loader v-show="isLoading"/>
     <select
       v-show="!isLoading" 
       class="form-control col" 
@@ -18,13 +18,13 @@
 
 <script>
 import Employee from '@/api/Employee'
-import Loading from '@/components/Loading'
+import MoLoader from '@/components/atoms/MoLoader'
 import { EventBus } from '@/EventBus'
 
 export default {
   name: 'MoEngagementPicker',
   components: {
-    Loading
+    MoLoader
   },
   inject: {
     $validator: '$validator'

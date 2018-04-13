@@ -3,21 +3,7 @@
       <mo-date-picker-range v-model="orgUnit.validity"/>
 
       <div class="form-row">
-        <div class="form-group col">
-          <label for="">Navn</label>
-          <input 
-            v-model="orgUnit.name" 
-            data-vv-as="Navn"
-            type="text" 
-            class="form-control"
-            name="unit-name"
-            v-validate="{required: true}"
-          >
-          
-          <span v-show="errors.has('unit-name')" class="text-danger">
-            {{ errors.first('unit-name') }}
-          </span>
-        </div>
+        <mo-input label="Navn" v-model="orgUnit.name" required/>
         
         <mo-facet-picker facet="org_unit_type" v-model="orgUnit.org_unit_type" required/>
       </div>
@@ -30,6 +16,7 @@
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoInput from '@/components/atoms/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
 export default {
@@ -37,6 +24,7 @@ export default {
     MoDatePickerRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
+    MoInput,
     MoAddMany
   },
   inject: {

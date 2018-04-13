@@ -1,6 +1,6 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
+    <mo-loader v-show="isLoading"/>
     <div v-show="!isLoading">
     <span v-if="!contentAvailable">Intet at vise</span>
     <b-form-checkbox-group v-model="selected">
@@ -61,13 +61,13 @@
 <script>
   import '@/filters/GetProperty'
   import '@/filters/Date'
-  import Loading from '@/components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
   import MoEntryModal from '@/components/MoEntryModal'
   import MoLink from '@/components/MoLink'
 
   export default {
     components: {
-      Loading,
+      MoLoader,
       MoLink,
       MoEntryModal
     },

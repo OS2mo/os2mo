@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="card-body">
-      <loading v-show="isLoading"/>
+      <mo-loader v-show="isLoading"/>
       <table class="table table-striped" v-show="!isLoading">
         <thead>
           <tr>
@@ -27,11 +27,11 @@
 <script>
   import Employee from '@/api/Employee'
   import { EventBus } from '@/EventBus'
-  import Loading from '@/components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     components: {
-      Loading
+      MoLoader
     },
     data () {
       return {

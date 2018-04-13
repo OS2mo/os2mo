@@ -21,7 +21,7 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
 

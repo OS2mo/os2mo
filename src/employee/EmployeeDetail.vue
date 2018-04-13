@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="card-body">
-      <loading v-show="isLoading"/>
+      <mo-loader v-show="isLoading"/>
       <h4 class="card-title" v-show="!isLoading">
         <icon name="user-o"/>
         {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
@@ -23,13 +23,13 @@
   import '@/filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
-  import Loading from '@/components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     components: {
       EmployeeDetailTabs,
       MoHistory,
-      Loading
+      MoLoader
     },
     data () {
       return {

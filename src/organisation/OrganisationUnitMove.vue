@@ -44,7 +44,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import '@/filters/GetProperty'
 

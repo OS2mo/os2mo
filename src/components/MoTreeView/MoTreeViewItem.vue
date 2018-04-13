@@ -24,7 +24,7 @@
       </span>
 
     <ul v-show="open">
-      <loading v-show="loading"/>
+      <mo-loader v-show="loading"/>
       <mo-tree-view-item
         v-for="(model, index) in model.children"
         :key="index"
@@ -39,12 +39,12 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import Loading from '@/components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     name: 'MoTreeViewItem',
     components: {
-      Loading
+      MoLoader
     },
     props: {
       value: Object,

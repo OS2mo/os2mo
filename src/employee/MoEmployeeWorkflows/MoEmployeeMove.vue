@@ -31,7 +31,7 @@
 
 <script>
   import Employee from '@/api/Employee'
-  import MoDatePicker from '@/components/MoDatePicker/MoDatePicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
+    <mo-loader v-show="isLoading"/>
     <b-tabs v-show="!isLoading" lazy>
       <b-tab title="Engagement" active> 
         <mo-employee-detail 
@@ -63,7 +63,7 @@
 
 
 <script>
-  import Loading from '@/components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
   import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
@@ -74,7 +74,7 @@
 
   export default {
     components: {
-      Loading,
+      MoLoader,
       MoEmployeeDetail
     },
     props: {

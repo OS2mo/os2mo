@@ -25,7 +25,7 @@
 </template>
 
 <script>
-  import MoDatePicker from './MoDatePicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
 
   export default {
     components: {

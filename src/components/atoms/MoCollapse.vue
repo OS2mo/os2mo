@@ -4,15 +4,14 @@
     <div 
       class="card-header" 
       role="tab" 
-      id="headingOne" 
-      v-b-toggle="id" 
+      v-b-toggle="nameId" 
       aria-expanded="true" 
-      :aria-controls="id">
+      :aria-controls="nameId">
         <icon :name="open ? 'caret-down' : 'caret-right'"/>
         <strong>{{title}}</strong>
     </div>
   </div>
-  <b-collapse :id="id" :visible="open" @shown="$emit('shown')">
+  <b-collapse :id="nameId" :visible="open" @shown="$emit('shown')">
     <slot>
       Put some content here
     </slot>
@@ -31,8 +30,12 @@
     },
     data () {
       return {
-        id: 'collapse-' + this._uid,
         open: false
+      }
+    },
+    computed: {
+      nameId () {
+        return 'mo-collapse-' + this._uid
       }
     },
     created () {
