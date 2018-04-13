@@ -7,11 +7,13 @@
 
       <div class="row">
         <div class="mr-auto">
+        <div class="col">
           <p class="card-text">
             Enhedsnr.: {{orgUnit.user_key}}
           </p>
         </div>
-        <div>
+        </div>
+        <div class="margin-right">
           <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
         </div>
       </div>
@@ -50,3 +52,9 @@
     }
   }
 </script>
+
+<style scoped>
+  .margin-right {
+    margin-right: 1rem;
+  }
+</style>
