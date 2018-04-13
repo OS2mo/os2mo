@@ -1,12 +1,12 @@
 <template>
   <div>
-      <date-start-end v-model="orgUnit.validity"/>
+      <date-start-end v-model="entry.validity"/>
 
       <div class="form-row">
       <div class="form-group col">
         <label for="">Navn</label>
         <input 
-          v-model="orgUnit.name" 
+          v-model="entry.name" 
           data-vv-as="Navn"
           type="text" 
           class="form-control"
@@ -23,20 +23,14 @@
       
       <mo-facet-picker 
         facet="org_unit_type" 
-        v-model="orgUnit.org_unit_type"
+        v-model="entry.org_unit_type"
         required
       />
       </div>
       
       <organisation-unit-picker 
-        v-model="orgUnit.parent"
+        v-model="entry.parent"
         :is-disabled="disableOrgUnitPicker"
-      />
-
-      <mo-add-many
-        :entry-component="addressTypeComponent"
-        v-model="addresses"
-        has-initial-entry
       />
   </div>
 </template>
@@ -44,57 +38,39 @@
 <script>
 import DateStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-import AddressTypeEntry from '../../components/AddressTypeEntry'
 import MoFacetPicker from '../../components/MoFacetPicker'
-import MoAddMany from '../../components/MoAddMany'
 
 export default {
   components: {
     DateStartEnd,
     OrganisationUnitPicker,
-    MoFacetPicker,
-    AddressTypeEntry,
-    MoAddMany
+    MoFacetPicker
   },
   inject: {
     $validator: '$validator'
   },
   props: {
     value: Object,
-    org: {
-      type: Object,
-      required: true
-    },
     disableOrgUnitPicker: Boolean
   },
   data () {
     return {
-      orgUnit: {
+      entry: {
         name: '',
         validity: {}
-      },
-      addresses: [],
-      addressTypeComponent: AddressTypeEntry
+      }
     }
   },
   watch: {
-    orgUnit: {
+    entry: {
       handler (newVal) {
         this.$emit('input', newVal)
-      },
-      deep: true
-    },
-    addresses: {
-      handler (val) {
-        this.orgUnit.addresses = val
       },
       deep: true
     }
   },
   created () {
-    this.orgUnit = this.value
-  },
-  methods: {
+    this.entry = this.value
   }
 }
 </script>

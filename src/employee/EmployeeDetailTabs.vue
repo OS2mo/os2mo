@@ -72,7 +72,7 @@
   import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
   import MoLeaveEntry from './MoLeave/MoLeaveEntry'
   import MoManagerEntry from './MoManager/MoManagerEntry'
-  import MoAddressEntry from './MoAddress/MoAddressEntry'
+  import MoAddressEntry from '@/components/MoAddressEntry/MoAddressEntry'
 
   export default {
     components: {
