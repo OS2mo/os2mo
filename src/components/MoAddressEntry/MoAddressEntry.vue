@@ -3,16 +3,23 @@
     <div class="form-group">
       <date-picker-start-end v-model="entry.validity"/>
     </div>
-    <div class="form-row" v-if="entry.address_type != null">
+    <div class="form-row">
       <div class="form-group col">
-        <mo-facet-picker facet="address_type" v-model="entry.address_type"/>
+        <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
       </div>
 
       <div class="form-group col">
-        <label>{{entry.address_type.name}}</label>
-        <mo-address-search v-if="entry.address_type.scope=='DAR'" v-model="entry.value"/>
+        <div v-if="entry.address_type != null">
+          <label>{{entry.address_type.name}}</label>
+          <mo-address-search v-if="entry.address_type.scope=='DAR'" v-model="address"/>
 
-        <input v-if="entry.address_type.scope!='DAR'" v-model="entry.value" type="text" class="form-control">
+          <input 
+            v-if="entry.address_type.scope!='DAR'" 
+            v-model="address.location.uuid" 
+            type="text" 
+            class="form-control"
+            >
+        </div>
       </div>
     </div>
   </div>
@@ -40,15 +47,36 @@ export default {
         validity: {},
         address_type: {},
         value: null
-      }
+      },
+      address: null
     }
   },
   watch: {
     entry: {
       handler (val) {
+        val.type = 'address'
         this.$emit('input', val)
       },
       deep: true
+    },
+
+    address: {
+      handler (val) {
+        if (val == null) return
+        this.entry.value = val.location.uuid
+      },
+      deep: true
+    }
+  },
+  created () {
+    if (this.value) {
+      this.address = {
+        location: {
+          name: this.value.name,
+          uuid: this.value.value
+        }
+      }
+      this.entry = this.value
     }
   }
 }

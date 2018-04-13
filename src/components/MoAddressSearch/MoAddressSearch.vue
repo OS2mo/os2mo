@@ -1,18 +1,22 @@
 <template>
   <div class="form-row">
     <mo-address-search-field v-model="address" :global="global"/>
-    <mo-address-search-global v-model="global"/>
+    <label class="form-check-label">
+      <input class="form-check-input" type="checkbox" v-model="global"/> 
+      Søg i hele landet
+    </label>
   </div>
 </template>
 
 <script>
   import MoAddressSearchField from './MoAddressSearchField'
-  import MoAddressSearchGlobal from './MoAddressGlobal'
 
   export default {
     components: {
-      MoAddressSearchField,
-      MoAddressSearchGlobal
+      MoAddressSearchField
+    },
+    props: {
+      value: Object
     },
     data () {
       return {
@@ -22,9 +26,11 @@
     },
     watch: {
       address (val) {
-        let addr = val ? val.location.uuid : ''
-        this.$emit('input', addr)
+        this.$emit('input', val)
       }
+    },
+    created () {
+      this.address = this.value
     }
   }
 </script>

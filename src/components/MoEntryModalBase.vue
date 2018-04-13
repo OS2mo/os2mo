@@ -20,7 +20,6 @@
       <component 
         :is="entryComponent"
         v-model="entry" 
-        :org="org" 
         :disable-org-unit-picker="disableOrgUnitPicker"
       />
       <div class="float-right">

@@ -7,7 +7,13 @@
       :get-label="getLabel" 
       :component-item="template" 
       @update-items="getGeographicalLocation"
+      v-validate="'required'"
     />
+    <span v-show="errors.has(nameId)" class="text-danger">
+      {{ errors.first(nameId) }}
+    </span>
+
+    {{fields[nameId]}}
   </div>
 </template>
 
@@ -19,6 +25,10 @@ import 'v-autocomplete/dist/v-autocomplete.css'
 import MoAddressSearchTemplate from './MoAddressSearchTemplate.vue'
 
 export default {
+  name: 'MoAddressSearchField',
+  inject: {
+    $validator: '$validator'
+  },
   components: {
     VAutocomplete
   },
@@ -44,7 +54,7 @@ export default {
     }
   },
   created () {
-    // this.selectedItem = this.value
+    this.selectedItem = this.value
   },
   methods: {
     getLabel (item) {
