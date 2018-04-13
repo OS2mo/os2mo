@@ -79,7 +79,7 @@ export default {
   /**
    * Create a new organisation unit
    * @param {Object} orgUnit - new organisation unit
-   * @param {Array} edit - A list of elements to edit
+   * @param {Array} create - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
   create (create) {
@@ -91,6 +91,25 @@ export default {
       })
       .catch(error => {
         EventBus.$emit('mo-error', error.response)
+      })
+  },
+
+  /**
+   * Create a new organisation unit entry
+   * @param {Object} orgUnit - new organisation unit
+   * @param {String} uuid - organisation uuid
+   * @param {Array} create - A list of elements to edit
+   * @returns {Object} organisation unit uuid
+   */
+  createEntry (uuid, create) {
+    return Service.post(`/ou/${uuid}/create`, create)
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-create', response.data)
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
       })
   },
 

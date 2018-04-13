@@ -20,7 +20,6 @@
       <component 
         :is="entryComponent"
         v-model="entry" 
-        :org="org" 
         :disable-org-unit-picker="disableOrgUnitPicker"
       />
       <div class="float-right">
@@ -168,7 +167,8 @@
             this.createEmployee(this.entry)
             break
           case 'ORG_UNIT':
-            this.createOrganisationUnit(this.entry)
+            this.entry.type = 'address'
+            this.createOrganisationUnit([this.entry])
             break
         }
       },
@@ -213,7 +213,7 @@
 
       createOrganisationUnit (data) {
         let vm = this
-        return OrganisationUnit.create(data)
+        return OrganisationUnit.createEntry(this.uuid, data)
           .then(response => {
             vm.isLoading = false
             vm.$refs['moCreate' + vm._uid].hide()

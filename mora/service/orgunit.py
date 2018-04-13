@@ -616,7 +616,7 @@ def create_org_unit_relation(unitid):
     :<jsonarr object address_type: The type of the address, exactly as
         returned by returned by
         :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr string address: The value of the address field. Please
+    :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
 
@@ -624,7 +624,7 @@ def create_org_unit_relation(unitid):
 
       [
         {
-          "address": "1234567890",
+          "value": "1234567890",
           "address_type": {
             "example": "5712345000014",
             "name": "EAN",

@@ -23,15 +23,12 @@
       </div>
       
       <mo-organisation-unit-picker v-model="orgUnit.parent" :is-disabled="disableOrgUnitPicker"/>
-
-      <mo-add-many :entry-component="addressTypeComponent" v-model="addresses" has-initial-entry/>
   </div>
 </template>
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import AddressTypeEntry from '@/components/AddressTypeEntry'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
@@ -40,7 +37,6 @@ export default {
     MoDatePickerRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
-    AddressTypeEntry,
     MoAddMany
   },
   inject: {
@@ -55,21 +51,13 @@ export default {
       orgUnit: {
         name: '',
         validity: {}
-      },
-      addresses: [],
-      addressTypeComponent: AddressTypeEntry
+      }
     }
   },
   watch: {
     orgUnit: {
       handler (newVal) {
         this.$emit('input', newVal)
-      },
-      deep: true
-    },
-    addresses: {
-      handler (val) {
-        this.orgUnit.addresses = val
       },
       deep: true
     }

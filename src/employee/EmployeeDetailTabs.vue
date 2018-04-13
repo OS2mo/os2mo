@@ -15,7 +15,6 @@
           :uuid="uuid" 
           detail="address"
           :columns="columns.address"
-          :entry-component="components.address"
         />
       </b-tab>
       <b-tab title="Rolle">
@@ -72,7 +71,6 @@
   import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
-  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
   export default {
     components: {
@@ -100,8 +98,7 @@
           it: MoItSystemEntry,
           association: MoAssociationEntry,
           leave: MoLeaveEntry,
-          manager: MoManagerEntry,
-          address: MoAddressEntry
+          manager: MoManagerEntry
         }
       }
     }
