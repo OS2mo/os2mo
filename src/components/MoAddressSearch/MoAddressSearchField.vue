@@ -4,16 +4,15 @@
       v-model="selectedItem"
       :items="addressSuggestions"
       :name="nameId"
+      :data-vv-as="label"
       :get-label="getLabel" 
       :component-item="template" 
       @update-items="getGeographicalLocation"
-      v-validate="'required'"
+      v-validate="{required: true}"
     />
     <span v-show="errors.has(nameId)" class="text-danger">
       {{ errors.first(nameId) }}
     </span>
-
-    {{fields[nameId]}}
   </div>
 </template>
 
@@ -34,6 +33,7 @@ export default {
   },
   props: {
     value: Object,
+    label: String,
     global: Boolean
   },
   data () {

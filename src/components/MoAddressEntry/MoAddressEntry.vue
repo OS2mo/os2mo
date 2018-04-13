@@ -10,8 +10,7 @@
 
       <div class="form-group col">
         <div v-if="entry.address_type != null">
-          <label>{{entry.address_type.name}}</label>
-          <mo-address-search v-if="entry.address_type.scope=='DAR'" v-model="address"/>
+          <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
 
           <input 
             v-if="entry.address_type.scope!='DAR'" 
@@ -69,15 +68,15 @@ export default {
     }
   },
   created () {
-    if (this.value) {
+    if (this.value.value) {
       this.address = {
         location: {
           name: this.value.name,
           uuid: this.value.value
         }
       }
-      this.entry = this.value
     }
+    this.entry = this.value
   }
 }
 </script>
