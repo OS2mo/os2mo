@@ -94,7 +94,7 @@ følgende moduler, som er skrevet i Python:
 
     - **Utils-modul**: En samling af nyttig funktioner, som afdækker diverse
       mindre ansvarsområder (parse datoer, håndtering af URN’er mv.).
-      
+
   - **Testsuite-modul**
 
 Bemærk, at ovenstående liste ikke nødvendigvis udtømmende, idet der løbende kan blive
@@ -119,7 +119,7 @@ af LoRa kan findes på LoRas GitHub-side, som er linket til ovenfor.
 For at installere de nødvendige afhængigheder på en Ubuntu-maskine, køres
 følgende kommandoer::
 
-  $ sudo apt install python3 python3-venv nodejs-legacy npm
+  $ sudo apt install python3 python3-venv
 
 Efterfølgende klones MORa-projektet fra GitHub::
 
@@ -127,8 +127,14 @@ Efterfølgende klones MORa-projektet fra GitHub::
   $ cd /path/to/folder
   $ git clone https://github.com/magenta-aps/mora
 
+
+Yderligere skal nodejs (version 8.x LTS) installeres:
+
+.. include:: setup/nodesource_readme.rst
+
+
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
-skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"), 
+skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
 men det nemmeste er blot at anvende scriptet
 **manage.py**::
 
