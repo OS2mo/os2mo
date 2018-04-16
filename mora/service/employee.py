@@ -32,7 +32,6 @@ from . import org
 from . import role
 from .. import lora
 from .. import util
-from ..converters import writing
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
@@ -414,7 +413,6 @@ def create_employee_relation(employee_uuid):
         'engagement': engagement.create_engagement,
         'association': association.create_association,
         'role': role.create_role,
-        'contact': writing.create_contact,
         'manager': manager.create_manager,
         'leave': leave.create_leave,
         **RELATION_TYPES,
