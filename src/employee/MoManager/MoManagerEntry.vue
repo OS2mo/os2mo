@@ -1,7 +1,10 @@
 <template>
   <div>
-    <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/> 
-    <organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed"/>
+    <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
+    <div class="row">
+    <organisation-unit-picker class="col" v-model="entry.org_unit" label="Angiv enhed"/>
+    <mo-address-picker class="col" v-model="entry.address"/>
+    </div> 
     <div class="form-row">
       <mo-facet-picker facet="manager_type" v-model="entry.manager_type"/>
       <mo-facet-picker facet="manager_level" v-model="entry.manager_level"/>  
@@ -14,12 +17,14 @@
 import DatePickerStartEnd from '../../components/DatePickerStartEnd'
 import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
 import MoFacetPicker from '../../components/MoFacetPicker'
+import MoAddressPicker from '../../components/MoAddressPicker'
 
 export default {
   components: {
     DatePickerStartEnd,
     OrganisationUnitPicker,
-    MoFacetPicker
+    MoFacetPicker,
+    MoAddressPicker
   },
   props: {
     value: Object,

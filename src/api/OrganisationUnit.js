@@ -57,6 +57,14 @@ export default {
   },
 
   /**
+   * Get address for organisation unit details
+   * @see getDetail
+   */
+  getAddressDetails (uuid, validity) {
+    return this.getDetail(uuid, 'address', validity)
+  },
+
+  /**
    * Base call for getting details.
    * @param {String} uuid - organisation unit uuid
    * @param {String} detail - Name of the detail
