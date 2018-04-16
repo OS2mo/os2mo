@@ -10,7 +10,7 @@ const MoEmployeeList = () => import('@/employee/MoEmployeeList')
 const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
-const TimeMachine = () => import('@/timeMachine/TimeMachine')
+const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 
 Vue.use(Router)
 
@@ -77,7 +77,7 @@ export default new Router({
         {
           path: '/tidsmaskine',
           name: 'Timemachine',
-          component: TimeMachine
+          component: MoTimeMachine
         },
         {
           path: '*',

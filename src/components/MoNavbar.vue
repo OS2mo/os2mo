@@ -21,7 +21,7 @@
 
       <mo-search-bar class="ml-auto mr-auto"/>
 
-      <time-machine-button/>
+      <mo-time-machine-button/>
       
       <help-button/>
 
@@ -41,14 +41,14 @@
   import Auth from '@/api/Auth'
   import { EventBus } from '@/EventBus'
   import HelpButton from '@/help/TheHelpButton'
-  import TimeMachineButton from '@/timeMachine/TimeMachineButton'
+  import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 
   export default {
     components: {
       HelpButton,
-      TimeMachineButton,
+      MoTimeMachineButton,
       MoSearchBar,
       MoOrganisationPicker
     },

@@ -9,14 +9,8 @@
   export default {
     name: 'MoWorkflowButton',
     props: {
-      label: {
-        default: 'New Workflow',
-        type: String
-      },
-      icon: {
-        default: 'plus-circle',
-        type: String
-      }
+      label: {type: String, required: true},
+      icon: {type: String, required: true}
     }
   }
 </script>
