@@ -7,6 +7,7 @@
 
 <script>
   export default {
+    name: 'MoWorkflowButton',
     props: {
       label: {
         default: 'New Workflow',

@@ -11,48 +11,47 @@
         </div>
       </div>
     </div>
-</div>
-
+  </div>
 </template>
 
 <script>
-  import Organisation from '@/api/Organisation'
-  import { EventBus } from '@/EventBus'
-  import InfoBox from '@/components/InfoBox'
-  import MoLoader from '@/components/atoms/MoLoader'
-  
-  export default {
-    components: {
-      InfoBox,
-      MoLoader
-    },
-    data () {
-      return {
-        org: {},
-        isLoading: false
-      }
-    },
-    mounted () {
+import Organisation from '@/api/Organisation'
+import { EventBus } from '@/EventBus'
+import InfoBox from '@/components/InfoBox'
+import MoLoader from '@/components/atoms/MoLoader'
+
+export default {
+  components: {
+    InfoBox,
+    MoLoader
+  },
+  data () {
+    return {
+      org: {},
+      isLoading: false
+    }
+  },
+  mounted () {
+    this.getOrganisationDetails()
+    EventBus.$on('organisation-changed', () => {
       this.getOrganisationDetails()
-      EventBus.$on('organisation-changed', () => {
-        this.getOrganisationDetails()
-      })
-    },
-    beforeDestroy () {
-      EventBus.$off(['organisation-changed'])
-    },
-    methods: {
-      getOrganisationDetails () {
-        let vm = this
-        vm.isLoading = true
-        let org = this.$store.state.organisation
-        if (org.uuid === undefined) return
-        Organisation.get(org.uuid)
-          .then(response => {
-            vm.org = response
-            vm.isLoading = false
-          })
-      }
+    })
+  },
+  beforeDestroy () {
+    EventBus.$off(['organisation-changed'])
+  },
+  methods: {
+    getOrganisationDetails () {
+      let vm = this
+      vm.isLoading = true
+      let org = this.$store.state.organisation
+      if (org.uuid === undefined) return
+      Organisation.get(org.uuid)
+        .then(response => {
+          vm.org = response
+          vm.isLoading = false
+        })
     }
   }
+}
 </script>
