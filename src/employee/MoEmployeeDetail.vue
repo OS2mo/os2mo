@@ -11,7 +11,8 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal 
+    <mo-entry-modal
+      class="margin-top"
       action="CREATE"
       type="EMPLOYEE" 
       :uuid="uuid" 
@@ -82,3 +83,9 @@
     }
   }
 </script>
+
+<style scoped>
+  .margin-top {
+    margin-top: 1rem;
+  }
+</style>

@@ -1,8 +1,5 @@
 <template>
   <div>
-    <div class="form-group">
-      <mo-date-picker-range v-model="entry.validity"/>
-    </div>
     <div class="form-row">
       <div class="form-group col">
         <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>

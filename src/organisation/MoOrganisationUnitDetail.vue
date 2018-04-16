@@ -10,14 +10,16 @@
       type="ORG_UNIT"
       @shown="getDetails"
     />
-
+    
     <mo-entry-modal
+      class="margin-top"
       action="CREATE" 
       type="ORG_UNIT"
       :uuid="uuid" 
       :label="createLabel" 
       :entry-component="entryComponent"
       :content-type="detail"
+      v-if="!hideCreate"
     />
   </div>
 </template>
@@ -49,7 +51,8 @@
       createLabel: {
         type: String,
         default: 'Opret ny'
-      }
+      },
+      hideCreate: Boolean
     },
     data () {
       return {
@@ -103,3 +106,9 @@
     }
   }
 </script>
+
+<style scoped>
+  .margin-top {
+    margin-top: 1rem;
+  }
+</style>

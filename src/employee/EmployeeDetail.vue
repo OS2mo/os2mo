@@ -9,7 +9,7 @@
       <div class="row">
         <div class="mr-auto">
         </div>
-        <div>
+        <div class="margin-right">
           <mo-history :uuid="$route.params.uuid" type="EMPLOYEE"/>
         </div>
       </div>
@@ -58,6 +58,10 @@
 <style scoped>
   .cpr {
     color: #aaa
+  }
+
+  .margin-right {
+    margin-right: 1rem;
   }
   
 </style>
