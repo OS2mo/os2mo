@@ -305,7 +305,19 @@ Gør følgende for at installere MORa på Ubuntu 16.04::
   git clone https://github.com/magenta-aps/mora /srv/mora
 
   # installér afhængigheder
-  sudo apt install python3-venv nodejs-legacy npm
+  sudo apt install python3-venv
+
+  # tilføj nodesource nøgle
+  sudo apt-key add /srv/mora/setup/nodesource/nodesource.gpg.key
+
+  # tilføj nodesource apt repository
+  sudo cp /srv/mora/setup/nodesource/nodesource-8.x.list /etc/apt/sources.list.d/nodesource-8.x.list
+
+  # opdater apt cache
+  sudo apt-get update
+
+  # installér nodejs v8.x (LTS)
+  sudo apt-get install nodejs
 
   # byg applikationen; dette opretter det virtuelle miljø
   /srv/mora/manage.py build
