@@ -8,6 +8,7 @@
           detail="org_unit"
           :columns="columns.org_unit"
           :entry-component="timemachineFriendly ? undefined : components.orgUnit"
+          hide-create
         />
       </b-tab>
       <b-tab title="Adresse">

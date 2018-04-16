@@ -19,6 +19,7 @@
       :label="createLabel" 
       :entry-component="entryComponent"
       :content-type="detail"
+      v-if="!hideCreate"
     />
   </div>
 </template>
@@ -50,7 +51,8 @@
       createLabel: {
         type: String,
         default: 'Opret ny'
-      }
+      },
+      hideCreate: Boolean
     },
     data () {
       return {
