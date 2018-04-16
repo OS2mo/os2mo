@@ -55,7 +55,6 @@
     mounted () {
       this.getChildren()
       EventBus.$on('organisation-unit-changed', () => {
-        console.log('updated tree')
         this.getChildren()
       })
     },

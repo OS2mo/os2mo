@@ -7,9 +7,8 @@
         {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
       </h4>
       <div class="row">
-        <div class="mr-auto">
-        </div>
-        <div class="margin-right">
+        <div class="col"></div>
+        <div class="mr-3">
           <mo-history :uuid="$route.params.uuid" type="EMPLOYEE"/>
         </div>
       </div>
@@ -59,9 +58,4 @@
   .cpr {
     color: #aaa
   }
-
-  .margin-right {
-    margin-right: 1rem;
-  }
-  
 </style>

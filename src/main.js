@@ -40,9 +40,14 @@ Vue.use(require('vue-moment'), {
 Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
 Vue.component('icon', Icon)
 
+const i18n = new VueI18n({
+  locale: 'da' // set locale
+})
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
+  i18n,
   router,
   store,
   template: '<App/>',

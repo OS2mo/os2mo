@@ -1,77 +1,43 @@
+<i18n>
+{
+  "da": {
+    "EMPLOYEE_CREATE": "Medarbejderen med UUID {uuid} er blevet oprettet.",
+    "EMPLOYEE_EDIT": "Medarbejderen med UUID {uuid} er blevet redigeret.",
+    "EMPLOYEE_LEAVE": "Medarbejderen med UUID {uuid} har fået tildelt orlov.",
+    "EMPLOYEE_MOVE": "Medarbejderen med UUID {uuid} er blevet flyttet.",
+    "EMPLOYEE_TERMINATE": "Medarbejderen med UUID {uuid} er afsluttet.",
+
+    "ORGANISATION_CREATE": "Organisationsenheden med UUID {UUID} er blevet oprettet.",
+    "ORGANISATION_EDIT": "Organisationsenheden med UUID {uuid} er blevet redigeret.",
+    "ORGANISATION_RENAME": "Organisationsenheden med UUID {uuid} er blevet omdøbt.",
+    "ORGANISATION_MOVE": "Organisationsenheden med UUID {uuid} er blevet flyttet",
+    "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet."
+  }
+}
+</i18n>
+
 <template>
   <div class="wrapper">
     <div 
-      class="alert alert-success" 
-      v-for="log in reverse(workLogs)" 
+      class="alert alert-success mt-2" 
+      v-for="log in reverse(worklogs)" 
       v-bind:key="log.uuid" 
       role="alert"
     >
-      {{log}}
+    {{$t(log.type, {uuid: log.uuid})}}
+
     </div>
   </div>
 </template>
 
 <script>
-  import { EventBus } from '@/EventBus'
+  import { mapGetters } from 'vuex'
+
   export default {
     name: 'MoWorklog',
-
-    data () {
-      return {
-        workLogs: []
-      }
-    },
-
-    mounted () {
-      EventBus.$on('organisation-unit-create', org => {
-        let msg = 'Organisationsenheden med UUID ' + org + ' er oprettet med success.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('organisation-unit-rename', org => {
-        console.log(org)
-        let msg = 'Organisationsenheden med UUID ' + org + ' er omdøbt med success.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('organisation-unit-move', org => {
-        let msg = 'Organisationsenheden med UUID ' + org + ' er flyttet korrekt.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('organisation-unit-terminate', org => {
-        let msg = 'Organisationsenheden med UUID ' + org + ' er afsluttet korrekt.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('organisation-unit-edit', org => {
-        let msg = 'Organisationsenheden med UUID ' + org + ' er blevet redigeret.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('employee-create', emp => {
-        let msg = 'Medarbejderen med UUID ' + emp + ' er blevet oprettet.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('employee-leave', emp => {
-        let msg = 'Medarbejderen med UUID ' + emp + ' har fået tildelt orlov.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('employee-move', emp => {
-        let msg = 'Medarbejderen med UUID ' + emp + ' er blevet flyttet.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('employee-terminate', emp => {
-        let msg = 'Medarbejderen med UUID ' + emp + ' er afsluttet korrekt.'
-        this.workLogs.push(msg)
-      })
-
-      EventBus.$on('employee-edit', emp => {
-        let msg = 'Medarbejderen med UUID ' + emp + ' er blevet redigeret.'
-        this.workLogs.push(msg)
+    computed: {
+      ...mapGetters({
+        worklogs: 'log/getWorkLog'
       })
     },
     methods: {

@@ -12,7 +12,7 @@
     />
 
     <mo-entry-modal
-      class="margin-top"
+      class="mt-3"
       action="CREATE"
       type="EMPLOYEE" 
       :uuid="uuid" 
@@ -83,9 +83,3 @@
     }
   }
 </script>
-
-<style scoped>
-  .margin-top {
-    margin-top: 1rem;
-  }
-</style>

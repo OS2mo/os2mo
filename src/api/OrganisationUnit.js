@@ -1,5 +1,6 @@
 import { Service } from './HttpCommon'
-import { EventBus } from '../EventBus'
+import { EventBus } from '@/EventBus'
+import store from '@/vuex/store'
 
 export default {
 
@@ -86,7 +87,8 @@ export default {
     return Service.post('/ou/create', create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed')
-        EventBus.$emit('organisation-unit-create', response.data)
+        // EventBus.$emit('organisation-unit-create', response.data)
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', uuid: response.data})
         return response.data
       })
       .catch(error => {
@@ -105,7 +107,8 @@ export default {
     return Service.post(`/ou/${uuid}/create`, create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed', response.data)
-        EventBus.$emit('organisation-unit-create', response.data)
+        // EventBus.$emit('organisation-unit-create', response.data)
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', uuid: response.data})
         return response.data
       })
       .catch(error => {
@@ -135,6 +138,7 @@ export default {
     return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-edit', response)
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', uuid: response.data})
         return response
       })
   },
@@ -150,6 +154,7 @@ export default {
     return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-rename', response)
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', uuid: response})
         return response
       })
   },
@@ -165,6 +170,7 @@ export default {
     return this.editEntry(uuid, edit)
       .then(response => {
         EventBus.$emit('organisation-unit-move', response)
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', uuid: response.data})
         return response
       })
   },
@@ -180,6 +186,7 @@ export default {
       .then(response => {
         EventBus.$emit('organisation-unit-changed')
         EventBus.$emit('organisation-unit-terminate', response.data)
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', uuid: response.data})
         return response.data
       })
       .catch(error => {

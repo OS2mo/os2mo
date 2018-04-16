@@ -77,9 +77,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-  .input-margin {
-    margin-top: 10
-  }
-</style>
