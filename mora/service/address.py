@@ -51,11 +51,10 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_relation_for(classobj, value):
-    scope = classobj['scope']
-
-    if not isinstance(value, str):
-        value = str(value)
+def get_relation_for(classobj, addrobj, fallback=None):
+    scope = common.checked_get(classobj, 'scope', '', required=True)
+    value = common.checked_get(addrobj, keys.VALUE, '', required=True,
+                               fallback=fallback)
 
     if scope == 'DAR':
         if not util.is_uuid(value):
@@ -238,7 +237,7 @@ class Addresses(common.AbstractRelationDetail):
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(
             common.checked_get(req, keys.ADDRESS_TYPE, {}, required=True),
-            common.checked_get(req, keys.VALUE, '', required=True),
+            req,
         )
         rel['virkning'] = common.get_validity_effect(req)
 
@@ -269,15 +268,15 @@ class Addresses(common.AbstractRelationDetail):
         old_rel = get_relation_for(
             common.checked_get(old_entry, keys.ADDRESS_TYPE, {},
                                required=True),
-            common.checked_get(old_entry, keys.VALUE, '', required=True),
+            old_entry,
         )
         old_rel['virkning'] = common.get_validity_effect(old_entry)
 
         new_rel = get_relation_for(
             common.checked_get(new_entry, keys.ADDRESS_TYPE, {},
                                fallback=old_entry, required=True),
-            common.checked_get(new_entry, keys.VALUE, '',
-                               fallback=old_entry, required=True),
+            new_entry,
+            old_entry,
         )
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 

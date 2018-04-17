@@ -42,7 +42,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 "address": {
-                    'value': 33369696,
+                    'value': '33369696',
                 },
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",

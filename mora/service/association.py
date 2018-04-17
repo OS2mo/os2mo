@@ -56,7 +56,7 @@ def create_association(employee_uuid, req):
         funktionstype=association_type_uuid,
         opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else None,
         adresser=[
-            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+            address.get_relation_for(address_type, address_obj),
         ] if address_obj and address_type else None,
     )
 
@@ -120,7 +120,7 @@ def edit_association(employee_uuid, req):
 
         update_fields.append((
             mapping.SINGLE_ADDRESS_FIELD,
-            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+            address.get_relation_for(address_type, address_obj),
         ))
 
     payload = update_payload(new_from, new_to, update_fields, original,

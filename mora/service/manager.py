@@ -73,7 +73,7 @@ def create_manager(employee_uuid, req):
         funktionstype=manager_type_uuid,
         opgaver=opgaver,
         adresser=[
-            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+            address.get_relation_for(address_type, address_obj),
         ] if address_obj and address_type else None,
     )
 
@@ -149,7 +149,7 @@ def edit_manager(employee_uuid, req):
 
         update_fields.append((
             mapping.SINGLE_ADDRESS_FIELD,
-            address.get_relation_for(address_type, address_obj[keys.VALUE]),
+            address.get_relation_for(address_type, address_obj),
         ))
 
     payload = common.update_payload(new_from, new_to, update_fields, original,
