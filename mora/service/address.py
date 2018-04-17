@@ -242,9 +242,11 @@ class Addresses(common.AbstractRelationDetail):
         )
         rel['virkning'] = common.get_validity_effect(req)
 
+        addrs = original['relationer'].get('adresser', [])
+
         payload = {
             'relationer': {
-                'adresser': original['relationer']['adresser'] + [rel],
+                'adresser': addrs + [rel],
             },
             'note': 'Tilføj adresse',
         }
