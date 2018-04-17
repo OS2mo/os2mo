@@ -16,10 +16,11 @@ from tests import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
+@util.mock('dawa-addresses.json', allow_mox=True)
 class Writing(util.LoRATestCase):
     maxDiff = None
 
-    def test_employee_address(self):
+    def test_employee_address(self, mock):
         self.load_sample_structures()
 
         # Check the POST request
@@ -395,7 +396,7 @@ class Writing(util.LoRATestCase):
                 ],
                 edited['relationer']['adresser'])
 
-    def test_edit_address(self):
+    def test_edit_address(self, mock):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -618,7 +619,7 @@ class Writing(util.LoRATestCase):
             [],
         )
 
-    def test_create_unit_address(self):
+    def test_create_unit_address(self, mock):
         self.load_sample_structures()
 
         # Check the POST request
@@ -864,10 +865,9 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(address_rels, original['relationer']['adresser'])
 
-    @util.mock('aabogade.json', allow_mox=True)
     @unittest.mock.patch('uuid.uuid4',
                          new=lambda: '00000000-0000-0000-0000-000000000000')
-    def test_create_org_unit(self, m):
+    def test_create_org_unit(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -1032,7 +1032,7 @@ class Writing(util.LoRATestCase):
             c.organisationenhed.get(unitid)['relationer']['adresser'],
         )
 
-    def test_edit_org_unit_overwrite(self):
+    def test_edit_org_unit_overwrite(self, mock):
         self.load_sample_structures()
 
         unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
@@ -1097,7 +1097,7 @@ class Writing(util.LoRATestCase):
             }],
         )
 
-    def test_add_org_unit_address(self):
+    def test_add_org_unit_address(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -1270,9 +1270,10 @@ class Writing(util.LoRATestCase):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
+@util.mock('dawa-addresses.json', allow_mox=True)
 class Reading(util.LoRATestCase):
 
-    def test_reading_present(self):
+    def test_reading_present(self, mock):
         self.load_sample_structures()
 
         with self.subTest('present I'):
