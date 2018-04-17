@@ -1343,6 +1343,173 @@ class Writing(util.LoRATestCase):
             addresses,
         )
 
+    def test_edit_org_unit_address_overwrite(self, mock):
+        self.load_sample_structures()
+
+        unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        addresses = [
+            {
+                "address_type": {
+                    "example": "20304060",
+                    "name": "Telefonnummer",
+                    "scope": "PHONE",
+                    "user_key": "Telefon",
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+                },
+                "href": "tel:+4587150000",
+                "name": "8715 0000",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "value": "urn:magenta.dk:telefon:+4587150000"
+            },
+            {
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                },
+                "href": "https://www.openstreetmap.org/"
+                "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+                "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+            }
+        ]
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
+
+        req = [
+            {
+                "type": "address",
+                "original": addresses[1],
+                "data": {
+                    "value": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+                    "validity": {
+                        'from': '2016-06-01',
+                    },
+                }
+            },
+        ]
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid, json=req)
+
+        addresses[1]['validity']['from'] = '2016-06-01T00:00:00+02:00'
+        addresses[1].update(
+            name='Nordre Ringgade 2, 8000 Aarhus C',
+            value='d901ff7e-8ad9-4581-84c7-5759aaa82f7b',
+            href=(
+                'https://www.openstreetmap.org/'
+                '?mlon=10.20019416&mlat=56.17063452&zoom=16'
+            ),
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            addresses,
+        )
+
+    def test_edit_org_unit_address(self, mock):
+        self.load_sample_structures()
+
+        unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        addresses = [
+            {
+                "address_type": {
+                    "example": "20304060",
+                    "name": "Telefonnummer",
+                    "scope": "PHONE",
+                    "user_key": "Telefon",
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+                },
+                "href": "tel:+4587150000",
+                "name": "8715 0000",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "value": "urn:magenta.dk:telefon:+4587150000"
+            },
+            {
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                },
+                "href": "https://www.openstreetmap.org/"
+                "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+                "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+            }
+        ]
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
+
+        req = [
+            {
+                "type": "address",
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                },
+                "value": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+                "validity": {
+                    'from': '2016-06-01',
+                },
+            },
+        ]
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid, json=req)
+
+        addresses.append({
+            'address_type': {
+                'example': '<UUID>',
+                'name': 'Adresse',
+                'scope': 'DAR',
+                'user_key': 'Adresse',
+                'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+            },
+            'href': 'https://www.openstreetmap.org/'
+            '?mlon=10.20019416&mlat=56.17063452&zoom=16',
+            'name': 'Nordre Ringgade 2, 8000 Aarhus C',
+            'validity': {'from': '2016-06-01T00:00:00+02:00', 'to': None},
+            'value': 'd901ff7e-8ad9-4581-84c7-5759aaa82f7b',
+        })
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            addresses,
+        )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True)

@@ -138,30 +138,6 @@ class OrgUnit(common.AbstractRelationDetail):
                 {'uuid': data[keys.PARENT]['uuid']}
             ))
 
-        if keys.ADDRESS in data and keys.ADDRESS_TYPE in data:
-            addrs = original['relationer']['adresser']
-
-            if original_data and keys.ADDRESS in original_data:
-                addrs = common.replace_relation_value(
-                    addrs,
-                    address.get_relation_for(
-                        original_data[keys.ADDRESS_TYPE],
-                        original_data[keys.VALUE],
-                        original_data[keys.VALIDITY],
-                    ),
-                )
-
-            common.set_object_value(
-                payload,
-                ('relationer', 'adresser'),
-                addrs + [
-                    address.get_relation_for(
-                        data[keys.ADDRESS_TYPE],
-                        data[keys.ADDRESS][keys.VALUE],
-                    ),
-                ],
-            )
-
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)
 
