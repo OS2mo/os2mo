@@ -37,7 +37,7 @@ class Tests(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
                 'address_type': {
                     'example': '<UUID>',
@@ -197,7 +197,7 @@ class Tests(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
                 'address_type': {
                     'example': '<UUID>',
@@ -755,7 +755,7 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com',
                 },
                 'address_type': {
                     'example': 'test@example.com',
@@ -809,7 +809,7 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com',
                 },
                 'address_type': {
                     'example': 'test@example.com',
@@ -887,7 +887,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 "address": {
-                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
@@ -1099,7 +1099,7 @@ class Tests(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
                 'address_type': {
                     'example': '<UUID>',
@@ -1290,7 +1290,7 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com',
                 },
                 'address_type': {
                     'example': 'test@example.com',
@@ -1495,7 +1495,7 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com',
                 },
                 'address_type': {
                     'example': 'test@example.com',

@@ -2356,7 +2356,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'tel:+4511221122',
                         'name': '1122 1122',
-                        'value': 'urn:magenta.dk:telefon:+4511221122',
+                        'urn': 'urn:magenta.dk:telefon:+4511221122',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2373,7 +2373,7 @@ class IntegrationTests(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                         'name': 'Pilestræde 43, 3., 1112 København K',
-                        'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                        'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2389,7 +2389,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'mailto:sanne@example.com',
                         'name': 'sanne@example.com',
-                        'value': 'urn:mailto:sanne@example.com',
+                        'urn': 'urn:mailto:sanne@example.com',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2413,7 +2413,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'tel:+4511223344',
                         'name': '1122 3344',
-                        'value': 'urn:magenta.dk:telefon:+4511223344',
+                        'urn': 'urn:magenta.dk:telefon:+4511223344',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2429,7 +2429,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'mailto:sune@example.com',
                         'name': 'sune@example.com',
-                        'value': 'urn:mailto:sune@example.com',
+                        'urn': 'urn:mailto:sune@example.com',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2446,7 +2446,7 @@ class IntegrationTests(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                         'name': 'Åbogade 15, 8200 Aarhus N',
-                        'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'validity': {
                             'from': '2018-01-01T00:00:00+01:00',
                             'to': None,
@@ -2470,7 +2470,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'tel:+4544772000',
                         'name': '4477 2000',
-                        'value': 'urn:magenta.dk:telefon:+4544772000',
+                        'urn': 'urn:magenta.dk:telefon:+4544772000',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
                             'to': None,
@@ -2487,7 +2487,7 @@ class IntegrationTests(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.3647784&mlat=55.73404048&zoom=16',
                         'name': 'Hold-An Vej 7, 2750 Ballerup',
-                        'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                        'uuid': 'bd7e5317-4a9e-437b-8923-11156406b117',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
                             'to': None,
@@ -2503,7 +2503,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'href': 'mailto:borger@balk.dk',
                         'name': 'borger@balk.dk',
-                        'value': 'urn:mailto:borger@balk.dk',
+                        'urn': 'urn:mailto:borger@balk.dk',
                         'validity': {
                             'from': '1964-05-24T00:00:00+01:00',
                             'to': None,
@@ -2524,7 +2524,7 @@ class IntegrationTests(util.LoRATestCase):
                     'uuid': 'eb520fe5-eb72-4110-b81d-9c1a129dc22a'},
                   'href': 'tel:+4544773333',
                   'name': '4477 3333',
-                  'value': 'urn:magenta.dk:telefon:+4544773333',
+                  'urn': 'urn:magenta.dk:telefon:+4544773333',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}},
@@ -2537,7 +2537,7 @@ class IntegrationTests(util.LoRATestCase):
                   'href': 'https://www.openstreetmap.org/'
                   '?mlon=12.3597027&mlat=55.72970211&zoom=16',
                   'name': 'Banegårdspladsen 1, 2750 Ballerup',
-                  'value': '99b29a62-01fd-40be-b5fe-8bfc4be35e83',
+                  'uuid': '99b29a62-01fd-40be-b5fe-8bfc4be35e83',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}},
@@ -2549,7 +2549,7 @@ class IntegrationTests(util.LoRATestCase):
                      'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
                   'href': 'mailto:ballerup-bibliotek@balk.dk',
                   'name': 'ballerup-bibliotek@balk.dk',
-                  'value': 'urn:mailto:ballerup-bibliotek@balk.dk',
+                  'urn': 'urn:mailto:ballerup-bibliotek@balk.dk',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}}],
@@ -2568,7 +2568,7 @@ class IntegrationTests(util.LoRATestCase):
                   'href': 'https://www.openstreetmap.org/'
                   '?mlon=12.40661136&mlat=55.72347773&zoom=16',
                   'name': 'Torvevej 21, 2740 Skovlunde',
-                  'value': '45b40fc3-bb75-412c-b122-d9df7b0ade94',
+                  'uuid': '45b40fc3-bb75-412c-b122-d9df7b0ade94',
                   'validity': {
                       'from': '2006-01-01T00:00:00+01:00',
                       'to': None}}],
@@ -2587,7 +2587,7 @@ class IntegrationTests(util.LoRATestCase):
                   'href': 'https://www.openstreetmap.org/'
                   '?mlon=12.37008192&mlat=55.71904978&zoom=16',
                   'name': 'Ballerup Idrætsby 38, 2750 Ballerup',
-                  'value': '9ab45e95-a42a-47c0-b284-e5d2377fc429',
+                  'uuid': '9ab45e95-a42a-47c0-b284-e5d2377fc429',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}},
@@ -2599,7 +2599,7 @@ class IntegrationTests(util.LoRATestCase):
                      'uuid': '80764a2f-6a7b-492c-92d9-96d24ac845ea'},
                   'href': 'mailto:tbri@balk.dk',
                   'name': 'tbri@balk.dk',
-                  'value': 'urn:mailto:tbri@balk.dk',
+                  'urn': 'urn:mailto:tbri@balk.dk',
                   'validity': {
                       'from': '1993-01-01T00:00:00+01:00',
                       'to': None}}],

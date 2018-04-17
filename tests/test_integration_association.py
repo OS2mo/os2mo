@@ -175,7 +175,7 @@ class Tests(util.LoRATestCase):
             'address': {
                 'href': 'tel:+4533369696',
                 'name': '3336 9696',
-                'value': 'urn:magenta.dk:telefon:+4533369696',
+                'urn': 'urn:magenta.dk:telefon:+4533369696',
             },
             'address_type': {
                 'example': '20304060',
@@ -244,7 +244,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 "address": {
-                    'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                 },
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
@@ -367,7 +367,7 @@ class Tests(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                 'name': 'Pilestræde 43, 3., 1112 København K',
-                'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
             },
             'address_type': {
                 'example': '<UUID>',
@@ -438,7 +438,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 "address": {
-                    'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                 },
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
@@ -571,7 +571,7 @@ class Tests(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                 'name': 'Pilestræde 43, 3., 1112 København K',
-                'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
             },
             'address_type': {
                 'example': '<UUID>',
@@ -1741,7 +1741,7 @@ class AddressTests(util.LoRATestCase):
             'address': {
                 'href': 'mailto:user@example.com',
                 'name': 'user@example.com',
-                'value': 'urn:mailto:user@example.com',
+                'urn': 'urn:mailto:user@example.com',
             },
             'address_type': {
                 'example': 'test@example.com',
@@ -1804,7 +1804,7 @@ class AddressTests(util.LoRATestCase):
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 "address": {
-                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
                 "validity": {
                     "from": "2017-06-01T00:00:00+02",
@@ -1965,7 +1965,7 @@ class AddressTests(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                 'name': 'Åbogade 15, 8200 Aarhus N',
-                'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
             },
             validity={
                 'from': '2017-06-01T00:00:00+02:00',

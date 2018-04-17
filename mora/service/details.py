@@ -196,7 +196,7 @@ def get_detail(type, id, function):
             "href": "https://www.openstreetmap.org/"
                     "?mlon=12.57924839&mlat=55.68113676&zoom=16",
             "name": "Pilestr\u00e6de 43, 3., 1112 K\u00f8benhavn K",
-            "value": "0a3f50a0-23c9-32b8-e044-0003ba298018"
+            "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018"
           },
           "address_type": {
             "example": "<UUID>",
@@ -259,7 +259,7 @@ def get_detail(type, id, function):
      [
         {
           "name": "Christiansborg Slotsplads 1, 1218 København K",
-          "value": "bae093df-3b06-4f23-90a8-92eabedb3622"
+          "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622"
           "href": "https://www.openstreetmap.org/"
               "?mlon=12.58176945&mlat=55.67563739&zoom=16",
           "address_type": {
@@ -273,7 +273,7 @@ def get_detail(type, id, function):
         {
           "name": "goofy@example.com",
           "href": "mailto:goofy@example.com",
-          "value": "urn:mailto:goofy@example.com"
+          "urn": "urn:mailto:goofy@example.com"
           "address_type": {
             "example": "test@example.com",
             "name": "Emailadresse",
@@ -289,7 +289,7 @@ def get_detail(type, id, function):
         {
           "name": "goofy@example.com",
           "href": "mailto:goofy@example.com",
-          "value": "urn:mailto:goofy@example.com"
+          "urn": "urn:mailto:goofy@example.com"
           "address_type": {
             "example": "test@example.com",
             "name": "Emailadresse",
@@ -348,7 +348,7 @@ def get_detail(type, id, function):
           "address": {
             "href": "mailto:ceo@example.com",
             "name": "ceo@example.com",
-            "value": "urn:mailto:ceo@example.com"
+            "urn": "urn:mailto:ceo@example.com"
           },
           "address_type": {
             "example": "test@example.com",

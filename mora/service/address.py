@@ -53,21 +53,29 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
 
 def get_relation_for(classobj, addrobj, fallback=None):
     scope = common.checked_get(classobj, 'scope', '', required=True)
-    value = common.checked_get(addrobj, keys.VALUE, '', required=True,
-                               fallback=fallback)
 
     if scope == 'DAR':
-        if not util.is_uuid(value):
-            raise ValueError(
-                '{!r} is not a valid address UUID!'.format(value),
-            )
-
-        r = {
-            'uuid': value,
+        return {
+            'uuid': common.get_uuid(addrobj, fallback),
             'objekttype': classobj['uuid'],
         }
 
     elif scope in URN_PREFIXES:
+        # this is the fallback: we want to use the 'urn' key if set
+        # directly (e.g. if this is the original) or if it's present
+        # in the fallback -- but with an important caveat: we always
+        # want to report that the *value* is missing in the
+        # exception/error message.
+        if (
+            'urn' in addrobj or
+            keys.VALUE not in addrobj and fallback and 'urn' in fallback
+        ):
+            return {
+                'urn': common.get_urn(addrobj, fallback),
+                'objekttype': classobj['uuid'],
+            }
+
+        value = common.checked_get(addrobj, keys.VALUE, '', required=True)
         prefix = URN_PREFIXES[scope]
 
         if scope == 'PHONE':
@@ -79,15 +87,13 @@ def get_relation_for(classobj, addrobj, fallback=None):
         if not util.is_urn(value):
             value = prefix + value
 
-        r = {
+        return {
             'urn': value,
             'objekttype': classobj['uuid'],
         }
 
     else:
         raise ValueError('unknown address scope {!r}!'.format(scope))
-
-    return r
 
 
 def get_address_class(c, addrrel, class_cache):
@@ -105,7 +111,7 @@ def get_address_class(c, addrrel, class_cache):
 
 def get_one_address(c, addrrel, class_cache=None):
     addrclass = get_address_class(c, addrrel, class_cache)
-    addrformat = addrclass['scope']
+    addrformat = common.checked_get(addrclass, 'scope', 'DAR')
 
     if addrformat == 'DAR':
         # unfortunately, we cannot live with struktur=mini, as it omits
@@ -121,27 +127,30 @@ def get_one_address(c, addrrel, class_cache=None):
 
         addrobj = r.json()
 
-        name = addrobj['adressebetegnelse']
-        value = addrrel['uuid']
-        href = (
-            'https://www.openstreetmap.org/'
-            '?mlon={}&mlat={}&zoom=16'.format(
-                *addrobj['adgangsadresse']
-                ['adgangspunkt']['koordinater']
-            )
-        )
+        return {
+            keys.HREF: (
+                'https://www.openstreetmap.org/'
+                '?mlon={}&mlat={}&zoom=16'.format(
+                    *addrobj['adgangsadresse']
+                    ['adgangspunkt']['koordinater']
+                )
+            ),
+
+            keys.NAME: addrobj['adressebetegnelse'],
+            keys.UUID: addrrel['uuid'],
+        }
 
     elif addrformat in URN_PREFIXES:
         prefix = URN_PREFIXES[addrformat]
 
-        value = addrrel['urn']
+        urn = addrrel['urn']
 
-        if not value.startswith(prefix):
-            raise ValueError('invalid value {!r}'.format(
+        if not urn.startswith(prefix):
+            raise ValueError('invalid urn {!r}'.format(
                 addrrel['urn'],
             ))
 
-        name = value[len(prefix):]
+        name = urn[len(prefix):]
         href = (
             HREF_PREFIXES[addrformat] + name
             if addrformat in HREF_PREFIXES
@@ -151,15 +160,15 @@ def get_one_address(c, addrrel, class_cache=None):
         if addrformat == 'PHONE':
             name = re.sub(r'^(\+45)(\d{4})(\d{4})$', r'\2 \3', name)
 
+        return {
+            keys.HREF: href,
+
+            keys.NAME: name,
+            keys.URN: urn,
+        }
+
     else:
         raise ValueError('invalid address scope {!r}'.format(addrformat))
-
-    return {
-        keys.HREF: href,
-
-        keys.NAME: name,
-        keys.VALUE: value,
-    }
 
 
 class Addresses(common.AbstractRelationDetail):

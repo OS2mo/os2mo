@@ -971,7 +971,7 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com',
                 },
                 'address_type': {
                     'example': 'test@example.com',
