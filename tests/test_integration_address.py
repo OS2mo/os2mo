@@ -396,6 +396,81 @@ class Writing(util.LoRATestCase):
                 ],
                 edited['relationer']['adresser'])
 
+    def test_employee_add_first_address(self, mock):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        address_class = {
+            'example': '<UUID>',
+            'name': 'Adresse',
+            'scope': 'DAR',
+            'user_key': 'Adresse',
+            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+        }
+
+        userid = util.load_fixture('organisation/bruger',
+                                   'create_bruger_fætterguf.json')
+
+        original = c.bruger.get(userid)
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/address?validity=past'.format(userid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/address'.format(userid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/address?validity=future'.format(userid),
+                [],
+            )
+
+            self.assertNotIn('adresser', original['relationer'])
+
+        self.assertRequestResponse(
+            '/service/e/{}/create'.format(userid),
+            userid,
+            json=[
+                {
+                    "type": "address",
+                    "address_type": address_class,
+                    "uuid": '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                    "validity": {
+                        "from": "2013-01-01T00:00:00+01:00",
+                        "to": None,
+                    },
+                },
+            ])
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 1., 8200 Aarhus N',
+                    'address_type': {
+                        'scope': 'DAR',
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'user_key': 'Adresse',
+                    },
+                    'validity': {
+                        'to': None,
+                        'from': '2013-01-01T00:00:00+01:00',
+                    },
+                    'value': '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                }
+            ],
+        )
+
     def test_edit_address(self, mock):
         self.load_sample_structures()
 
