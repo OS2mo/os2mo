@@ -11,7 +11,7 @@
       v-model="orgName"
       @click.stop="toggleTree()"
       :disabled="isDisabled"
-      v-validate="{required: true}"
+      v-validate="{required: !isDisabled}"
     >
     <div 
       class="mo-input-group" 
