@@ -34,14 +34,14 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                },
                 "address": {
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    },
                     'value': '33369696',
                 },
                 "validity": {
@@ -176,13 +176,13 @@ class Tests(util.LoRATestCase):
                 'href': 'tel:+4533369696',
                 'name': '3336 9696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
-            },
-            'address_type': {
-                'example': '20304060',
-                'name': 'Telefonnummer',
-                'scope': 'PHONE',
-                'user_key': 'Telefon',
-                'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                'address_type': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                },
             },
             'association_type': {
                 'example': None,
@@ -236,14 +236,14 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
                 "address": {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                 },
                 "validity": {
@@ -368,13 +368,13 @@ class Tests(util.LoRATestCase):
                 '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                 'name': 'Pilestræde 43, 3., 1112 København K',
                 'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
-            },
-            'address_type': {
-                'example': '<UUID>',
-                'name': 'Adresse',
-                'scope': 'DAR',
-                'user_key': 'Adresse',
-                'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
             },
             'association_type': {
                 'example': None,
@@ -430,14 +430,14 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
                 "address": {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                 },
                 "validity": {
@@ -572,13 +572,13 @@ class Tests(util.LoRATestCase):
                 '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                 'name': 'Pilestræde 43, 3., 1112 København K',
                 'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
-            },
-            'address_type': {
-                'example': '<UUID>',
-                'name': 'Adresse',
-                'scope': 'DAR',
-                'user_key': 'Adresse',
-                'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
             },
             'association_type': {
                 'example': None,
@@ -793,7 +793,6 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': None,
-            'address_type': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -850,7 +849,6 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': None,
-            'address_type': None,
             'association_type': None,
             'job_function': None,
             'org_unit': {
@@ -1070,7 +1068,6 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': None,
-            'address_type': None,
             'association_type': None,
             'job_function': None,
             'org_unit': {
@@ -1273,7 +1270,6 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': None,
-            'address_type': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -1509,7 +1505,6 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': None,
-            'address_type': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -1717,15 +1712,15 @@ class AddressTests(util.LoRATestCase):
             "type": "association",
             "uuid": association_uuid,
             "data": {
-                "address_type": {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                },
                 "address": {
                     "value": "user@example.com",
+                    "address_type": {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
                 },
                 "validity": {
                     "from": "2017-01-01T00:00:00+01",
@@ -1742,13 +1737,13 @@ class AddressTests(util.LoRATestCase):
                 'href': 'mailto:user@example.com',
                 'name': 'user@example.com',
                 'urn': 'urn:mailto:user@example.com',
-            },
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                'address_type': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
             },
             'association_type': {
                 'example': None,
@@ -1796,14 +1791,14 @@ class AddressTests(util.LoRATestCase):
             "type": "association",
             "uuid": association_uuid,
             "data": {
-                "address_type": {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
                 "address": {
+                    "address_type": {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
                     "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
                 "validity": {
@@ -1954,14 +1949,14 @@ class AddressTests(util.LoRATestCase):
         self.assertEqual(expected_association, actual_association)
 
         expected[0].update(
-            address_type={
-                'example': '<UUID>',
-                'name': 'Adresse',
-                'scope': 'DAR',
-                'user_key': 'Adresse',
-                'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-            },
             address={
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'Adresse',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                 'name': 'Åbogade 15, 8200 Aarhus N',

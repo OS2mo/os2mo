@@ -487,38 +487,38 @@ def get_detail(type, id, function):
     user_cache = {}
     unit_cache = {}
 
+    # the values are cache, getter, cachegetter -- if the last one is
+    # specified, we cache something other than the actual value
     converters = {
         'engagement': {
-            keys.PERSON: (user_cache, get_employee_id),
-            keys.ORG_UNIT: (unit_cache, get_unit_id),
-            keys.JOB_FUNCTION: (class_cache, get_title_id),
-            keys.ENGAGEMENT_TYPE: (class_cache, get_type_id),
+            keys.PERSON: (user_cache, get_employee_id, None),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
+            keys.JOB_FUNCTION: (class_cache, get_title_id, None),
+            keys.ENGAGEMENT_TYPE: (class_cache, get_type_id, None),
         },
         'association': {
-            keys.PERSON: (user_cache, get_employee_id),
-            keys.ORG_UNIT: (unit_cache, get_unit_id),
-            keys.JOB_FUNCTION: (class_cache, get_title_id),
-            keys.ASSOCIATION_TYPE: (class_cache, get_type_id),
-            keys.ADDRESS: (None, get_address),
-            keys.ADDRESS_TYPE: (class_cache, get_address_type),
+            keys.PERSON: (user_cache, get_employee_id, None),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
+            keys.JOB_FUNCTION: (class_cache, get_title_id, None),
+            keys.ASSOCIATION_TYPE: (class_cache, get_type_id, None),
+            keys.ADDRESS: (class_cache, get_address, get_address_type),
         },
         'role': {
-            keys.PERSON: (user_cache, get_employee_id),
-            keys.ORG_UNIT: (unit_cache, get_unit_id),
-            keys.ROLE_TYPE: (class_cache, get_type_id),
+            keys.PERSON: (user_cache, get_employee_id, None),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
+            keys.ROLE_TYPE: (class_cache, get_type_id, None),
         },
         'leave': {
-            keys.PERSON: (user_cache, get_employee_id),
-            keys.LEAVE_TYPE: (class_cache, get_type_id),
+            keys.PERSON: (user_cache, get_employee_id, None),
+            keys.LEAVE_TYPE: (class_cache, get_type_id, None),
         },
         'manager': {
-            keys.PERSON: (user_cache, get_employee_id),
-            keys.ORG_UNIT: (unit_cache, get_unit_id),
-            keys.RESPONSIBILITY: (class_cache, get_responsibility),
-            keys.MANAGER_LEVEL: (class_cache, get_manager_level),
-            keys.MANAGER_TYPE: (class_cache, get_type_id),
-            keys.ADDRESS: (None, get_address),
-            keys.ADDRESS_TYPE: (class_cache, get_address_type),
+            keys.PERSON: (user_cache, get_employee_id, None),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
+            keys.RESPONSIBILITY: (class_cache, get_responsibility, None),
+            keys.MANAGER_LEVEL: (class_cache, get_manager_level, None),
+            keys.MANAGER_TYPE: (class_cache, get_type_id, None),
+            keys.ADDRESS: (class_cache, get_address, get_address_type),
         }
     }
 
@@ -556,10 +556,9 @@ def get_detail(type, id, function):
     ]
 
     # extract all object IDs
-    for cache, getter in converters[function].values():
-        if cache is not None:
-            for start, end, funcid, effect in function_effects:
-                cache[getter(effect)] = None
+    for cache, getter, cachegetter in converters[function].values():
+        for start, end, funcid, effect in function_effects:
+            cache[(cachegetter or getter)(effect)] = None
 
     # fetch and convert each object once, rather than multiple times
     class_cache.update({
@@ -584,8 +583,13 @@ def get_detail(type, id, function):
     # finally, gather it all in the appropriate objects
     def convert(start, end, funcid, effect):
         func = {
-            key: cache.get(getter(effect)) if cache else getter(effect)
-            for key, (cache, getter) in converters[function].items()
+            key: (
+                cache.get(getter(effect))
+                if cache and not cachegetter
+                else getter(effect)
+            )
+            for key, (cache, getter, cachegetter)
+            in converters[function].items()
         }
 
         func[keys.VALIDITY] = {

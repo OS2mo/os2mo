@@ -2080,7 +2080,6 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'address': None,
-                        'address_type': None,
                         'job_function': {
                             'example': None,
                             'name': '… (≈400 flere)',
@@ -2119,7 +2118,6 @@ class IntegrationTests(util.LoRATestCase):
                 [
                     {
                         'address': None,
-                        'address_type': None,
                         'job_function': {
                             'example': None,
                             'name': '… (≈400 flere)',
@@ -2254,7 +2252,6 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/manager',
                 [
                     {
-                        'address_type': None,
                         'address': None,
                         'person': {
                             'name': 'Sanne Schäff',
@@ -2300,7 +2297,6 @@ class IntegrationTests(util.LoRATestCase):
                 '/details/manager',
                 [
                     {
-                        'address_type': None,
                         'address': None,
                         'person': {
                             'name': 'Sanne Schäff',

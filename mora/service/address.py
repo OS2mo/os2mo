@@ -184,7 +184,9 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_relation_for(typeobj, addrobj, fallback=None):
+def get_relation_for(addrobj, fallback=None):
+    typeobj = common.checked_get(addrobj, keys.ADDRESS_TYPE, {},
+                                 fallback=fallback, required=True)
     scope = common.checked_get(typeobj, 'scope', '', required=True)
 
     if scope == 'DAR':
@@ -261,6 +263,7 @@ def get_one_address(c, addrrel, class_cache=None):
         addrobj = r.json()
 
         return {
+            keys.ADDRESS_TYPE: addrclass,
             keys.HREF: (
                 'https://www.openstreetmap.org/'
                 '?mlon={}&mlat={}&zoom=16'.format(
@@ -294,6 +297,8 @@ def get_one_address(c, addrrel, class_cache=None):
             name = re.sub(r'^(\+45)(\d{4})(\d{4})$', r'\2 \3', name)
 
         return {
+            keys.ADDRESS_TYPE: addrclass,
+
             keys.HREF: href,
 
             keys.NAME: name,
@@ -377,10 +382,7 @@ class Addresses(common.AbstractRelationDetail):
 
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
-        rel = get_relation_for(
-            common.checked_get(req, keys.ADDRESS_TYPE, {}, required=True),
-            req,
-        )
+        rel = get_relation_for(req)
         rel['virkning'] = common.get_validity_effect(req)
 
         addrs = original['relationer'].get('adresser', [])
@@ -407,19 +409,10 @@ class Addresses(common.AbstractRelationDetail):
         if not old_entry:
             raise ValueError('original required!')
 
-        old_rel = get_relation_for(
-            common.checked_get(old_entry, keys.ADDRESS_TYPE, {},
-                               required=True),
-            old_entry,
-        )
+        old_rel = get_relation_for(old_entry)
         old_rel['virkning'] = common.get_validity_effect(old_entry)
 
-        new_rel = get_relation_for(
-            common.checked_get(new_entry, keys.ADDRESS_TYPE, {},
-                               fallback=old_entry, required=True),
-            new_entry,
-            old_entry,
-        )
+        new_rel = get_relation_for(new_entry, old_entry)
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
         try:
