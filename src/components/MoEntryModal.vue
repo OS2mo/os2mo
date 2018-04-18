@@ -5,7 +5,7 @@
       v-b-modal="idLabel" 
     >
       <icon :name="iconLabel" />
-      {{label}}
+      <span v-if="action === 'CREATE'">{{$t('buttons.create_new')}}</span>
     </button>
 
     <b-modal

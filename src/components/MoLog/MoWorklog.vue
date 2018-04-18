@@ -21,10 +21,10 @@
     <div 
       class="alert alert-success mt-2" 
       v-for="log in reverse(worklogs)" 
-      v-bind:key="log.uuid" 
+      v-bind:key="log.value" 
       role="alert"
     >
-    {{$t(log.type, {uuid: log.uuid})}}
+    {{$t(log.type, {uuid: log.value})}}
 
     </div>
   </div>

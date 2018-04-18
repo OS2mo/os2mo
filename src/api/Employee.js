@@ -30,7 +30,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -63,17 +63,18 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
   new (employee) {
     return Service.post(`/e/create`, employee)
       .then(response => {
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -90,7 +91,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
         EventBus.$emit('employee-changed')
       })
   },
@@ -98,14 +99,14 @@ export default {
   create (uuid, create) {
     return this.createEntry(uuid, create)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response})
       })
   },
 
   leave (uuid, leave) {
     return this.createEntry(uuid, leave)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', uuid: response})
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response})
       })
   },
 
@@ -119,18 +120,18 @@ export default {
     return Service.post(`/e/${uuid}/edit`, edit)
       .then(response => {
         EventBus.$emit('employee-changed', response.data)
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_EDIT', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_EDIT', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
   move (uuid, move) {
     return this.edit(uuid, move)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', uuid: response})
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
       })
   },
 
@@ -144,11 +145,11 @@ export default {
     return Service.post(`/e/${uuid}/terminate`, end)
       .then(response => {
         EventBus.$emit('employee-changed', response.data)
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   }
 }

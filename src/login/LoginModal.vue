@@ -26,7 +26,7 @@
         </b-form-checkbox>
       </div>
 
-      <button type="submit" class="btn btn-primary col">
+      <button type="submit" aria-label="Log ind" class="btn btn-primary col">
         Log ind
       </button>
     </form>

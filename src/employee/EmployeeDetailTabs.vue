@@ -2,7 +2,7 @@
   <div>
     <mo-loader v-show="isLoading"/>
     <b-tabs v-show="!isLoading" lazy>
-      <b-tab title="Engagement" active> 
+      <b-tab :title="$t('tabs.employee.engagements')" active> 
         <mo-employee-detail 
           :uuid="uuid" 
           detail="engagement"
@@ -10,14 +10,14 @@
           :entry-component="components.engagement"
         />
       </b-tab>
-      <b-tab title="Adresser">
+      <b-tab :title="$t('tabs.employee.addresses')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="address"
           :columns="columns.address"
         />
       </b-tab>
-      <b-tab title="Rolle">
+      <b-tab :title="$t('tabs.employee.roles')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="role"
@@ -25,7 +25,7 @@
           :entry-component="components.role"
         />
       </b-tab>
-      <b-tab title="IT">
+      <b-tab :title="$t('tabs.employee.it')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="it"
@@ -33,7 +33,7 @@
           :entry-component="components.it"
         />
       </b-tab>
-      <b-tab title="Tilknytning">
+      <b-tab :title="$t('tabs.employee.associations')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="association"
@@ -41,7 +41,7 @@
           :entry-component="components.association"
         />
       </b-tab>
-      <b-tab title="Orlov">
+      <b-tab :title="$t('tabs.employee.leave')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="leave"
@@ -49,7 +49,7 @@
           :entry-component="components.leave"
         />
       </b-tab>
-      <b-tab title="Leder" >
+      <b-tab :title="$t('tabs.employee.manager')" >
         <mo-employee-detail 
           :uuid="uuid" 
           detail="manager"

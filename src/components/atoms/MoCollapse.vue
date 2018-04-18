@@ -3,7 +3,6 @@
   <div class="card" @click="open = !open">
     <div 
       class="card-header" 
-      role="tab" 
       v-b-toggle="nameId" 
       aria-expanded="true" 
       :aria-controls="nameId">

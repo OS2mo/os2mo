@@ -40,7 +40,7 @@
       detail: {type: String, required: true},
       columns: Array,
       entryComponent: Object,
-      createLabel: {type: String, default: 'Opret ny'}
+      createLabel: String
     },
     data () {
       return {

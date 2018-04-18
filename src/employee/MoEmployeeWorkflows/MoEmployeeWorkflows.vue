@@ -8,11 +8,11 @@
     @shortkey="shortcuts()"
   >
     <mo-workflow>
-      <mo-workflow-button label="Ny Medarbejder" icon="user-plus" v-b-modal.employeeCreate/>
-      <mo-workflow-button label="Orlov" icon="user-md" v-b-modal.employeeLeave/>
-      <mo-workflow-button label="Flyt engagement" icon="share-square-o" v-b-modal.employeeMove/>
-      <mo-workflow-button label="Flyt mange engagementer" icon="share-square-o" v-b-modal.employeeMoveMany/>
-      <mo-workflow-button label="Afslut medarbejder" icon="user-times" v-b-modal.employeeTerminate/>
+      <mo-workflow-button :label="$t('workflows.employee.new_employee')" icon="user-plus" v-b-modal.employeeCreate/>
+      <mo-workflow-button :label="$t('workflows.employee.leave')" icon="user-md" v-b-modal.employeeLeave/>
+      <mo-workflow-button :label="$t('workflows.employee.move_engagement')" icon="share-square-o" v-b-modal.employeeMove/>
+      <mo-workflow-button :label="$t('workflows.employee.move_many_engagements')" icon="share-square-o" v-b-modal.employeeMoveMany/>
+      <mo-workflow-button :label="$t('workflows.employee.terminate_employee')" icon="user-times" v-b-modal.employeeTerminate/>
     </mo-workflow>
 
     <!-- Modal Component -->

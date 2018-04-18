@@ -1,0 +1,20 @@
+{
+  "org_unit": "Enhed",
+  "org_unit_type": "Enhedstype",
+  "parent": "Overenhed",
+  "address": "Adresse",
+  "address_type": "Adressetype",
+  "person": "Navn",
+  "engagement_type": "Engagementstype",
+  "job_function": "Stillingsbetegnelse",
+  "role_type": "Rolletype",
+  "it_system": "IT system",
+  "user_name": "Brugernavn",
+  "responsibility": "Lederansvar",
+  "manager_type": "Ledertype",
+  "manager_level": "Lederniveau",
+  "association_type": "Tilknytningstype",
+  "leave_type": "Orlovstype",
+  "start_date": "Startdato",
+  "end_date": "Slutdato"
+}

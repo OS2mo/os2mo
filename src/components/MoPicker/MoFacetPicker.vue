@@ -1,8 +1,9 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label :for="nameId">{{label}}</label>
     <select 
       :name="nameId"
+      :id="nameId"
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"

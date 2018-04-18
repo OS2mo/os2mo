@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-tabs lazy>
-      <b-tab title="Enhed" active>
+      <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -11,7 +11,7 @@
           hide-create
         />
       </b-tab>
-      <b-tab title="Adresse">
+      <b-tab :title="$t('tabs.organisation.addresses')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -21,7 +21,7 @@
           hide-create
         />
       </b-tab>
-      <b-tab title="Engagementer">
+      <b-tab :title="$t('tabs.organisation.engagements')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -29,7 +29,7 @@
           :columns="columns.engagement"
         />
       </b-tab>
-      <b-tab title="Tilknytninger">
+      <b-tab :title="$t('tabs.organisation.associations')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -37,7 +37,7 @@
           :columns="columns.association"
         />
       </b-tab>
-      <b-tab title="Rolle">
+      <b-tab :title="$t('tabs.organisation.roles')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -45,7 +45,7 @@
           :columns="columns.role"
         />
       </b-tab>
-      <b-tab title="Leder">
+      <b-tab :title="$t('tabs.organisation.managers')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -79,7 +79,7 @@
           org_unit: [null, 'org_unit_type', 'parent'],
           address: ['address_type', null],
           engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
-          association: ['person', 'association_type', 'job_function', 'address', 'address_type', 'org_unit'],
+          association: ['person', 'association_type', 'job_function', 'address_type', 'address', 'org_unit'],
           role: ['person', 'role_type'],
           manager: ['person', 'responsibility', 'manager_type', 'manager_level', 'address_type', 'address']
         },

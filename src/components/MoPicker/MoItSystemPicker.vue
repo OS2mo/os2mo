@@ -1,8 +1,9 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label :for="nameId">{{label}}</label>
     <select 
-      name="it-system-picker"
+      :name="nameId"
+      :id="nameId"
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
@@ -17,10 +18,10 @@
       </option>
     </select>
     <span
-      v-show="errors.has('it-system-picker')" 
+      v-show="errors.has(nameId)" 
       class="text-danger"
     >
-      {{ errors.first('it-system-picker') }}
+      {{ errors.first(nameId) }}
     </span>
   </div>
 </template>
@@ -43,6 +44,11 @@ export default {
       label: 'IT systemer',
       selected: {},
       itSystems: []
+    }
+  },
+  computed: {
+    nameId () {
+      return 'it-system-picker-' + this._uid
     }
   },
   mounted () {

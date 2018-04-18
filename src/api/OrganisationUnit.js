@@ -16,7 +16,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -33,7 +33,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -73,7 +73,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -87,12 +87,11 @@ export default {
     return Service.post('/ou/create', create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed')
-        // EventBus.$emit('organisation-unit-create', response.data)
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -107,8 +106,7 @@ export default {
     return Service.post(`/ou/${uuid}/create`, create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed', response.data)
-        // EventBus.$emit('organisation-unit-create', response.data)
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
         return response.data
       })
       .catch(error => {
@@ -129,7 +127,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
         EventBus.$emit('organisation-unit-changed')
       })
   },
@@ -137,8 +135,7 @@ export default {
   edit (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        EventBus.$emit('organisation-unit-edit', response)
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response.data})
         return response
       })
   },
@@ -153,8 +150,7 @@ export default {
   rename (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        EventBus.$emit('organisation-unit-rename', response)
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', uuid: response})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response})
         return response
       })
   },
@@ -169,8 +165,7 @@ export default {
   move (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        EventBus.$emit('organisation-unit-move', response)
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', value: response})
         return response
       })
   },
@@ -185,12 +180,11 @@ export default {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
         EventBus.$emit('organisation-unit-changed')
-        EventBus.$emit('organisation-unit-terminate', response.data)
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', uuid: response.data})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   }
 }

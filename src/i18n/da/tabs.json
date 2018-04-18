@@ -1,0 +1,24 @@
+{
+  "employee": {
+    "engagements": "Engagementer",
+    "addresses": "Adresser",
+    "roles": "Roller",
+    "it": "IT",
+    "associations": "Tilknytninger",
+    "leave": "Orlov",
+    "manager": "Leder"
+  },
+  "organisation": {
+    "unit": "Enhed",
+    "addresses": "Adresser",
+    "engagements": "Engagementer",
+    "associations": "Tilknytninger",
+    "roles": "Roller",
+    "managers": "Ledere"
+  },
+  "log": {
+    "worklog": "Arbejdslog",
+    "events": "Begivenheder",
+    "errors": "Fejl"
+  }
+}

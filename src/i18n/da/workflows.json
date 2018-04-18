@@ -1,0 +1,15 @@
+{
+  "employee": {
+    "new_employee": "Ny medarbejder",
+    "leave": "Orlov",
+    "move_engagement": "Flyt engagement",
+    "move_many_engagements": "Flyt mange engagementer",
+    "terminate_employee": "Afslut medarbejder"
+  },
+  "organisation": {
+    "create_unit": "Opret enhed",
+    "rename_unit": "Omdøb enhed",
+    "move_unit": "Flyt enhed",
+    "terminate_unit": "Afslut enhed"
+  }
+}

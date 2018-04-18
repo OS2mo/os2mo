@@ -7,10 +7,10 @@
     @shortkey="theAction()"
   >
     <mo-workflow>
-      <mo-workflow-button label="Opret enhed" icon="plus-circle" v-b-modal.orgUnitCreate/>
-      <mo-workflow-button label="Omdøb enhed" icon="pencil-square-o" v-b-modal.orgUnitRename/>
-      <mo-workflow-button label="Flyt enhed" icon="share-square-o" v-b-modal.orgUnitMove/>
-      <mo-workflow-button label="Afslut enhed" icon="ban" v-b-modal.orgUnitTerminate/>
+      <mo-workflow-button :label="$t('workflows.organisation.create_unit')" icon="plus-circle" v-b-modal.orgUnitCreate/>
+      <mo-workflow-button :label="$t('workflows.organisation.rename_unit')" icon="pencil-square-o" v-b-modal.orgUnitRename/>
+      <mo-workflow-button :label="$t('workflows.organisation.move_unit')" icon="share-square-o" v-b-modal.orgUnitMove/>
+      <mo-workflow-button :label="$t('workflows.organisation.terminate_unit')" icon="ban" v-b-modal.orgUnitTerminate/>
     </mo-workflow>
 
     <!-- Modal Component -->

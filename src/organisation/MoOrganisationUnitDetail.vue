@@ -48,10 +48,7 @@
       },
       columns: Array,
       entryComponent: Object,
-      createLabel: {
-        type: String,
-        default: 'Opret ny'
-      },
+      createLabel: String,
       hideCreate: Boolean
     },
     data () {

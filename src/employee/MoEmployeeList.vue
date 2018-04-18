@@ -5,7 +5,7 @@
       <table class="table table-striped" v-show="!isLoading">
         <thead>
           <tr>
-            <th scope="col">Navn</th>
+            <th scope="col">{{$t('table_headers.person')}}</th>
           </tr>
         </thead>
 
