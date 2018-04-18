@@ -37,14 +37,14 @@ class Tests(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                },
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
                 },
                 "responsibility": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -197,14 +197,14 @@ class Tests(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                },
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
                 },
                 'manager_level': {
                     'example': 'test@example.com',
@@ -385,7 +385,6 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': None,
-                'address_type': None,
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -530,7 +529,6 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': None,
-                'address_type': None,
                 'manager_level': None,
                 'manager_type': None,
                 'org_unit': {
@@ -755,14 +753,14 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
-                },
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'urn': 'urn:mailto:ceo@example.com',
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
                 },
                 'manager_level': {
                     'example': None,
@@ -809,14 +807,14 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
-                },
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'urn': 'urn:mailto:ceo@example.com',
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
                 },
                 'manager_level': {
                     'example': '20304060',
@@ -879,15 +877,15 @@ class Tests(util.LoRATestCase):
                 },
             },
             "data": {
-                "address_type": {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
                 "address": {
-                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "address_type": {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
@@ -1099,14 +1097,14 @@ class Tests(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                },
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
                 },
                 'manager_level': {
                     'example': '20304060',
@@ -1290,14 +1288,14 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
-                },
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'urn': 'urn:mailto:ceo@example.com',
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
                 },
                 'manager_level': {
                     'example': None,
@@ -1495,14 +1493,14 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
-                },
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'urn': 'urn:mailto:ceo@example.com',
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
                 },
                 'manager_level': {
                     'example': None,

@@ -165,31 +165,6 @@ def get_classes(orgid: uuid.UUID, facet: str):
     :status 200: On success.
     :status 404: Whenever the facet isn't found.
 
-    **Scopes**:
-
-    .. list-table::
-      :header-rows: 1
-
-      * - Key
-        - Description
-      * - ``"DAR"``
-        - UUID of a `DAR address`_, as found through the API. Please
-          note that this requires performing separate calls to convert
-          this value to and from human-readable strings.
-      * - ``"EMAIL"``
-        - An email address, as specified by :rfc:`5322#section-3.4`.
-      * - ``"INTEGER"``
-        - A integral number.
-      * - ``"PHONE"``
-        - A phone number.
-      * - ``"TEXT"``
-        - Arbitrary text.
-      * - ``"WWW"``
-        - An HTTP or HTTPS URL, as specified by :rfc:`1738`.
-
-    .. _DAR address: http://dawa.aws.dk/dok/api/adresse
-
-
     **Example Response**:
 
     .. sourcecode:: json

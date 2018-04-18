@@ -18,6 +18,7 @@
           detail="address"
           :columns="columns.address"
           :entry-component="timemachineFriendly ? undefined : components.address"
+          hide-create
         />
       </b-tab>
       <b-tab title="Engagementer">

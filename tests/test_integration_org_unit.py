@@ -253,7 +253,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "Adresse",
                         "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
-                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
             ],
             "validity": {

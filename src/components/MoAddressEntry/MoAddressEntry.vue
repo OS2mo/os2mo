@@ -1,8 +1,5 @@
 <template>
   <div>
-    <div class="form-group">
-      <date-picker-start-end v-model="entry.validity"/>
-    </div>
     <div class="form-row">
       <div class="form-group col">
         <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
@@ -28,14 +25,12 @@
 <script>
 import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
 import MoFacetPicker from '@/components/MoFacetPicker'
-import DatePickerStartEnd from '@/components/DatePickerStartEnd'
 
 export default {
   name: 'MoAddressEntry',
   components: {
     MoAddressSearch,
-    MoFacetPicker,
-    DatePickerStartEnd
+    MoFacetPicker
   },
   props: {
     value: Object

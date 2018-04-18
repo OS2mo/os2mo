@@ -250,7 +250,8 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
-    :<jsonarr string location: The associated location.
+    :<jsonarr string address: The associated address.
+    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the created object.
 
     .. sourcecode:: json
@@ -267,8 +268,15 @@ def create_employee_relation(employee_uuid):
           "association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "location": {
+          "address": {
             "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+          },
+          "address_type": {
+            "example": "<UUID>",
+            "name": "Adresse",
+            "scope": "DAR",
+            "user_key": "Adresse",
+            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
           },
           "validity": {
               "from": "2016-01-01T00:00:00+00:00",
@@ -331,6 +339,8 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string manager_type: The manager type
     :<jsonarr string responsibility: The manager responsibility
     :<jsonarr string manager_level: The manager level
+    :<jsonarr string address: The associated address.
+    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the created object.
 
     .. sourcecode:: json
@@ -349,6 +359,16 @@ def create_employee_relation(employee_uuid):
           },
           "manager_level": {
             "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
+          },
+          "address": {
+            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+          },
+          "address_type": {
+            "example": "<UUID>",
+            "name": "Adresse",
+            "scope": "DAR",
+            "user_key": "Adresse",
+            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
           },
           "validity": {
             "from": "2016-01-01T00:00:00+00:00",
@@ -545,7 +565,8 @@ def edit_employee(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
-    :<jsonarr string location: The associated location.
+    :<jsonarr string address: The associated address.
+    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
@@ -568,8 +589,15 @@ def edit_employee(employee_uuid):
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
-            "location": {
+            "address": {
               "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+            },
+            "address_type": {
+              "example": "<UUID>",
+              "name": "Adresse",
+              "scope": "DAR",
+              "user_key": "Adresse",
+              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
             }
           },
           "data": {
@@ -644,7 +672,6 @@ def edit_employee(employee_uuid):
 
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string role_type: The role type
-    :<jsonarr string location: The associated location.
     :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
@@ -744,6 +771,8 @@ def edit_employee(employee_uuid):
     :<jsonarr string manager_type: The manager type
     :<jsonarr string responsibility: The manager responsibility
     :<jsonarr string manager_level: The manager level
+    :<jsonarr string address: The associated address.
+    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
