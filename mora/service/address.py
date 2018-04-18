@@ -184,13 +184,13 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_relation_for(classobj, addrobj, fallback=None):
-    scope = common.checked_get(classobj, 'scope', '', required=True)
+def get_relation_for(typeobj, addrobj, fallback=None):
+    scope = common.checked_get(typeobj, 'scope', '', required=True)
 
     if scope == 'DAR':
         return {
             'uuid': common.get_uuid(addrobj, fallback),
-            'objekttype': classobj['uuid'],
+            'objekttype': typeobj['uuid'],
         }
 
     elif scope in URN_PREFIXES:
@@ -205,7 +205,7 @@ def get_relation_for(classobj, addrobj, fallback=None):
         ):
             return {
                 'urn': common.get_urn(addrobj, fallback),
-                'objekttype': classobj['uuid'],
+                'objekttype': typeobj['uuid'],
             }
 
         value = common.checked_get(addrobj, keys.VALUE, '', required=True)
@@ -222,7 +222,7 @@ def get_relation_for(classobj, addrobj, fallback=None):
 
         return {
             'urn': value,
-            'objekttype': classobj['uuid'],
+            'objekttype': typeobj['uuid'],
         }
 
     else:
