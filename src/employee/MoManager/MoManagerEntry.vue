@@ -1,9 +1,9 @@
 <template>
   <div>
     <date-picker-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
-    <div class="row">
+    <div class="form-row">
     <organisation-unit-picker class="col" v-model="entry.org_unit" label="Angiv enhed"/>
-    <mo-address-picker class="col" v-model="entry.address"/>
+    <mo-address-picker v-model="entry.address" :org-unit="entry.org_unit"/>
     </div> 
     <div class="form-row">
       <mo-facet-picker facet="manager_type" v-model="entry.manager_type"/>
@@ -42,6 +42,7 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'manager'
+        if (newVal.address != null) newVal.address_type = newVal.address.address_type
         this.$emit('input', newVal)
       },
       deep: true
