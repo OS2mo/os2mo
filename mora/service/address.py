@@ -6,11 +6,144 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-'''
-Address
--------
+'''Addresses
+---------
 
-This section describes how to interact with addresses.
+Within the context of MO, we have to forms of address, `DAR`_ and
+everything else. **DAR** is short for *Danmarks Adresseregister* or
+the *Address Register of Denmark*, and constitutes a UUID reprenting a
+DAWA address or access address. We represent other addresses merely
+through their textual value.
+
+Before writing a DAR address, a UI or client should convert the
+address string to a UUID using either their API or the
+:http:get:`/service/o/(uuid:orgid)/address_autocomplete/` endpoint.
+
+Each installation supports different types of addresses. To obtain
+that list, query the :http:get:`/service/o/(uuid:orgid)/f/(facet)/`
+endpoint::
+
+   $ curl http://$SERVER_NAME:5000/service/o/$ORGID/f/address_type
+
+An example result:
+
+.. sourcecode:: json
+
+  {
+    "data": {
+      "items": [
+        {
+          "example": "20304060",
+          "name": "Telefonnummer",
+          "scope": "PHONE",
+          "user_key": "Telefon",
+          "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+        },
+        {
+          "example": "<UUID>",
+          "name": "Adresse",
+          "scope": "DAR",
+          "user_key": "Adresse",
+          "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+        },
+        {
+          "example": "test@example.com",
+          "name": "Emailadresse",
+          "scope": "EMAIL",
+          "user_key": "Email",
+          "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+        },
+        {
+          "example": "5712345000014",
+          "name": "EAN",
+          "scope": "EAN",
+          "user_key": "EAN",
+          "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+        }
+      ],
+      "offset": 0,
+      "total": 4
+    },
+    "name": "address_type",
+    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/",
+    "user_key": "Adressetype",
+    "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
+  }
+
+The follow scopes are available:
+
+DAR
+      UUID of a `DAR`_, as found through the API. Please
+      note that this requires performing separate calls to convert
+      this value to and from human-readable strings.
+
+EMAIL
+      An email address, as specified by :rfc:`5322#section-3.4`.
+
+INTEGER
+      A integral number.
+
+PHONE
+      A phone number.
+
+TEXT
+      Arbitrary text.
+
+WWW
+      An HTTP or HTTPS URL, as specified by :rfc:`1738`.
+
+Example data
+~~~~~~~~~~~~
+
+An example of reading the main two different types of addresses:
+
+.. sourcecode: json
+
+  [
+    {
+      "address_type": {
+        "example": "20304060",
+        "name": "Telefonnummer",
+        "scope": "PHONE",
+        "user_key": "Telefon",
+        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+      },
+      "href": "tel:+4587150000",
+      "name": "8715 0000",
+      "urn": "urn:magenta.dk:telefon:+4587150000",
+      "validity": {
+        "from": "2016-01-01T00:00:00+01:00",
+        "to": null
+      }
+    },
+    {
+      "address_type": {
+        "example": "<UUID>",
+        "name": "Adresse",
+        "scope": "DAR",
+        "user_key": "Adresse",
+        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+      },
+      "href": "https://www.openstreetmap.org/?mlon=10.199&mlat=56.171&zoom=16",
+      "name": "Nordre Ringgade 1, 8000 Aarhus C",
+      "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+      "validity": {
+        "from": "2016-01-01T00:00:00+01:00",
+        "to": null
+      }
+    }
+  ]
+
+Of these, ``name`` should be used for displaying the address and
+``href`` for a hyperlink target. The ``uuid`` and ``urn`` keys
+uniquely represent the address value for editing, although any such
+operation should specify the entire object.
+
+.. _DAR: http://dawa.aws.dk/dok/api/adresse
+
+
+API
+~~~
 
 '''
 
