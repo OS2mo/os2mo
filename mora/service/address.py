@@ -192,7 +192,7 @@ def get_relation_for(addrobj, fallback=None):
     if scope == 'DAR':
         return {
             'uuid': common.get_uuid(addrobj, fallback),
-            'objekttype': typeobj['uuid'],
+            'objekttype': common.checked_get(typeobj, keys.UUID, 'DAR'),
         }
 
     elif scope in URN_PREFIXES:

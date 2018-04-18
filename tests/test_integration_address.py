@@ -694,6 +694,145 @@ class Writing(util.LoRATestCase):
             [],
         )
 
+    def test_edit_untyped_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        email_class = {
+            'example': 'test@example.com',
+            'name': 'Emailadresse',
+            'scope': 'EMAIL',
+            'user_key': 'Email',
+            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+        }
+
+        address_class = {
+            'example': '<UUID>',
+            'name': 'Adresse',
+            'scope': 'DAR',
+            'user_key': 'Adresse',
+            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+        }
+
+        address_classes = self.client.get(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/f/address_type/',
+        ).json
+
+        self.assertIn(email_class, address_classes['data']['items'])
+        self.assertIn(address_class, address_classes['data']['items'])
+
+        addresses = [
+            {
+                "address_type": {
+                    "scope": "DAR"
+                },
+                "href": "https://www.openstreetmap.org/"
+                "?mlon=12.58176945&mlat=55.67563739&zoom=16",
+                "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
+                "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
+                "validity": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "to": None
+                }
+            },
+            {
+                "address_type": email_class,
+                "href": "mailto:goofy@example.com",
+                "name": "goofy@example.com",
+                "urn": "urn:mailto:goofy@example.com",
+                "validity": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "to": None
+                }
+            },
+            {
+                "address_type": email_class,
+                "href": "mailto:goofy@example.com",
+                "name": "goofy@example.com",
+                "urn": "urn:mailto:goofy@example.com",
+                "validity": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "to": None
+                }
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
+
+        # first, test editing the value only
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "address",
+                "original": addresses[0],
+                "data": {
+                    'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
+                }
+            }],
+        )
+
+        addresses[0].update(
+            uuid='ae95777c-7ec1-4039-8025-e2ecce5099fb',
+            href='https://www.openstreetmap.org/'
+            '?mlon=10.20320628&mlat=56.15263055&zoom=16',
+            name='Rådhuspladsen 2, 4., 8000 Aarhus C',
+        )
+
+        # verify our edit
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=future'.format(userid),
+            [],
+        )
+
+        # second, test editing type
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "address",
+                "original": addresses[0],
+                "data": {
+                    'address_type': address_class,
+                }
+            }],
+        )
+
+        addresses[0].update(
+            address_type=address_class,
+        )
+
+        # verify the result
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=future'.format(userid),
+            [],
+        )
+
     def test_create_unit_address(self, mock):
         self.load_sample_structures()
 
