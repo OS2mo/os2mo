@@ -271,13 +271,7 @@ class Writing(util.LoRATestCase):
 
         addresses += [
             {
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                },
+                'address_type': email_class,
                 'href': 'mailto:hest@example.com',
                 'name': 'hest@example.com',
                 'urn': 'urn:mailto:hest@example.com',
@@ -286,13 +280,7 @@ class Writing(util.LoRATestCase):
                 },
             },
             {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
+                'address_type': address_class,
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.20320628&mlat=56.15263055&zoom=16',
                 'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
@@ -302,13 +290,7 @@ class Writing(util.LoRATestCase):
                 },
             },
             {
-                'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                },
+                'address_type': phone_class,
                 'href': 'tel:+4533369696',
                 'name': '3336 9696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
@@ -333,6 +315,11 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/details/address'.format(userid),
                 addresses,
             )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
 
         with self.subTest('underlying storage'):
             edited = c.bruger.get(userid)
@@ -1693,8 +1680,17 @@ class Writing(util.LoRATestCase):
 @util.mock('dawa-addresses.json', allow_mox=True)
 class Reading(util.LoRATestCase):
 
-    def test_reading_present(self, mock):
-        self.load_sample_structures()
+    def test_reading(self, mock):
+        self.load_sample_structures(minimal=True)
+
+        with self.subTest('missing classes'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/address',
+                [],
+            )
+
+        self.load_sample_structures(minimal=False)
 
         with self.subTest('present I'):
             self.assertRequestResponse(

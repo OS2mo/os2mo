@@ -129,6 +129,9 @@ def get_one_class(c, classid, clazz=None):
     if not clazz:
         clazz = c.klasse.get(classid)
 
+        if not clazz:
+            raise KeyError('no such class {!r}'.format(classid))
+
     attrs = clazz['attributter']['klasseegenskaber'][0]
 
     return {
