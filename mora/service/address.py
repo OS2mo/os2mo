@@ -6,11 +6,144 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-'''
-Address
--------
+'''Addresses
+---------
 
-This section describes how to interact with addresses.
+Within the context of MO, we have to forms of address, `DAR`_ and
+everything else. **DAR** is short for *Danmarks Adresseregister* or
+the *Address Register of Denmark*, and constitutes a UUID reprenting a
+DAWA address or access address. We represent other addresses merely
+through their textual value.
+
+Before writing a DAR address, a UI or client should convert the
+address string to a UUID using either their API or the
+:http:get:`/service/o/(uuid:orgid)/address_autocomplete/` endpoint.
+
+Each installation supports different types of addresses. To obtain
+that list, query the :http:get:`/service/o/(uuid:orgid)/f/(facet)/`
+endpoint::
+
+   $ curl http://$SERVER_NAME:5000/service/o/$ORGID/f/address_type
+
+An example result:
+
+.. sourcecode:: json
+
+  {
+    "data": {
+      "items": [
+        {
+          "example": "20304060",
+          "name": "Telefonnummer",
+          "scope": "PHONE",
+          "user_key": "Telefon",
+          "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+        },
+        {
+          "example": "<UUID>",
+          "name": "Adresse",
+          "scope": "DAR",
+          "user_key": "Adresse",
+          "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+        },
+        {
+          "example": "test@example.com",
+          "name": "Emailadresse",
+          "scope": "EMAIL",
+          "user_key": "Email",
+          "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+        },
+        {
+          "example": "5712345000014",
+          "name": "EAN",
+          "scope": "EAN",
+          "user_key": "EAN",
+          "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+        }
+      ],
+      "offset": 0,
+      "total": 4
+    },
+    "name": "address_type",
+    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/",
+    "user_key": "Adressetype",
+    "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
+  }
+
+The follow scopes are available:
+
+DAR
+      UUID of a `DAR`_, as found through the API. Please
+      note that this requires performing separate calls to convert
+      this value to and from human-readable strings.
+
+EMAIL
+      An email address, as specified by :rfc:`5322#section-3.4`.
+
+INTEGER
+      A integral number.
+
+PHONE
+      A phone number.
+
+TEXT
+      Arbitrary text.
+
+WWW
+      An HTTP or HTTPS URL, as specified by :rfc:`1738`.
+
+Example data
+~~~~~~~~~~~~
+
+An example of reading the main two different types of addresses:
+
+.. sourcecode: json
+
+  [
+    {
+      "address_type": {
+        "example": "20304060",
+        "name": "Telefonnummer",
+        "scope": "PHONE",
+        "user_key": "Telefon",
+        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+      },
+      "href": "tel:+4587150000",
+      "name": "8715 0000",
+      "urn": "urn:magenta.dk:telefon:+4587150000",
+      "validity": {
+        "from": "2016-01-01T00:00:00+01:00",
+        "to": null
+      }
+    },
+    {
+      "address_type": {
+        "example": "<UUID>",
+        "name": "Adresse",
+        "scope": "DAR",
+        "user_key": "Adresse",
+        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+      },
+      "href": "https://www.openstreetmap.org/?mlon=10.199&mlat=56.171&zoom=16",
+      "name": "Nordre Ringgade 1, 8000 Aarhus C",
+      "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+      "validity": {
+        "from": "2016-01-01T00:00:00+01:00",
+        "to": null
+      }
+    }
+  ]
+
+Of these, ``name`` should be used for displaying the address and
+``href`` for a hyperlink target. The ``uuid`` and ``urn`` keys
+uniquely represent the address value for editing, although any such
+operation should specify the entire object.
+
+.. _DAR: http://dawa.aws.dk/dok/api/adresse
+
+
+API
+~~~
 
 '''
 
@@ -51,24 +184,33 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_relation_for(classobj, value):
-    scope = classobj['scope']
-
-    if not isinstance(value, str):
-        value = str(value)
+def get_relation_for(addrobj, fallback=None):
+    typeobj = common.checked_get(addrobj, keys.ADDRESS_TYPE, {},
+                                 fallback=fallback, required=True)
+    scope = common.checked_get(typeobj, 'scope', '', required=True)
 
     if scope == 'DAR':
-        if not util.is_uuid(value):
-            raise ValueError(
-                '{!r} is not a valid address UUID!'.format(value),
-            )
-
-        r = {
-            'uuid': value,
-            'objekttype': classobj['uuid'],
+        return {
+            'uuid': common.get_uuid(addrobj, fallback),
+            'objekttype': common.checked_get(typeobj, keys.UUID, 'DAR'),
         }
 
     elif scope in URN_PREFIXES:
+        # this is the fallback: we want to use the 'urn' key if set
+        # directly (e.g. if this is the original) or if it's present
+        # in the fallback -- but with an important caveat: we always
+        # want to report that the *value* is missing in the
+        # exception/error message.
+        if (
+            'urn' in addrobj or
+            keys.VALUE not in addrobj and fallback and 'urn' in fallback
+        ):
+            return {
+                'urn': common.get_urn(addrobj, fallback),
+                'objekttype': typeobj['uuid'],
+            }
+
+        value = common.checked_get(addrobj, keys.VALUE, '', required=True)
         prefix = URN_PREFIXES[scope]
 
         if scope == 'PHONE':
@@ -80,15 +222,13 @@ def get_relation_for(classobj, value):
         if not util.is_urn(value):
             value = prefix + value
 
-        r = {
+        return {
             'urn': value,
-            'objekttype': classobj['uuid'],
+            'objekttype': typeobj['uuid'],
         }
 
     else:
         raise ValueError('unknown address scope {!r}!'.format(scope))
-
-    return r
 
 
 def get_address_class(c, addrrel, class_cache):
@@ -106,7 +246,7 @@ def get_address_class(c, addrrel, class_cache):
 
 def get_one_address(c, addrrel, class_cache=None):
     addrclass = get_address_class(c, addrrel, class_cache)
-    addrformat = addrclass['scope']
+    addrformat = common.checked_get(addrclass, 'scope', 'DAR')
 
     if addrformat == 'DAR':
         # unfortunately, we cannot live with struktur=mini, as it omits
@@ -122,27 +262,31 @@ def get_one_address(c, addrrel, class_cache=None):
 
         addrobj = r.json()
 
-        name = addrobj['adressebetegnelse']
-        value = addrrel['uuid']
-        href = (
-            'https://www.openstreetmap.org/'
-            '?mlon={}&mlat={}&zoom=16'.format(
-                *addrobj['adgangsadresse']
-                ['adgangspunkt']['koordinater']
-            )
-        )
+        return {
+            keys.ADDRESS_TYPE: addrclass,
+            keys.HREF: (
+                'https://www.openstreetmap.org/'
+                '?mlon={}&mlat={}&zoom=16'.format(
+                    *addrobj['adgangsadresse']
+                    ['adgangspunkt']['koordinater']
+                )
+            ),
+
+            keys.NAME: addrobj['adressebetegnelse'],
+            keys.UUID: addrrel['uuid'],
+        }
 
     elif addrformat in URN_PREFIXES:
         prefix = URN_PREFIXES[addrformat]
 
-        value = addrrel['urn']
+        urn = addrrel['urn']
 
-        if not value.startswith(prefix):
-            raise ValueError('invalid value {!r}'.format(
+        if not urn.startswith(prefix):
+            raise ValueError('invalid urn {!r}'.format(
                 addrrel['urn'],
             ))
 
-        name = value[len(prefix):]
+        name = urn[len(prefix):]
         href = (
             HREF_PREFIXES[addrformat] + name
             if addrformat in HREF_PREFIXES
@@ -152,15 +296,17 @@ def get_one_address(c, addrrel, class_cache=None):
         if addrformat == 'PHONE':
             name = re.sub(r'^(\+45)(\d{4})(\d{4})$', r'\2 \3', name)
 
+        return {
+            keys.ADDRESS_TYPE: addrclass,
+
+            keys.HREF: href,
+
+            keys.NAME: name,
+            keys.URN: urn,
+        }
+
     else:
         raise ValueError('invalid address scope {!r}'.format(addrformat))
-
-    return {
-        keys.HREF: href,
-
-        keys.NAME: name,
-        keys.VALUE: value,
-    }
 
 
 class Addresses(common.AbstractRelationDetail):
@@ -236,15 +382,14 @@ class Addresses(common.AbstractRelationDetail):
 
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
-        rel = get_relation_for(
-            common.checked_get(req, keys.ADDRESS_TYPE, {}, required=True),
-            common.checked_get(req, keys.VALUE, '', required=True),
-        )
+        rel = get_relation_for(req)
         rel['virkning'] = common.get_validity_effect(req)
+
+        addrs = original['relationer'].get('adresser', [])
 
         payload = {
             'relationer': {
-                'adresser': original['relationer']['adresser'] + [rel],
+                'adresser': addrs + [rel],
             },
             'note': 'Tilføj adresse',
         }
@@ -264,19 +409,10 @@ class Addresses(common.AbstractRelationDetail):
         if not old_entry:
             raise ValueError('original required!')
 
-        old_rel = get_relation_for(
-            common.checked_get(old_entry, keys.ADDRESS_TYPE, {},
-                               required=True),
-            common.checked_get(old_entry, keys.VALUE, '', required=True),
-        )
+        old_rel = get_relation_for(old_entry)
         old_rel['virkning'] = common.get_validity_effect(old_entry)
 
-        new_rel = get_relation_for(
-            common.checked_get(new_entry, keys.ADDRESS_TYPE, {},
-                               fallback=old_entry, required=True),
-            common.checked_get(new_entry, keys.VALUE, '',
-                               fallback=old_entry, required=True),
-        )
+        new_rel = get_relation_for(new_entry, old_entry)
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
         try:

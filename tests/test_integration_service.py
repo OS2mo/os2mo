@@ -971,14 +971,14 @@ class Tests(util.LoRATestCase):
                 'address': {
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
-                    'value': 'urn:mailto:ceo@example.com',
-                },
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'urn': 'urn:mailto:ceo@example.com',
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
                 },
                 'manager_level': {
                     'example': None,

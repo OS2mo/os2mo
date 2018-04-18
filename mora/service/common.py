@@ -138,6 +138,20 @@ def get_uuid(
     return v
 
 
+def get_urn(
+    mapping: D,
+    fallback: D=None,
+    *,
+    key: typing.Hashable=keys.URN
+) -> str:
+    v = checked_get(mapping, key, '', fallback=fallback, required=True)
+
+    if not util.is_urn(v):
+        raise ValueError('invalid urn for {!r}: {!r}'.format(key, v))
+
+    return v
+
+
 class cache(collections.defaultdict):
     '''combination of functools.partial & defaultdict into one'''
 
