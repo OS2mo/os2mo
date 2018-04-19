@@ -1,33 +1,15 @@
 <template>
-  <div class="form-group col">
-    <label :for="nameId">{{label}}</label>
-    <select 
-      :name="nameId"
-      :id="nameId"
-      :data-vv-as="label"
-      class="form-control col" 
-      v-model="selected"
-      @change="$emit('input', selected)"
-      v-validate="{ required: required }"
-    >
-      <option disabled>{{label}}</option>
-      <option v-for="facet in facets" :key="facet.uuid" :value="facet">
-          {{facet.name}}
-      </option>
-    </select>
-    <span v-show="errors.has(nameId)" class="text-danger">
-      {{ errors.first(nameId) }}
-    </span>
-  </div>
+  <mo-select v-model="selected" :label="label" :options="facets" :required="required"/>
 </template>
 
 <script>
 import Facet from '@/api/Facet'
+import MoSelect from '@/components/atoms/MoSelect'
 
 export default {
   name: 'MoFacetPicker',
-  inject: {
-    $validator: '$validator'
+  components: {
+    MoSelect
   },
   props: {
     value: Object,
@@ -41,9 +23,9 @@ export default {
       label: ''
     }
   },
-  computed: {
-    nameId () {
-      return 'mo-facet-picker-' + this._uid
+  watch: {
+    selected (val) {
+      this.$emit('input', val)
     }
   },
   mounted () {
@@ -51,7 +33,6 @@ export default {
 
     if (this.value) {
       this.selected = this.value
-      this.$validator.validate(this.nameId)
     }
   },
   methods: {
