@@ -16,7 +16,7 @@
             v-for="col in columns" 
             :key="col"
           >
-            {{$t('table_headers.'+col)}}
+            {{$t('table_headers.'+col.label)}}
           </th>
           <th>{{$t('table_headers.start_date')}}</th>
           <th>{{$t('table_headers.end_date')}}</th>
@@ -32,7 +32,7 @@
             <b-form-checkbox :value="c"/>
           </td>
           <td v-for="col in columns" :key="col">
-            <mo-link :value="c" :column="col"/>
+            <mo-link :value="c" :column="col.data"/>
           </td>
           <td>
             {{c.validity | getProperty('from') | date}}

@@ -6,7 +6,7 @@
         <mo-employee-detail 
           :uuid="uuid" 
           detail="engagement"
-          :columns="columns.engagement"
+          :columns="engagement"
           :entry-component="components.engagement"
         />
       </b-tab>
@@ -14,14 +14,14 @@
         <mo-employee-detail 
           :uuid="uuid" 
           detail="address"
-          :columns="columns.address"
+          :columns="address"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.roles')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="role"
-          :columns="columns.role"
+          :columns="role"
           :entry-component="components.role"
         />
       </b-tab>
@@ -29,7 +29,7 @@
         <mo-employee-detail 
           :uuid="uuid" 
           detail="it"
-          :columns="columns.it"
+          :columns="it"
           :entry-component="components.it"
         />
       </b-tab>
@@ -37,7 +37,7 @@
         <mo-employee-detail 
           :uuid="uuid" 
           detail="association"
-          :columns="columns.association"
+          :columns="association"
           :entry-component="components.association"
         />
       </b-tab>
@@ -45,7 +45,7 @@
         <mo-employee-detail 
           :uuid="uuid" 
           detail="leave"
-          :columns="columns.leave"
+          :columns="leave"
           :entry-component="components.leave"
         />
       </b-tab>
@@ -53,7 +53,7 @@
         <mo-employee-detail 
           :uuid="uuid" 
           detail="manager"
-          :columns="columns.manager"
+          :columns="manager"
           :entry-component="components.manager"
         />
       </b-tab>
@@ -83,15 +83,41 @@
     data () {
       return {
         isLoading: false,
-        columns: {
-          engagement: ['org_unit', 'job_function', 'engagement_type'],
-          role: ['org_unit', 'role_type'],
-          it: ['it_system', 'user_name'],
-          association: ['org_unit', 'job_function', 'association_type', 'address', 'address_type'],
-          leave: ['leave_type'],
-          manager: ['org_unit', 'responsibility', 'manager_type', 'manager_level', 'address_type', 'address'],
-          address: ['address_type', null]
-        },
+        engagement: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'job_function', data: 'job_function'},
+          {label: 'engagement_type', data: 'engagement_type'}
+        ],
+        role: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'role_type', data: 'role_type'}
+        ],
+        it: [
+          {label: 'it_system', data: 'it_system'},
+          {label: 'user_name', data: 'user_name'}
+        ],
+        association: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'job_function', data: 'job_function'},
+          {label: 'association_type', data: 'association_type'},
+          {label: 'address', data: 'address'},
+          {label: 'address_type', data: 'address_type'}
+        ],
+        leave: [
+          {label: 'leave_type', data: 'leave_type'}
+        ],
+        manager: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'responsibility', data: 'responsibility'},
+          {label: 'manager_type', data: 'manager_type'},
+          {label: 'manager_level', data: 'manager_level'},
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'}
+        ],
+        address: [
+          {label: 'address_type', data: 'address_type'},
+          {label: 'value', data: null}
+        ],
         components: {
           engagement: MoEngagementEntry,
           role: MoRoleEntry,

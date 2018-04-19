@@ -4,6 +4,7 @@
   "parent": "Overenhed",
   "address": "Adresse",
   "address_type": "Adressetype",
+  "value": "Værdi",
   "person": "Navn",
   "engagement_type": "Engagementstype",
   "job_function": "Stillingsbetegnelse",
