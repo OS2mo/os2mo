@@ -1,5 +1,6 @@
 <template>
   <div>
+    <date-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
     <div class="form-row">
       <div class="form-group col">
         <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
@@ -23,24 +24,28 @@
 
 
 <script>
+import DateStartEnd from '../../components/DatePickerStartEnd'
 import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
 import MoFacetPicker from '@/components/MoFacetPicker'
 
 export default {
   name: 'MoAddressEntry',
   components: {
+    DateStartEnd,
     MoAddressSearch,
     MoFacetPicker
   },
   props: {
-    value: Object
+    value: Object,
+    validity: Object,
+    validityHidden: Boolean
   },
   data () {
     return {
       entry: {
         validity: {},
         address_type: {},
-        value: null
+        uuid: null
       },
       address: null
     }
@@ -57,13 +62,13 @@ export default {
     address: {
       handler (val) {
         if (val == null) return
-        this.entry.value = val.location.uuid
+        this.entry.uuid = val.location.uuid
       },
       deep: true
     }
   },
   created () {
-    if (this.value.value) {
+    if (this.value.uuid) {
       this.address = {
         location: {
           name: this.value.name,
