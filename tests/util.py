@@ -77,7 +77,7 @@ def get_unused_port():
         return sock.getsockname()[1]
 
 
-def load_fixture(path, fixture_name, uuid, *, verbose=False):
+def load_fixture(path, fixture_name, uuid=None, *, verbose=False):
     '''Load a fixture, i.e. a JSON file with the 'fixtures' directory,
     into LoRA at the given path & UUID.
 

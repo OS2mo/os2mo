@@ -13,6 +13,9 @@
       <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
+      <h5>Adresser</h5>
+      <mo-add-many v-model="address" :entry-component="entry.address"/>
+
       <h5>{{$tc('workflows.employee.labels.association', 2)}}</h5>
       <mo-add-many v-model="association" :entry-component="entry.association"/>
       
@@ -42,6 +45,7 @@ import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
 import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
 import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
 export default {
   $_veeValidate: {
@@ -51,6 +55,7 @@ export default {
     ButtonSubmit,
     MoCpr,
     MoAddMany,
+    MoAddressEntry,
     MoAssociationEntry,
     MoEngagementEntry,
     MoRoleEntry,
@@ -61,12 +66,14 @@ export default {
     return {
       employee: {},
       engagement: {},
+      address: [],
       association: [],
       role: [],
       itSystem: [],
       manager: [],
       isLoading: false,
       entry: {
+        address: MoAddressEntry,
         association: MoAssociationEntry,
         role: MoRoleEntry,
         it: MoItSystemEntry,
@@ -91,7 +98,7 @@ export default {
     createEmployee () {
       let vm = this
       this.isLoading = true
-      let create = [].concat(this.engagement, this.association, this.role, this.itSystem, this.manager)
+      let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
 
       let newEmployee = {
         name: this.employee.name,

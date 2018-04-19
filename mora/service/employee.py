@@ -269,7 +269,7 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "address": {
-            "value": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
           },
           "address_type": {
             "example": "<UUID>",
@@ -361,7 +361,7 @@ def create_employee_relation(employee_uuid):
             "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
           },
           "address": {
-            "value": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
           },
           "address_type": {
             "example": "<UUID>",
@@ -590,7 +590,7 @@ def edit_employee(employee_uuid):
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
             "address": {
-              "value": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
+              "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
             },
             "address_type": {
               "example": "<UUID>",
