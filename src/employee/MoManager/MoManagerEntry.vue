@@ -42,7 +42,6 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'manager'
-        if (newVal.address != null) newVal.address_type = newVal.address.address_type
         this.$emit('input', newVal)
       },
       deep: true

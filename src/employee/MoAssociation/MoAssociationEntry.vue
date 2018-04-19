@@ -43,7 +43,7 @@ export default {
       association: {
         validity: {},
         address: {
-          name: ''
+          address_type: {}
         }
       }
     }
@@ -52,7 +52,6 @@ export default {
     association: {
       handler (newVal) {
         newVal.type = 'association'
-        if (newVal.address != null) newVal.address_type = newVal.address.address_type
         this.$emit('input', newVal)
       },
       deep: true

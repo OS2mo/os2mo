@@ -15,7 +15,6 @@
         ({{a.address_type.name}}) {{a.name}}
       </option>
     </select>
-    {{selected}}
   </div>
 </template>
 
@@ -51,6 +50,7 @@ export default {
   },
   methods: {
     getAddresses () {
+      if (this.orgUnit == null) return
       let vm = this
       vm.isLoading = true
       OrganisationUnit.getAddressDetails(this.orgUnit.uuid)

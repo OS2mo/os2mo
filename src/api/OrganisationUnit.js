@@ -62,6 +62,12 @@ export default {
    */
   getAddressDetails (uuid, validity) {
     return this.getDetail(uuid, 'address', validity)
+      .then(response => {
+        response.forEach(addr => {
+          delete addr.validity
+        })
+        return response
+      })
   },
 
   /**
