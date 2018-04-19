@@ -1,11 +1,16 @@
 <template>
-  <div class="card col-sm-12 col-md-12">
-    <div class="card-body">
+  <div class="card col">
+    <div class="card-body d-flex flex-column">
       <h4 class="card-title">
         <icon name="folder-o"/>
         Overblik
       </h4>
-      <mo-tree-view :org-uuid="orgUuid" linkable/>
+      <div id="tree-wrapper">
+        <mo-tree-view :org-uuid="orgUuid" linkable/>
+      </div>
+      <!-- <div class="d-flex flex-column" id="tree-wrapper">
+        <div v-for="index in 100" :key="index" class="p-2">Flex item {{index}}</div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -25,3 +30,16 @@
     }
   }
 </script>
+
+<style scoped>
+.card-body {
+  min-height: 5vh;
+  max-height: 90vh;
+}
+
+#tree-wrapper {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll
+}
+</style>

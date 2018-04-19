@@ -29,7 +29,7 @@
           :columns="columns.engagement"
         />
       </b-tab>
-      <b-tab :title="$t('tabs.organisation.associations')">
+      <b-tab :title="$tc('tabs.organisation.association', 2)">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"

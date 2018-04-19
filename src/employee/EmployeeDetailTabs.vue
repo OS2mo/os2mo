@@ -33,7 +33,7 @@
           :entry-component="components.it"
         />
       </b-tab>
-      <b-tab :title="$t('tabs.employee.associations')">
+      <b-tab :title="$tc('tabs.employee.association', 2)">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="association"

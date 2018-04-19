@@ -1,9 +1,9 @@
 <template>
   <div class="row">
-    <div class="col-md-3">
+    <div class="col-sm-12 col-md-4 col-lg-4 col-xl-3">
       <the-left-menu/>
     </div>
-    <div class="col-md-9 workflow-padding">
+    <div class="col-sm-12 col-md-8 col-lg-8 col-xl-9 workflow-padding">
       <router-view :key="$route.params.uuid"/>
       <mo-log/>
     </div>
