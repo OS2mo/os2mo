@@ -443,11 +443,17 @@ def create_org_unit():
 
     req = flask.request.get_json()
 
-    name = req.get(keys.NAME)
-    parent_uuid = req.get(keys.PARENT).get('uuid')
+    name = common.checked_get(req, keys.NAME, "", required=True)
+
+    parent = common.checked_get(req, keys.PARENT, {}, required=True)
+    parent_uuid = common.get_uuid(parent)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
     org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
-    org_unit_type_uuid = req.get(keys.ORG_UNIT_TYPE).get('uuid')
+
+    org_unit_type = common.checked_get(req, keys.ORG_UNIT_TYPE, {},
+                                       required=True)
+    org_unit_type_uuid = common.get_uuid(org_unit_type)
+
     addresses = [
         address.get_relation_for(addr)
         for addr in common.checked_get(req, keys.ADDRESSES, [])
@@ -809,6 +815,9 @@ def get_org_unit_history(unitid):
     unit_registrations = c.organisationenhed.get(uuid=unitid,
                                                  registreretfra='-infinity',
                                                  registrerettil='infinity')
+
+    if not unit_registrations:
+        raise werkzeug.exceptions.NotFound('no such unit')
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))

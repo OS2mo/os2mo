@@ -278,6 +278,19 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_engagement, expected)
 
+    def test_create_engagement_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "engagement",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
     def test_edit_engagement_no_overwrite(self):
         self.load_sample_structures()
 

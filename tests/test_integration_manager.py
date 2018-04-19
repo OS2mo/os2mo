@@ -549,6 +549,19 @@ class Tests(util.LoRATestCase):
             }],
         )
 
+    def test_create_manager_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "manager",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
     def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()
 

@@ -30,10 +30,15 @@ def create_role(employee_uuid, req):
     # TODO: Validation
     c = lora.Connector()
 
-    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
+    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
+    org_unit_uuid = common.get_uuid(org_unit)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    role_type_uuid = req.get(keys.ROLE_TYPE).get('uuid')
+
+    role_type = common.checked_get(req, keys.ROLE_TYPE, {},
+                                   required=True)
+    role_type_uuid = common.get_uuid(role_type)
+
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 

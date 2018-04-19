@@ -233,7 +233,6 @@ class Tests(util.LoRATestCase):
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
-            # TODO
             "addresses": [
                 {
                     "address_type": {

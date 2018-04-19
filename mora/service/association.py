@@ -32,13 +32,22 @@ def create_association(employee_uuid, req):
     # TODO: Validation
     c = lora.Connector()
 
-    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
+    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
+    org_unit_uuid = common.get_uuid(org_unit)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = req.get(keys.JOB_FUNCTION).get('uuid') if req.get(
-        keys.JOB_FUNCTION) else None
-    association_type_uuid = req.get(keys.ASSOCIATION_TYPE).get('uuid')
-    address_obj = req.get(keys.ADDRESS)
+
+    job_function = common.checked_get(req, keys.JOB_FUNCTION, {})
+    job_function_uuid = common.get_uuid(job_function) if job_function else None
+
+    association_type = common.checked_get(req, keys.ASSOCIATION_TYPE, {},
+                                          required=True)
+    association_type_uuid = common.get_uuid(
+        association_type) if association_type else None
+
+    address_obj = common.checked_get(req, keys.ADDRESS, {})
+    address_type = common.checked_get(req, keys.ADDRESS_TYPE, {})
+
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 

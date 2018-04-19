@@ -949,6 +949,9 @@ def get_employee_history(employee_uuid):
                                       registreretfra='-infinity',
                                       registrerettil='infinity')
 
+    if not user_registrations:
+        raise werkzeug.exceptions.NotFound('no such user')
+
     history_entries = list(map(common.convert_reg_to_history,
                                user_registrations))
 
@@ -987,9 +990,10 @@ def create_employee():
 
     req = flask.request.get_json()
 
-    name = req.get(keys.NAME)
-    org_uuid = req.get(keys.ORG).get('uuid')
-    cpr = req.get(keys.CPR_NO)
+    name = common.checked_get(req, keys.NAME, "", required=True)
+    org = common.checked_get(req, keys.ORG, {}, required=True)
+    org_uuid = common.get_uuid(org)
+    cpr = common.checked_get(req, keys.CPR_NO, "", required=True)
 
     valid_from = util.get_cpr_birthdate(cpr)
     valid_to = util.positive_infinity

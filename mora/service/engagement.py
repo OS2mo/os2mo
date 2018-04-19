@@ -29,11 +29,18 @@ def create_engagement(employee_uuid, req):
 
     c = lora.Connector()
 
-    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
+    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
+    org_unit_uuid = common.get_uuid(org_unit)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = req.get(keys.JOB_FUNCTION).get('uuid')
-    engagement_type_uuid = req.get(keys.ENGAGEMENT_TYPE).get('uuid')
+
+    job_function = common.checked_get(req, keys.JOB_FUNCTION, {})
+    job_function_uuid = common.get_uuid(job_function) if job_function else None
+
+    engagement_type = common.checked_get(req, keys.ENGAGEMENT_TYPE, {},
+                                         required=True)
+    engagement_type_uuid = common.get_uuid(engagement_type)
+
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 

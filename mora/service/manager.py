@@ -30,15 +30,24 @@ def create_manager(employee_uuid, req):
     # TODO: Validation
     c = lora.Connector()
 
-    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
+    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
+    org_unit_uuid = common.get_uuid(org_unit)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+
     address_obj = common.checked_get(req, keys.ADDRESS, {})
-    manager_type_uuid = common.get_obj_value(req, (keys.MANAGER_TYPE, 'uuid'))
-    responsibility_uuid = common.get_obj_value(req,
-                                               (keys.RESPONSIBILITY, 'uuid'))
-    manager_level_uuid = common.get_obj_value(req,
-                                              (keys.MANAGER_LEVEL, 'uuid'))
+    address_type = common.checked_get(req, keys.ADDRESS_TYPE, {})
+
+    manager_type = common.checked_get(req, keys.MANAGER_TYPE, {})
+    manager_type_uuid = common.get_uuid(manager_type) if manager_type else None
+
+    responsibility = common.checked_get(req, keys.RESPONSIBILITY, {})
+    responsibility_uuid = common.get_uuid(
+        responsibility) if responsibility else None
+
+    manager_level = common.checked_get(req, keys.MANAGER_LEVEL, {})
+    manager_level_uuid = common.get_uuid(
+        manager_level) if manager_level else None
 
     opgaver = list()
 
