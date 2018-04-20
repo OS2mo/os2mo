@@ -8,7 +8,7 @@
     lazy
   >
     <form @submit.prevent="createLeave">
-      <employee-picker v-model="employee" required/>
+      <mo-employee-picker v-model="employee" required/>
       <mo-leave-entry v-model="leave"/>
 
       <div class="float-right">
@@ -19,17 +19,17 @@
 </template>
 
 <script>
-import Employee from '../../api/Employee'
-import EmployeePicker from '../../components/EmployeePicker'
-import MoLeaveEntry from '../MoLeave/MoLeaveEntry'
-import ButtonSubmit from '../../components/ButtonSubmit'
+import Employee from '@/api/Employee'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+import ButtonSubmit from '@/components/ButtonSubmit'
 
 export default {
   $_veeValidate: {
     validator: 'new'
   },
   components: {
-    EmployeePicker,
+    MoEmployeePicker,
     MoLeaveEntry,
     ButtonSubmit
   },

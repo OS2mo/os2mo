@@ -1,5 +1,6 @@
 import { Service } from './HttpCommon'
-import { EventBus } from '../EventBus'
+import { EventBus } from '@/EventBus'
+import store from '@/vuex/store'
 
 export default {
 
@@ -29,7 +30,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -62,17 +63,18 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
   new (employee) {
     return Service.post(`/e/create`, employee)
       .then(response => {
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
@@ -89,7 +91,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
         EventBus.$emit('employee-changed')
       })
   },
@@ -97,19 +99,19 @@ export default {
   create (uuid, create) {
     return this.createEntry(uuid, create)
       .then(response => {
-        EventBus.$emit('employee-create', response)
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response})
       })
   },
 
   leave (uuid, leave) {
     return this.createEntry(uuid, leave)
       .then(response => {
-        EventBus.$emit('employee-leave', response)
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response})
       })
   },
 
   /**
-   * Move an employee
+   * Edit an employee
    * @param {String} uuid - employee uuid
    * @param {Array} edit - A list of elements to edit
    * @returns {Object} employeee uuid
@@ -118,18 +120,18 @@ export default {
     return Service.post(`/e/${uuid}/edit`, edit)
       .then(response => {
         EventBus.$emit('employee-changed', response.data)
-        EventBus.$emit('employee-edit', response.data)
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_EDIT', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   },
 
   move (uuid, move) {
     return this.edit(uuid, move)
       .then(response => {
-        EventBus.$emit('employee-move', response)
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
       })
   },
 
@@ -143,11 +145,11 @@ export default {
     return Service.post(`/e/${uuid}/terminate`, end)
       .then(response => {
         EventBus.$emit('employee-changed', response.data)
-        EventBus.$emit('employee-terminate', response.data)
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('mo-error', error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
       })
   }
 }

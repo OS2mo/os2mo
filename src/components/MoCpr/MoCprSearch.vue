@@ -21,7 +21,7 @@
         <icon name="search"/>
       </button>
 
-      <loading v-show="isLoading"/>
+      <mo-loader v-show="isLoading"/>
     </div>
 
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -32,7 +32,7 @@
 
 <script>
 import Search from '@/api/Search'
-import Loading from '@/components/Loading'
+import MoLoader from '@/components/atoms/MoLoader'
 
 export default {
   name: 'MoCprSearch',
@@ -40,7 +40,7 @@ export default {
     $validator: '$validator'
   },
   components: {
-    Loading
+    MoLoader
   },
   props: {
     noLabel: Boolean,

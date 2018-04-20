@@ -10,22 +10,22 @@
     <form @submit.stop.prevent="createEmployee()">
       <mo-cpr v-model="employee"/>
 
-      <h5>Engagement</h5>
+      <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
       <h5>Adresser</h5>
       <mo-add-many v-model="address" :entry-component="entry.address"/>
 
-      <h5>Tilknytninger</h5>
+      <h5>{{$tc('workflows.employee.labels.association', 2)}}</h5>
       <mo-add-many v-model="association" :entry-component="entry.association"/>
       
-      <h5>Roller</h5>
+      <h5>{{$tc('workflows.employee.labels.role', 2)}}</h5>
       <mo-add-many v-model="role" :entry-component="entry.role"/>
 
-      <h5>IT systemer</h5>
+      <h5>{{$tc('workflows.employee.labels.it_system', 2)}}</h5>
       <mo-add-many v-model="itSystem" :entry-component="entry.it"/>
 
-      <h5>Leder</h5>
+      <h5>{{$tc('workflows.employee.labels.manager', 1)}}</h5>
       <mo-add-many v-model="manager" :entry-component="entry.manager"/>
 
     <div class="float-right">
@@ -38,14 +38,14 @@
 <script>
 import Employee from '@/api/Employee'
 import ButtonSubmit from '@/components/ButtonSubmit'
-import MoCpr from '../../components/MoCpr/MoCpr'
-import MoAddMany from '@/components/MoAddMany'
-import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
-import MoAddressEntry from '../../components/MoAddressEntry/MoAddressEntry'
-import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
-import MoRoleEntry from '../MoRole/MoRoleEntry'
-import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
-import MoManagerEntry from '../MoManager/MoManagerEntry'
+import MoCpr from '@/components/MoCpr/MoCpr'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
 export default {
   $_veeValidate: {

@@ -8,18 +8,18 @@
     lazy
   >
     <form @submit.prevent="moveEmployee">
-      <employee-picker v-model="employee" required/>
+      <mo-employee-picker v-model="employee" required/>
 
       <div class="form-row">
-        <date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
+        <mo-date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
       </div>
       
       <div class="form-row">
-        <engagement-picker v-model="original" :employee="employee"/>
+        <mo-engagement-picker v-model="original" :employee="employee"/>
       </div>
 
       <div class="form-row">
-        <organisation-unit-picker label="Angiv enhed" class="col" v-model="move.data.org_unit"/>       
+        <mo-organisation-unit-picker label="Angiv enhed" class="col" v-model="move.data.org_unit"/>       
       </div>
 
     <div class="float-right">
@@ -30,23 +30,22 @@
 </template>
 
 <script>
-  import Employee from '../../api/Employee'
-  import DatePicker from '../../components/DatePicker'
-  import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-  import EngagementPicker from '../../components/EngagementPicker'
-  import EmployeePicker from '../../components/EmployeePicker'
-  import ButtonSubmit from '../../components/ButtonSubmit'
+  import Employee from '@/api/Employee'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
+  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
     $_veeValidate: {
       validator: 'new'
     },
     components: {
-      Employee,
-      DatePicker,
-      OrganisationUnitPicker,
-      EngagementPicker,
-      EmployeePicker,
+      MoDatePicker,
+      MoOrganisationUnitPicker,
+      MoEngagementPicker,
+      MoEmployeePicker,
       ButtonSubmit
     },
     data () {

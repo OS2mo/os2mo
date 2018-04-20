@@ -9,10 +9,10 @@
   >
     <form @submit.prevent="endEmployee">
       <div class="col">
-        <employee-picker v-model="employee" required/>
+        <mo-employee-picker v-model="employee" required/>
         
         <div class="form-row">
-          <date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+          <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
         </div>
         
         <div class="float-right">
@@ -24,18 +24,18 @@
 </template>
 
 <script>
-import Employee from '../../api/Employee'
-import EmployeePicker from '../../components/EmployeePicker'
-import DatePicker from '../../components/DatePicker'
-import ButtonSubmit from '../../components/ButtonSubmit'
+import Employee from '@/api/Employee'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import ButtonSubmit from '@/components/ButtonSubmit'
 
 export default {
   $_veeValidate: {
     validator: 'new'
   },
   components: {
-    EmployeePicker,
-    DatePicker,
+    MoEmployeePicker,
+    MoDatePicker,
     ButtonSubmit
   },
   data () {

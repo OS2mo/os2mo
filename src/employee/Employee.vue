@@ -1,5 +1,5 @@
 <template>
-    <div class="row">
+  <div class="row">
     <div class="col-12 workflow-padding">
       <router-view :key="$route.params.uuid"/>
       <mo-log/>
@@ -11,7 +11,7 @@
 
 <script>
   import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
-  import MoLog from '../components/MoLog/MoLog'
+  import MoLog from '@/components/MoLog/MoLog'
 
   export default {
     components: {

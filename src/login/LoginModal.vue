@@ -4,9 +4,7 @@
     size="md"
     hide-footer
     title="Log ind">
-
-    <!-- <b-form> -->
-
+    <form @submit.prevent="gotoMo()">
       <div class="form-group col">
         <b-form-input
           name="username"
@@ -28,15 +26,15 @@
         </b-form-checkbox>
       </div>
 
-      <button class="btn btn-primary col" @click="gotoMo">
+      <button type="submit" aria-label="Log ind" class="btn btn-primary col">
         Log ind
       </button>
-    <!-- </b-form> -->
+    </form>
   </b-modal>
 </template>
 
 <script>
-  import Auth from '../api/Auth'
+  import Auth from '@/api/Auth'
 
   export default {
     name: 'login-modal',
@@ -55,15 +53,9 @@
         let vm = this
         Auth.setUser(vm.user)
           .then(response => {
-            vm.$router.push({
-              name: this.destination
-            })
+            vm.$router.push({name: this.destination})
           })
       }
     }
   }
 </script>
-
-<style scoped>
-
-</style>

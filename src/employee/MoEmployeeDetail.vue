@@ -11,8 +11,8 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal-base
-      class="margin-top"
+    <mo-entry-modal
+      class="mt-3"
       action="CREATE"
       type="EMPLOYEE" 
       :uuid="uuid" 
@@ -25,32 +25,22 @@
 
 
 <script>
-  import Employee from '../api/Employee'
-  import { EventBus } from '../EventBus'
-  import MoTableCollapsibleTense from '../components/MoTableCollapsibleTense'
-  import MoEntryModalBase from '../components/MoEntryModalBase'
+  import Employee from '@/api/Employee'
+  import { EventBus } from '@/EventBus'
+  import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
+  import MoEntryModal from '@/components/MoEntryModal'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoEntryModalBase
+      MoEntryModal
     },
     props: {
-      uuid: {
-        type: String,
-        required: true
-      },
-      detail: {
-        type: String,
-        required: true
-      },
+      uuid: {type: String, required: true},
+      detail: {type: String, required: true},
       columns: Array,
       entryComponent: Object,
-      createLabel: {
-        type: String,
-        default: 'Opret ny'
-      }
-
+      createLabel: String
     },
     data () {
       return {
@@ -67,12 +57,10 @@
       }
     },
     mounted () {
+      this.getDetails('present')
       EventBus.$on('employee-changed', () => {
         this.getAllDetails()
       })
-    },
-    created () {
-      this.getDetails('present')
     },
     methods: {
       getAllDetails () {
@@ -95,9 +83,3 @@
     }
   }
 </script>
-
-<style scoped>
-  .margin-top {
-    margin-top: 1rem;
-  }
-</style>

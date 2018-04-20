@@ -1,5 +1,6 @@
 <template>
   <div class="form-group col">
+    <label>{{label}}</label>
     <v-autocomplete 
       v-model="selectedItem"
       :items="addressSuggestions"

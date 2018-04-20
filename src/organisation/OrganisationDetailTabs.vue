@@ -1,56 +1,55 @@
 <template>
   <div>
     <b-tabs lazy>
-      <b-tab title="Enhed" active>
+      <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
           detail="org_unit"
-          :columns="columns.org_unit"
+          :columns="org_unit"
           :entry-component="timemachineFriendly ? undefined : components.orgUnit"
           hide-create
         />
       </b-tab>
-      <b-tab title="Adresse">
+      <b-tab :title="$t('tabs.organisation.addresses')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
           detail="address"
-          :columns="columns.address"
+          :columns="address"
           :entry-component="timemachineFriendly ? undefined : components.address"
-          hide-create
         />
       </b-tab>
-      <b-tab title="Engagementer">
+      <b-tab :title="$t('tabs.organisation.engagements')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
           detail="engagement"
-          :columns="columns.engagement"
+          :columns="engagement"
         />
       </b-tab>
-      <b-tab title="Tilknytninger">
+      <b-tab :title="$tc('tabs.organisation.association', 2)">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
           detail="association"
-          :columns="columns.association"
+          :columns="association"
         />
       </b-tab>
-      <b-tab title="Rolle">
+      <b-tab :title="$t('tabs.organisation.roles')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
           detail="role"
-          :columns="columns.role"
+          :columns="role"
         />
       </b-tab>
-      <b-tab title="Leder">
+      <b-tab :title="$t('tabs.organisation.managers')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
           detail="manager"
-          :columns="columns.manager"
+          :columns="manager"
         />
       </b-tab>
     </b-tabs>
@@ -59,9 +58,9 @@
 
 <script>
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
-  import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
-  import MoAddressEntry from '../components/MoAddressEntry/MoAddressEntry'
-  import MoAddMany from '../components/MoAddMany'
+  import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
   export default {
     components: {
@@ -69,23 +68,47 @@
       MoAddMany
     },
     props: {
-      uuid: {
-        type: String,
-        required: true
-      },
+      uuid: {type: String, required: true},
       atDate: [Date, String],
       timemachineFriendly: Boolean
     },
     data () {
       return {
-        columns: {
-          org_unit: [null, 'org_unit_type', 'parent'],
-          address: ['address_type', null],
-          engagement: ['person', 'engagement_type', 'job_function', 'org_unit'],
-          association: ['person', 'association_type', 'job_function', 'address', 'address_type', 'org_unit'],
-          role: ['person', 'role_type'],
-          manager: ['person', 'responsibility', 'manager_type', 'manager_level', 'address_type', 'address']
-        },
+        org_unit: [
+          {label: 'org_unit', data: null},
+          {label: 'org_unit_type', data: 'org_unit_type'},
+          {label: 'parent', data: 'parent'}
+        ],
+        address: [
+          {label: 'address_type', data: 'address_type'},
+          {label: 'value', data: null}
+        ],
+        engagement: [
+          {label: 'person', data: 'person'},
+          {label: 'engagement_type', data: 'engagement_type'},
+          {label: 'job_function', data: 'job_function'},
+          {label: 'org_unit', data: 'org_unit'}
+        ],
+        association: [
+          {label: 'person', data: 'person'},
+          {label: 'association_type', data: 'association_type'},
+          {label: 'job_function', data: 'job_function'},
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'},
+          {label: 'org_unit', data: 'org_unit'}
+        ],
+        role: [
+          {label: 'person', data: 'person'},
+          {label: 'role_type', data: 'role_type'}
+        ],
+        manager: [
+          {label: 'person', data: 'person'},
+          {label: 'responsibility', data: 'responsibility'},
+          {label: 'manager_type', data: 'manager_type'},
+          {label: 'manager_level', data: 'manager_level'},
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'}
+        ],
         components: {
           orgUnit: MoOrganisationUnitEntry,
           address: MoAddressEntry

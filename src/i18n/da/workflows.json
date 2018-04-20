@@ -1,0 +1,22 @@
+{
+  "employee": {
+    "new_employee": "Ny medarbejder",
+    "leave": "Orlov",
+    "move_engagement": "Flyt engagement",
+    "move_many_engagements": "Flyt mange engagementer",
+    "terminate_employee": "Afslut medarbejder",
+    "labels": {
+      "engagement": "Engagement",
+      "association": "@:shared.association",
+      "role": "@:shared.role",
+      "it_system": "@:shared.it_system",
+      "manager": "@:shared.manager"
+    }
+  },
+  "organisation": {
+    "create_unit": "Opret enhed",
+    "rename_unit": "Omdøb enhed",
+    "move_unit": "Flyt enhed",
+    "terminate_unit": "Afslut enhed"
+  }
+}

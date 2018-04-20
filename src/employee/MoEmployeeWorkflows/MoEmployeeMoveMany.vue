@@ -9,15 +9,15 @@
   >
     <form @submit.prevent="moveMany">
       <div class="form-row">
-        <date-picker class="col" label="Dato for flytning" v-model="moveDate"/>
+        <mo-date-picker class="col" label="Dato for flytning" v-model="moveDate"/>
 
-        <organisation-unit-picker 
+        <mo-organisation-unit-picker 
           :is-disabled="dateSelected" 
           label="Flyttes fra" 
           v-model="orgUnitSource" 
           class="col"/>
         
-        <organisation-unit-picker 
+        <mo-organisation-unit-picker 
           :is-disabled="dateSelected" 
           label="Flyttes til" 
           v-model="orgUnitDestination" 
@@ -40,17 +40,17 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../../api/OrganisationUnit'
-  import Employee from '../../api/Employee'
-  import DatePicker from '../../components/DatePicker'
-  import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-  import MoTable from '../../components/MoTable'
-  import ButtonSubmit from '../../components/ButtonSubmit'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import Employee from '@/api/Employee'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoTable from '@/components/MoTable/MoTable'
+  import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
     components: {
-      DatePicker,
-      OrganisationUnitPicker,
+      MoDatePicker,
+      MoOrganisationUnitPicker,
       MoTable,
       ButtonSubmit
     },
