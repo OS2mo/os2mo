@@ -10,7 +10,7 @@ let item = {
   vejnavn: 'Testrupvej 203, Testrup, 9600 Aars'
 }
 
-describe('AddressSearchTemplate.vue', () => {
+xdescribe('AddressSearchTemplate.vue', () => {
   beforeEach(function () {
     // Extend the component to get the constructor, which we can then initialize directly.
     Constructor = Vue.extend(AddressSearchTemplate)
