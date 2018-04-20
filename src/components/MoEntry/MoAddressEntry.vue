@@ -1,11 +1,9 @@
 <template>
   <div>
-    <date-start-end v-model="entry.validity" :initially-hidden="validityHidden"/>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
     <div class="form-row">
-      <div class="form-group col">
-        <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
-      </div>
-
+      <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
+      
       <div class="form-group col">
         <div v-if="entry.address_type != null">
           <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
@@ -24,7 +22,6 @@
 
 
 <script>
-import DateStartEnd from '../../components/DatePickerStartEnd'
 import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
@@ -32,7 +29,6 @@ import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 export default {
   name: 'MoAddressEntry',
   components: {
-    DateStartEnd,
     MoAddressSearch,
     MoFacetPicker,
     MoDatePickerRange
@@ -50,6 +46,15 @@ export default {
         uuid: null
       },
       address: null
+    }
+  },
+  computed: {
+    isDarAddress () {
+      if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
+      return false
+    },
+    isDisabled () {
+      return this.entry.address_type == null
     }
   },
   watch: {

@@ -18,7 +18,6 @@
           detail="address"
           :columns="address"
           :entry-component="timemachineFriendly ? undefined : components.address"
-          hide-create
         />
       </b-tab>
       <b-tab :title="$t('tabs.organisation.engagements')">

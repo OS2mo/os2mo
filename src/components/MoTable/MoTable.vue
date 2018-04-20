@@ -13,8 +13,8 @@
           </th>
           <th 
             scope="col" 
-            v-for="col in columns" 
-            :key="col"
+            v-for="(col, index) in columns" 
+            :key="index"
           >
             {{$t('table_headers.'+col.label)}}
           </th>
@@ -24,14 +24,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr 
-          v-for="(c, index) in content" 
-          v-bind:key="index"
-        >
+        <tr v-for="(c, index) in content" :key="index">
           <td v-if="multiSelect">
             <b-form-checkbox :value="c"/>
           </td>
-          <td v-for="col in columns" :key="col">
+          <td v-for="(col, index) in columns" :key="index">
             <mo-link :value="c" :column="col.data"/>
           </td>
           <td>

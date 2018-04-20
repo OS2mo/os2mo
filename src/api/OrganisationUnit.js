@@ -94,7 +94,7 @@ export default {
   /**
    * Create a new organisation unit
    * @param {Object} orgUnit - new organisation unit
-   * @param {Array} create - A list of elements to edit
+   * @param {Array} create - A list of elements to create
    * @returns {Object} organisation unit uuid
    */
   create (create) {
@@ -113,7 +113,7 @@ export default {
    * Create a new organisation unit entry
    * @param {Object} orgUnit - new organisation unit
    * @param {String} uuid - organisation uuid
-   * @param {Array} create - A list of elements to edit
+   * @param {Array} create - A list of elements to create
    * @returns {Object} organisation unit uuid
    */
   createEntry (uuid, create) {
@@ -149,7 +149,7 @@ export default {
   edit (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response.data})
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response})
         return response
       })
   },

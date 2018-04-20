@@ -1,21 +1,3 @@
-<i18n>
-{
-  "da": {
-    "EMPLOYEE_CREATE": "Medarbejderen med UUID {uuid} er blevet oprettet.",
-    "EMPLOYEE_EDIT": "Medarbejderen med UUID {uuid} er blevet redigeret.",
-    "EMPLOYEE_LEAVE": "Medarbejderen med UUID {uuid} har fået tildelt orlov.",
-    "EMPLOYEE_MOVE": "Medarbejderen med UUID {uuid} er blevet flyttet.",
-    "EMPLOYEE_TERMINATE": "Medarbejderen med UUID {uuid} er afsluttet.",
-
-    "ORGANISATION_CREATE": "Organisationsenheden med UUID {UUID} er blevet oprettet.",
-    "ORGANISATION_EDIT": "Organisationsenheden med UUID {uuid} er blevet redigeret.",
-    "ORGANISATION_RENAME": "Organisationsenheden med UUID {uuid} er blevet omdøbt.",
-    "ORGANISATION_MOVE": "Organisationsenheden med UUID {uuid} er blevet flyttet",
-    "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet."
-  }
-}
-</i18n>
-
 <template>
   <div class="wrapper">
     <div 
@@ -24,7 +6,7 @@
       v-bind:key="log.value" 
       role="alert"
     >
-    {{$t(log.type, {uuid: log.value})}}
+    {{$t('alerts.success.' + log.type, {uuid: log.value})}}
 
     </div>
   </div>
