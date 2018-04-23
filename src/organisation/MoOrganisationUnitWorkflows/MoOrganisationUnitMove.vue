@@ -7,8 +7,9 @@
     title="Flyt enhed"
     @hidden="resetData"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="moveOrganisationUnit">
+    <form @submit.stop.prevent="moveOrganisationUnit">
     <div class="form-row">
       <mo-date-picker 
       label="Dato for flytning"
@@ -19,7 +20,11 @@
 
     <div class="form-row">
       <div class="col">
-        <mo-organisation-unit-picker v-model="original" label="Fremsøg enhed"/>
+        <mo-organisation-unit-picker 
+          v-model="original" 
+          label="Fremsøg enhed"
+          required
+        />
       </div>
 
       <div class="form-group col">
@@ -33,10 +38,14 @@
       </div>
     </div>
 
-    <mo-organisation-unit-picker v-model="move.data.parent" label="Angiv ny overenhed"/>
+    <mo-organisation-unit-picker 
+      v-model="move.data.parent" 
+      label="Angiv ny overenhed"
+      required
+    />
 
     <div class="float-right">
-      <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading"/>
     </div> 
     </form>
   </b-modal>
@@ -91,19 +100,24 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
+      
+      moveOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
 
-      moveOrganisationUnit () {
-        let vm = this
-        vm.isLoading = true
-
-        OrganisationUnit.move(this.original.uuid, this.move)
-          .then(response => {
-            vm.$refs.orgUnitMove.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+          OrganisationUnit.move(this.original.uuid, this.move)
+            .then(response => {
+              vm.$refs.orgUnitMove.hide()
+            })
+            .catch(err => {
+              console.log(err)
+              vm.isLoading = false
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       },
 
       getCurrentUnit (unitUuid) {

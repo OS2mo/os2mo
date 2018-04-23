@@ -7,8 +7,9 @@
     title="Omdøb enhed"
     @hidden="resetData"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="renameOrganisationUnit">
+    <form @submit.stop.prevent="renameOrganisationUnit">
     <div class="form-row">
       <mo-organisation-unit-picker 
         label="Enhed" 
@@ -36,7 +37,7 @@
     </div>
 
     <div class="float-right">
-      <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading"/>
     </div>
     </form>
   </b-modal>
@@ -82,19 +83,24 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
+      
+      renameOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
 
-      renameOrganisationUnit () {
-        let vm = this
-        vm.isLoading = true
-
-        OrganisationUnit.rename(this.original.uuid, this.rename)
-          .then(response => {
-            vm.$refs.orgUnitRename.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+          OrganisationUnit.rename(this.original.uuid, this.rename)
+            .then(response => {
+              vm.$refs.orgUnitRename.hide()
+            })
+            .catch(err => {
+              console.log(err)
+              vm.isLoading = false
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }

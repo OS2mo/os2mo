@@ -9,7 +9,7 @@
     @hidden="resetData"
     lazy
   >
-    <form @submit.stop.prevent="createEmployee()">
+    <form @submit.stop.prevent="createEmployee">
       <mo-cpr v-model="employee"/>
 
       <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
@@ -31,7 +31,7 @@
       <mo-add-many v-model="manager" :entry-component="entry.manager"/>
 
     <div class="float-right">
-      <button-submit :is-disabled="!formValid" :is-loading="isLoading" />
+      <button-submit :is-loading="isLoading" />
     </div>
     </form>
   </b-modal>
@@ -95,26 +95,32 @@ export default {
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
-    createEmployee () {
-      let vm = this
-      this.isLoading = true
-      let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
+    
+    createEmployee (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        this.isLoading = true
+        let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
 
-      let newEmployee = {
-        name: this.employee.name,
-        cpr_no: this.employee.cpr_no,
-        org: this.$store.state.organisation
+        let newEmployee = {
+          name: this.employee.name,
+          cpr_no: this.employee.cpr_no,
+          org: this.$store.state.organisation
+        }
+
+        Employee.new(newEmployee)
+          .then(employeeUuid => {
+            Employee.create(employeeUuid, create)
+              .then(response => {
+                vm.isLoading = false
+                vm.$refs.employeeCreate.hide()
+                vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+              })
+          })
+      } else {
+        this.$validator.validateAll()
       }
-
-      Employee.new(newEmployee)
-        .then(employeeUuid => {
-          Employee.create(employeeUuid, create)
-            .then(response => {
-              vm.isLoading = false
-              vm.$refs.employeeCreate.hide()
-              vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
-            })
-        })
     }
   }
 }

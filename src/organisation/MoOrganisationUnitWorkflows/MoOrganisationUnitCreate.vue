@@ -7,8 +7,9 @@
     ref="orgUnitCreate"
     @hidden="resetData"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="createOrganisationUnit">
+    <form @submit.stop.prevent="createOrganisationUnit">
       <mo-organisation-unit-entry
         v-model="entry" 
       />
@@ -20,7 +21,9 @@
       />
 
       <div class="float-right">
-        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+        <button-submit
+        :is-loading="isLoading"
+        />
       </div>
     </form>
   </b-modal>
@@ -66,22 +69,27 @@ export default {
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
-
-    createOrganisationUnit () {
-      let vm = this
-      this.isLoading = true
-
-      this.entry.addresses = this.addresses
-
-      OrganisationUnit.create(this.entry)
-        .then(response => {
-          vm.$refs.orgUnitCreate.hide()
-          vm.isLoading = false
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
-        })
+    methods: {
+      createOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          this.isLoading = true
+  
+          this.entry.addresses = this.addresses
+  
+          OrganisationUnit.create(this.entry)
+            .then(response => {
+              vm.$refs.orgUnitCreate.hide()
+            })
+            .catch(err => {
+              console.log(err)
+              vm.isLoading = false
+            })
+        } else {
+          this.$validator.validateAll()
+        }
+      }
     }
   }
 }

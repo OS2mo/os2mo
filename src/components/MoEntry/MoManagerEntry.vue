@@ -2,13 +2,30 @@
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/> 
     <div class="form-row">
-      <mo-organisation-unit-picker v-model="entry.org_unit" label="Angiv enhed" class="col"/>
+      <mo-organisation-unit-picker 
+        v-model="entry.org_unit" 
+        label="Angiv enhed" 
+        class="col"
+        required
+      />
       <mo-address-picker v-model="entry.address" :org-unit="entry.org_unit" class="col"/>
     </div> 
     <div class="form-row">
-      <mo-facet-picker facet="manager_type" v-model="entry.manager_type"/>
-      <mo-facet-picker facet="manager_level" v-model="entry.manager_level"/>  
-      <mo-facet-picker facet="responsibility" v-model="entry.responsibility"/> 
+      <mo-facet-picker 
+        facet="manager_type" 
+        v-model="entry.manager_type" 
+        required
+      />
+      <mo-facet-picker 
+        facet="manager_level" 
+        v-model="entry.manager_level"
+        required
+      />  
+      <mo-facet-picker 
+        facet="responsibility" 
+        v-model="entry.responsibility"
+        required
+      /> 
     </div>
   </div>
 </template>

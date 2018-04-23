@@ -7,8 +7,9 @@
     @hidden="resetData"
     hide-footer 
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="endEmployee">
+    <form @submit.stop.prevent="endEmployee">
       <div class="col">
         <mo-employee-picker v-model="employee" required/>
         
@@ -17,7 +18,7 @@
         </div>
         
         <div class="float-right">
-          <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
+          <button-submit :is-loading="isLoading"/>
         </div>
       </div>
     </form>
@@ -64,14 +65,20 @@ export default {
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
-    endEmployee () {
-      let vm = this
-      vm.isLoading = true
-      Employee.terminate(this.employee.uuid, this.terminate)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeTerminate.hide()
-        })
+
+    endEmployee (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+        Employee.terminate(this.employee.uuid, this.terminate)
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeTerminate.hide()
+          })
+      } else {
+        this.$validator.validateAll()
+      }
     }
   }
 }

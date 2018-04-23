@@ -11,7 +11,7 @@
       v-model="orgName"
       @click.stop="toggleTree()"
       :disabled="isDisabled"
-      v-validate="{required: !isDisabled}"
+      v-validate="{required: required}"
     >
     <div 
       class="mo-input-group" 
@@ -45,7 +45,8 @@
         default: 'Angiv overenhed',
         type: String
       },
-      isDisabled: Boolean
+      isDisabled: Boolean,
+      required: Boolean
     },
     data () {
       return {
