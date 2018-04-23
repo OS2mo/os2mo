@@ -80,7 +80,7 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
-      
+
       moveEmployee (evt) {
         evt.preventDefault()
         if (this.formValid) {

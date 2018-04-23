@@ -100,7 +100,7 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
-      
+
       moveOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {

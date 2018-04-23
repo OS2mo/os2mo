@@ -131,8 +131,6 @@
       moveMany (evt) {
         evt.preventDefault()
         if (this.formValid) {
-          console.log('hej')
-          
           let vm = this
           vm.isLoading = true
 

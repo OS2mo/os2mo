@@ -62,7 +62,7 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
-      
+
       endOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {
