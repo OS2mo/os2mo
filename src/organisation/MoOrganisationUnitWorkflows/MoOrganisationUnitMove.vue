@@ -5,6 +5,7 @@
     size="lg" 
     hide-footer 
     title="Flyt enhed"
+    @hidden="resetData"
     lazy
   >
     <form @submit.prevent="moveOrganisationUnit">
@@ -86,12 +87,11 @@
         deep: true
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
+
       moveOrganisationUnit () {
         let vm = this
         vm.isLoading = true

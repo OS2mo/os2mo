@@ -5,6 +5,7 @@
     size="lg" 
     hide-footer 
     title="Afslut enhed"
+    @hidden="resetData"
     lazy
   >
     <form @submit.prevent="endOrganisationUnit">
@@ -51,12 +52,10 @@
         })
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
       endOrganisationUnit () {
         let vm = this
         vm.isLoading = true

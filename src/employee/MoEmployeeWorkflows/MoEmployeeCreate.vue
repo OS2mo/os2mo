@@ -5,6 +5,8 @@
     title="Ny medarbejder"
     ref="employeeCreate"
     hide-footer 
+    no-close-on-backdrop
+    @hidden="resetData"
     lazy
   >
     <form @submit.stop.prevent="createEmployee()">
@@ -89,12 +91,10 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
     createEmployee () {
       let vm = this
       this.isLoading = true

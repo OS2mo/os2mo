@@ -2,9 +2,10 @@
   <b-modal 
     id="employeeTerminate" 
     size="lg" 
-    hide-footer 
     title="Afslut medarbejder"
     ref="employeeTerminate"
+    @hidden="resetData"
+    hide-footer 
     lazy
   >
     <form @submit.prevent="endEmployee">
@@ -59,12 +60,10 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
     endEmployee () {
       let vm = this
       vm.isLoading = true

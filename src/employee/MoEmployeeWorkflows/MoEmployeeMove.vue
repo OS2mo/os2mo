@@ -6,6 +6,7 @@
     ref="employeeMove"
     hide-footer 
     lazy
+    @hidden="resetData"
   >
     <form @submit.prevent="moveEmployee">
       <mo-employee-picker v-model="employee" required/>
@@ -69,12 +70,10 @@
         })
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
       moveEmployee () {
         let vm = this
         vm.isLoading = true

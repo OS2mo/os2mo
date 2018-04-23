@@ -100,7 +100,7 @@ export default {
   create (create) {
     return Service.post('/ou/create', create)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed')
+        EventBus.$emit('update-tree-view')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
         return response.data
       })
@@ -119,7 +119,7 @@ export default {
   createEntry (uuid, create) {
     return Service.post(`/ou/${uuid}/create`, create)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-changed')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
         return response.data
       })
@@ -142,7 +142,6 @@ export default {
       })
       .catch(error => {
         store.commit('log/newError', {type: 'ERROR', value: error.response})
-        EventBus.$emit('organisation-unit-changed')
       })
   },
 
@@ -179,6 +178,7 @@ export default {
   move (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
+        EventBus.$emit('update-tree-view')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', value: response})
         return response
       })
@@ -193,7 +193,7 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed')
+        EventBus.$emit('update-tree-view')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', value: response.data})
         return response.data
       })

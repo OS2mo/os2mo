@@ -6,6 +6,7 @@
     ref="employeeMoveMany"
     hide-footer 
     lazy
+    @hidden="resetData"
   >
     <form @submit.prevent="moveMany">
       <div class="form-row">
@@ -86,12 +87,10 @@
         deep: true
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
       selectedEmployees (val) {
         this.selected = val
       },

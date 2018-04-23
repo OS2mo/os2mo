@@ -6,6 +6,7 @@
     ref="employeeLeave"
     hide-footer 
     lazy
+    @hidden="resetData"
   >
     <form @submit.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
@@ -50,12 +51,10 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
     createLeave () {
       let vm = this
       vm.isLoading = true
