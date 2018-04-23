@@ -6,14 +6,20 @@
     hide-footer 
     title="Afslut enhed"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="endOrganisationUnit">
+    <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
-        <mo-organisation-unit-picker label="Enhed" class="col" v-model="org_unit"/>
+        <mo-organisation-unit-picker 
+          label="Enhed" 
+          class="col" 
+          v-model="org_unit"
+          required
+        />
         <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
       </div>
       <div class="float-right">
-        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+        <button-submit :is-loading="isLoading"/>
       </div>
     </form>
   </b-modal>
@@ -57,14 +63,19 @@
       })
     },
     methods: {
-      endOrganisationUnit () {
-        let vm = this
-        vm.isLoading = true
-        OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs.orgUnitTerminate.hide()
-          })
+      endOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
+          OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
+            .then(response => {
+              vm.isLoading = false
+              vm.$refs.orgUnitTerminate.hide()
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }

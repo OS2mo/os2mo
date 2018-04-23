@@ -6,8 +6,9 @@
     title="Opret enhed"
     ref="orgUnitCreate"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="createOrganisationUnit">
+    <form @submit.stop.prevent="createOrganisationUnit">
       <mo-organisation-unit-entry
         v-model="entry" 
       />
@@ -20,7 +21,6 @@
 
       <div class="float-right">
         <button-submit
-        :is-disabled="!formValid"
         :is-loading="isLoading"
         :on-click-action="createOrganisationUnit"
         />
@@ -71,20 +71,25 @@
       })
     },
     methods: {
-      createOrganisationUnit () {
-        let vm = this
-        this.isLoading = true
-
-        this.entry.addresses = this.addresses
-
-        OrganisationUnit.create(this.entry)
-          .then(response => {
-            vm.$refs.orgUnitCreate.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+      createOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          this.isLoading = true
+  
+          this.entry.addresses = this.addresses
+  
+          OrganisationUnit.create(this.entry)
+            .then(response => {
+              vm.$refs.orgUnitCreate.hide()
+            })
+            .catch(err => {
+              console.log(err)
+              vm.isLoading = false
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }

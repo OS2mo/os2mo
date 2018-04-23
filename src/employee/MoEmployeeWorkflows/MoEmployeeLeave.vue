@@ -6,13 +6,14 @@
     ref="employeeLeave"
     hide-footer 
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="createLeave">
+    <form @submit.stop.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
       <mo-leave-entry v-model="leave"/>
 
       <div class="float-right">
-        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+        <button-submit :is-loading="isLoading"/>
       </div>
     </form>
   </b-modal>
@@ -56,14 +57,19 @@ export default {
     })
   },
   methods: {
-    createLeave () {
-      let vm = this
-      vm.isLoading = true
-      Employee.leave(this.employee.uuid, [this.leave])
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeLeave.hide()
-        })
+    createLeave (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+        Employee.leave(this.employee.uuid, [this.leave])
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeLeave.hide()
+          })
+      } else {
+        this.$validator.validateAll()
+      }
     }
   }
 }

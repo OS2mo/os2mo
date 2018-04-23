@@ -6,8 +6,9 @@
     ref="employeeMove"
     hide-footer 
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="moveEmployee">
+    <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker v-model="employee" required/>
 
       <div class="form-row">
@@ -15,15 +16,20 @@
       </div>
       
       <div class="form-row">
-        <mo-engagement-picker v-model="original" :employee="employee"/>
+        <mo-engagement-picker v-model="original" :employee="employee" required/>
       </div>
 
       <div class="form-row">
-        <mo-organisation-unit-picker label="Angiv enhed" class="col" v-model="move.data.org_unit"/>       
+        <mo-organisation-unit-picker 
+          label="Angiv enhed" 
+          class="col" 
+          v-model="move.data.org_unit"
+          required
+        />       
       </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
+      <button-submit :is-loading="isLoading"/>
     </div>
   </form>
 </b-modal>
@@ -75,20 +81,25 @@
       })
     },
     methods: {
-      moveEmployee () {
-        let vm = this
-        vm.isLoading = true
-        vm.move.uuid = this.original.uuid
+      moveEmployee (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
+          vm.move.uuid = this.original.uuid
 
-        Employee.move(this.employee.uuid, [this.move])
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs.employeeMove.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+          Employee.move(this.employee.uuid, [this.move])
+            .then(response => {
+              vm.isLoading = false
+              vm.$refs.employeeMove.hide()
+            })
+            .catch(err => {
+              console.log(err)
+              vm.isLoading = false
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }
