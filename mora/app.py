@@ -11,20 +11,17 @@ import os
 
 import flask
 
-from . import api
 from . import auth
 from . import cli
 from . import service
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
-staticdir = os.path.join(basedir, 'static')
 distdir = os.path.join(basedir, '..', 'dist')
 
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
 cli.load_cli(app)
-app.register_blueprint(api.blueprint)
 app.register_blueprint(auth.blueprint)
 
 for blueprint in service.blueprints:
@@ -77,7 +74,7 @@ def handle_invalid_usage(error):
 
 @app.route('/')
 @app.route('/<path:path>')
-def v2_root(path=''):
+def root(path=''):
     if path.split('/', 1)[0] == 'service':
         return flask.jsonify({
             'message': 'no such endpoint',
@@ -85,18 +82,3 @@ def v2_root(path=''):
         }), 404
 
     return flask.send_file('index.html')
-
-
-@app.route('/mo/')
-def root():
-    return flask.send_from_directory(staticdir, 'index.html')
-
-
-@app.route('/mo/<path:path>')
-def send_scripts(path):
-    return flask.send_from_directory(staticdir, path)
-
-
-@app.route('/mo/styles/<path:path>')
-def send_styles(path):
-    return flask.send_from_directory(staticdir, os.path.join('styles', path))
