@@ -5,6 +5,7 @@
     size="lg" 
     hide-footer 
     title="Omdøb enhed"
+    @hidden="resetData"
     lazy
     no-close-on-backdrop
   >
@@ -14,7 +15,6 @@
         label="Enhed" 
         class="col"
         v-model="original"
-        :preselected="preselectedUnit"
         required
       />
     </div>
@@ -45,7 +45,6 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import { EventBus } from '@/EventBus'
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
@@ -62,7 +61,6 @@
     data () {
       return {
         orgUnit: {},
-        preselectedUnit: {},
         original: {},
         rename: {
           data: {
@@ -81,15 +79,11 @@
         })
       }
     },
-    mounted () {
-      EventBus.$on('organisation-unit-changed', () => {
-        this.preselectedUnit = this.$route.params.uuid
-      })
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
+      
       renameOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {

@@ -127,7 +127,7 @@
       }
 
       if (this.action === 'CREATE') {
-        this.$root.$on('bv::modal::hidden', resetData => {
+        this.$root.$on('bv::modal::hidden', () => {
           Object.assign(this.$data, this.$options.data())
         })
       }

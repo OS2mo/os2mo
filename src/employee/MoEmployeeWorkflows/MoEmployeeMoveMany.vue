@@ -7,6 +7,7 @@
     hide-footer 
     lazy
     no-close-on-backdrop
+    @hidden="resetData"
   >
     <form @submit.stop.prevent="moveMany">
       <div class="form-row">
@@ -76,7 +77,11 @@
         orgUnitSource: {},
         orgUnitDestination: {},
         isLoading: false,
-        columns: ['person', 'engagement_type', 'job_function']
+        columns: [
+          {label: 'person', data: 'person'},
+          {label: 'engagement_type', data: 'engagement_type'},
+          {label: 'job_function', data: 'job_function'}
+        ]
       }
     },
     computed: {
@@ -107,12 +112,10 @@
         deep: true
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
       selectedEmployees (val) {
         this.selected = val
       },

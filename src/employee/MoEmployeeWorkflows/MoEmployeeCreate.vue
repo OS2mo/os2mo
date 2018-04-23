@@ -5,8 +5,9 @@
     title="Ny medarbejder"
     ref="employeeCreate"
     hide-footer 
-    lazy
     no-close-on-backdrop
+    @hidden="resetData"
+    lazy
   >
     <form @submit.stop.prevent="createEmployee">
       <mo-cpr v-model="employee"/>
@@ -90,12 +91,11 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
+    
     createEmployee (evt) {
       evt.preventDefault()
       if (this.formValid) {

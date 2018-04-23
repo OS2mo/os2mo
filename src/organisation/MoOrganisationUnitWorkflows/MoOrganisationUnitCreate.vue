@@ -5,6 +5,7 @@
     hide-footer 
     title="Opret enhed"
     ref="orgUnitCreate"
+    @hidden="resetData"
     lazy
     no-close-on-backdrop
   >
@@ -22,7 +23,6 @@
       <div class="float-right">
         <button-submit
         :is-loading="isLoading"
-        :on-click-action="createOrganisationUnit"
         />
       </div>
     </form>
@@ -31,44 +31,43 @@
 </template>
 
 <script>
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
-  import MoAddMany from '@/components/MoAddMany/MoAddMany'
-  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
-  export default {
-    $_veeValidate: {
-      validator: 'new'
-    },
-    name: 'OrganisationUnitCreate',
-    components: {
-      ButtonSubmit,
-      MoOrganisationUnitEntry,
-      MoAddMany
-    },
-    data () {
-      return {
-        entry: {
-          validity: {}
-        },
-        addresses: [],
-        addressEntry: MoAddressEntry,
-        isLoading: false
-      }
-    },
-    computed: {
-      formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
-    },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
+export default {
+  $_veeValidate: {
+    validator: 'new'
+  },
+  name: 'OrganisationUnitCreate',
+  components: {
+    ButtonSubmit,
+    MoOrganisationUnitEntry,
+    MoAddMany
+  },
+  data () {
+    return {
+      entry: {
+        validity: {}
+      },
+      addresses: [],
+      addressEntry: MoAddressEntry,
+      isLoading: false
+    }
+  },
+  computed: {
+    formValid () {
+      // loop over all contents of the fields object and check if they exist and valid.
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
       })
+    }
+  },
+  methods: {
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
     },
     methods: {
       createOrganisationUnit (evt) {
@@ -93,4 +92,5 @@
       }
     }
   }
+}
 </script>

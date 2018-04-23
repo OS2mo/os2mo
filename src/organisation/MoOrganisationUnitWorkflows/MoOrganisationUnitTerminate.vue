@@ -5,6 +5,7 @@
     size="lg" 
     hide-footer 
     title="Afslut enhed"
+    @hidden="resetData"
     lazy
     no-close-on-backdrop
   >
@@ -57,12 +58,11 @@
         })
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
+      
       endOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {

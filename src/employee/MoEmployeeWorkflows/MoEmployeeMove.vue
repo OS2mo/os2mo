@@ -7,6 +7,7 @@
     hide-footer 
     lazy
     no-close-on-backdrop
+    @hidden="resetData"
   >
     <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker v-model="employee" required/>
@@ -75,12 +76,11 @@
         })
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
+      
       moveEmployee (evt) {
         evt.preventDefault()
         if (this.formValid) {

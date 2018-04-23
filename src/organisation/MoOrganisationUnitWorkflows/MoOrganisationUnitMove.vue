@@ -5,6 +5,7 @@
     size="lg" 
     hide-footer 
     title="Flyt enhed"
+    @hidden="resetData"
     lazy
     no-close-on-backdrop
   >
@@ -95,12 +96,11 @@
         deep: true
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
+      
       moveOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {

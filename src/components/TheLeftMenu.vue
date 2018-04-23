@@ -8,9 +8,6 @@
       <div id="tree-wrapper">
         <mo-tree-view :org-uuid="orgUuid" linkable/>
       </div>
-      <!-- <div class="d-flex flex-column" id="tree-wrapper">
-        <div v-for="index in 100" :key="index" class="p-2">Flex item {{index}}</div>
-      </div> -->
     </div>
   </div>
 </template>
