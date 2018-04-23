@@ -27,7 +27,6 @@
           type="text"
           class="form-control"
           v-model="rename.data.name"
-          v-validate="{required: true}"
         >
       </div>
     </div>
@@ -83,7 +82,7 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
-      
+
       renameOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {

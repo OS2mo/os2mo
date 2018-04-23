@@ -69,26 +69,25 @@ export default {
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
-    methods: {
-      createOrganisationUnit (evt) {
-        evt.preventDefault()
-        if (this.formValid) {
-          let vm = this
-          this.isLoading = true
-  
-          this.entry.addresses = this.addresses
-  
-          OrganisationUnit.create(this.entry)
-            .then(response => {
-              vm.$refs.orgUnitCreate.hide()
-            })
-            .catch(err => {
-              console.log(err)
-              vm.isLoading = false
-            })
-        } else {
-          this.$validator.validateAll()
-        }
+
+    createOrganisationUnit (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        this.isLoading = true
+
+        this.entry.addresses = this.addresses
+
+        OrganisationUnit.create(this.entry)
+          .then(response => {
+            vm.$refs.orgUnitCreate.hide()
+          })
+          .catch(err => {
+            console.log(err)
+            vm.isLoading = false
+          })
+      } else {
+        this.$validator.validateAll()
       }
     }
   }

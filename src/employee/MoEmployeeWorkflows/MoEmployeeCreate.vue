@@ -95,7 +95,7 @@ export default {
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
-    
+
     createEmployee (evt) {
       evt.preventDefault()
       if (this.formValid) {
