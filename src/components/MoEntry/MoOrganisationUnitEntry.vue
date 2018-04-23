@@ -8,7 +8,11 @@
         <mo-facet-picker facet="org_unit_type" v-model="orgUnit.org_unit_type" required/>
       </div>
       
-      <mo-organisation-unit-picker v-model="orgUnit.parent" :is-disabled="disableOrgUnitPicker"/>
+      <mo-organisation-unit-picker 
+        v-model="orgUnit.parent" 
+        :is-disabled="disableOrgUnitPicker"
+        required
+      />
   </div>
 </template>
 

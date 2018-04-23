@@ -2,7 +2,12 @@
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
     <div class="form-row">
-      <mo-organisation-unit-picker class="col" label="Vælg enhed" v-model="entry.org_unit"/>
+      <mo-organisation-unit-picker 
+        class="col" 
+        label="Vælg enhed" 
+        v-model="entry.org_unit"
+        required
+      />
       <mo-address-picker v-model="entry.address" :org-unit="entry.org_unit" class="col"/>
     </div>
     <div class="form-row">
