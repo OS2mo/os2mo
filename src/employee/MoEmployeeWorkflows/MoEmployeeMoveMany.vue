@@ -63,7 +63,11 @@
         orgUnitSource: {},
         orgUnitDestination: {},
         isLoading: false,
-        columns: ['person', 'engagement_type', 'job_function']
+        columns: [
+          {label: 'person', data: 'person'},
+          {label: 'engagement_type', data: 'engagement_type'},
+          {label: 'job_function', data: 'job_function'}
+        ]
       }
     },
     computed: {
