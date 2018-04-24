@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label :for="nameId">{{label}}</label>
+    <label :for="nameId">{{$tc('shared.it_system', 2)}}</label>
     <select 
       :name="nameId"
       :id="nameId"
@@ -41,7 +41,6 @@ export default {
   },
   data () {
     return {
-      label: 'IT systemer',
       selected: {},
       itSystems: []
     }

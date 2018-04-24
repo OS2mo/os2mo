@@ -87,7 +87,7 @@ export default {
   createEntry (uuid, create) {
     return Service.post(`/e/${uuid}/create`, create)
       .then(response => {
-        EventBus.$emit('employee-changed', response.data)
+        EventBus.$emit('employee-changed')
         return response.data
       })
       .catch(error => {
@@ -119,7 +119,7 @@ export default {
   edit (uuid, edit) {
     return Service.post(`/e/${uuid}/edit`, edit)
       .then(response => {
-        EventBus.$emit('employee-changed', response.data)
+        EventBus.$emit('employee-changed')
         store.commit('log/newWorkLog', {type: 'EMPLOYEE_EDIT', value: response.data})
         return response.data
       })
@@ -144,7 +144,7 @@ export default {
   terminate (uuid, end) {
     return Service.post(`/e/${uuid}/terminate`, end)
       .then(response => {
-        EventBus.$emit('employee-changed', response.data)
+        EventBus.$emit('employee-changed')
         store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
         return response.data
       })
