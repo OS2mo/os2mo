@@ -6,14 +6,10 @@
       </h4>
 
       <div class="row">
-        <div class="mr-auto">
         <div class="col">
-          <p class="card-text">
-            Enhedsnr.: {{orgUnit.user_key}}
-          </p>
+          <p class="card-text">Enhedsnr.: {{orgUnit.user_key}}</p>
         </div>
-        </div>
-        <div class="margin-right">
+        <div class="mr-3">
           <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
         </div>
       </div>
@@ -24,8 +20,8 @@
 </template>
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import MoHistory from '../components/MoHistory'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
 
   export default {
@@ -52,9 +48,3 @@
     }
   }
 </script>
-
-<style scoped>
-  .margin-right {
-    margin-right: 1rem;
-  }
-</style>

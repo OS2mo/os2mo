@@ -2,21 +2,23 @@
   <b-modal 
     id="employeeTerminate" 
     size="lg" 
-    hide-footer 
     title="Afslut medarbejder"
     ref="employeeTerminate"
+    @hidden="resetData"
+    hide-footer 
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="endEmployee">
+    <form @submit.stop.prevent="endEmployee">
       <div class="col">
-        <employee-picker v-model="employee" required/>
+        <mo-employee-picker v-model="employee" required/>
         
         <div class="form-row">
-          <date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+          <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
         </div>
         
         <div class="float-right">
-          <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
+          <button-submit :is-loading="isLoading"/>
         </div>
       </div>
     </form>
@@ -24,18 +26,18 @@
 </template>
 
 <script>
-import Employee from '../../api/Employee'
-import EmployeePicker from '../../components/EmployeePicker'
-import DatePicker from '../../components/DatePicker'
-import ButtonSubmit from '../../components/ButtonSubmit'
+import Employee from '@/api/Employee'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import ButtonSubmit from '@/components/ButtonSubmit'
 
 export default {
   $_veeValidate: {
     validator: 'new'
   },
   components: {
-    EmployeePicker,
-    DatePicker,
+    MoEmployeePicker,
+    MoDatePicker,
     ButtonSubmit
   },
   data () {
@@ -59,20 +61,24 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
-    endEmployee () {
-      let vm = this
-      vm.isLoading = true
-      Employee.terminate(this.employee.uuid, this.terminate)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeTerminate.hide()
-        })
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
+
+    endEmployee (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+        Employee.terminate(this.employee.uuid, this.terminate)
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeTerminate.hide()
+          })
+      } else {
+        this.$validator.validateAll()
+      }
     }
   }
 }

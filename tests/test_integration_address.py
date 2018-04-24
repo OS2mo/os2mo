@@ -16,10 +16,11 @@ from tests import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
+@util.mock('dawa-addresses.json', allow_mox=True)
 class Writing(util.LoRATestCase):
     maxDiff = None
 
-    def test_employee_address(self):
+    def test_employee_address(self, mock):
         self.load_sample_structures()
 
         # Check the POST request
@@ -120,7 +121,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'mailto:bruger@example.com',
                 'name': 'bruger@example.com',
-                'value': 'urn:mailto:bruger@example.com',
+                'urn': 'urn:mailto:bruger@example.com',
                 'validity': {
                     'from': '2002-02-14T00:00:00+01:00',
                     'to': None,
@@ -211,7 +212,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': None,
                 'name': '1234567890',
-                'value': 'urn:magenta.dk:ean:1234567890',
+                'urn': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
                     'from': '2013-01-01T00:00:00+01:00',
                     'to': None,
@@ -252,7 +253,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": address_class,
-                    "value": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+                    "uuid": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
                     "validity": {
                         "from": "2015-01-01T00:00:00+01",
                     },
@@ -279,7 +280,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'mailto:hest@example.com',
                 'name': 'hest@example.com',
-                'value': 'urn:mailto:hest@example.com',
+                'urn': 'urn:mailto:hest@example.com',
                 'validity': {
                     'from': '2014-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -295,7 +296,7 @@ class Writing(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.20320628&mlat=56.15263055&zoom=16',
                 'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
-                'value': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
+                'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
                 'validity': {
                     'from': '2015-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -310,7 +311,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'tel:+4533369696',
                 'name': '3336 9696',
-                'value': 'urn:magenta.dk:telefon:+4533369696',
+                'urn': 'urn:magenta.dk:telefon:+4533369696',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -395,7 +396,82 @@ class Writing(util.LoRATestCase):
                 ],
                 edited['relationer']['adresser'])
 
-    def test_edit_address(self):
+    def test_employee_add_first_address(self, mock):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        address_class = {
+            'example': '<UUID>',
+            'name': 'Adresse',
+            'scope': 'DAR',
+            'user_key': 'Adresse',
+            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+        }
+
+        userid = util.load_fixture('organisation/bruger',
+                                   'create_bruger_fætterguf.json')
+
+        original = c.bruger.get(userid)
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/address?validity=past'.format(userid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/address'.format(userid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/address?validity=future'.format(userid),
+                [],
+            )
+
+            self.assertNotIn('adresser', original['relationer'])
+
+        self.assertRequestResponse(
+            '/service/e/{}/create'.format(userid),
+            userid,
+            json=[
+                {
+                    "type": "address",
+                    "address_type": address_class,
+                    "uuid": '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                    "validity": {
+                        "from": "2013-01-01T00:00:00+01:00",
+                        "to": None,
+                    },
+                },
+            ])
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 1., 8200 Aarhus N',
+                    'address_type': {
+                        'scope': 'DAR',
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'user_key': 'Adresse',
+                    },
+                    'validity': {
+                        'to': None,
+                        'from': '2013-01-01T00:00:00+01:00',
+                    },
+                    'uuid': '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                }
+            ],
+        )
+
+    def test_edit_address(self, mock):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -431,7 +507,7 @@ class Writing(util.LoRATestCase):
                     'address_type': email_class,
                     'href': 'mailto:bruger@example.com',
                     'name': 'bruger@example.com',
-                    'value': 'urn:mailto:bruger@example.com',
+                    'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': None,
@@ -480,7 +556,7 @@ class Writing(util.LoRATestCase):
                         # wrong!
                         'href': 'mailto:user@example.com',
                         'name': 'user@example.com',
-                        'value': 'urn:mailto:user@example.com',
+                        'urn': 'urn:mailto:user@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -510,7 +586,7 @@ class Writing(util.LoRATestCase):
                     },
                     'href': 'mailto:bruger@example.com',
                     'name': 'bruger@example.com',
-                    'value': 'urn:mailto:bruger@example.com',
+                    'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': None,
@@ -533,7 +609,7 @@ class Writing(util.LoRATestCase):
                     'address_type': email_class,
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
-                    'value': 'urn:mailto:user@example.com',
+                    'urn': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': '2010-01-01T00:00:00+01:00',
@@ -568,7 +644,7 @@ class Writing(util.LoRATestCase):
                     },
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
-                    'value': 'urn:mailto:user@example.com',
+                    'urn': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': '2010-01-01T00:00:00+01:00',
@@ -576,7 +652,7 @@ class Writing(util.LoRATestCase):
                 },
                 "data": {
                     'address_type': address_class,
-                    'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                     'validity': {
                         'to': None,
                     },
@@ -604,7 +680,7 @@ class Writing(util.LoRATestCase):
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                     'name': 'Pilestræde 43, 3., 1112 København K',
-                    'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                     'validity': {
                         'from': '2002-02-14T00:00:00+01:00',
                         'to': None,
@@ -618,7 +694,146 @@ class Writing(util.LoRATestCase):
             [],
         )
 
-    def test_create_unit_address(self):
+    def test_edit_untyped_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        email_class = {
+            'example': 'test@example.com',
+            'name': 'Emailadresse',
+            'scope': 'EMAIL',
+            'user_key': 'Email',
+            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+        }
+
+        address_class = {
+            'example': '<UUID>',
+            'name': 'Adresse',
+            'scope': 'DAR',
+            'user_key': 'Adresse',
+            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+        }
+
+        address_classes = self.client.get(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/f/address_type/',
+        ).json
+
+        self.assertIn(email_class, address_classes['data']['items'])
+        self.assertIn(address_class, address_classes['data']['items'])
+
+        addresses = [
+            {
+                "address_type": {
+                    "scope": "DAR"
+                },
+                "href": "https://www.openstreetmap.org/"
+                "?mlon=12.58176945&mlat=55.67563739&zoom=16",
+                "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
+                "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
+                "validity": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "to": None
+                }
+            },
+            {
+                "address_type": email_class,
+                "href": "mailto:goofy@example.com",
+                "name": "goofy@example.com",
+                "urn": "urn:mailto:goofy@example.com",
+                "validity": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "to": None
+                }
+            },
+            {
+                "address_type": email_class,
+                "href": "mailto:goofy@example.com",
+                "name": "goofy@example.com",
+                "urn": "urn:mailto:goofy@example.com",
+                "validity": {
+                    "from": "2002-02-14T00:00:00+01:00",
+                    "to": None
+                }
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
+
+        # first, test editing the value only
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "address",
+                "original": addresses[0],
+                "data": {
+                    'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
+                }
+            }],
+        )
+
+        addresses[0].update(
+            uuid='ae95777c-7ec1-4039-8025-e2ecce5099fb',
+            href='https://www.openstreetmap.org/'
+            '?mlon=10.20320628&mlat=56.15263055&zoom=16',
+            name='Rådhuspladsen 2, 4., 8000 Aarhus C',
+        )
+
+        # verify our edit
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=future'.format(userid),
+            [],
+        )
+
+        # second, test editing type
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[{
+                "type": "address",
+                "original": addresses[0],
+                "data": {
+                    'address_type': address_class,
+                }
+            }],
+        )
+
+        addresses[0].update(
+            address_type=address_class,
+        )
+
+        # verify the result
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address?validity=future'.format(userid),
+            [],
+        )
+
+    def test_create_unit_address(self, mock):
         self.load_sample_structures()
 
         # Check the POST request
@@ -671,7 +886,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': None,
                 'name': '5798000420229',
-                'value': 'urn:magenta.dk:ean:5798000420229',
+                'urn': 'urn:magenta.dk:ean:5798000420229',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -686,7 +901,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'tel:+4587150000',
                 'name': '8715 0000',
-                'value': 'urn:magenta.dk:telefon:+4587150000',
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -702,7 +917,7 @@ class Writing(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -811,9 +1026,28 @@ class Writing(util.LoRATestCase):
         with self.subTest('errors III'):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
+                {'message': "missing 'uuid'", 'status': 400},
+                status_code=400,
+                json=[
+                    {
+                        "type": "address",
+                        "address_type": address_class,
+                        # NB: wrong key!
+                        "value": "hallo@exmaple.com",
+                        "validity": {
+                            "from": "2013-01-01T00:00:00+01:00",
+                            "to": None,
+                        },
+                    },
+                ],
+            )
+
+        with self.subTest('errors IV'):
+            self.assertRequestResponse(
+                '/service/ou/{}/create'.format(unitid),
                 {
                     'message': (
-                        "'hallo@exmaple.com' is not a valid address UUID!"
+                        "invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
                 },
@@ -823,7 +1057,7 @@ class Writing(util.LoRATestCase):
                         "type": "address",
                         "address_type": address_class,
                         # NB: not a UUID!
-                        "value": "hallo@exmaple.com",
+                        "uuid": "hallo@exmaple.com",
                         "validity": {
                             "from": "2013-01-01T00:00:00+01:00",
                             "to": None,
@@ -864,10 +1098,9 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(address_rels, original['relationer']['adresser'])
 
-    @util.mock('aabogade.json', allow_mox=True)
     @unittest.mock.patch('uuid.uuid4',
                          new=lambda: '00000000-0000-0000-0000-000000000000')
-    def test_create_org_unit(self, m):
+    def test_create_org_unit(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -899,7 +1132,7 @@ class Writing(util.LoRATestCase):
                         "user_key": "Adresse",
                         "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
-                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
             ],
             "validity": {
@@ -1000,7 +1233,7 @@ class Writing(util.LoRATestCase):
                         'from': '2010-02-04T00:00:00+01:00',
                         'to': '2017-10-22T00:00:00+02:00',
                     },
-                    'value': 'urn:magenta.dk:telefon:+4511223344',
+                    'urn': 'urn:magenta.dk:telefon:+4511223344',
                 },
                 {
                     'address_type': {
@@ -1017,7 +1250,7 @@ class Writing(util.LoRATestCase):
                         'from': '2010-02-04T00:00:00+01:00',
                         'to': '2017-10-22T00:00:00+02:00',
                     },
-                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
             ],
         )
@@ -1032,7 +1265,7 @@ class Writing(util.LoRATestCase):
             c.organisationenhed.get(unitid)['relationer']['adresser'],
         )
 
-    def test_edit_org_unit_overwrite(self):
+    def test_edit_org_unit_overwrite(self, mock):
         self.load_sample_structures()
 
         unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
@@ -1041,7 +1274,7 @@ class Writing(util.LoRATestCase):
             "href": "https://www.openstreetmap.org/"
             "?mlon=10.19938084&mlat=56.17102843&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
-            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "address_type": {
                 "example": "<UUID>",
                 "name": "Adresse",
@@ -1068,6 +1301,26 @@ class Writing(util.LoRATestCase):
             [orig_address],
         )
 
+        with self.subTest('errors'):
+            self.assertRequestResponse(
+                '/service/ou/{}/edit'.format(unitid),
+                {
+                    'message': "missing 'value'",
+                    'status': 400,
+                },
+                status_code=400,
+                json=[
+                    {
+                        "type": "address",
+                        "original": orig_address,
+                        "data": {
+                            "address_type": new_address_type,
+                            # NB: no value
+                        },
+                    },
+                ],
+            )
+
         self.assertRequestResponse(
             '/service/ou/{}/edit'.format(unitid),
             unitid,
@@ -1089,7 +1342,7 @@ class Writing(util.LoRATestCase):
                 'address_type': new_address_type,
                 'href': 'tel:+4587150000',
                 'name': '8715 0000',
-                'value': 'urn:magenta.dk:telefon:+4587150000',
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00',
                     'to': '2019-01-01T00:00:00+01:00',
@@ -1097,7 +1350,7 @@ class Writing(util.LoRATestCase):
             }],
         )
 
-    def test_add_org_unit_address(self):
+    def test_add_org_unit_address(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -1151,7 +1404,7 @@ class Writing(util.LoRATestCase):
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
-                'value': 'urn:magenta.dk:ean:5798000420229',
+                'urn': 'urn:magenta.dk:ean:5798000420229',
             },
             {
                 'address_type': {
@@ -1166,7 +1419,7 @@ class Writing(util.LoRATestCase):
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
-                'value': 'urn:magenta.dk:telefon:+4587150000',
+                'urn': 'urn:magenta.dk:telefon:+4587150000',
             },
             {
                 'address_type': {
@@ -1182,7 +1435,7 @@ class Writing(util.LoRATestCase):
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
             },
         ]
 
@@ -1255,7 +1508,7 @@ class Writing(util.LoRATestCase):
                 'from': '2017-01-01T00:00:00+01:00',
                 'to': None,
             },
-            'value': 'urn:mailto:root@example.com',
+            'urn': 'urn:mailto:root@example.com',
         })
 
         self.assertEqual(
@@ -1268,11 +1521,179 @@ class Writing(util.LoRATestCase):
             addresses,
         )
 
+    def test_edit_org_unit_address_overwrite(self, mock):
+        self.load_sample_structures()
+
+        unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        addresses = [
+            {
+                "address_type": {
+                    "example": "20304060",
+                    "name": "Telefonnummer",
+                    "scope": "PHONE",
+                    "user_key": "Telefon",
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+                },
+                "href": "tel:+4587150000",
+                "name": "8715 0000",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "urn": "urn:magenta.dk:telefon:+4587150000"
+            },
+            {
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                },
+                "href": "https://www.openstreetmap.org/"
+                "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+                "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+            }
+        ]
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
+
+        req = [
+            {
+                "type": "address",
+                "original": addresses[1],
+                "data": {
+                    "uuid": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+                    "validity": {
+                        'from': '2016-06-01',
+                    },
+                }
+            },
+        ]
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid, json=req)
+
+        addresses[1]['validity']['from'] = '2016-06-01T00:00:00+02:00'
+        addresses[1].update(
+            name='Nordre Ringgade 2, 8000 Aarhus C',
+            uuid='d901ff7e-8ad9-4581-84c7-5759aaa82f7b',
+            href=(
+                'https://www.openstreetmap.org/'
+                '?mlon=10.20019416&mlat=56.17063452&zoom=16'
+            ),
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            addresses,
+        )
+
+    def test_edit_org_unit_address(self, mock):
+        self.load_sample_structures()
+
+        unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        addresses = [
+            {
+                "address_type": {
+                    "example": "20304060",
+                    "name": "Telefonnummer",
+                    "scope": "PHONE",
+                    "user_key": "Telefon",
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
+                },
+                "href": "tel:+4587150000",
+                "name": "8715 0000",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "urn": "urn:magenta.dk:telefon:+4587150000"
+            },
+            {
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                },
+                "href": "https://www.openstreetmap.org/"
+                "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+                "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None
+                },
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+            }
+        ]
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
+
+        req = [
+            {
+                "type": "address",
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                },
+                "uuid": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+                "validity": {
+                    'from': '2016-06-01',
+                },
+            },
+        ]
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid, json=req)
+
+        addresses.append({
+            'address_type': {
+                'example': '<UUID>',
+                'name': 'Adresse',
+                'scope': 'DAR',
+                'user_key': 'Adresse',
+                'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+            },
+            'href': 'https://www.openstreetmap.org/'
+            '?mlon=10.20019416&mlat=56.17063452&zoom=16',
+            'name': 'Nordre Ringgade 2, 8000 Aarhus C',
+            'validity': {'from': '2016-06-01T00:00:00+02:00', 'to': None},
+            'uuid': 'd901ff7e-8ad9-4581-84c7-5759aaa82f7b',
+        })
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            addresses,
+        )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
+@util.mock('dawa-addresses.json', allow_mox=True)
 class Reading(util.LoRATestCase):
 
-    def test_reading_present(self):
+    def test_reading_present(self, mock):
         self.load_sample_structures()
 
         with self.subTest('present I'):
@@ -1288,7 +1709,7 @@ class Reading(util.LoRATestCase):
                         '?mlon=12.58176945&mlat=55.67563739&zoom=16',
                         'name':
                         'Christiansborg Slotsplads 1, 1218 København K',
-                        'value': 'bae093df-3b06-4f23-90a8-92eabedb3622',
+                        'uuid': 'bae093df-3b06-4f23-90a8-92eabedb3622',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -1304,7 +1725,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
-                        'value': 'urn:mailto:goofy@example.com',
+                        'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -1320,7 +1741,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
-                        'value': 'urn:mailto:goofy@example.com',
+                        'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -1344,7 +1765,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'mailto:bruger@example.com',
                         'name': 'bruger@example.com',
-                        'value': 'urn:mailto:bruger@example.com',
+                        'urn': 'urn:mailto:bruger@example.com',
                         'validity': {
                             'from': '2002-02-14T00:00:00+01:00',
                             'to': None,
@@ -1368,7 +1789,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': None,
                         'name': '5798000420229',
-                        'value': 'urn:magenta.dk:ean:5798000420229',
+                        'urn': 'urn:magenta.dk:ean:5798000420229',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1384,7 +1805,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '8715 0000',
-                        'value': 'urn:magenta.dk:telefon:+4587150000',
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1401,7 +1822,7 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1425,7 +1846,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '8715 0000',
-                        'value': 'urn:magenta.dk:telefon:+4587150000',
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1442,7 +1863,7 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1466,7 +1887,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '8715 0000',
-                        'value': 'urn:magenta.dk:telefon:+4587150000',
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2017-01-01T00:00:00+01:00',
                             'to': None,
@@ -1483,7 +1904,7 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2017-01-01T00:00:00+01:00',
                             'to': None,
@@ -1507,7 +1928,7 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '8715 0000',
-                        'value': 'urn:magenta.dk:telefon:+4587150000',
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1524,7 +1945,7 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': None,
@@ -1549,7 +1970,7 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
                             'to': '2019-01-01T00:00:00+01:00',
@@ -1673,7 +2094,7 @@ class Reading(util.LoRATestCase):
                             'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                             'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                            'value':
+                            'uuid':
                             'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',

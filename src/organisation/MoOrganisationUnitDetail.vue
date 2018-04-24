@@ -11,8 +11,8 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal-base
-      class="margin-top"
+    <mo-entry-modal
+      class="mt-3"
       action="CREATE" 
       type="ORG_UNIT"
       :uuid="uuid" 
@@ -26,15 +26,15 @@
 
 
 <script>
-  import OrganisationUnit from '../api/OrganisationUnit'
-  import { EventBus } from '../EventBus'
-  import MoTableCollapsibleTense from '../components/MoTableCollapsibleTense'
-  import MoEntryModalBase from '../components/MoEntryModalBase'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import { EventBus } from '@/EventBus'
+  import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
+  import MoEntryModal from '@/components/MoEntryModal'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoEntryModalBase
+      MoEntryModal
     },
     props: {
       uuid: {
@@ -48,10 +48,7 @@
       },
       columns: Array,
       entryComponent: Object,
-      createLabel: {
-        type: String,
-        default: 'Opret ny'
-      },
+      createLabel: String,
       hideCreate: Boolean
     },
     data () {
@@ -106,9 +103,3 @@
     }
   }
 </script>
-
-<style scoped>
-  .margin-top {
-    margin-top: 1rem;
-  }
-</style>

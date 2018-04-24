@@ -1,6 +1,5 @@
 <template>
   <div>
-    <label>{{label}}</label>
     <div class="form-row">
       <mo-address-search-field v-model="address" :label="label" :global="global"/>
       <label class="form-check-label">

@@ -3,7 +3,7 @@ import DatePicker from '@/components/DatePicker'
 
 let Constructor
 
-describe('DatePicker.vue', () => {
+xdescribe('DatePicker.vue', () => {
   beforeEach(function () {
     // Extend the component to get the constructor, which we can then initialize directly.
     Constructor = Vue.extend(DatePicker)

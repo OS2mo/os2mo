@@ -1,60 +1,60 @@
 <template>
   <div>
-    <loading v-show="isLoading"/>
+    <mo-loader v-show="isLoading"/>
     <b-tabs v-show="!isLoading" lazy>
-      <b-tab title="Engagement" active> 
+      <b-tab :title="$t('tabs.employee.engagements')" active> 
         <mo-employee-detail 
           :uuid="uuid" 
           detail="engagement"
-          :columns="columns.engagement"
+          :columns="engagement"
           :entry-component="components.engagement"
         />
       </b-tab>
-      <b-tab title="Adresser">
+      <b-tab :title="$t('tabs.employee.addresses')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="address"
-          :columns="columns.address"
+          :columns="address"
           :entry-component="components.address"
         />
       </b-tab>
-      <b-tab title="Rolle">
+      <b-tab :title="$t('tabs.employee.roles')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="role"
-          :columns="columns.role"
+          :columns="role"
           :entry-component="components.role"
         />
       </b-tab>
-      <b-tab title="IT">
+      <b-tab :title="$t('tabs.employee.it')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="it"
-          :columns="columns.it"
+          :columns="it"
           :entry-component="components.it"
         />
       </b-tab>
-      <b-tab title="Tilknytning">
+      <b-tab :title="$tc('tabs.employee.association', 2)">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="association"
-          :columns="columns.association"
+          :columns="association"
           :entry-component="components.association"
         />
       </b-tab>
-      <b-tab title="Orlov">
+      <b-tab :title="$t('tabs.employee.leave')">
         <mo-employee-detail 
           :uuid="uuid" 
           detail="leave"
-          :columns="columns.leave"
+          :columns="leave"
           :entry-component="components.leave"
         />
       </b-tab>
-      <b-tab title="Leder" >
+      <b-tab :title="$t('tabs.employee.manager')" >
         <mo-employee-detail 
           :uuid="uuid" 
           detail="manager"
-          :columns="columns.manager"
+          :columns="manager"
           :entry-component="components.manager"
         />
       </b-tab>
@@ -64,19 +64,19 @@
 
 
 <script>
-  import Loading from '../components/Loading'
+  import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeeDetail from './MoEmployeeDetail'
-  import MoEngagementEntry from './MoEngagement/MoEngagementEntry'
-  import MoRoleEntry from './MoRole/MoRoleEntry'
-  import MoItSystemEntry from './MoItSystem/MoItSystemEntry'
-  import MoAssociationEntry from './MoAssociation/MoAssociationEntry'
-  import MoLeaveEntry from './MoLeave/MoLeaveEntry'
-  import MoManagerEntry from './MoManager/MoManagerEntry'
-  import MoAddressEntry from '@/components/MoAddressEntry/MoAddressEntry'
+  import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+  import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+  import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+  import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
 
   export default {
     components: {
-      Loading,
+      MoLoader,
       MoEmployeeDetail
     },
     props: {
@@ -85,23 +85,49 @@
     data () {
       return {
         isLoading: false,
-        columns: {
-          engagement: ['org_unit', 'job_function', 'engagement_type'],
-          role: ['org_unit', 'role_type'],
-          it: ['it_system', 'user_name'],
-          association: ['org_unit', 'job_function', 'association_type', 'address', 'address_type'],
-          leave: ['leave_type'],
-          manager: ['org_unit', 'responsibility', 'manager_type', 'manager_level', 'address_type', 'address'],
-          address: ['address_type', null]
-        },
+        engagement: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'job_function', data: 'job_function'},
+          {label: 'engagement_type', data: 'engagement_type'}
+        ],
+        role: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'role_type', data: 'role_type'}
+        ],
+        it: [
+          {label: 'it_system', data: 'it_system'},
+          {label: 'user_name', data: 'user_name'}
+        ],
+        association: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'job_function', data: 'job_function'},
+          {label: 'association_type', data: 'association_type'},
+          {label: 'address', data: 'address'},
+          {label: 'address_type', data: 'address_type'}
+        ],
+        leave: [
+          {label: 'leave_type', data: 'leave_type'}
+        ],
+        manager: [
+          {label: 'org_unit', data: 'org_unit'},
+          {label: 'responsibility', data: 'responsibility'},
+          {label: 'manager_type', data: 'manager_type'},
+          {label: 'manager_level', data: 'manager_level'},
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'}
+        ],
+        address: [
+          {label: 'address_type', data: 'address_type'},
+          {label: 'value', data: null}
+        ],
         components: {
           engagement: MoEngagementEntry,
+          address: MoAddressEntry,
           role: MoRoleEntry,
           it: MoItSystemEntry,
           association: MoAssociationEntry,
           leave: MoLeaveEntry,
-          manager: MoManagerEntry,
-          address: MoAddressEntry
+          manager: MoManagerEntry
         }
       }
     }

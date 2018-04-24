@@ -6,47 +6,53 @@
     ref="employeeMove"
     hide-footer 
     lazy
+    no-close-on-backdrop
+    @hidden="resetData"
   >
-    <form @submit.prevent="moveEmployee">
-      <employee-picker v-model="employee" required/>
+    <form @submit.stop.prevent="moveEmployee">
+      <mo-employee-picker v-model="employee" required/>
 
       <div class="form-row">
-        <date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
+        <mo-date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
       </div>
       
       <div class="form-row">
-        <engagement-picker v-model="original" :employee="employee"/>
+        <mo-engagement-picker v-model="original" :employee="employee" required/>
       </div>
 
       <div class="form-row">
-        <organisation-unit-picker label="Angiv enhed" class="col" v-model="move.data.org_unit"/>       
+        <mo-organisation-unit-picker 
+          label="Angiv enhed" 
+          class="col" 
+          v-model="move.data.org_unit"
+          required
+        />       
       </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
+      <button-submit :is-loading="isLoading"/>
     </div>
   </form>
 </b-modal>
 </template>
 
 <script>
-  import Employee from '../../api/Employee'
-  import DatePicker from '../../components/DatePicker'
-  import OrganisationUnitPicker from '../../components/OrganisationUnitPicker'
-  import EngagementPicker from '../../components/EngagementPicker'
-  import EmployeePicker from '../../components/EmployeePicker'
-  import ButtonSubmit from '../../components/ButtonSubmit'
+  import Employee from '@/api/Employee'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
+  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
     $_veeValidate: {
       validator: 'new'
     },
     components: {
-      Employee,
-      DatePicker,
-      OrganisationUnitPicker,
-      EngagementPicker,
-      EmployeePicker,
+      MoDatePicker,
+      MoOrganisationUnitPicker,
+      MoEngagementPicker,
+      MoEmployeePicker,
       ButtonSubmit
     },
     data () {
@@ -70,26 +76,30 @@
         })
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
-      moveEmployee () {
-        let vm = this
-        vm.isLoading = true
-        vm.move.uuid = this.original.uuid
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
 
-        Employee.move(this.employee.uuid, [this.move])
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs.employeeMove.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+      moveEmployee (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
+          vm.move.uuid = this.original.uuid
+
+          Employee.move(this.employee.uuid, [this.move])
+            .then(response => {
+              vm.isLoading = false
+              vm.$refs.employeeMove.hide()
+            })
+            .catch(err => {
+              console.log(err)
+              vm.isLoading = false
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }

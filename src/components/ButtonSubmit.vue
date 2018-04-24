@@ -1,12 +1,11 @@
 <template>
   <div>
-  <loading v-show="isLoading"/>
+  <mo-loader v-show="isLoading"/>
   <button 
     :disabled="isDisabled" 
     type="submit" 
     class="btn btn-primary" 
     v-show="!isLoading"
-    v-shortkey.once="['enter']"
   >
     <icon name="check"/>
   </button>
@@ -14,10 +13,10 @@
 </template>
 
 <script>
-import Loading from './Loading'
+import MoLoader from '@/components/atoms/MoLoader'
 export default {
   components: {
-    Loading
+    MoLoader
   },
   props: {
     isDisabled: Boolean,

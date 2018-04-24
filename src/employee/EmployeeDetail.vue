@@ -1,15 +1,14 @@
 <template>
   <div class="card">
     <div class="card-body">
-      <loading v-show="isLoading"/>
+      <mo-loader v-show="isLoading"/>
       <h4 class="card-title" v-show="!isLoading">
         <icon name="user-o"/>
         {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
       </h4>
       <div class="row">
-        <div class="mr-auto">
-        </div>
-        <div class="margin-right">
+        <div class="col"></div>
+        <div class="mr-3">
           <mo-history :uuid="$route.params.uuid" type="EMPLOYEE"/>
         </div>
       </div>
@@ -19,17 +18,17 @@
 </template>
 
 <script>
-  import Employee from '../api/Employee'
-  import '../filters/CPRNumber'
+  import Employee from '@/api/Employee'
+  import '@/filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
-  import MoHistory from '../components/MoHistory'
-  import Loading from '../components/Loading'
+  import MoHistory from '@/components/MoHistory'
+  import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     components: {
       EmployeeDetailTabs,
       MoHistory,
-      Loading
+      MoLoader
     },
     data () {
       return {
@@ -59,9 +58,4 @@
   .cpr {
     color: #aaa
   }
-
-  .margin-right {
-    margin-right: 1rem;
-  }
-  
 </style>

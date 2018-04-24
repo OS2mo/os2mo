@@ -1,6 +1,6 @@
 <template>
   <div>
-    <the-navbar/>
+    <mo-navbar/>
 
     <div class="container-fluid container-top-margin">
       <router-view/>
@@ -9,11 +9,11 @@
 </template>
 
 <script>
-  import TheNavbar from './components/TheNavbar'
+  import MoNavbar from '@/components/MoNavbar'
 
   export default {
     components: {
-      TheNavbar
+      MoNavbar
     },
     name: 'MoBase'
   }

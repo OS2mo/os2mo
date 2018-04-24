@@ -6,11 +6,11 @@ const Organisation = () => import('@/organisation/Organisation')
 const OrganisationLandingPage = () => import('@/organisation/OrganisationLandingPage')
 const OrganisationDetail = () => import('@/organisation/OrganisationDetail')
 const Employee = () => import('@/employee/Employee')
-const EmployeeList = () => import('@/employee/EmployeeList')
+const MoEmployeeList = () => import('@/employee/MoEmployeeList')
 const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
-const TimeMachine = () => import('@/timeMachine/TimeMachine')
+const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 
 Vue.use(Router)
 
@@ -60,7 +60,7 @@ export default new Router({
             {
               path: 'liste',
               name: 'EmployeeList',
-              component: EmployeeList
+              component: MoEmployeeList
             },
             {
               path: ':uuid',
@@ -77,7 +77,7 @@ export default new Router({
         {
           path: '/tidsmaskine',
           name: 'Timemachine',
-          component: TimeMachine
+          component: MoTimeMachine
         },
         {
           path: '*',

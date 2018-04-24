@@ -94,7 +94,7 @@ følgende moduler, som er skrevet i Python:
 
     - **Utils-modul**: En samling af nyttig funktioner, som afdækker diverse
       mindre ansvarsområder (parse datoer, håndtering af URN’er mv.).
-      
+
   - **Testsuite-modul**
 
 Bemærk, at ovenstående liste ikke nødvendigvis udtømmende, idet der løbende kan blive
@@ -119,7 +119,7 @@ af LoRa kan findes på LoRas GitHub-side, som er linket til ovenfor.
 For at installere de nødvendige afhængigheder på en Ubuntu-maskine, køres
 følgende kommandoer::
 
-  $ sudo apt install python3 python3-venv nodejs-legacy npm
+  $ sudo apt install python3 python3-venv
 
 Efterfølgende klones MORa-projektet fra GitHub::
 
@@ -127,8 +127,40 @@ Efterfølgende klones MORa-projektet fra GitHub::
   $ cd /path/to/folder
   $ git clone https://github.com/magenta-aps/mora
 
+
+Nyere NodeJS versioner er ikke includeret i Ubuntu 16.04 (LTS),
+derfor bør NodeJS LTS versionen installeres via et eksternt apt repository.
+
+Installationen af NodeJS kan udføres i følgende trin,
+
+Tilføj nodesource public nøgle: ::
+
+  $ cd setup/nodesource
+  $ sudo apt-key add nodesource.gpg.key
+
+
+Nodesource apt repository skal tilføjes: ::
+
+  # Add list file
+  $ cd setup/nodesource
+  $ sudo cp nodesource-8.x.list /etc/apt/sources.list.d/nodesource-8.x.list
+
+  # Update apt cache
+  $ sudo apt-get update
+
+Installer nodejs meta pakken: ::
+
+  $ sudo apt-get install nodejs
+
+
+Bekræft at version 8 er installeret: ::
+
+  $ node -v
+  v8.11.1
+
+
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
-skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"), 
+skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
 men det nemmeste er blot at anvende scriptet
 **manage.py**::
 
@@ -273,7 +305,19 @@ Gør følgende for at installere MORa på Ubuntu 16.04::
   git clone https://github.com/magenta-aps/mora /srv/mora
 
   # installér afhængigheder
-  sudo apt install python3-venv nodejs-legacy npm
+  sudo apt install python3-venv
+
+  # tilføj nodesource nøgle
+  sudo apt-key add /srv/mora/setup/nodesource/nodesource.gpg.key
+
+  # tilføj nodesource apt repository
+  sudo cp /srv/mora/setup/nodesource/nodesource-8.x.list /etc/apt/sources.list.d/nodesource-8.x.list
+
+  # opdater apt cache
+  sudo apt-get update
+
+  # installér nodejs v8.x (LTS)
+  sudo apt-get install nodejs
 
   # byg applikationen; dette opretter det virtuelle miljø
   /srv/mora/manage.py build
