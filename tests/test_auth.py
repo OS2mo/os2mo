@@ -33,7 +33,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL='http://idp'):
             self.assertRequestResponse(
-                '/mo/o/',
+                '/service/o/',
                 {
                     'message': 'No Authorization header present',
                     'status': 401,

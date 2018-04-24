@@ -24,12 +24,16 @@ class TestHelper(util.LoRATestCase):
 
     def expire_org_unit(self, org_unit):
         # Expire the parent from 2018-01-01
+        payload = {
+            'validity': {
+                'from': "2018-01-01"
+            }
+        }
+
         self.assertRequestResponse(
-            '/mo/o/%s/org-unit/%s?endDate=01-01-2018' % (self.ORG, org_unit),
-            {
-                'uuid': org_unit,
-            },
-            method='DELETE',
+            '/service/ou/{}/terminate'.format(org_unit),
+            org_unit,
+            json=payload,
         )
 
 
@@ -254,54 +258,6 @@ class TestIntegrationCreateOrgUnitValidator(TestHelper):
         self.assertFalse(
             validator.is_create_org_unit_request_valid(frontend_req))
 
-    def test_should_return_status_400_when_date_range_invalid(self):
-        self.expire_org_unit(self.PARENT)
-
-        payload = {
-            "user-key": "NULL",
-            "name": "NyEnhed",
-            "valid-from": "01-02-2020",
-            "org": self.ORG,
-            "parent": self.PARENT,
-            "type": {
-                "name": "Afdeling",
-                "userKey": "Afdeling",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-            },
-            "locations": [
-                {
-                    "name": "lnavn",
-                    "primaer": True,
-                    "location": {
-                        "UUID_EnhedsAdresse":
-                            "98001816-a7cc-4115-a9e6-2c5c06c79e5d",
-                        "postdistrikt": "Risskov",
-                        "postnr": "8240",
-                        "vejnavn": "Pilevej 2, 8240 Risskov"
-                    },
-                    "contact-channels": [
-                        {
-                            "contact-info": "12345678",
-                            "visibility": {
-                                "name": "flaf",
-                                "user-key": "blyf",
-                                "uuid": "00000000-0000-0000-0000-000000000000"
-                            },
-                            "type": {
-                                "name": "Telefonnummer",
-                                "prefix": "urn:magenta.dk:telefon:",
-                                "uuid": "b7ccfb21-f623-4e8f-80ce-89731f726224"
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-        r = self.client.post('/mo/o/%s/org-unit' % self.ORG,
-                             data=json.dumps(payload),
-                             content_type='application/json')
-        self.assertEqual(400, r.status_code)
-
 
 class TestIntegrationMoveOrgUnitValidator(TestHelper):
     UNIT_TO_MOVE = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'  # Hum
@@ -378,22 +334,6 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         self.assertFalse(validator.is_candidate_parent_valid(self.UNIT_TO_MOVE,
                                                              frontend_req))
 
-    def test_should_return_status_400_when_move_invalid(self):
-        candidate_parent = '04c78fc2-72d2-4d02-b55f-807af19eac48'  # Frem
-
-        frontend_req = {
-            'moveDate': '01-02-2017',
-            'newParentOrgUnitUUID': candidate_parent
-        }
-
-        r = self.client.post(
-            '/mo/o/%s/org-unit/%s/actions/move' % (self.ORG,
-                                                   self.UNIT_TO_MOVE),
-            data=json.dumps(frontend_req),
-            content_type='application/json')
-
-        self.assertEqual(400, r.status_code)
-
 
 class TestInactivateOrgUnitValidation(TestHelper):
     def setUp(self):
@@ -422,46 +362,3 @@ class TestInactivateOrgUnitValidation(TestHelper):
             validator.is_inactivation_date_valid(
                 '2874e1dc-85e6-4269-823a-e1125484dfd3', '01-01-2018')
         )
-
-    def test_should_return_status_400_when_enddate_invalid(self):
-        r = self.client.delete(
-            '/mo/o/%s/org-unit/%s?endDate=01-01-2018' %
-            (self.ORG, self.HIST_UNIT))
-        self.assertEqual(400, r.status_code)
-
-
-class TestUpdateLocationValidator(TestHelper):
-    def setUp(self):
-        super().setUp()
-
-    def test_should_not_allow_empty_address(self):
-        frontend_req = {
-            'location': ''
-        }
-
-        r = self.client.post(
-            '/mo/o/%s/org-unit/%s/role-types/location/'
-            '0a3f50c3-df6f-32b8-e044-0003ba298018' %
-            (self.ORG, self.SAMF_UNIT),
-            data=json.dumps(frontend_req),
-            content_type='application/json')
-        self.assertEqual(400, r.status_code)
-
-    def test_should_not_allow_empty_name(self):
-        frontend_req = {
-            "location": {
-                "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
-                "postdistrikt": "Risskov",
-                "postnr": "8240",
-                "vejnavn": "Pilevej 3, 8240 Risskov"
-            },
-            'name': ''
-        }
-
-        r = self.client.post(
-            '/mo/o/%s/org-unit/%s/role-types/location/'
-            '0a3f50c3-df6f-32b8-e044-0003ba298018' %
-            (self.ORG, self.SAMF_UNIT),
-            data=json.dumps(frontend_req),
-            content_type='application/json')
-        self.assertEqual(400, r.status_code)
