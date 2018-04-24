@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import json
 import os
 
 import flask
@@ -14,6 +13,7 @@ import flask
 from . import auth
 from . import cli
 from . import service
+from . import util
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -36,22 +36,8 @@ def handle_invalid_usage(error):
     :param error: The error raised.
     :return: JSON describing the problem and the apropriate status code.
     """
-    data = flask.request.get_json()
 
-    if data:
-        if 'password' in data:
-            data['password'] = 'X' * 8
-
-        flask.current_app.logger.exception(
-            'AN ERROR OCCURRED in %r:\n%s',
-            flask.request.full_path,
-            json.dumps(data, indent=2),
-        )
-    else:
-        flask.current_app.logger.exception(
-            'AN ERROR OCCURRED in %r',
-            flask.request.full_path,
-        )
+    util.log_exception('unhandled exception')
 
     if isinstance(error, ValueError):
         status_code = 400
