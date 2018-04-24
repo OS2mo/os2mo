@@ -6,8 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import unittest.mock
 import copy
+import logging
+import unittest.mock
 
 import freezegun
 
@@ -1684,11 +1685,16 @@ class Reading(util.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         with self.subTest('missing classes'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/address',
-                [],
-            )
+            with self.assertLogs(self.app.logger, logging.ERROR) as log_res:
+                self.assertRequestResponse(
+                    '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                    '/details/address',
+                    [],
+                )
+
+            self.assertRegex(log_res.output[0],
+                             r"^ERROR:mora.app:AN ERROR OCCURRED in '[^']*': "
+                             "invalid address relation")
 
         self.load_sample_structures(minimal=False)
 

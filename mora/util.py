@@ -289,3 +289,24 @@ def uniqueify(xs):
     '''return the contents of xs as a list, but stable'''
     # TODO: is this fast?
     return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())
+
+
+def log_exception(msg=''):
+    data = flask.request.get_json()
+
+    if data:
+        if 'password' in data:
+            data['password'] = 'X' * 8
+
+        data_str = '\n%s' + json.dumps(data, indent=2)
+
+    else:
+        data_str = ''
+
+    flask.current_app.logger.exception(
+        'AN ERROR OCCURRED in {!r}: {}\n{}'.format(
+            flask.request.url,
+            msg,
+            data_str,
+        )
+    )
