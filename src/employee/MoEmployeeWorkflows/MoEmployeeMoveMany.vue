@@ -2,34 +2,40 @@
   <b-modal 
     id="employeeMoveMany" 
     size="lg" 
-    hide-footer 
     title="Flyt mange engagementer"
     ref="employeeMoveMany"
+    hide-footer 
     lazy
   >
-    <div class="form-row">
-      <date-picker 
-        class="col"
-        label="Dato for flytning"
-        v-model="moveDate"
-      />
+    <form @submit.prevent="moveMany">
+      <div class="form-row">
+        <date-picker class="col" label="Dato for flytning" v-model="moveDate"/>
 
-      <organisation-unit-picker :is-disabled="dateSelected" label="Flyttes fra" v-model="orgUnitSource" class="col"/>
-      
-      <organisation-unit-picker :is-disabled="dateSelected" label="Flyttes til" v-model="orgUnitDestination" class="col"/>       
-    </div>
+        <organisation-unit-picker 
+          :is-disabled="dateSelected" 
+          label="Flyttes fra" 
+          v-model="orgUnitSource" 
+          class="col"/>
+        
+        <organisation-unit-picker 
+          :is-disabled="dateSelected" 
+          label="Flyttes til" 
+          v-model="orgUnitDestination" 
+          class="col"/>       
+      </div>
 
-    <mo-table 
-      v-if="sourceSelected"
-      :content="employees" 
-      :columns="columns"
-      type="EMPLOYEE"
-      multi-select 
-      @selected-changed="selectedEmployees"/>
+      <mo-table 
+        v-if="sourceSelected"
+        :content="employees" 
+        :columns="columns"
+        type="EMPLOYEE"
+        multi-select 
+        @selected-changed="selectedEmployees"/>
 
-    <div class="float-right">
-      <button-submit :is-disabled="isDisabled" :is-loading="isLoading" :on-click-action="moveMany"/>
-    </div>
+      <div class="float-right">
+        <button-submit :is-disabled="isDisabled" :is-loading="isLoading"/>
+      </div>
+    </form>
   </b-modal>
 </template>
 

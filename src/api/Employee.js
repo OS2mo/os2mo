@@ -29,7 +29,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -62,7 +62,17 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
+      })
+  },
+
+  new (employee) {
+    return Service.post(`/e/create`, employee)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -79,7 +89,8 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
+        EventBus.$emit('employee-changed')
       })
   },
 
@@ -111,7 +122,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -136,7 +147,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
       })
   }
 }

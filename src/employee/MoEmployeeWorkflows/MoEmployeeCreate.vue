@@ -2,167 +2,111 @@
   <b-modal 
     id="employeeCreate" 
     size="lg" 
-    hide-footer 
     title="Ny medarbejder"
     ref="employeeCreate"
+    hide-footer 
     lazy
   >
-    <employee-picker :org="org" v-model="employee"/>
-    
-    <h4>Engagement</h4>
-    <mo-engagement-entry
-      :org="org" 
-      v-model="engagement" 
-      @is-valid="isEngagementValid"
-    />
-    <h4>Tilknytning</h4>
-    <mo-association-entry 
-      :org="org"
-      v-model="association"
-      :validity="engagement.validity"
-      @is-valid="isAssociationValid"
-      validity-hidden
-    />
-    <h4>Rolle</h4>
-    <mo-role-entry
-      :org="org" 
-      v-model="role" 
-      :validity="engagement.validity"
-      @is-valid="isRoleValid"
-      validity-hidden
-    />
-    <h4>IT systemer</h4>
-    <mo-it-system-entry 
-      v-model="itSystem" 
-      :validity="engagement.validity"
-      @is-valid="isItSystemValid"
-      validity-hidden
-    />
-    <h4>Leder</h4>
-    <mo-manager-entry 
-      v-model="manager" 
-      :validity="engagement.validity" 
-      @is-valid="isManagerValid"
-      validity-hidden
-    />
+    <form @submit.stop.prevent="createEmployee()">
+      <mo-cpr v-model="employee"/>
+
+      <h5>Engagement</h5>
+      <mo-engagement-entry v-model="engagement"/>
+
+      <h5>Tilknytninger</h5>
+      <mo-add-many v-model="association" :entry-component="entry.association"/>
+      
+      <h5>Roller</h5>
+      <mo-add-many v-model="role" :entry-component="entry.role"/>
+
+      <h5>IT systemer</h5>
+      <mo-add-many v-model="itSystem" :entry-component="entry.it"/>
+
+      <h5>Leder</h5>
+      <mo-add-many v-model="manager" :entry-component="entry.manager"/>
 
     <div class="float-right">
-      <button-submit 
-        :on-click-action="createEmployee" 
-        :is-disabled="isDisabled" 
-        :is-loading="isLoading"
-      />
+      <button-submit :is-disabled="!formValid" :is-loading="isLoading" />
     </div>
+    </form>
   </b-modal>
 </template>
 
 <script>
-import Organisation from '../../api/Organisation'
-import Employee from '../../api/Employee'
-import { EventBus } from '../../EventBus'
-import ButtonSubmit from '../../components/ButtonSubmit'
+import Employee from '@/api/Employee'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoCpr from '../../components/MoCpr/MoCpr'
+import MoAddMany from '@/components/MoAddMany'
 import MoAssociationEntry from '../MoAssociation/MoAssociationEntry'
 import MoEngagementEntry from '../MoEngagement/MoEngagementEntry'
 import MoRoleEntry from '../MoRole/MoRoleEntry'
-import EmployeePicker from '../../components/EmployeePicker'
 import MoItSystemEntry from '../MoItSystem/MoItSystemEntry'
 import MoManagerEntry from '../MoManager/MoManagerEntry'
 
 export default {
+  $_veeValidate: {
+    validator: 'new'
+  },
   components: {
     ButtonSubmit,
+    MoCpr,
+    MoAddMany,
     MoAssociationEntry,
     MoEngagementEntry,
     MoRoleEntry,
-    EmployeePicker,
     MoItSystemEntry,
     MoManagerEntry
   },
   data () {
     return {
       employee: {},
-      org: {},
       engagement: {},
-      association: {},
-      role: {},
-      itSystem: {},
-      manager: {},
+      association: [],
+      role: [],
+      itSystem: [],
+      manager: [],
       isLoading: false,
-      valid: {
-        engagement: false,
-        association: false,
-        role: false,
-        itSystem: false,
-        manager: false
+      entry: {
+        association: MoAssociationEntry,
+        role: MoRoleEntry,
+        it: MoItSystemEntry,
+        manager: MoManagerEntry
       }
     }
   },
   computed: {
-    isDisabled () {
-      let emp = Object.keys(this.employee).length > 0
-      let ass = Object.keys(this.association).length > 2
-      let role = Object.keys(this.role).length > 3
-      let it = Object.keys(this.itSystem).length > 3
-      let man = Object.keys(this.manager).length > 2
-      return (!emp || !this.valid.engagement ||
-              (ass ? !this.valid.association : false) ||
-              (role ? !this.valid.role : false) ||
-              (it ? !this.valid.itSystem : false) ||
-              (man ? !this.valid.manager : false))
+    formValid () {
+      // loop over all contents of the fields object and check if they exist and valid.
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
     }
   },
-  created () {
-    this.org = Organisation.getSelectedOrganisation()
-  },
   mounted () {
-    EventBus.$on('organisation-changed', newOrg => {
-      this.org = newOrg
-    })
     this.$root.$on('bv::modal::hidden', resetData => {
       Object.assign(this.$data, this.$options.data())
     })
   },
   methods: {
-    isEngagementValid (val) {
-      this.valid.engagement = val
-    },
-
-    isAssociationValid (val) {
-      this.valid.association = val
-    },
-
-    isRoleValid (val) {
-      this.valid.role = val
-    },
-
-    isItSystemValid (val) {
-      this.valid.itSystem = val
-    },
-
-    isManagerValid (val) {
-      this.valid.manager = val
-    },
-
     createEmployee () {
       let vm = this
-      let create = []
       this.isLoading = true
+      let create = [].concat(this.engagement, this.association, this.role, this.itSystem, this.manager)
 
-      if (this.valid.engagement) create.push(this.engagement)
-      if (this.valid.association) create.push(this.association)
-      if (this.valid.role) create.push(this.role)
-      if (this.valid.itSystem) create.push(this.itSystem)
-      if (this.valid.manager) create.push(this.manager)
+      let newEmployee = {
+        name: this.employee.name,
+        cpr_no: this.employee.cpr_no,
+        org: this.$store.state.organisation
+      }
 
-      Employee.create(this.employee.uuid, create)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeCreate.hide()
-          vm.$router.push({name: 'EmployeeDetail', params: {uuid: vm.employee.uuid}})
-        })
-        .catch(err => {
-          console.log(err)
-          vm.isLoading = false
+      Employee.new(newEmployee)
+        .then(employeeUuid => {
+          Employee.create(employeeUuid, create)
+            .then(response => {
+              vm.isLoading = false
+              vm.$refs.employeeCreate.hide()
+              vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+            })
         })
     }
   }

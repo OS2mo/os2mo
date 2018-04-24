@@ -14,8 +14,8 @@ export default {
         EventBus.$emit('organisation-changed', response.data.org)
         return response.data
       })
-      .catch(e => {
-        console.log(e)
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -26,12 +26,13 @@ export default {
    */
   getChildren (uuid, atDate) {
     atDate = atDate || new Date()
-    return Service.get(`/ou/${uuid}/children?at=${atDate.toISOString()}`)
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/children?at=${atDate}`)
       .then(response => {
         return response.data
       })
-      .catch(e => {
-        console.log(e)
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
@@ -65,20 +66,43 @@ export default {
   getDetail (uuid, detail, validity, atDate) {
     validity = validity || 'present'
     atDate = atDate || new Date()
-    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate.toISOString()}`)
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate}`)
       .then(response => {
         return response.data
+      })
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
       })
   },
 
   /**
    * Create a new organisation unit
    * @param {Object} orgUnit - new organisation unit
-   * @param {Array} edit - A list of elements to edit
+   * @param {Array} create - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
   create (create) {
     return Service.post('/ou/create', create)
+      .then(response => {
+        EventBus.$emit('organisation-unit-changed')
+        EventBus.$emit('organisation-unit-create', response.data)
+        return response.data
+      })
+      .catch(error => {
+        EventBus.$emit('mo-error', error.response)
+      })
+  },
+
+  /**
+   * Create a new organisation unit entry
+   * @param {Object} orgUnit - new organisation unit
+   * @param {String} uuid - organisation uuid
+   * @param {Array} create - A list of elements to edit
+   * @returns {Object} organisation unit uuid
+   */
+  createEntry (uuid, create) {
+    return Service.post(`/ou/${uuid}/create`, create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed', response.data)
         EventBus.$emit('organisation-unit-create', response.data)
@@ -98,11 +122,12 @@ export default {
   editEntry (uuid, edit) {
     return Service.post(`/ou/${uuid}/edit`, edit)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-changed')
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
+        EventBus.$emit('organisation-unit-changed')
       })
   },
 
@@ -153,12 +178,12 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed', response.data)
+        EventBus.$emit('organisation-unit-changed')
         EventBus.$emit('organisation-unit-terminate', response.data)
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        EventBus.$emit('mo-error', error.response)
       })
   }
 }

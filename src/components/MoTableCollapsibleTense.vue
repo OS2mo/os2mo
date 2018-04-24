@@ -9,6 +9,7 @@
       :edit-component="editComponent"
       :uuid="uuid"
       :type="type"
+      @shown="$emit('shown', 'future')"
     />
 
     <mo-table-collapsible
@@ -21,6 +22,7 @@
       :uuid="uuid"
       :type="type"
       initially-open
+      @shown="$emit('shown', 'present')"
     />
 
     <mo-table-collapsible
@@ -32,6 +34,7 @@
       :edit-component="editComponent"
       :uuid="uuid"
       :type="type"
+      @shown="$emit('shown', 'past')"
     />
   </div>
 </template>

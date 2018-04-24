@@ -1,17 +1,16 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import MoBase from '@/MoBase'
-import HelloWorld from '@/components/HelloWorld'
-import LoginPage from '@/login/LoginPage'
-import Organisation from '@/organisation/Organisation'
-import OrganisationLandingPage from '@/organisation/OrganisationLandingPage'
-import OrganisationDetail from '@/organisation/OrganisationDetail'
-import Employee from '@/employee/Employee'
-import EmployeeList from '@/employee/EmployeeList'
-import EmployeeDetail from '@/employee/EmployeeDetail'
-import PageNotFound from '@/components/PageNotFound'
-import TheHelp from '@/help/TheHelp'
-import TimeMachine from '@/timeMachine/TimeMachine'
+const LoginPage = () => import('@/login/LoginPage')
+const MoBase = () => import('@/MoBase')
+const Organisation = () => import('@/organisation/Organisation')
+const OrganisationLandingPage = () => import('@/organisation/OrganisationLandingPage')
+const OrganisationDetail = () => import('@/organisation/OrganisationDetail')
+const Employee = () => import('@/employee/Employee')
+const EmployeeList = () => import('@/employee/EmployeeList')
+const EmployeeDetail = () => import('@/employee/EmployeeDetail')
+const PageNotFound = () => import('@/components/PageNotFound')
+const TheHelp = () => import('@/help/TheHelp')
+const TimeMachine = () => import('@/timeMachine/TimeMachine')
 
 Vue.use(Router)
 
@@ -24,16 +23,14 @@ export default new Router({
       component: LoginPage
     },
     {
+      path: '',
+      redirect: { name: 'Login' }
+    },
+    {
       path: '/',
       name: 'Base',
       component: MoBase,
-      redirect: { name: 'Home' },
       children: [
-        {
-          path: '',
-          name: 'Home',
-          component: HelloWorld
-        },
         {
           path: '/organisation',
           name: 'Organisation',

@@ -19,6 +19,14 @@ from . import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
+    @classmethod
+    def get_lora_environ(cls):
+        # force LoRA to run under a UTC timezone, ensuring that we
+        # handle this case correctly for reading
+        return {
+            'TZ': 'UTC',
+        }
+
     def test_organisation(self):
         with self.subTest('empty'):
             self.assertRequestResponse('/service/o/', [])
@@ -665,6 +673,69 @@ class Tests(util.LoRATestCase):
                 ],
                 'offset': 0,
                 'total': 1
+            }
+        )
+
+        # allow searching by cpr number
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=1111111111',
+            {
+                'items': [
+                    {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
+                ],
+                'offset': 0,
+                'total': 1,
+            }
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=2222222222',
+            {
+                'items': [
+                    {
+                        'name': 'Fedtmule',
+                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                    },
+                ],
+                'offset': 0,
+                'total': 1,
+            }
+        )
+
+        # disallow partial matches for CPR numbers
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=111111111',
+            {
+                'items': [],
+                'offset': 0,
+                'total': 0,
+            }
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=1',
+            {
+                'items': [],
+                'offset': 0,
+                'total': 0,
+            }
+        )
+
+        # bogus
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=0000000000',
+            {
+                'items': [],
+                'offset': 0,
+                'total': 0,
             }
         )
 

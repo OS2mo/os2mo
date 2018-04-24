@@ -32,10 +32,8 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'it'
-        newVal.uuid = newVal.itsystem ? newVal.itsystem.uuid : ''
+        if (newVal.itsystem !== undefined) newVal.uuid = newVal.itsystem.uuid
         this.$emit('input', newVal)
-        let valid = (Object.keys(newVal).length >= 3 && newVal.validity.from !== undefined)
-        this.$emit('is-valid', valid)
       },
       deep: true
     },

@@ -1,10 +1,11 @@
-import { Service, HTTP } from './HttpCommon'
+import { Service } from './HttpCommon'
 
 export default {
   /**
-   * Get a list of all available facets
+   * Search for an employee in an organisation
    * @param {String} orgUuid - organisation uuid
-   * @returns {Array} a list of all available facets
+   * @param {String} query - search query. Can be either a name or FULL CPR number
+   * @returns {Array} a list of employees matching the query
    */
   employees (orgUuid, query) {
     query = query || ''
@@ -17,6 +18,27 @@ export default {
       })
   },
 
+    /**
+   * Look up a CPR number in the service platform
+   * @param {String} query - search query. Can ONLY be a FULL CPR number
+   * @returns {Object} the data matching the query
+   */
+  cprLookup (query) {
+    return Service.get(`/e/cpr_lookup/?q=${query}`)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
+
+  /**
+   * Search for organisation units within an organisation
+   * @param {String} orgUuid - organisation uuid
+   * @param {String} query - search query.
+   * @returns {Array} a list of organisation units matching the query
+   */
   organisations (orgUuid, query) {
     query = query || ''
     return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
@@ -30,12 +52,15 @@ export default {
 
   /**
    * Get a list of possible addresses based on search query
-   * @param {String} query - the search query
-   * @param {String} local - organisation uuid to limit search to the local area of the organisation
-   * @returns {Array} A list of address suggestions based on search query
+   * @param {String} orgUuid - the uuid of the organisation
+   * @param {String} query - a query string to be used for lookup
+   * @param {String} global - whether or not the lookup should be in the entire country, or contained to the municipality of the organisation
+   * @returns {Array} a list of address suggestions based on search query
    */
-  getGeographicalLocation (query, local) {
-    return HTTP.get(`/addressws/geographical-location?local=${local}&vejnavn=${query}`)
+  getGeographicalLocation (orgUuid, query, global) {
+    global = global || null
+    let location = global ? '&global=1' : '&global=0'
+    return Service.get(`/o/${orgUuid}/address_autocomplete/?q=${query}${location}`)
       .then(response => {
         return response.data
       })

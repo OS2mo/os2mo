@@ -6,13 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import datetime
+
 from unittest import TestCase
 
+import dateutil
+
 from mora import util
-from mora.service.common import (FieldTuple, FieldTypes, get_obj_value,
-                                 update_payload, inactivate_old_interval,
-                                 ensure_bounds, _merge_obj_effects,
-                                 set_object_value)
+from mora.service import common
 
 
 class TestClass(TestCase):
@@ -33,7 +34,24 @@ class TestClass(TestCase):
         expected_props = ['something']
 
         # Act
-        actual_props = get_obj_value(obj, path)
+        actual_props = common.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_get_obj_path_missing(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+            'test1': None,
+        }
+
+        path = ('test1', 'test2')
+
+        expected_props = None
+
+        # Act
+        actual_props = common.get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
@@ -42,9 +60,9 @@ class TestClass(TestCase):
         # Arrange
         fields = [
             (
-                FieldTuple(
+                common.FieldTuple(
                     ('test1', 'prop1'),
-                    FieldTypes.ADAPTED_ZERO_TO_MANY,
+                    common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -52,9 +70,9 @@ class TestClass(TestCase):
                 }
             ),
             (
-                FieldTuple(
+                common.FieldTuple(
                     ('test1', 'prop2'),
-                    FieldTypes.ZERO_TO_MANY,
+                    common.FieldTypes.ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -62,9 +80,9 @@ class TestClass(TestCase):
                 }
             ),
             (
-                FieldTuple(
+                common.FieldTuple(
                     ('test2', 'prop3'),
-                    FieldTypes.ZERO_TO_ONE,
+                    common.FieldTypes.ZERO_TO_ONE,
                     lambda x: True,
                 ),
                 {
@@ -174,7 +192,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_payload = update_payload(
+        actual_payload = common.update_payload(
             '2017-01-01T00:00:00+00:00',
             '2021-01-01T00:00:00+00:00',
             fields,
@@ -221,8 +239,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = inactivate_old_interval(old_from, old_to, new_from,
-                                                new_to, payload, path)
+        actual_result = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload, path,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -245,8 +264,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = inactivate_old_interval(old_from, old_to, new_from,
-                                                new_to, payload, path)
+        actual_result = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload, path,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -269,8 +289,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = inactivate_old_interval(old_from, old_to, new_from,
-                                                new_to, payload, path)
+        actual_result = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload, path,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -322,9 +343,9 @@ class TestClass(TestCase):
             'note': 'NOTE'
         }
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -338,8 +359,10 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original,
+            payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -392,9 +415,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -423,8 +446,9 @@ class TestClass(TestCase):
             'whatever': ['I should remain untouched, please']}
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -477,9 +501,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -495,8 +519,10 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original,
+            payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -549,9 +575,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -580,8 +606,9 @@ class TestClass(TestCase):
             'whatever': ['I should remain untouched, please']}
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -634,9 +661,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ADAPTED_ZERO_TO_MANY,
+                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -652,8 +679,10 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original,
+            payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -706,9 +735,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ZERO_TO_MANY,
+                common.FieldTypes.ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -753,8 +782,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -807,9 +837,9 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -836,8 +866,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -890,10 +921,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -920,8 +951,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -974,10 +1006,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -993,8 +1025,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1047,10 +1080,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1086,8 +1119,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1122,10 +1156,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1152,8 +1186,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1177,10 +1212,10 @@ class TestClass(TestCase):
         }
 
         paths = [
-            FieldTuple(
+            common.FieldTuple(
                 ('test1', 'test2'),
 
-                FieldTypes.ZERO_TO_ONE,
+                common.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1196,8 +1231,9 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = ensure_bounds(new_from, new_to, paths, original,
-                                      payload)
+        actual_result = common.ensure_bounds(
+            new_from, new_to, paths, original, payload,
+        )
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1267,7 +1303,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1331,7 +1367,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1404,7 +1440,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1459,7 +1495,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1514,7 +1550,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1560,7 +1596,7 @@ class TestClass(TestCase):
         ]
 
         # Act
-        actual_result = _merge_obj_effects(orig_objs, new)
+        actual_result = common._merge_obj_effects(orig_objs, new)
 
         actual_result = sorted(actual_result,
                                key=lambda x: x.get('virkning').get('from'))
@@ -1585,7 +1621,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = set_object_value(obj, path, val)
+        actual_result = common.set_object_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1606,7 +1642,317 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = set_object_value(obj, path, val)
+        actual_result = common.set_object_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
+
+    def test_get_valid_from(self):
+        ts = '2018-03-21T00:00:00+01:00'
+        dt = datetime.datetime(2018, 3, 21,
+                               tzinfo=dateutil.tz.tzoffset(None, 3600))
+
+        self.assertEqual(dt, common.get_valid_from(
+            {
+                'validity': {
+                    'from': ts,
+                }
+            },
+        ))
+
+        self.assertEqual(dt, common.get_valid_from(
+            {
+                'validity': {
+                },
+            },
+            {
+                'validity': {
+                    'from': ts,
+                }
+            }
+        ))
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {},
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {
+                'validity': {},
+            },
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {},
+            {
+                'validity': {
+                }
+            },
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {
+
+            },
+            {
+                'validity': {
+                }
+            },
+        )
+
+        self.assertRaises(
+            ValueError, common.get_valid_from,
+            {
+
+            },
+            {
+                'validity': {
+                    'from': None,
+                }
+            },
+        )
+
+    def test_get_valid_to(self):
+        ts = '2018-03-21T00:00:00+01:00'
+        dt = datetime.datetime(2018, 3, 21,
+                               tzinfo=dateutil.tz.tzoffset(None, 3600))
+
+        self.assertEqual(dt, common.get_valid_to(
+            {
+                'validity': {
+                    'to': ts,
+                }
+            },
+        ))
+
+        self.assertEqual(dt, common.get_valid_to(
+            {
+                'validity': {
+                },
+            },
+            {
+                'validity': {
+                    'to': ts,
+                }
+            }
+        ))
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to({}),
+        )
+
+        self.assertEqual(
+            common.get_valid_to({
+                'validity': {},
+            }),
+            util.positive_infinity,
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to(
+                {},
+                {
+                    'validity': {
+                    }
+                },
+            ),
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to(
+                {
+                    'validity': {
+                        'to': None,
+                    }
+                },
+            ),
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to(
+                {},
+                {
+                    'validity': {
+                        'to': None,
+                    }
+                },
+            ),
+        )
+
+    def test_get_validities(self):
+        # start time required
+        self.assertRaises(
+            ValueError,
+            common.get_valid_from, {}, {},
+        )
+
+        self.assertRaises(
+            ValueError,
+            common.get_valid_from, {}, {
+                'validity': None,
+            },
+        )
+
+        self.assertRaises(
+            ValueError,
+            common.get_valid_from, {}, {
+                'validity': {
+                    'from': None,
+                },
+            },
+        )
+
+        # still nothing
+        self.assertEqual(
+            common.get_valid_to({}, {}),
+            util.positive_infinity,
+        )
+
+        self.assertEqual(
+            common.get_valid_to({}, {
+                'validity': None,
+            }),
+            util.positive_infinity,
+        )
+
+        self.assertEqual(
+            util.positive_infinity,
+            common.get_valid_to({}, {
+                'validity': {
+                    'to': None,
+                },
+            }),
+        )
+
+        # actually set
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            common.get_valid_from({
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            common.get_valid_to({
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+        )
+
+        # actually set in the fallback
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            common.get_valid_from({}, {
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            common.get_valid_to({}, {
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+        )
+
+    def test_get_uuid(self):
+        testid = '00000000-0000-0000-0000-000000000000'
+
+        self.assertEqual(
+            testid,
+            common.get_uuid({
+                'uuid': testid,
+            }),
+        )
+
+        self.assertEqual(
+            testid,
+            common.get_uuid(
+                {},
+                {
+                    'uuid': testid,
+                },
+            ),
+        )
+
+        self.assertRaises(
+            ValueError,
+            common.get_uuid,
+            {
+                'uuid': 42,
+            },
+        )
+
+    def test_checked_get(self):
+        mapping = {
+            'list': [1337],
+            'dict': {1337: 1337},
+            'string': '1337',
+            'int': 1337,
+        }
+
+        # when it's there
+        self.assertIs(
+            common.checked_get(mapping, 'list', []),
+            mapping['list'],
+        )
+
+        self.assertIs(
+            common.checked_get(mapping, 'dict', {}),
+            mapping['dict'],
+        )
+
+        self.assertIs(
+            common.checked_get(mapping, 'string', ''),
+            mapping['string'],
+        )
+
+        self.assertIs(
+            common.checked_get(mapping, 'int', 1337),
+            mapping['int'],
+        )
+
+        # when it's not there
+        self.assertEqual(
+            common.checked_get(mapping, 'nonexistent', []),
+            [],
+        )
+
+        self.assertEqual(
+            common.checked_get(mapping, 'nonexistent', {}),
+            {},
+        )
+
+        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+            common.checked_get(mapping, 'nonexistent', [], required=True)
+
+        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+            common.checked_get(mapping, 'nonexistent', {}, required=True)
+
+        # bad value
+        with self.assertRaisesRegex(
+                ValueError,
+                'invalid \'dict\', expected list, got: {"1337": 1337}',
+        ):
+            common.checked_get(mapping, 'dict', [])
+
+        with self.assertRaisesRegex(
+                ValueError,
+                r"invalid 'list', expected dict, got: \[1337\]",
+        ):
+            common.checked_get(mapping, 'list', {})

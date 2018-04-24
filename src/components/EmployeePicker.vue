@@ -1,24 +1,20 @@
 <template>
   <div>
     <label v-if="!noLabel">{{label}}</label>
-    <loading v-show="isLoading"/>
-    <select
-      v-show="!isLoading" 
+    <v-autocomplete
       name="employee-picker"
       :data-vv-as="label"
-      class="form-control col" 
-      v-model="selected"
-      @change="updateSelectedEmployee()"
-      v-validate="{ required: true }"
-    >
-      <option disabled>{{label}}</option>
-      <option 
-        v-for="e in employees" 
-        v-bind:key="e.uuid"
-        :value="e">
-          {{e.name}}
-      </option>
-    </select>
+      :items="items" 
+      v-model="item" 
+      :get-label="getLabel" 
+      :component-item="template" 
+      @item-selected="selected"
+      @update-items="updateItems"
+      :auto-select-one-item="false"
+      :min-len="2"
+      placeholder="Søg efter medarbejder"
+      v-validate="{ required: required }"
+    />
     <span
       v-show="errors.has('employee-picker')" 
       class="text-danger"
@@ -29,58 +25,47 @@
 </template>
 
 <script>
-import Search from '../api/Search'
-import Organisation from '../api/Organisation'
-import { EventBus } from '../EventBus'
-import Loading from './Loading'
+import Search from '@/api/Search'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import TheSearchBarTemplate from './MoSearchBar/TheSearchBarTemplate.vue'
 
 export default {
   name: 'EmployeePicker',
   components: {
-    Loading
+    VAutocomplete
+  },
+  inject: {
+    $validator: '$validator'
   },
   props: {
-    value: Object,
     noLabel: Boolean,
-    label: {
-      type: String,
-      default: 'Medarbejder'
-    }
+    label: {type: String, default: 'Medarbejder'},
+    required: Boolean
   },
   data () {
     return {
-      selected: {},
-      employees: [],
-      isLoading: false
+      item: null,
+      items: [],
+      template: TheSearchBarTemplate
     }
   },
-  mounted () {
-    EventBus.$on('organisation-changed', () => {
-      this.getEmployees()
-    })
-  },
-  created () {
-    this.getEmployees()
-    this.selected = this.value
-  },
-  beforeDestroy () {
-    EventBus.$off(['organisation-changed'])
-  },
   methods: {
-    getEmployees () {
-      var vm = this
-      vm.isLoading = true
-      let org = Organisation.getSelectedOrganisation()
-      if (org.uuid === undefined) return
-      Search.employees(org.uuid)
+    getLabel (item) {
+      return item ? item.name : null
+    },
+
+    updateItems (query) {
+      let vm = this
+      let org = this.$store.state.organisation
+      Search.employees(org.uuid, query)
         .then(response => {
-          vm.isLoading = false
-          vm.employees = response
+          vm.items = response
         })
     },
 
-    updateSelectedEmployee () {
-      this.$emit('input', this.selected)
+    selected (value) {
+      this.$emit('input', value)
     }
   }
 }

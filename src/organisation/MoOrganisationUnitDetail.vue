@@ -8,15 +8,18 @@
       :uuid="uuid"
       :edit-component="entryComponent"
       type="ORG_UNIT"
+      @shown="getDetails"
     />
 
     <mo-entry-modal-base
+      class="margin-top"
       action="CREATE" 
       type="ORG_UNIT"
       :uuid="uuid" 
       :label="createLabel" 
       :entry-component="entryComponent"
       :content-type="detail"
+      v-if="!hideCreate"
     />
   </div>
 </template>
@@ -48,7 +51,8 @@
       createLabel: {
         type: String,
         default: 'Opret ny'
-      }
+      },
+      hideCreate: Boolean
     },
     data () {
       return {
@@ -71,11 +75,12 @@
     },
     watch: {
       uuid () {
+        // listener for the time machine
         this.getAllDetails()
       }
     },
     created () {
-      this.getAllDetails()
+      this.getDetails('present')
     },
     beforeDestroy () {
       EventBus.$off(['organisation-unit-changed'])
@@ -101,3 +106,9 @@
     }
   }
 </script>
+
+<style scoped>
+  .margin-top {
+    margin-top: 1rem;
+  }
+</style>

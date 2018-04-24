@@ -164,7 +164,6 @@ class ITSystems(common.AbstractRelationDetail):
         system_cache = common.cache(c.itsystem.get)
 
         def convert(start, end, effect):
-            attrs = effect['attributter']['brugeregenskaber'][0]
             rels = effect['relationer']
 
             for systemrel in rels.get('tilknyttedeitsystemer', []):
@@ -172,13 +171,15 @@ class ITSystems(common.AbstractRelationDetail):
                     continue
 
                 try:
+                    attrs = effect['attributter']['brugeregenskaber'][0]
                     systemid = systemrel['uuid']
-                except KeyError:
+
+                    system_attrs = (
+                        system_cache[systemid]
+                        ['attributter']['itsystemegenskaber'][0]
+                    )
+                except (TypeError, LookupError):
                     continue
-
-                system = system_cache[systemid]
-
-                system_attrs = system['attributter']['itsystemegenskaber'][0]
 
                 yield {
                     "uuid": systemid,
@@ -228,7 +229,7 @@ class ITSystems(common.AbstractRelationDetail):
         }
 
     def create(self, id, req):
-        systemobj = common.checked_get(req, keys.ITSYSTEM, {})
+        systemobj = common.checked_get(req, keys.ITSYSTEM, {}, required=True)
         systemid = common.get_uuid(systemobj)
 
         original = self.scope.get(
@@ -245,9 +246,6 @@ class ITSystems(common.AbstractRelationDetail):
         start = common.get_valid_from(req)
         end = common.get_valid_to(req)
 
-        if start == util.negative_infinity:
-            raise ValueError('missing or invalid start date!')
-
         rels.append(self.get_relation_for(systemid, start, end))
 
         payload = {
@@ -260,7 +258,11 @@ class ITSystems(common.AbstractRelationDetail):
         self.scope.update(payload, id)
 
     def edit(self, id, req):
-        original = self.scope.get(uuid=id)
+        original = self.scope.get(
+            uuid=id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
 
         old_entry = req.get('original')
         old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
@@ -270,7 +272,7 @@ class ITSystems(common.AbstractRelationDetail):
 
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(
-            old_entry['uuid'],
+            common.get_uuid(old_entry),
             common.get_valid_from(old_entry),
             common.get_valid_to(old_entry),
         )
@@ -278,7 +280,7 @@ class ITSystems(common.AbstractRelationDetail):
         new_entry = req['data']
 
         new_rel = self.get_relation_for(
-            new_entry.get('uuid', old_entry['uuid']),
+            common.get_uuid(new_entry, old_entry),
             common.get_valid_from(new_entry, old_entry),
             common.get_valid_to(new_entry, old_entry),
         )

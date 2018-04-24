@@ -5,7 +5,7 @@
     </div>
     <div class="col-md-9 workflow-padding">
       <router-view :key="$route.params.uuid"/>
-      <work-log/>
+      <mo-log/>
     </div>
     <unit-workflows/>
   </div>
@@ -14,13 +14,13 @@
 <script>
   import TheLeftMenu from '../components/TheLeftMenu'
   import UnitWorkflows from './OrganisationUnitWorkflows'
-  import WorkLog from '../components/WorkLog'
+  import MoLog from '../components/MoLog/MoLog'
 
   export default {
     components: {
       TheLeftMenu,
       UnitWorkflows,
-      WorkLog
+      MoLog
     }
   }
 </script>

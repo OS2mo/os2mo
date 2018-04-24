@@ -17,7 +17,7 @@
             <treeview 
               v-model="orgUnitLeft"
               :at-date="dateLeft"
-              :org="orgLeft"
+              :org-uuid="orgLeft.uuid"
             />
           </div>
 
@@ -43,7 +43,7 @@
               />
               
             <treeview 
-              :org="orgRight"
+              :org-uuid="orgRight.uuid"
               :at-date="dateRight"
               v-model="orgUnitRight"
             />

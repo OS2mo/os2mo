@@ -24,9 +24,12 @@ import { EventBus } from '../EventBus'
 
 export default {
   name: 'OrganisationPicker',
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: Object,
-    atDate: Date,
+    atDate: [Date, String],
     resetRoute: Boolean,
     ignoreEvent: Boolean
   },
@@ -36,16 +39,15 @@ export default {
       orgs: []
     }
   },
-  created () {
-    this.getAll()
-  },
   mounted () {
+    this.getAll()
     EventBus.$on('organisation-changed', newOrg => {
       if (!this.ignoreEvent) this.selectedOrganisation = newOrg
     })
   },
   watch: {
     selectedOrganisation (newVal) {
+      this.$store.commit('organisation/change', newVal)
       Organisation.setSelectedOrganisation(newVal)
       this.$emit('input', newVal)
     },

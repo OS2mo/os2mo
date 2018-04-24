@@ -237,8 +237,8 @@ class Addresses(common.AbstractRelationDetail):
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(
-            req[keys.ADDRESS_TYPE],
-            req[keys.ADDRESS],
+            common.checked_get(req, keys.ADDRESS_TYPE, {}, required=True),
+            common.checked_get(req, keys.VALUE, '', required=True),
         )
         rel['virkning'] = common.get_validity_effect(req)
 
@@ -252,30 +252,39 @@ class Addresses(common.AbstractRelationDetail):
         self.scope.update(payload, id)
 
     def edit(self, id, req):
-        original = self.scope.get(uuid=id)
+        original = self.scope.get(
+            uuid=id,
+            virkningfra='-infinity',
+            virkningtil='infinity',
+        )
 
-        old_entry = req.get('original')
-        new_entry = req.get('data')
+        old_entry = common.checked_get(req, 'original', {}, required=True)
+        new_entry = common.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
             raise ValueError('original required!')
 
         old_rel = get_relation_for(
-            old_entry[keys.ADDRESS_TYPE],
-            old_entry[keys.NAME],
+            common.checked_get(old_entry, keys.ADDRESS_TYPE, {},
+                               required=True),
+            common.checked_get(old_entry, keys.VALUE, '', required=True),
         )
         old_rel['virkning'] = common.get_validity_effect(old_entry)
 
         new_rel = get_relation_for(
-            new_entry.get(keys.ADDRESS_TYPE) or old_entry[keys.ADDRESS_TYPE],
-            new_entry.get(keys.VALUE) or old_entry[keys.NAME],
+            common.checked_get(new_entry, keys.ADDRESS_TYPE, {},
+                               fallback=old_entry, required=True),
+            common.checked_get(new_entry, keys.VALUE, '',
+                               fallback=old_entry, required=True),
         )
         new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
-        addresses = common.replace_relation_value(
-            original['relationer']['adresser'],
-            old_rel, new_rel,
-        )
+        try:
+            addresses = original['relationer']['adresser']
+        except KeyError:
+            raise ValueError('no addresses to edit!')
+
+        addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 
         payload = {
             'relationer': {
@@ -295,8 +304,9 @@ def address_autocomplete(orgid):
     .. :quickref: Address; Autocomplete
 
     :queryparam str q: A query string to be used for lookup
-    :queryparam uuid global: Whether or not the lookup should be in the entire
-        country, or contained to the municipality of the organisation
+    :queryparam boolean global: Whether or not the lookup should be in
+        the entire country, or contained to the municipality of the
+        organisation
 
     **Example Response**:
 
@@ -319,9 +329,10 @@ def address_autocomplete(orgid):
           }
         }
       ]
+
     """
     q = flask.request.args['q']
-    global_lookup = flask.request.args.get('global', False, type=bool)
+    global_lookup = common.get_args_flag('global')
 
     if not global_lookup:
         org = lora.Connector().organisation.get(orgid)

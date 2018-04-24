@@ -1,34 +1,20 @@
 <template>
-<div class="card card-margin">
-  <div class="card-body">
-    <b-tabs>
-      <b-tab title="Arbejdslog" active> 
-        <div class="wrapper">
-          <div 
-            class="alert alert-success" 
-            v-for="log in reverse(workLogs)" 
-            v-bind:key="log.uuid" 
-            role="alert"
-          >
-            {{log}}
-          </div>
-        </div>
-      </b-tab>
-      <b-tab title="Begivenheder">
-        Begivenheder
-      </b-tab>
-      <b-tab title="Fejl">
-        Fejl
-      </b-tab>
-    </b-tabs>
+  <div class="wrapper">
+    <div 
+      class="alert alert-success" 
+      v-for="log in reverse(workLogs)" 
+      v-bind:key="log.uuid" 
+      role="alert"
+    >
+      {{log}}
+    </div>
   </div>
-</div>
 </template>
 
 <script>
-  import { EventBus } from '../EventBus'
+  import { EventBus } from '../../EventBus'
   export default {
-    name: 'WorkLog',
+    name: 'MoWorklog',
 
     data () {
       return {
@@ -97,12 +83,6 @@
 </script>
 
 <style scoped>
-
-.card-margin {
-  margin-top: 2em;
-  min-height: 150px;
-}
-
 .wrapper {
   max-height: 10rem;
   overflow-y: auto;

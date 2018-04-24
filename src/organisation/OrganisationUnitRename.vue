@@ -7,12 +7,14 @@
     title="Omdøb enhed"
     lazy
   >
+    <form @submit.prevent="renameOrganisationUnit">
     <div class="form-row">
       <organisation-unit-picker 
         label="Enhed" 
         class="col"
         v-model="original"
         :preselected="preselectedUnit"
+        required
       />
     </div>
 
@@ -24,6 +26,7 @@
           type="text"
           class="form-control"
           v-model="rename.data.name"
+          v-validate="{required: true}"
         >
       </div>
     </div>
@@ -36,11 +39,9 @@
     </div>
 
     <div class="float-right">
-      <button-submit 
-      :is-disabled="isDisabled"
-      :on-click-action="renameOrganisationUnit"
-      />
+      <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
     </div>
+    </form>
   </b-modal>
 </template>
 
@@ -52,6 +53,9 @@
   import ButtonSubmit from '../components/ButtonSubmit'
   
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     components: {
       DatePickerStartEnd,
       OrganisationUnitPicker,
@@ -67,17 +71,21 @@
             name: '',
             validity: {}
           }
-        }
+        },
+        isLoading: false
       }
     },
     computed: {
-      isDisabled () {
-        if (this.rename.data.validity.from === undefined || this.original === undefined || this.rename.data.name === '') return true
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       }
     },
     mounted () {
-      EventBus.$on('organisation-unit-changed', selectedUnit => {
-        this.preselectedUnit = selectedUnit
+      EventBus.$on('organisation-unit-changed', () => {
+        this.preselectedUnit = this.$route.params.uuid
       })
       this.$root.$on('bv::modal::hidden', resetData => {
         Object.assign(this.$data, this.$options.data())

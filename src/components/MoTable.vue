@@ -25,8 +25,8 @@
       </thead>
       <tbody>
         <tr 
-          v-for="c in content" 
-          v-bind:key="c.uuid"
+          v-for="(c, index) in content" 
+          v-bind:key="index"
         >
           <td v-if="multiSelect">
             <b-form-checkbox :value="c"/>

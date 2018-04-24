@@ -1,0 +1,50 @@
+<template>
+  <div v-if="!removed">
+    <div class="row">
+      <div class="col">
+        <component 
+          :is="entryComponent"
+          v-model="entryValue"
+        />
+      </div>
+      <div class="col-1 v-center">
+        <button @click="remove()" type="button" class="btn btn-outline-danger">
+          <icon name="minus"/>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    entryComponent: {
+      type: Object,
+      required: true
+    }
+  },
+  data () {
+    return {
+      entryValue: {},
+      removed: false
+    }
+  },
+  updated () {
+    this.$emit('input', this.entryValue)
+  },
+  methods: {
+    remove () {
+      this.entryValue = {}
+      this.removed = true
+    }
+  }
+}
+</script>
+
+<style scoped>
+ .v-center {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+</style>

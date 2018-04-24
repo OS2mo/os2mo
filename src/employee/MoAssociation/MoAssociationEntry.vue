@@ -27,10 +27,6 @@ export default {
   },
   props: {
     value: Object,
-    org: {
-      type: Object,
-      required: true
-    },
     validity: Object,
     validityHidden: Boolean
   },
@@ -46,9 +42,6 @@ export default {
       handler (newVal) {
         newVal.type = 'association'
         this.$emit('input', newVal)
-        let valid = false
-        if (Object.keys(newVal).length >= 5 && newVal.validity.from !== undefined) valid = true
-        this.$emit('is-valid', valid)
       },
       deep: true
     },

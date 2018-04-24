@@ -8,9 +8,11 @@
       :uuid="uuid"
       :edit-component="entryComponent"
       type="EMPLOYEE"
+      @shown="getDetails"
     />
 
-    <mo-entry-modal-base 
+    <mo-entry-modal-base
+      class="margin-top"
       action="CREATE"
       type="EMPLOYEE" 
       :uuid="uuid" 
@@ -70,10 +72,7 @@
       })
     },
     created () {
-      this.getAllDetails()
-    },
-    beforeDestroy () {
-      EventBus.$off(['employee-changed'])
+      this.getDetails('present')
     },
     methods: {
       getAllDetails () {
@@ -96,3 +95,9 @@
     }
   }
 </script>
+
+<style scoped>
+  .margin-top {
+    margin-top: 1rem;
+  }
+</style>

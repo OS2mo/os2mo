@@ -62,7 +62,10 @@
     },
     methods: {
       updateDate () {
-        let obj = {}
+        let obj = {
+          from: null,
+          to: null
+        }
         if (this.validFrom) {
           obj.from = this.validFrom
         }
@@ -76,8 +79,3 @@
     }
   }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-</style>

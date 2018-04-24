@@ -7,77 +7,79 @@
     ref="orgUnitCreate"
     lazy
   >
-    <mo-organisation-unit-entry
-      :org="org" 
-      v-model="orgUnit" 
-      @is-valid="isOrgUnitValid"
-    />
+    <form @submit.prevent="createOrganisationUnit">
+      <mo-organisation-unit-entry
+        v-model="entry" 
+      />
 
-    <div class="float-right">
+      <mo-add-many
+        :entry-component="addressEntry"
+        v-model="addresses"
+        has-initial-entry
+      />
+
+      <div class="float-right">
         <button-submit
-        :is-disabled="isDisabled"
+        :is-disabled="!formValid"
+        :is-loading="isLoading"
         :on-click-action="createOrganisationUnit"
         />
       </div>
+    </form>
   </b-modal>
 
 </template>
 
 <script>
-  import Organisation from '../api/Organisation'
   import OrganisationUnit from '../api/OrganisationUnit'
-  import { EventBus } from '../EventBus'
   import ButtonSubmit from '../components/ButtonSubmit'
-  import AddressSearch from '../components/AddressSearch'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
+  import MoAddMany from '../components/MoAddMany'
+  import MoAddressEntry from '../components/MoAddressEntry/MoAddressEntry'
 
   export default {
+    $_veeValidate: {
+      validator: 'new'
+    },
     name: 'OrganisationUnitCreate',
     components: {
       ButtonSubmit,
-      AddressSearch,
-      MoOrganisationUnitEntry
+      MoOrganisationUnitEntry,
+      MoAddMany
     },
     data () {
       return {
-        org: {},
-        orgUnit: {
+        entry: {
           validity: {}
         },
-        valid: {
-          orgUnit: false
-        }
+        addresses: [],
+        addressEntry: MoAddressEntry,
+        isLoading: false
       }
     },
     computed: {
-      isDisabled () {
-        return !this.valid.orgUnit
+      formValid () {
+        // loop over all contents of the fields object and check if they exist and valid.
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
       }
     },
-    created () {
-      this.org = Organisation.getSelectedOrganisation()
-    },
     mounted () {
-      EventBus.$on('organisation-changed', newOrg => {
-        this.org = newOrg
-      })
       this.$root.$on('bv::modal::hidden', resetData => {
         Object.assign(this.$data, this.$options.data())
       })
     },
     methods: {
-      isOrgUnitValid (val) {
-        this.valid.orgUnit = val
-      },
-
       createOrganisationUnit () {
         let vm = this
         this.isLoading = true
 
-        OrganisationUnit.create(this.orgUnit)
+        this.entry.addresses = this.addresses
+
+        OrganisationUnit.create(this.entry)
           .then(response => {
             vm.$refs.orgUnitCreate.hide()
-            console.log(response)
           })
           .catch(err => {
             console.log(err)

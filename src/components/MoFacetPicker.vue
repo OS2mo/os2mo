@@ -2,7 +2,7 @@
   <div class="form-group col">
     <label>{{label}}</label>
     <select 
-      name="role-picker"
+      :name="nameId"
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
@@ -18,21 +18,22 @@
       </option>
     </select>
     <span
-      v-show="errors.has('role-picker')" 
+      v-show="errors.has(nameId)" 
       class="text-danger"
     >
-      {{ errors.first('role-picker') }}
+      {{ errors.first(nameId) }}
     </span>
   </div>
 </template>
 
 <script>
-import Facet from '../api/Facet'
-import Organisation from '../api/Organisation'
-import { EventBus } from '../EventBus'
+import Facet from '@/api/Facet'
 
 export default {
   name: 'MoFacetPicker',
+  inject: {
+    $validator: '$validator'
+  },
   props: {
     value: Object,
     facet: {
@@ -44,27 +45,28 @@ export default {
   },
   data () {
     return {
-      selected: {},
+      selected: null,
       facets: [],
       label: ''
     }
   },
+  computed: {
+    nameId () {
+      return 'mo-facet-picker-' + this._uid
+    }
+  },
   mounted () {
-    EventBus.$on('organisation-changed', () => {
-      this.getFacet()
-    })
-  },
-  created () {
     this.getFacet()
-    this.selected = this.value
-  },
-  beforeDestroy () {
-    EventBus.$off(['organisation-changed'])
+
+    if (this.value) {
+      this.selected = this.value
+      this.$validator.validate(this.nameId)
+    }
   },
   methods: {
     getFacet () {
-      var vm = this
-      let org = Organisation.getSelectedOrganisation()
+      let vm = this
+      let org = this.$store.state.organisation
       if (org.uuid === undefined) return
       Facet.getFacet(org.uuid, this.facet)
         .then(response => {

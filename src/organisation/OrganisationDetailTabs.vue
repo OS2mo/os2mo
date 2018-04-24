@@ -8,6 +8,7 @@
           detail="org_unit"
           :columns="columns.org_unit"
           :entry-component="timemachineFriendly ? undefined : components.orgUnit"
+          hide-create
         />
       </b-tab>
       <b-tab title="Adresse">
@@ -16,6 +17,8 @@
           :at-date="atDate"
           detail="address"
           :columns="columns.address"
+          :entry-component="timemachineFriendly ? undefined : components.address"
+          hide-create
         />
       </b-tab>
       <b-tab title="Engagementer">
@@ -57,10 +60,13 @@
 <script>
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import MoOrganisationUnitEntry from './MoOrganisationUnit/MoOrganisationUnitEntry'
+  import MoAddressEntry from '../components/MoAddressEntry/MoAddressEntry'
+  import MoAddMany from '../components/MoAddMany'
 
   export default {
     components: {
-      MoOrganisationUnitDetail
+      MoOrganisationUnitDetail,
+      MoAddMany
     },
     props: {
       uuid: {
@@ -81,7 +87,8 @@
           manager: ['person', 'responsibility', 'manager_type', 'manager_level', 'address_type', 'address']
         },
         components: {
-          orgUnit: MoOrganisationUnitEntry
+          orgUnit: MoOrganisationUnitEntry,
+          address: MoAddressEntry
         }
       }
     }

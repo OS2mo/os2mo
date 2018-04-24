@@ -32,10 +32,8 @@
         isLoading: false
       }
     },
-    created () {
-      this.getOrganisationDetails()
-    },
     mounted () {
+      this.getOrganisationDetails()
       EventBus.$on('organisation-changed', () => {
         this.getOrganisationDetails()
       })
@@ -47,7 +45,7 @@
       getOrganisationDetails () {
         let vm = this
         vm.isLoading = true
-        let org = Organisation.getSelectedOrganisation()
+        let org = this.$store.state.organisation
         if (org.uuid === undefined) return
         Organisation.get(org.uuid)
           .then(response => {

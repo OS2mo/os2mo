@@ -8,6 +8,7 @@ import VueI18n from 'vue-i18n'
 import VeeValidate, { Validator } from 'vee-validate'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
+import store from './vuex/store'
 
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
@@ -22,8 +23,10 @@ require('moment/locale/da')
 Vue.config.productionTip = false
 
 const veeConfig = {
-  delay: 200,
-  locale: 'da'
+  dateFormat: 'DD-MM-YYYY',
+  delay: 100,
+  locale: 'da',
+  inject: false
 }
 
 Validator.localize('da', messagesDA)
@@ -41,6 +44,7 @@ Vue.component('icon', Icon)
 new Vue({
   el: '#app',
   router,
+  store,
   template: '<App/>',
   components: { App }
 })

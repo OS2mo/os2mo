@@ -7,6 +7,7 @@
 #
 
 from . import address
+from . import cpr
 from . import employee
 from . import details
 from . import facet
@@ -16,6 +17,7 @@ from . import orgunit
 
 blueprints = (
     address.blueprint,
+    cpr.blueprint,
     employee.blueprint,
     details.blueprint,
     facet.blueprint,

@@ -38,11 +38,11 @@
 </template>
 
 <script>
-  import Auth from '../api/Auth'
-  import { EventBus } from '../EventBus'
-  import HelpButton from '../help/TheHelpButton'
-  import TimeMachineButton from '../timeMachine/TimeMachineButton'
-  import SearchBar from './TheSearchBar'
+  import Auth from '@/api/Auth'
+  import { EventBus } from '@/EventBus'
+  import HelpButton from '@/help/TheHelpButton'
+  import TimeMachineButton from '@/timeMachine/TimeMachineButton'
+  import SearchBar from './MoSearchBar/TheSearchBar'
   import OrganisationPicker from './OrganisationPicker'
 
   export default {
@@ -68,7 +68,7 @@
     methods: {
       logout () {
         this.$router.push({
-          name: 'login'
+          name: 'Login'
         })
       }
     }
