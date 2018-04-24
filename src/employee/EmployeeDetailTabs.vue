@@ -15,6 +15,7 @@
           :uuid="uuid" 
           detail="address"
           :columns="address"
+          :entry-component="components.address"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.roles')">
@@ -66,6 +67,7 @@
   import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
   import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
   import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
@@ -120,6 +122,7 @@
         ],
         components: {
           engagement: MoEngagementEntry,
+          address: MoAddressEntry,
           role: MoRoleEntry,
           it: MoItSystemEntry,
           association: MoAssociationEntry,
