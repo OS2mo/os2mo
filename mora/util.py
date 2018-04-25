@@ -298,7 +298,7 @@ def log_exception(msg=''):
         if 'password' in data:
             data['password'] = 'X' * 8
 
-        data_str = '\n%s' + json.dumps(data, indent=2)
+        data_str = '\n' + json.dumps(data, indent=2)
 
     else:
         data_str = ''
