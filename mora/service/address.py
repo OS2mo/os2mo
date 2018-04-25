@@ -190,12 +190,16 @@ def get_relation_for(addrobj, fallback=None):
     typeobj = common.checked_get(addrobj, keys.ADDRESS_TYPE, {},
                                  fallback=fallback, required=True)
     scope = common.checked_get(typeobj, 'scope', '', required=True)
+    validity = common.get_validity_effect(addrobj, fallback=fallback)
+
+    r = {}
+
+    if validity is not None:
+        r['virkning'] = validity
 
     if scope == 'DAR':
-        return {
-            'uuid': common.get_uuid(addrobj, fallback),
-            'objekttype': common.checked_get(typeobj, keys.UUID, 'DAR'),
-        }
+        r['uuid'] = common.get_uuid(addrobj, fallback)
+        r['objekttype'] = common.checked_get(typeobj, keys.UUID, 'DAR')
 
     elif scope in URN_PREFIXES:
         # this is the fallback: we want to use the 'urn' key if set
@@ -207,30 +211,28 @@ def get_relation_for(addrobj, fallback=None):
             'urn' in addrobj or
             keys.VALUE not in addrobj and fallback and 'urn' in fallback
         ):
-            return {
-                'urn': common.get_urn(addrobj, fallback),
-                'objekttype': typeobj['uuid'],
-            }
+            value = common.get_urn(addrobj, fallback)
 
-        value = common.checked_get(addrobj, keys.VALUE, '', required=True)
-        prefix = URN_PREFIXES[scope]
+        else:
+            value = common.checked_get(addrobj, keys.VALUE, '', required=True)
+            prefix = URN_PREFIXES[scope]
 
-        if scope == 'PHONE':
-            value = re.sub(r'\s+', '', value)
+            if scope == 'PHONE':
+                value = re.sub(r'\s+', '', value)
 
-            if not value.startswith('+'):
-                value = '+45' + value
+                if not value.startswith('+'):
+                    value = '+45' + value
 
-        if not util.is_urn(value):
-            value = prefix + value
+            if not util.is_urn(value):
+                value = prefix + value
 
-        return {
-            'urn': value,
-            'objekttype': typeobj['uuid'],
-        }
+        r['urn'] = value
+        r['objekttype'] = common.get_uuid(typeobj)
 
     else:
         raise ValueError('unknown address scope {!r}!'.format(scope))
+
+    return r
 
 
 def get_address_class(c, addrrel, class_cache):
@@ -393,7 +395,6 @@ class Addresses(common.AbstractRelationDetail):
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(req)
-        rel['virkning'] = common.get_validity_effect(req)
 
         addrs = original['relationer'].get('adresser', [])
 
@@ -420,10 +421,7 @@ class Addresses(common.AbstractRelationDetail):
             raise ValueError('original required!')
 
         old_rel = get_relation_for(old_entry)
-        old_rel['virkning'] = common.get_validity_effect(old_entry)
-
         new_rel = get_relation_for(new_entry, old_entry)
-        new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
         try:
             addresses = original['relationer']['adresser']

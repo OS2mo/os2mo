@@ -1111,6 +1111,10 @@ class Writing(util.LoRATestCase):
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
                     "value": "11 22 33 44",
+                    "validity": {
+                        "from": "2015-02-04T00:00:00+01",
+                        "to": "2017-10-22T00:00:00+02",
+                    }
                 },
                 {
                     "address_type": {
@@ -1145,7 +1149,7 @@ class Writing(util.LoRATestCase):
             },
             {
                 'virkning': {
-                    'from': '2010-02-04 00:00:00+01',
+                    'from': '2015-02-04 00:00:00+01',
                     'to_included': False,
                     'to': '2017-10-22 00:00:00+02',
                     'from_included': True,
@@ -1209,22 +1213,6 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'address_type': {
-                        'example': '20304060',
-                        'name': 'Telefonnummer',
-                        'scope': 'PHONE',
-                        'user_key': 'Telefon',
-                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    },
-                    'href': 'tel:+4511223344',
-                    'name': '1122 3344',
-                    'validity': {
-                        'from': '2010-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
-                    },
-                    'urn': 'urn:magenta.dk:telefon:+4511223344',
-                },
-                {
-                    'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
@@ -1239,6 +1227,22 @@ class Writing(util.LoRATestCase):
                         'to': '2017-10-22T00:00:00+02:00',
                     },
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                },
+                {
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    },
+                    'href': 'tel:+4511223344',
+                    'name': '1122 3344',
+                    'validity': {
+                        'from': '2015-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'urn': 'urn:magenta.dk:telefon:+4511223344',
                 },
             ],
         )
