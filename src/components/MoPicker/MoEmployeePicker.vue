@@ -1,9 +1,9 @@
 <template>
   <div>
-    <label v-if="!noLabel">{{$tc('input_fields.employee', 1)}}</label>
+    <label v-if="!noLabel">{{$tc('input_fields.employee')}}</label>
     <v-autocomplete
       name="employee-picker"
-      :data-vv-as="label"
+      :data-vv-as="$tc('input_fields.employee')"
       :items="items" 
       v-model="item" 
       :get-label="getLabel" 
