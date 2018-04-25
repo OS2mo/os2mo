@@ -885,16 +885,48 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/e/',
-            {
-                'items': [
-                    {'name': 'Sanne Schäff',
-                     'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
-                    {'name': 'Sune Skriver',
-                     'uuid': '34705881-8af9-4254-ac3f-31738eae0be8'}
-                ],
-                'offset': 0,
-                'total': 2
-            }
+            {'items': [{'name': 'Per Poulsen',
+                        'uuid': '108e9892-d1a2-3b49-be7f-67adfa92101f'},
+                       {'name': 'Maria Sørensen',
+                        'uuid': '17e14b72-222c-3972-b983-b2cfb9a8a5ef'},
+                       {'name': 'Lene Hansen',
+                        'uuid': '1c485ce5-c3b0-3b1e-ba05-bb7f0079f1b0'},
+                       {'name': 'Peter Petersen',
+                        'uuid': '23c825cf-1f49-30e0-988d-3bbd7d0dc0f7'},
+                       {'name': 'Niels Larsen',
+                        'uuid': '2cfdc76c-8471-3741-b55d-febc0b453588'},
+                       {'name': 'Camilla Olsen',
+                        'uuid': '3c44a41a-a9be-3fb5-8a56-caec5f08135b'},
+                       {'name': 'Morten Johansen',
+                        'uuid': '40a90e53-5267-33eb-8fa3-253051d35691'},
+                       {'name': 'Jette Hansen',
+                        'uuid': '44715000-358a-36ef-a2eb-36b3451f74f6'},
+                       {'name': 'Anne Jensen',
+                        'uuid': '5d599856-4eef-38b0-9732-2f4a1635fde0'},
+                       {'name': 'Jørgen Johansen',
+                        'uuid': '6c0685a5-a523-3131-8f7b-2076d138dd1e'},
+                       {'name': 'Marianne Jørgensen',
+                        'uuid': '90afbf86-5763-34c1-92a3-70733e53bffa'},
+                       {'name': 'Anders Sørensen',
+                        'uuid': 'c3ba0516-8d58-3b20-8275-53c81cea3c98'},
+                       {'name': 'Maria Olsen',
+                        'uuid': 'c533ef45-b8d3-3467-bfc4-96453ebd0f92'},
+                       {'name': 'Karen Olsen',
+                        'uuid': 'cb3e11c9-aa14-3116-8699-b3a310d845e6'},
+                       {'name': 'Anders Møller',
+                        'uuid': 'd4e3bc55-a09f-3808-b891-b54efd4bfa9b'},
+                       {'name': 'Lone Kristensen',
+                        'uuid': 'e1a3e681-ce27-31b4-9a70-6135a629dc27'},
+                       {'name': 'Karen Christensen',
+                        'uuid': 'e37a4fcf-6a0a-3c5d-bee8-4bf7b867f9dc'},
+                       {'name': 'Jørgen Rasmussen',
+                        'uuid': 'f3166fb3-4be9-3687-a152-340a18634913'},
+                       {'name': 'Jesper Thomsen',
+                        'uuid': 'f63bc5b1-c8ae-3730-b76f-b79c7060105b'},
+                       {'name': 'Michael Kristensen',
+                        'uuid': 'fab30717-9bf5-3457-a0b4-b705165106cc'}],
+             'offset': 0,
+             'total': 802}
         )
 
         self.assertRequestResponse(
