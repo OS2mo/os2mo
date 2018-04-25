@@ -34,7 +34,7 @@
         orgUnit: {}
       }
     },
-    created () {
+    mounted () {
       this.updateDetails()
     },
     methods: {
@@ -43,6 +43,7 @@
         OrganisationUnit.get(this.$route.params.uuid)
           .then(response => {
             vm.orgUnit = response
+            vm.$store.commit('organisationUnit/change', response)
           })
       }
     }

@@ -39,6 +39,7 @@
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoInput from '@/components/atoms/MoInput'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import { mapGetters } from 'vuex'
   
   export default {
     $_veeValidate: {
@@ -52,7 +53,6 @@
     },
     data () {
       return {
-        orgUnit: {},
         original: {},
         rename: {
           data: {
@@ -64,12 +64,27 @@
       }
     },
     computed: {
+      ...mapGetters({
+        orgUnit: 'organisationUnit/getOrgUnit'
+      }),
+
       formValid () {
         // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       }
+    },
+    watch: {
+      orgUnit: {
+        handler (val) {
+          this.original = val
+        },
+        deep: true
+      }
+    },
+    mounted () {
+      this.original = this.orgUnit
     },
     methods: {
       resetData () {
