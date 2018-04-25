@@ -38,8 +38,16 @@
             {{c.validity.to | date}}
           </td>
           <td>
-            <mo-entry-modal
+            <!-- <mo-entry-modal
               action="EDIT"
+              :type="type"
+              :uuid="editUuid"
+              :entry-component="editComponent"
+              :content="c"
+              :content-type="contentType"
+            /> -->
+         
+            <mo-entry-edit-modal 
               :type="type"
               :uuid="editUuid"
               :entry-component="editComponent"
@@ -59,14 +67,14 @@
   import '@/filters/GetProperty'
   import '@/filters/Date'
   import MoLoader from '@/components/atoms/MoLoader'
-  import MoEntryModal from '@/components/MoEntryModal'
+  import MoEntryEditModal from '@/components/MoEntryEditModal'
   import MoLink from '@/components/MoLink'
 
   export default {
     components: {
       MoLoader,
       MoLink,
-      MoEntryModal
+      MoEntryEditModal
     },
     props: {
       content: Array,

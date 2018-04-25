@@ -13,7 +13,7 @@
       <div class="form-row">
         <mo-date-picker 
           class="col" 
-          :label="$t('input_fields.date_for_move')"
+          :label="$t('input_fields.move_date')"
           v-model="moveDate" 
           required
         />

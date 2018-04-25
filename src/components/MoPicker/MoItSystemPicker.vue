@@ -4,12 +4,12 @@
     <select 
       :name="nameId"
       :id="nameId"
-      :data-vv-as="label"
+      :data-vv-as="$tc('shared.it_system', 2)"
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedItSystem()"
       v-validate="{ required: true }">
-      <option disabled>{{label}}</option>
+      <option disabled>{{$tc('shared.it_system', 2)}}</option>
       <option 
         v-for="it in itSystems" 
         v-bind:key="it.uuid"
