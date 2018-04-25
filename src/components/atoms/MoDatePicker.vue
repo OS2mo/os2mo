@@ -16,14 +16,9 @@
         :data-vv-as="label" 
         v-model="selected"
         type="hidden"
-        v-validate="{ date_format: 'YYYY-MM-DD', required: required }">
+        v-validate="{required: required}">
 
-      <span
-        v-show="errors.has(nameId)" 
-        class="text-danger"
-      >
-        {{ errors.first(nameId) }}
-      </span>
+      <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
     </div>
 </template>
 

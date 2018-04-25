@@ -2,7 +2,7 @@
   <b-modal 
     id="employeeCreate" 
     size="lg" 
-    title="Ny medarbejder"
+    :title="$t('workflows.employee.new_employee')"
     ref="employeeCreate"
     hide-footer 
     no-close-on-backdrop
@@ -15,7 +15,7 @@
       <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
-      <h5>Adresser</h5>
+      <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
       <mo-add-many v-model="address" :entry-component="entry.address"/>
 
       <h5>{{$tc('workflows.employee.labels.association', 2)}}</h5>

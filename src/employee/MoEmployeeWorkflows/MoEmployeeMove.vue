@@ -13,7 +13,7 @@
       <mo-employee-picker v-model="employee" required/>
 
       <div class="form-row">
-        <mo-date-picker label="Dato for flytning" class="col" v-model="move.data.validity.from"/>
+        <mo-date-picker :label="$t('input_fields.date_for_move')" class="col" v-model="move.data.validity.from"/>
       </div>
       
       <div class="form-row">
