@@ -1,9 +1,9 @@
 <template>
   <div>
-    <label v-if="!noLabel">{{label}}</label>
+    <label v-if="!noLabel">{{$tc('input_fields.employee')}}</label>
     <v-autocomplete
       name="employee-picker"
-      :data-vv-as="label"
+      :data-vv-as="$tc('input_fields.employee')"
       :items="items" 
       v-model="item" 
       :get-label="getLabel" 
@@ -12,7 +12,7 @@
       @update-items="updateItems"
       :auto-select-one-item="false"
       :min-len="2"
-      placeholder="Søg efter medarbejder"
+      :placeholder="$t('input_fields.search_for_employee')"
       v-validate="{ required: required }"
     />
     <span
@@ -40,7 +40,6 @@ export default {
   },
   props: {
     noLabel: Boolean,
-    label: {type: String, default: 'Medarbejder'},
     required: Boolean
   },
   data () {

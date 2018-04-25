@@ -2,7 +2,7 @@
   <b-modal 
     id="employeeMoveMany" 
     size="lg" 
-    title="Flyt mange engagementer"
+    :title="$t('workflows.employee.move_many_engagements')"
     ref="employeeMoveMany"
     hide-footer 
     lazy
@@ -13,14 +13,14 @@
       <div class="form-row">
         <mo-date-picker 
           class="col" 
-          label="Dato for flytning" 
+          :label="$t('input_fields.move_date')"
           v-model="moveDate" 
           required
         />
 
         <mo-organisation-unit-picker 
           :is-disabled="dateSelected" 
-          label="Flyttes fra" 
+          :label="$t('input_fields.move_from')"
           v-model="orgUnitSource" 
           class="col" 
           required
@@ -28,7 +28,7 @@
         
         <mo-organisation-unit-picker 
           :is-disabled="dateSelected" 
-          label="Flyttes til" 
+          :label="$t('input_fields.move_to')"
           v-model="orgUnitDestination" 
           class="col"
           required

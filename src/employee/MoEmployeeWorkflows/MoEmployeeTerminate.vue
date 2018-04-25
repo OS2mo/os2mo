@@ -2,7 +2,7 @@
   <b-modal 
     id="employeeTerminate" 
     size="lg" 
-    title="Afslut medarbejder"
+    :title="$t('workflows.employee.terminate_employee')"
     ref="employeeTerminate"
     @hidden="resetData"
     hide-footer 
@@ -14,7 +14,7 @@
         <mo-employee-picker v-model="employee" required/>
         
         <div class="form-row">
-          <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+          <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
         </div>
         
         <div class="float-right">

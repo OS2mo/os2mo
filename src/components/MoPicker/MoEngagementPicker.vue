@@ -1,6 +1,6 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label>{{$tc('shared.engagement', 2)}}</label>
     <mo-loader v-show="isLoading"/>
     <select
       v-show="!isLoading" 
@@ -19,7 +19,6 @@
 <script>
 import Employee from '@/api/Employee'
 import MoLoader from '@/components/atoms/MoLoader'
-import { EventBus } from '@/EventBus'
 
 export default {
   name: 'MoEngagementPicker',
@@ -31,14 +30,10 @@ export default {
   },
   props: {
     value: Object,
-    employee: {
-      type: Object,
-      required: true
-    }
+    employee: {type: Object, required: true}
   },
   data () {
     return {
-      label: 'Engagementer',
       selected: {},
       engagements: [],
       isLoading: false
@@ -58,14 +53,6 @@ export default {
     employee () {
       this.getEngagements()
     }
-  },
-  mounted () {
-    EventBus.$on('employee-changed', () => {
-      this.getEngagements()
-    })
-  },
-  beforeDestroy () {
-    EventBus.$off(['employee-changed'])
   },
   methods: {
     getEngagements () {

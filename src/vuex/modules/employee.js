@@ -1,20 +1,24 @@
 const state = {
-  employee: {
-    name: 'Test testensen',
-    uuid: 'aaa-bbb-ccc-ddd'
-  }
+  name: undefined,
+  uuid: undefined
 }
 
 const mutations = {
   change (state, employee) {
-    state.employee = employee
+    state.name = employee.name
+    state.uuid = employee.uuid
   }
+}
+
+const getters = {
+  getUuid: state => state.uuid,
+  get: state => state
 }
 
 export default {
   namespaced: true,
   state,
   // actions,
-  mutations
-  // getters
+  mutations,
+  getters
 }

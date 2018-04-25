@@ -40,13 +40,15 @@
       this.getEmployee(this.$route.params.uuid)
     },
     methods: {
-      getEmployee (uuid) {
-        var vm = this
+      getEmployee () {
+        let vm = this
         vm.isLoading = true
+        let uuid = this.$route.params.uuid
         Employee.get(uuid)
           .then(response => {
             vm.isLoading = false
             vm.employee = response
+            vm.$store.commit('employee/change', response)
           })
       }
     }

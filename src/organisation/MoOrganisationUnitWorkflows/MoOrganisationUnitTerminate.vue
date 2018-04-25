@@ -3,21 +3,21 @@
     id="orgUnitTerminate"
     ref="orgUnitTerminate"  
     size="lg" 
-    hide-footer 
-    title="Afslut enhed"
+    :title="$t('workflows.organisation.terminate_unit')"
     @hidden="resetData"
+    hide-footer 
     lazy
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
         <mo-organisation-unit-picker 
-          label="Enhed" 
+          :label="$tc('input_fields.unit', 1)" 
           class="col" 
           v-model="org_unit"
           required
         />
-        <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
       </div>
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>

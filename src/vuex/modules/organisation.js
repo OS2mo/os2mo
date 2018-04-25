@@ -13,7 +13,8 @@ const mutations = {
 }
 
 const getters = {
-  getUuid: state => state.uuid
+  getUuid: state => state.uuid,
+  get: state => state
 }
 
 export default {
