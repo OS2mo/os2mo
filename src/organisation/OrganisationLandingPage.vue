@@ -5,9 +5,9 @@
       <div v-if="!isLoading">
         <h4 class="card-title">{{org.name}}</h4>
         <div class="row justify-content-md-center">
-          <info-box icon="user" label="Medarbejdere" :info="org.person_count"/>
+          <info-box icon="user" :label="$tc('shared.employee', 2)" :info="org.person_count"/>
           <info-box icon="globe" label="Org funker" :info="org.employment_count"/>
-          <info-box icon="users" label="Enheder" :info="org.unit_count"/>
+          <info-box icon="users" :label="$tc('shared.unit', 2)" :info="org.unit_count"/>
         </div>
       </div>
     </div>

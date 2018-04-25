@@ -2,10 +2,10 @@
   <b-modal 
     id="orgUnitCreate" 
     size="lg" 
-    hide-footer 
-    title="Opret enhed"
+    :title="$t('workflows.organisation.create_unit')"
     ref="orgUnitCreate"
     @hidden="resetData"
+    hide-footer 
     lazy
     no-close-on-backdrop
   >

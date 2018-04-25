@@ -1,12 +1,16 @@
 {
   "start_date": "@:shared.date.start_date",
   "end_date": "@:shared.date.end_date",
-  "date_for_move": "Dato for flytning",
+  "move_date": "Flyttedato",
   "name": "Navn",
+  "unit": "@:shared.unit",
   "super_unit": "Overenhed",
+  "current_super_unit": "Nuværende overenhed",
+  "select_new_super_unit": "Vælg ny overenhed",
   "choose_unit": "Vælg enhed",
   "employee": "@:shared.employee",
   "search_for_employee": "Søg efter medarbejder",
   "move_from": "Flyt fra",
-  "move_to": "Flyt til"
+  "move_to": "Flyt til",
+  "new_name": "Nyt navn"
 }

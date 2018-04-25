@@ -2,7 +2,7 @@
   <b-modal 
     id="employeeMove" 
     size="lg" 
-    title="Flyt medarbejder"
+    :title="$t('workflows.employee.move_engagement')"
     ref="employeeMove"
     hide-footer 
     lazy
@@ -22,7 +22,7 @@
 
       <div class="form-row">
         <mo-organisation-unit-picker 
-          label="Angiv enhed" 
+          :label="$t('input_fields.move_to')" 
           class="col" 
           v-model="move.data.org_unit"
           required
