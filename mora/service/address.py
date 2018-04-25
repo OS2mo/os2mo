@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import json
+
 '''Addresses
 ---------
 
@@ -333,12 +335,20 @@ class Addresses(common.AbstractRelationDetail):
                 if not c.is_effect_relevant(addrrel['virkning']):
                     continue
 
-                yield {
-                    **get_one_address(c, addrrel, class_cache),
-                    keys.ADDRESS_TYPE: get_address_class(c, addrrel,
-                                                         class_cache),
-                    keys.VALIDITY: common.get_effect_validity(addrrel),
-                }
+                try:
+                    addr = get_one_address(c, addrrel, class_cache)
+                except KeyError as e:
+                    util.log_exception(
+                        'invalid address relation {}'.format(
+                            json.dumps(addrrel),
+                        ),
+                    )
+
+                    continue
+
+                addr[keys.VALIDITY] = common.get_effect_validity(addrrel)
+
+                yield addr
 
         return flask.jsonify(
             sorted(
