@@ -73,7 +73,7 @@
         if (vm.routeName === 'OrganisationDetail') {
           Search.organisations(org.uuid, query)
             .then(response => {
-              vm.items = response
+              vm.items = response.length > 0 ? response : vm.noItem
             })
         }
       },
