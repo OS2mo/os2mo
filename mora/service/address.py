@@ -363,15 +363,7 @@ class Addresses(common.AbstractRelationDetail):
                                 'relationer': (
                                     'adresser',
                                 ),
-                                'tilstande': (
-                                    'brugergyldighed',
-                                ),
-                            },
-                            {
-                                'attributter': (
-                                    'brugeregenskaber',
-                                ),
-                            },
+                            }
                         ),
                     ),
                 ),
