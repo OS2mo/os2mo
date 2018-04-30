@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import json
-
 '''Addresses
 ---------
 
@@ -150,6 +148,7 @@ API
 '''
 
 import itertools
+import json
 import re
 
 import flask
