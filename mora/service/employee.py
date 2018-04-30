@@ -411,7 +411,7 @@ def create_employee_relation(employee_uuid):
 
       [
         {
-          "value": "1234567890",
+          "value": "0101501234",
           "address_type": {
             "example": "5712345000014",
             "name": "EAN",
@@ -973,7 +973,7 @@ def create_employee():
 
       {
         "name": "Name Name",
-        "cpr_no": "1234567890",
+        "cpr_no": "0101501234",
         "org": {
           "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
         }

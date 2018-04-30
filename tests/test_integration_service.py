@@ -531,7 +531,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Anders And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                'cpr_no': '1111111111',
+                'cpr_no': '0906340000',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -545,7 +545,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Fedtmule',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
-                'cpr_no': '2222222222',
+                'cpr_no': '1205320000',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -679,7 +679,7 @@ class Tests(util.LoRATestCase):
         # allow searching by cpr number
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
-            '?query=1111111111',
+            '?query=0906340000',
             {
                 'items': [
                     {
@@ -694,7 +694,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
-            '?query=2222222222',
+            '?query=1205320000',
             {
                 'items': [
                     {

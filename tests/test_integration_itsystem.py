@@ -299,7 +299,7 @@ class Writing(util.LoRATestCase):
                         'from': '2002-02-13 23:00:00+00',
                         'from_included': True,
                     },
-                    'urn': 'urn:dk:cpr:person:1111111111',
+                    'urn': 'urn:dk:cpr:person:0906340000',
                 },
             ],
             'brugertyper': [
@@ -348,7 +348,7 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/'.format(userid),
                 {
-                    'cpr_no': '1111111111',
+                    'cpr_no': '0906340000',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     'org': {

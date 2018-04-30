@@ -49,7 +49,7 @@ class Writing(util.LoRATestCase):
                         'from': '2002-02-14 00:00:00+01',
                         'from_included': True,
                     },
-                    'urn': 'urn:dk:cpr:person:1111111111',
+                    'urn': 'urn:dk:cpr:person:0906340000',
                 },
             ],
             'brugertyper': [
