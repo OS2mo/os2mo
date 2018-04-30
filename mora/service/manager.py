@@ -33,7 +33,7 @@ def create_manager(employee_uuid, req):
     org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    address_obj = req.get(keys.ADDRESS)
+    address_obj = common.checked_get(req, keys.ADDRESS, {})
     manager_type_uuid = common.get_obj_value(req, (keys.MANAGER_TYPE, 'uuid'))
     responsibility_uuid = common.get_obj_value(req,
                                                (keys.RESPONSIBILITY, 'uuid'))
