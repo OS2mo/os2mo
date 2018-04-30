@@ -38,7 +38,8 @@ RELATION_TRANSLATIONS = {
 }
 
 
-class FieldTypes(enum.Enum):
+@enum.unique
+class FieldTypes(enum.IntEnum):
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
