@@ -645,6 +645,8 @@ def terminate_org_unit(unitid):
     .. :quickref: Unit; Terminate
 
     :statuscode 200: The termination succeeded.
+    :statuscode 404: No such unit found.
+    :statuscode 409: Validation failed, see below.
 
     :param unitid: The UUID of the organisational unit to be terminated.
 
@@ -660,8 +662,84 @@ def terminate_org_unit(unitid):
           "from": "2016-01-01T00:00:00+00:00"
         }
       }
+
+    **Example response**:
+
+    .. sourcecode:: json
+
+      "85715fc7-925d-401b-822d-467eb4b163b6"
+
+    **Validation**:
+
+    Prior to terminating an organisational unit, all nested units and
+    association details must be terminated. Should this not be the
+    case, we return a :http:statuscode:`409`, and a response such as this:
+
+    .. sourcecode:: json
+
+      {
+          "success": false,
+          "cause": "validation",
+          "status": 409,
+
+          "message":
+          "cannot terminate unit with 1 active children "
+          "and 4 active roles",
+
+          "role_count": 4,
+          "child_count": 1,
+
+          "child_units": [
+              {
+                  "child_count": 0,
+                  "name": "Filosofisk Institut",
+                  "user_key": "fil",
+                  "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
+              }
+          ]
+      }
+
     """
     date = common.get_valid_from(flask.request.get_json())
+
+    c = lora.Connector(effective_date=date)
+
+    if not c.organisationenhed.get(unitid):
+        raise KeyError('no such unit!')
+
+    children = c.organisationenhed.paged_get(
+        get_one_orgunit,
+        overordnet=unitid,
+        gyldighed='Aktiv',
+        limit=5,
+    )
+
+    roles = c.organisationfunktion(
+        tilknyttedeenheder=unitid,
+        gyldighed='Aktiv',
+    )
+
+    if children['total'] or roles:
+        if children['total'] and len(roles):
+            msg = (
+                'cannot terminate unit with {} active children '
+                'and {} active roles'.format(children['total'], len(roles))
+            )
+        elif children['total']:
+            msg = 'cannot terminate unit with {} active children'.format(
+                children['total'],
+            )
+        else:
+            msg = 'cannot terminate unit with {} active roles'.format(
+                len(roles),
+            )
+
+        raise common.ValidationException(
+            msg,
+            child_units=children['items'],
+            child_count=children['total'],
+            role_count=len(roles),
+        )
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
@@ -672,7 +750,7 @@ def terminate_org_unit(unitid):
     payload = common.set_object_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
-    lora.Connector().organisationenhed.update(payload, unitid)
+    c.organisationenhed.update(payload, unitid)
 
     return flask.jsonify(unitid)
 

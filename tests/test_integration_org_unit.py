@@ -1056,3 +1056,165 @@ class Tests(util.LoRATestCase):
             '/details/org_unit?validity=present',
             [],
         )
+
+    def test_terminate_org_unit_validations(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "00000000-0000-0000-0000-000000000000",
+            ),
+            {
+                'message': 'no such unit!',
+                'status': 404,
+            },
+            status_code=404,
+            json={
+                "validity": {
+                    "from": "2017-01-01T00:00:00+02"
+                }
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+            ),
+            {
+                'success': False,
+                'cause': 'validation',
+                'status': 409,
+
+                'message': 'cannot terminate unit with 1 active children',
+
+                'role_count': 0,
+                'child_count': 1,
+
+                'child_units': [
+                    {
+                        'child_count': 0,
+                        'name': 'Afdeling for Fremtidshistorik',
+                        'user_key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                    },
+                ],
+            },
+            status_code=409,
+            json={
+                "validity": {
+                    "from": "2017-01-01T00:00:00+02"
+                }
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            ),
+            {
+                'success': False,
+                'cause': 'validation',
+                'status': 409,
+
+                'message':
+                'cannot terminate unit with 2 active children '
+                'and 4 active roles',
+
+                'role_count': 4,
+                'child_count': 2,
+
+                'child_units': [
+                    {
+                        'child_count': 0,
+                        'name': 'Filosofisk Institut',
+                        'user_key': 'fil',
+                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                    },
+                    {
+                        'child_count': 1,
+                        'name': 'Historisk Institut',
+                        'user_key': 'hist',
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    },
+                ],
+            },
+            status_code=409,
+            json={
+                "validity": {
+                    "from": "2017-06-01T00:00:00+02"
+                }
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            ),
+            {
+                'success': False,
+                'cause': 'validation',
+                'status': 409,
+
+                'message':
+                'cannot terminate unit with 1 active children '
+                'and 4 active roles',
+
+                'role_count': 4,
+                'child_count': 1,
+
+                'child_units': [
+                    {
+                        'child_count': 0,
+                        'name': 'Filosofisk Institut',
+                        'user_key': 'fil',
+                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                    },
+                ],
+            },
+            status_code=409,
+            json={
+                "validity": {
+                    "from": "2019-01-01T00:00:00+01"
+                }
+            },
+        )
+
+        for unitid in (
+            '85715fc7-925d-401b-822d-467eb4b163b6',
+        ):
+            self.assertRequestResponse(
+                '/service/ou/{}/terminate'.format(
+                    unitid,
+                ),
+                unitid,
+                json={
+                    "validity": {
+                        "from": "2019-01-01T00:00:00+01"
+                    }
+                },
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            ),
+            {
+                'success': False,
+                'cause': 'validation',
+                'status': 409,
+
+                'message':
+                'cannot terminate unit with 4 active roles',
+
+                'role_count': 4,
+                'child_count': 0,
+
+                'child_units': [],
+            },
+            status_code=409,
+            json={
+                "validity": {
+                    "from": "2019-01-01T00:00:00+01"
+                }
+            },
+        )

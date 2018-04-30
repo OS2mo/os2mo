@@ -22,6 +22,7 @@ import typing
 import uuid
 
 import flask
+import werkzeug.exceptions
 
 from mora import util
 from . import keys
@@ -36,6 +37,27 @@ RELATION_TRANSLATIONS = {
     'manager': keys.MANAGER_KEY.lower(),
     'leave': keys.LEAVE_KEY.lower(),
 }
+
+
+class ValidationException(werkzeug.exceptions.Conflict):
+    def __init__(self, message: typing.Optional[str]=None, **context):
+        super().__init__(message)
+
+        self.message = message or 'Validation failed'
+        self.context = context
+
+    def to_json(self):
+        return {
+            'success': False,
+            'message': self.message,
+            'cause': 'validation',
+            'status': self.code,
+
+            **self.context,
+        }
+
+    def get_response(self, environ=None):
+        return flask.make_response(flask.jsonify(self.to_json()), self.code)
 
 
 @enum.unique
