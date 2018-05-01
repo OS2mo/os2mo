@@ -12,28 +12,24 @@ import json
 import os
 import pprint
 import re
-import signal
 import socket
 import subprocess
 import sys
-import tempfile
 import threading
-import time
-import unittest
+from unittest.mock import patch
 
 import flask_testing
 import psycopg2
 import requests
 import requests_mock
 import testing.postgresql
-import urllib3
+import time
 import werkzeug.serving
 
-from mora import lora, app, settings
-from mora.converters import importing
-
-import oio_rest.settings
 import oio_rest.app
+import oio_rest.settings
+from mora import app, lora, settings
+from mora.converters import importing
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -505,14 +501,13 @@ class LoRATestCaseMixin(TestCaseMixin):
         (_, self.__lora_port) = self.__lora_server.socket.getsockname()
 
         self.patches = [
-            unittest.mock.patch('mora.settings.LORA_URL',
-                                'http://localhost:{}/'.format(
-                                    self.__lora_port)),
-            unittest.mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None),
-            unittest.mock.patch('oio_rest.settings.DB_HOST', dsn['host'],
-                                create=True),
-            unittest.mock.patch('oio_rest.settings.DB_PORT', dsn['port'],
-                                create=True),
+            patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
+                self.__lora_port)),
+            patch('oio_rest.settings.LOG_AMQP_SERVER', None),
+            patch('oio_rest.settings.DB_HOST', dsn['host'],
+                  create=True),
+            patch('oio_rest.settings.DB_PORT', dsn['port'],
+                  create=True),
         ]
 
         for p in self.patches:
