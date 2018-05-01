@@ -20,6 +20,7 @@ class TestHelper(util.LoRATestCase):
     PARENT = SAMF_UNIT
 
     def setUp(self):
+        super().setUp()
         self.load_sample_structures()
 
     def expire_org_unit(self, org_unit):
