@@ -32,11 +32,8 @@ import werkzeug.serving
 from mora import lora, app, settings
 from mora.converters import importing
 
-try:
-    import oio_rest.settings
-    import oio_rest.app
-except ImportError:
-    oio_rest = None
+import oio_rest.settings
+import oio_rest.app
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -434,7 +431,8 @@ def initdb(psql):
             )
 
             curs.execute(
-                "CREATE DATABASE {} WITH OWNER = %s".format(oio_rest.settings.DATABASE),
+                "CREATE DATABASE {} WITH OWNER = %s".format(oio_rest.settings.
+                                                            DATABASE),
                 (
                     oio_rest.settings.DB_USER,
                 ),
@@ -445,7 +443,8 @@ def initdb(psql):
     dsn['user'] = oio_rest.settings.DB_USER
     dsn['password'] = oio_rest.settings.DB_PASSWORD
 
-    mkdb_path = os.path.join(os.path.dirname(oio_rest.__file__), '..', '..', 'db', 'mkdb.sh')
+    mkdb_path = os.path.join(os.path.dirname(oio_rest.__file__), '..', '..',
+                             'db', 'mkdb.sh')
 
     with psycopg2.connect(**dsn) as conn, conn.cursor() as curs:
         curs.execute(subprocess.check_output([mkdb_path], env=env))
@@ -507,7 +506,8 @@ class LoRATestCaseMixin(TestCaseMixin):
 
         self.patches = [
             unittest.mock.patch('mora.settings.LORA_URL',
-                                'http://localhost:{}/'.format(self.__lora_port)),
+                                'http://localhost:{}/'.format(
+                                    self.__lora_port)),
             unittest.mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None),
             unittest.mock.patch('oio_rest.settings.DB_HOST', dsn['host'],
                                 create=True),

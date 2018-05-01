@@ -1491,7 +1491,8 @@ class Tests(util.LoRATestCase):
                                                  'name': 'Emailadresse',
                                                  'scope': 'EMAIL',
                                                  'user_key': 'Email',
-                                                 'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'},
+                                                 'uuid': 'c78eb6f7-8a9e-40b3-'
+                                                         'ac80-36b9f371c3e0'},
                                 'href': 'mailto:ceo@example.com',
                                 'name': 'ceo@example.com',
                                 'urn': 'urn:mailto:ceo@example.com'},
@@ -1499,22 +1500,26 @@ class Tests(util.LoRATestCase):
                                       'name': 'Institut',
                                       'scope': None,
                                       'user_key': 'inst',
-                                      'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'},
+                                      'uuid': 'ca76a441-6226-404f-'
+                                              '88a9-31e02e420e52'},
                     'manager_type': {'example': None,
                                      'name': 'Afdeling',
                                      'scope': None,
                                      'user_key': 'afd',
-                                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
+                                     'uuid': '32547559-cfc1-4d97-'
+                                             '94c6-70b192eff825'},
                     'org_unit': {'name': 'Humanistisk fakultet',
                                  'user_key': 'hum',
-                                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+                                 'uuid': '9d07123e-47ac-4a9a-'
+                                         '88c8-da82e3a4bc9e'},
                     'person': {'name': 'Anders And',
                                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
                     'responsibility': {'example': None,
                                        'name': 'Institut',
                                        'scope': None,
                                        'user_key': 'inst',
-                                       'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'},
+                                       'uuid': 'ca76a441-6226-404f-'
+                                               '88a9-31e02e420e52'},
                     'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                     'validity': {'from': '2014-04-01T00:00:00+02:00',
                                  'to': None}}
