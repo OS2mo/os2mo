@@ -508,7 +508,10 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/edit'.format(userid),
                 {
-                    'message': "invalid 'original', expected dict, got: null",
+                    'error': True,
+                    'cause': 'validation',
+                    'description':
+                    "invalid 'original', expected dict, got: null",
                     'status': 400,
                 },
                 status_code=400,
@@ -527,7 +530,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/edit'.format(userid),
                 {
-                    'message': 'original entry not found!',
+                    'error': True,
+                    'cause': 'validation',
+                    'description': 'original entry not found!',
                     'status': 400,
                 },
                 status_code=400,
@@ -970,7 +975,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
                 {
-                    'message': "missing 'value'",
+                    'error': True,
+                    'cause': 'validation',
+                    'description': "missing 'value'",
                     'status': 400,
                 },
                 status_code=400,
@@ -991,7 +998,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
                 {
-                    'message': (
+                    'error': True,
+                    'cause': 'validation',
+                    'description': (
                         "invalid 'address_type', expected dict, got: null"
                     ),
                     'status': 400,
@@ -1014,7 +1023,12 @@ class Writing(util.LoRATestCase):
         with self.subTest('errors III'):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
-                {'message': "missing 'uuid'", 'status': 400},
+                {
+                    'error': True,
+                    'cause': 'validation',
+                    'description': "missing 'uuid'",
+                    'status': 400,
+                },
                 status_code=400,
                 json=[
                     {
@@ -1034,7 +1048,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
                 {
-                    'message': (
+                    'error': True,
+                    'cause': 'validation',
+                    'description': (
                         "invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
@@ -1297,7 +1313,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/edit'.format(unitid),
                 {
-                    'message': "missing 'value'",
+                    'error': True,
+                    'cause': 'validation',
+                    'description': "missing 'value'",
                     'status': 400,
                 },
                 status_code=400,

@@ -30,6 +30,7 @@ import werkzeug
 
 from . import common
 from . import keys
+from .. import exceptions
 from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
@@ -130,7 +131,9 @@ def get_one_class(c, classid, clazz=None):
         clazz = c.klasse.get(classid)
 
         if not clazz:
-            raise KeyError('no such class {!r}'.format(classid))
+            raise exceptions.NotFoundError(
+                'no such class {!r}'.format(classid),
+            )
 
     attrs = clazz['attributter']['klasseegenskaber'][0]
 

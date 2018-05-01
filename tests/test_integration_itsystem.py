@@ -34,7 +34,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': (
+                'error': True,
+                'cause': 'validation',
+                'description': (
                     'invalid \'itsystem\', expected dict, got: null'
                 ),
                 'status': 400,
@@ -55,7 +57,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
-                'message': 'no such user!',
+                'error': True,
+                'cause': 'not-found',
+                'description': 'no such user!',
                 'status': 404,
             },
             json=[
@@ -76,7 +80,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
-                'message': (
+                'error': True,
+                'cause': 'validation',
+                'description': (
                     'invalid \'itsystem\', expected dict, got: null'
                 ),
                 'status': 400,
@@ -97,7 +103,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing start date!',
+                'error': True,
+                'cause': 'validation',
+                'description': 'missing start date!',
                 'status': 400,
             },
             json=[
@@ -118,7 +126,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': "missing 'uuid'",
+                'error': True,
+                'cause': 'validation',
+                'description': "missing 'uuid'",
                 'status': 400,
             },
             json=[
@@ -137,7 +147,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': "invalid uuid for 'uuid': '42'",
+                'error': True,
+                'cause': 'validation',
+                'description': "invalid uuid for 'uuid': '42'",
                 'status': 400,
             },
             json=[
@@ -158,7 +170,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'original entry not found!',
+                'error': True,
+                'cause': 'validation',
+                'description': 'original entry not found!',
                 'status': 400,
             },
             json=[
@@ -188,7 +202,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'original entry not found!',
+                'error': True,
+                'cause': 'validation',
+                'description': 'original entry not found!',
                 'status': 400,
             },
             json=[
@@ -218,7 +234,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'original entry not found!',
+                'error': True,
+                'cause': 'validation',
+                'description': 'original entry not found!',
                 'status': 400,
             },
             json=[
@@ -248,7 +266,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': "invalid 'uuid', expected str, got: null",
+                'error': True,
+                'cause': 'validation',
+                'description': "invalid 'uuid', expected str, got: null",
                 'status': 400,
             },
             json=[
@@ -487,7 +507,12 @@ class Writing(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
-            {'message': 'original required!', 'status': 400},
+            {
+                'error': True,
+                'cause': 'validation',
+                'description': 'original required!',
+                'status': 400,
+            },
             status_code=400,
             json=req,
         )

@@ -1065,7 +1065,9 @@ class Tests(util.LoRATestCase):
                 "00000000-0000-0000-0000-000000000000",
             ),
             {
-                'message': 'no such unit!',
+                'error': True,
+                'cause': 'not-found',
+                'description': 'no such unit!',
                 'status': 404,
             },
             status_code=404,
@@ -1081,11 +1083,11 @@ class Tests(util.LoRATestCase):
                 "da77153e-30f3-4dc2-a611-ee912a28d8aa",
             ),
             {
-                'success': False,
+                'error': True,
                 'cause': 'validation',
-                'status': 409,
+                'status': 400,
 
-                'message': 'cannot terminate unit with 1 active children',
+                'description': 'cannot terminate unit with 1 active children',
 
                 'role_count': 0,
                 'child_count': 1,
@@ -1099,7 +1101,7 @@ class Tests(util.LoRATestCase):
                     },
                 ],
             },
-            status_code=409,
+            status_code=400,
             json={
                 "validity": {
                     "from": "2017-01-01T00:00:00+02"
@@ -1112,11 +1114,11 @@ class Tests(util.LoRATestCase):
                 "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             ),
             {
-                'success': False,
+                'error': True,
                 'cause': 'validation',
-                'status': 409,
+                'status': 400,
 
-                'message':
+                'description':
                 'cannot terminate unit with 2 active children '
                 'and 4 active roles',
 
@@ -1138,7 +1140,7 @@ class Tests(util.LoRATestCase):
                     },
                 ],
             },
-            status_code=409,
+            status_code=400,
             json={
                 "validity": {
                     "from": "2017-06-01T00:00:00+02"
@@ -1151,11 +1153,11 @@ class Tests(util.LoRATestCase):
                 "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             ),
             {
-                'success': False,
+                'error': True,
                 'cause': 'validation',
-                'status': 409,
+                'status': 400,
 
-                'message':
+                'description':
                 'cannot terminate unit with 1 active children '
                 'and 4 active roles',
 
@@ -1171,7 +1173,7 @@ class Tests(util.LoRATestCase):
                     },
                 ],
             },
-            status_code=409,
+            status_code=400,
             json={
                 "validity": {
                     "from": "2019-01-01T00:00:00+01"
@@ -1199,11 +1201,11 @@ class Tests(util.LoRATestCase):
                 "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             ),
             {
-                'success': False,
+                'error': True,
                 'cause': 'validation',
-                'status': 409,
+                'status': 400,
 
-                'message':
+                'description':
                 'cannot terminate unit with 4 active roles',
 
                 'role_count': 4,
@@ -1211,7 +1213,7 @@ class Tests(util.LoRATestCase):
 
                 'child_units': [],
             },
-            status_code=409,
+            status_code=400,
             json={
                 "validity": {
                     "from": "2019-01-01T00:00:00+01"

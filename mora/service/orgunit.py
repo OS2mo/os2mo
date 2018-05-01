@@ -28,6 +28,7 @@ from . import facet
 from . import keys
 from . import mapping
 from . import org
+from .. import exceptions
 from .. import lora
 from .. import util
 
@@ -205,7 +206,9 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     else:
-        raise ValueError('invalid details {!r}'.format(details))
+        raise exceptions.ValidationError(
+            'invalid details {!r}'.format(details),
+        )
 
     if validity is not None:
         r[keys.VALIDITY] = validity
@@ -677,27 +680,23 @@ def terminate_org_unit(unitid):
 
     .. sourcecode:: json
 
-      {
-          "success": false,
-          "cause": "validation",
-          "status": 409,
+    {
+        "description": "cannot terminate unit with 1 active children",
+        "error": true,
+        "cause": "validation",
+        "status": 400,
 
-          "message":
-          "cannot terminate unit with 1 active children "
-          "and 4 active roles",
-
-          "role_count": 4,
-          "child_count": 1,
-
-          "child_units": [
-              {
-                  "child_count": 0,
-                  "name": "Filosofisk Institut",
-                  "user_key": "fil",
-                  "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
-              }
-          ]
-      }
+        "child_count": 1,
+        "role_count": 0,
+        "child_units": [
+            {
+                "child_count": 0,
+                "name": "Afdeling for Fremtidshistorik",
+                "user_key": "frem",
+                "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+            }
+        ]
+    }
 
     """
     date = common.get_valid_from(flask.request.get_json())
@@ -705,7 +704,7 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=date)
 
     if not c.organisationenhed.get(unitid):
-        raise KeyError('no such unit!')
+        raise exceptions.NotFoundError('no such unit!')
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,
@@ -734,7 +733,7 @@ def terminate_org_unit(unitid):
                 len(roles),
             )
 
-        raise common.ValidationException(
+        raise exceptions.ValidationError(
             msg,
             child_units=children['items'],
             child_count=children['total'],

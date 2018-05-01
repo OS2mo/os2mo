@@ -14,6 +14,7 @@ import lxml.etree
 import flask
 import requests
 
+from . import exceptions
 from . import settings
 from . import util
 
@@ -94,7 +95,7 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
                             None, XML_NAMESPACES)
 
     if not resp.ok or errormsg:
-        raise PermissionError(errormsg)
+        raise exceptions.UnauthorizedError(errormsg)
 
     tokens = doc.findall('.//saml:Assertion', XML_NAMESPACES)
 

@@ -12,11 +12,14 @@ import flask
 import freezegun
 import datetime
 
+from mora import exceptions
 from mora import util
+
+from .util import TestCase
 
 
 @freezegun.freeze_time('2015-06-01T01:10')
-class TestUtils(unittest.TestCase):
+class TestUtils(TestCase):
 
     def test_to_lora_time(self):
         tests = {
@@ -63,7 +66,7 @@ class TestUtils(unittest.TestCase):
         # user...
         if False:
             # 15 is not a valid month
-            self.assertRaises(ValueError, util.to_lora_time,
+            self.assertRaises(exceptions.ValidationError, util.to_lora_time,
                               '1999-15-11 00:00:00+01')
 
         # make sure we can round-trip the edge cases correctly
@@ -127,9 +130,9 @@ class TestUtils(unittest.TestCase):
             list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 11)),
             [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
         )
-        self.assertRaises(ValueError,
+        self.assertRaises(exceptions.ValidationError,
                           list, util.splitlist([], 0))
-        self.assertRaises(ValueError,
+        self.assertRaises(exceptions.ValidationError,
                           list, util.splitlist([], -1))
         self.assertRaises(TypeError,
                           list, util.splitlist([], 'horse'))
