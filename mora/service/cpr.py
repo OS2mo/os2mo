@@ -41,7 +41,7 @@ def search_cpr():
 
       {
         "name": "John Doe",
-        "cpr_no": "1234567890"
+        "cpr_no": "0101501234"
       }
 
     """

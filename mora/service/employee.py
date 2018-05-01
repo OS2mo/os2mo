@@ -14,7 +14,7 @@ Employees
 This section describes how to interact with employees.
 
 '''
-import datetime
+
 import uuid
 
 import flask
@@ -411,7 +411,7 @@ def create_employee_relation(employee_uuid):
 
       [
         {
-          "value": "1234567890",
+          "value": "0101501234",
           "address_type": {
             "example": "5712345000014",
             "name": "EAN",
@@ -973,7 +973,7 @@ def create_employee():
 
       {
         "name": "Name Name",
-        "cpr_no": "1234567890",
+        "cpr_no": "0101501234",
         "org": {
           "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
         }
@@ -990,9 +990,11 @@ def create_employee():
     name = req.get(keys.NAME)
     org_uuid = req.get(keys.ORG).get('uuid')
     cpr = req.get(keys.CPR_NO)
-    valid_from = str(datetime.datetime.now())
+
+    valid_from = util.get_cpr_birthdate(cpr)
     valid_to = util.positive_infinity
 
+    # TODO: put something useful into the user key
     bvn = str(uuid.uuid4())
 
     user = common.create_bruger_payload(

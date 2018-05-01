@@ -600,7 +600,7 @@ def create_org_unit_relation(unitid):
 
       [
         {
-          "value": "1234567890",
+          "value": "0101501234",
           "address_type": {
             "example": "5712345000014",
             "name": "EAN",

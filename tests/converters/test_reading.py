@@ -70,7 +70,7 @@ class SimpleTests(unittest.TestCase):
 
         c = lora.Connector(validity='future')
 
-        self.assertEquals(
+        self.assertEqual(
             [
                 (
                     "2100-01-01 00:00:00+01:00",

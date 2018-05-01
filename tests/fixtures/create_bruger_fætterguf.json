@@ -5,7 +5,7 @@
                 "brugernavn": "Fætter Guf",
                 "brugervendtnoegle": "Fætter Guf",
                 "virkning": {
-                    "from": "2010-01-01T00:00:00+01:00",
+                    "from": "1938-05-09T00:00:00+01:00",
                     "from_included": true,
                     "to": "2020-01-01T00:00:00+01:00",
                     "to_included": false
@@ -20,7 +20,7 @@
                 "objekttype": null,
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 "virkning": {
-                    "from": "2010-01-01T00:00:00+01:00",
+                    "from": "1938-05-09T00:00:00+01:00",
                     "from_included": true,
                     "to": "2020-01-01T00:00:00+01:00",
                     "to_included": false
@@ -30,9 +30,9 @@
         "tilknyttedepersoner": [
             {
                 "objekttype": null,
-                "urn": "urn:dk:cpr:person:0202000002",
+                "urn": "urn:dk:cpr:person:0905380000",
                 "virkning": {
-                    "from": "2010-01-01T00:00:00+01:00",
+                    "from": "1938-05-09T00:00:00+01:00",
                     "from_included": true,
                     "to": "2020-01-01T00:00:00+01:00",
                     "to_included": false
@@ -45,7 +45,7 @@
             {
                 "gyldighed": "Aktiv",
                 "virkning": {
-                    "from": "2010-01-01T00:00:00+01:00",
+                    "from": "1938-05-09T00:00:00+01:00",
                     "from_included": true,
                     "to": "2020-01-01T00:00:00+01:00",
                     "to_included": false

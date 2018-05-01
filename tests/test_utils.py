@@ -7,10 +7,10 @@
 #
 
 import unittest
+import datetime
 
 import flask
 import freezegun
-import datetime
 
 from mora import util
 
@@ -144,6 +144,41 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(util.is_cpr_number('42'))
         self.assertFalse(util.is_cpr_number(None))
 
+    def test_get_cpr_birthdate(self):
+        def check(cpr, isodate):
+            with self.subTest(str(cpr)):
+                self.assertEqual(
+                    util.get_cpr_birthdate(cpr),
+                    util.from_iso_time(isodate),
+                )
+
+        check(1010771999, '1977-10-10')
+
+        check(1010274999, '2027-10-10')
+        check(1010774999, '1977-10-10')
+
+        check(1010575999, '2057-10-10')
+        check(1010775999, '1877-10-10')
+
+        check(1010776999, '1877-10-10')
+        check(1010476999, '2047-10-10')
+
+        check(1010359999, '2035-10-10')
+        check(1010779999, '1977-10-10')
+
+        check('1205320000', '1932-05-12')
+        check('0906340000', '1934-06-09')
+        check('0905380000', '1938-05-09')
+
+        with self.assertRaisesRegex(ValueError, '^invalid CPR number'):
+            util.get_cpr_birthdate('0000000000')
+
+        with self.assertRaisesRegex(ValueError, '^invalid CPR number'):
+            util.get_cpr_birthdate(2222222222)
+
+        with self.assertRaisesRegex(ValueError, '^invalid CPR number'):
+            util.get_cpr_birthdate(10101010000)
+
 
 class TestAppUtils(unittest.TestCase):
     def test_restrictargs(self):
@@ -157,35 +192,35 @@ class TestAppUtils(unittest.TestCase):
         client = app.test_client()
 
         with app.app_context():
-            self.assertEquals(client.get('/').status,
-                              '200 OK')
+            self.assertEqual(client.get('/').status,
+                             '200 OK')
 
         with app.app_context():
-            self.assertEquals(client.get('/?hest=').status,
-                              '200 OK')
+            self.assertEqual(client.get('/?hest=').status,
+                             '200 OK')
 
         with app.app_context():
-            self.assertEquals(client.get('/?hest=42').status,
-                              '200 OK')
+            self.assertEqual(client.get('/?hest=42').status,
+                             '200 OK')
 
         with app.app_context():
-            self.assertEquals(client.get('/?HeSt=42').status,
-                              '200 OK')
+            self.assertEqual(client.get('/?HeSt=42').status,
+                             '200 OK')
 
         with app.app_context():
-            self.assertEquals(client.get('/?fest=').status,
-                              '200 OK')
+            self.assertEqual(client.get('/?fest=').status,
+                             '200 OK')
 
         with app.app_context():
-            self.assertEquals(client.get('/?fest=42').status,
-                              '501 NOT IMPLEMENTED')
+            self.assertEqual(client.get('/?fest=42').status,
+                             '501 NOT IMPLEMENTED')
 
         with app.app_context():
-            self.assertEquals(client.get('/?hest=42').status,
-                              '200 OK')
+            self.assertEqual(client.get('/?hest=42').status,
+                             '200 OK')
 
             # verify that we only perform the check once -- normally,
             # this will only happen if a request invokes another
             # request
-            self.assertEquals(client.get('/?fest=42').status,
-                              '200 OK')
+            self.assertEqual(client.get('/?fest=42').status,
+                             '200 OK')

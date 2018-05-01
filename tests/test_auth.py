@@ -113,7 +113,7 @@ class MockTests(util.TestCase):
             )
 
             with self.subTest('raw'), self.app.app_context():
-                self.assertEquals(
+                self.assertEqual(
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/wso2-assertion.xml', 'rb'),
                 )
@@ -138,7 +138,7 @@ class MockTests(util.TestCase):
             )
 
             with self.subTest('raw'), self.app.app_context():
-                self.assertEquals(
+                self.assertEqual(
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/adfs-assertion.xml', 'rb')
                 )

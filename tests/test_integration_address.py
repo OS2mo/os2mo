@@ -36,7 +36,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                 },
@@ -46,10 +46,10 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
-                    'urn': 'urn:dk:cpr:person:1111111111',
+                    'urn': 'urn:dk:cpr:person:0906340000',
                 },
             ],
             'brugertyper': [
@@ -57,7 +57,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                     'urn': 'urn:email',
@@ -68,7 +68,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                     'urn': 'urn:mailto:bruger@example.com',
@@ -124,7 +124,7 @@ class Writing(util.LoRATestCase):
                 'name': 'bruger@example.com',
                 'urn': 'urn:mailto:bruger@example.com',
                 'validity': {
-                    'from': '2002-02-14T00:00:00+01:00',
+                    'from': '1934-06-09T00:00:00+01:00',
                     'to': None,
                 },
             }
@@ -366,7 +366,7 @@ class Writing(util.LoRATestCase):
                             'to_included': False,
                             'to': 'infinity',
                             'from_included': True,
-                            'from': '2002-02-14 00:00:00+01',
+                            'from': '1934-06-09 00:00:00+01',
                         },
                         'urn': 'urn:mailto:bruger@example.com',
                         'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -497,7 +497,7 @@ class Writing(util.LoRATestCase):
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -546,7 +546,7 @@ class Writing(util.LoRATestCase):
                         'name': 'user@example.com',
                         'urn': 'urn:mailto:user@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1934-06-09T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -576,7 +576,7 @@ class Writing(util.LoRATestCase):
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -599,7 +599,7 @@ class Writing(util.LoRATestCase):
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': '2010-01-01T00:00:00+01:00',
                     },
                 },
@@ -634,7 +634,7 @@ class Writing(util.LoRATestCase):
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': '2010-01-01T00:00:00+01:00',
                     },
                 },
@@ -670,7 +670,7 @@ class Writing(util.LoRATestCase):
                     'name': 'Pilestræde 43, 3., 1112 København K',
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -721,7 +721,7 @@ class Writing(util.LoRATestCase):
                 "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
                 "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
                 "validity": {
-                    "from": "2002-02-14T00:00:00+01:00",
+                    "from": "1932-05-12T00:00:00+01:00",
                     "to": None
                 }
             },
@@ -731,7 +731,7 @@ class Writing(util.LoRATestCase):
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
                 "validity": {
-                    "from": "2002-02-14T00:00:00+01:00",
+                    "from": "1932-05-12T00:00:00+01:00",
                     "to": None
                 }
             },
@@ -741,7 +741,7 @@ class Writing(util.LoRATestCase):
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
                 "validity": {
-                    "from": "2002-02-14T00:00:00+01:00",
+                    "from": "1932-05-12T00:00:00+01:00",
                     "to": None
                 }
             }
@@ -1717,7 +1717,7 @@ class Reading(util.LoRATestCase):
                         'Christiansborg Slotsplads 1, 1218 København K',
                         'uuid': 'bae093df-3b06-4f23-90a8-92eabedb3622',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -1733,7 +1733,7 @@ class Reading(util.LoRATestCase):
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -1749,7 +1749,7 @@ class Reading(util.LoRATestCase):
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -1773,7 +1773,7 @@ class Reading(util.LoRATestCase):
                         'name': 'bruger@example.com',
                         'urn': 'urn:mailto:bruger@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1934-06-09T00:00:00+01:00',
                             'to': None,
                         },
                     },
