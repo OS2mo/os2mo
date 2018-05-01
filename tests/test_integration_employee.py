@@ -46,7 +46,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "infinity",
                             "from_included": True,
-                            "from": "2017-01-01 01:00:00+01"
+                            "from": "1950-01-01 00:00:00+01"
                         },
                         "brugervendtnoegle": mock_uuid,
                         "brugernavn": "Torkild Testperson"
@@ -60,7 +60,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "infinity",
                             "from_included": True,
-                            "from": "2017-01-01 01:00:00+01"
+                            "from": "1950-01-01 00:00:00+01"
                         },
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
@@ -71,7 +71,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "infinity",
                             "from_included": True,
-                            "from": "2017-01-01 01:00:00+01"
+                            "from": "1950-01-01 00:00:00+01"
                         },
                         "urn": "urn:dk:cpr:person:0101501234"
                     }
@@ -84,7 +84,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "infinity",
                             "from_included": True,
-                            "from": "2017-01-01 01:00:00+01"
+                            "from": "1950-01-01 00:00:00+01"
                         },
                         "gyldighed": "Aktiv"
                     }

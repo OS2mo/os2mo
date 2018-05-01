@@ -11,6 +11,7 @@ import datetime
 import functools
 import itertools
 import json
+import math
 import os
 import re
 import sys
@@ -310,3 +311,32 @@ def log_exception(msg=''):
             data_str,
         )
     )
+
+
+def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
+    if isinstance(number, str):
+        number = int(number)
+
+    rest, code = divmod(number, 10000)
+    rest, year = divmod(rest, 100)
+    rest, month = divmod(rest, 100)
+    rest, day = divmod(rest, 100)
+
+    if rest:
+        raise ValueError('invalid CPR number {}'.format(number))
+
+    # see https://da.wikipedia.org/wiki/CPR-nummer :(
+    if code < 4000:
+        century = 1900
+    elif code < 5000:
+        century = 2000 if year <= 36 else 1900
+    elif code < 9000:
+        century = 2000 if year <= 57 else 1800
+    else:
+        century = 2000 if year <= 36 else 1900
+
+    try:
+        return datetime.datetime(century + year, month, day,
+                                 tzinfo=default_timezone)
+    except ValueError:
+        raise ValueError('invalid CPR number {}'.format(number))
