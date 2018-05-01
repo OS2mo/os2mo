@@ -493,7 +493,11 @@ class LoRATestCaseMixin(TestCaseMixin):
 
         if hasattr(db.adapt, 'connection'):
             del db.adapt.connection
-            self.addCleanup(lambda: db.adapt.connection.close())
+
+        def db_close():
+            if hasattr(db.adapt, 'connection'):
+                db.adapt.connection.close()
+        self.addCleanup(db_close)
 
         from oio_rest import app
         self.__lora_server = werkzeug.serving.make_server(
