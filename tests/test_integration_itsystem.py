@@ -171,7 +171,7 @@ class Writing(util.LoRATestCase):
                         # WRONG:
                         'uuid': '00000000-0000-0000-0000-000000000000',
                         "validity": {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -259,7 +259,7 @@ class Writing(util.LoRATestCase):
                         'user_name': 'Fedtmule',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -286,7 +286,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-13 23:00:00+00',
+                        'from': '1934-06-08 23:00:00+00',
                         'from_included': True,
                     },
                 },
@@ -296,7 +296,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-13 23:00:00+00',
+                        'from': '1934-06-08 23:00:00+00',
                         'from_included': True,
                     },
                     'urn': 'urn:dk:cpr:person:0906340000',
@@ -307,7 +307,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-13 23:00:00+00',
+                        'from': '1934-06-08 23:00:00+00',
                         'from_included': True,
                     },
                     'urn': 'urn:email',
@@ -318,7 +318,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-13 23:00:00+00',
+                        'from': '1934-06-08 23:00:00+00',
                         'from_included': True,
                     },
                     'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -504,7 +504,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -527,7 +527,7 @@ class Writing(util.LoRATestCase):
                     'user_name': 'Fedtmule',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1932-05-12T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -545,7 +545,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -586,7 +586,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -643,7 +643,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               }],
         )
@@ -683,7 +683,7 @@ class Writing(util.LoRATestCase):
                     'user_name': 'Fedtmule',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1932-05-12T00:00:00+01:00',
                         'to': '2020-01-01T00:00:00+01:00',
                     },
                 },
@@ -984,7 +984,7 @@ class Reading(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -1016,7 +1016,7 @@ class Reading(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': None
               },
               }],

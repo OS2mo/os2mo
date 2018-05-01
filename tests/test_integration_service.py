@@ -507,7 +507,7 @@ class Tests(util.LoRATestCase):
         with self.subTest('invalid'):
             self.assertRequestFails(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/'
-                '?at=2000-01-01T00:00:00Z',
+                '?at=1900-01-01T00:00:00Z',
                 404,
             )
 
@@ -554,7 +554,7 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        with freezegun.freeze_time('1950-01-01'):
+        with freezegun.freeze_time('1900-01-01'):
             self.assertRequestResponse(
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
                 {'total': 0, 'items': [], 'offset': 0},
@@ -562,7 +562,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
-            '?at=1950-01-01T00%3A00%3A00%2B01%3A00',
+            '?at=1900-01-01',
             {'total': 0, 'items': [], 'offset': 0},
         )
 
@@ -625,7 +625,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
-            '?at=2005-01-01T00%3A00%3A00%2B01%3A00',
+            '?at=1937-01-01',
             {
                 'items': [
                     {
@@ -663,7 +663,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
-            '?at=2005-01-01T00%3A00%3A00%2B01%3A00&query=Anders',
+            '?at=1937-01-01&query=Anders',
             {
                 'items': [
                     {
@@ -710,7 +710,7 @@ class Tests(util.LoRATestCase):
         # disallow partial matches for CPR numbers
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
-            '?query=111111111',
+            '?query=090634',
             {
                 'items': [],
                 'offset': 0,
