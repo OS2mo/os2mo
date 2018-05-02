@@ -156,6 +156,28 @@ class Tests(util.LoRATestCase):
             '/service/e/create', 400,
             json=payload)
 
+    def test_create_employee_existing_cpr(self):
+        self.load_sample_structures()
+
+        payload = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0906340000",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        }
+
+        expected = {
+            'description': 'User with CPR no. 0906340000 already exists',
+            'error': True,
+            'cause': 'validation',
+            'status': 400
+        }
+
+        actual = self._perform_request('/service/e/create', json=payload).json
+
+        self.assertEqual(expected, actual)
+
     def test_cpr_lookup_prod_mode_false(self):
         # Arrange
         cpr = "0101501234"

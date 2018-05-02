@@ -1010,6 +1010,14 @@ def create_employee():
     except ValueError:
         valid_from = util.negative_infinity
 
+    bruger = c.bruger.fetch(
+        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr))
+    if bruger:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_EXISTING_CPR,
+            cpr=cpr
+        )
+
     valid_to = util.positive_infinity
 
     # TODO: put something useful into the default user key
