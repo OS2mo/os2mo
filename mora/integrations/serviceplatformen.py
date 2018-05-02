@@ -7,6 +7,7 @@
 #
 
 import random
+import service_person_stamdata_udvidet
 
 from requests import HTTPError
 
@@ -19,9 +20,16 @@ def get_citizen(cpr):
         raise ValueError('invalid CPR number!')
 
     if settings.PROD_MODE:
+        sp_uuids = {
+            'service_agreement': settings.SP_SERVICE_AGREEMENT_UUID,
+            'user_system': settings.SP_SYSTEM_UUID,
+            'user': settings.SP_MUNICIPALITY_UUID,
+            'service': settings.SP_SERVICE_UUID
+        }
+        certificate = settings.SP_CERTIFICATE_PATH
         try:
-            # TBC when SP library is extracted from AVA repo
-            raise NotImplementedError
+            return service_person_stamdata_udvidet.get_citizen(sp_uuids, certificate,
+                                                        cpr)
         except HTTPError as e:
             if "PNRNotFound" in e.response.text:
                 raise KeyError('CPR not found')
