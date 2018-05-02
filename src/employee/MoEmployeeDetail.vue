@@ -53,6 +53,11 @@
         }
       }
     },
+    watch: {
+      uuid () {
+        this.getAllDetails()
+      }
+    },
     mounted () {
       this.getDetails('present')
       EventBus.$on('employee-changed', () => {
