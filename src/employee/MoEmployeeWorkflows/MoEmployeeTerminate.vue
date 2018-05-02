@@ -10,17 +10,20 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="endEmployee">
-      <div class="col">
-        <mo-employee-picker v-model="employee" required/>
+      <div class="form-row">
+        <mo-employee-picker v-model="employee" required class="col"/>
+        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
+      </div>
         
-        <div class="form-row">
-          <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
+        <div v-if="employee">
+          <p>Følgende vil blive afsluttet for medarbejderen:</p>
+          <mo-employee-detail-tabs :uuid="employee.uuid" hide-actions/>
         </div>
-        
-        <div class="float-right">
+
+        <div class="float-right mt-3">
           <button-submit :is-loading="isLoading"/>
         </div>
-      </div>
+    
     </form>
   </b-modal>
 </template>
@@ -30,6 +33,7 @@ import Employee from '@/api/Employee'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import MoDatePicker from '@/components/atoms/MoDatePicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
+import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
 export default {
   $_veeValidate: {
@@ -38,12 +42,13 @@ export default {
   components: {
     MoEmployeePicker,
     MoDatePicker,
-    ButtonSubmit
+    ButtonSubmit,
+    MoEmployeeDetailTabs
   },
   data () {
     return {
       isLoading: false,
-      employee: {},
+      employee: null,
       terminate: {
         validity: {}
       }
