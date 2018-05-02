@@ -46,11 +46,10 @@
 
       <input type="hidden"
         v-if="sourceSelected"
-        :value="selected.length"
+        v-model="selected.length"
         :name="nameId"
         v-validate="{min_value: 1}" 
         data-vv-as="Valg af engagementer"
-        required
       >
 
       <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
