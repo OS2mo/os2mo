@@ -19,7 +19,11 @@
         />
         <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
       </div>
-      <div class="float-right">
+      <div v-if="org_unit">
+        <p>Følgende vil blive afsluttet for enheden:</p>
+        <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
+      </div>
+      <div class="float-right mt-3">
         <button-submit :is-loading="isLoading"/>
       </div>
     </form>
@@ -31,6 +35,7 @@
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
   export default {
     $_veeValidate: {
@@ -39,11 +44,12 @@
     components: {
       MoDatePicker,
       MoOrganisationUnitPicker,
-      ButtonSubmit
+      ButtonSubmit,
+      MoOrganisationDetailTabs
     },
     data () {
       return {
-        org_unit: {},
+        org_unit: null,
         terminate: {
           validity: {}
         },
