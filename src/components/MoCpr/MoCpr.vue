@@ -1,6 +1,6 @@
 <template>
   <div>
-    <mo-cpr-search v-model="result"/>
+    <mo-cpr-search v-model="result" required/>
     <mo-cpr-result v-model="result"/>
   </div>
 </template>

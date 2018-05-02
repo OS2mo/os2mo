@@ -53,7 +53,7 @@
     },
     data () {
       return {
-        original: {},
+        original: null,
         rename: {
           data: {
             name: '',

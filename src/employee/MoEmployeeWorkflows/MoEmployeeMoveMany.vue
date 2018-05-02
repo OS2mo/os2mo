@@ -44,6 +44,17 @@
         @selected-changed="selectedEmployees"
       />
 
+      <input type="hidden"
+        v-if="sourceSelected"
+        :value="selected.length"
+        :name="nameId"
+        v-validate="{min_value: 1}" 
+        data-vv-as="Valg af engagementer"
+        required
+      >
+
+      <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -74,8 +85,8 @@
         employees: [],
         selected: [],
         moveDate: null,
-        orgUnitSource: {},
-        orgUnitDestination: {},
+        orgUnitSource: null,
+        orgUnitDestination: null,
         isLoading: false,
         columns: [
           {label: 'person', data: 'person'},
@@ -97,17 +108,17 @@
       },
 
       sourceSelected () {
-        return this.orgUnitSource.uuid
+        if (this.orgUnitSource) return this.orgUnitSource.uuid
       },
 
-      isDisabled () {
-        return !this.moveDate || !this.orgUnitSource.uuid || !this.orgUnitDestination.uuid || this.selected.length === 0
+      nameId () {
+        return 'engagement-picker-' + this._uid
       }
     },
     watch: {
       orgUnitSource: {
         handler (newVal) {
-          if (newVal.uuid) this.getEmployees(newVal.uuid)
+          if (newVal) this.getEmployees(newVal.uuid)
         },
         deep: true
       }
