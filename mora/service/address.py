@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import json
-
 '''Addresses
 ---------
 
@@ -150,11 +148,13 @@ API
 '''
 
 import itertools
+import json
 import re
 
 import flask
 import requests
 
+from .. import exceptions
 from .. import lora
 from .. import util
 
@@ -230,7 +230,9 @@ def get_relation_for(addrobj, fallback=None):
         r['objekttype'] = common.get_uuid(typeobj)
 
     else:
-        raise ValueError('unknown address scope {!r}!'.format(scope))
+        raise exceptions.ValidationError(
+            'unknown address scope {!r}!'.format(scope),
+        )
 
     return r
 
@@ -286,7 +288,7 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise ValueError('invalid urn {!r}'.format(
+            raise exceptions.ValidationError('invalid urn {!r}'.format(
                 addrrel['urn'],
             ))
 
@@ -310,7 +312,9 @@ def get_one_address(c, addrrel, class_cache=None):
         }
 
     else:
-        raise ValueError('invalid address scope {!r}'.format(addrformat))
+        raise exceptions.ValidationError(
+            'invalid address scope {!r}'.format(addrformat),
+        )
 
 
 class Addresses(common.AbstractRelationDetail):
@@ -339,7 +343,7 @@ class Addresses(common.AbstractRelationDetail):
 
                 try:
                     addr = get_one_address(c, addrrel, class_cache)
-                except KeyError as e:
+                except Exception as e:
                     util.log_exception(
                         'invalid address relation {}'.format(
                             json.dumps(addrrel),
@@ -410,7 +414,9 @@ class Addresses(common.AbstractRelationDetail):
         new_entry = common.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
-            raise ValueError('original required!')
+            raise exceptions.ValidationError(
+                'original required!',
+            )
 
         old_rel = get_relation_for(old_entry)
         new_rel = get_relation_for(new_entry, old_entry)
@@ -418,7 +424,7 @@ class Addresses(common.AbstractRelationDetail):
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise ValueError('no addresses to edit!')
+            raise exceptions.ValidationError('no addresses to edit!')
 
         addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 
@@ -474,7 +480,7 @@ def address_autocomplete(orgid):
         org = lora.Connector().organisation.get(orgid)
 
         if not org:
-            raise KeyError('No local municipality found!')
+            raise exceptions.NotFoundError('No local municipality found!')
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
@@ -483,7 +489,7 @@ def address_autocomplete(orgid):
                 code = int(m.group(1))
                 break
         else:
-            raise KeyError('No local municipality found!')
+            raise exceptions.NotFoundError('No local municipality found!')
     else:
         code = None
 

@@ -23,9 +23,10 @@ import uuid
 
 import flask
 
-from mora import util
 from . import keys
+from .. import exceptions
 from .. import lora
+from .. import util
 
 RELATION_TRANSLATIONS = {
     'engagement': keys.ENGAGEMENT_KEY.lower(),
@@ -38,7 +39,8 @@ RELATION_TRANSLATIONS = {
 }
 
 
-class FieldTypes(enum.Enum):
+@enum.unique
+class FieldTypes(enum.IntEnum):
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
@@ -112,14 +114,16 @@ def checked_get(
         if fallback is not None:
             return checked_get(fallback, key, default, None, required)
         elif required:
-            raise ValueError('missing {!r}'.format(key))
+            raise exceptions.ValidationError('missing {!r}'.format(key))
         else:
             return default
 
     elif not isinstance(v, type(default)):
-        raise ValueError('invalid {!r}, expected {}, got: {}'.format(
-            key, type(default).__name__, json.dumps(v),
-        ))
+        raise exceptions.ValidationError(
+            'invalid {!r}, expected {}, got: {}'.format(
+                key, type(default).__name__, json.dumps(v),
+            ),
+        )
 
     return v
 
@@ -133,7 +137,9 @@ def get_uuid(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_uuid(v):
-        raise ValueError('invalid uuid for {!r}: {!r}'.format(key, v))
+        raise exceptions.ValidationError(
+            'invalid uuid for {!r}: {!r}'.format(key, v),
+        )
 
     return v
 
@@ -147,7 +153,9 @@ def get_urn(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_urn(v):
-        raise ValueError('invalid urn for {!r}: {!r}'.format(key, v))
+        raise exceptions.ValidationError(
+            'invalid urn for {!r}: {!r}'.format(key, v),
+        )
 
     return v
 
@@ -599,14 +607,14 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
         if valid_from is None:
-            raise ValueError('missing start date!')
+            raise exceptions.ValidationError('missing start date!')
         elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
 
     if fallback is not None:
         return get_valid_from(fallback)
     else:
-        raise ValueError('missing start date!')
+        raise exceptions.ValidationError('missing start date!')
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -666,7 +674,7 @@ def replace_relation_value(relations: typing.List[dict],
             return new_rels
 
     else:
-        raise ValueError('original entry not found!')
+        raise exceptions.ValidationError('original entry not found!')
 
 
 def is_reg_valid(reg):

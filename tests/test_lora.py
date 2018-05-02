@@ -8,6 +8,7 @@
 
 import freezegun
 
+from mora import exceptions
 from mora import lora
 from mora import settings
 from mora import util as mora_util
@@ -87,7 +88,7 @@ class Tests(util.TestCase):
             check('future', [], [])
 
         with self.subTest('failing'):
-            with self.assertRaises(ValueError):
+            with self.assertRaises(exceptions.ValidationError):
                 check('kaflaflibob', [], [])
 
     def test_get_effects(self, m):

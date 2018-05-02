@@ -29,6 +29,7 @@ from . import keys
 from . import mapping
 from . import orgunit
 from .. import util
+from .. import exceptions
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
                             url_prefix='/service')
@@ -410,7 +411,9 @@ def get_detail(type, id, function):
 
     # ensure that we report an error correctly
     if function not in keys.FUNCTION_KEYS:
-        raise ValueError('invalid function type {!r}'.format(function))
+        raise exceptions.ValidationError(
+            'invalid function type {!r}'.format(function),
+        )
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or 20,

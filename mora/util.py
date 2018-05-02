@@ -22,6 +22,8 @@ import flask
 import dateutil.parser
 import dateutil.tz
 
+from . import exceptions
+
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
@@ -84,14 +86,13 @@ def parsedatetime(s: str) -> datetime.datetime:
 
     try:
         return from_iso_time(s)
-
     except ValueError:
         pass
 
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
     except ValueError:
-        raise ValueError('cannot parse {!r}'.format(s))
+        raise exceptions.ValidationError('cannot parse {!r}'.format(s))
 
     return dt
 
@@ -256,7 +257,7 @@ def update_config(mapping, config_path, allow_environment=True):
 
 def splitlist(xs, size):
     if size <= 0:
-        raise ValueError('size must be positive!')
+        raise exceptions.ValidationError('size must be positive!')
 
     i = 0
     nxs = len(xs)

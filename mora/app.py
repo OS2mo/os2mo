@@ -7,11 +7,14 @@
 #
 
 import os
+import sys
+import traceback
 
 import flask
 
 from . import auth
 from . import cli
+from . import exceptions
 from . import service
 from . import util
 
@@ -39,32 +42,16 @@ def handle_invalid_usage(error):
 
     util.log_exception('unhandled exception')
 
-    if isinstance(error, ValueError):
-        status_code = 400
-    elif isinstance(error, (KeyError, IndexError)):
-        status_code = 404
-    elif isinstance(error, PermissionError):
-        status_code = 401
-    else:
-        status_code = 500
-
-    return flask.jsonify({
-        'status': status_code,
-        'message': (
-            error.args[0]
-            if error.args and len(error.args) == 1
-            else error.args
-        )
-    }), status_code
+    return exceptions.BaseError(
+        description=str(error),
+        stacktrace=traceback.format_exc(),
+    ).get_response()
 
 
 @app.route('/')
 @app.route('/<path:path>')
 def root(path=''):
     if path.split('/', 1)[0] == 'service':
-        return flask.jsonify({
-            'message': 'no such endpoint',
-            'error': True,
-        }), 404
+        raise exceptions.NotFoundError('no such endpoint')
 
     return flask.send_file('index.html')
