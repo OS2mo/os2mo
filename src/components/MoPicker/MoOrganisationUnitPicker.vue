@@ -11,9 +11,9 @@
       :placeholder="$t('input_fields.choose_unit')"
       v-model="orgName"
       @click.stop="toggleTree()"
-      :disabled="isDisabled"
-      v-validate="{required: isRequired}"
+      v-validate="{required: required}"
     >
+
     <div 
       class="mo-input-group" 
       v-show="showTree"
@@ -51,9 +51,9 @@
     },
     data () {
       return {
-        selectedSuperUnit: {},
+        selectedSuperUnit: null,
         showTree: false,
-        orgName: ''
+        orgName: null
       }
     },
     computed: {

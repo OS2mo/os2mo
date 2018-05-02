@@ -79,7 +79,7 @@
       return {
         currentUnit: '',
         uuid: '',
-        original: {},
+        original: null,
         move: {
           data: {
             validity: {}
@@ -91,7 +91,7 @@
     watch: {
       original: {
         handler (newVal) {
-          this.getCurrentUnit(newVal.uuid)
+          if (this.original) return this.getCurrentUnit(newVal.uuid)
         },
         deep: true
       }

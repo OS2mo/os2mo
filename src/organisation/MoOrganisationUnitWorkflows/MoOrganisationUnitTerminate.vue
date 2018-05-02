@@ -43,7 +43,7 @@
     },
     data () {
       return {
-        org_unit: {},
+        org_unit: null,
         terminate: {
           validity: {}
         },
