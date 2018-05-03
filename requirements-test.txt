@@ -13,4 +13,3 @@ flake8-imports>=0.1.1
 flake8-module-name>=0.1.5
 flake8-mypy>=17.8.0
 notsouid>=0.0.3
--e git+https://github.com/magenta-aps/pyexcel-io.git@fix-dot-books#egg=pyexcel-io
