@@ -48,14 +48,12 @@ def search_cpr():
     """
     cpr = flask.request.args['q']
 
-    if len(cpr) != 10:
-        raise exceptions.ValidationError(
-            'CPR no. should be 10 characters long',
-        )
-
     sp_data = get_citizen(cpr)
 
-    return flask.jsonify(format_cpr_response(sp_data, cpr))
+    if sp_data:
+        return flask.jsonify(format_cpr_response(sp_data, cpr))
+    else:
+        return '', 404
 
 
 def format_cpr_response(sp_data: dict, cpr: str):

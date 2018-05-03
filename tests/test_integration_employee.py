@@ -129,6 +129,9 @@ class Tests(util.LoRATestCase):
         # Arrange
 
         # Act
-        self.assertRequestFails('/service/e/cpr_lookup/?q=1234/', 400)
+        self.assertRequestFails('/service/e/cpr_lookup/?q=1234/', 404)
         self.assertRequestFails('/service/e/cpr_lookup/?q=1234567890123/',
-                                400)
+                                404)
+
+        self.assertRequestFails('/service/e/cpr_lookup/?q=2222222222/',
+                                404)

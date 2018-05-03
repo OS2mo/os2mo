@@ -10,7 +10,8 @@ import random
 
 from requests import HTTPError
 
-from mora import settings
+from .. import util
+from .. import settings
 
 
 def get_citizen(cpr):
@@ -157,6 +158,9 @@ LAST_NAMES = [
 
 
 def _get_citizen_stub(cpr):
+    if not util.is_cpr_number(cpr):
+        return None
+
     # Seed random with CPR number to ensure consistent output
     random.seed(cpr)
 
