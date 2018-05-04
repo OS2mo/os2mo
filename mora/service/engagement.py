@@ -27,11 +27,11 @@ from .. import lora
 def create_engagement(employee_uuid, req):
     c = lora.Connector()
 
-    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
+    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = common.checked_get_uuid(req, keys.JOB_FUNCTION)
-    engagement_type_uuid = common.checked_get_uuid(req, keys.ENGAGEMENT_TYPE,
+    job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
+    engagement_type_uuid = common.get_mapping_uuid(req, keys.ENGAGEMENT_TYPE,
                                                    required=True)
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)

@@ -29,10 +29,10 @@ blueprint = flask.Blueprint('roles', __name__, static_url_path='',
 def create_role(employee_uuid, req):
     c = lora.Connector()
 
-    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
+    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    role_type_uuid = common.checked_get_uuid(req, keys.ROLE_TYPE,
+    role_type_uuid = common.get_mapping_uuid(req, keys.ROLE_TYPE,
                                              required=True)
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)

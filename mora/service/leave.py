@@ -32,9 +32,8 @@ def create_leave(employee_uuid, req):
 
     org_uuid = c.bruger.get(
         employee_uuid)['relationer']['tilhoerer'][0]['uuid']
-    leave_type = common.checked_get(req, keys.LEAVE_TYPE, {},
-                                    required=True)
-    leave_type_uuid = common.get_uuid(leave_type)
+    leave_type_uuid = common.get_mapping_uuid(req, keys.LEAVE_TYPE,
+                                              required=True)
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
     bvn = str(uuid.uuid4())

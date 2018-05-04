@@ -31,11 +31,11 @@ blueprint = flask.Blueprint('associations', __name__, static_url_path='',
 def create_association(employee_uuid, req):
     c = lora.Connector()
 
-    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
+    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = common.checked_get_uuid(req, keys.JOB_FUNCTION)
-    association_type_uuid = common.checked_get_uuid(req, keys.ASSOCIATION_TYPE,
+    job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
+    association_type_uuid = common.get_mapping_uuid(req, keys.ASSOCIATION_TYPE,
                                                     required=True)
     address_obj = common.checked_get(req, keys.ADDRESS, {})
     valid_from = common.get_valid_from(req)

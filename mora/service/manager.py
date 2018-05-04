@@ -29,13 +29,13 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
 def create_manager(employee_uuid, req):
     c = lora.Connector()
 
-    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
+    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     address_obj = common.checked_get(req, keys.ADDRESS, {})
-    manager_type_uuid = common.checked_get_uuid(req, keys.MANAGER_TYPE)
-    responsibility_uuid = common.checked_get_uuid(req, keys.RESPONSIBILITY)
-    manager_level_uuid = common.checked_get_uuid(req, keys.MANAGER_LEVEL)
+    manager_type_uuid = common.get_mapping_uuid(req, keys.MANAGER_TYPE)
+    responsibility_uuid = common.get_mapping_uuid(req, keys.RESPONSIBILITY)
+    manager_level_uuid = common.get_mapping_uuid(req, keys.MANAGER_LEVEL)
 
     opgaver = list()
 
