@@ -14,7 +14,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
-
+from mora import validator
 from . import common
 from . import keys
 from . import mapping
@@ -25,26 +25,24 @@ from .. import lora
 
 
 def create_engagement(employee_uuid, req):
-    # TODO: Validation
-
     c = lora.Connector()
 
-    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
-    org_unit_uuid = common.get_uuid(org_unit)
+    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-
-    job_function = common.checked_get(req, keys.JOB_FUNCTION, {})
-    job_function_uuid = common.get_uuid(job_function) if job_function else None
-
-    engagement_type = common.checked_get(req, keys.ENGAGEMENT_TYPE, {},
-                                         required=True)
-    engagement_type_uuid = common.get_uuid(engagement_type)
-
+    job_function_uuid = common.checked_get_uuid(req, keys.JOB_FUNCTION)
+    engagement_type_uuid = common.checked_get_uuid(req, keys.ENGAGEMENT_TYPE,
+                                                   required=True)
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
+
+    # Validation
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+                                              valid_to)
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
 
     engagement = create_organisationsfunktion_payload(
         funktionsnavn=keys.ENGAGEMENT_KEY,

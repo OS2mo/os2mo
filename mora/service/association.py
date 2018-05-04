@@ -16,7 +16,7 @@ This section describes how to interact with employee associations.
 
 import flask
 
-from mora import lora
+from mora import lora, validator
 from . import address
 from . import common
 from . import keys
@@ -29,29 +29,25 @@ blueprint = flask.Blueprint('associations', __name__, static_url_path='',
 
 
 def create_association(employee_uuid, req):
-    # TODO: Validation
     c = lora.Connector()
 
-    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
-    org_unit_uuid = common.get_uuid(org_unit)
+    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-
-    job_function = common.checked_get(req, keys.JOB_FUNCTION, {})
-    job_function_uuid = common.get_uuid(job_function) if job_function else None
-
-    association_type = common.checked_get(req, keys.ASSOCIATION_TYPE, {},
-                                          required=True)
-    association_type_uuid = common.get_uuid(
-        association_type) if association_type else None
-
+    job_function_uuid = common.checked_get_uuid(req, keys.JOB_FUNCTION)
+    association_type_uuid = common.checked_get_uuid(req, keys.ASSOCIATION_TYPE,
+                                                    required=True)
     address_obj = common.checked_get(req, keys.ADDRESS, {})
-    address_type = common.checked_get(req, keys.ADDRESS_TYPE, {})
-
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ASSOCIATION_KEY)
+
+    # Validation
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+                                              valid_to)
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
 
     association = create_organisationsfunktion_payload(
         funktionsnavn=keys.ASSOCIATION_KEY,

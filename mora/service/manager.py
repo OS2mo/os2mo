@@ -20,34 +20,22 @@ from . import address
 from . import common
 from . import keys
 from . import mapping
-from .. import lora
+from mora import lora, validator
 
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
 
 def create_manager(employee_uuid, req):
-    # TODO: Validation
     c = lora.Connector()
 
-    org_unit = common.checked_get(req, keys.ORG_UNIT, {}, required=True)
-    org_unit_uuid = common.get_uuid(org_unit)
+    org_unit_uuid = common.checked_get_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-
     address_obj = common.checked_get(req, keys.ADDRESS, {})
-    address_type = common.checked_get(req, keys.ADDRESS_TYPE, {})
-
-    manager_type = common.checked_get(req, keys.MANAGER_TYPE, {})
-    manager_type_uuid = common.get_uuid(manager_type) if manager_type else None
-
-    responsibility = common.checked_get(req, keys.RESPONSIBILITY, {})
-    responsibility_uuid = common.get_uuid(
-        responsibility) if responsibility else None
-
-    manager_level = common.checked_get(req, keys.MANAGER_LEVEL, {})
-    manager_level_uuid = common.get_uuid(
-        manager_level) if manager_level else None
+    manager_type_uuid = common.checked_get_uuid(req, keys.MANAGER_TYPE)
+    responsibility_uuid = common.checked_get_uuid(req, keys.RESPONSIBILITY)
+    manager_level_uuid = common.checked_get_uuid(req, keys.MANAGER_LEVEL)
 
     opgaver = list()
 
@@ -69,6 +57,12 @@ def create_manager(employee_uuid, req):
     valid_to = common.get_valid_to(req)
 
     bvn = str(uuid.uuid4())
+
+    # Validation
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+                                              valid_to)
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
 
     manager = common.create_organisationsfunktion_payload(
         funktionsnavn=keys.MANAGER_KEY,

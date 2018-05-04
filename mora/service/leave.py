@@ -17,7 +17,7 @@ import uuid
 
 import flask
 
-from mora import lora
+from mora import lora, validator
 from . import common, keys, mapping
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,
@@ -28,20 +28,20 @@ blueprint = flask.Blueprint('leave', __name__, static_url_path='',
 
 
 def create_leave(employee_uuid, req):
-    # TODO: Validation
     c = lora.Connector()
 
     org_uuid = c.bruger.get(
         employee_uuid)['relationer']['tilhoerer'][0]['uuid']
-
     leave_type = common.checked_get(req, keys.LEAVE_TYPE, {},
                                     required=True)
     leave_type_uuid = common.get_uuid(leave_type)
-
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
-
     bvn = str(uuid.uuid4())
+
+    # Validation
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
 
     leave = create_organisationsfunktion_payload(
         funktionsnavn=keys.LEAVE_KEY,

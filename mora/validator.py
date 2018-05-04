@@ -9,43 +9,13 @@ import datetime
 from mora import exceptions
 from mora import lora
 from mora import util
-
-ERRORS = {
-    'create_org_unit': {
-        'errors': [
-            {
-                'key not used': 'Denne enheds gyldighedsperiode er ikke '
-                                'indeholdt i overenhedens gyldighedsperiode'
-            }
-        ]
-    },
-    'inactivate_org_unit': {
-        'errors': [
-            {
-                'key not used': 'Dato for afslutning ikke tilladt (er der '
-                                'aktive underenheder?)'
-            }
-        ]
-    },
-    'rename_org_unit': {
-        'errors': [
-            {
-                'key not used': 'Ulovlig overenhed'
-            }
-        ]
-    },
-    'update_existing_location': {
-        'errors': [
-            {
-                'key not used': 'Der må ikke være tomme felter, '
-                                'når lokationen opdateres'
-            }
-        ]
-    }
-}
+from .service import common
+from .service import keys
 
 
-def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
+def _is_date_range_valid(parent: str, startdate: datetime.datetime,
+                         enddate: datetime.datetime, lora_scope,
+                         gyldighed_key: str) -> bool:
     """
     Determine if the given dates are within validity of the parent unit.
 
@@ -55,26 +25,18 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
     :return: True if the date range is valid and false otherwise.
     """
 
-    startdate = util.parsedatetime(startdate)
-    enddate = util.parsedatetime(enddate)
-
     if startdate >= enddate:
         return False
 
-    c = lora.Connector(
-        virkningfra=util.to_lora_time(startdate),
-        virkningtil=util.to_lora_time(enddate),
-    )
-
     previous_end = None
 
-    for start, end, effect in c.organisationenhed.get_effects(
+    for start, end, effect in lora_scope.get_effects(
         parent,
         {
             'tilstande': (
-                'organisationenhedgyldighed',
+                gyldighed_key,
             )
-        },
+        }
     ):
         if previous_end is None:
             # initial case
@@ -85,7 +47,7 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
             # non-consecutive chunk - so not valid for that time
             return False
 
-        vs = effect['tilstande']['organisationenhedgyldighed']
+        vs = effect['tilstande'][gyldighed_key]
 
         if not vs or any(v['gyldighed'] != 'Aktiv' for v in vs):
             # not valid for the given time
@@ -97,18 +59,31 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
     return previous_end is not None and previous_end >= enddate
 
 
-def is_create_org_unit_request_valid(req: dict) -> bool:
-    """
-    Check if the create org unit request is valid.
+def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
+    scope = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    ).organisationenhed
+    gyldighed_key = "organisationenhedgyldighed"
 
-    :param req: The frontend request.
-    :return: True if the request is valid and false otherwise.
-    """
+    if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
+                                gyldighed_key):
+        raise exceptions.ValidationError(
+            'Date range exceeds validity range of '
+            'associated organisational unit.')
 
-    startdate = req['valid-from']
-    enddate = req.get('valid-to', 'infinity')
-    parent = req['parent']
-    return _is_date_range_valid(parent, startdate, enddate)
+
+def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
+    scope = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    ).bruger
+    gyldighed_key = "brugergyldighed"
+
+    if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
+                                gyldighed_key):
+        raise exceptions.ValidationError(
+            'Date range exceeds validity range of associated employee.')
 
 
 def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
@@ -208,20 +183,3 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
 
     return True
 
-
-def is_location_update_valid(req: dict) -> bool:
-    """
-    Check if the location update frontend request is valid.
-
-    :param req: The request send from the frontend.
-    :return: True if the location update is valid and false otherwise.
-    """
-
-    roletype = req.get('role-type')
-    if not roletype or roletype == 'location':
-        if not req['location']:
-            return False
-        if not req['name']:
-            return False
-
-    return True

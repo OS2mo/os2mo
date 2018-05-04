@@ -144,6 +144,14 @@ def get_uuid(
     return v
 
 
+def checked_get_uuid(mapping, key, required=False):
+    obj = checked_get(mapping, key, {}, required=required)
+    if obj:
+        return get_uuid(obj)
+    else:
+        return None
+
+
 def get_urn(
     mapping: D,
     fallback: D=None,
