@@ -10,6 +10,9 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="endOrganisationUnit">
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{backendValidationError}}
+      </div>
       <div class="form-row">
         <mo-organisation-unit-picker 
           :label="$tc('input_fields.unit', 1)" 
@@ -53,7 +56,8 @@
         terminate: {
           validity: {}
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     computed: {
@@ -77,7 +81,11 @@
           OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
             .then(response => {
               vm.isLoading = false
-              vm.$refs.orgUnitTerminate.hide()
+              if (response.error) {
+                vm.backendValidationError = response.description
+              } else {
+                vm.$refs.orgUnitTerminate.hide()
+              }
             })
         } else {
           this.$validator.validateAll()
