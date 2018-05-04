@@ -279,12 +279,11 @@ def is_uuid(v):
         return False
 
 
-# TODO: more thorough checking?
-_cpr_re = re.compile(r'\d{10}')
-
-
 def is_cpr_number(v):
-    return isinstance(v, str) and _cpr_re.fullmatch(v)
+    try:
+        return v and bool(get_cpr_birthdate(v))
+    except ValueError:
+        return False
 
 
 def uniqueify(xs):

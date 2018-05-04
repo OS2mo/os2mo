@@ -109,26 +109,3 @@ class Tests(util.LoRATestCase):
                 'uuid': userid,
             },
         )
-
-    def test_cpr_lookup_prod_mode_false(self):
-        # Arrange
-        cpr = "0101501234"
-
-        expected = {
-            'name': 'Merle Mortensen',
-            'cpr_no': cpr
-        }
-
-        # Act
-        with util.override_settings(PROD_MODE=False):
-            self.assertRequestResponse(
-                '/service/e/cpr_lookup/?q={}'.format(cpr),
-                expected)
-
-    def test_cpr_lookup_raises_on_wrong_length(self):
-        # Arrange
-
-        # Act
-        self.assertRequestFails('/service/e/cpr_lookup/?q=1234/', 400)
-        self.assertRequestFails('/service/e/cpr_lookup/?q=1234567890123/',
-                                400)
