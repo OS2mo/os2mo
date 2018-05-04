@@ -148,11 +148,13 @@ API
 '''
 
 import itertools
+import json
 import re
 
 import flask
 import requests
 
+from .. import exceptions
 from .. import lora
 from .. import util
 
@@ -188,12 +190,16 @@ def get_relation_for(addrobj, fallback=None):
     typeobj = common.checked_get(addrobj, keys.ADDRESS_TYPE, {},
                                  fallback=fallback, required=True)
     scope = common.checked_get(typeobj, 'scope', '', required=True)
+    validity = common.get_validity_effect(addrobj, fallback=fallback)
+
+    r = {}
+
+    if validity is not None:
+        r['virkning'] = validity
 
     if scope == 'DAR':
-        return {
-            'uuid': common.get_uuid(addrobj, fallback),
-            'objekttype': common.checked_get(typeobj, keys.UUID, 'DAR'),
-        }
+        r['uuid'] = common.get_uuid(addrobj, fallback)
+        r['objekttype'] = common.checked_get(typeobj, keys.UUID, 'DAR')
 
     elif scope in URN_PREFIXES:
         # this is the fallback: we want to use the 'urn' key if set
@@ -205,30 +211,30 @@ def get_relation_for(addrobj, fallback=None):
             'urn' in addrobj or
             keys.VALUE not in addrobj and fallback and 'urn' in fallback
         ):
-            return {
-                'urn': common.get_urn(addrobj, fallback),
-                'objekttype': typeobj['uuid'],
-            }
+            value = common.get_urn(addrobj, fallback)
 
-        value = common.checked_get(addrobj, keys.VALUE, '', required=True)
-        prefix = URN_PREFIXES[scope]
+        else:
+            value = common.checked_get(addrobj, keys.VALUE, '', required=True)
+            prefix = URN_PREFIXES[scope]
 
-        if scope == 'PHONE':
-            value = re.sub(r'\s+', '', value)
+            if scope == 'PHONE':
+                value = re.sub(r'\s+', '', value)
 
-            if not value.startswith('+'):
-                value = '+45' + value
+                if not value.startswith('+'):
+                    value = '+45' + value
 
-        if not util.is_urn(value):
-            value = prefix + value
+            if not util.is_urn(value):
+                value = prefix + value
 
-        return {
-            'urn': value,
-            'objekttype': typeobj['uuid'],
-        }
+        r['urn'] = value
+        r['objekttype'] = common.get_uuid(typeobj)
 
     else:
-        raise ValueError('unknown address scope {!r}!'.format(scope))
+        raise exceptions.ValidationError(
+            'unknown address scope {!r}!'.format(scope),
+        )
+
+    return r
 
 
 def get_address_class(c, addrrel, class_cache):
@@ -282,7 +288,7 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise ValueError('invalid urn {!r}'.format(
+            raise exceptions.ValidationError('invalid urn {!r}'.format(
                 addrrel['urn'],
             ))
 
@@ -306,7 +312,9 @@ def get_one_address(c, addrrel, class_cache=None):
         }
 
     else:
-        raise ValueError('invalid address scope {!r}'.format(addrformat))
+        raise exceptions.ValidationError(
+            'invalid address scope {!r}'.format(addrformat),
+        )
 
 
 class Addresses(common.AbstractRelationDetail):
@@ -333,12 +341,20 @@ class Addresses(common.AbstractRelationDetail):
                 if not c.is_effect_relevant(addrrel['virkning']):
                     continue
 
-                yield {
-                    **get_one_address(c, addrrel, class_cache),
-                    keys.ADDRESS_TYPE: get_address_class(c, addrrel,
-                                                         class_cache),
-                    keys.VALIDITY: common.get_effect_validity(addrrel),
-                }
+                try:
+                    addr = get_one_address(c, addrrel, class_cache)
+                except Exception as e:
+                    util.log_exception(
+                        'invalid address relation {}'.format(
+                            json.dumps(addrrel),
+                        ),
+                    )
+
+                    continue
+
+                addr[keys.VALIDITY] = common.get_effect_validity(addrrel)
+
+                yield addr
 
         return flask.jsonify(
             sorted(
@@ -351,15 +367,7 @@ class Addresses(common.AbstractRelationDetail):
                                 'relationer': (
                                     'adresser',
                                 ),
-                                'tilstande': (
-                                    'brugergyldighed',
-                                ),
-                            },
-                            {
-                                'attributter': (
-                                    'brugeregenskaber',
-                                ),
-                            },
+                            }
                         ),
                     ),
                 ),
@@ -383,7 +391,6 @@ class Addresses(common.AbstractRelationDetail):
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(req)
-        rel['virkning'] = common.get_validity_effect(req)
 
         addrs = original['relationer'].get('adresser', [])
 
@@ -407,18 +414,17 @@ class Addresses(common.AbstractRelationDetail):
         new_entry = common.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
-            raise ValueError('original required!')
+            raise exceptions.ValidationError(
+                'original required!',
+            )
 
         old_rel = get_relation_for(old_entry)
-        old_rel['virkning'] = common.get_validity_effect(old_entry)
-
         new_rel = get_relation_for(new_entry, old_entry)
-        new_rel['virkning'] = common.get_validity_effect(new_entry, old_entry)
 
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise ValueError('no addresses to edit!')
+            raise exceptions.ValidationError('no addresses to edit!')
 
         addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 
@@ -474,7 +480,7 @@ def address_autocomplete(orgid):
         org = lora.Connector().organisation.get(orgid)
 
         if not org:
-            raise KeyError('No local municipality found!')
+            raise exceptions.NotFoundError('No local municipality found!')
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
@@ -483,7 +489,7 @@ def address_autocomplete(orgid):
                 code = int(m.group(1))
                 break
         else:
-            raise KeyError('No local municipality found!')
+            raise exceptions.NotFoundError('No local municipality found!')
     else:
         code = None
 

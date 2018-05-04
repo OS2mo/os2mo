@@ -52,7 +52,9 @@ class TestAddressLookup(util.TestCase):
             '/service/o/00000000-0000-0000-0000-000000000000/'
             'address_autocomplete/?q=42',
             {
-                'message': 'No local municipality found!',
+                'error': True,
+                'cause': 'not-found',
+                'description': 'No local municipality found!',
                 'status': 404,
             },
             status_code=404,
@@ -105,7 +107,9 @@ class TestAddressLookup(util.TestCase):
             '/service/o/00000000-0000-0000-0000-000000000000/'
             'address_autocomplete/?q=42',
             {
-                'message': 'No local municipality found!',
+                'error': True,
+                'cause': 'not-found',
+                'description': 'No local municipality found!',
                 'status': 404,
             },
             status_code=404,

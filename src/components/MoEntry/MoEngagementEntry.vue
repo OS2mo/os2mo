@@ -4,7 +4,7 @@
     <div class="form-row">
       <mo-organisation-unit-picker 
         class="col" 
-        label="Vælg enhed" 
+        :label="$t('input_fields.choose_unit')" 
         v-model="entry.org_unit"
         required
       />

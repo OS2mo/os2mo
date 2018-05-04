@@ -3,16 +3,16 @@
     id="orgUnitMove"
     ref="orgUnitMove"
     size="lg" 
-    hide-footer 
-    title="Flyt enhed"
+    :title="$t('workflows.organisation.move_unit')"
     @hidden="resetData"
+    hide-footer 
     lazy
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="moveOrganisationUnit">
     <div class="form-row">
       <mo-date-picker 
-      label="Dato for flytning"
+      :label="$t('input_fields.move_date')"
       v-model="move.data.validity.from"
       required
       />
@@ -22,13 +22,13 @@
       <div class="col">
         <mo-organisation-unit-picker 
           v-model="original" 
-          label="Fremsøg enhed"
+          :label="$t('input_fields.choose_unit')"
           required
         />
       </div>
 
       <div class="form-group col">
-        <label>Nuværende overenhed</label>
+        <label>{{$t('input_fields.current_super_unit')}}</label>
         <input 
           type="text" 
           class="form-control" 
@@ -40,7 +40,7 @@
 
     <mo-organisation-unit-picker 
       v-model="move.data.parent" 
-      label="Angiv ny overenhed"
+      :label="$t('input_fields.select_new_super_unit')"
       required
     />
 
@@ -79,7 +79,7 @@
       return {
         currentUnit: '',
         uuid: '',
-        original: {},
+        original: null,
         move: {
           data: {
             validity: {}
@@ -91,7 +91,7 @@
     watch: {
       original: {
         handler (newVal) {
-          this.getCurrentUnit(newVal.uuid)
+          if (this.original) return this.getCurrentUnit(newVal.uuid)
         },
         deep: true
       }

@@ -1,25 +1,31 @@
 <template>
   <div class="form-group col">
-    <label>{{label}}</label>
+    <label>{{$tc('shared.engagement', 2)}}</label>
     <mo-loader v-show="isLoading"/>
     <select
+      :name="nameId"
+      :id="nameId"
+      :ref="nameId"
+      data-vv-as="Engagementer"
       v-show="!isLoading" 
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedEngagement()"
-      :disabled="!employeeDefined">
+      :disabled="!employeeDefined"
+      v-validate="{required: true}"
+    >
       <option disabled>{{label}}</option>
       <option v-for="e in engagements" :key="e.uuid" :value="e">
           {{e.engagement_type.name}}, {{e.org_unit.name}}
       </option>
     </select>
+    <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
   </div>
 </template>
 
 <script>
 import Employee from '@/api/Employee'
 import MoLoader from '@/components/atoms/MoLoader'
-import { EventBus } from '@/EventBus'
 
 export default {
   name: 'MoEngagementPicker',
@@ -34,17 +40,27 @@ export default {
     employee: {
       type: Object,
       required: true
-    }
+    },
+    required: Boolean
   },
   data () {
     return {
-      label: 'Engagementer',
-      selected: {},
+      selected: null,
       engagements: [],
-      isLoading: false
+      isLoading: false,
+      label: ''
     }
   },
   computed: {
+    nameId () {
+      return 'engagement-picker-' + this._uid
+    },
+
+    isRequired () {
+      if (!this.employeeDefined) return false
+      return this.required
+    },
+
     employeeDefined () {
       for (let key in this.employee) {
         if (this.employee.hasOwnProperty(key)) {
@@ -58,14 +74,6 @@ export default {
     employee () {
       this.getEngagements()
     }
-  },
-  mounted () {
-    EventBus.$on('employee-changed', () => {
-      this.getEngagements()
-    })
-  },
-  beforeDestroy () {
-    EventBus.$off(['employee-changed'])
   },
   methods: {
     getEngagements () {

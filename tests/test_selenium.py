@@ -32,7 +32,7 @@ CHROME_UBUNTU_DRIVER = '/usr/lib/chromium-browser/chromedriver'
 @unittest.skipUnless(selenium, 'selenium not installed')
 class RightsTests(util.LiveLoRATestCase):
     def assertTableContents(self, expected, element):
-        self.assertEquals(
+        self.assertEqual(
             expected,
             [
                 [

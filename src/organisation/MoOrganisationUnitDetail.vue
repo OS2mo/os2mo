@@ -11,14 +11,10 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal
-      class="mt-3"
-      action="CREATE" 
+    <mo-entry-create-modal
       type="ORG_UNIT"
       :uuid="uuid" 
-      :label="createLabel" 
       :entry-component="entryComponent"
-      :content-type="detail"
       v-if="!hideCreate"
     />
   </div>
@@ -29,12 +25,12 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import { EventBus } from '@/EventBus'
   import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
-  import MoEntryModal from '@/components/MoEntryModal'
+  import MoEntryCreateModal from '@/components/MoEntryCreateModal'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoEntryModal
+      MoEntryCreateModal
     },
     props: {
       uuid: {

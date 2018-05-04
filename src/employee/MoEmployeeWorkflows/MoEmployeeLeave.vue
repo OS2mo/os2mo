@@ -2,7 +2,7 @@
   <b-modal 
     id="employeeLeave" 
     size="lg" 
-    title="Meld orlov"
+    :title="$t('workflows.employee.leave')"
     ref="employeeLeave"
     hide-footer 
     lazy

@@ -6,6 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from unittest import mock
+
+from mora import exceptions
 
 from . import util
 
@@ -15,8 +18,26 @@ class Tests(util.TestCase):
         self.assertRequestResponse(
             '/service/kaflaflibob',
             {
-                'message': 'no such endpoint',
                 'error': True,
+                'cause': 'not-found',
+                'description': 'no such endpoint',
+                'status': 404,
             },
             status_code=404,
+        )
+
+    @mock.patch('mora.service.common.get_connector')
+    def test_exception_handling(self, p):
+        p.side_effect = ValueError('go away')
+
+        self.assertRequestResponse(
+            '/service/ou/00000000-0000-0000-0000-000000000000/details/',
+            {
+                'error': True,
+                'cause': 'unknown',
+                'description': 'go away',
+                'status': 500,
+            },
+            status_code=500,
+            drop_keys=['stacktrace'],
         )

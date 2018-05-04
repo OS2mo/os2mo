@@ -6,14 +6,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import json
 import os
+import sys
+import traceback
 
 import flask
 
 from . import auth
 from . import cli
+from . import exceptions
 from . import service
+from . import util
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -36,49 +39,19 @@ def handle_invalid_usage(error):
     :param error: The error raised.
     :return: JSON describing the problem and the apropriate status code.
     """
-    data = flask.request.get_json()
 
-    if data:
-        if 'password' in data:
-            data['password'] = 'X' * 8
+    util.log_exception('unhandled exception')
 
-        flask.current_app.logger.exception(
-            'AN ERROR OCCURRED in %r:\n%s',
-            flask.request.full_path,
-            json.dumps(data, indent=2),
-        )
-    else:
-        flask.current_app.logger.exception(
-            'AN ERROR OCCURRED in %r',
-            flask.request.full_path,
-        )
-
-    if isinstance(error, ValueError):
-        status_code = 400
-    elif isinstance(error, (KeyError, IndexError)):
-        status_code = 404
-    elif isinstance(error, PermissionError):
-        status_code = 401
-    else:
-        status_code = 500
-
-    return flask.jsonify({
-        'status': status_code,
-        'message': (
-            error.args[0]
-            if error.args and len(error.args) == 1
-            else error.args
-        )
-    }), status_code
+    return exceptions.BaseError(
+        description=str(error),
+        stacktrace=traceback.format_exc(),
+    ).get_response()
 
 
 @app.route('/')
 @app.route('/<path:path>')
 def root(path=''):
     if path.split('/', 1)[0] == 'service':
-        return flask.jsonify({
-            'message': 'no such endpoint',
-            'error': True,
-        }), 404
+        raise exceptions.NotFoundError('no such endpoint')
 
     return flask.send_file('index.html')

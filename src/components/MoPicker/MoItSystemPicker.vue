@@ -1,15 +1,15 @@
 <template>
   <div class="form-group col">
-    <label :for="nameId">{{label}}</label>
+    <label :for="nameId">{{$tc('shared.it_system', 2)}}</label>
     <select 
       :name="nameId"
       :id="nameId"
-      :data-vv-as="label"
+      :data-vv-as="$tc('shared.it_system', 2)"
       class="form-control col" 
       v-model="selected"
       @change="updateSelectedItSystem()"
       v-validate="{ required: true }">
-      <option disabled>{{label}}</option>
+      <option disabled>{{$tc('shared.it_system', 2)}}</option>
       <option 
         v-for="it in itSystems" 
         v-bind:key="it.uuid"
@@ -41,7 +41,6 @@ export default {
   },
   data () {
     return {
-      label: 'IT systemer',
       selected: {},
       itSystems: []
     }

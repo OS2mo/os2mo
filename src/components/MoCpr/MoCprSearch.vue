@@ -9,8 +9,8 @@
         class="form-control" 
         type="text" 
         maxlength="10"
-        v-validate="{digits: 10}" 
-        />
+        v-validate="{digits: 10, required}" 
+      />
 
       <button 
         type="button" 

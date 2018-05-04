@@ -17,6 +17,7 @@ import uuid
 import requests
 
 from . import auth
+from . import exceptions
 from . import settings
 from . import util
 
@@ -151,12 +152,12 @@ def _check_response(r):
         try:
             d = r.json()
         except ValueError:
-            raise ValueError(r.text)
+            raise exceptions.ValidationError(r.text)
 
         if r.status_code == 400 and d:
-            raise ValueError(r.json()['message'])
+            raise exceptions.ValidationError(r.json()['message'])
         elif r.status_code in (401, 403) and d:
-            raise PermissionError(r.json()['message'])
+            raise exceptions.UnauthorizedError(r.json()['message'])
         else:
             raise
 
@@ -265,7 +266,9 @@ class Connector:
             self.__daterange = (self.today, self.tomorrow)
 
         else:
-            raise ValueError('invalid validity {!r}'.format(self.__validity))
+            raise exceptions.ValidationError(
+                'invalid validity {!r}'.format(self.__validity),
+            )
 
         self.__defaults = defaults
 

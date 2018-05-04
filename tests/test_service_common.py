@@ -8,12 +8,13 @@
 
 import datetime
 
-from unittest import TestCase
-
 import dateutil
 
+from mora import exceptions
 from mora import util
 from mora.service import common
+
+from .util import TestCase
 
 
 class TestClass(TestCase):
@@ -1673,19 +1674,19 @@ class TestClass(TestCase):
         ))
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.ValidationError, common.get_valid_from,
             {},
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.ValidationError, common.get_valid_from,
             {
                 'validity': {},
             },
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.ValidationError, common.get_valid_from,
             {},
             {
                 'validity': {
@@ -1694,7 +1695,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.ValidationError, common.get_valid_from,
             {
 
             },
@@ -1705,7 +1706,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.ValidationError, common.get_valid_from,
             {
 
             },
@@ -1790,19 +1791,19 @@ class TestClass(TestCase):
     def test_get_validities(self):
         # start time required
         self.assertRaises(
-            ValueError,
+            exceptions.ValidationError,
             common.get_valid_from, {}, {},
         )
 
         self.assertRaises(
-            ValueError,
+            exceptions.ValidationError,
             common.get_valid_from, {}, {
                 'validity': None,
             },
         )
 
         self.assertRaises(
-            ValueError,
+            exceptions.ValidationError,
             common.get_valid_from, {}, {
                 'validity': {
                     'from': None,
@@ -1891,7 +1892,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            ValueError,
+            exceptions.ValidationError,
             common.get_uuid,
             {
                 'uuid': 42,
@@ -1938,21 +1939,23 @@ class TestClass(TestCase):
             {},
         )
 
-        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+        with self.assertRaisesRegex(exceptions.ValidationError,
+                                    "missing 'nonexistent'"):
             common.checked_get(mapping, 'nonexistent', [], required=True)
 
-        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+        with self.assertRaisesRegex(exceptions.ValidationError,
+                                    "missing 'nonexistent'"):
             common.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(
-                ValueError,
+                exceptions.ValidationError,
                 'invalid \'dict\', expected list, got: {"1337": 1337}',
         ):
             common.checked_get(mapping, 'dict', [])
 
         with self.assertRaisesRegex(
-                ValueError,
+                exceptions.ValidationError,
                 r"invalid 'list', expected dict, got: \[1337\]",
         ):
             common.checked_get(mapping, 'list', {})

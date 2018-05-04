@@ -1,9 +1,15 @@
 {
   "address": "Adresse | Adresser",
   "association": "Tilknytning | Tilknytninger",
+  "employee": "Medarbejder | Medarbejdere",
   "engagement": "Engagement | Engagementer",
   "it_system": "IT system | IT systemer",
   "manager": "Leder | Ledere",
   "role": "Rolle | Roller",
-  "unit": "Enhed | Enheder"
+  "unit": "Enhed | Enheder",
+  "date": {
+    "date": "Dato",
+    "start_date": "Startdato",
+    "end_date": "Slutdato"
+  }
 }

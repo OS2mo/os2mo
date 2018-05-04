@@ -30,6 +30,7 @@ import werkzeug
 
 from . import common
 from . import keys
+from .. import exceptions
 from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
@@ -128,6 +129,11 @@ def get_one_facet(c, facetid, facet_name, orgid, facet=None, data=None):
 def get_one_class(c, classid, clazz=None):
     if not clazz:
         clazz = c.klasse.get(classid)
+
+        if not clazz:
+            raise exceptions.NotFoundError(
+                'no such class {!r}'.format(classid),
+            )
 
     attrs = clazz['attributter']['klasseegenskaber'][0]
 

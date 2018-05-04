@@ -40,6 +40,11 @@ pipeline {
             sh './build/run-build.sh'
           }
         }
+
+        publishHTML target: [
+          allowMissing: true, reportDir: 'docs/out',
+          reportFiles: 'index.html', reportName: 'Documentation'
+        ]
       }
     }
 

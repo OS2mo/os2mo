@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import datetime
+from mora import exceptions
 from mora import lora
 from mora import util
 
@@ -180,7 +181,7 @@ def _get_org_unit_endpoint_date(org_unit: dict,
             else:
                 return util.parsedatetime(virkning['from'])
 
-    raise ValueError('the unit did not have an end date!')
+    raise exceptions.ValidationError('the unit did not have an end date!')
 
 
 def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:

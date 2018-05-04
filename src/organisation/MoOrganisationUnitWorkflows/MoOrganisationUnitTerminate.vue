@@ -3,23 +3,30 @@
     id="orgUnitTerminate"
     ref="orgUnitTerminate"  
     size="lg" 
-    hide-footer 
-    title="Afslut enhed"
+    :title="$t('workflows.organisation.terminate_unit')"
     @hidden="resetData"
+    hide-footer 
     lazy
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="endOrganisationUnit">
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{backendValidationError}}
+      </div>
       <div class="form-row">
         <mo-organisation-unit-picker 
-          label="Enhed" 
+          :label="$tc('input_fields.unit', 1)" 
           class="col" 
           v-model="org_unit"
           required
         />
-        <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
       </div>
-      <div class="float-right">
+      <div v-if="org_unit">
+        <p>Følgende vil blive afsluttet for enheden:</p>
+        <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
+      </div>
+      <div class="float-right mt-3">
         <button-submit :is-loading="isLoading"/>
       </div>
     </form>
@@ -31,6 +38,7 @@
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
   export default {
     $_veeValidate: {
@@ -39,15 +47,17 @@
     components: {
       MoDatePicker,
       MoOrganisationUnitPicker,
-      ButtonSubmit
+      ButtonSubmit,
+      MoOrganisationDetailTabs
     },
     data () {
       return {
-        org_unit: {},
+        org_unit: null,
         terminate: {
           validity: {}
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     computed: {
@@ -71,7 +81,11 @@
           OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
             .then(response => {
               vm.isLoading = false
-              vm.$refs.orgUnitTerminate.hide()
+              if (response.error) {
+                vm.backendValidationError = response.description
+              } else {
+                vm.$refs.orgUnitTerminate.hide()
+              }
             })
         } else {
           this.$validator.validateAll()

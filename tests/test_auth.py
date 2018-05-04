@@ -35,7 +35,9 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/service/o/',
                 {
-                    'message': 'No Authorization header present',
+                    'cause': 'unauthorized',
+                    'error': True,
+                    'description': 'No Authorization header present',
                     'status': 401,
                 },
                 status_code=401,
@@ -55,10 +57,12 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/mo/service/user/USER/login',
                 {
-                    'message': (
+                    'cause': 'unauthorized',
+                    'description': (
                         'The security token could not be authenticated or '
                         'authorized'
                     ),
+                    'error': True,
                     'status': 401,
                 },
                 json={
@@ -81,7 +85,9 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/mo/service/user/USER/login',
                 {
-                    'message': (
+                    'cause': 'unauthorized',
+                    'error': True,
+                    'description': (
                         'ID3242: The security token could not be '
                         'authenticated or authorized.'
                     ),
@@ -113,7 +119,7 @@ class MockTests(util.TestCase):
             )
 
             with self.subTest('raw'), self.app.app_context():
-                self.assertEquals(
+                self.assertEqual(
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/wso2-assertion.xml', 'rb'),
                 )
@@ -138,7 +144,7 @@ class MockTests(util.TestCase):
             )
 
             with self.subTest('raw'), self.app.app_context():
-                self.assertEquals(
+                self.assertEqual(
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/adfs-assertion.xml', 'rb')
                 )

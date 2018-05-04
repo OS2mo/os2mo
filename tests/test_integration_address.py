@@ -6,8 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import unittest.mock
 import copy
+import logging
+import unittest.mock
 
 import freezegun
 
@@ -35,7 +36,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                 },
@@ -45,10 +46,10 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
-                    'urn': 'urn:dk:cpr:person:1111111111',
+                    'urn': 'urn:dk:cpr:person:0906340000',
                 },
             ],
             'brugertyper': [
@@ -56,7 +57,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                     'urn': 'urn:email',
@@ -67,7 +68,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                     'urn': 'urn:mailto:bruger@example.com',
@@ -123,7 +124,7 @@ class Writing(util.LoRATestCase):
                 'name': 'bruger@example.com',
                 'urn': 'urn:mailto:bruger@example.com',
                 'validity': {
-                    'from': '2002-02-14T00:00:00+01:00',
+                    'from': '1934-06-09T00:00:00+01:00',
                     'to': None,
                 },
             }
@@ -271,13 +272,7 @@ class Writing(util.LoRATestCase):
 
         addresses += [
             {
-                'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                },
+                'address_type': email_class,
                 'href': 'mailto:hest@example.com',
                 'name': 'hest@example.com',
                 'urn': 'urn:mailto:hest@example.com',
@@ -286,13 +281,7 @@ class Writing(util.LoRATestCase):
                 },
             },
             {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'Adresse',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
+                'address_type': address_class,
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.20320628&mlat=56.15263055&zoom=16',
                 'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
@@ -302,13 +291,7 @@ class Writing(util.LoRATestCase):
                 },
             },
             {
-                'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                },
+                'address_type': phone_class,
                 'href': 'tel:+4533369696',
                 'name': '3336 9696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
@@ -333,6 +316,11 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/details/address'.format(userid),
                 addresses,
             )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            addresses,
+        )
 
         with self.subTest('underlying storage'):
             edited = c.bruger.get(userid)
@@ -378,7 +366,7 @@ class Writing(util.LoRATestCase):
                             'to_included': False,
                             'to': 'infinity',
                             'from_included': True,
-                            'from': '2002-02-14 00:00:00+01',
+                            'from': '1934-06-09 00:00:00+01',
                         },
                         'urn': 'urn:mailto:bruger@example.com',
                         'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -509,7 +497,7 @@ class Writing(util.LoRATestCase):
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -520,7 +508,10 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/edit'.format(userid),
                 {
-                    'message': "invalid 'original', expected dict, got: null",
+                    'error': True,
+                    'cause': 'validation',
+                    'description':
+                    "invalid 'original', expected dict, got: null",
                     'status': 400,
                 },
                 status_code=400,
@@ -539,7 +530,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/edit'.format(userid),
                 {
-                    'message': 'original entry not found!',
+                    'error': True,
+                    'cause': 'validation',
+                    'description': 'original entry not found!',
                     'status': 400,
                 },
                 status_code=400,
@@ -558,7 +551,7 @@ class Writing(util.LoRATestCase):
                         'name': 'user@example.com',
                         'urn': 'urn:mailto:user@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1934-06-09T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -588,7 +581,7 @@ class Writing(util.LoRATestCase):
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -611,7 +604,7 @@ class Writing(util.LoRATestCase):
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': '2010-01-01T00:00:00+01:00',
                     },
                 },
@@ -646,7 +639,7 @@ class Writing(util.LoRATestCase):
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': '2010-01-01T00:00:00+01:00',
                     },
                 },
@@ -682,7 +675,7 @@ class Writing(util.LoRATestCase):
                     'name': 'Pilestræde 43, 3., 1112 København K',
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                     'validity': {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1934-06-09T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -733,7 +726,7 @@ class Writing(util.LoRATestCase):
                 "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
                 "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
                 "validity": {
-                    "from": "2002-02-14T00:00:00+01:00",
+                    "from": "1932-05-12T00:00:00+01:00",
                     "to": None
                 }
             },
@@ -743,7 +736,7 @@ class Writing(util.LoRATestCase):
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
                 "validity": {
-                    "from": "2002-02-14T00:00:00+01:00",
+                    "from": "1932-05-12T00:00:00+01:00",
                     "to": None
                 }
             },
@@ -753,7 +746,7 @@ class Writing(util.LoRATestCase):
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
                 "validity": {
-                    "from": "2002-02-14T00:00:00+01:00",
+                    "from": "1932-05-12T00:00:00+01:00",
                     "to": None
                 }
             }
@@ -982,7 +975,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
                 {
-                    'message': "missing 'value'",
+                    'error': True,
+                    'cause': 'validation',
+                    'description': "missing 'value'",
                     'status': 400,
                 },
                 status_code=400,
@@ -1003,7 +998,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
                 {
-                    'message': (
+                    'error': True,
+                    'cause': 'validation',
+                    'description': (
                         "invalid 'address_type', expected dict, got: null"
                     ),
                     'status': 400,
@@ -1026,7 +1023,12 @@ class Writing(util.LoRATestCase):
         with self.subTest('errors III'):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
-                {'message': "missing 'uuid'", 'status': 400},
+                {
+                    'error': True,
+                    'cause': 'validation',
+                    'description': "missing 'uuid'",
+                    'status': 400,
+                },
                 status_code=400,
                 json=[
                     {
@@ -1046,7 +1048,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/create'.format(unitid),
                 {
-                    'message': (
+                    'error': True,
+                    'cause': 'validation',
+                    'description': (
                         "invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
@@ -1123,6 +1127,10 @@ class Writing(util.LoRATestCase):
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
                     "value": "11 22 33 44",
+                    "validity": {
+                        "from": "2015-02-04T00:00:00+01",
+                        "to": "2017-10-22T00:00:00+02",
+                    }
                 },
                 {
                     "address_type": {
@@ -1157,7 +1165,7 @@ class Writing(util.LoRATestCase):
             },
             {
                 'virkning': {
-                    'from': '2010-02-04 00:00:00+01',
+                    'from': '2015-02-04 00:00:00+01',
                     'to_included': False,
                     'to': '2017-10-22 00:00:00+02',
                     'from_included': True,
@@ -1221,22 +1229,6 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'address_type': {
-                        'example': '20304060',
-                        'name': 'Telefonnummer',
-                        'scope': 'PHONE',
-                        'user_key': 'Telefon',
-                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    },
-                    'href': 'tel:+4511223344',
-                    'name': '1122 3344',
-                    'validity': {
-                        'from': '2010-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
-                    },
-                    'urn': 'urn:magenta.dk:telefon:+4511223344',
-                },
-                {
-                    'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
@@ -1251,6 +1243,22 @@ class Writing(util.LoRATestCase):
                         'to': '2017-10-22T00:00:00+02:00',
                     },
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                },
+                {
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    },
+                    'href': 'tel:+4511223344',
+                    'name': '1122 3344',
+                    'validity': {
+                        'from': '2015-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'urn': 'urn:magenta.dk:telefon:+4511223344',
                 },
             ],
         )
@@ -1305,7 +1313,9 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/edit'.format(unitid),
                 {
-                    'message': "missing 'value'",
+                    'error': True,
+                    'cause': 'validation',
+                    'description': "missing 'value'",
                     'status': 400,
                 },
                 status_code=400,
@@ -1693,8 +1703,22 @@ class Writing(util.LoRATestCase):
 @util.mock('dawa-addresses.json', allow_mox=True)
 class Reading(util.LoRATestCase):
 
-    def test_reading_present(self, mock):
-        self.load_sample_structures()
+    def test_reading(self, mock):
+        self.load_sample_structures(minimal=True)
+
+        with self.subTest('missing classes'):
+            with self.assertLogs(self.app.logger, logging.ERROR) as log_res:
+                self.assertRequestResponse(
+                    '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                    '/details/address',
+                    [],
+                )
+
+            self.assertRegex(log_res.output[0],
+                             r"^ERROR:mora.app:AN ERROR OCCURRED in '[^']*': "
+                             "invalid address relation")
+
+        self.load_sample_structures(minimal=False)
 
         with self.subTest('present I'):
             self.assertRequestResponse(
@@ -1711,7 +1735,7 @@ class Reading(util.LoRATestCase):
                         'Christiansborg Slotsplads 1, 1218 København K',
                         'uuid': 'bae093df-3b06-4f23-90a8-92eabedb3622',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -1727,7 +1751,7 @@ class Reading(util.LoRATestCase):
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -1743,7 +1767,7 @@ class Reading(util.LoRATestCase):
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -1767,7 +1791,7 @@ class Reading(util.LoRATestCase):
                         'name': 'bruger@example.com',
                         'urn': 'urn:mailto:bruger@example.com',
                         'validity': {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1934-06-09T00:00:00+01:00',
                             'to': None,
                         },
                     },
