@@ -15,6 +15,9 @@ from .. import settings
 
 
 def get_citizen(cpr):
+    if not util.is_cpr_number(cpr):
+        raise ValueError('invalid CPR number!')
+
     if settings.PROD_MODE:
         try:
             # TBC when SP library is extracted from AVA repo
@@ -158,9 +161,6 @@ LAST_NAMES = [
 
 
 def _get_citizen_stub(cpr):
-    if not util.is_cpr_number(cpr):
-        return None
-
     # Seed random with CPR number to ensure consistent output
     random.seed(cpr)
 

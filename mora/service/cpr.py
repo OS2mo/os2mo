@@ -48,12 +48,20 @@ def search_cpr():
     """
     cpr = flask.request.args['q']
 
-    sp_data = get_citizen(cpr)
+    try:
+        sp_data = get_citizen(cpr)
+    except KeyError:
+        raise exceptions.NotFoundError(
+            'no such person found',
+            cpr=cpr,
+        )
+    except ValueError:
+        raise exceptions.ValidationError(
+            'not a valid cpr number',
+            cpr=cpr,
+        )
 
-    if sp_data:
-        return flask.jsonify(format_cpr_response(sp_data, cpr))
-    else:
-        return '', 404
+    return flask.jsonify(format_cpr_response(sp_data, cpr))
 
 
 def format_cpr_response(sp_data: dict, cpr: str):
