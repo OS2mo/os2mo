@@ -8,9 +8,7 @@
 
 from unittest import mock
 
-from mora import exceptions
-
-from . import util
+from tests import util
 
 
 class Tests(util.TestCase):
@@ -19,8 +17,9 @@ class Tests(util.TestCase):
             '/service/kaflaflibob',
             {
                 'error': True,
+                'key': 'E90004',
                 'cause': 'not-found',
-                'description': 'no such endpoint',
+                'description': 'No such endpoint.',
                 'status': 404,
             },
             status_code=404,
@@ -34,6 +33,7 @@ class Tests(util.TestCase):
             '/service/ou/00000000-0000-0000-0000-000000000000/details/',
             {
                 'error': True,
+                'key': 'E99999',
                 'cause': 'unknown',
                 'description': 'go away',
                 'status': 500,

@@ -95,7 +95,7 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
                             None, XML_NAMESPACES)
 
     if not resp.ok or errormsg:
-        raise exceptions.UnauthorizedError(errormsg)
+        raise exceptions.UnauthorizedError(message=errormsg)
 
     tokens = doc.findall('.//saml:Assertion', XML_NAMESPACES)
 

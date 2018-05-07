@@ -22,6 +22,7 @@ import flask
 import dateutil.parser
 import dateutil.tz
 
+from .errors import Error
 from . import exceptions
 
 
@@ -257,7 +258,7 @@ def update_config(mapping, config_path, allow_environment=True):
 
 def splitlist(xs, size):
     if size <= 0:
-        raise exceptions.ValidationError('size must be positive!')
+        raise exceptions.ValidationError(Error.E38)
 
     i = 0
     nxs = len(xs)

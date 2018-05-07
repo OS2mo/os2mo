@@ -11,18 +11,22 @@ import typing
 import flask
 import werkzeug.exceptions
 
+from .errors import Error
 from . import util
 
 
 class BaseError(werkzeug.exceptions.HTTPException):
-    description = 'An unknown error occurred.'
+    key = Error.E99999
     cause = 'unknown'
     code = 500
 
     def __init__(self,
-                 description: typing.Optional[str]=None,
+                 key: typing.Optional[Error]=None,
                  **context) -> None:
-        super().__init__(description or type(self).description)
+        if key:
+            self.key = key
+
+        super().__init__(self.key.value)
 
         self.context = context
 
@@ -33,9 +37,10 @@ class BaseError(werkzeug.exceptions.HTTPException):
         return flask.json.dumps(
             {
                 'error': True,
-                'description': self.description,
+                'description': self.key.value,
                 'cause': self.cause,
                 'status': self.code,
+                'key': self.key.name,
 
                 **self.context,
             },
@@ -44,18 +49,18 @@ class BaseError(werkzeug.exceptions.HTTPException):
 
 
 class ValidationError(BaseError):
-    description = 'Invalid input.'
+    key = Error.E90000
     cause = 'validation'
     code = 400
 
 
 class NotFoundError(BaseError):
-    description = 'Not found.'
+    key = Error.E90003
     cause = 'not-found'
     code = 404
 
 
 class UnauthorizedError(BaseError):
-    description = 'Access denied.'
+    key = Error.E90001
     cause = 'unauthorized'
     code = 401

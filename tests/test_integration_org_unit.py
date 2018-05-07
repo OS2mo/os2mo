@@ -1065,8 +1065,9 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
+                'key': 'E10',
                 'cause': 'not-found',
-                'description': 'no such unit!',
+                'description': 'Org unit not found.',
                 'status': 404,
             },
             status_code=404,
@@ -1085,9 +1086,9 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'cause': 'validation',
                 'status': 400,
-
-                'description': 'cannot terminate unit with 1 active children',
-
+                'key': 'V8',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
                 'role_count': 0,
                 'child_count': 1,
 
@@ -1116,10 +1117,9 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'cause': 'validation',
                 'status': 400,
-
-                'description':
-                'cannot terminate unit with 2 active children '
-                'and 4 active roles',
+                'key': 'V8',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
 
                 'role_count': 4,
                 'child_count': 2,
@@ -1155,10 +1155,9 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'cause': 'validation',
                 'status': 400,
-
-                'description':
-                'cannot terminate unit with 1 active children '
-                'and 4 active roles',
+                'key': 'V8',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
 
                 'role_count': 4,
                 'child_count': 1,
@@ -1203,10 +1202,9 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'cause': 'validation',
                 'status': 400,
-
-                'description':
-                'cannot terminate unit with 4 active roles',
-
+                'key': 'V8',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
                 'role_count': 4,
                 'child_count': 0,
 

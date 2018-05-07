@@ -36,7 +36,9 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': (
+                'key': 'E31',
+                'description': 'Invalid type.',
+                'message': (
                     'invalid \'itsystem\', expected dict, got: null'
                 ),
                 'status': 400,
@@ -59,7 +61,8 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'not-found',
-                'description': 'no such user!',
+                'key': 'E11',
+                'description': 'User not found.',
                 'status': 404,
             },
             json=[
@@ -82,7 +85,9 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': (
+                'key': 'E31',
+                'description': 'Invalid type.',
+                'message': (
                     'invalid \'itsystem\', expected dict, got: null'
                 ),
                 'status': 400,
@@ -105,7 +110,8 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': 'missing start date!',
+                'key': 'V3',
+                'description': 'Missing start date.',
                 'status': 400,
             },
             json=[
@@ -128,7 +134,9 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': "missing 'uuid'",
+                'key': 'V1',
+                'description': "Missing required value.",
+                'missing': 'uuid',
                 'status': 400,
             },
             json=[
@@ -149,7 +157,9 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': "invalid uuid for 'uuid': '42'",
+                'key': 'E32',
+                'description': 'Invalid UUID.',
+                'message': "invalid uuid for 'uuid': '42'",
                 'status': 400,
             },
             json=[
@@ -172,7 +182,8 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': 'original entry not found!',
+                'key': 'E34',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -204,7 +215,8 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': 'original entry not found!',
+                'key': 'E34',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -236,7 +248,8 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': 'original entry not found!',
+                'key': 'E34',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -268,7 +281,9 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': "invalid 'uuid', expected str, got: null",
+                'key': 'E31',
+                'description': 'Invalid type.',
+                'message': "invalid 'uuid', expected str, got: null",
                 'status': 400,
             },
             json=[
@@ -510,7 +525,8 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'description': 'original required!',
+                'key': 'V4',
+                'description': 'Original required.',
                 'status': 400,
             },
             status_code=400,

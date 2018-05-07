@@ -154,6 +154,7 @@ import re
 import flask
 import requests
 
+from ..errors import Error
 from .. import exceptions
 from .. import lora
 from .. import util
@@ -415,7 +416,7 @@ class Addresses(common.AbstractRelationDetail):
 
         if not old_entry:
             raise exceptions.ValidationError(
-                'original required!',
+                Error.V4
             )
 
         old_rel = get_relation_for(old_entry)
@@ -480,7 +481,7 @@ def address_autocomplete(orgid):
         org = lora.Connector().organisation.get(orgid)
 
         if not org:
-            raise exceptions.NotFoundError('No local municipality found!')
+            raise exceptions.NotFoundError(Error.E37)
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
@@ -489,7 +490,7 @@ def address_autocomplete(orgid):
                 code = int(m.group(1))
                 break
         else:
-            raise exceptions.NotFoundError('No local municipality found!')
+            raise exceptions.NotFoundError(Error.E37)
     else:
         code = None
 

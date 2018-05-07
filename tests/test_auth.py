@@ -37,7 +37,9 @@ class MockTests(util.TestCase):
                 {
                     'cause': 'unauthorized',
                     'error': True,
-                    'description': 'No Authorization header present',
+                    'key': 'E90001',
+                    'description': 'Unauthorized.',
+                    'message': 'No Authorization header present',
                     'status': 401,
                 },
                 status_code=401,
@@ -58,7 +60,9 @@ class MockTests(util.TestCase):
                 '/mo/service/user/USER/login',
                 {
                     'cause': 'unauthorized',
-                    'description': (
+                    'description': 'Unauthorized.',
+                    'key': 'E90001',
+                    'message': (
                         'The security token could not be authenticated or '
                         'authorized'
                     ),
@@ -87,7 +91,9 @@ class MockTests(util.TestCase):
                 {
                     'cause': 'unauthorized',
                     'error': True,
-                    'description': (
+                    'key': 'E90001',
+                    'description': 'Unauthorized.',
+                    'message': (
                         'ID3242: The security token could not be '
                         'authenticated or authorized.'
                     ),

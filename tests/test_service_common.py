@@ -1940,22 +1940,22 @@ class TestClass(TestCase):
         )
 
         with self.assertRaisesRegex(exceptions.ValidationError,
-                                    "missing 'nonexistent'"):
+                                    "Missing required value"):
             common.checked_get(mapping, 'nonexistent', [], required=True)
 
         with self.assertRaisesRegex(exceptions.ValidationError,
-                                    "missing 'nonexistent'"):
+                                    "Missing required value"):
             common.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(
                 exceptions.ValidationError,
-                'invalid \'dict\', expected list, got: {"1337": 1337}',
+                'Invalid type',
         ):
             common.checked_get(mapping, 'dict', [])
 
         with self.assertRaisesRegex(
                 exceptions.ValidationError,
-                r"invalid 'list', expected dict, got: \[1337\]",
+                r"Invalid type",
         ):
             common.checked_get(mapping, 'list', {})

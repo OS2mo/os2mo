@@ -9,6 +9,7 @@ import datetime
 from mora import exceptions
 from mora import lora
 from mora import util
+from .errors import Error
 from .service import common
 from .service import keys
 
@@ -72,8 +73,11 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.ValidationError(
-            'Date range exceeds validity range of '
-            'associated organisational unit.')
+            Error.V9,
+            org_unit_uuid=org_unit_uuid,
+            valid_from=valid_from,
+            valid_to=valid_to
+        )
 
 
 def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
@@ -86,7 +90,11 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
     if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.ValidationError(
-            'Date range exceeds validity range of associated employee.')
+            Error.V10,
+            employee_uuid=employee_uuid,
+            valid_from=valid_from,
+            valid_to=valid_to
+        )
 
 
 def is_candidate_parent_valid(unitid: str, req: dict) -> bool:

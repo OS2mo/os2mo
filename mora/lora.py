@@ -16,6 +16,7 @@ import uuid
 
 import requests
 
+from .errors import Error
 from . import auth
 from . import exceptions
 from . import settings
@@ -155,9 +156,9 @@ def _check_response(r):
             raise exceptions.ValidationError(r.text)
 
         if r.status_code == 400 and d:
-            raise exceptions.ValidationError(r.json()['message'])
+            raise exceptions.ValidationError(message=r.json()['message'])
         elif r.status_code in (401, 403) and d:
-            raise exceptions.UnauthorizedError(r.json()['message'])
+            raise exceptions.UnauthorizedError(message=r.json()['message'])
         else:
             raise
 
@@ -267,7 +268,8 @@ class Connector:
 
         else:
             raise exceptions.ValidationError(
-                'invalid validity {!r}'.format(self.__validity),
+                Error.V2,
+                validity=self.__validity
             )
 
         self.__defaults = defaults

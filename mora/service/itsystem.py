@@ -21,6 +21,7 @@ import uuid
 import flask
 import werkzeug
 
+from ..errors import Error
 from .. import exceptions
 from .. import util
 
@@ -240,7 +241,7 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
         if not original:
-            raise exceptions.NotFoundError('no such user!')
+            raise exceptions.NotFoundError(Error.E11)
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
@@ -269,7 +270,7 @@ class ITSystems(common.AbstractRelationDetail):
         old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
 
         if not old_entry:
-            raise exceptions.ValidationError('original required!')
+            raise exceptions.ValidationError(Error.V4)
 
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(

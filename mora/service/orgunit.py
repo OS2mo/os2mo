@@ -22,6 +22,7 @@ import uuid
 import flask
 import werkzeug
 
+from ..errors import Error
 from . import address
 from . import common
 from . import facet
@@ -710,7 +711,7 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=date)
 
     if not c.organisationenhed.get(unitid):
-        raise exceptions.NotFoundError('no such unit!')
+        raise exceptions.NotFoundError(Error.E10)
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,
@@ -725,22 +726,8 @@ def terminate_org_unit(unitid):
     )
 
     if children['total'] or roles:
-        if children['total'] and len(roles):
-            msg = (
-                'cannot terminate unit with {} active children '
-                'and {} active roles'.format(children['total'], len(roles))
-            )
-        elif children['total']:
-            msg = 'cannot terminate unit with {} active children'.format(
-                children['total'],
-            )
-        else:
-            msg = 'cannot terminate unit with {} active roles'.format(
-                len(roles),
-            )
-
         raise exceptions.ValidationError(
-            msg,
+            Error.V8,
             child_units=children['items'],
             child_count=children['total'],
             role_count=len(roles),
