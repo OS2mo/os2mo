@@ -22,6 +22,9 @@ def _is_date_range_valid(parent: str, startdate: datetime.datetime,
     :param parent: The UUID of the parent unit.
     :param startdate: The candidate start date.
     :param enddate: The candidate end date.
+    :param lora_scope: A scope object from a LoRa connector.
+    :param gyldighed_key: The key of where to find the 'gyldighed' in the
+        object in question
     :return: True if the date range is valid and false otherwise.
     """
 
@@ -182,4 +185,3 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
             return False
 
     return True
-

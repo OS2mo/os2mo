@@ -12,6 +12,8 @@ import unittest
 import freezegun
 import requests_mock
 
+from mora import util
+from mora import lora
 from mora import settings
 from mora import validator
 from mora import util as mora_util
@@ -20,16 +22,20 @@ from mora import util as mora_util
 class TestIsDateRangeValid(unittest.TestCase):
     def test_startdate_should_be_smaller_than_enddate(self):
         self.assertFalse(
-            validator._is_date_range_valid(None, '01-01-2017', '01-01-2016'))
+            validator._is_date_range_valid(None, '01-01-2017', '01-01-2016',
+                                           None, 'whatever'))
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_validity_ranges(self):
         URL = (
             settings.LORA_URL + 'organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
-            '&virkningfra=2000-01-01T00%3A00%3A00%2B01%3A00'
-            '&virkningtil=3000-01-01T00%3A00%3A00%2B01%3A00'
+            '&virkningfra=2000-01-01'
+            '&virkningtil=3000-01-01'
         )
+
+        c = lora.Connector(virkningfra='2000-01-01',
+                           virkningtil='3000-01-01').organisationenhed
 
         def check(expect, validities):
             with requests_mock.mock() as m:
@@ -68,8 +74,10 @@ class TestIsDateRangeValid(unittest.TestCase):
                     expect,
                     validator._is_date_range_valid(
                         '00000000-0000-0000-0000-000000000000',
-                        '01-01-2000',
-                        '01-01-3000',
+                        util.parsedatetime('01-01-2000'),
+                        util.parsedatetime('01-01-3000'),
+                        c,
+                        'organisationenhedgyldighed'
                     )
                 )
 
@@ -185,71 +193,3 @@ class TestGetEndpointDate(unittest.TestCase):
                          validator._get_org_unit_endpoint_date(self.org_unit,
                                                                False)
                          )
-
-
-class TestUpdateLocation(unittest.TestCase):
-    def test_should_return_false_if_address_is_missing(self):
-        frontend_req = {
-            'role-type': 'location',
-            'location': ''
-        }
-        self.assertFalse(validator.is_location_update_valid(frontend_req))
-
-    def test_should_return_true_when_address_and_name_is_set(self):
-        frontend_req = {
-            'role-type': 'location',
-            "location": {
-                "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
-                "postdistrikt": "Risskov",
-                "postnr": "8240",
-                "vejnavn": "Pilevej 3, 8240 Risskov"
-            },
-            'name': 'name'
-        }
-        self.assertTrue(validator.is_location_update_valid(frontend_req))
-
-    def test_should_return_false_when_name_is_missing(self):
-        frontend_req = {
-            'role-type': 'location',
-            "location": {
-                "UUID_EnhedsAdresse": "0a3f50c3-df6f-32b8-e044-0003ba298018",
-                "postdistrikt": "Risskov",
-                "postnr": "8240",
-                "vejnavn": "Pilevej 3, 8240 Risskov"
-            },
-            'name': ''
-        }
-        self.assertFalse(validator.is_location_update_valid(frontend_req))
-
-    def test_should_return_status_200_when_location_not_set(self):
-        # The first request made by the frontend when adding a new contact
-        # channel. The request is not used by the middleend.
-
-        frontend_req = {
-            "name": "Nordre Ringgade 1, 8000 Aarhus C",
-            "user-key": "NULL",
-            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "valid-from": "2014-05-05T19:07:48.577000+00:00",
-            "valid-to": "infinity",
-            "vejnavn": "Nordre Ringgade 1, 8000 Aarhus C",
-            "contact-channels": [
-                {
-                    "contact-info": "+4587150000",
-                    "visibility": {
-                        "name": "Må vises eksternt",
-                        "user-key": "external",
-                        "uuid": "c67d7315-a0a2-4238-a883-f33aa7ddabc2"
-                    },
-                    "type": {
-                        "name": "Telefonnummer",
-                        "prefix": "urn:magenta.dk:telefon:",
-                        "user-key": "Telephone_number"
-                    },
-                    "valid-to": "infinity",
-                    "valid-from": "-infinity"
-                }
-            ],
-            "person": "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "role-type": "contact-channel"
-        }
-        self.assertTrue(validator.is_location_update_valid(frontend_req))
