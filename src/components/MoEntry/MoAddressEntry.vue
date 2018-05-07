@@ -7,14 +7,20 @@
       <div class="form-group col">
         <div v-if="entry.address_type != null">
           <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
-
-          <input 
-            v-if="entry.address_type.scope!='DAR'" 
-            v-model="address.location.uuid" 
+          <label :for="nameId" v-if="entry.address_type.scope!='DAR'">{{entry.address_type.name}}</label>
+          <input
+            :name="nameId" 
+            v-if="entry.address_type.scope!='DAR'"
+            :data-vv-as="entry.address_type.name"
+            v-model="entry.value" 
             type="text" 
             class="form-control"
-            >
+            v-validate="validityRules" 
+          >
         </div>
+        <span v-show="errors.has(nameId)" class="text-danger">
+          {{ errors.first(nameId) }}
+        </span>
       </div>
     </div>
   </div>
@@ -28,6 +34,9 @@ import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 
 export default {
   name: 'MoAddressEntry',
+  inject: {
+    $validator: '$validator'
+  },
   components: {
     MoAddressSearch,
     MoFacetPicker,
@@ -36,16 +45,20 @@ export default {
   props: {
     value: Object,
     validity: Object,
-    validityHidden: Boolean
+    validityHidden: Boolean,
+    required: Boolean,
+    label: String
   },
   data () {
     return {
       entry: {
         validity: {},
         address_type: {},
-        uuid: null
+        uuid: null,
+        value: null
       },
-      address: null
+      address: null,
+      addressScope: null
     }
   },
   computed: {
@@ -55,21 +68,41 @@ export default {
     },
     isDisabled () {
       return this.entry.address_type == null
+    },
+
+    nameId () {
+      return 'scope-type-' + this._uid
+    },
+
+    validityRules () {
+      if (this.entry.address_type.scope === 'PHONE') return {required: true, digits: 8}
+      if (this.entry.address_type.scope === 'EMAIL') return {required: true, email: true}
+      if (this.entry.address_type.scope === 'EAN') return {required: true, digits: 13}
+      if (this.entry.address_type.scope === 'TEXT') return {required: true}
+      if (this.entry.address_type.scope === 'WWW') return {required: true, url: true}
+      if (this.entry.address_type.scope === 'INTEGER') return {required: true, numeric: true}
     }
   },
   watch: {
     entry: {
-      handler (val) {
-        val.type = 'address'
-        this.$emit('input', val)
+      handler (newVal, oldVal) {
+        newVal.type = 'address'
+        if (newVal.address !== oldVal.addresstype) {
+          this.entry.uuid = null
+          this.entry.value = null
+          this.$emit('input', newVal)
+        }
       },
       deep: true
     },
 
     address: {
       handler (val) {
-        if (val == null) return
-        this.entry.uuid = val.location.uuid
+        if (this.entry.address_type.scope === 'DAR') {
+          this.entry.uuid = val.location.uuid
+        } else {
+          this.entry.value = val
+        }
       },
       deep: true
     }
@@ -84,6 +117,7 @@ export default {
       }
     }
     this.entry = this.value
+    this.entry.value = this.value.name
   }
 }
 </script>
