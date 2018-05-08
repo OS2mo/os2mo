@@ -85,19 +85,16 @@ export default {
   },
   watch: {
     entry: {
-      handler (newVal, oldVal) {
+      handler (newVal) {
         newVal.type = 'address'
-        if (newVal.address !== oldVal.addresstype) {
-          this.entry.uuid = null
-          this.entry.value = null
-          this.$emit('input', newVal)
-        }
+        this.$emit('input', newVal)
       },
       deep: true
     },
 
     address: {
       handler (val) {
+        if (val == null) return
         if (this.entry.address_type.scope === 'DAR') {
           this.entry.uuid = val.location.uuid
         } else {
