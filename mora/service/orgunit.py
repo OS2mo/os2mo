@@ -358,7 +358,6 @@ def list_orgunits(orgid):
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Short, unique key identifying the unit.
 
-
     :status 200: Always.
 
     **Example Response**:
@@ -680,23 +679,23 @@ def terminate_org_unit(unitid):
 
     .. sourcecode:: json
 
-    {
-        "description": "cannot terminate unit with 1 active children",
-        "error": true,
-        "cause": "validation",
-        "status": 400,
+      {
+          "description": "cannot terminate unit with 1 active children",
+          "error": true,
+          "cause": "validation",
+          "status": 400,
 
-        "child_count": 1,
-        "role_count": 0,
-        "child_units": [
-            {
-                "child_count": 0,
-                "name": "Afdeling for Fremtidshistorik",
-                "user_key": "frem",
-                "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
-            }
-        ]
-    }
+          "child_count": 1,
+          "role_count": 0,
+          "child_units": [
+              {
+                  "child_count": 0,
+                  "name": "Afdeling for Fremtidshistorik",
+                  "user_key": "frem",
+                  "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+              }
+          ]
+      }
 
     """
     date = common.get_valid_from(flask.request.get_json())

@@ -208,8 +208,9 @@ def get_relation_for(addrobj, fallback=None):
         # want to report that the *value* is missing in the
         # exception/error message.
         if (
-            'urn' in addrobj or
-            keys.VALUE not in addrobj and fallback and 'urn' in fallback
+            keys.VALUE not in addrobj and (
+                'urn' in addrobj or fallback and 'urn' in fallback
+            )
         ):
             value = common.get_urn(addrobj, fallback)
 
