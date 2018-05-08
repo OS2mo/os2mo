@@ -510,7 +510,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'E31',
+                    'key': 'E_INVALID_TYPE',
                     'description': 'Invalid type.',
                     'message':
                     "invalid 'original', expected dict, got: null",
@@ -534,7 +534,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'E34',
+                    'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                     'description': 'Original entry not found.',
                     'status': 400,
                 },
@@ -980,7 +980,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'V1',
+                    'key': 'V_MISSING_REQUIRED_VALUE',
                     'description': "Missing required value.",
                     'missing': 'value',
                     'status': 400,
@@ -1005,7 +1005,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'E31',
+                    'key': 'E_INVALID_TYPE',
                     'description': "Invalid type.",
                     'message': (
                         "invalid 'address_type', expected dict, got: null"
@@ -1033,7 +1033,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'V1',
+                    'key': 'V_MISSING_REQUIRED_VALUE',
                     'description': "Missing required value.",
                     'missing': 'uuid',
                     'status': 400,
@@ -1059,7 +1059,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'E32',
+                    'key': 'E_INVALID_UUID',
                     'description': "Invalid UUID.",
                     'message': (
                         "invalid uuid for 'uuid': 'hallo@exmaple.com'"
@@ -1326,7 +1326,7 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'cause': 'validation',
-                    'key': 'V1',
+                    'key': 'V_MISSING_REQUIRED_VALUE',
                     'description': 'Missing required value.',
                     'missing': 'value',
                     'status': 400,

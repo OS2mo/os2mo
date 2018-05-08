@@ -54,7 +54,7 @@ class TestAddressLookup(util.TestCase):
             {
                 'error': True,
                 'cause': 'not-found',
-                'key': 'E37',
+                'key': 'E_NO_LOCAL_MUNICIPALITY',
                 'description': 'No local municipality found.',
                 'status': 404,
             },
@@ -110,7 +110,7 @@ class TestAddressLookup(util.TestCase):
             {
                 'error': True,
                 'cause': 'not-found',
-                'key': 'E37',
+                'key': 'E_NO_LOCAL_MUNICIPALITY',
                 'description': 'No local municipality found.',
                 'status': 404,
             },

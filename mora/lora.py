@@ -16,7 +16,7 @@ import uuid
 
 import requests
 
-from .errors import Error
+from .errorcodes import ErrorCodes
 from . import auth
 from . import exceptions
 from . import settings
@@ -268,7 +268,7 @@ class Connector:
 
         else:
             raise exceptions.ValidationError(
-                Error.V2,
+                ErrorCodes.V_INVALID_VALIDITY,
                 validity=self.__validity
             )
 

@@ -12,7 +12,7 @@ import traceback
 
 import flask
 
-from .errors import Error
+from .errorcodes import ErrorCodes
 from . import auth
 from . import cli
 from . import exceptions
@@ -45,7 +45,7 @@ def handle_invalid_usage(error):
 
     return exceptions.BaseError(
         description=str(error),
-        key=Error.E99999,
+        key=ErrorCodes.E_UNKNOWN_ERROR,
         stacktrace=traceback.format_exc(),
     ).get_response()
 
@@ -54,6 +54,6 @@ def handle_invalid_usage(error):
 @app.route('/<path:path>')
 def root(path=''):
     if path.split('/', 1)[0] == 'service':
-        raise exceptions.NotFoundError(Error.E90004)
+        raise exceptions.NotFoundError(ErrorCodes.E_NO_SUCH_ENDPOINT)
 
     return flask.send_file('index.html')

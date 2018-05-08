@@ -43,7 +43,7 @@ class Tests(util.TestCase):
                     {
                         'cause': 'not-found',
                         'cpr': '1111111111',
-                        'key': 'V5',
+                        'key': 'V_NO_PERSON_FOR_CPR',
                         'description': 'No person found for given CPR number.',
                         'error': True,
                         'status': 404,
@@ -60,7 +60,7 @@ class Tests(util.TestCase):
             {
                 'cause': 'validation',
                 'cpr': '1234/',
-                'key': 'V6',
+                'key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
@@ -73,7 +73,7 @@ class Tests(util.TestCase):
             {
                 'cause': 'validation',
                 'cpr': '1234567890123',
-                'key': 'V6',
+                'key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
@@ -86,7 +86,7 @@ class Tests(util.TestCase):
             {
                 'cause': 'validation',
                 'cpr': '2222222222',
-                'key': 'V6',
+                'key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,

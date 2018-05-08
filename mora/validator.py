@@ -9,7 +9,7 @@ import datetime
 from mora import exceptions
 from mora import lora
 from mora import util
-from .errors import Error
+from .errorcodes import ErrorCodes
 
 
 def _is_date_range_valid(parent: str, startdate: datetime.datetime,
@@ -71,7 +71,7 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.ValidationError(
-            Error.V9,
+            ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
             valid_from=valid_from,
             valid_to=valid_to
@@ -88,7 +88,7 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
     if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.ValidationError(
-            Error.V10,
+            ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
             employee_uuid=employee_uuid,
             valid_from=valid_from,
             valid_to=valid_to
@@ -115,7 +115,8 @@ def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
     )['relationer']
     if org_unit_relations['overordnet'][0]['uuid'] == \
             org_unit_relations['tilhoerer'][0]['uuid']:
-        raise exceptions.ValidationError(Error.V11)
+        raise exceptions.ValidationError(
+            ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
 
     # Use for checking that the candidate parent is not the units own subtree
     def is_node_valid(node_uuid: str) -> bool:
@@ -140,7 +141,7 @@ def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
         return is_node_valid(parent)
 
     if not is_node_valid(new_unitid):
-        raise exceptions.ValidationError(Error.V7)
+        raise exceptions.ValidationError(ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD)
 
 
 def _get_org_unit_endpoint_date(org_unit: dict,

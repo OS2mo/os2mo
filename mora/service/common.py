@@ -23,7 +23,7 @@ import uuid
 
 import flask
 
-from ..errors import Error
+from ..errorcodes import ErrorCodes
 from . import keys
 from .. import exceptions
 from .. import lora
@@ -116,7 +116,7 @@ def checked_get(
             return checked_get(fallback, key, default, None, required)
         elif required:
             raise exceptions.ValidationError(
-                Error.V1,
+                ErrorCodes.V_MISSING_REQUIRED_VALUE,
                 missing=key
             )
         else:
@@ -124,7 +124,7 @@ def checked_get(
 
     elif not isinstance(v, type(default)):
         raise exceptions.ValidationError(
-            Error.E31,
+            ErrorCodes.E_INVALID_TYPE,
             message='invalid {!r}, expected {}, got: {}'.format(
                 key, type(default).__name__, json.dumps(v),
             ),
@@ -143,7 +143,7 @@ def get_uuid(
 
     if not util.is_uuid(v):
         raise exceptions.ValidationError(
-            Error.E32,
+            ErrorCodes.E_INVALID_UUID,
             message='invalid uuid for {!r}: {!r}'.format(key, v),
         )
 
@@ -176,7 +176,7 @@ def get_urn(
 
     if not util.is_urn(v):
         raise exceptions.ValidationError(
-            Error.E33,
+            ErrorCodes.E_INVALID_URN,
             message='invalid urn for {!r}: {!r}'.format(key, v),
         )
 
@@ -630,14 +630,14 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
         if valid_from is None:
-            raise exceptions.ValidationError(Error.V3)
+            raise exceptions.ValidationError(ErrorCodes.V_MISSING_START_DATE)
         elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
 
     if fallback is not None:
         return get_valid_from(fallback)
     else:
-        raise exceptions.ValidationError(Error.V3)
+        raise exceptions.ValidationError(ErrorCodes.V_MISSING_START_DATE)
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -697,7 +697,7 @@ def replace_relation_value(relations: typing.List[dict],
             return new_rels
 
     else:
-        raise exceptions.ValidationError(Error.E34)
+        raise exceptions.ValidationError(ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
 def is_reg_valid(reg):

@@ -20,7 +20,7 @@ import os
 import flask
 import requests.auth
 
-from .errors import Error
+from .errorcodes import ErrorCodes
 from . import exceptions
 from . import tokens
 
@@ -88,7 +88,7 @@ def login(username):
             flask.request.full_path,
         )
 
-        raise exceptions.UnauthorizedError(Error.E90002)
+        raise exceptions.UnauthorizedError(ErrorCodes.E_CONNECTION_FAILED)
 
     resp = flask.jsonify({
         "user": username,

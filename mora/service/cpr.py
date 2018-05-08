@@ -15,7 +15,7 @@ based on their CPR number.
 
 import flask
 
-from ..errors import Error
+from ..errorcodes import ErrorCodes
 from mora import exceptions
 from mora import util
 from mora.integrations.serviceplatformen import get_citizen
@@ -53,12 +53,12 @@ def search_cpr():
         sp_data = get_citizen(cpr)
     except KeyError:
         raise exceptions.NotFoundError(
-            Error.V5,
+            ErrorCodes.V_NO_PERSON_FOR_CPR,
             cpr=cpr,
         )
     except ValueError:
         raise exceptions.ValidationError(
-            Error.V6,
+            ErrorCodes.V_CPR_NOT_VALID,
             cpr=cpr,
         )
 

@@ -11,17 +11,17 @@ import typing
 import flask
 import werkzeug.exceptions
 
-from .errors import Error
+from .errorcodes import ErrorCodes
 from . import util
 
 
 class BaseError(werkzeug.exceptions.HTTPException):
-    key = Error.E99999
+    key = ErrorCodes.E_UNKNOWN_ERROR
     cause = 'unknown'
     code = 500
 
     def __init__(self,
-                 key: typing.Optional[Error]=None,
+                 key: typing.Optional[ErrorCodes]=None,
                  **context) -> None:
         if key:
             self.key = key
@@ -49,18 +49,18 @@ class BaseError(werkzeug.exceptions.HTTPException):
 
 
 class ValidationError(BaseError):
-    key = Error.E90000
+    key = ErrorCodes.E_INVALID_INPUT
     cause = 'validation'
     code = 400
 
 
 class NotFoundError(BaseError):
-    key = Error.E90003
+    key = ErrorCodes.E_NOT_FOUND
     cause = 'not-found'
     code = 404
 
 
 class UnauthorizedError(BaseError):
-    key = Error.E90001
+    key = ErrorCodes.E_UNAUTHORIZED
     cause = 'unauthorized'
     code = 401

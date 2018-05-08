@@ -36,7 +36,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E31',
+                'key': 'E_INVALID_TYPE',
                 'description': 'Invalid type.',
                 'message': (
                     'invalid \'itsystem\', expected dict, got: null'
@@ -61,7 +61,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'not-found',
-                'key': 'E11',
+                'key': 'E_USER_NOT_FOUND',
                 'description': 'User not found.',
                 'status': 404,
             },
@@ -85,7 +85,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E31',
+                'key': 'E_INVALID_TYPE',
                 'description': 'Invalid type.',
                 'message': (
                     'invalid \'itsystem\', expected dict, got: null'
@@ -110,7 +110,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'V3',
+                'key': 'V_MISSING_START_DATE',
                 'description': 'Missing start date.',
                 'status': 400,
             },
@@ -134,7 +134,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'V1',
+                'key': 'V_MISSING_REQUIRED_VALUE',
                 'description': "Missing required value.",
                 'missing': 'uuid',
                 'status': 400,
@@ -157,7 +157,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E32',
+                'key': 'E_INVALID_UUID',
                 'description': 'Invalid UUID.',
                 'message': "invalid uuid for 'uuid': '42'",
                 'status': 400,
@@ -182,7 +182,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E34',
+                'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                 'description': 'Original entry not found.',
                 'status': 400,
             },
@@ -215,7 +215,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E34',
+                'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                 'description': 'Original entry not found.',
                 'status': 400,
             },
@@ -248,7 +248,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E34',
+                'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                 'description': 'Original entry not found.',
                 'status': 400,
             },
@@ -281,7 +281,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'E31',
+                'key': 'E_INVALID_TYPE',
                 'description': 'Invalid type.',
                 'message': "invalid 'uuid', expected str, got: null",
                 'status': 400,
@@ -525,7 +525,7 @@ class Writing(util.LoRATestCase):
             {
                 'error': True,
                 'cause': 'validation',
-                'key': 'V4',
+                'key': 'V_ORIGINAL_REQUIRED',
                 'description': 'Original required.',
                 'status': 400,
             },

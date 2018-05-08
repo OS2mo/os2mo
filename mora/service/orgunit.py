@@ -22,7 +22,7 @@ import uuid
 import flask
 import werkzeug
 
-from ..errors import Error
+from ..errorcodes import ErrorCodes
 from . import address
 from . import common
 from . import facet
@@ -715,7 +715,7 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=date)
 
     if not c.organisationenhed.get(unitid):
-        raise exceptions.NotFoundError(Error.E10)
+        raise exceptions.NotFoundError(ErrorCodes.E_ORG_UNIT_NOT_FOUND)
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,
@@ -731,7 +731,7 @@ def terminate_org_unit(unitid):
 
     if children['total'] or roles:
         raise exceptions.ValidationError(
-            Error.V8,
+            ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
             child_units=children['items'],
             child_count=children['total'],
             role_count=len(roles),

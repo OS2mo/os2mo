@@ -21,7 +21,7 @@ import itertools
 
 import flask
 
-from ..errors import Error
+from ..errorcodes import ErrorCodes
 from . import address
 from . import common
 from . import employee
@@ -412,7 +412,7 @@ def get_detail(type, id, function):
 
     # ensure that we report an error correctly
     if function not in keys.FUNCTION_KEYS:
-        raise exceptions.ValidationError(Error.E36)
+        raise exceptions.ValidationError(ErrorCodes.E_INVALID_FUNCTION_TYPE)
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or 20,
