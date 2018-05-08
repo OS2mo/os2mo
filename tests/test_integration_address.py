@@ -826,6 +826,67 @@ class Writing(util.LoRATestCase):
             [],
         )
 
+    def test_edit_web_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        old_addr = {
+            'address_type': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            },
+            'href': 'mailto:bruger@example.com',
+            'name': 'bruger@example.com',
+            'urn': 'urn:mailto:bruger@example.com',
+            'validity': {
+                'from': '1934-06-09T00:00:00+01:00',
+                'to': None,
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': dict(**old_addr, value='hest@example.com'),
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'href': 'mailto:hest@example.com',
+                    'name': 'hest@example.com',
+                    'urn': 'urn:mailto:hest@example.com',
+                    'validity': {
+                        'from': '1934-06-09T00:00:00+01:00',
+                        'to': None,
+                    },
+                }
+            ],
+        )
+
     def test_create_unit_address(self, mock):
         self.load_sample_structures()
 
