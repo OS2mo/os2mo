@@ -32,6 +32,7 @@ from . import org
 from .. import exceptions
 from .. import lora
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -135,6 +136,9 @@ class OrgUnit(common.AbstractRelationDetail):
             ))
 
         if keys.PARENT in data.keys():
+            new_parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
+            validator.is_candidate_parent_valid(unitid,
+                                                new_parent_uuid, new_from)
             update_fields.append((
                 mapping.PARENT_FIELD,
                 {'uuid': data[keys.PARENT]['uuid']}

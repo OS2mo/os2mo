@@ -10,8 +10,6 @@ from mora import exceptions
 from mora import lora
 from mora import util
 from .errors import Error
-from .service import common
-from .service import keys
 
 
 def _is_date_range_valid(parent: str, startdate: datetime.datetime,
@@ -97,40 +95,35 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
         )
 
 
-def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
+def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
+                              from_date: datetime.datetime) -> bool:
     """
     For moving an org unit. Check if the candidate parent is in the subtree of
     the org unit itself. Note: it is (and should be) allowed to move an org
     unit to its own parent - since it can be moved back and forth on different
     dates.
 
-    :param unitid: The UUID of the current org unit.
-    :param req: The frontend request.
-    :return: True if the candidate parent is valid and False otherwise.
+    :param old_unitid: The UUID of the current org unit.
+    :param new_unitid: The UUID of the new org unit.
+    :param from_date: The date on which the move takes place
     """
 
-    from_ = util.parsedatetime(req['moveDate']) + datetime.timedelta(hours=12)
-    to = util.parsedatetime(req['moveDate']) + datetime.timedelta(hours=13)
-
     # Do not allow moving of the root org unit
-    org_unit_relations = lora.organisationenhed.get(
-        uuid=unitid,
-        virkningfra=from_.isoformat(),
-        virkningtil=to.isoformat()
+    c = lora.Connector(effective_date=from_date)
+    org_unit_relations = c.organisationenhed.get(
+        uuid=old_unitid
     )['relationer']
     if org_unit_relations['overordnet'][0]['uuid'] == \
             org_unit_relations['tilhoerer'][0]['uuid']:
-        return False
+        raise exceptions.ValidationError(Error.V11)
 
     # Use for checking that the candidate parent is not the units own subtree
     def is_node_valid(node_uuid: str) -> bool:
-        if node_uuid == unitid:
+        if node_uuid == old_unitid:
             return False
 
-        node = lora.organisationenhed.get(
-            uuid=node_uuid,
-            virkningfra=from_.isoformat(),
-            virkningtil=to.isoformat()
+        node = c.organisationenhed.get(
+            uuid=node_uuid
         )
 
         # Check that the node is not inactive
@@ -146,7 +139,8 @@ def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
 
         return is_node_valid(parent)
 
-    return is_node_valid(req['newParentOrgUnitUUID'])
+    if not is_node_valid(new_unitid):
+        raise exceptions.ValidationError(Error.V7)
 
 
 def _get_org_unit_endpoint_date(org_unit: dict,

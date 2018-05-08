@@ -17,9 +17,11 @@ class Error(Enum):
     V4 = "Original required."
     V5 = "No person found for given CPR number."
     V6 = "Not a valid CPR number."
+    V7 = "Org unit cannot be moved to one of its own child units"
     V8 = "Cannot terminate unit with active children and roles."
     V9 = "Date range exceeds validity range of associated org unit."
     V10 = "Date range exceeds validity range of associated employee."
+    V11 = "Moving the root org unit is not allowed"
 
     # Input errors
     E10 = "Org unit not found."

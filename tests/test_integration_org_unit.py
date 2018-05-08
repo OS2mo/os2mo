@@ -884,12 +884,12 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures()
 
-        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         req = {
             "data": {
                 "parent": {
-                    "uuid": "235ce700-c322-4ebb-94d5-fafb5aace1b5"
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
                     "from": "2017-07-01T00:00:00+02",
@@ -912,8 +912,8 @@ class Tests(util.LoRATestCase):
                             "from": "2016-01-01 00:00:00+01",
                             "to": "infinity"
                         },
-                        "brugervendtnoegle": "fil",
-                        "enhedsnavn": "Filosofisk Institut"
+                        "brugervendtnoegle": "hum",
+                        "enhedsnavn": "Humanistisk fakultet"
                     }
                 ]
             },
@@ -953,21 +953,22 @@ class Tests(util.LoRATestCase):
                 ],
                 "overordnet": [
                     {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "2017-07-01 00:00:00+02"
-                        },
-                    }, {
-                        "uuid": "235ce700-c322-4ebb-94d5-fafb5aace1b5",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-07-01 00:00:00+02",
-                            "to": "infinity"
-                        },
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'virkning': {
+                            'from': '2016-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-07-01 00:00:00+02',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                        'virkning': {
+                            'from': '2017-07-01 00:00:00+02',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
                     }
                 ],
                 "enhedstype": [
@@ -1011,6 +1012,38 @@ class Tests(util.LoRATestCase):
         actual = c.organisationenhed.get(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
+
+    def test_move_org_unit_should_fail_validation(self):
+        """Should fail validation when trying to move an org unit to one of
+        its children """
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "data": {
+                "parent": {
+                    "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
+                },
+                "validity": {
+                    "from": "2017-07-01T00:00:00+02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            {
+                'cause': 'validation',
+                'description': 'Org unit cannot be moved to '
+                               'one of its own child units',
+                'error': True,
+                'key': 'V7',
+                'status': 400
+            },
+            status_code=400,
+            json=req)
 
     def test_terminate_org_unit(self):
         self.load_sample_structures()
