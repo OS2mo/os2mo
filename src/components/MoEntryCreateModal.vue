@@ -12,7 +12,7 @@
       :id="nameId"
       size="lg"
       hide-footer 
-      title="modalTitle"
+      title="Opret"
       :ref="nameId"
       lazy
     >

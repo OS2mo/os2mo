@@ -11,7 +11,7 @@
       :id="nameId"
       size="lg"
       hide-footer 
-      title="modalTitle"
+      title="Rediger"
       :ref="nameId"
       lazy
     >
