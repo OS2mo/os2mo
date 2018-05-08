@@ -8,7 +8,7 @@
         monday-first
         bootstrapStyling
         clear-button
-        :disabled="disabled"
+        :disabled="{disabledDate}"
       />
 
       <input 
@@ -42,7 +42,8 @@ export default {
       type: String
     },
     disabledTo: [Date, String],
-    disabledFrom: [Date, String]
+    disabledFrom: [Date, String],
+    disabledDate: Boolean
   },
   data () {
     return {
