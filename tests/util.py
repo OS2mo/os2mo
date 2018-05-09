@@ -27,7 +27,6 @@ import time
 import werkzeug.serving
 
 import oio_rest.app
-import oio_rest.settings
 from mora import app, lora, settings
 from mora.converters import importing
 
@@ -408,9 +407,9 @@ def initdb(psql):
     env.update(
         TESTING='1',
         PYTHON=sys.executable,
-        MOX_DB=oio_rest.settings.DATABASE,
-        MOX_DB_USER=oio_rest.settings.DB_USER,
-        MOX_DB_PASSWORD=oio_rest.settings.DB_PASSWORD,
+        MOX_DB=oio_rest.app.settings.DATABASE,
+        MOX_DB_USER=oio_rest.app.settings.DB_USER,
+        MOX_DB_PASSWORD=oio_rest.app.settings.DB_PASSWORD,
     )
 
     with psycopg2.connect(**dsn) as conn:
@@ -419,25 +418,26 @@ def initdb(psql):
         with conn.cursor() as curs:
             curs.execute(
                 "CREATE USER {} WITH SUPERUSER PASSWORD %s".format(
-                    oio_rest.settings.DB_USER,
+                    oio_rest.app.settings.DB_USER,
                 ),
                 (
-                    oio_rest.settings.DB_PASSWORD,
+                    oio_rest.app.settings.DB_PASSWORD,
                 ),
             )
 
             curs.execute(
-                "CREATE DATABASE {} WITH OWNER = %s".format(oio_rest.settings.
-                                                            DATABASE),
+                "CREATE DATABASE {} WITH OWNER = %s".format(
+                    oio_rest.app.settings.
+                    DATABASE),
                 (
-                    oio_rest.settings.DB_USER,
+                    oio_rest.app.settings.DB_USER,
                 ),
             )
 
     dsn = dsn.copy()
-    dsn['database'] = oio_rest.settings.DATABASE
-    dsn['user'] = oio_rest.settings.DB_USER
-    dsn['password'] = oio_rest.settings.DB_PASSWORD
+    dsn['database'] = oio_rest.app.settings.DATABASE
+    dsn['user'] = oio_rest.app.settings.DB_USER
+    dsn['password'] = oio_rest.app.settings.DB_PASSWORD
 
     mkdb_path = os.path.join(os.path.dirname(oio_rest.__file__), '..', '..',
                              'db', 'mkdb.sh')
@@ -503,10 +503,10 @@ class LoRATestCaseMixin(TestCaseMixin):
         self.patches = [
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
                 self.__lora_port)),
-            patch('oio_rest.settings.LOG_AMQP_SERVER', None),
-            patch('oio_rest.settings.DB_HOST', dsn['host'],
+            patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
+            patch('oio_rest.app.settings.DB_HOST', dsn['host'],
                   create=True),
-            patch('oio_rest.settings.DB_PORT', dsn['port'],
+            patch('oio_rest.app.settings.DB_PORT', dsn['port'],
                   create=True),
         ]
 
