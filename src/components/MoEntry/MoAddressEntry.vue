@@ -2,7 +2,7 @@
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
     <div class="form-row">
-      <mo-facet-picker facet="address_type" v-model="entry.address_type" required/>
+      <mo-facet-picker facet="address_type" v-model="entry.address_type" :preselected-user-key="preselectedType" required/>
       
       <div class="form-group col">
         <div v-if="entry.address_type != null">
@@ -47,7 +47,8 @@ export default {
     validity: Object,
     validityHidden: Boolean,
     required: Boolean,
-    label: String
+    label: String,
+    preselectedType: String
   },
   data () {
     return {
@@ -81,6 +82,7 @@ export default {
       if (this.entry.address_type.scope === 'TEXT') return {required: true}
       if (this.entry.address_type.scope === 'WWW') return {required: true, url: true}
       if (this.entry.address_type.scope === 'INTEGER') return {required: true, numeric: true}
+      if (this.entry.address_type.scope == null) return {}
     }
   },
   watch: {

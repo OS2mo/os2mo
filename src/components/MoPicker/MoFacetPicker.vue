@@ -1,5 +1,5 @@
 <template>
-  <mo-select v-model="selected" :label="label" :options="facets" :required="required"/>
+  <mo-select v-model="selected" :label="label" :options="facets" :required="required" :disabled="isDisabled"/>
 </template>
 
 <script>
@@ -14,13 +14,19 @@ export default {
   props: {
     value: Object,
     facet: {type: String, required: true},
-    required: Boolean
+    required: Boolean,
+    preselectedUserKey: String
   },
   data () {
     return {
       selected: null,
       facets: [],
       label: ''
+    }
+  },
+  computed: {
+    isDisabled () {
+      return this.preselectedUserKey !== undefined
     }
   },
   watch: {
@@ -31,7 +37,7 @@ export default {
   mounted () {
     this.getFacet()
 
-    if (this.value) {
+    if (this.value && this.preselectedUserKey == null) {
       this.selected = this.value
     }
   },
@@ -44,7 +50,15 @@ export default {
         .then(response => {
           vm.facets = response.data.items
           vm.label = response.user_key
+
+          vm.selected = vm.preselectedUserKey ? vm.setPreselected()[0] : vm.selected
         })
+    },
+
+    setPreselected () {
+      return this.facets.filter(data => {
+        return data.user_key === this.preselectedUserKey
+      })
     }
   }
 }
