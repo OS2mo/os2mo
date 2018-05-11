@@ -2,7 +2,7 @@
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/> 
     <div class="form-row">
-      <mo-organisation-unit-picker 
+      <mo-organisation-unit-search
         v-model="entry.org_unit" 
         label="Angiv enhed" 
         class="col"
@@ -32,14 +32,14 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitPicker,
+    MoOrganisationUnitSearch,
     MoFacetPicker,
     MoAddressPicker
   },

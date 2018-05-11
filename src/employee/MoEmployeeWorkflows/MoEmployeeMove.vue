@@ -21,7 +21,7 @@
       </div>
 
       <div class="form-row">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search
           :label="$t('input_fields.move_to')" 
           class="col" 
           v-model="move.data.org_unit"
@@ -39,7 +39,7 @@
 <script>
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
@@ -50,7 +50,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoEngagementPicker,
       MoEmployeePicker,
       ButtonSubmit

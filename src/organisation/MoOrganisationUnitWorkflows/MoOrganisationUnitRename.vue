@@ -14,7 +14,7 @@
         <mo-date-picker-range class="col" v-model="rename.data.validity"/>
       </div>
       <div class="form-row">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           label="Enhed" 
           class="col"
           v-model="original"
@@ -36,7 +36,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoInput from '@/components/atoms/MoInput'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import { mapGetters } from 'vuex'
@@ -47,7 +47,7 @@
     },
     components: {
       MoDatePickerRange,
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoInput,
       ButtonSubmit
     },

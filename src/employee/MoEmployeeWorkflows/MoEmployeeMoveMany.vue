@@ -18,7 +18,7 @@
           required
         />
 
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           :is-disabled="dateSelected" 
           :label="$t('input_fields.move_from')"
           v-model="orgUnitSource" 
@@ -26,7 +26,7 @@
           required
         />
         
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           :is-disabled="dateSelected" 
           :label="$t('input_fields.move_to')"
           v-model="orgUnitDestination" 
@@ -65,7 +65,7 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
@@ -75,7 +75,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoTable,
       ButtonSubmit
     },
