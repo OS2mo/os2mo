@@ -7,8 +7,9 @@
       :data-vv-as="label"
       class="form-control col" 
       v-model="selected"
+      :disabled="disabled"
       @change="$emit('input', selected)"
-      v-validate="{ required: required }"
+      v-validate="{ required: isRequired }"
     >
       <option disabled>{{label}}</option>
       <option v-for="o in options" :key="o.uuid" :value="o">
@@ -31,7 +32,8 @@ export default {
     value: Object,
     options: Array,
     label: String,
-    required: Boolean
+    required: Boolean,
+    disabled: Boolean
   },
   data () {
     return {
@@ -41,6 +43,11 @@ export default {
   computed: {
     nameId () {
       return 'mo-select-' + this._uid
+    },
+
+    isRequired () {
+      if (this.disabled) return false
+      return this.required
     }
   },
   watch: {
