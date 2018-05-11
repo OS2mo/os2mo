@@ -7,8 +7,9 @@
     <b-modal 
       id="theHistory" 
       size="lg" 
-      hide-footer 
       title="Historik"
+      @change="reloadHistory"
+      hide-footer 
       lazy
     >
       <table class="table table-striped">
@@ -59,10 +60,11 @@
         history: []
       }
     },
-    mounted () {
-      this.getHistory()
-    },
     methods: {
+      reloadHistory (val) {
+        if (val) this.getHistory()
+      },
+
       getHistory () {
         switch (this.type) {
           case 'ORG_UNIT':
