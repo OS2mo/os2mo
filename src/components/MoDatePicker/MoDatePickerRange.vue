@@ -19,7 +19,7 @@
       v-model="validTo"
       v-show="!hidden"
       :disabled-to="validFrom"
-      :disabled-date="disableToDate"
+      :disabled="disableToDate"
       @input="updateDate()"
     />
   </div>
