@@ -20,7 +20,7 @@
 
     <div class="form-row">
       <div class="col">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search
           v-model="original" 
           :label="$t('input_fields.choose_unit')"
           required
@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <mo-organisation-unit-picker 
+    <mo-organisation-unit-search 
       v-model="move.data.parent" 
       :label="$t('input_fields.select_new_super_unit')"
       required
@@ -53,7 +53,7 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import '@/filters/GetProperty'
@@ -63,7 +63,7 @@
       validator: 'new'
     },
     components: {
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoDatePicker,
       ButtonSubmit
     },

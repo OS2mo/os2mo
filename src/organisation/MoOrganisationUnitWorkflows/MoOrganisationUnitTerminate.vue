@@ -14,7 +14,7 @@
         {{backendValidationError}}
       </div>
       <div class="form-row">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           :label="$tc('input_fields.unit', 1)" 
           class="col" 
           v-model="org_unit"
@@ -36,7 +36,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
@@ -46,7 +46,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       ButtonSubmit,
       MoOrganisationDetailTabs
     },

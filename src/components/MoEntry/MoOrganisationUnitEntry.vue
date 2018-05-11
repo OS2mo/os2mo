@@ -8,9 +8,8 @@
         <mo-facet-picker facet="org_unit_type" v-model="orgUnit.org_unit_type" required/>
       </div>
 
-      <mo-organisation-unit-picker 
-        v-model="orgUnit.parent" 
-        :is-disabled="disableOrgUnitPicker"
+      <mo-organisation-unit-search
+        v-model="orgUnit.parent"
         required
       />
   </div>
@@ -18,7 +17,7 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoInput from '@/components/atoms/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
@@ -26,7 +25,7 @@ import MoAddMany from '@/components/MoAddMany/MoAddMany'
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitPicker,
+    MoOrganisationUnitSearch,
     MoFacetPicker,
     MoInput,
     MoAddMany
