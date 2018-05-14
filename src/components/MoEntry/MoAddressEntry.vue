@@ -2,7 +2,12 @@
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
     <div class="form-row">
-      <mo-facet-picker facet="address_type" v-model="entry.address_type" :preselected-user-key="preselectedType" required/>
+      <mo-facet-picker 
+        v-show="noPreselectedType"
+        facet="address_type" 
+        v-model="entry.address_type" 
+        :preselected-user-key="preselectedType" 
+        required/>
       
       <div class="form-group col">
         <div v-if="entry.address_type != null">
@@ -69,6 +74,9 @@ export default {
     },
     isDisabled () {
       return this.entry.address_type == null
+    },
+    noPreselectedType () {
+      return this.preselectedType === null
     },
 
     nameId () {

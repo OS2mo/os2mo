@@ -7,6 +7,7 @@
     "terminate_employee": "Afslut medarbejder",
     "labels": {
       "address": "@:shared.address",
+      "other_addresses": "Øvrige adresser",
       "association": "@:shared.association",
       "engagement": "Engagement",
       "it_system": "@:shared.it_system",

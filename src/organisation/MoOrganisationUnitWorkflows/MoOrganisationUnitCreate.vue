@@ -18,6 +18,7 @@
       <mo-address-entry v-model="postAddress" preselected-type="AdressePost" required/>
       <mo-address-entry v-model="phone" preselected-type="Telefon" required/>
 
+      <h5>{{$tc('workflows.employee.labels.other_addresses')}}</h5>
       <mo-add-many
         :entry-component="addressEntry"
         v-model="addresses"
