@@ -77,6 +77,11 @@ def edit_association(employee_uuid, req):
     new_from = common.get_valid_from(data)
     new_to = common.get_valid_to(data)
 
+    # Get org unit uuid for validation purposes
+    org_unit = common.get_obj_value(
+        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
+    org_unit_uuid = common.get_uuid(org_unit)
+
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
 
@@ -111,9 +116,10 @@ def edit_association(employee_uuid, req):
         ))
 
     if keys.ORG_UNIT in data.keys():
+        org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
-            {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
+            {'uuid': org_unit_uuid},
         ))
 
     if data.get(keys.ADDRESS):
@@ -130,5 +136,10 @@ def edit_association(employee_uuid, req):
     bounds_fields = list(
         mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
+
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+                                              new_to)
+    validator.is_date_range_in_employee_range(employee_uuid, new_from,
+                                              new_to)
 
     c.organisationfunktion.update(payload, association_uuid)

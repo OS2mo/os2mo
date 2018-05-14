@@ -99,4 +99,7 @@ def edit_leave(employee_uuid, req):
         mapping.LEAVE_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
+    validator.is_date_range_in_employee_range(employee_uuid, new_from,
+                                              new_to)
+
     c.organisationfunktion.update(payload, leave_uuid)
