@@ -887,6 +887,91 @@ class Writing(util.LoRATestCase):
             ],
         )
 
+    def test_edit_ean_address(self, mock):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+        ean_class = {
+            'example': '5712345000014',
+            'name': 'EAN',
+            'scope': 'EAN',
+            'user_key': 'EAN',
+            'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+        }
+
+        self.assertIn(ean_class, self.client.get(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/f/address_type/',
+        ).json['data']['items'])
+
+        old_addr = {
+            "address_type": {
+                "example": "<UUID>",
+                "name": "Adresse",
+                "scope": "DAR",
+                "user_key": "Adresse",
+                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            },
+            "href": "https://www.openstreetmap.org/"
+                    "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+            "name": "Nordre Ringgade 1, 8000 Aarhus C",
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "validity": {
+                "from": "2016-01-01T00:00:00+01:00",
+                "to": "2019-01-01T00:00:00+01:00"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid,
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': {
+                        **old_addr,
+                        'value': '1234567890',
+                        'address_type': ean_class,
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': ean_class,
+                'href': None,
+                'name': '1234567890',
+                'urn': 'urn:magenta.dk:ean:1234567890',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': ean_class,
+                'href': None,
+                'name': '1234567890',
+                'urn': 'urn:magenta.dk:ean:1234567890',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
+            }],
+        )
+
     def test_create_unit_address(self, mock):
         self.load_sample_structures()
 

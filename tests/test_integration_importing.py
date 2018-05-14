@@ -146,7 +146,7 @@ class IntegrationTests(util.LoRATestCase):
                                          '982f-7ea90c4512d3'},
                                 {'example': '1003259972',
                                  'name': 'P-nummer',
-                                 'scope': 'INTEGER',
+                                 'scope': 'PNUMBER',
                                  'user_key': 'P-nummer',
                                  'uuid': '5988664a-817e-4dea-91d5-'
                                          '3354ec37f27a'},
@@ -158,7 +158,7 @@ class IntegrationTests(util.LoRATestCase):
                                          '92d9-96d24ac845ea'},
                                 {'example': '5790001969370',
                                  'name': 'EAN',
-                                 'scope': 'INTEGER',
+                                 'scope': 'EAN',
                                  'user_key': 'EAN',
                                  'uuid': 'a88aa93b-8edc-46ab-'
                                          'bad7-6535f9b765e5'},
