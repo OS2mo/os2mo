@@ -44,7 +44,7 @@ def handle_invalid_usage(error):
 
     return exceptions.HTTPException(
         description=str(error),
-        key=exceptions.ErrorCodes.E_UNKNOWN,
+        error_key=exceptions.ErrorCodes.E_UNKNOWN,
         stacktrace=traceback.format_exc(),
     ).get_response()
 

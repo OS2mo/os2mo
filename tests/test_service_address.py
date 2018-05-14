@@ -53,7 +53,7 @@ class TestAddressLookup(util.TestCase):
             'address_autocomplete/?q=42',
             {
                 'error': True,
-                'key': 'E_NO_LOCAL_MUNICIPALITY',
+                'error_key': 'E_NO_LOCAL_MUNICIPALITY',
                 'description': 'No local municipality found.',
                 'status': 400,
             },
@@ -108,7 +108,7 @@ class TestAddressLookup(util.TestCase):
             'address_autocomplete/?q=42',
             {
                 'error': True,
-                'key': 'E_NO_LOCAL_MUNICIPALITY',
+                'error_key': 'E_NO_LOCAL_MUNICIPALITY',
                 'description': 'No local municipality found.',
                 'status': 400,
             },

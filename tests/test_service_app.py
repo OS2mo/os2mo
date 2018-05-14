@@ -17,7 +17,7 @@ class Tests(util.TestCase):
             '/service/kaflaflibob',
             {
                 'error': True,
-                'key': 'E_NO_SUCH_ENDPOINT',
+                'error_key': 'E_NO_SUCH_ENDPOINT',
                 'description': 'No such endpoint.',
                 'status': 404,
             },
@@ -32,7 +32,7 @@ class Tests(util.TestCase):
             '/service/ou/00000000-0000-0000-0000-000000000000/details/',
             {
                 'error': True,
-                'key': 'E_UNKNOWN',
+                'error_key': 'E_UNKNOWN',
                 'description': 'go away',
                 'status': 500,
             },

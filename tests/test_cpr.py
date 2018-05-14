@@ -42,7 +42,7 @@ class Tests(util.TestCase):
                     '/service/e/cpr_lookup/?q=1111111111',
                     {
                         'cpr': '1111111111',
-                        'key': 'V_NO_PERSON_FOR_CPR',
+                        'error_key': 'V_NO_PERSON_FOR_CPR',
                         'description': 'No person found for given CPR number.',
                         'error': True,
                         'status': 404,
@@ -58,7 +58,7 @@ class Tests(util.TestCase):
             '/service/e/cpr_lookup/?q=1234/',
             {
                 'cpr': '1234/',
-                'key': 'V_CPR_NOT_VALID',
+                'error_key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
@@ -70,7 +70,7 @@ class Tests(util.TestCase):
             '/service/e/cpr_lookup/?q=1234567890123',
             {
                 'cpr': '1234567890123',
-                'key': 'V_CPR_NOT_VALID',
+                'error_key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
@@ -82,7 +82,7 @@ class Tests(util.TestCase):
             '/service/e/cpr_lookup/?q=2222222222',
             {
                 'cpr': '2222222222',
-                'key': 'V_CPR_NOT_VALID',
+                'error_key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,

@@ -116,17 +116,23 @@ def checked_get(
         elif required:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
-                missing=key
+                message='Missing {}'.format(key),
+                key=key
             )
         else:
             return default
 
     elif not isinstance(v, type(default)):
+        expected = type(default).__name__
+        actual = json.dumps(v)
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_TYPE,
-            message='invalid {!r}, expected {}, got: {}'.format(
-                key, type(default).__name__, json.dumps(v),
+            message='Invalid {!r}, expected {}, got: {}'.format(
+                key, expected, actual,
             ),
+            key=key,
+            expected=expected,
+            actual=actual
         )
 
     return v
@@ -143,7 +149,7 @@ def get_uuid(
     if not util.is_uuid(v):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_UUID,
-            message='invalid uuid for {!r}: {!r}'.format(key, v),
+            message='Invalid uuid for {!r}: {!r}'.format(key, v),
         )
 
     return v
@@ -629,14 +635,16 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
         if valid_from is None:
-            raise exceptions.HTTPException(ErrorCodes.V_MISSING_START_DATE)
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_MISSING_START_DATE)
         elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
 
     if fallback is not None:
         return get_valid_from(fallback)
     else:
-        raise exceptions.HTTPException(ErrorCodes.V_MISSING_START_DATE)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MISSING_START_DATE)
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -696,7 +704,8 @@ def replace_relation_value(relations: typing.List[dict],
             return new_rels
 
     else:
-        raise exceptions.HTTPException(ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
 def is_reg_valid(reg):

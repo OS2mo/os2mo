@@ -273,7 +273,7 @@ class Connector:
 
         else:
             raise exceptions.HTTPException(
-                ErrorCodes.V_INVALID_VALIDITY,
+                exceptions.ErrorCodes.V_INVALID_VALIDITY,
                 validity=self.__validity
             )
 

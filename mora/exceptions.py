@@ -55,15 +55,22 @@ class ErrorCodes(Enum):
 
 class HTTPException(werkzeug.exceptions.HTTPException):
     key = ErrorCodes.E_UNKNOWN
+    description = "Unknown error"
     code = 500
 
     def __init__(self,
-                 key: typing.Optional[ErrorCodes]=None,
+                 error_key: typing.Optional[ErrorCodes]=None,
+                 message: typing.Optional[str]=None,
                  **context) -> None:
-        if key:
-            self.key = key
+        if error_key:
+            self.key = error_key
 
         code, description = self.key.value
+
+        if message:
+            description = message
+        self.description = description
+
         self.code = code
         self.context = context
 
@@ -73,13 +80,12 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         return [('Content-Type', flask.current_app.config['JSONIFY_MIMETYPE'])]
 
     def get_body(self, environ=None):
-        code, description = self.key.value
         return flask.json.dumps(
             {
                 'error': True,
-                'description': description,
-                'status': code,
-                'key': self.key.name,
+                'description': self.description,
+                'status': self.code,
+                'error_key': self.key.name,
 
                 **self.context,
             },

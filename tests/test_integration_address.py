@@ -509,10 +509,12 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'key': 'E_INVALID_TYPE',
-                    'description': 'Invalid type.',
-                    'message':
-                    "invalid 'original', expected dict, got: null",
+                    'error_key': 'E_INVALID_TYPE',
+                    'description':
+                    "Invalid 'original', expected dict, got: null",
+                    'actual': 'null',
+                    'key': 'original',
+                    'expected': 'dict',
                     'status': 400,
                 },
                 status_code=400,
@@ -532,7 +534,7 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                     'description': 'Original entry not found.',
                     'status': 400,
                 },
@@ -977,9 +979,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing required value.",
-                    'missing': 'value',
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing value",
+                    'key': 'value',
                     'status': 400,
                 },
                 status_code=400,
@@ -1001,11 +1003,13 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'key': 'E_INVALID_TYPE',
-                    'description': "Invalid type.",
-                    'message': (
-                        "invalid 'address_type', expected dict, got: null"
+                    'error_key': 'E_INVALID_TYPE',
+                    'description': (
+                        "Invalid 'address_type', expected dict, got: null"
                     ),
+                    'key': 'address_type',
+                    'expected': 'dict',
+                    'actual': 'null',
                     'status': 400,
                 },
                 status_code=400,
@@ -1028,9 +1032,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing required value.",
-                    'missing': 'uuid',
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing uuid",
+                    'key': 'uuid',
                     'status': 400,
                 },
                 status_code=400,
@@ -1053,10 +1057,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'key': 'E_INVALID_UUID',
-                    'description': "Invalid UUID.",
-                    'message': (
-                        "invalid uuid for 'uuid': 'hallo@exmaple.com'"
+                    'error_key': 'E_INVALID_UUID',
+                    'description': (
+                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
                 },
@@ -1319,9 +1322,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/edit'.format(unitid),
                 {
                     'error': True,
-                    'key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': 'Missing required value.',
-                    'missing': 'value',
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': 'Missing value',
+                    'key': 'value',
                     'status': 400,
                 },
                 status_code=400,
