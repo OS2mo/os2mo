@@ -48,6 +48,31 @@ def handle_invalid_usage(error):
     ).get_response()
 
 
+@app.before_request
+def attach_user_token_to_context():
+    """
+    Middleware to fetch authorization token
+    from the http header and attach it to the application context.
+
+    The purpose for this is that we need to pass the token value
+    with all the "lora" handler requests.
+
+    """
+
+    headers = flask.request.headers
+
+    if "authorization" in headers:
+
+        # Fetch auth header value (token)
+        token = headers["authorization"]
+
+        # Attach token to application context
+        flask.g.user_token = token
+
+    else:
+        flask.g.user_token = False
+
+
 @app.route('/')
 @app.route('/<path:path>')
 def root(path=''):
