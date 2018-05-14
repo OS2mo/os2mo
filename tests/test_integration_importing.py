@@ -117,90 +117,45 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2',
                         'data': {
                             'offset': 0,
-                            'total': 13,
+                            'total': 6,
                             'items': [
-                                {'example': '<UUID>',
-                                 'name': 'Lokation',
-                                 'scope': 'DAR',
-                                 'user_key': 'AdresseLokation',
-                                 'uuid': '031f93c3-6bab-462e-'
-                                         'a998-87cad6db3128'},
-                                {'example': 'Mandag 10:00-12:00 '
-                                            'Tirsdag 14:00-16:00',
-                                 'name': 'Åbningstid, telefon',
-                                 'scope': 'TEXT',
-                                 'user_key': 'Åbningstid Telefon',
-                                 'uuid': '0836ffbf-3b3e-410f-'
-                                         '8cbf-face7e6844ef'},
                                 {'example': 'Onsdag 10:30-11:00 '
                                             'Torsdag 16:00-18:00',
-                                 'name': 'Åbningstid, henvendelse',
+                                 'name': 'Åbningstid',
                                  'scope': 'TEXT',
-                                 'user_key': 'Åbningstid, henvendelse',
+                                 'user_key': 'Åbningstid',
                                  'uuid': '08857eb8-a2c4-4337-'
                                          '836f-19332f991362'},
-                                {'example': 'http://www.korsbaek.dk/',
-                                 'name': 'Hjemmeside',
-                                 'scope': 'WWW',
-                                 'user_key': 'URL',
-                                 'uuid': '160ecaed-50b0-4800-'
-                                         'bebc-0d0289a4f624'},
                                 {'example': None,
-                                 'name': 'Telefax',
+                                 'name': 'Faxnummer',
                                  'scope': 'PHONE',
                                  'user_key': 'Fax',
                                  'uuid': '26d0da83-f43f-4feb-'
                                          'a7b1-d7c28d56daae'},
-                                {'example': 'Postboks 29, 4260 Korsbæk',
-                                 'name': 'Returadresse',
-                                 'scope': 'DAR',
-                                 'user_key': 'AdressePostRetur',
-                                 'uuid': '2c4d87bd-ad26-4580-'
-                                         '982f-7ea90c4512d3'},
+                                {'example': '1003259972',
+                                 'name': 'P-nummer',
+                                 'scope': 'INTEGER',
+                                 'user_key': 'P-nummer',
+                                 'uuid': '5988664a-817e-4dea-91d5-'
+                                         '3354ec37f27a'},
                                 {'example': 'hpe@korsbaek.dk',
                                  'name': 'Emailadresse',
                                  'scope': 'EMAIL',
                                  'user_key': 'Email',
                                  'uuid': '80764a2f-6a7b-492c-'
                                          '92d9-96d24ac845ea'},
-                                {'example': None,
-                                 'name': 'Skolekode',
-                                 'scope': 'INTEGER',
-                                 'user_key': 'Skolekode',
-                                 'uuid': '9ee2a20b-2687-406b-'
-                                         'b658-55a5f4b5287b'},
                                 {'example': '5790001969370',
                                  'name': 'EAN',
                                  'scope': 'INTEGER',
                                  'user_key': 'EAN',
                                  'uuid': 'a88aa93b-8edc-46ab-'
                                          'bad7-6535f9b765e5'},
-                                {'example': '<UUID>',
-                                 'name': 'Postadresse',
-
-
-                                 'scope': 'DAR',
-                                 'user_key': 'AdressePost',
-                                 'uuid': 'a8c8fe66-2ab1-46ed-'
-                                         'ba99-ed05e855d65f'},
-                                {'example': 'Besvares indenfor to hverdage.',
-                                 'name': 'Bemærkninger om email',
-                                 'scope': 'TEXT',
-                                 'user_key': 'Email bemærkninger',
-                                 'uuid': 'e86c1e6f-934c-42b2-'
-                                         '8a6b-20d1b7ea79a5'},
                                 {'example': '+45 3334 9400',
                                  'name': 'Telefonnummer',
                                  'scope': 'PHONE',
                                  'user_key': 'Telefon',
                                  'uuid': 'eb520fe5-eb72-4110-'
                                          'b81d-9c1a129dc22a'},
-                                {'example': '<UUID>',
-                                 'name': 'Henvendelsessted',
-                                 'scope': 'DAR',
-                                 'user_key': 'AdresseHenvendelsesSted',
-                                 'uuid': 'ff4ed3b4-18fc-42cf-'
-                                         'af12-51ac7b9a069a'},
                             ]}},
                     'association_type': {
                         'name': 'association_type',
