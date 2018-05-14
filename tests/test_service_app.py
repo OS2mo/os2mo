@@ -33,7 +33,7 @@ class Tests(util.TestCase):
             '/service/ou/00000000-0000-0000-0000-000000000000/details/',
             {
                 'error': True,
-                'key': 'E_UNKNOWN_ERROR',
+                'key': 'E_UNKNOWN',
                 'cause': 'unknown',
                 'description': 'go away',
                 'status': 500,

@@ -45,7 +45,7 @@ def handle_invalid_usage(error):
 
     return exceptions.BaseError(
         description=str(error),
-        key=ErrorCodes.E_UNKNOWN_ERROR,
+        key=ErrorCodes.E_UNKNOWN,
         stacktrace=traceback.format_exc(),
     ).get_response()
 

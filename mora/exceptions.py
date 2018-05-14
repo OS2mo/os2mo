@@ -16,7 +16,7 @@ from . import util
 
 
 class BaseError(werkzeug.exceptions.HTTPException):
-    key = ErrorCodes.E_UNKNOWN_ERROR
+    key = ErrorCodes.E_UNKNOWN
     cause = 'unknown'
     code = 500
 
@@ -26,20 +26,23 @@ class BaseError(werkzeug.exceptions.HTTPException):
         if key:
             self.key = key
 
-        super().__init__(self.key.value)
-
+        code, description = self.key.value
+        self.code = code
         self.context = context
+
+        super().__init__(description)
 
     def get_headers(self, environ=None):
         return [('Content-Type', flask.current_app.config['JSONIFY_MIMETYPE'])]
 
     def get_body(self, environ=None):
+        code, description = self.key.value
         return flask.json.dumps(
             {
                 'error': True,
-                'description': self.key.value,
+                'description': description,
                 'cause': self.cause,
-                'status': self.code,
+                'status': code,
                 'key': self.key.name,
 
                 **self.context,
@@ -51,16 +54,13 @@ class BaseError(werkzeug.exceptions.HTTPException):
 class ValidationError(BaseError):
     key = ErrorCodes.E_INVALID_INPUT
     cause = 'validation'
-    code = 400
 
 
 class NotFoundError(BaseError):
     key = ErrorCodes.E_NOT_FOUND
     cause = 'not-found'
-    code = 404
 
 
 class UnauthorizedError(BaseError):
     key = ErrorCodes.E_UNAUTHORIZED
     cause = 'unauthorized'
-    code = 401
