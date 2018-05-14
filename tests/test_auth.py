@@ -35,7 +35,6 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/service/o/',
                 {
-                    'cause': 'unauthorized',
                     'error': True,
                     'key': 'E_UNAUTHORIZED',
                     'description': 'Unauthorized.',
@@ -59,7 +58,6 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/mo/service/user/USER/login',
                 {
-                    'cause': 'unauthorized',
                     'description': 'Unauthorized.',
                     'key': 'E_UNAUTHORIZED',
                     'message': (
@@ -89,7 +87,6 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/mo/service/user/USER/login',
                 {
-                    'cause': 'unauthorized',
                     'error': True,
                     'key': 'E_UNAUTHORIZED',
                     'description': 'Unauthorized.',

@@ -35,7 +35,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_INVALID_TYPE',
                 'description': 'Invalid type.',
                 'message': (
@@ -60,7 +59,6 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'error': True,
-                'cause': 'not-found',
                 'key': 'E_USER_NOT_FOUND',
                 'description': 'User not found.',
                 'status': 404,
@@ -84,7 +82,6 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_INVALID_TYPE',
                 'description': 'Invalid type.',
                 'message': (
@@ -109,7 +106,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'V_MISSING_START_DATE',
                 'description': 'Missing start date.',
                 'status': 400,
@@ -133,7 +129,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'V_MISSING_REQUIRED_VALUE',
                 'description': "Missing required value.",
                 'missing': 'uuid',
@@ -156,7 +151,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_INVALID_UUID',
                 'description': 'Invalid UUID.',
                 'message': "invalid uuid for 'uuid': '42'",
@@ -181,7 +175,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                 'description': 'Original entry not found.',
                 'status': 400,
@@ -214,7 +207,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                 'description': 'Original entry not found.',
                 'status': 400,
@@ -247,7 +239,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                 'description': 'Original entry not found.',
                 'status': 400,
@@ -280,7 +271,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'E_INVALID_TYPE',
                 'description': 'Invalid type.',
                 'message': "invalid 'uuid', expected str, got: null",
@@ -524,7 +514,6 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
                 'key': 'V_ORIGINAL_REQUIRED',
                 'description': 'Original required.',
                 'status': 400,

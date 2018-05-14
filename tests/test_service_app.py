@@ -18,7 +18,6 @@ class Tests(util.TestCase):
             {
                 'error': True,
                 'key': 'E_NO_SUCH_ENDPOINT',
-                'cause': 'not-found',
                 'description': 'No such endpoint.',
                 'status': 404,
             },
@@ -34,7 +33,6 @@ class Tests(util.TestCase):
             {
                 'error': True,
                 'key': 'E_UNKNOWN',
-                'cause': 'unknown',
                 'description': 'go away',
                 'status': 500,
             },

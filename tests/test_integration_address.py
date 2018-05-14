@@ -509,7 +509,6 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'E_INVALID_TYPE',
                     'description': 'Invalid type.',
                     'message':
@@ -533,7 +532,6 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
                     'description': 'Original entry not found.',
                     'status': 400,
@@ -979,7 +977,6 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'V_MISSING_REQUIRED_VALUE',
                     'description': "Missing required value.",
                     'missing': 'value',
@@ -1004,7 +1001,6 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'E_INVALID_TYPE',
                     'description': "Invalid type.",
                     'message': (
@@ -1032,7 +1028,6 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'V_MISSING_REQUIRED_VALUE',
                     'description': "Missing required value.",
                     'missing': 'uuid',
@@ -1058,7 +1053,6 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'E_INVALID_UUID',
                     'description': "Invalid UUID.",
                     'message': (
@@ -1325,7 +1319,6 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/edit'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
                     'key': 'V_MISSING_REQUIRED_VALUE',
                     'description': 'Missing required value.',
                     'missing': 'value',

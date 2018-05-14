@@ -12,7 +12,7 @@ import traceback
 
 import flask
 
-from .errorcodes import ErrorCodes
+from mora.exceptions import ErrorCodes
 from . import auth
 from . import cli
 from . import exceptions
@@ -54,6 +54,6 @@ def handle_invalid_usage(error):
 @app.route('/<path:path>')
 def root(path=''):
     if path.split('/', 1)[0] == 'service':
-        raise exceptions.NotFoundError(ErrorCodes.E_NO_SUCH_ENDPOINT)
+        raise exceptions.BaseError(ErrorCodes.E_NO_SUCH_ENDPOINT)
 
     return flask.send_file('index.html')

@@ -1035,7 +1035,6 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/edit'.format(org_unit_uuid),
             {
-                'cause': 'validation',
                 'description': 'Org unit cannot be moved to '
                                'one of its own child units',
                 'error': True,
@@ -1099,7 +1098,6 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'key': 'E_ORG_UNIT_NOT_FOUND',
-                'cause': 'not-found',
                 'description': 'Org unit not found.',
                 'status': 404,
             },
@@ -1117,7 +1115,6 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
                 'key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
@@ -1148,7 +1145,6 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
                 'key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
@@ -1186,7 +1182,6 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
                 'key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
@@ -1233,7 +1228,6 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
                 'key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '

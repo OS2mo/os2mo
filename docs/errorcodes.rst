@@ -1,6 +1,6 @@
 Error codes
 ===========
 
-.. autoclass:: mora.errorcodes.ErrorCodes
+.. autoclass:: mora.exceptions.ErrorCodes
    :members:
    :undoc-members:

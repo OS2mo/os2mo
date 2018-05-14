@@ -21,7 +21,7 @@ import flask
 import werkzeug
 
 from .. import exceptions
-from ..errorcodes import ErrorCodes
+from mora.exceptions import ErrorCodes
 from . import address
 from . import association
 from . import common
@@ -188,7 +188,7 @@ def get_employee(id):
     if r:
         return flask.jsonify(r)
     else:
-        raise exceptions.NotFoundError(ErrorCodes.E_USER_NOT_FOUND)
+        raise exceptions.BaseError(ErrorCodes.E_USER_NOT_FOUND)
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
@@ -446,8 +446,8 @@ def create_employee_relation(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            raise exceptions.ValidationError(ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                                             message=role_type)
+            raise exceptions.BaseError(ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                                       message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
             handler(common.get_connector().bruger).create(
@@ -831,8 +831,8 @@ def edit_employee(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            raise exceptions.ValidationError(ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                                             message=role_type)
+            raise exceptions.BaseError(ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                                       message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
             handler(common.get_connector().bruger).edit(
@@ -878,8 +878,6 @@ def terminate_employee(employee_uuid):
     """
     date = common.get_valid_from(flask.request.get_json())
 
-    c = lora.Connector(effective_date=date)
-
     # Org funks
     types = (
         keys.ENGAGEMENT_KEY,
@@ -888,6 +886,9 @@ def terminate_employee(employee_uuid):
         keys.LEAVE_KEY,
         keys.MANAGER_KEY
     )
+
+    c = lora.Connector(effective_date=date)
+
     for key in types:
         for obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
@@ -954,7 +955,7 @@ def get_employee_history(employee_uuid):
                                       registrerettil='infinity')
 
     if not user_registrations:
-        raise exceptions.NotFoundError(ErrorCodes.E_USER_NOT_FOUND)
+        raise exceptions.BaseError(ErrorCodes.E_USER_NOT_FOUND)
 
     history_entries = list(map(common.convert_reg_to_history,
                                user_registrations))

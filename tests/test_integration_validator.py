@@ -96,7 +96,7 @@ class TestValidator(TestHelper):
         startdate = '01-01-2016'
         enddate = '01-06-2017'
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_date_range_in_org_unit_range(
                 self.PARENT,
                 mora_util.parsedatetime(startdate),
@@ -113,7 +113,7 @@ class TestValidator(TestHelper):
         startdate = '01-02-2017'
         enddate = '01-06-2019'
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_date_range_in_org_unit_range(
                 self.PARENT,
                 mora_util.parsedatetime(startdate),
@@ -130,7 +130,7 @@ class TestValidator(TestHelper):
         startdate = '01-02-2010'
         enddate = '01-06-2015'
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_date_range_in_org_unit_range(
                 self.PARENT,
                 mora_util.parsedatetime(startdate),
@@ -148,7 +148,7 @@ class TestValidator(TestHelper):
         valid_to = mora_util.parsedatetime("2040-01-01")
 
         # Act & Assert
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_date_range_in_employee_range(employee_uuid,
                                                       valid_from, valid_to)
 
@@ -180,7 +180,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         move_date = '01-02-2017'
         new_org_uuid = candidate_parent
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
@@ -203,7 +203,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         move_date = '01-02-2017'
         new_org_uuid = candidate_parent
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_candidate_parent_valid(
                 root_org_unit, new_org_uuid, move_date
             )
@@ -214,7 +214,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         move_date = '01-02-2017'
         new_org_uuid = candidate_parent
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
@@ -222,7 +222,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
     def test_should_not_move_org_unit_to_itself(self):
         move_date = '01-02-2017'
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, self.UNIT_TO_MOVE, move_date
             )
@@ -233,7 +233,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
 
         self.expire_org_unit(self.PARENT)
 
-        with self.assertRaises(exceptions.ValidationError):
+        with self.assertRaises(exceptions.BaseError):
             validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
