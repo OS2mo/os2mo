@@ -117,10 +117,16 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2',
                         'data': {
                             'offset': 0,
-                            'total': 6,
+                            'total': 10,
                             'items': [
-                                {'example': 'Onsdag 10:30-11:00 '
-                                            'Torsdag 16:00-18:00',
+                                {'example': '<UUID>',
+                                 'name': 'Lokation',
+                                 'scope': 'DAR',
+                                 'user_key': 'AdresseLokation',
+                                 'uuid': '031f93c3-6bab-462e-'
+                                         'a998-87cad6db3128'},
+                                {'example': 'Onsdag 10:30-11:00 Torsdag '
+                                 '16:00-18:00',
                                  'name': 'Åbningstid',
                                  'scope': 'TEXT',
                                  'user_key': 'Åbningstid',
@@ -132,6 +138,12 @@ class IntegrationTests(util.LoRATestCase):
                                  'user_key': 'Fax',
                                  'uuid': '26d0da83-f43f-4feb-'
                                          'a7b1-d7c28d56daae'},
+                                {'example': 'Postboks 29, 4260 Korsbæk',
+                                 'name': 'Returadresse',
+                                 'scope': 'DAR',
+                                 'user_key': 'AdressePostRetur',
+                                 'uuid': '2c4d87bd-ad26-4580-'
+                                         '982f-7ea90c4512d3'},
                                 {'example': '1003259972',
                                  'name': 'P-nummer',
                                  'scope': 'INTEGER',
@@ -150,13 +162,25 @@ class IntegrationTests(util.LoRATestCase):
                                  'user_key': 'EAN',
                                  'uuid': 'a88aa93b-8edc-46ab-'
                                          'bad7-6535f9b765e5'},
+                                {'example': '<UUID>',
+                                 'name': 'Postadresse',
+                                 'scope': 'DAR',
+                                 'user_key': 'AdressePost',
+                                 'uuid': 'a8c8fe66-2ab1-46ed-'
+                                         'ba99-ed05e855d65f'},
                                 {'example': '+45 3334 9400',
                                  'name': 'Telefonnummer',
                                  'scope': 'PHONE',
                                  'user_key': 'Telefon',
                                  'uuid': 'eb520fe5-eb72-4110-'
                                          'b81d-9c1a129dc22a'},
-                            ]}},
+                                {'example': '<UUID>',
+                                 'name': 'Henvendelsessted',
+                                 'scope': 'DAR',
+                                 'user_key': 'AdresseHenvendelsesSted',
+                                 'uuid': 'ff4ed3b4-18fc-42cf-'
+                                 'af12-51ac7b9a069a'}],
+                        }},
                     'association_type': {
                         'name': 'association_type',
                         'path': '/service/o/3a87187c-f25a-40a1-'
