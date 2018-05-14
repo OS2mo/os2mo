@@ -14,7 +14,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
-
+from .. import validator
 from . import common
 from . import keys
 from . import mapping
@@ -25,19 +25,24 @@ from .. import lora
 
 
 def create_engagement(employee_uuid, req):
-    # TODO: Validation
-
     c = lora.Connector()
 
-    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
+    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = req.get(keys.JOB_FUNCTION).get('uuid')
-    engagement_type_uuid = req.get(keys.ENGAGEMENT_TYPE).get('uuid')
+    job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
+    engagement_type_uuid = common.get_mapping_uuid(req, keys.ENGAGEMENT_TYPE,
+                                                   required=True)
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
+
+    # Validation
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+                                              valid_to)
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
 
     engagement = create_organisationsfunktion_payload(
         funktionsnavn=keys.ENGAGEMENT_KEY,
@@ -59,6 +64,11 @@ def edit_engagement(employee_uuid, req):
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.organisationfunktion.get(uuid=engagement_uuid)
+
+    # Get org unit uuid for validation purposes
+    org_unit = common.get_obj_value(
+        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
+    org_unit_uuid = common.get_uuid(org_unit)
 
     data = req.get('data')
     new_from = common.get_valid_from(data)
@@ -98,9 +108,10 @@ def edit_engagement(employee_uuid, req):
         ))
 
     if keys.ORG_UNIT in data.keys():
+        org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
-            {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
+            {'uuid': org_unit_uuid},
         ))
 
     payload = update_payload(new_from, new_to, update_fields, original,
@@ -109,5 +120,10 @@ def edit_engagement(employee_uuid, req):
     bounds_fields = list(
         mapping.ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
     payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
+
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+                                              new_to)
+    validator.is_date_range_in_employee_range(employee_uuid, new_from,
+                                              new_to)
 
     c.organisationfunktion.update(payload, engagement_uuid)

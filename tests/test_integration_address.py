@@ -509,9 +509,12 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'cause': 'validation',
+                    'error_key': 'E_INVALID_TYPE',
                     'description':
-                    "invalid 'original', expected dict, got: null",
+                    "Invalid 'original', expected dict, got: null",
+                    'actual': 'null',
+                    'key': 'original',
+                    'expected': 'dict',
                     'status': 400,
                 },
                 status_code=400,
@@ -531,8 +534,8 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': 'original entry not found!',
+                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                    'description': 'Original entry not found.',
                     'status': 400,
                 },
                 status_code=400,
@@ -1037,8 +1040,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': "missing 'value'",
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing value",
+                    'key': 'value',
                     'status': 400,
                 },
                 status_code=400,
@@ -1060,10 +1064,13 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
+                    'error_key': 'E_INVALID_TYPE',
                     'description': (
-                        "invalid 'address_type', expected dict, got: null"
+                        "Invalid 'address_type', expected dict, got: null"
                     ),
+                    'key': 'address_type',
+                    'expected': 'dict',
+                    'actual': 'null',
                     'status': 400,
                 },
                 status_code=400,
@@ -1086,8 +1093,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': "missing 'uuid'",
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing uuid",
+                    'key': 'uuid',
                     'status': 400,
                 },
                 status_code=400,
@@ -1110,9 +1118,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
+                    'error_key': 'E_INVALID_UUID',
                     'description': (
-                        "invalid uuid for 'uuid': 'hallo@exmaple.com'"
+                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
                 },
@@ -1375,8 +1383,9 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/edit'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': "missing 'value'",
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': 'Missing value',
+                    'key': 'value',
                     'status': 400,
                 },
                 status_code=400,

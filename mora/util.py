@@ -92,7 +92,7 @@ def parsedatetime(s: str) -> datetime.datetime:
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
     except ValueError:
-        raise exceptions.ValidationError('cannot parse {!r}'.format(s))
+        raise exceptions.HTTPException('cannot parse {!r}'.format(s))
 
     return dt
 
@@ -257,7 +257,8 @@ def update_config(mapping, config_path, allow_environment=True):
 
 def splitlist(xs, size):
     if size <= 0:
-        raise exceptions.ValidationError('size must be positive!')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE)
 
     i = 0
     nxs = len(xs)

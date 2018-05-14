@@ -51,13 +51,13 @@ def search_cpr():
     try:
         sp_data = get_citizen(cpr)
     except KeyError:
-        raise exceptions.NotFoundError(
-            'no such person found',
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR,
             cpr=cpr,
         )
     except ValueError:
-        raise exceptions.ValidationError(
-            'not a valid cpr number',
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CPR_NOT_VALID,
             cpr=cpr,
         )
 

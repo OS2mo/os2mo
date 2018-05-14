@@ -87,7 +87,8 @@ def login(username):
             flask.request.full_path,
         )
 
-        raise exceptions.UnauthorizedError('connection failed')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_CONNECTION_FAILED)
 
     resp = flask.jsonify({
         "user": username,

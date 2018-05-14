@@ -66,7 +66,7 @@ class TestUtils(TestCase):
         # user...
         if False:
             # 15 is not a valid month
-            self.assertRaises(exceptions.ValidationError, util.to_lora_time,
+            self.assertRaises(exceptions.HTTPException, util.to_lora_time,
                               '1999-15-11 00:00:00+01')
 
         # make sure we can round-trip the edge cases correctly
@@ -130,9 +130,9 @@ class TestUtils(TestCase):
             list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 11)),
             [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
         )
-        self.assertRaises(exceptions.ValidationError,
+        self.assertRaises(exceptions.HTTPException,
                           list, util.splitlist([], 0))
-        self.assertRaises(exceptions.ValidationError,
+        self.assertRaises(exceptions.HTTPException,
                           list, util.splitlist([], -1))
         self.assertRaises(TypeError,
                           list, util.splitlist([], 'horse'))

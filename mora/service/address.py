@@ -231,7 +231,7 @@ def get_relation_for(addrobj, fallback=None):
         r['objekttype'] = common.get_uuid(typeobj)
 
     else:
-        raise exceptions.ValidationError(
+        raise exceptions.HTTPException(
             'unknown address scope {!r}!'.format(scope),
         )
 
@@ -289,7 +289,7 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise exceptions.ValidationError('invalid urn {!r}'.format(
+            raise exceptions.HTTPException('invalid urn {!r}'.format(
                 addrrel['urn'],
             ))
 
@@ -313,7 +313,7 @@ def get_one_address(c, addrrel, class_cache=None):
         }
 
     else:
-        raise exceptions.ValidationError(
+        raise exceptions.HTTPException(
             'invalid address scope {!r}'.format(addrformat),
         )
 
@@ -415,8 +415,8 @@ class Addresses(common.AbstractRelationDetail):
         new_entry = common.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
-            raise exceptions.ValidationError(
-                'original required!',
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_ORIGINAL_REQUIRED
             )
 
         old_rel = get_relation_for(old_entry)
@@ -425,7 +425,7 @@ class Addresses(common.AbstractRelationDetail):
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise exceptions.ValidationError('no addresses to edit!')
+            raise exceptions.HTTPException('no addresses to edit!')
 
         addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 
@@ -481,7 +481,8 @@ def address_autocomplete(orgid):
         org = lora.Connector().organisation.get(orgid)
 
         if not org:
-            raise exceptions.NotFoundError('No local municipality found!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY)
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
@@ -490,7 +491,8 @@ def address_autocomplete(orgid):
                 code = int(m.group(1))
                 break
         else:
-            raise exceptions.NotFoundError('No local municipality found!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY)
     else:
         code = None
 

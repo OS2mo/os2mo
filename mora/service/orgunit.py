@@ -31,6 +31,7 @@ from . import org
 from .. import exceptions
 from .. import lora
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -134,6 +135,9 @@ class OrgUnit(common.AbstractRelationDetail):
             ))
 
         if keys.PARENT in data.keys():
+            new_parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
+            validator.is_candidate_parent_valid(unitid,
+                                                new_parent_uuid, new_from)
             update_fields.append((
                 mapping.PARENT_FIELD,
                 {'uuid': data[keys.PARENT]['uuid']}
@@ -206,7 +210,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     else:
-        raise exceptions.ValidationError(
+        raise exceptions.HTTPException(
             'invalid details {!r}'.format(details),
         )
 
@@ -442,11 +446,17 @@ def create_org_unit():
 
     req = flask.request.get_json()
 
-    name = req.get(keys.NAME)
-    parent_uuid = req.get(keys.PARENT).get('uuid')
+    name = common.checked_get(req, keys.NAME, "", required=True)
+
+    parent = common.checked_get(req, keys.PARENT, {}, required=True)
+    parent_uuid = common.get_uuid(parent)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
     org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
-    org_unit_type_uuid = req.get(keys.ORG_UNIT_TYPE).get('uuid')
+
+    org_unit_type = common.checked_get(req, keys.ORG_UNIT_TYPE, {},
+                                       required=True)
+    org_unit_type_uuid = common.get_uuid(org_unit_type)
+
     addresses = [
         address.get_relation_for(addr)
         for addr in common.checked_get(req, keys.ADDRESSES, [])
@@ -703,7 +713,8 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=date)
 
     if not c.organisationenhed.get(unitid):
-        raise exceptions.NotFoundError('no such unit!')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,
@@ -718,22 +729,8 @@ def terminate_org_unit(unitid):
     )
 
     if children['total'] or roles:
-        if children['total'] and len(roles):
-            msg = (
-                'cannot terminate unit with {} active children '
-                'and {} active roles'.format(children['total'], len(roles))
-            )
-        elif children['total']:
-            msg = 'cannot terminate unit with {} active children'.format(
-                children['total'],
-            )
-        else:
-            msg = 'cannot terminate unit with {} active roles'.format(
-                len(roles),
-            )
-
-        raise exceptions.ValidationError(
-            msg,
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
             child_units=children['items'],
             child_count=children['total'],
             role_count=len(roles),
@@ -808,6 +805,9 @@ def get_org_unit_history(unitid):
     unit_registrations = c.organisationenhed.get(uuid=unitid,
                                                  registreretfra='-infinity',
                                                  registrerettil='infinity')
+
+    if not unit_registrations:
+        raise werkzeug.exceptions.NotFound('no such unit')
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))

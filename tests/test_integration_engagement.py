@@ -278,6 +278,19 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_engagement, expected)
 
+    def test_create_engagement_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "engagement",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
     def test_edit_engagement_no_overwrite(self):
         self.load_sample_structures()
 
@@ -608,7 +621,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
-                "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
+                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
                     "to": "2019-04-01T00:00:00+02",
@@ -667,7 +680,7 @@ class Tests(util.LoRATestCase):
                         }
                     },
                     {
-                        "uuid": "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -748,12 +761,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
     def test_edit_engagement_move_no_valid_to(self):
         self.load_sample_structures()
@@ -767,7 +775,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
-                "org_unit": {'uuid': "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b"},
+                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
                 }
@@ -816,7 +824,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
-                        "uuid": "1fb79a11-98f3-4ec2-9eb8-792ce9dd887b",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -888,12 +896,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
     def test_terminate_engagement(self):
         self.load_sample_structures()

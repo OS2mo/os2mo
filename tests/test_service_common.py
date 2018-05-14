@@ -1674,19 +1674,19 @@ class TestClass(TestCase):
         ))
 
         self.assertRaises(
-            exceptions.ValidationError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {},
         )
 
         self.assertRaises(
-            exceptions.ValidationError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
                 'validity': {},
             },
         )
 
         self.assertRaises(
-            exceptions.ValidationError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {},
             {
                 'validity': {
@@ -1695,7 +1695,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            exceptions.ValidationError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
 
             },
@@ -1706,7 +1706,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            exceptions.ValidationError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
 
             },
@@ -1791,19 +1791,19 @@ class TestClass(TestCase):
     def test_get_validities(self):
         # start time required
         self.assertRaises(
-            exceptions.ValidationError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {},
         )
 
         self.assertRaises(
-            exceptions.ValidationError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {
                 'validity': None,
             },
         )
 
         self.assertRaises(
-            exceptions.ValidationError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {
                 'validity': {
                     'from': None,
@@ -1892,7 +1892,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            exceptions.ValidationError,
+            exceptions.HTTPException,
             common.get_uuid,
             {
                 'uuid': 42,
@@ -1939,23 +1939,23 @@ class TestClass(TestCase):
             {},
         )
 
-        with self.assertRaisesRegex(exceptions.ValidationError,
-                                    "missing 'nonexistent'"):
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Missing nonexistent"):
             common.checked_get(mapping, 'nonexistent', [], required=True)
 
-        with self.assertRaisesRegex(exceptions.ValidationError,
-                                    "missing 'nonexistent'"):
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Missing nonexistent"):
             common.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(
-                exceptions.ValidationError,
-                'invalid \'dict\', expected list, got: {"1337": 1337}',
+                exceptions.HTTPException,
+                'Invalid \'dict\', expected list, got: {"1337": 1337}',
         ):
             common.checked_get(mapping, 'dict', [])
 
         with self.assertRaisesRegex(
-                exceptions.ValidationError,
-                r"invalid 'list', expected dict, got: \[1337\]",
+                exceptions.HTTPException,
+                r"Invalid 'list', expected dict, got: \[1337\]",
         ):
             common.checked_get(mapping, 'list', {})

@@ -480,7 +480,7 @@ class LoRATestCaseMixin(TestCaseMixin):
             settings.LORA_URL,
             requests.adapters.HTTPAdapter(
                 max_retries=urllib3.util.retry.Retry(
-                    10,
+                    20,
                     backoff_factor=0.01,
                 ),
             ),

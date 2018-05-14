@@ -114,15 +114,25 @@ def checked_get(
         if fallback is not None:
             return checked_get(fallback, key, default, None, required)
         elif required:
-            raise exceptions.ValidationError('missing {!r}'.format(key))
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
+                message='Missing {}'.format(key),
+                key=key
+            )
         else:
             return default
 
     elif not isinstance(v, type(default)):
-        raise exceptions.ValidationError(
-            'invalid {!r}, expected {}, got: {}'.format(
-                key, type(default).__name__, json.dumps(v),
+        expected = type(default).__name__
+        actual = json.dumps(v)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_TYPE,
+            message='Invalid {!r}, expected {}, got: {}'.format(
+                key, expected, actual,
             ),
+            key=key,
+            expected=expected,
+            actual=actual
         )
 
     return v
@@ -137,11 +147,28 @@ def get_uuid(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_uuid(v):
-        raise exceptions.ValidationError(
-            'invalid uuid for {!r}: {!r}'.format(key, v),
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_UUID,
+            message='Invalid uuid for {!r}: {!r}'.format(key, v),
         )
 
     return v
+
+
+def get_mapping_uuid(mapping, key, required=False):
+    """Extract a UUID from a mapping structure identified by 'key'
+    Expects a structure along the lines of:
+    {
+      "org": {
+        "uuid": <UUID>
+      }
+    }
+    """
+    obj = checked_get(mapping, key, {}, required=required)
+    if obj:
+        return get_uuid(obj)
+    else:
+        return None
 
 
 def get_urn(
@@ -153,8 +180,9 @@ def get_urn(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_urn(v):
-        raise exceptions.ValidationError(
-            'invalid urn for {!r}: {!r}'.format(key, v),
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_URN,
+            message='invalid urn for {!r}: {!r}'.format(key, v),
         )
 
     return v
@@ -607,14 +635,16 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
         if valid_from is None:
-            raise exceptions.ValidationError('missing start date!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_MISSING_START_DATE)
         elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
 
     if fallback is not None:
         return get_valid_from(fallback)
     else:
-        raise exceptions.ValidationError('missing start date!')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MISSING_START_DATE)
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -674,7 +704,8 @@ def replace_relation_value(relations: typing.List[dict],
             return new_rels
 
     else:
-        raise exceptions.ValidationError('original entry not found!')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
 def is_reg_valid(reg):

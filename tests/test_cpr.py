@@ -41,9 +41,9 @@ class Tests(util.TestCase):
                 self.assertRequestResponse(
                     '/service/e/cpr_lookup/?q=1111111111',
                     {
-                        'cause': 'not-found',
                         'cpr': '1111111111',
-                        'description': 'no such person found',
+                        'error_key': 'V_NO_PERSON_FOR_CPR',
+                        'description': 'No person found for given CPR number.',
                         'error': True,
                         'status': 404,
                     },
@@ -57,9 +57,9 @@ class Tests(util.TestCase):
         self.assertRequestResponse(
             '/service/e/cpr_lookup/?q=1234/',
             {
-                'cause': 'validation',
                 'cpr': '1234/',
-                'description': 'not a valid cpr number',
+                'error_key': 'V_CPR_NOT_VALID',
+                'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
             },
@@ -69,9 +69,9 @@ class Tests(util.TestCase):
         self.assertRequestResponse(
             '/service/e/cpr_lookup/?q=1234567890123',
             {
-                'cause': 'validation',
                 'cpr': '1234567890123',
-                'description': 'not a valid cpr number',
+                'error_key': 'V_CPR_NOT_VALID',
+                'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
             },
@@ -81,9 +81,9 @@ class Tests(util.TestCase):
         self.assertRequestResponse(
             '/service/e/cpr_lookup/?q=2222222222',
             {
-                'cause': 'validation',
                 'cpr': '2222222222',
-                'description': 'not a valid cpr number',
+                'error_key': 'V_CPR_NOT_VALID',
+                'description': 'Not a valid CPR number.',
                 'error': True,
                 'status': 400,
             },

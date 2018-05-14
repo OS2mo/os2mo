@@ -10,8 +10,8 @@ from __future__ import generator_stop
 
 import collections
 import datetime
-import itertools
 import functools
+import itertools
 import uuid
 
 import requests
@@ -152,12 +152,18 @@ def _check_response(r):
         try:
             d = r.json()
         except ValueError:
-            raise exceptions.ValidationError(r.text)
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                message=r.text)
 
         if r.status_code == 400 and d:
-            raise exceptions.ValidationError(r.json()['message'])
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                message=r.json()['message'])
         elif r.status_code in (401, 403) and d:
-            raise exceptions.UnauthorizedError(r.json()['message'])
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNAUTHORIZED,
+                message=r.json()['message'])
         else:
             raise
 
@@ -266,8 +272,9 @@ class Connector:
             self.__daterange = (self.today, self.tomorrow)
 
         else:
-            raise exceptions.ValidationError(
-                'invalid validity {!r}'.format(self.__validity),
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_INVALID_VALIDITY,
+                validity=self.__validity
             )
 
         self.__defaults = defaults

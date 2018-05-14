@@ -233,7 +233,6 @@ class Tests(util.LoRATestCase):
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
-            # TODO
             "addresses": [
                 {
                     "address_type": {
@@ -885,12 +884,12 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures()
 
-        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         req = {
             "data": {
                 "parent": {
-                    "uuid": "235ce700-c322-4ebb-94d5-fafb5aace1b5"
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
                     "from": "2017-07-01T00:00:00+02",
@@ -913,8 +912,8 @@ class Tests(util.LoRATestCase):
                             "from": "2016-01-01 00:00:00+01",
                             "to": "infinity"
                         },
-                        "brugervendtnoegle": "fil",
-                        "enhedsnavn": "Filosofisk Institut"
+                        "brugervendtnoegle": "hum",
+                        "enhedsnavn": "Humanistisk fakultet"
                     }
                 ]
             },
@@ -954,21 +953,22 @@ class Tests(util.LoRATestCase):
                 ],
                 "overordnet": [
                     {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "2017-07-01 00:00:00+02"
-                        },
-                    }, {
-                        "uuid": "235ce700-c322-4ebb-94d5-fafb5aace1b5",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-07-01 00:00:00+02",
-                            "to": "infinity"
-                        },
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'virkning': {
+                            'from': '2016-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-07-01 00:00:00+02',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                        'virkning': {
+                            'from': '2017-07-01 00:00:00+02',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
                     }
                 ],
                 "enhedstype": [
@@ -1012,6 +1012,37 @@ class Tests(util.LoRATestCase):
         actual = c.organisationenhed.get(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
+
+    def test_move_org_unit_should_fail_validation(self):
+        """Should fail validation when trying to move an org unit to one of
+        its children """
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "data": {
+                "parent": {
+                    "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
+                },
+                "validity": {
+                    "from": "2017-07-01T00:00:00+02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            {
+                'description': 'Org unit cannot be moved to '
+                               'one of its own child units',
+                'error': True,
+                'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
+                'status': 400
+            },
+            status_code=400,
+            json=req)
 
     def test_terminate_org_unit(self):
         self.load_sample_structures()
@@ -1066,8 +1097,8 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'not-found',
-                'description': 'no such unit!',
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'description': 'Org unit not found.',
                 'status': 404,
             },
             status_code=404,
@@ -1084,11 +1115,10 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
-
-                'description': 'cannot terminate unit with 1 active children',
-
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
                 'role_count': 0,
                 'child_count': 1,
 
@@ -1115,12 +1145,10 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
-
-                'description':
-                'cannot terminate unit with 2 active children '
-                'and 4 active roles',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
 
                 'role_count': 4,
                 'child_count': 2,
@@ -1154,12 +1182,10 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
-
-                'description':
-                'cannot terminate unit with 1 active children '
-                'and 4 active roles',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
 
                 'role_count': 4,
                 'child_count': 1,
@@ -1202,12 +1228,10 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'error': True,
-                'cause': 'validation',
                 'status': 400,
-
-                'description':
-                'cannot terminate unit with 4 active roles',
-
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'description': 'Cannot terminate unit with '
+                               'active children and roles.',
                 'role_count': 4,
                 'child_count': 0,
 

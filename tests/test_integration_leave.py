@@ -225,6 +225,19 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_leave, expected)
 
+    def test_create_leave_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "leave",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
     def test_edit_leave_no_overwrite(self):
         self.load_sample_structures()
 

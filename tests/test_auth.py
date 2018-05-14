@@ -35,8 +35,8 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/service/o/',
                 {
-                    'cause': 'unauthorized',
                     'error': True,
+                    'error_key': 'E_UNAUTHORIZED',
                     'description': 'No Authorization header present',
                     'status': 401,
                 },
@@ -57,7 +57,7 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/mo/service/user/USER/login',
                 {
-                    'cause': 'unauthorized',
+                    'error_key': 'E_UNAUTHORIZED',
                     'description': (
                         'The security token could not be authenticated or '
                         'authorized'
@@ -85,8 +85,8 @@ class MockTests(util.TestCase):
             self.assertRequestResponse(
                 '/mo/service/user/USER/login',
                 {
-                    'cause': 'unauthorized',
                     'error': True,
+                    'error_key': 'E_UNAUTHORIZED',
                     'description': (
                         'ID3242: The security token could not be '
                         'authenticated or authorized.'
