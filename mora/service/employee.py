@@ -18,10 +18,8 @@ This section describes how to interact with employees.
 import uuid
 
 import flask
-import werkzeug
 
 from .. import exceptions
-from mora.exceptions import ErrorCodes
 from . import address
 from . import association
 from . import common
@@ -188,7 +186,7 @@ def get_employee(id):
     if r:
         return flask.jsonify(r)
     else:
-        raise exceptions.BaseError(ErrorCodes.E_USER_NOT_FOUND)
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
@@ -446,8 +444,9 @@ def create_employee_relation(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            raise exceptions.BaseError(ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                                       message=role_type)
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
             handler(common.get_connector().bruger).create(
@@ -831,8 +830,9 @@ def edit_employee(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            raise exceptions.BaseError(ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                                       message=role_type)
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
             handler(common.get_connector().bruger).edit(
@@ -955,7 +955,7 @@ def get_employee_history(employee_uuid):
                                       registrerettil='infinity')
 
     if not user_registrations:
-        raise exceptions.BaseError(ErrorCodes.E_USER_NOT_FOUND)
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
 
     history_entries = list(map(common.convert_reg_to_history,
                                user_registrations))

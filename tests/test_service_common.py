@@ -1674,19 +1674,19 @@ class TestClass(TestCase):
         ))
 
         self.assertRaises(
-            exceptions.BaseError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {},
         )
 
         self.assertRaises(
-            exceptions.BaseError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
                 'validity': {},
             },
         )
 
         self.assertRaises(
-            exceptions.BaseError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {},
             {
                 'validity': {
@@ -1695,7 +1695,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            exceptions.BaseError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
 
             },
@@ -1706,7 +1706,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            exceptions.BaseError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
 
             },
@@ -1791,19 +1791,19 @@ class TestClass(TestCase):
     def test_get_validities(self):
         # start time required
         self.assertRaises(
-            exceptions.BaseError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {},
         )
 
         self.assertRaises(
-            exceptions.BaseError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {
                 'validity': None,
             },
         )
 
         self.assertRaises(
-            exceptions.BaseError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {
                 'validity': {
                     'from': None,
@@ -1892,7 +1892,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            exceptions.BaseError,
+            exceptions.HTTPException,
             common.get_uuid,
             {
                 'uuid': 42,
@@ -1939,23 +1939,23 @@ class TestClass(TestCase):
             {},
         )
 
-        with self.assertRaisesRegex(exceptions.BaseError,
+        with self.assertRaisesRegex(exceptions.HTTPException,
                                     "Missing required value"):
             common.checked_get(mapping, 'nonexistent', [], required=True)
 
-        with self.assertRaisesRegex(exceptions.BaseError,
+        with self.assertRaisesRegex(exceptions.HTTPException,
                                     "Missing required value"):
             common.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(
-                exceptions.BaseError,
+                exceptions.HTTPException,
                 'Invalid type',
         ):
             common.checked_get(mapping, 'dict', [])
 
         with self.assertRaisesRegex(
-                exceptions.BaseError,
+                exceptions.HTTPException,
                 r"Invalid type",
         ):
             common.checked_get(mapping, 'list', {})

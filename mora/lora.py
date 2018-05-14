@@ -16,7 +16,6 @@ import uuid
 
 import requests
 
-from mora.exceptions import ErrorCodes
 from . import auth
 from . import exceptions
 from . import settings
@@ -153,15 +152,18 @@ def _check_response(r):
         try:
             d = r.json()
         except ValueError:
-            raise exceptions.BaseError(ErrorCodes.E_INVALID_INPUT,
-                                       message=r.text)
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                message=r.text)
 
         if r.status_code == 400 and d:
-            raise exceptions.BaseError(ErrorCodes.E_INVALID_INPUT,
-                                       message=r.json()['message'])
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                message=r.json()['message'])
         elif r.status_code in (401, 403) and d:
-            raise exceptions.BaseError(ErrorCodes.E_UNAUTHORIZED,
-                                       message=r.json()['message'])
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNAUTHORIZED,
+                message=r.json()['message'])
         else:
             raise
 
@@ -270,7 +272,7 @@ class Connector:
             self.__daterange = (self.today, self.tomorrow)
 
         else:
-            raise exceptions.BaseError(
+            raise exceptions.HTTPException(
                 ErrorCodes.V_INVALID_VALIDITY,
                 validity=self.__validity
             )

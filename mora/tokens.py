@@ -14,7 +14,6 @@ import lxml.etree
 import flask
 import requests
 
-from mora.exceptions import ErrorCodes
 from . import exceptions
 from . import settings
 from . import util
@@ -96,7 +95,8 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
                             None, XML_NAMESPACES)
 
     if not resp.ok or errormsg:
-        raise exceptions.BaseError(ErrorCodes.E_UNAUTHORIZED, message=errormsg)
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_UNAUTHORIZED,
+                                       message=errormsg)
 
     tokens = doc.findall('.//saml:Assertion', XML_NAMESPACES)
 

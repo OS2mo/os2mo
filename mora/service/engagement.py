@@ -14,7 +14,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
-from mora import validator
+from .. import validator
 from . import common
 from . import keys
 from . import mapping

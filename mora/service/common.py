@@ -23,7 +23,6 @@ import uuid
 
 import flask
 
-from ..exceptions import ErrorCodes
 from . import keys
 from .. import exceptions
 from .. import lora
@@ -115,16 +114,16 @@ def checked_get(
         if fallback is not None:
             return checked_get(fallback, key, default, None, required)
         elif required:
-            raise exceptions.BaseError(
-                ErrorCodes.V_MISSING_REQUIRED_VALUE,
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
                 missing=key
             )
         else:
             return default
 
     elif not isinstance(v, type(default)):
-        raise exceptions.BaseError(
-            ErrorCodes.E_INVALID_TYPE,
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_TYPE,
             message='invalid {!r}, expected {}, got: {}'.format(
                 key, type(default).__name__, json.dumps(v),
             ),
@@ -142,8 +141,8 @@ def get_uuid(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_uuid(v):
-        raise exceptions.BaseError(
-            ErrorCodes.E_INVALID_UUID,
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_UUID,
             message='invalid uuid for {!r}: {!r}'.format(key, v),
         )
 
@@ -175,8 +174,8 @@ def get_urn(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not util.is_urn(v):
-        raise exceptions.BaseError(
-            ErrorCodes.E_INVALID_URN,
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_URN,
             message='invalid urn for {!r}: {!r}'.format(key, v),
         )
 
@@ -630,14 +629,14 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
     if validity and validity is not sentinel:
         valid_from = validity.get(keys.FROM, sentinel)
         if valid_from is None:
-            raise exceptions.BaseError(ErrorCodes.V_MISSING_START_DATE)
+            raise exceptions.HTTPException(ErrorCodes.V_MISSING_START_DATE)
         elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
 
     if fallback is not None:
         return get_valid_from(fallback)
     else:
-        raise exceptions.BaseError(ErrorCodes.V_MISSING_START_DATE)
+        raise exceptions.HTTPException(ErrorCodes.V_MISSING_START_DATE)
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -697,7 +696,7 @@ def replace_relation_value(relations: typing.List[dict],
             return new_rels
 
     else:
-        raise exceptions.BaseError(ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
+        raise exceptions.HTTPException(ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
 def is_reg_valid(reg):

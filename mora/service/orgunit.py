@@ -22,7 +22,6 @@ import uuid
 import flask
 import werkzeug
 
-from mora.exceptions import ErrorCodes
 from . import address
 from . import common
 from . import facet
@@ -211,7 +210,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     else:
-        raise exceptions.BaseError(
+        raise exceptions.HTTPException(
             'invalid details {!r}'.format(details),
         )
 
@@ -715,7 +714,8 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=date)
 
     if not c.organisationenhed.get(unitid):
-        raise exceptions.BaseError(ErrorCodes.E_ORG_UNIT_NOT_FOUND)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,
@@ -730,8 +730,8 @@ def terminate_org_unit(unitid):
     )
 
     if children['total'] or roles:
-        raise exceptions.BaseError(
-            ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
             child_units=children['items'],
             child_count=children['total'],
             role_count=len(roles),

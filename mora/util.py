@@ -22,7 +22,6 @@ import flask
 import dateutil.parser
 import dateutil.tz
 
-from mora.exceptions import ErrorCodes
 from . import exceptions
 
 
@@ -93,7 +92,7 @@ def parsedatetime(s: str) -> datetime.datetime:
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
     except ValueError:
-        raise exceptions.BaseError('cannot parse {!r}'.format(s))
+        raise exceptions.HTTPException('cannot parse {!r}'.format(s))
 
     return dt
 
@@ -258,7 +257,8 @@ def update_config(mapping, config_path, allow_environment=True):
 
 def splitlist(xs, size):
     if size <= 0:
-        raise exceptions.BaseError(ErrorCodes.E_SIZE_MUST_BE_POSITIVE)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE)
 
     i = 0
     nxs = len(xs)

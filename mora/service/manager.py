@@ -20,7 +20,8 @@ from . import address
 from . import common
 from . import keys
 from . import mapping
-from mora import lora, validator
+from .. import lora
+from .. import validator
 
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')

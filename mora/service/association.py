@@ -16,7 +16,8 @@ This section describes how to interact with employee associations.
 
 import flask
 
-from mora import lora, validator
+from .. import lora
+from .. import validator
 from . import address
 from . import common
 from . import keys

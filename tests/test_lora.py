@@ -88,7 +88,7 @@ class Tests(util.TestCase):
             check('future', [], [])
 
         with self.subTest('failing'):
-            with self.assertRaises(exceptions.BaseError):
+            with self.assertRaises(exceptions.HTTPException):
                 check('kaflaflibob', [], [])
 
     def test_get_effects(self, m):

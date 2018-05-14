@@ -21,7 +21,6 @@ import itertools
 
 import flask
 
-from mora.exceptions import ErrorCodes
 from . import address
 from . import common
 from . import employee
@@ -412,7 +411,8 @@ def get_detail(type, id, function):
 
     # ensure that we report an error correctly
     if function not in keys.FUNCTION_KEYS:
-        raise exceptions.BaseError(ErrorCodes.E_INVALID_FUNCTION_TYPE)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_FUNCTION_TYPE)
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or 20,

@@ -241,7 +241,7 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
         if not original:
-            raise exceptions.BaseError(ErrorCodes.E_USER_NOT_FOUND)
+            raise exceptions.HTTPException(ErrorCodes.E_USER_NOT_FOUND)
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
@@ -270,7 +270,7 @@ class ITSystems(common.AbstractRelationDetail):
         old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
 
         if not old_entry:
-            raise exceptions.BaseError(ErrorCodes.V_ORIGINAL_REQUIRED)
+            raise exceptions.HTTPException(ErrorCodes.V_ORIGINAL_REQUIRED)
 
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(

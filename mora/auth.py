@@ -20,7 +20,6 @@ import os
 import flask
 import requests.auth
 
-from mora.exceptions import ErrorCodes
 from . import exceptions
 from . import tokens
 
@@ -88,7 +87,8 @@ def login(username):
             flask.request.full_path,
         )
 
-        raise exceptions.BaseError(ErrorCodes.E_CONNECTION_FAILED)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_CONNECTION_FAILED)
 
     resp = flask.jsonify({
         "user": username,

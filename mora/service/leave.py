@@ -17,7 +17,8 @@ import uuid
 
 import flask
 
-from mora import lora, validator
+from .. import lora
+from .. import validator
 from . import common, keys, mapping
 from .common import (create_organisationsfunktion_payload,
                      ensure_bounds, inactivate_old_interval,

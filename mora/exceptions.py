@@ -53,7 +53,7 @@ class ErrorCodes(Enum):
     E_UNKNOWN = 500, "Unknown Error."
 
 
-class BaseError(werkzeug.exceptions.HTTPException):
+class HTTPException(werkzeug.exceptions.HTTPException):
     key = ErrorCodes.E_UNKNOWN
     code = 500
 

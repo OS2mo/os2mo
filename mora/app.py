@@ -12,7 +12,6 @@ import traceback
 
 import flask
 
-from mora.exceptions import ErrorCodes
 from . import auth
 from . import cli
 from . import exceptions
@@ -43,9 +42,9 @@ def handle_invalid_usage(error):
 
     util.log_exception('unhandled exception')
 
-    return exceptions.BaseError(
+    return exceptions.HTTPException(
         description=str(error),
-        key=ErrorCodes.E_UNKNOWN,
+        key=exceptions.ErrorCodes.E_UNKNOWN,
         stacktrace=traceback.format_exc(),
     ).get_response()
 
@@ -54,6 +53,7 @@ def handle_invalid_usage(error):
 @app.route('/<path:path>')
 def root(path=''):
     if path.split('/', 1)[0] == 'service':
-        raise exceptions.BaseError(ErrorCodes.E_NO_SUCH_ENDPOINT)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
 
     return flask.send_file('index.html')
