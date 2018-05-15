@@ -13,6 +13,6 @@
     "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet."
   },
   "error": {
-
+    "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}"
   }
 }
