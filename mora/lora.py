@@ -142,7 +142,13 @@ ALL_RELATION_NAMES = {
 
 class AuthorizedSession(requests.Session):
 
-    def __init__(self, retries=0, max_retries=5, import_settings=settings):
+    def __init__(
+        self,
+        context=None,
+        retries=0,
+        max_retries=5,
+        import_settings=settings
+    ):
 
         # Init Session
         super().__init__()
@@ -158,9 +164,9 @@ class AuthorizedSession(requests.Session):
         self.verify = import_settings.CA_BUNDLE or True
 
         # Fetch token from context
-        token = self.get_token_from_context()
+        self.get_token_from_context(context)
 
-    def get_token_from_context(self, context=g):
+    def get_token_from_context(self, context=False):
         """
         Retrieve user token from application context
         and set the authorization header for backend (lora) requests.
@@ -178,17 +184,20 @@ class AuthorizedSession(requests.Session):
                             head to the official flask documentation.
         """
 
-        # User token
-        token = context.user_token
+        # Checks
+        if not hasattr(context, "user_token"):
+            raise AttributeError(
+                'Missing user_token attribute'
+            )
 
         # TODO: Replace exception with proper exception type
-        if not token:
-            raise Exception(
-                "No valid token found"
+        if not context.user_token:
+            raise ValueError(
+                'No valid token found'
             )
 
         # Attach token to auth header
-        self.headers['Authorization'] = token
+        self.headers['Authorization'] = context.user_token
 
 
 def _check_response(r):
@@ -231,7 +240,7 @@ def get(path, uuid, **params):
 
 def fetch(path, **params):
     # Init session
-    session = AuthorizedSession()
+    session = AuthorizedSession(context=g)
     r = session.get(settings.LORA_URL + path, params=params)
     _check_response(r)
 
@@ -243,7 +252,7 @@ def fetch(path, **params):
 
 def create(path, obj, uuid=None):
     # Init session
-    session = AuthorizedSession()
+    session = AuthorizedSession(context=g)
 
     if uuid:
         r = session.put('{}{}/{}'.format(settings.LORA_URL, path, uuid),
@@ -258,13 +267,16 @@ def create(path, obj, uuid=None):
 
 def delete(path, uuid):
     # Init session
-    session = AuthorizedSession()
+    session = AuthorizedSession(context=g)
 
     r = session.delete('{}{}/{}'.format(settings.LORA_URL, path, uuid))
     _check_response(r)
 
 
 def update(path, obj):
+    # Init session
+    session = AuthorizedSession(context=g)
+
     r = session.put(settings.LORA_URL + path, json=obj)
     _check_response(r)
     return r.json()['uuid']
@@ -382,7 +394,7 @@ class Scope:
         self.path = path
 
         # Init session
-        self.session = AuthorizedSession()
+        self.session = AuthorizedSession(context=g)
 
     @property
     def base_path(self):
