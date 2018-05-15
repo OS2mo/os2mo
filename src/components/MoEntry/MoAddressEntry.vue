@@ -7,7 +7,8 @@
         facet="address_type" 
         v-model="entry.address_type" 
         :preselected-user-key="preselectedType" 
-        required/>
+        required
+      />
       
       <div class="form-group col">
         <div v-if="entry.address_type != null">
@@ -89,7 +90,7 @@ export default {
       if (this.entry.address_type.scope === 'EAN') return {required: true, digits: 13}
       if (this.entry.address_type.scope === 'TEXT') return {required: true}
       if (this.entry.address_type.scope === 'WWW') return {required: true, url: true}
-      if (this.entry.address_type.scope === 'INTEGER') return {required: true, numeric: true}
+      if (this.entry.address_type.scope === 'PNUMBER') return {required: true, numeric: true, min: 5}
       if (this.entry.address_type.scope == null) return {}
     }
   },
