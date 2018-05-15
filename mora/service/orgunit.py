@@ -719,11 +719,9 @@ def terminate_org_unit(unitid):
     """
     date = common.get_valid_from(flask.request.get_json())
 
-    c = lora.Connector(effective_date=date)
+    c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
-    if not c.organisationenhed.get(unitid):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
+    validator.is_org_unit_termination_date_valid(unitid, date)
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,

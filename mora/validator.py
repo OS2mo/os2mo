@@ -145,28 +145,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
             exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD)
 
 
-def _get_org_unit_endpoint_date(org_unit: dict,
-                                enddate=True) -> datetime.datetime:
-    """
-    Get the validity start date or end date for an org unit (pre-condition:
-    the org unit has exactly one active period.
-
-    :param org_unit: The org unit to get the end-point date from.
-    :param enddate: If true (default) the enddate will be used as the end-point
-        date.
-    """
-    for g in org_unit['tilstande']['organisationenhedgyldighed']:
-        if g['gyldighed'] == 'Aktiv':
-            virkning = g['virkning']
-            if enddate:
-                return util.parsedatetime(virkning['to'])
-            else:
-                return util.parsedatetime(virkning['from'])
-
-    raise exceptions.HTTPException('the unit did not have an end date!')
-
-
-def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
+def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
     """
     Check if the inactivation date is valid.
 
@@ -174,18 +153,33 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
     :param end_date: The candidate end-date.
     :return: True if the inactivation date is valid and false otherwise.
     """
-    candidate_enddate = util.parsedatetime(end_date)
+    c = lora.Connector(virkningfra=end_date, virkningtil='infinity')
 
-    # Check that the end date is greater than the start date of the org unit
-    org_unit = lora.get_org_unit(unitid)
-    if candidate_enddate <= _get_org_unit_endpoint_date(org_unit, False):
-        return False
+    if not c.organisationenhed.get(unitid):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
 
-    # Check that the end dates of the children smaller than org unit end date
-    children = lora.organisationenhed(overordnet=unitid)
-    for child in children:
-        child_unit = lora.get_org_unit(child)
-        if candidate_enddate < _get_org_unit_endpoint_date(child_unit):
-            return False
+    # Find a org unit effect that's active, and that has a start date before
+    #  our termination date
+    effects = [
+        (start, end, effect)
+        for start, end, effect in
+        c.organisationenhed.get_effects(
+            unitid,
+            {
+                'tilstande': (
+                    'organisationenhedgyldighed',
+                ),
+            },
+            {}
+        )
+        if effect.get('tilstande')
+                 .get('organisationenhedgyldighed')[0]
+                 .get('gyldighed') == 'Aktiv' and
+        start < end_date
+    ]
 
-    return True
+    if not effects:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_TERMINATE_UNIT_BEFORE_START_DATE,
+        )
