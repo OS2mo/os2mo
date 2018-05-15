@@ -70,7 +70,7 @@ An example result:
     "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
   }
 
-The follow scopes are available:
+The following scopes are available:
 
 DAR
       UUID of a `DAR`_, as found through the API. Please
@@ -80,17 +80,17 @@ DAR
 EMAIL
       An email address, as specified by :rfc:`5322#section-3.4`.
 
-INTEGER
-      A integral number.
-
 PHONE
       A phone number.
 
-TEXT
-      Arbitrary text.
-
 WWW
       An HTTP or HTTPS URL, as specified by :rfc:`1738`.
+
+EAN
+      Number for identification for accounting purposes.
+
+PNUMBER
+      A production unit number, as registered with the Danish CVR.
 
 Example data
 ~~~~~~~~~~~~
@@ -172,6 +172,7 @@ URN_PREFIXES = {
     'PHONE': 'urn:magenta.dk:telefon:',
     'EAN': 'urn:magenta.dk:ean:',
     'WWW': 'urn:magenta.dk:www:',
+    'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
 }
 
 HREF_PREFIXES = {
