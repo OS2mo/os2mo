@@ -245,8 +245,7 @@ class ITSystems(common.AbstractRelationDetail):
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        start = common.get_valid_from(req)
-        end = common.get_valid_to(req)
+        start, end = common.get_validities(req)
 
         rels.append(self.get_relation_for(systemid, start, end))
 

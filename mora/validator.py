@@ -94,7 +94,7 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
         )
 
 
-def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
+def is_candidate_parent_valid(unitid: str, parent: str,
                               from_date: datetime.datetime) -> bool:
     """
     For moving an org unit. Check if the candidate parent is in the subtree of
@@ -102,15 +102,14 @@ def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
     unit to its own parent - since it can be moved back and forth on different
     dates.
 
-    :param old_unitid: The UUID of the current org unit.
-    :param new_unitid: The UUID of the new org unit.
+    :param unitid: The UUID of the org unit we are trying to move.
+    :param parent: The UUID of the new candidate parent org unit.
     :param from_date: The date on which the move takes place
     """
-
     # Do not allow moving of the root org unit
-    c = lora.Connector(effective_date=from_date)
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     org_unit_relations = c.organisationenhed.get(
-        uuid=old_unitid
+        uuid=unitid
     )['relationer']
     if org_unit_relations['overordnet'][0]['uuid'] == \
             org_unit_relations['tilhoerer'][0]['uuid']:
@@ -118,8 +117,10 @@ def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
             exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
 
     # Use for checking that the candidate parent is not the units own subtree
+    c = lora.Connector(effective_date=from_date)
+
     def is_node_valid(node_uuid: str) -> bool:
-        if node_uuid == old_unitid:
+        if node_uuid == unitid:
             return False
 
         node = c.organisationenhed.get(
@@ -139,7 +140,7 @@ def is_candidate_parent_valid(old_unitid: str, new_unitid: str,
 
         return is_node_valid(parent)
 
-    if not is_node_valid(new_unitid):
+    if not is_node_valid(parent):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD)
 

@@ -18,6 +18,7 @@ class ErrorCodes(Enum):
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
     V_INVALID_VALIDITY = 400, "Invalid validity."
     V_MISSING_START_DATE = 400, "Missing start date."
+    V_END_BEFORE_START = 400, "End date is before start date."
     V_ORIGINAL_REQUIRED = 400, "Original required."
     V_NO_PERSON_FOR_CPR = 404, "No person found for given CPR number."
     V_CPR_NOT_VALID = 400, "Not a valid CPR number."

@@ -1871,6 +1871,36 @@ class TestClass(TestCase):
             }),
         )
 
+        self.assertEqual(
+            (datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+             datetime.datetime(2018, 4, 5, tzinfo=util.default_timezone)),
+            common.get_validities({
+                'validity': {
+                    'from': '2018-03-05',
+                    'to': '2018-04-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            (datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+             util.positive_infinity),
+            common.get_validities({
+                'validity': {
+                    'from': '2018-03-05'
+                },
+            }),
+        )
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "End date is before start date"):
+            common.get_validities({
+                'validity': {
+                    'from': '2019-03-05',
+                    'to': '2018-03-05',
+                },
+            })
+
     def test_get_uuid(self):
         testid = '00000000-0000-0000-0000-000000000000'
 

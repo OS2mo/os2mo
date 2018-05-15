@@ -666,13 +666,24 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         return util.positive_infinity
 
 
+def get_validities(obj, fallback=None):
+    valid_from = get_valid_from(obj, fallback)
+    valid_to = get_valid_to(obj, fallback)
+    if valid_to < valid_from:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_END_BEFORE_START)
+    return valid_from, valid_to
+
+
 def get_validity_effect(entry, fallback=None):
     if keys.VALIDITY not in entry and fallback is None:
         return None
 
+    valid_from, valid_to = get_validities(entry, fallback)
+
     return {
-        keys.FROM: util.to_lora_time(get_valid_from(entry, fallback)),
-        keys.TO: util.to_lora_time(get_valid_to(entry, fallback)),
+        keys.FROM: util.to_lora_time(valid_from),
+        keys.TO: util.to_lora_time(valid_to),
     }
 
 

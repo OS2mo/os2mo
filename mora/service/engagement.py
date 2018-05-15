@@ -33,8 +33,7 @@ def create_engagement(employee_uuid, req):
     job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
     engagement_type_uuid = common.get_mapping_uuid(req, keys.ENGAGEMENT_TYPE,
                                                    required=True)
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
+    valid_from, valid_to = common.get_validities(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
 
@@ -71,8 +70,7 @@ def edit_engagement(employee_uuid, req):
     org_unit_uuid = common.get_uuid(org_unit)
 
     data = req.get('data')
-    new_from = common.get_valid_from(data)
-    new_to = common.get_valid_to(data)
+    new_from, new_to = common.get_validities(data)
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
@@ -80,8 +78,7 @@ def edit_engagement(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = common.get_valid_from(original_data)
-        old_to = common.get_valid_to(original_data)
+        old_from, old_to = common.get_validities(original_data)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')

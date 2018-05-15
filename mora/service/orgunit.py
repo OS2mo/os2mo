@@ -95,8 +95,7 @@ class OrgUnit(common.AbstractRelationDetail):
         original = c.organisationenhed.get(uuid=unitid)
 
         data = req.get('data')
-        new_from = common.get_valid_from(data)
-        new_to = common.get_valid_to(data)
+        new_from, new_to = common.get_validities(data)
 
         # Get org unit uuid for validation purposes
         parent = common.get_obj_value(
@@ -109,8 +108,7 @@ class OrgUnit(common.AbstractRelationDetail):
         original_data = req.get('original')
         if original_data:
             # We are performing an update
-            old_from = common.get_valid_from(original_data)
-            old_to = common.get_valid_to(original_data)
+            old_from, old_to = common.get_validities(original_data)
             payload = common.inactivate_old_interval(
                 old_from, old_to, new_from, new_to, payload,
                 ('tilstande', 'organisationenhedgyldighed')

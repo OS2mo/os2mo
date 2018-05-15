@@ -39,8 +39,7 @@ def create_association(employee_uuid, req):
     association_type_uuid = common.get_mapping_uuid(req, keys.ASSOCIATION_TYPE,
                                                     required=True)
     address_obj = common.checked_get(req, keys.ADDRESS, {})
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
+    valid_from, valid_to = common.get_validities(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ASSOCIATION_KEY)
 
@@ -75,8 +74,7 @@ def edit_association(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=association_uuid)
 
     data = req.get('data')
-    new_from = common.get_valid_from(data)
-    new_to = common.get_valid_to(data)
+    new_from, new_to = common.get_validities(data)
 
     # Get org unit uuid for validation purposes
     org_unit = common.get_obj_value(
@@ -89,8 +87,7 @@ def edit_association(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = common.get_valid_from(original_data)
-        old_to = common.get_valid_to(original_data)
+        old_from, old_to = common.get_validities(original_data)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
