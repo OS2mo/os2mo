@@ -76,7 +76,7 @@ export default {
       return this.entry.address_type == null
     },
     noPreselectedType () {
-      return this.preselectedType === null
+      return this.preselectedType == null
     },
 
     nameId () {
