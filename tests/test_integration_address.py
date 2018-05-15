@@ -1213,7 +1213,7 @@ class Writing(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2010-02-04T00:00:00+01",
+                "from": "2016-02-04T00:00:00+01",
                 "to": "2017-10-22T00:00:00+02",
             }
         }
@@ -1226,7 +1226,7 @@ class Writing(util.LoRATestCase):
                 'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
-                    'from': '2010-02-04 00:00:00+01',
+                    'from': '2016-02-04 00:00:00+01',
                     'to_included': False,
                     'to': '2017-10-22 00:00:00+02',
                     'from_included': True,
@@ -1298,23 +1298,6 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'Adresse',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'validity': {
-                        'from': '2010-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
-                    },
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                },
-                {
-                    'address_type': {
                         'example': '20304060',
                         'name': 'Telefonnummer',
                         'scope': 'PHONE',
@@ -1328,6 +1311,23 @@ class Writing(util.LoRATestCase):
                         'to': '2017-10-22T00:00:00+02:00',
                     },
                     'urn': 'urn:magenta.dk:telefon:+4511223344',
+                },
+                {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'validity': {
+                        'from': '2016-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
             ],
         )

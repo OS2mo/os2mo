@@ -98,6 +98,11 @@ class OrgUnit(common.AbstractRelationDetail):
         new_from = common.get_valid_from(data)
         new_to = common.get_valid_to(data)
 
+        # Get org unit uuid for validation purposes
+        parent = common.get_obj_value(
+            original, mapping.PARENT_FIELD.path)[-1]
+        parent_uuid = common.get_uuid(parent)
+
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
 
@@ -135,12 +140,12 @@ class OrgUnit(common.AbstractRelationDetail):
             ))
 
         if keys.PARENT in data.keys():
-            new_parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
+            parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
             validator.is_candidate_parent_valid(unitid,
-                                                new_parent_uuid, new_from)
+                                                parent_uuid, new_from)
             update_fields.append((
                 mapping.PARENT_FIELD,
-                {'uuid': data[keys.PARENT]['uuid']}
+                {'uuid': parent_uuid}
             ))
 
         payload = common.update_payload(new_from, new_to, update_fields,
@@ -150,6 +155,9 @@ class OrgUnit(common.AbstractRelationDetail):
             mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
+
+        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+                                                  new_to)
 
         c.organisationenhed.update(payload, unitid)
 
@@ -479,6 +487,9 @@ def create_org_unit():
         overordnet=parent_uuid,
         adresser=addresses,
     )
+
+    validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+                                              valid_to)
 
     unitid = c.organisationenhed.create(org_unit)
 

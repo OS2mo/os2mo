@@ -256,7 +256,7 @@ class Tests(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2010-02-04T00:00:00+01",
+                "from": "2016-02-04T00:00:00+01",
                 "to": "2017-10-22T00:00:00+02",
             }
         }
@@ -274,7 +274,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "2017-10-22 00:00:00+02",
                             "from_included": True,
-                            "from": "2010-02-04 00:00:00+01"
+                            "from": "2016-02-04 00:00:00+01"
                         },
                         "brugervendtnoegle":
                             'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
@@ -288,7 +288,7 @@ class Tests(util.LoRATestCase):
                         'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         'urn': 'urn:magenta.dk:telefon:+4511223344',
                         'virkning': {
-                            'from': '2010-02-04 00:00:00+01',
+                            'from': '2016-02-04 00:00:00+01',
                             'from_included': True,
                             'to': '2017-10-22 00:00:00+02',
                             'to_included': False,
@@ -298,7 +298,7 @@ class Tests(util.LoRATestCase):
                         'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'virkning': {
-                            'from': '2010-02-04 00:00:00+01',
+                            'from': '2016-02-04 00:00:00+01',
                             'from_included': True,
                             'to': '2017-10-22 00:00:00+02',
                             'to_included': False,
@@ -311,7 +311,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "2017-10-22 00:00:00+02",
                             "from_included": True,
-                            "from": "2010-02-04 00:00:00+01"
+                            "from": "2016-02-04 00:00:00+01"
                         },
                         "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"
                     }
@@ -322,7 +322,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "2017-10-22 00:00:00+02",
                             "from_included": True,
-                            "from": "2010-02-04 00:00:00+01"
+                            "from": "2016-02-04 00:00:00+01"
                         },
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     }
@@ -333,7 +333,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "2017-10-22 00:00:00+02",
                             "from_included": True,
-                            "from": "2010-02-04 00:00:00+01"
+                            "from": "2016-02-04 00:00:00+01"
                         },
                         "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                     }
@@ -346,7 +346,7 @@ class Tests(util.LoRATestCase):
                             "to_included": False,
                             "to": "2017-10-22 00:00:00+02",
                             "from_included": True,
-                            "from": "2010-02-04 00:00:00+01"
+                            "from": "2016-02-04 00:00:00+01"
                         },
                         "gyldighed": "Aktiv"
                     }
@@ -396,6 +396,210 @@ class Tests(util.LoRATestCase):
                 'role': False,
             },
         )
+
+    def test_create_org_unit_fails_validation_outside_org_unit(self):
+        """Validation should fail when date range is outside of org unit
+        range """
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = {
+            "name": "Fake Corp",
+            "parent": {
+                'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            "org_unit_type": {
+                'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+            },
+            "addresses": [
+                {
+                    "address_type": {
+                        "example": "20304060",
+                        "name": "Telefonnummer",
+                        "scope": "PHONE",
+                        "user_key": "Telefon",
+                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                    },
+                    "value": "11 22 33 44",
+                },
+                {
+                    "address_type": {
+                        "example": "<UUID>",
+                        "name": "Adresse",
+                        "scope": "DAR",
+                        "user_key": "Adresse",
+                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                    },
+                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                },
+            ],
+            "validity": {
+                "from": "2010-02-04T00:00:00+01",
+                "to": "2017-10-22T00:00:00+02",
+            }
+        }
+
+        expected = {
+            'description': 'Date range exceeds validity '
+                           'range of associated org unit.',
+            'error': True,
+            'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+            'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+            'status': 400,
+            'valid_from': 'Thu, 04 Feb 2010 00:00:00 GMT',
+            'valid_to': 'Sun, 22 Oct 2017 00:00:00 GMT'
+        }
+
+        self.assertRequestResponse('/service/ou/create', expected,
+                                   json=payload, status_code=400)
+
+    def test_edit_org_unit_overwrite(self):
+        # A generic example of editing an org unit
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        req = {
+            "original": {
+                "validity": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": None
+                },
+                "parent": {
+                    'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                },
+                "org_unit_type": {
+                    'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+                },
+                "name": "Filosofisk Institut",
+            },
+            "data": {
+                "org_unit_type": {
+                    'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
+                },
+                "validity": {
+                    "from": "2017-01-01T00:00:00+01",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            org_unit_uuid, json=req)
+
+        expected = {
+            "note": "Rediger organisationsenhed",
+            "attributter": {
+                "organisationenhedegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "fil",
+                        "enhedsnavn": "Filosofisk Institut"
+                    }
+                ]
+            },
+            "tilstande": {
+                "organisationenhedgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "2017-01-01 00:00:00+01"
+                        }
+                    }
+                ]
+            },
+            "relationer": {
+                "tilhoerer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "overordnet": [
+                    {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "enhedstype": [
+                    {
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "2017-01-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "uuid": "79e15798-7d6d-4e85-8496-dcc8887a1c1a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "adresser": [
+                    {
+                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                    {
+                        "urn": "urn:magenta.dk:telefon:+4587150000",
+                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "livscykluskode": "Rettet",
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.organisationenhed.get(org_unit_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
 
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
@@ -820,19 +1024,19 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures()
 
-        org_unit_uuid = '930f078b-30ac-4970-8004-66ab8cbd1f3d'
+        org_unit_uuid = 'cbe3016f-b0ab-4c14-8265-ba4c1b3d17f6'
 
         util.load_fixture(
             'organisation/organisationenhed',
-            'create_organisationenhed_fil.json', org_unit_uuid)
+            'create_organisationenhed_samf.json', org_unit_uuid)
 
         self.assertRequestResponse(
             '/service/ou/{}/edit'.format(org_unit_uuid),
             org_unit_uuid, json={
                 "data": {
-                    "name": "Filosofisk Institut II",
+                    "name": "Whatever",
                     "validity": {
-                        "from": "2015-01-01T00:00:00+01",
+                        "from": "2016-01-01T00:00:00+01",
                     },
                 },
             },
@@ -847,7 +1051,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'.format(org_unit_uuid),
             [{
-                'name': 'Filosofisk Institut II',
+                'name': 'Whatever',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -855,20 +1059,20 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
-                    'name': 'Institut',
+                    'name': 'Fakultet',
                     'scope': None,
-                    'user_key': 'inst',
-                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
                 'parent': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 },
-                'user_key': 'fil',
+                'user_key': 'samf',
                 'uuid': org_unit_uuid,
                 'validity': {
-                    'from': '2015-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
             }],
         )

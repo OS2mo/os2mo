@@ -242,7 +242,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                 },
                 "validity": {
-                    "from": "2010-02-04T00:00:00+01",
+                    "from": "2016-02-04T00:00:00+01",
                     "to": "2017-10-22T00:00:00+02",
                 }
             }
