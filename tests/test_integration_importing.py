@@ -117,7 +117,7 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '0b4a9cae-5e01-4694-ae92-a1c07d5f2ab2',
                         'data': {
                             'offset': 0,
-                            'total': 10,
+                            'total': 9,
                             'items': [
                                 {'example': '<UUID>',
                                  'name': 'Lokation',
@@ -125,13 +125,6 @@ class IntegrationTests(util.LoRATestCase):
                                  'user_key': 'AdresseLokation',
                                  'uuid': '031f93c3-6bab-462e-'
                                          'a998-87cad6db3128'},
-                                {'example': 'Onsdag 10:30-11:00 Torsdag '
-                                 '16:00-18:00',
-                                 'name': 'Åbningstid',
-                                 'scope': 'TEXT',
-                                 'user_key': 'Åbningstid',
-                                 'uuid': '08857eb8-a2c4-4337-'
-                                         '836f-19332f991362'},
                                 {'example': None,
                                  'name': 'Faxnummer',
                                  'scope': 'PHONE',
