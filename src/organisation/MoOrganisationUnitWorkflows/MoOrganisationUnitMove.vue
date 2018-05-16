@@ -44,6 +44,10 @@
       required
     />
 
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
+
     <div class="float-right">
       <button-submit :is-loading="isLoading"/>
     </div> 
@@ -85,7 +89,8 @@
             validity: {}
           }
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     watch: {
@@ -109,11 +114,12 @@
 
           OrganisationUnit.move(this.original.uuid, this.move)
             .then(response => {
-              vm.$refs.orgUnitMove.hide()
-            })
-            .catch(err => {
-              console.log(err)
               vm.isLoading = false
+              if (response.error) {
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.orgUnitMove.hide()
+              }
             })
         } else {
           this.$validator.validateAll()

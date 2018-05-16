@@ -10,9 +10,6 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="endOrganisationUnit">
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{backendValidationError}}
-      </div>
       <div class="form-row">
         <mo-organisation-unit-search 
           :label="$tc('input_fields.unit', 1)" 
@@ -25,6 +22,9 @@
       <div v-if="org_unit">
         <p>Følgende vil blive afsluttet for enheden:</p>
         <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
+      </div>
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
       </div>
       <div class="float-right mt-3">
         <button-submit :is-loading="isLoading"/>
@@ -82,7 +82,7 @@
             .then(response => {
               vm.isLoading = false
               if (response.error) {
-                vm.backendValidationError = response.description
+                vm.backendValidationError = response.error_key
               } else {
                 vm.$refs.orgUnitTerminate.hide()
               }
