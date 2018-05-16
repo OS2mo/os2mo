@@ -35,7 +35,8 @@ class ErrorCodes(Enum):
     V_CANNOT_MOVE_ROOT_ORG_UNIT = \
         400, "Moving the root org unit is not allowed"
     V_MORE_THAN_ONE_ASSOCIATION = \
-        400, "The employee already has an active association with the given org unit."
+        400, "The employee already has an active association with the given " \
+             "org unit."
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."

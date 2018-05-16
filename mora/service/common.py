@@ -751,6 +751,8 @@ def add_bruger_history_entry(employee_uuid, note: str):
     """
     c = lora.Connector()
     employee_obj = c.bruger.get(employee_uuid)
+    if not employee_obj:
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
 
     path = ('tilstande', 'brugergyldighed')
     gyldighed = get_obj_value(employee_obj, path)[-1]
