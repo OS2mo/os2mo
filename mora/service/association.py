@@ -142,5 +142,8 @@ def edit_association(employee_uuid, req):
                                               new_to)
     validator.is_date_range_in_employee_range(employee_uuid, new_from,
                                               new_to)
+    validator.does_employee_have_existing_association(employee_uuid,
+                                                      org_unit_uuid, new_from,
+                                                      association_uuid)
 
     c.organisationfunktion.update(payload, association_uuid)

@@ -187,14 +187,29 @@ def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
 
 
 def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
-                                            valid_from):
+                                            valid_from, association_uuid=None):
+    """
+    Check if an employee already has an active association for a given org
+    unit on a given date
+
+    :param employee_uuid: UUID of the employee
+    :param org_unit_uuid: UUID of the org unit
+    :param valid_from: The date to check
+    :param association_uuid: An optional uuid of an organisation
+        being edited to be exempt from validation.
+    :return:
+    """
     c = lora.Connector(effective_date=valid_from)
 
     r = c.organisationfunktion(tilknyttedeenheder=org_unit_uuid,
                                tilknyttedebrugere=employee_uuid,
                                funktionsnavn=keys.ASSOCIATION_KEY)
     if r:
+        existing = r[-1]
+        if association_uuid and existing == association_uuid:
+            return
+
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
-            existing=r[-1]
+            existing=existing
         )
