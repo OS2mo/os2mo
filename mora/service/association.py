@@ -48,6 +48,9 @@ def create_association(employee_uuid, req):
                                               valid_to)
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
+    validator.does_employee_have_existing_association(employee_uuid,
+                                                      org_unit_uuid,
+                                                      valid_from)
 
     association = create_organisationsfunktion_payload(
         funktionsnavn=keys.ASSOCIATION_KEY,

@@ -9,6 +9,7 @@ import datetime
 from . import exceptions
 from . import lora
 from . import util
+from .service import keys
 
 
 def _is_date_range_valid(parent: str, startdate: datetime.datetime,
@@ -182,4 +183,18 @@ def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
     if not effects:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_TERMINATE_UNIT_BEFORE_START_DATE,
+        )
+
+
+def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
+                                            valid_from):
+    c = lora.Connector(effective_date=valid_from)
+
+    r = c.organisationfunktion(tilknyttedeenheder=org_unit_uuid,
+                               tilknyttedebrugere=employee_uuid,
+                               funktionsnavn=keys.ASSOCIATION_KEY)
+    if r:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
+            existing=r[-1]
         )
