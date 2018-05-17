@@ -84,7 +84,7 @@ def edit_leave(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.LEAVE_TYPE in data.keys():
+    if keys.LEAVE_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(keys.LEAVE_TYPE).get('uuid')},

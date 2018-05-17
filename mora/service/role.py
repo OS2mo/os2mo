@@ -93,13 +93,13 @@ def edit_role(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.ROLE_TYPE in data.keys():
+    if keys.ROLE_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(keys.ROLE_TYPE).get('uuid')},
         ))
 
-    if keys.ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data:
         org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,

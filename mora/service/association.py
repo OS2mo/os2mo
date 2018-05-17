@@ -104,19 +104,19 @@ def edit_association(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.JOB_FUNCTION in data.keys():
+    if keys.JOB_FUNCTION in data:
         update_fields.append((
             mapping.JOB_FUNCTION_FIELD,
             {'uuid': data.get(keys.JOB_FUNCTION).get('uuid')}
         ))
 
-    if keys.ASSOCIATION_TYPE in data.keys():
+    if keys.ASSOCIATION_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(keys.ASSOCIATION_TYPE).get('uuid')},
         ))
 
-    if keys.ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data:
         org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,

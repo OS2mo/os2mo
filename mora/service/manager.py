@@ -116,20 +116,20 @@ def edit_manager(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.MANAGER_TYPE in data.keys():
+    if keys.MANAGER_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(keys.MANAGER_TYPE).get('uuid')},
         ))
 
-    if keys.ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data:
         org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {'uuid': org_unit_uuid},
         ))
 
-    if keys.RESPONSIBILITY in data.keys():
+    if keys.RESPONSIBILITY in data:
         update_fields.append((
             mapping.RESPONSIBILITY_FIELD,
             {
@@ -138,7 +138,7 @@ def edit_manager(employee_uuid, req):
             },
         ))
 
-    if keys.MANAGER_LEVEL in data.keys():
+    if keys.MANAGER_LEVEL in data:
         update_fields.append((
             mapping.MANAGER_LEVEL_FIELD,
             {

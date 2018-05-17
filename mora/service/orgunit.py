@@ -122,7 +122,7 @@ class OrgUnit(common.AbstractRelationDetail):
             {'gyldighed': "Aktiv"}
         ))
 
-        if keys.NAME in data.keys():
+        if keys.NAME in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
             attrs['enhedsnavn'] = data[keys.NAME]
 
@@ -131,13 +131,13 @@ class OrgUnit(common.AbstractRelationDetail):
                 attrs,
             ))
 
-        if keys.ORG_UNIT_TYPE in data.keys():
+        if keys.ORG_UNIT_TYPE in data:
             update_fields.append((
                 mapping.ORG_UNIT_TYPE_FIELD,
                 {'uuid': data[keys.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if keys.PARENT in data.keys():
+        if keys.PARENT in data:
             parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
             validator.is_candidate_parent_valid(unitid,
                                                 parent_uuid, new_from)
