@@ -516,6 +516,15 @@ class Writing(util.LoRATestCase):
                     'key': 'original',
                     'expected': 'dict',
                     'status': 400,
+                    'obj': {
+                        'data': {
+                            'validity': {
+                                'to': '2010-01-01T00:00:00+01:00'
+                            }
+                        },
+                        'original': None,
+                        'type': 'address'
+                    },
                 },
                 status_code=400,
                 json=[{
@@ -1129,6 +1138,20 @@ class Writing(util.LoRATestCase):
                     'description': "Missing value",
                     'key': 'value',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': 'test@example.com',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+                        },
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None
+                        }
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1157,6 +1180,14 @@ class Writing(util.LoRATestCase):
                     'expected': 'dict',
                     'actual': 'null',
                     'status': 400,
+                    "obj": {
+                        'address_type': None,
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None},
+                        'value': 'hallo@exmaple.com'
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1182,6 +1213,20 @@ class Writing(util.LoRATestCase):
                     'description': "Missing uuid",
                     'key': 'uuid',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'Adresse',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None},
+                        'value': 'hallo@exmaple.com'
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1208,6 +1253,21 @@ class Writing(util.LoRATestCase):
                         "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'Adresse',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'type': 'address',
+                        'uuid': 'hallo@exmaple.com',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None
+                        }
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1298,7 +1358,7 @@ class Writing(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2010-02-04T00:00:00+01",
+                "from": "2016-02-04T00:00:00+01",
                 "to": "2017-10-22T00:00:00+02",
             }
         }
@@ -1311,7 +1371,7 @@ class Writing(util.LoRATestCase):
                 'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
-                    'from': '2010-02-04 00:00:00+01',
+                    'from': '2016-02-04 00:00:00+01',
                     'to_included': False,
                     'to': '2017-10-22 00:00:00+02',
                     'from_included': True,
@@ -1383,23 +1443,6 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'Adresse',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'validity': {
-                        'from': '2010-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
-                    },
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                },
-                {
-                    'address_type': {
                         'example': '20304060',
                         'name': 'Telefonnummer',
                         'scope': 'PHONE',
@@ -1413,6 +1456,23 @@ class Writing(util.LoRATestCase):
                         'to': '2017-10-22T00:00:00+02:00',
                     },
                     'urn': 'urn:magenta.dk:telefon:+4511223344',
+                },
+                {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'validity': {
+                        'from': '2016-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
             ],
         )
@@ -1472,6 +1532,15 @@ class Writing(util.LoRATestCase):
                     'description': 'Missing value',
                     'key': 'value',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '20304060',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                        }
+                    },
                 },
                 status_code=400,
                 json=[

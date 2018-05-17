@@ -43,6 +43,13 @@ class Writing(util.LoRATestCase):
                 'expected': 'dict',
                 'actual': 'null',
                 'status': 400,
+                'obj': {
+                    'itsystem': None,
+                    'type': 'it',
+                    'validity': {
+                        'from': '2017-12-01T00:00:00+01', 'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -92,6 +99,14 @@ class Writing(util.LoRATestCase):
                 'expected': 'dict',
                 'actual': 'null',
                 'status': 400,
+                'obj': {
+                    'itsystem': None,
+                    'type': 'it',
+                    'validity': {
+                        'from': '2017-12-01T00:00:00+01',
+                        'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -113,6 +128,14 @@ class Writing(util.LoRATestCase):
                 'error_key': 'V_MISSING_START_DATE',
                 'description': 'Missing start date.',
                 'status': 400,
+                'obj': {
+                    'itsystem': {
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb'},
+                    'type': 'it',
+                    'validity': {
+                        'from': None, 'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -137,6 +160,7 @@ class Writing(util.LoRATestCase):
                 'description': "Missing uuid",
                 'key': 'uuid',
                 'status': 400,
+                'obj': {}
             },
             json=[
                 {
@@ -158,6 +182,7 @@ class Writing(util.LoRATestCase):
                 'error_key': 'E_INVALID_UUID',
                 'description': "Invalid uuid for 'uuid': '42'",
                 'status': 400,
+                'obj': {'uuid': '42'},
             },
             json=[
                 {
@@ -280,6 +305,7 @@ class Writing(util.LoRATestCase):
                 'expected': 'str',
                 'actual': 'null',
                 'status': 400,
+                'obj': {'uuid': None},
             },
             json=[
                 {

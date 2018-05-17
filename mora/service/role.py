@@ -35,8 +35,7 @@ def create_role(employee_uuid, req):
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     role_type_uuid = common.get_mapping_uuid(req, keys.ROLE_TYPE,
                                              required=True)
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
+    valid_from, valid_to = common.get_validities(req)
 
     bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ROLE_KEY)
 
@@ -67,8 +66,7 @@ def edit_role(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=role_uuid)
 
     data = req.get('data')
-    new_from = common.get_valid_from(data)
-    new_to = common.get_valid_to(data)
+    new_from, new_to = common.get_validities(data)
 
     # Get org unit uuid for validation purposes
     org_unit = common.get_obj_value(
@@ -81,8 +79,7 @@ def edit_role(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = common.get_valid_from(original_data)
-        old_to = common.get_valid_to(original_data)
+        old_from, old_to = common.get_validities(original_data)
         payload = inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -96,13 +93,13 @@ def edit_role(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.ROLE_TYPE in data.keys():
+    if keys.ROLE_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(keys.ROLE_TYPE).get('uuid')},
         ))
 
-    if keys.ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data:
         org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,

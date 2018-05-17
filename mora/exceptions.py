@@ -18,6 +18,7 @@ class ErrorCodes(Enum):
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
     V_INVALID_VALIDITY = 400, "Invalid validity."
     V_MISSING_START_DATE = 400, "Missing start date."
+    V_END_BEFORE_START = 400, "End date is before start date."
     V_ORIGINAL_REQUIRED = 400, "Original required."
     V_NO_PERSON_FOR_CPR = 404, "No person found for given CPR number."
     V_CPR_NOT_VALID = 400, "Not a valid CPR number."
@@ -25,12 +26,19 @@ class ErrorCodes(Enum):
         400, "Org unit cannot be moved to one of its own child units"
     V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES = \
         400, "Cannot terminate unit with active children and roles."
+    V_TERMINATE_UNIT_BEFORE_START_DATE = \
+        400, "Cannot terminate org unit before its starting date."
     V_DATE_OUTSIDE_ORG_UNIT_RANGE = \
         400, "Date range exceeds validity range of associated org unit."
     V_DATE_OUTSIDE_EMPL_RANGE = \
         400, "Date range exceeds validity range of associated employee."
     V_CANNOT_MOVE_ROOT_ORG_UNIT = \
         400, "Moving the root org unit is not allowed"
+    V_MORE_THAN_ONE_ASSOCIATION = \
+        400, "The employee already has an active association with the given " \
+             "org unit."
+    V_NO_ACTIVE_ENGAGEMENT = \
+        400, "Employee must have an active engagement."
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."

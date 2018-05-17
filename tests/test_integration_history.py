@@ -89,7 +89,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                 {
                     "type": "association",
                     "org_unit": {
-                        'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                        'uuid': "04c78fc2-72d2-4d02-b55f-807af19eac48"},
                     "job_function": {
                         'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                     "association_type": {
@@ -242,7 +242,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                 },
                 "validity": {
-                    "from": "2010-02-04T00:00:00+01",
+                    "from": "2016-02-04T00:00:00+01",
                     "to": "2017-10-22T00:00:00+02",
                 }
             }

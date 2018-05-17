@@ -181,15 +181,3 @@ class TestGetEndpointDate(unittest.TestCase):
         self.startdate = datetime.datetime(
             2017, 1, 1, 0, 0, 0,
             tzinfo=datetime.timezone(datetime.timedelta(0), '+00:00'))
-
-    def test_should_return_2017_08_29(self):
-        self.assertEqual(self.enddate,
-                         validator._get_org_unit_endpoint_date(self.org_unit))
-
-    def test_should_return_2017_01_01(self):
-        self.org_unit['tilstande']['organisationenhedgyldighed'][0][
-            'virkning']['from_included'] = False
-        self.assertEqual(self.startdate,
-                         validator._get_org_unit_endpoint_date(self.org_unit,
-                                                               False)
-                         )

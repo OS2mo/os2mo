@@ -117,7 +117,8 @@ def checked_get(
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
                 message='Missing {}'.format(key),
-                key=key
+                key=key,
+                obj=mapping
             )
         else:
             return default
@@ -132,7 +133,8 @@ def checked_get(
             ),
             key=key,
             expected=expected,
-            actual=actual
+            actual=actual,
+            obj=mapping
         )
 
     return v
@@ -150,6 +152,7 @@ def get_uuid(
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_UUID,
             message='Invalid uuid for {!r}: {!r}'.format(key, v),
+            obj=mapping
         )
 
     return v
@@ -183,6 +186,7 @@ def get_urn(
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_URN,
             message='invalid urn for {!r}: {!r}'.format(key, v),
+            obj=mapping
         )
 
     return v
@@ -636,7 +640,9 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
         valid_from = validity.get(keys.FROM, sentinel)
         if valid_from is None:
             raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_MISSING_START_DATE)
+                exceptions.ErrorCodes.V_MISSING_START_DATE,
+                obj=obj
+            )
         elif valid_from is not sentinel:
             return util.from_iso_time(valid_from)
 
@@ -644,7 +650,9 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
         return get_valid_from(fallback)
     else:
         raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_MISSING_START_DATE)
+            exceptions.ErrorCodes.V_MISSING_START_DATE,
+            obj=obj
+        )
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -666,13 +674,26 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         return util.positive_infinity
 
 
+def get_validities(obj, fallback=None):
+    valid_from = get_valid_from(obj, fallback)
+    valid_to = get_valid_to(obj, fallback)
+    if valid_to < valid_from:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_END_BEFORE_START,
+            obj=obj
+        )
+    return valid_from, valid_to
+
+
 def get_validity_effect(entry, fallback=None):
     if keys.VALIDITY not in entry and fallback is None:
         return None
 
+    valid_from, valid_to = get_validities(entry, fallback)
+
     return {
-        keys.FROM: util.to_lora_time(get_valid_from(entry, fallback)),
-        keys.TO: util.to_lora_time(get_valid_to(entry, fallback)),
+        keys.FROM: util.to_lora_time(valid_from),
+        keys.TO: util.to_lora_time(valid_to),
     }
 
 
@@ -740,6 +761,11 @@ def add_bruger_history_entry(employee_uuid, note: str):
     """
     c = lora.Connector()
     employee_obj = c.bruger.get(employee_uuid)
+    if not employee_obj:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_USER_NOT_FOUND,
+            employee=employee_uuid
+        )
 
     path = ('tilstande', 'brugergyldighed')
     gyldighed = get_obj_value(employee_obj, path)[-1]
