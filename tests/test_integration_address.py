@@ -516,6 +516,15 @@ class Writing(util.LoRATestCase):
                     'key': 'original',
                     'expected': 'dict',
                     'status': 400,
+                    'obj': {
+                        'data': {
+                            'validity': {
+                                'to': '2010-01-01T00:00:00+01:00'
+                            }
+                        },
+                        'original': None,
+                        'type': 'address'
+                    },
                 },
                 status_code=400,
                 json=[{
@@ -1044,6 +1053,20 @@ class Writing(util.LoRATestCase):
                     'description': "Missing value",
                     'key': 'value',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': 'test@example.com',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+                        },
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None
+                        }
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1072,6 +1095,14 @@ class Writing(util.LoRATestCase):
                     'expected': 'dict',
                     'actual': 'null',
                     'status': 400,
+                    "obj": {
+                        'address_type': None,
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None},
+                        'value': 'hallo@exmaple.com'
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1097,6 +1128,20 @@ class Writing(util.LoRATestCase):
                     'description': "Missing uuid",
                     'key': 'uuid',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'Adresse',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None},
+                        'value': 'hallo@exmaple.com'
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1123,6 +1168,21 @@ class Writing(util.LoRATestCase):
                         "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'Adresse',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'type': 'address',
+                        'uuid': 'hallo@exmaple.com',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None
+                        }
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1387,6 +1447,15 @@ class Writing(util.LoRATestCase):
                     'description': 'Missing value',
                     'key': 'value',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '20304060',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                        }
+                    },
                 },
                 status_code=400,
                 json=[

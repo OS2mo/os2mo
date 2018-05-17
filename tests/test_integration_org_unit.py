@@ -1156,7 +1156,16 @@ class Tests(util.LoRATestCase):
                 'description': 'End date is before start date.',
                 'error': True,
                 'error_key': 'V_END_BEFORE_START',
-                'status': 400
+                'status': 400,
+                'obj': {
+                    'parent': {
+                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6'
+                    },
+                    'validity': {
+                        'from': '2017-07-01T00:00:00+02',
+                        'to': '2015-07-01T00:0000+02'
+                    }
+                },
             },
             status_code=400,
             json=req)
