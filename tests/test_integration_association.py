@@ -978,8 +978,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self._perform_request('/service/e/{}/create'.format(userid),
-                              json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/create'.format(userid),
+            userid,
+            json=payload
+        )
 
         c = lora.Connector(virkningfra='-infinity',
                            virkningtil='infinity')

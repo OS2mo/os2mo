@@ -447,8 +447,8 @@ class Tests(util.LoRATestCase):
             'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
             'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
             'status': 400,
-            'valid_from': 'Thu, 04 Feb 2010 00:00:00 GMT',
-            'valid_to': 'Sun, 22 Oct 2017 00:00:00 GMT'
+            'valid_from': '2010-02-04T00:00:00+01:00',
+            'valid_to': '2017-10-22T00:00:00+02:00'
         }
 
         self.assertRequestResponse('/service/ou/create', expected,

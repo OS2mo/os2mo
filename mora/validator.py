@@ -73,8 +73,8 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
-            valid_from=valid_from,
-            valid_to=valid_to
+            valid_from=util.to_iso_time(valid_from),
+            valid_to=util.to_iso_time(valid_to)
         )
 
 
@@ -90,8 +90,8 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
             employee_uuid=employee_uuid,
-            valid_from=valid_from,
-            valid_to=valid_to
+            valid_from=util.to_iso_time(valid_from),
+            valid_to=util.to_iso_time(valid_to)
         )
 
 
@@ -174,9 +174,9 @@ def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
             },
             {}
         )
-        if effect.get('tilstande')
-                 .get('organisationenhedgyldighed')[0]
-                 .get('gyldighed') == 'Aktiv' and
+        if effect['tilstande']
+                 ['organisationenhedgyldighed'][0]
+                 ['gyldighed'] == 'Aktiv' and
         start < end_date
     ]
 
