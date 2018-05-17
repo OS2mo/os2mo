@@ -21,6 +21,11 @@
         v-model="entry" 
         :disable-org-unit-picker="disableOrgUnitPicker"
       />
+
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
       </div>
@@ -61,7 +66,8 @@
       return {
         entry: {},
         original: {},
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     computed: {
@@ -133,7 +139,11 @@
         return Employee.edit(this.uuid, [data])
           .then(response => {
             vm.isLoading = false
-            vm.$refs[this.nameId].hide()
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs[this.nameId].hide()
+            }
           })
       },
 
@@ -142,7 +152,11 @@
         return OrganisationUnit.edit(this.uuid, data)
           .then(response => {
             vm.isLoading = false
-            vm.$refs[this.nameId].hide()
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs[this.nameId].hide()
+            }
           })
       }
     }

@@ -30,6 +30,10 @@
       <h5>{{$tc('workflows.employee.labels.manager')}}</h5>
       <mo-add-many v-model="manager" :entry-component="entry.manager"/>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+      
     <div class="float-right">
       <button-submit :is-loading="isLoading" />
     </div>
@@ -74,6 +78,7 @@ export default {
       itSystem: [],
       manager: [],
       isLoading: false,
+      backendValidationError: null,
       entry: {
         address: MoAddressEntry,
         association: MoAssociationEntry,
@@ -114,8 +119,12 @@ export default {
             Employee.create(employeeUuid, create)
               .then(response => {
                 vm.isLoading = false
-                vm.$refs.employeeCreate.hide()
-                vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+                if (response.error) {
+                  vm.backendValidationError = response.error_key
+                } else {
+                  vm.$refs.employeeCreate.hide()
+                  vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+                }
               })
           })
       } else {
