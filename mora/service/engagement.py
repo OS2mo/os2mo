@@ -42,7 +42,6 @@ def create_engagement(employee_uuid, req):
                                               valid_to)
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
-
     engagement = create_organisationsfunktion_payload(
         funktionsnavn=keys.ENGAGEMENT_KEY,
         valid_from=valid_from,
@@ -52,7 +51,7 @@ def create_engagement(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=engagement_type_uuid,
-        opgaver=[{'uuid': job_function_uuid}]
+        opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
     )
 
     c.organisationfunktion.create(engagement)
