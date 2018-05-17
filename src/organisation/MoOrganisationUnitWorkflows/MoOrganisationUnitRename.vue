@@ -26,6 +26,10 @@
         <mo-input v-model="rename.data.name" :label="$t('input_fields.new_name')" required/>
       </div>
 
+      <div class="alert alert-danger" v-if="compareName">
+        {{$t('alerts.error.COMPARE_ORG_RENAME_NAMES')}}
+      </div>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -73,6 +77,13 @@
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
+      },
+      compareName () {
+        if (this.rename.data.name && this.original.name) {
+          if (this.original.name == null) return true
+          if (this.rename.data.name === this.original.name) return true
+        }
+        return false
       }
     },
     watch: {
@@ -97,8 +108,13 @@
           let vm = this
           vm.isLoading = true
 
+          if (vm.compareName) {
+            vm.isLoading = false
+            return false
+          }
           OrganisationUnit.rename(this.original.uuid, this.rename)
             .then(response => {
+              vm.isLoading = false
               vm.$refs.orgUnitRename.hide()
             })
             .catch(err => {
