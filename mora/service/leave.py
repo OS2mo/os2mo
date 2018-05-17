@@ -41,6 +41,8 @@ def create_leave(employee_uuid, req):
     # Validation
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
+    validator.does_employee_have_active_engagement(employee_uuid, valid_from,
+                                                   valid_to)
 
     leave = create_organisationsfunktion_payload(
         funktionsnavn=keys.LEAVE_KEY,
@@ -99,5 +101,7 @@ def edit_leave(employee_uuid, req):
 
     validator.is_date_range_in_employee_range(employee_uuid, new_from,
                                               new_to)
+    validator.does_employee_have_active_engagement(employee_uuid, new_from,
+                                                   new_to)
 
     c.organisationfunktion.update(payload, leave_uuid)

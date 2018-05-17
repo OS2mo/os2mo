@@ -213,3 +213,38 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
             exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
             existing=existing
         )
+
+
+def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
+    c = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    )
+    r = c.organisationfunktion(tilknyttedebrugere=employee_uuid,
+                               funktionsnavn=keys.ENGAGEMENT_KEY)
+
+    valid_effects = [
+        (start, end, effect)
+        for funkid in r
+        for start, end, effect in
+        c.organisationfunktion.get_effects(
+            funkid,
+            {
+                'tilstande': (
+                    'organisationfunktiongyldighed',
+                ),
+            },
+            {}
+        )
+        if effect['tilstande']
+                 ['organisationfunktiongyldighed'][0]
+                 ['gyldighed'] == 'Aktiv' and
+        start <= valid_from and
+        valid_to <= end
+    ]
+
+    if not valid_effects:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT,
+            employee=employee_uuid
+        )

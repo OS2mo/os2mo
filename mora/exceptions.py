@@ -37,6 +37,8 @@ class ErrorCodes(Enum):
     V_MORE_THAN_ONE_ASSOCIATION = \
         400, "The employee already has an active association with the given " \
              "org unit."
+    V_NO_ACTIVE_ENGAGEMENT = \
+        400, "Employee must have an active engagement."
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
