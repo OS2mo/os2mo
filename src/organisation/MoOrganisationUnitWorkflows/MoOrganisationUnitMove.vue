@@ -23,6 +23,7 @@
         <mo-organisation-unit-search
           v-model="original" 
           :label="$t('input_fields.choose_unit')"
+          :date="move.data.validity.from"
           required
         />
       </div>
@@ -41,6 +42,7 @@
     <mo-organisation-unit-search 
       v-model="move.data.parent" 
       :label="$t('input_fields.select_new_super_unit')"
+      :date="move.data.validity.from"
       required
     />
 
