@@ -10,6 +10,7 @@
 
       <mo-organisation-unit-search
         v-model="orgUnit.parent"
+        :date="orgUnit.validity.from"
         required
       />
   </div>
