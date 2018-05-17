@@ -115,7 +115,11 @@ export default {
   leave (uuid, leave) {
     return this.createEntry(uuid, leave)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response})
+        if (response.data.error) {
+          return response.data
+        }
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response.data})
+        return response.data
       })
   },
 
@@ -141,7 +145,11 @@ export default {
   move (uuid, move) {
     return this.edit(uuid, move)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
+        if (response.data.error) {
+          return response.data
+        }
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response.data})
+        return response.data
       })
   },
 
@@ -160,6 +168,7 @@ export default {
       })
       .catch(error => {
         store.commit('log/newError', {type: 'ERROR', value: error.response})
+        return error.response
       })
   }
 }
