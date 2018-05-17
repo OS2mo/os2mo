@@ -39,9 +39,10 @@ export default {
    * @param {String} query - search query.
    * @returns {Array} a list of organisation units matching the query
    */
-  organisations (orgUuid, query) {
+  organisations (orgUuid, query, date) {
     query = query || ''
-    return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
+    date = date || ''
+    return Service.get(`/o/${orgUuid}/ou/?query=${query}&at=${date}`)
       .then(response => {
         return response.data.items
       })
