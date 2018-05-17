@@ -38,6 +38,7 @@
     },
     props: {
       value: Object,
+      date: Date,
       label: {
         default: 'Angiv overenhed',
         type: String
@@ -76,8 +77,9 @@
       updateItems (query) {
         let vm = this
         vm.items = []
+        let atDate = this.$moment(this.date).format('YYYY-MM-DD')
         let org = this.$store.state.organisation
-        Search.organisations(org.uuid, query)
+        Search.organisations(org.uuid, query, atDate)
           .then(response => {
             vm.items = response.length > 0 ? response : vm.noItem
           })

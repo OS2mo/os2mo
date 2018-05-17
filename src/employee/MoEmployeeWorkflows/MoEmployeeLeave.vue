@@ -13,6 +13,10 @@
       <mo-employee-picker v-model="employee" required/>
       <mo-leave-entry v-model="leave"/>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+      
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -38,6 +42,7 @@ export default {
   data () {
     return {
       isLoading: false,
+      backendValidationError: null,
       employee: {},
       leave: {
         validity: {}
@@ -65,7 +70,11 @@ export default {
         Employee.leave(this.employee.uuid, [this.leave])
           .then(response => {
             vm.isLoading = false
-            vm.$refs.employeeLeave.hide()
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs.employeeLeave.hide()
+            }
           })
       } else {
         this.$validator.validateAll()
