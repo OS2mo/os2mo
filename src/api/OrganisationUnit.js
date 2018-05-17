@@ -137,6 +137,7 @@ export default {
   editEntry (uuid, edit) {
     return Service.post(`/ou/${uuid}/edit`, edit)
       .then(response => {
+        EventBus.$emit('update-tree-view')
         EventBus.$emit('organisation-unit-changed')
         return response
       })
@@ -164,8 +165,8 @@ export default {
   rename (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response})
-        return response
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response.data})
+        return response.data
       })
   },
 
