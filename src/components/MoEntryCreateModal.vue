@@ -18,6 +18,11 @@
     >
     <form @submit.stop.prevent="create">
       <component :is="entryComponent" v-model="entry"/>
+
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
       </div>
@@ -54,7 +59,8 @@
     data () {
       return {
         entry: {},
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     computed: {
@@ -100,7 +106,11 @@
         Employee.create(this.uuid, [data])
           .then(response => {
             vm.isLoading = false
-            vm.$refs[this.nameId].hide()
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs[this.nameId].hide()
+            }
           })
       },
 
@@ -109,7 +119,11 @@
         return OrganisationUnit.createEntry(this.uuid, data)
           .then(response => {
             vm.isLoading = false
-            vm.$refs[this.nameId].hide()
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs[this.nameId].hide()
+            }
           })
       }
     }
