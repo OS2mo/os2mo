@@ -625,13 +625,15 @@ def create_bruger_payload(
                     'uuid': tilhoerer
                 }
             ],
-            'tilknyttedepersoner': [
-                {
-                    'urn': 'urn:dk:cpr:person:{}'.format(cpr),
-                }
-            ],
         }
     }
+
+    if cpr:
+        user['relationer']['tilknyttedepersoner'] = [
+            {
+                'urn': 'urn:dk:cpr:person:{}'.format(cpr),
+            },
+        ]
 
     user = _set_virkning(user, virkning)
 

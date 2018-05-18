@@ -406,6 +406,7 @@ class Writing(util.LoRATestCase):
                 {
                     'cpr_no': '0906340000',
                     'name': 'Anders And',
+                    'user_key': 'andersand',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     'org': {
                         'name': 'Aarhus Universitet',
