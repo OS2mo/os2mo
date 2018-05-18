@@ -11,6 +11,7 @@ import datetime
 import functools
 import itertools
 import json
+import marshal
 import os
 import re
 import sys
@@ -43,6 +44,33 @@ OPGAVER_COLUMNS = {
 def nolower(s: str) -> str:
     return s if not s or not s.islower() else s.capitalize()
 
+
+def cached(func):
+    cache_file = '_'.join((
+        os.path.splitext(sys.modules[func.__module__].__file__)[0],
+        func.__name__,
+        '.data',
+    ))
+
+    @functools.wraps(func)
+    def wrapper(*args):
+        try:
+            return cache[args]
+        except KeyError:
+            cache[args] = result = func(*args)
+
+            with open(cache_file, 'wb') as fp:
+                marshal.dump(cache, fp, marshal.version)
+
+            return result
+
+    if os.path.exists(cache_file):
+        with open(cache_file, 'rb') as fp:
+            cache = marshal.load(fp)
+    else:
+        cache = {}
+
+    return wrapper
 
 def _make_relation(obj, k):
     val = obj[k]
@@ -129,22 +157,23 @@ def _make_opgaver_relation(obj):
     return r
 
 
-@functools.lru_cache(10000)
+@cached
+def wash(k):
+    r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
+                         params={
+                             'betegnelse': k,
+                         })
+    r.raise_for_status()
+
+    addrinfo = r.json()
+
+    if addrinfo["kategori"] == 'A' or len(addrinfo['resultater']) == 1:
+        return addrinfo['resultater'][0]['adresse']['id']
+
+
 def _wash_address(addrstring, postalcode, postaldistrict):
     if not addrstring:
         return None
-
-    def wash(k):
-        r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
-                             params={
-                                 'betegnelse': k,
-                             })
-        r.raise_for_status()
-
-        addrinfo = r.json()
-
-        if addrinfo["kategori"] == 'A' or len(addrinfo['resultater']) == 1:
-            return addrinfo['resultater'][0]['adresse']['id']
 
     # first, try a direct lookup...
     v = wash('{}, {} {}'.format(
