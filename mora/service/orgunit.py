@@ -199,9 +199,10 @@ def get_one_orgunit(c, unitid, unit=None,
         r['child_count'] = len(children)
 
     elif details is UnitDetails.FULL:
-        r[keys.ORG_UNIT_TYPE] = facet.get_one_class(
-            c,
-            rels['enhedstype'][0]['uuid'],
+        unittype = common.get_uuid(rels['enhedstype'][0], required=False)
+
+        r[keys.ORG_UNIT_TYPE] = (
+            facet.get_one_class(c, unittype) if unittype else None
         )
 
         r[keys.PARENT] = get_one_orgunit(
