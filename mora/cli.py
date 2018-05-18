@@ -22,15 +22,15 @@ import warnings
 
 import click
 import flask
+import pyexcel
 import requests
 import urllib3
-import pyexcel
 
 from . import auth
 from . import lora
+from . import settings
 from . import tokens
 from . import util
-from . import settings
 from .converters import importing
 
 basedir = os.path.dirname(__file__)
