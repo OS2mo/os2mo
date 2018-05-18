@@ -468,6 +468,7 @@ class LoRATestCaseMixin(TestCaseMixin):
 
         cls._orig_lora = settings.LORA_URL
         settings.LORA_URL = 'http://localhost:{}/'.format(cls.lora_port())
+        settings.USE_PATCH = False
         settings.SAML_IDP_TYPE = None
 
         # This is the first such measure: if the interpreter abruptly
