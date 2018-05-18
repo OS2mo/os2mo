@@ -124,6 +124,9 @@ def checked_get(
             return default
 
     elif not isinstance(v, type(default)):
+        if not required and v is None:
+            return default
+
         expected = type(default).__name__
         actual = json.dumps(v)
         raise exceptions.HTTPException(
@@ -144,11 +147,14 @@ def get_uuid(
     mapping: D,
     fallback: D=None,
     *,
+    required: bool=True,
     key: typing.Hashable=keys.UUID
 ) -> str:
-    v = checked_get(mapping, key, '', fallback=fallback, required=True)
+    v = checked_get(mapping, key, '', fallback=fallback, required=required)
 
-    if not util.is_uuid(v):
+    if not v and not required:
+        return None
+    elif not util.is_uuid(v):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_UUID,
             message='Invalid uuid for {!r}: {!r}'.format(key, v),
