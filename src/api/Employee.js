@@ -145,11 +145,8 @@ export default {
   move (uuid, move) {
     return this.edit(uuid, move)
       .then(response => {
-        if (response.data.error) {
-          return response.data
-        }
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response.data})
-        return response.data
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
+        return response
       })
   },
 

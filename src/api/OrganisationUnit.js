@@ -199,6 +199,7 @@ export default {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
         EventBus.$emit('update-tree-view')
+        EventBus.$emit('organisation-unit-changed')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', value: response.data})
         return response.data
       })
