@@ -40,11 +40,15 @@ OPGAVER_COLUMNS = {
 }
 
 
+def nolower(s: str) -> str:
+    return s if not s or not s.islower() else s.capitalize()
+
+
 def _make_relation(obj, k):
     val = obj[k]
     valtype = obj.get(k + '_type')
 
-    if not val:
+    if not val or val == 'NULL':
         key = 'uuid'
         val = None
     elif val.startswith('urn:'):
@@ -163,6 +167,9 @@ def _wash_address(addrstring, postalcode, postaldistrict):
     if q in ('Rådhuspladsen', 'Rådhuset') and str(postalcode) == '8000':
         q = 'Rådhuspladsen 2'
 
+    if q.lower().startswith('dokk1'):
+        q = 'Hack Kampmanns Plads 2'
+
     v = wash('{}, {} {}'.format(
         q, postalcode, postaldistrict
     ))
@@ -182,9 +189,16 @@ def _wash_address(addrstring, postalcode, postaldistrict):
     if v:
         return v
 
-    print('no address found for {!r}, {!r}, {!r}'.format(
-        addrstring, postalcode, postaldistrict
-    ))
+    if ' - ' in q:
+        for p in re.split('\s+-\s+', q):
+            v = wash('{}, {} {}'.format(
+                p, postalcode, postaldistrict
+            ))
+
+            if v:
+                return v
+
+    return None
 
 
 def _make_effect(from_, to):
@@ -222,9 +236,9 @@ def load_data(sheets, exact=False):
     }
 
     type_formats = {
-        'tilknyttedepersoner': 'urn:dk:cpr:person:{:010d}',
-        'myndighed': 'urn:dk:kommune:{:d}',
-        'virksomhed': 'urn:dk:cvr:virksomhed:{:d}',
+        'tilknyttedepersoner': ('urn:dk:cpr:person:{:010d}', int),
+        'myndighed': ('urn:dk:kommune:{:d}', int),
+        'virksomhed': ('urn:dk:cvr:virksomhed:{:d}', int),
     }
 
     allow_invalid_types = {
@@ -237,12 +251,13 @@ def load_data(sheets, exact=False):
 
     for sheet in read_paths(sheets):
         if isinstance(sheet, dict):
-            dest.update(sheet)
+            for k, v in sheet.items():
+                dest.setdefault(k, []).extend(v)
             continue
 
         print(sheet.name, file=sys.stderr)
 
-        out = dest[sheet.name] = []
+        out = dest.setdefault(sheet.name, [])
 
         sheet.name_columns_by_row(0)
 
@@ -282,7 +297,7 @@ def load_data(sheets, exact=False):
 
         # ensure that all objects have an ID
         for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
-            if not obj['objektid']:
+            if not obj.get('objektid'):
                 obj['objektid'] = str(uuid.uuid4())
 
     # coerce all dates to strings
@@ -331,23 +346,43 @@ def load_data(sheets, exact=False):
                 if isinstance(val, str):
                     val = val.strip()
 
-                if not val or util.is_uuid(val) or str(val).startswith('urn:'):
+                if (
+                    not val or
+                    val == 'NULL' or
+                    util.is_uuid(val) or
+                    str(val).startswith('urn:')
+                ):
                     continue
 
                 elif k in type_formats:
                     try:
-                        obj[k] = type_formats[k].format(
-                            val if val is not None else i,
-                        )
+                        fmt, fn = type_formats[k]
+                        obj[k] = fmt.format(fn(val if val is not None else i))
                     except ValueError as exc:
-                        raise ValueError(
-                            'Unknown value {!r} for {}: {}'.format(
-                                v, k, exc.args[0],
-                            ),
-                        )
+                        print('Unknown value {!r} for {}: {}'.format(
+                            v, k, exc.args[0],
+                        ))
 
                 elif k not in lora.ALL_RELATION_NAMES:
                     continue
+
+                elif k == 'tilknyttetenhed':
+                    print(obj)
+
+                    dest['organisationfunktion'].append(dict(
+                        objektid=str(uuid.uuid4()),
+                        tilknyttedeenheder=v,
+                        tilknyttedebrugere=obj['objektid'],
+                        tilknyttedeorganisationer=(
+                            obj['tilknyttedeorganisationer']
+                        ),
+                        funktionsnavn='Tilknytning',
+                        brugervendtnoegle='42',
+                        fra=obj['fra'],
+                        til=obj['til'],
+                    ))
+
+                    del obj[k]
 
                 elif val in uuid_mapping:
                     obj[k] = uuid_mapping[val]
@@ -434,7 +469,7 @@ def convert_klasse(obj):
         "tilstande": {
             "klassepubliceret": [
                 {
-                    "publiceret": obj['publiceret'],
+                    "publiceret": nolower(obj['publiceret']),
                     "virkning": virkning,
                 },
             ],
@@ -462,7 +497,7 @@ def convert_klassifikation(obj):
         'relationer': {
             k: [
                 {
-                    'uuid': obj[k] if len(obj[k]) == 32 else None,
+                    'uuid': obj[k] if obj[k] and len(obj[k]) == 32 else None,
                     'virkning': _make_effect(obj['fra'], obj['til']),
                 },
             ]
@@ -497,7 +532,7 @@ def convert_organisation(obj):
             'tilstande': {
                 'organisationgyldighed': [
                     {
-                        'gyldighed': obj['gyldighed'],
+                        'gyldighed': nolower(obj['gyldighed']),
                         'virkning': virkning,
                     },
                 ],
@@ -547,7 +582,7 @@ def convert_organisationenhed(obj):
         'tilstande': {
             'organisationenhedgyldighed': [
                 {
-                    'gyldighed': obj['gyldighed'],
+                    'gyldighed': nolower(obj['gyldighed']),
                     'virkning': virkning,
                 },
             ],
@@ -631,7 +666,7 @@ def convert_itsystem(obj):
         "tilstande": {
             "itsystemgyldighed": [
                 {
-                    "gyldighed": obj['gyldighed'],
+                    "gyldighed": nolower(obj['gyldighed']),
                     "virkning": virkning,
                 },
             ],
@@ -676,7 +711,7 @@ def convert_facet(obj):
         "tilstande": {
             "facetpubliceret": [
                 {
-                    "publiceret": obj['publiceret'],
+                    "publiceret": nolower(obj['publiceret']),
                     "virkning": virkning,
                 },
             ],
@@ -730,7 +765,7 @@ def convert_bruger(obj):
         "tilstande": {
             "brugergyldighed": [
                 {
-                    "gyldighed": obj['gyldighed'],
+                    "gyldighed": nolower(obj['gyldighed']),
                     "virkning": virkning,
                 },
             ],
@@ -779,7 +814,7 @@ def convert_organisationfunktion(obj):
         "tilstande": {
             "organisationfunktiongyldighed": [
                 {
-                    "gyldighed": obj['gyldighed'],
+                    "gyldighed": nolower(obj['gyldighed']),
                     "virkning": virkning,
                 },
             ],
