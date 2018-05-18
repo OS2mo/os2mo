@@ -719,7 +719,8 @@ def terminate_org_unit(unitid):
     """
     date = common.get_valid_from(flask.request.get_json())
 
-    c = lora.Connector(virkningfra=date, virkningtil='infinity')
+    c = lora.Connector(virkningfra=util.to_iso_time(date),
+                       virkningtil='infinity')
 
     validator.is_org_unit_termination_date_valid(unitid, date)
 
