@@ -54,6 +54,10 @@
 
       <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -87,6 +91,7 @@
         orgUnitSource: null,
         orgUnitDestination: null,
         isLoading: false,
+        backendValidationError: null,
         columns: [
           {label: 'person', data: 'person'},
           {label: 'engagement_type', data: 'engagement_type'},
@@ -162,7 +167,11 @@
             Employee.move(uuid, data)
               .then(response => {
                 vm.isLoading = false
-                vm.$refs.employeeMoveMany.hide()
+                if (response.error) {
+                  vm.backendValidationError = response.error_key
+                } else {
+                  vm.$refs.employeeMoveMany.hide()
+                }
               })
           })
         } else {

@@ -29,6 +29,10 @@
       />       
     </div>
 
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
+
     <div class="float-right">
       <button-submit :is-loading="isLoading"/>
     </div>
@@ -74,6 +78,7 @@
       return {
         employee: {},
         isLoading: false,
+        backendValidationError: null,
         original: null,
         move: {
           type: 'engagement',
@@ -116,11 +121,11 @@
           Employee.move(this.employee.uuid, [this.move])
             .then(response => {
               vm.isLoading = false
-              vm.$refs.employeeMove.hide()
-            })
-            .catch(err => {
-              console.log(err)
-              vm.isLoading = false
+              if (response.error) {
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.employeeMove.hide()
+              }
             })
         } else {
           this.$validator.validateAll()
