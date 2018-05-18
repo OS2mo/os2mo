@@ -137,19 +137,21 @@ export default {
   editEntry (uuid, edit) {
     return Service.post(`/ou/${uuid}/edit`, edit)
       .then(response => {
+        EventBus.$emit('update-tree-view')
         EventBus.$emit('organisation-unit-changed')
-        return response.data
+        return response
       })
       .catch(error => {
         store.commit('log/newError', {type: 'ERROR', value: error.response})
+        return error.response
       })
   },
 
   edit (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response})
-        return response
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response.data})
+        return response.data
       })
   },
 
@@ -163,8 +165,8 @@ export default {
   rename (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response})
-        return response
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response.data})
+        return response.data
       })
   },
 
@@ -178,9 +180,12 @@ export default {
   move (uuid, edit) {
     return this.editEntry(uuid, edit)
       .then(response => {
+        if (response.data.error) {
+          return response.data
+        }
         EventBus.$emit('update-tree-view')
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', value: response})
-        return response
+        store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', value: response.data})
+        return response.data
       })
   },
 
@@ -194,6 +199,7 @@ export default {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
         EventBus.$emit('update-tree-view')
+        EventBus.$emit('organisation-unit-changed')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', value: response.data})
         return response.data
       })

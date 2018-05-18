@@ -70,11 +70,15 @@ export default {
   new (employee) {
     return Service.post(`/e/create`, employee)
       .then(response => {
+        if (response.data.error) {
+          return response.data
+        }
         store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response.data})
         return response.data
       })
       .catch(error => {
         store.commit('log/newError', {type: 'ERROR', value: error.response})
+        return error.response
       })
   },
 
@@ -88,25 +92,34 @@ export default {
     return Service.post(`/e/${uuid}/create`, create)
       .then(response => {
         EventBus.$emit('employee-changed')
-        return response.data
+        return response
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
         EventBus.$emit('employee-changed')
+        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        return error.response
       })
   },
 
   create (uuid, create) {
     return this.createEntry(uuid, create)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response})
+        if (response.data.error) {
+          return response.data
+        }
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response.data})
+        return response.data
       })
   },
 
   leave (uuid, leave) {
     return this.createEntry(uuid, leave)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response})
+        if (response.data.error) {
+          return response.data
+        }
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response.data})
+        return response.data
       })
   },
 
@@ -124,7 +137,8 @@ export default {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        return error.response.data
       })
   },
 
@@ -132,6 +146,7 @@ export default {
     return this.edit(uuid, move)
       .then(response => {
         store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
+        return response
       })
   },
 
@@ -150,6 +165,7 @@ export default {
       })
       .catch(error => {
         store.commit('log/newError', {type: 'ERROR', value: error.response})
+        return error.response
       })
   }
 }

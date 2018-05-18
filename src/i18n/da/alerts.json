@@ -13,6 +13,23 @@
     "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet."
   },
   "error": {
+    "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}",
+    "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
 
+    "V_CANNOT_MOVE_ROOT_ORG_UNIT": "Flytning af overenhed er ikke tilladt",
+    "V_CPR_NOT_VALID": "Ikke gyldigt CPR nummer",
+    "V_DATE_OUTSIDE_EMPL_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende medarbejder",
+    "V_DATE_OUTSIDE_ORG_UNIT_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende organisation",
+    "V_END_BEFORE_START": "Slut dato er før start dato",
+    "V_INVALID_VALIDITY": "Ugyldig interval",
+    "V_MISSING_REQUIRED_VALUE": "Manglende værdi er påkrævet",
+    "V_MISSING_START_DATE": "Manglende start dato",
+    "V_MORE_THAN_ONE_ASSOCIATION": "Medarbejderen har allerede en aktiv tilknytning med organisationsenheden",
+    "V_NO_ACTIVE_ENGAGEMENT": "Medarbejderen skal have et aktivt engagement",
+    "V_NO_PERSON_FOR_CPR": "Ingen personer er fundet med det indtastet CPR nummer",
+    "V_ORG_UNIT_MOVE_TO_CHILD": "Organisationsenheden kan ikke flyttes under dens egen underenheder",
+    "V_ORIGINAL_REQUIRED": "Original er påkrævet",
+    "V_TERMINATE_UNIT_BEFORE_START_DATE": "Kan ikke afslutte organisationsenheden før dens start dato",
+    "V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES": "Kan ikke afslutte en enhed med aktive underenheder og roller"
   }
 }

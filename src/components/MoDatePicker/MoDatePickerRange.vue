@@ -19,6 +19,7 @@
       v-model="validTo"
       v-show="!hidden"
       :disabled-to="validFrom"
+      :disabled="disableToDate"
       @input="updateDate()"
     />
   </div>
@@ -33,7 +34,8 @@
     },
     props: {
       value: Object,
-      initiallyHidden: Boolean
+      initiallyHidden: Boolean,
+      disableToDate: Boolean
     },
     data () {
       return {

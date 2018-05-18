@@ -10,11 +10,8 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="endOrganisationUnit">
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{backendValidationError}}
-      </div>
       <div class="form-row">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           :label="$tc('input_fields.unit', 1)" 
           class="col" 
           v-model="org_unit"
@@ -26,6 +23,9 @@
         <p>Følgende vil blive afsluttet for enheden:</p>
         <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
       </div>
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
       <div class="float-right mt-3">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -36,7 +36,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
@@ -46,7 +46,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       ButtonSubmit,
       MoOrganisationDetailTabs
     },
@@ -82,7 +82,7 @@
             .then(response => {
               vm.isLoading = false
               if (response.error) {
-                vm.backendValidationError = response.description
+                vm.backendValidationError = response.error_key
               } else {
                 vm.$refs.orgUnitTerminate.hide()
               }

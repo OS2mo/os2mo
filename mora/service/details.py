@@ -411,9 +411,8 @@ def get_detail(type, id, function):
 
     # ensure that we report an error correctly
     if function not in keys.FUNCTION_KEYS:
-        raise exceptions.ValidationError(
-            'invalid function type {!r}'.format(function),
-        )
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_FUNCTION_TYPE)
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or 20,

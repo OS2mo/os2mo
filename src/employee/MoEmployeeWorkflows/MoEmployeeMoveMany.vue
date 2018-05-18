@@ -18,7 +18,7 @@
           required
         />
 
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           :is-disabled="dateSelected" 
           :label="$t('input_fields.move_from')"
           v-model="orgUnitSource" 
@@ -26,7 +26,7 @@
           required
         />
         
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search 
           :is-disabled="dateSelected" 
           :label="$t('input_fields.move_to')"
           v-model="orgUnitDestination" 
@@ -54,6 +54,10 @@
 
       <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -65,7 +69,7 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
@@ -75,7 +79,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoTable,
       ButtonSubmit
     },
@@ -87,6 +91,7 @@
         orgUnitSource: null,
         orgUnitDestination: null,
         isLoading: false,
+        backendValidationError: null,
         columns: [
           {label: 'person', data: 'person'},
           {label: 'engagement_type', data: 'engagement_type'},
@@ -162,7 +167,11 @@
             Employee.move(uuid, data)
               .then(response => {
                 vm.isLoading = false
-                vm.$refs.employeeMoveMany.hide()
+                if (response.error) {
+                  vm.backendValidationError = response.error_key
+                } else {
+                  vm.$refs.employeeMoveMany.hide()
+                }
               })
           })
         } else {

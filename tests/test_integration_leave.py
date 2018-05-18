@@ -10,6 +10,7 @@ from unittest.mock import patch
 import freezegun
 
 from mora import lora
+from mora.service import keys
 from tests import util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
@@ -26,13 +27,14 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        leave_type = "62ec821f-4179-4758-bfdf-134529d186e9"
 
         payload = [
             {
                 "type": "leave",
                 "leave_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    'uuid': leave_type},
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
                     "to": "2017-12-02T00:00:00+01",
@@ -79,7 +81,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                        "uuid": userid
                     }
                 ],
                 "organisatoriskfunktionstype": [
@@ -90,7 +92,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                        "uuid": leave_type
                     }
                 ],
             },
@@ -110,7 +112,11 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        leaves = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        leaves = c.organisationfunktion.fetch(
+            tilknyttedebrugere=userid,
+            funktionsnavn=keys.LEAVE_KEY,
+            organisatoriskfunktionstype=leave_type
+        )
         self.assertEqual(len(leaves), 1)
         leaveid = leaves[0]
 
@@ -129,13 +135,15 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        leave_type = "62ec821f-4179-4758-bfdf-134529d186e9"
 
         payload = [
             {
                 "type": "leave",
                 "leave_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    'uuid': leave_type
+                },
                 "validity": {
                     "from": "2017-12-01T00:00:00+01",
                 },
@@ -181,7 +189,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                        "uuid": userid
                     }
                 ],
                 "organisatoriskfunktionstype": [
@@ -192,7 +200,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                        "uuid": leave_type
                     }
                 ],
             },
@@ -212,7 +220,11 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        leaves = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        leaves = c.organisationfunktion.fetch(
+            tilknyttedebrugere=userid,
+            funktionsnavn=keys.LEAVE_KEY,
+            organisatoriskfunktionstype=leave_type
+        )
         self.assertEqual(len(leaves), 1)
         leaveid = leaves[0]
 
@@ -224,6 +236,55 @@ class Tests(util.LoRATestCase):
             'brugerref']
 
         self.assertEqual(actual_leave, expected)
+
+    def test_create_leave_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "leave",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
+    def test_create_leave_fails_when_no_active_engagement(self):
+        """Should fail on validation when the employee has no
+        active engagements"""
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        leave_type = "62ec821f-4179-4758-bfdf-134529d186e9"
+
+        payload = [
+            {
+                "type": "leave",
+                "leave_type": {
+                    'uuid': leave_type},
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01",
+                    "to": "2017-12-02T00:00:00+01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/e/{}/create'.format(userid),
+            {
+                'description': 'Employee must have an active engagement.',
+                'employee': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                'error': True,
+                'error_key': 'V_NO_ACTIVE_ENGAGEMENT',
+                'status': 400
+            },
+            json=payload,
+            status_code=400
+        )
 
     def test_edit_leave_no_overwrite(self):
         self.load_sample_structures()
@@ -581,6 +642,40 @@ class Tests(util.LoRATestCase):
             'brugerref']
 
         self.assertEqual(expected_leave, actual_leave)
+
+    def test_edit_leave_fails_when_no_active_engagement(self):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
+
+        req = [{
+            "type": "leave",
+            "uuid": leave_uuid,
+            "data": {
+                "leave_type": {
+                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
+                },
+                "validity": {
+                    "from": "2000-04-01T00:00:00+02",
+                    "to": "2000-04-02T00:00:00+02",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            {
+                'description': 'Employee must have an active engagement.',
+                'employee': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                'error': True,
+                'error_key': 'V_NO_ACTIVE_ENGAGEMENT',
+                'status': 400
+            },
+            json=req,
+            status_code=400
+        )
 
     def test_terminate_leave(self):
         self.load_sample_structures()

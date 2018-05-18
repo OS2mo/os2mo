@@ -35,11 +35,21 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
+                'error_key': 'E_INVALID_TYPE',
                 'description': (
-                    'invalid \'itsystem\', expected dict, got: null'
+                    'Invalid \'itsystem\', expected dict, got: null'
                 ),
+                'key': 'itsystem',
+                'expected': 'dict',
+                'actual': 'null',
                 'status': 400,
+                'obj': {
+                    'itsystem': None,
+                    'type': 'it',
+                    'validity': {
+                        'from': '2017-12-01T00:00:00+01', 'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -58,8 +68,8 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'error': True,
-                'cause': 'not-found',
-                'description': 'no such user!',
+                'error_key': 'E_USER_NOT_FOUND',
+                'description': 'User not found.',
                 'status': 404,
             },
             json=[
@@ -81,11 +91,22 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'error': True,
-                'cause': 'validation',
+                'error_key': 'E_INVALID_TYPE',
                 'description': (
-                    'invalid \'itsystem\', expected dict, got: null'
+                    'Invalid \'itsystem\', expected dict, got: null'
                 ),
+                'key': 'itsystem',
+                'expected': 'dict',
+                'actual': 'null',
                 'status': 400,
+                'obj': {
+                    'itsystem': None,
+                    'type': 'it',
+                    'validity': {
+                        'from': '2017-12-01T00:00:00+01',
+                        'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -104,9 +125,17 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': 'missing start date!',
+                'error_key': 'V_MISSING_START_DATE',
+                'description': 'Missing start date.',
                 'status': 400,
+                'obj': {
+                    'itsystem': {
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb'},
+                    'type': 'it',
+                    'validity': {
+                        'from': None, 'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -127,9 +156,11 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': "missing 'uuid'",
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'description': "Missing uuid",
+                'key': 'uuid',
                 'status': 400,
+                'obj': {}
             },
             json=[
                 {
@@ -148,9 +179,10 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/create'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': "invalid uuid for 'uuid': '42'",
+                'error_key': 'E_INVALID_UUID',
+                'description': "Invalid uuid for 'uuid': '42'",
                 'status': 400,
+                'obj': {'uuid': '42'},
             },
             json=[
                 {
@@ -171,8 +203,8 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': 'original entry not found!',
+                'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -203,8 +235,8 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': 'original entry not found!',
+                'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -235,8 +267,8 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': 'original entry not found!',
+                'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -267,9 +299,13 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': "invalid 'uuid', expected str, got: null",
+                'error_key': 'E_INVALID_TYPE',
+                'description': "Invalid 'uuid', expected str, got: null",
+                'key': 'uuid',
+                'expected': 'str',
+                'actual': 'null',
                 'status': 400,
+                'obj': {'uuid': None},
             },
             json=[
                 {
@@ -509,8 +545,8 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/edit'.format(userid),
             {
                 'error': True,
-                'cause': 'validation',
-                'description': 'original required!',
+                'error_key': 'V_ORIGINAL_REQUIRED',
+                'description': 'Original required.',
                 'status': 400,
             },
             status_code=400,

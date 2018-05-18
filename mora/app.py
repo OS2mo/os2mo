@@ -42,8 +42,9 @@ def handle_invalid_usage(error):
 
     util.log_exception('unhandled exception')
 
-    return exceptions.BaseError(
+    return exceptions.HTTPException(
         description=str(error),
+        error_key=exceptions.ErrorCodes.E_UNKNOWN,
         stacktrace=traceback.format_exc(),
     ).get_response()
 
@@ -52,6 +53,7 @@ def handle_invalid_usage(error):
 @app.route('/<path:path>')
 def root(path=''):
     if path.split('/', 1)[0] == 'service':
-        raise exceptions.NotFoundError('no such endpoint')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
 
     return flask.send_file('index.html')

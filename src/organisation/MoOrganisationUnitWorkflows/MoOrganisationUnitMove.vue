@@ -20,9 +20,10 @@
 
     <div class="form-row">
       <div class="col">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-search
           v-model="original" 
           :label="$t('input_fields.choose_unit')"
+          :date="move.data.validity.from"
           required
         />
       </div>
@@ -38,11 +39,16 @@
       </div>
     </div>
 
-    <mo-organisation-unit-picker 
+    <mo-organisation-unit-search 
       v-model="move.data.parent" 
       :label="$t('input_fields.select_new_super_unit')"
+      :date="move.data.validity.from"
       required
     />
+
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
 
     <div class="float-right">
       <button-submit :is-loading="isLoading"/>
@@ -53,7 +59,7 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import '@/filters/GetProperty'
@@ -63,7 +69,7 @@
       validator: 'new'
     },
     components: {
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoDatePicker,
       ButtonSubmit
     },
@@ -85,7 +91,8 @@
             validity: {}
           }
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     watch: {
@@ -109,11 +116,12 @@
 
           OrganisationUnit.move(this.original.uuid, this.move)
             .then(response => {
-              vm.$refs.orgUnitMove.hide()
-            })
-            .catch(err => {
-              console.log(err)
               vm.isLoading = false
+              if (response.error) {
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.orgUnitMove.hide()
+              }
             })
         } else {
           this.$validator.validateAll()

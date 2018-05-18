@@ -509,10 +509,22 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'cause': 'validation',
+                    'error_key': 'E_INVALID_TYPE',
                     'description':
-                    "invalid 'original', expected dict, got: null",
+                    "Invalid 'original', expected dict, got: null",
+                    'actual': 'null',
+                    'key': 'original',
+                    'expected': 'dict',
                     'status': 400,
+                    'obj': {
+                        'data': {
+                            'validity': {
+                                'to': '2010-01-01T00:00:00+01:00'
+                            }
+                        },
+                        'original': None,
+                        'type': 'address'
+                    },
                 },
                 status_code=400,
                 json=[{
@@ -531,8 +543,8 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/edit'.format(userid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': 'original entry not found!',
+                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                    'description': 'Original entry not found.',
                     'status': 400,
                 },
                 status_code=400,
@@ -826,6 +838,152 @@ class Writing(util.LoRATestCase):
             [],
         )
 
+    def test_edit_web_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        old_addr = {
+            'address_type': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            },
+            'href': 'mailto:bruger@example.com',
+            'name': 'bruger@example.com',
+            'urn': 'urn:mailto:bruger@example.com',
+            'validity': {
+                'from': '1934-06-09T00:00:00+01:00',
+                'to': None,
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid,
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': dict(**old_addr, value='hest@example.com'),
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'href': 'mailto:hest@example.com',
+                    'name': 'hest@example.com',
+                    'urn': 'urn:mailto:hest@example.com',
+                    'validity': {
+                        'from': '1934-06-09T00:00:00+01:00',
+                        'to': None,
+                    },
+                }
+            ],
+        )
+
+    def test_edit_ean_address(self, mock):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+        ean_class = {
+            'example': '5712345000014',
+            'name': 'EAN',
+            'scope': 'EAN',
+            'user_key': 'EAN',
+            'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+        }
+
+        self.assertIn(ean_class, self.client.get(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            '/f/address_type/',
+        ).json['data']['items'])
+
+        old_addr = {
+            "address_type": {
+                "example": "<UUID>",
+                "name": "Adresse",
+                "scope": "DAR",
+                "user_key": "Adresse",
+                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            },
+            "href": "https://www.openstreetmap.org/"
+                    "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+            "name": "Nordre Ringgade 1, 8000 Aarhus C",
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "validity": {
+                "from": "2016-01-01T00:00:00+01:00",
+                "to": "2019-01-01T00:00:00+01:00"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid,
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': {
+                        **old_addr,
+                        'value': '1234567890',
+                        'address_type': ean_class,
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': ean_class,
+                'href': None,
+                'name': '1234567890',
+                'urn': 'urn:magenta.dk:ean:1234567890',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': ean_class,
+                'href': None,
+                'name': '1234567890',
+                'urn': 'urn:magenta.dk:ean:1234567890',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
+            }],
+        )
+
     def test_create_unit_address(self, mock):
         self.load_sample_structures()
 
@@ -976,9 +1134,24 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': "missing 'value'",
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing value",
+                    'key': 'value',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': 'test@example.com',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+                        },
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None
+                        }
+                    },
                 },
                 status_code=400,
                 json=[
@@ -999,11 +1172,22 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
+                    'error_key': 'E_INVALID_TYPE',
                     'description': (
-                        "invalid 'address_type', expected dict, got: null"
+                        "Invalid 'address_type', expected dict, got: null"
                     ),
+                    'key': 'address_type',
+                    'expected': 'dict',
+                    'actual': 'null',
                     'status': 400,
+                    "obj": {
+                        'address_type': None,
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None},
+                        'value': 'hallo@exmaple.com'
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1025,9 +1209,24 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': "missing 'uuid'",
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing uuid",
+                    'key': 'uuid',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'Adresse',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'type': 'address',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None},
+                        'value': 'hallo@exmaple.com'
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1049,11 +1248,26 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/create'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
+                    'error_key': 'E_INVALID_UUID',
                     'description': (
-                        "invalid uuid for 'uuid': 'hallo@exmaple.com'"
+                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
                     ),
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'Adresse',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'type': 'address',
+                        'uuid': 'hallo@exmaple.com',
+                        'validity': {
+                            'from': '2013-01-01T00:00:00+01:00',
+                            'to': None
+                        }
+                    },
                 },
                 status_code=400,
                 json=[
@@ -1144,7 +1358,7 @@ class Writing(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2010-02-04T00:00:00+01",
+                "from": "2016-02-04T00:00:00+01",
                 "to": "2017-10-22T00:00:00+02",
             }
         }
@@ -1157,7 +1371,7 @@ class Writing(util.LoRATestCase):
                 'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 'virkning': {
-                    'from': '2010-02-04 00:00:00+01',
+                    'from': '2016-02-04 00:00:00+01',
                     'to_included': False,
                     'to': '2017-10-22 00:00:00+02',
                     'from_included': True,
@@ -1229,23 +1443,6 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'Adresse',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'validity': {
-                        'from': '2010-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
-                    },
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                },
-                {
-                    'address_type': {
                         'example': '20304060',
                         'name': 'Telefonnummer',
                         'scope': 'PHONE',
@@ -1259,6 +1456,23 @@ class Writing(util.LoRATestCase):
                         'to': '2017-10-22T00:00:00+02:00',
                     },
                     'urn': 'urn:magenta.dk:telefon:+4511223344',
+                },
+                {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'Adresse',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'validity': {
+                        'from': '2016-02-04T00:00:00+01:00',
+                        'to': '2017-10-22T00:00:00+02:00',
+                    },
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
             ],
         )
@@ -1314,9 +1528,19 @@ class Writing(util.LoRATestCase):
                 '/service/ou/{}/edit'.format(unitid),
                 {
                     'error': True,
-                    'cause': 'validation',
-                    'description': "missing 'value'",
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': 'Missing value',
+                    'key': 'value',
                     'status': 400,
+                    'obj': {
+                        'address_type': {
+                            'example': '20304060',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                        }
+                    },
                 },
                 status_code=400,
                 json=[

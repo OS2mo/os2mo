@@ -14,10 +14,14 @@
         v-model="entry" 
       />
 
+      <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
+      <mo-address-entry v-model="postAddress" preselected-type="AdressePost" required/>
+      <mo-address-entry v-model="phone" preselected-type="Telefon" required/>
+
+      <h5>{{$tc('workflows.employee.labels.other_addresses')}}</h5>
       <mo-add-many
         :entry-component="addressEntry"
         v-model="addresses"
-        has-initial-entry
       />
 
       <div class="float-right">
@@ -45,6 +49,7 @@ export default {
   components: {
     ButtonSubmit,
     MoOrganisationUnitEntry,
+    MoAddressEntry,
     MoAddMany
   },
   data () {
@@ -53,6 +58,8 @@ export default {
         validity: {}
       },
       addresses: [],
+      postAddress: {},
+      phone: {},
       addressEntry: MoAddressEntry,
       isLoading: false
     }
@@ -76,6 +83,7 @@ export default {
         let vm = this
         this.isLoading = true
 
+        this.addresses.push(this.postAddress, this.phone)
         this.entry.addresses = this.addresses
 
         OrganisationUnit.create(this.entry)

@@ -95,7 +95,8 @@ def list_facets(orgid):
 
     for facet_name, facet_key in FACETS.items():
         for facetid, facet in c.facet.get_all(bvn=facet_key,
-                                              ansvarlig=str(orgid)):
+                                              ansvarlig=str(orgid),
+                                              publiceret='Publiceret'):
             r.append(get_one_facet(c, facetid, facet_name, orgid, facet))
 
     return flask.jsonify(sorted(
@@ -131,7 +132,7 @@ def get_one_class(c, classid, clazz=None):
         clazz = c.klasse.get(classid)
 
         if not clazz:
-            raise exceptions.NotFoundError(
+            raise exceptions.HTTPException(
                 'no such class {!r}'.format(classid),
             )
 
@@ -227,7 +228,11 @@ def get_classes(orgid: uuid.UUID, facet: str):
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or 1000)
 
-    facetids = c.facet(bvn=facet_name, ansvarlig=str(orgid))
+    facetids = c.facet(
+        bvn=facet_name, ansvarlig=str(orgid),
+        publiceret='Publiceret',
+    )
+
     assert len(facetids) <= 1, 'Facet is not unique'
 
     return flask.jsonify(
@@ -239,5 +244,6 @@ def get_classes(orgid: uuid.UUID, facet: str):
             data=c.klasse.paged_get(get_one_class,
                                     facet=facetids,
                                     ansvarlig=str(orgid),
+                                    publiceret='Publiceret',
                                     start=start, limit=limit),
         ))

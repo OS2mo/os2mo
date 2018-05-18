@@ -70,7 +70,7 @@ An example result:
     "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
   }
 
-The follow scopes are available:
+The following scopes are available:
 
 DAR
       UUID of a `DAR`_, as found through the API. Please
@@ -80,17 +80,17 @@ DAR
 EMAIL
       An email address, as specified by :rfc:`5322#section-3.4`.
 
-INTEGER
-      A integral number.
-
 PHONE
       A phone number.
 
-TEXT
-      Arbitrary text.
-
 WWW
       An HTTP or HTTPS URL, as specified by :rfc:`1738`.
+
+EAN
+      Number for identification for accounting purposes.
+
+PNUMBER
+      A production unit number, as registered with the Danish CVR.
 
 Example data
 ~~~~~~~~~~~~
@@ -172,6 +172,7 @@ URN_PREFIXES = {
     'PHONE': 'urn:magenta.dk:telefon:',
     'EAN': 'urn:magenta.dk:ean:',
     'WWW': 'urn:magenta.dk:www:',
+    'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
 }
 
 HREF_PREFIXES = {
@@ -208,8 +209,9 @@ def get_relation_for(addrobj, fallback=None):
         # want to report that the *value* is missing in the
         # exception/error message.
         if (
-            'urn' in addrobj or
-            keys.VALUE not in addrobj and fallback and 'urn' in fallback
+            keys.VALUE not in addrobj and (
+                'urn' in addrobj or fallback and 'urn' in fallback
+            )
         ):
             value = common.get_urn(addrobj, fallback)
 
@@ -230,7 +232,7 @@ def get_relation_for(addrobj, fallback=None):
         r['objekttype'] = common.get_uuid(typeobj)
 
     else:
-        raise exceptions.ValidationError(
+        raise exceptions.HTTPException(
             'unknown address scope {!r}!'.format(scope),
         )
 
@@ -288,7 +290,7 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise exceptions.ValidationError('invalid urn {!r}'.format(
+            raise exceptions.HTTPException('invalid urn {!r}'.format(
                 addrrel['urn'],
             ))
 
@@ -312,7 +314,7 @@ def get_one_address(c, addrrel, class_cache=None):
         }
 
     else:
-        raise exceptions.ValidationError(
+        raise exceptions.HTTPException(
             'invalid address scope {!r}'.format(addrformat),
         )
 
@@ -414,8 +416,8 @@ class Addresses(common.AbstractRelationDetail):
         new_entry = common.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
-            raise exceptions.ValidationError(
-                'original required!',
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_ORIGINAL_REQUIRED
             )
 
         old_rel = get_relation_for(old_entry)
@@ -424,7 +426,7 @@ class Addresses(common.AbstractRelationDetail):
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise exceptions.ValidationError('no addresses to edit!')
+            raise exceptions.HTTPException('no addresses to edit!')
 
         addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 
@@ -480,7 +482,8 @@ def address_autocomplete(orgid):
         org = lora.Connector().organisation.get(orgid)
 
         if not org:
-            raise exceptions.NotFoundError('No local municipality found!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY)
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
@@ -489,7 +492,8 @@ def address_autocomplete(orgid):
                 code = int(m.group(1))
                 break
         else:
-            raise exceptions.NotFoundError('No local municipality found!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY)
     else:
         code = None
 

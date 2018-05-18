@@ -6,75 +6,39 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import datetime
-from mora import exceptions
-from mora import lora
-from mora import util
-
-ERRORS = {
-    'create_org_unit': {
-        'errors': [
-            {
-                'key not used': 'Denne enheds gyldighedsperiode er ikke '
-                                'indeholdt i overenhedens gyldighedsperiode'
-            }
-        ]
-    },
-    'inactivate_org_unit': {
-        'errors': [
-            {
-                'key not used': 'Dato for afslutning ikke tilladt (er der '
-                                'aktive underenheder?)'
-            }
-        ]
-    },
-    'rename_org_unit': {
-        'errors': [
-            {
-                'key not used': 'Ulovlig overenhed'
-            }
-        ]
-    },
-    'update_existing_location': {
-        'errors': [
-            {
-                'key not used': 'Der må ikke være tomme felter, '
-                                'når lokationen opdateres'
-            }
-        ]
-    }
-}
+from . import exceptions
+from . import lora
+from . import util
+from .service import keys
 
 
-def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
+def _is_date_range_valid(parent: str, startdate: datetime.datetime,
+                         enddate: datetime.datetime, lora_scope,
+                         gyldighed_key: str) -> bool:
     """
     Determine if the given dates are within validity of the parent unit.
 
     :param parent: The UUID of the parent unit.
     :param startdate: The candidate start date.
     :param enddate: The candidate end date.
+    :param lora_scope: A scope object from a LoRa connector.
+    :param gyldighed_key: The key of where to find the 'gyldighed' in the
+        object in question
     :return: True if the date range is valid and false otherwise.
     """
-
-    startdate = util.parsedatetime(startdate)
-    enddate = util.parsedatetime(enddate)
 
     if startdate >= enddate:
         return False
 
-    c = lora.Connector(
-        virkningfra=util.to_lora_time(startdate),
-        virkningtil=util.to_lora_time(enddate),
-    )
-
     previous_end = None
 
-    for start, end, effect in c.organisationenhed.get_effects(
+    for start, end, effect in lora_scope.get_effects(
         parent,
         {
             'tilstande': (
-                'organisationenhedgyldighed',
+                gyldighed_key,
             )
-        },
+        }
     ):
         if previous_end is None:
             # initial case
@@ -85,7 +49,7 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
             # non-consecutive chunk - so not valid for that time
             return False
 
-        vs = effect['tilstande']['organisationenhedgyldighed']
+        vs = effect['tilstande'][gyldighed_key]
 
         if not vs or any(v['gyldighed'] != 'Aktiv' for v in vs):
             # not valid for the given time
@@ -97,54 +61,71 @@ def _is_date_range_valid(parent: str, startdate: str, enddate: str) -> bool:
     return previous_end is not None and previous_end >= enddate
 
 
-def is_create_org_unit_request_valid(req: dict) -> bool:
-    """
-    Check if the create org unit request is valid.
+def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
+    scope = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    ).organisationenhed
+    gyldighed_key = "organisationenhedgyldighed"
 
-    :param req: The frontend request.
-    :return: True if the request is valid and false otherwise.
-    """
+    if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
+                                gyldighed_key):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
+            org_unit_uuid=org_unit_uuid,
+            valid_from=util.to_iso_time(valid_from),
+            valid_to=util.to_iso_time(valid_to)
+        )
 
-    startdate = req['valid-from']
-    enddate = req.get('valid-to', 'infinity')
-    parent = req['parent']
-    return _is_date_range_valid(parent, startdate, enddate)
+
+def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
+    scope = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    ).bruger
+    gyldighed_key = "brugergyldighed"
+
+    if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
+                                gyldighed_key):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
+            employee_uuid=employee_uuid,
+            valid_from=util.to_iso_time(valid_from),
+            valid_to=util.to_iso_time(valid_to)
+        )
 
 
-def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
+def is_candidate_parent_valid(unitid: str, parent: str,
+                              from_date: datetime.datetime) -> bool:
     """
     For moving an org unit. Check if the candidate parent is in the subtree of
     the org unit itself. Note: it is (and should be) allowed to move an org
     unit to its own parent - since it can be moved back and forth on different
     dates.
 
-    :param unitid: The UUID of the current org unit.
-    :param req: The frontend request.
-    :return: True if the candidate parent is valid and False otherwise.
+    :param unitid: The UUID of the org unit we are trying to move.
+    :param parent: The UUID of the new candidate parent org unit.
+    :param from_date: The date on which the move takes place
     """
-
-    from_ = util.parsedatetime(req['moveDate']) + datetime.timedelta(hours=12)
-    to = util.parsedatetime(req['moveDate']) + datetime.timedelta(hours=13)
-
     # Do not allow moving of the root org unit
-    org_unit_relations = lora.organisationenhed.get(
-        uuid=unitid,
-        virkningfra=from_.isoformat(),
-        virkningtil=to.isoformat()
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    org_unit_relations = c.organisationenhed.get(
+        uuid=unitid
     )['relationer']
     if org_unit_relations['overordnet'][0]['uuid'] == \
             org_unit_relations['tilhoerer'][0]['uuid']:
-        return False
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
 
     # Use for checking that the candidate parent is not the units own subtree
+    c = lora.Connector(effective_date=from_date)
+
     def is_node_valid(node_uuid: str) -> bool:
         if node_uuid == unitid:
             return False
 
-        node = lora.organisationenhed.get(
-            uuid=node_uuid,
-            virkningfra=from_.isoformat(),
-            virkningtil=to.isoformat()
+        node = c.organisationenhed.get(
+            uuid=node_uuid
         )
 
         # Check that the node is not inactive
@@ -160,31 +141,12 @@ def is_candidate_parent_valid(unitid: str, req: dict) -> bool:
 
         return is_node_valid(parent)
 
-    return is_node_valid(req['newParentOrgUnitUUID'])
+    if not is_node_valid(parent):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD)
 
 
-def _get_org_unit_endpoint_date(org_unit: dict,
-                                enddate=True) -> datetime.datetime:
-    """
-    Get the validity start date or end date for an org unit (pre-condition:
-    the org unit has exactly one active period.
-
-    :param org_unit: The org unit to get the end-point date from.
-    :param enddate: If true (default) the enddate will be used as the end-point
-        date.
-    """
-    for g in org_unit['tilstande']['organisationenhedgyldighed']:
-        if g['gyldighed'] == 'Aktiv':
-            virkning = g['virkning']
-            if enddate:
-                return util.parsedatetime(virkning['to'])
-            else:
-                return util.parsedatetime(virkning['from'])
-
-    raise exceptions.ValidationError('the unit did not have an end date!')
-
-
-def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
+def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
     """
     Check if the inactivation date is valid.
 
@@ -192,36 +154,97 @@ def is_inactivation_date_valid(unitid: str, end_date: str) -> bool:
     :param end_date: The candidate end-date.
     :return: True if the inactivation date is valid and false otherwise.
     """
-    candidate_enddate = util.parsedatetime(end_date)
+    c = lora.Connector(virkningfra=end_date, virkningtil='infinity')
 
-    # Check that the end date is greater than the start date of the org unit
-    org_unit = lora.get_org_unit(unitid)
-    if candidate_enddate <= _get_org_unit_endpoint_date(org_unit, False):
-        return False
+    if not c.organisationenhed.get(unitid):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
 
-    # Check that the end dates of the children smaller than org unit end date
-    children = lora.organisationenhed(overordnet=unitid)
-    for child in children:
-        child_unit = lora.get_org_unit(child)
-        if candidate_enddate < _get_org_unit_endpoint_date(child_unit):
-            return False
+    # Find a org unit effect that's active, and that has a start date before
+    #  our termination date
+    effects = [
+        (start, end, effect)
+        for start, end, effect in
+        c.organisationenhed.get_effects(
+            unitid,
+            {
+                'tilstande': (
+                    'organisationenhedgyldighed',
+                ),
+            },
+            {}
+        )
+        if effect['tilstande']
+                 ['organisationenhedgyldighed'][0]
+                 ['gyldighed'] == 'Aktiv' and
+        start < end_date
+    ]
 
-    return True
+    if not effects:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_TERMINATE_UNIT_BEFORE_START_DATE,
+        )
 
 
-def is_location_update_valid(req: dict) -> bool:
+def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
+                                            valid_from, association_uuid=None):
     """
-    Check if the location update frontend request is valid.
+    Check if an employee already has an active association for a given org
+    unit on a given date
 
-    :param req: The request send from the frontend.
-    :return: True if the location update is valid and false otherwise.
+    :param employee_uuid: UUID of the employee
+    :param org_unit_uuid: UUID of the org unit
+    :param valid_from: The date to check
+    :param association_uuid: An optional uuid of an organisation
+        being edited to be exempt from validation.
+    :return:
     """
+    c = lora.Connector(effective_date=valid_from)
 
-    roletype = req.get('role-type')
-    if not roletype or roletype == 'location':
-        if not req['location']:
-            return False
-        if not req['name']:
-            return False
+    r = c.organisationfunktion(tilknyttedeenheder=org_unit_uuid,
+                               tilknyttedebrugere=employee_uuid,
+                               funktionsnavn=keys.ASSOCIATION_KEY)
+    if r:
+        existing = r[-1]
+        if association_uuid and existing == association_uuid:
+            return
 
-    return True
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
+            existing=existing
+        )
+
+
+def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
+    c = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    )
+    r = c.organisationfunktion(tilknyttedebrugere=employee_uuid,
+                               funktionsnavn=keys.ENGAGEMENT_KEY)
+
+    valid_effects = [
+        (start, end, effect)
+        for funkid in r
+        for start, end, effect in
+        c.organisationfunktion.get_effects(
+            funkid,
+            {
+                'tilstande': (
+                    'organisationfunktiongyldighed',
+                ),
+            },
+            {}
+        )
+        if effect['tilstande']
+                 ['organisationfunktiongyldighed'][0]
+                 ['gyldighed'] == 'Aktiv' and
+        start <= valid_from and
+        valid_to <= end
+    ]
+
+    if not valid_effects:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT,
+            employee=employee_uuid
+        )
