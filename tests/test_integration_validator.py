@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from mora import exceptions, lora
+from mora import exceptions
 from mora import util as mora_util
 from mora import validator
 from tests import util

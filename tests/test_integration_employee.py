@@ -118,8 +118,6 @@ class Tests(util.LoRATestCase):
         '''
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
 
         self.assertRequestResponse(
