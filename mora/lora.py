@@ -15,18 +15,13 @@ import itertools
 import uuid
 
 import requests
+from flask import g
 
 from . import auth
 from . import exceptions
 from . import settings
 from . import util
 
-session = requests.Session()
-session.verify = settings.CA_BUNDLE or True
-session.auth = auth.SAMLAuth()
-session.headers = {
-    'User-Agent': 'MORA/0.1',
-}
 
 ALL_RELATION_NAMES = {
     'adresse',
@@ -145,6 +140,66 @@ ALL_RELATION_NAMES = {
 }
 
 
+class AuthorizedSession(requests.Session):
+
+    def __init__(
+        self,
+        context=None,
+        retries=0,
+        max_retries=5,
+        import_settings=settings
+    ):
+
+        # Init Session
+        super().__init__()
+
+        # Set retry values
+        self.retries = retries
+        self.max_retries = max_retries
+
+        # Set user agent header
+        self.headers['User-Agent'] = 'MORA/0.1'
+
+        # SSL signature verification
+        self.verify = import_settings.CA_BUNDLE or True
+
+        # Fetch token from context
+        self.get_token_from_context(context)
+
+    def get_token_from_context(self, context=False):
+        """
+        Retrieve user token from application context
+        and set the authorization header for backend (lora) requests.
+
+        ("http://flask.pocoo.org/docs/0.12/api/?highlight=g#flask.g")
+
+        In "app.py":
+            attach_user_token_to_context()
+
+        is fetching the token from the authorization header
+        and attaching the token value to the application context.
+
+        :param context:     Application context
+                            For more information,
+                            head to the official flask documentation.
+        """
+
+        # Checks
+        if not hasattr(context, "user_token"):
+            raise AttributeError(
+                'Missing user_token attribute'
+            )
+
+        # TODO: Replace exception with proper exception type
+        if not context.user_token:
+            raise ValueError(
+                'No valid token found'
+            )
+
+        # Attach token to auth header
+        self.headers['Authorization'] = context.user_token
+
+
 def _check_response(r):
     try:
         r.raise_for_status()
@@ -190,6 +245,8 @@ def get(path, uuid, **params):
 
 
 def fetch(path, **params):
+    # Init session
+    session = AuthorizedSession(context=g)
     r = session.get(settings.LORA_URL + path, params=params)
     _check_response(r)
 
@@ -200,6 +257,9 @@ def fetch(path, **params):
 
 
 def create(path, obj, uuid=None):
+    # Init session
+    session = AuthorizedSession(context=g)
+
     if uuid:
         r = session.put('{}{}/{}'.format(settings.LORA_URL, path, uuid),
                         json=obj)
@@ -212,11 +272,17 @@ def create(path, obj, uuid=None):
 
 
 def delete(path, uuid):
+    # Init session
+    session = AuthorizedSession(context=g)
+
     r = session.delete('{}{}/{}'.format(settings.LORA_URL, path, uuid))
     _check_response(r)
 
 
 def update(path, obj):
+    # Init session
+    session = AuthorizedSession(context=g)
+
     r = session.put(settings.LORA_URL + path, json=obj)
     _check_response(r)
     return r.json()['uuid']
@@ -334,12 +400,15 @@ class Scope:
         self.connector = connector
         self.path = path
 
+        # Init session
+        self.session = AuthorizedSession(context=g)
+
     @property
     def base_path(self):
         return settings.LORA_URL + self.path
 
     def fetch(self, **params):
-        r = session.get(self.base_path, params={
+        r = self.session.get(self.base_path, params={
             **self.connector.defaults,
             **params,
         })
@@ -401,21 +470,21 @@ class Scope:
 
     def create(self, obj, uuid=None):
         if uuid:
-            r = session.put('{}/{}'.format(self.base_path, uuid),
+            r = self.session.put('{}/{}'.format(self.base_path, uuid),
                             json=obj)
             _check_response(r)
             return uuid
         else:
-            r = session.post(self.base_path, json=obj)
+            r = self.session.post(self.base_path, json=obj)
             _check_response(r)
             return r.json()['uuid']
 
     def delete(self, uuid):
-        r = session.delete('{}/{}'.format(self.base_path, uuid))
+        r = self.session.delete('{}/{}'.format(self.base_path, uuid))
         _check_response(r)
 
     def update(self, obj, uuid):
-        r = session.put('{}/{}'.format(self.base_path, uuid), json=obj)
+        r = self.session.put('{}/{}'.format(self.base_path, uuid), json=obj)
         _check_response(r)
         return r.json()['uuid']
 
