@@ -398,8 +398,6 @@ class TestCaseMixin(object):
 
 
 def initdb(psql):
-    print('loading!')
-
     dsn = psql.dsn()
 
     env = os.environ.copy()
@@ -443,7 +441,8 @@ def initdb(psql):
                              'db', 'mkdb.sh')
 
     with psycopg2.connect(**dsn) as conn, conn.cursor() as curs:
-        curs.execute(subprocess.check_output([mkdb_path], env=env))
+        curs.execute(subprocess.check_output([mkdb_path], env=env,
+                                             stderr=subprocess.DEVNULL))
 
 
 _psql_factory = testing.postgresql.PostgresqlFactory(
