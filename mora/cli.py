@@ -32,7 +32,7 @@ from . import lora
 from . import settings
 from . import tokens
 from . import util
-from .converters import importing
+from .importing import spreadsheets
 from .service import common
 
 basedir = os.path.dirname(__file__)
@@ -326,7 +326,7 @@ def load_cli(app):
         lora.put(path, json.load(input))
 
     @app.cli.command('import')
-    @click.argument('spreadsheets', nargs=-1, type=click.Path())
+    @click.argument('sheets', nargs=-1, type=click.Path())
     @click.option('--dry-run', '-n', is_flag=True,
                   help=("don't actually change anything"))
     @click.option('--verbose', '-v', count=True,
@@ -343,7 +343,7 @@ def load_cli(app):
     @click.option('--exact', '-e', is_flag=True,
                   help="don't calculate missing values")
     @requires_auth
-    def import_file(spreadsheets, dry_run, verbose, jobs, failfast,
+    def import_file(sheets, dry_run, verbose, jobs, failfast,
                     include, check, exact):
         '''
         Import an Excel spreadsheet into LoRa
@@ -353,8 +353,7 @@ def load_cli(app):
 
         start = util.now()
 
-        sheetlines = importing.convert(spreadsheets,
-                                       include=include, exact=exact)
+        sheetlines = spreadsheets.convert(sheets, include=include, exact=exact)
 
         if dry_run:
             for method, path, obj in sheetlines:
@@ -450,7 +449,7 @@ def load_cli(app):
         '''
         Convert an Excel spreadsheet into JSON for faster importing
         '''
-        d = importing.load_data(spreadsheets, exact=exact)
+        d = spreadsheets.load_data(spreadsheets, exact=exact)
 
         if compact:
             json.dump(d, output)
@@ -638,9 +637,9 @@ def load_cli(app):
                 else:
                     users[userid] = user
 
-                addrid = importing._wash_address(obj['adresse'],
-                                                 obj['postnummer'],
-                                                 obj['postdistrikt'])
+                addrid = spreadsheets._wash_address(obj['adresse'],
+                                                    obj['postnummer'],
+                                                    obj['postdistrikt'])
 
                 validity = {
                     'from': util.to_iso_time(obj['fra']),

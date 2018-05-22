@@ -28,7 +28,7 @@ import urllib3
 import werkzeug.serving
 
 from mora import lora, app, settings
-from mora.converters import importing
+from mora.importing import spreadsheets
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -91,7 +91,7 @@ def load_fixture(path, fixture_name, uuid=None, *, verbose=False):
 def import_fixture(fixture_name):
     path = os.path.join(IMPORTING_DIR, fixture_name)
     print(fixture_name, path)
-    for method, path, obj in importing.convert([path]):
+    for method, path, obj in spreadsheets.convert([path]):
         r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
                              json=obj)
         r.raise_for_status()
