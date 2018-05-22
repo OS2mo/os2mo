@@ -293,7 +293,7 @@ class Writing(util.LoRATestCase):
             {
                 'address_type': phone_class,
                 'href': 'tel:+4533369696',
-                'name': '3336 9696',
+                'name': '33369696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
@@ -1051,7 +1051,7 @@ class Writing(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'href': 'tel:+4587150000',
-                'name': '8715 0000',
+                'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
@@ -1450,7 +1450,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                     },
                     'href': 'tel:+4511223344',
-                    'name': '1122 3344',
+                    'name': '11223344',
                     'validity': {
                         'from': '2015-02-04T00:00:00+01:00',
                         'to': '2017-10-22T00:00:00+02:00',
@@ -1575,7 +1575,7 @@ class Writing(util.LoRATestCase):
             [{
                 'address_type': new_address_type,
                 'href': 'tel:+4587150000',
-                'name': '8715 0000',
+                'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00',
@@ -1649,7 +1649,7 @@ class Writing(util.LoRATestCase):
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'href': 'tel:+4587150000',
-                'name': '8715 0000',
+                'name': '87150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -1711,7 +1711,8 @@ class Writing(util.LoRATestCase):
                     },
                     'value': 'root@example.com',
                     "validity": {
-                        "from": "2017-01-01T00:00:00+01",
+                        # Note: The timestamp isn't midnight!
+                        "from": "2017-01-01T12:00:00+01",
                     },
                 },
             ],
@@ -1721,7 +1722,7 @@ class Writing(util.LoRATestCase):
             'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
             'urn': 'urn:mailto:root@example.com',
             'virkning': {
-                'from': '2017-01-01 00:00:00+01',
+                'from': '2017-01-01 12:00:00+01',
                 'to': 'infinity',
                 'from_included': True,
                 'to_included': False,
@@ -1739,7 +1740,7 @@ class Writing(util.LoRATestCase):
             'href': 'mailto:root@example.com',
             'name': 'root@example.com',
             'validity': {
-                'from': '2017-01-01T00:00:00+01:00',
+                'from': '2017-01-01T12:00:00+01:00',
                 'to': None,
             },
             'urn': 'urn:mailto:root@example.com',
@@ -1770,7 +1771,7 @@ class Writing(util.LoRATestCase):
                     "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                 },
                 "href": "tel:+4587150000",
-                "name": "8715 0000",
+                "name": "87150000",
                 "validity": {
                     "from": "2016-01-01T00:00:00+01:00",
                     "to": None
@@ -1849,7 +1850,7 @@ class Writing(util.LoRATestCase):
                     "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                 },
                 "href": "tel:+4587150000",
-                "name": "8715 0000",
+                "name": "87150000",
                 "validity": {
                     "from": "2016-01-01T00:00:00+01:00",
                     "to": None
@@ -2052,7 +2053,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': '8715 0000',
+                        'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
@@ -2093,7 +2094,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': '8715 0000',
+                        'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
@@ -2134,7 +2135,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': '8715 0000',
+                        'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2017-01-01T00:00:00+01:00',
@@ -2175,7 +2176,7 @@ class Reading(util.LoRATestCase):
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
                         'href': 'tel:+4587150000',
-                        'name': '8715 0000',
+                        'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
