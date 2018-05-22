@@ -24,6 +24,10 @@
         v-model="addresses"
       />
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
       <div class="float-right">
         <button-submit
         :is-loading="isLoading"
@@ -61,7 +65,8 @@ export default {
       postAddress: {},
       phone: {},
       addressEntry: MoAddressEntry,
-      isLoading: false
+      isLoading: false,
+      backendValidationError: null
     }
   },
   computed: {
@@ -88,11 +93,12 @@ export default {
 
         OrganisationUnit.create(this.entry)
           .then(response => {
-            vm.$refs.orgUnitCreate.hide()
-          })
-          .catch(err => {
-            console.log(err)
             vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs.orgUnitCreate.hide()
+            }
           })
       } else {
         this.$validator.validateAll()
