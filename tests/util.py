@@ -27,6 +27,7 @@ import time
 import werkzeug.serving
 
 import oio_rest.app
+
 from mora import app, lora, settings
 from mora.converters import importing
 
@@ -397,61 +398,6 @@ class TestCaseMixin(object):
             sort_inner_lists(actual))
 
 
-def initdb(psql):
-    dsn = psql.dsn()
-
-    env = os.environ.copy()
-
-    env.update(
-        TESTING='1',
-        PYTHON=sys.executable,
-        MOX_DB=oio_rest.app.settings.DATABASE,
-        MOX_DB_USER=oio_rest.app.settings.DB_USER,
-        MOX_DB_PASSWORD=oio_rest.app.settings.DB_PASSWORD,
-    )
-
-    with psycopg2.connect(**dsn) as conn:
-        conn.autocommit = True
-
-        with conn.cursor() as curs:
-            curs.execute(
-                "CREATE USER {} WITH SUPERUSER PASSWORD %s".format(
-                    oio_rest.app.settings.DB_USER,
-                ),
-                (
-                    oio_rest.app.settings.DB_PASSWORD,
-                ),
-            )
-
-            curs.execute(
-                "CREATE DATABASE {} WITH OWNER = %s".format(
-                    oio_rest.app.settings.
-                    DATABASE),
-                (
-                    oio_rest.app.settings.DB_USER,
-                ),
-            )
-
-    dsn = dsn.copy()
-    dsn['database'] = oio_rest.app.settings.DATABASE
-    dsn['user'] = oio_rest.app.settings.DB_USER
-    dsn['password'] = oio_rest.app.settings.DB_PASSWORD
-
-    mkdb_path = os.path.join(os.path.dirname(oio_rest.__file__), '..', '..',
-                             'db', 'mkdb.sh')
-
-    with psycopg2.connect(**dsn) as conn, conn.cursor() as curs:
-        curs.execute(subprocess.check_output([mkdb_path], env=env,
-                                             stderr=subprocess.DEVNULL))
-
-
-_psql_factory = testing.postgresql.PostgresqlFactory(
-    cache_initialized_db=True,
-    on_initialized=initdb
-)
-atexit.register(_psql_factory.clear_cache)
-
-
 class LoRATestCaseMixin(TestCaseMixin):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
@@ -469,33 +415,79 @@ class LoRATestCaseMixin(TestCaseMixin):
 
         return {}
 
+    @staticmethod
+    def __init_db():
+        psql = testing.postgresql.Postgresql()
+        atexit.register(psql.stop)
+
+        with psycopg2.connect(**psql.dsn()) as conn:
+            conn.autocommit = True
+
+            with conn.cursor() as curs:
+                curs.execute(
+                    "CREATE USER {} WITH SUPERUSER PASSWORD %s".format(
+                        oio_rest.app.settings.DB_USER,
+                    ),
+                    (
+                        oio_rest.app.settings.DB_PASSWORD,
+                    ),
+                )
+
+                curs.execute(
+                    "CREATE DATABASE {} WITH OWNER = %s".format(
+                        oio_rest.app.settings.
+                        DATABASE),
+                    (
+                        oio_rest.app.settings.DB_USER,
+                    ),
+                )
+
+        env = os.environ.copy()
+
+        env.update(
+            TESTING='1',
+            PYTHON=sys.executable,
+            MOX_DB=oio_rest.app.settings.DATABASE,
+            MOX_DB_USER=oio_rest.app.settings.DB_USER,
+            MOX_DB_PASSWORD=oio_rest.app.settings.DB_PASSWORD,
+        )
+
+        mkdb_path = os.path.join(
+            os.path.dirname(oio_rest.__file__),
+            '..', '..',
+            'db', 'mkdb.sh',
+        )
+
+        LoRATestCaseMixin.dsn = dsn = {
+            **psql.dsn(),
+
+            'database': oio_rest.app.settings.DATABASE,
+            'user': oio_rest.app.settings.DB_USER,
+            'password': oio_rest.app.settings.DB_PASSWORD,
+        }
+
+        with psycopg2.connect(**dsn) as conn, conn.cursor() as curs:
+            curs.execute(subprocess.check_output([mkdb_path], env=env,
+                                                 stderr=subprocess.DEVNULL))
+
+    dsn = None
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        if not cls.dsn:
+            cls.__init_db()
+
     def setUp(self):
         super().setUp()
-
-        self.psql = _psql_factory()
-        self.addCleanup(self.psql.stop)
-
-        self.psql.wait_booting()
-
-        dsn = self.psql.dsn()
-
-        from oio_rest import db
 
         oio_rest.app.app.config["DEBUG"] = True
         oio_rest.app.app.config["TESTING"] = True
         oio_rest.app.app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
 
-        if hasattr(db.adapt, 'connection'):
-            del db.adapt.connection
-
-        def db_close():
-            if hasattr(db.adapt, 'connection'):
-                db.adapt.connection.close()
-        self.addCleanup(db_close)
-
-        from oio_rest import app
         self.__lora_server = werkzeug.serving.make_server(
-            'localhost', 0, app.app,
+            'localhost', 0, oio_rest.app.app,
         )
         (_, self.__lora_port) = self.__lora_server.socket.getsockname()
 
@@ -503,11 +495,21 @@ class LoRATestCaseMixin(TestCaseMixin):
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
                 self.__lora_port)),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
-            patch('oio_rest.app.settings.DB_HOST', dsn['host'],
+            patch('oio_rest.app.settings.DB_HOST', self.dsn['host'],
                   create=True),
-            patch('oio_rest.app.settings.DB_PORT', dsn['port'],
+            patch('oio_rest.app.settings.DB_PORT', self.dsn['port'],
                   create=True),
         ]
+
+        with psycopg2.connect(**self.dsn) as conn:
+            conn.autocommit = True
+
+            with conn.cursor() as curs:
+                from oio_common.db_structure import DATABASE_STRUCTURE
+
+                curs.execute("TRUNCATE TABLE {} CASCADE".format(
+                    ', '.join(sorted(DATABASE_STRUCTURE)),
+                ))
 
         for p in self.patches:
             p.start()
