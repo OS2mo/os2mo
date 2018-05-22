@@ -37,7 +37,7 @@ class Tests(util.TestCase):
                 'mora.integrations.serviceplatformen._get_citizen_stub',
                 side_effect=KeyError('go away'),
                 assert_called_with='asdasdasdx',
-            ) as p:
+            ):
                 self.assertRequestResponse(
                     '/service/e/cpr_lookup/?q=1111111111',
                     {
