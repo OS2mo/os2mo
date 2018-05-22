@@ -2,23 +2,28 @@
   <b-modal 
     id="employeeTerminate" 
     size="lg" 
-    hide-footer 
-    title="Afslut medarbejder"
+    :title="$t('workflows.employee.terminate_employee')"
     ref="employeeTerminate"
+    @hidden="resetData"
+    hide-footer 
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="endEmployee">
-      <div class="col">
-        <mo-employee-picker v-model="employee" required/>
-        
-        <div class="form-row">
-          <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
-        </div>
-        
-        <div class="float-right">
-          <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
-        </div>
+    <form @submit.stop.prevent="endEmployee">
+      <div class="form-row">
+        <mo-employee-picker v-model="employee" required class="col"/>
+        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
       </div>
+        
+        <div v-if="employee">
+          <p>Følgende vil blive afsluttet for medarbejderen:</p>
+          <mo-employee-detail-tabs :uuid="employee.uuid" hide-actions/>
+        </div>
+
+        <div class="float-right mt-3">
+          <button-submit :is-loading="isLoading"/>
+        </div>
+    
     </form>
   </b-modal>
 </template>
@@ -28,6 +33,7 @@ import Employee from '@/api/Employee'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import MoDatePicker from '@/components/atoms/MoDatePicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
+import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
 export default {
   $_veeValidate: {
@@ -36,12 +42,13 @@ export default {
   components: {
     MoEmployeePicker,
     MoDatePicker,
-    ButtonSubmit
+    ButtonSubmit,
+    MoEmployeeDetailTabs
   },
   data () {
     return {
       isLoading: false,
-      employee: {},
+      employee: null,
       terminate: {
         validity: {}
       }
@@ -59,20 +66,24 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
-    endEmployee () {
-      let vm = this
-      vm.isLoading = true
-      Employee.terminate(this.employee.uuid, this.terminate)
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeTerminate.hide()
-        })
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
+
+    endEmployee (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+        Employee.terminate(this.employee.uuid, this.terminate)
+          .then(response => {
+            vm.isLoading = false
+            vm.$refs.employeeTerminate.hide()
+          })
+      } else {
+        this.$validator.validateAll()
+      }
     }
   }
 }

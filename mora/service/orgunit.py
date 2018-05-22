@@ -28,8 +28,10 @@ from . import facet
 from . import keys
 from . import mapping
 from . import org
+from .. import exceptions
 from .. import lora
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -93,8 +95,12 @@ class OrgUnit(common.AbstractRelationDetail):
         original = c.organisationenhed.get(uuid=unitid)
 
         data = req.get('data')
-        new_from = common.get_valid_from(data)
-        new_to = common.get_valid_to(data)
+        new_from, new_to = common.get_validities(data)
+
+        # Get org unit uuid for validation purposes
+        parent = common.get_obj_value(
+            original, mapping.PARENT_FIELD.path)[-1]
+        parent_uuid = common.get_uuid(parent)
 
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
@@ -102,8 +108,7 @@ class OrgUnit(common.AbstractRelationDetail):
         original_data = req.get('original')
         if original_data:
             # We are performing an update
-            old_from = common.get_valid_from(original_data)
-            old_to = common.get_valid_to(original_data)
+            old_from, old_to = common.get_validities(original_data)
             payload = common.inactivate_old_interval(
                 old_from, old_to, new_from, new_to, payload,
                 ('tilstande', 'organisationenhedgyldighed')
@@ -117,7 +122,7 @@ class OrgUnit(common.AbstractRelationDetail):
             {'gyldighed': "Aktiv"}
         ))
 
-        if keys.NAME in data.keys():
+        if keys.NAME in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
             attrs['enhedsnavn'] = data[keys.NAME]
 
@@ -126,16 +131,19 @@ class OrgUnit(common.AbstractRelationDetail):
                 attrs,
             ))
 
-        if keys.ORG_UNIT_TYPE in data.keys():
+        if keys.ORG_UNIT_TYPE in data:
             update_fields.append((
                 mapping.ORG_UNIT_TYPE_FIELD,
                 {'uuid': data[keys.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if keys.PARENT in data.keys():
+        if keys.PARENT in data:
+            parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
+            validator.is_candidate_parent_valid(unitid,
+                                                parent_uuid, new_from)
             update_fields.append((
                 mapping.PARENT_FIELD,
-                {'uuid': data[keys.PARENT]['uuid']}
+                {'uuid': parent_uuid}
             ))
 
         payload = common.update_payload(new_from, new_to, update_fields,
@@ -145,6 +153,9 @@ class OrgUnit(common.AbstractRelationDetail):
             mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
+
+        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+                                                  new_to)
 
         c.organisationenhed.update(payload, unitid)
 
@@ -205,7 +216,9 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     else:
-        raise ValueError('invalid details {!r}'.format(details))
+        raise exceptions.HTTPException(
+            'invalid details {!r}'.format(details),
+        )
 
     if validity is not None:
         r[keys.VALIDITY] = validity
@@ -355,7 +368,6 @@ def list_orgunits(orgid):
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Short, unique key identifying the unit.
 
-
     :status 200: Always.
 
     **Example Response**:
@@ -440,11 +452,17 @@ def create_org_unit():
 
     req = flask.request.get_json()
 
-    name = req.get(keys.NAME)
-    parent_uuid = req.get(keys.PARENT).get('uuid')
+    name = common.checked_get(req, keys.NAME, "", required=True)
+
+    parent = common.checked_get(req, keys.PARENT, {}, required=True)
+    parent_uuid = common.get_uuid(parent)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
     org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
-    org_unit_type_uuid = req.get(keys.ORG_UNIT_TYPE).get('uuid')
+
+    org_unit_type = common.checked_get(req, keys.ORG_UNIT_TYPE, {},
+                                       required=True)
+    org_unit_type_uuid = common.get_uuid(org_unit_type)
+
     addresses = [
         address.get_relation_for(addr)
         for addr in common.checked_get(req, keys.ADDRESSES, [])
@@ -467,6 +485,9 @@ def create_org_unit():
         overordnet=parent_uuid,
         adresser=addresses,
     )
+
+    validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+                                              valid_to)
 
     unitid = c.organisationenhed.create(org_unit)
 
@@ -600,7 +621,7 @@ def create_org_unit_relation(unitid):
 
       [
         {
-          "value": "1234567890",
+          "value": "0101501234",
           "address_type": {
             "example": "5712345000014",
             "name": "EAN",
@@ -645,6 +666,8 @@ def terminate_org_unit(unitid):
     .. :quickref: Unit; Terminate
 
     :statuscode 200: The termination succeeded.
+    :statuscode 404: No such unit found.
+    :statuscode 409: Validation failed, see below.
 
     :param unitid: The UUID of the organisational unit to be terminated.
 
@@ -660,8 +683,65 @@ def terminate_org_unit(unitid):
           "from": "2016-01-01T00:00:00+00:00"
         }
       }
+
+    **Example response**:
+
+    .. sourcecode:: json
+
+      "85715fc7-925d-401b-822d-467eb4b163b6"
+
+    **Validation**:
+
+    Prior to terminating an organisational unit, all nested units and
+    association details must be terminated. Should this not be the
+    case, we return a :http:statuscode:`409`, and a response such as this:
+
+    .. sourcecode:: json
+
+      {
+          "description": "cannot terminate unit with 1 active children",
+          "error": true,
+          "cause": "validation",
+          "status": 400,
+
+          "child_count": 1,
+          "role_count": 0,
+          "child_units": [
+              {
+                  "child_count": 0,
+                  "name": "Afdeling for Fremtidshistorik",
+                  "user_key": "frem",
+                  "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+              }
+          ]
+      }
+
     """
     date = common.get_valid_from(flask.request.get_json())
+
+    c = lora.Connector(virkningfra=date, virkningtil='infinity')
+
+    validator.is_org_unit_termination_date_valid(unitid, date)
+
+    children = c.organisationenhed.paged_get(
+        get_one_orgunit,
+        overordnet=unitid,
+        gyldighed='Aktiv',
+        limit=5,
+    )
+
+    roles = c.organisationfunktion(
+        tilknyttedeenheder=unitid,
+        gyldighed='Aktiv',
+    )
+
+    if children['total'] or roles:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
+            child_units=children['items'],
+            child_count=children['total'],
+            role_count=len(roles),
+        )
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
@@ -672,7 +752,7 @@ def terminate_org_unit(unitid):
     payload = common.set_object_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
-    lora.Connector().organisationenhed.update(payload, unitid)
+    c.organisationenhed.update(payload, unitid)
 
     return flask.jsonify(unitid)
 
@@ -732,6 +812,9 @@ def get_org_unit_history(unitid):
     unit_registrations = c.organisationenhed.get(uuid=unitid,
                                                  registreretfra='-infinity',
                                                  registrerettil='infinity')
+
+    if not unit_registrations:
+        raise werkzeug.exceptions.NotFound('no such unit')
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))

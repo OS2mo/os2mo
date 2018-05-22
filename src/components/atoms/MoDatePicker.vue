@@ -4,10 +4,11 @@
       <date-time-picker 
         v-model="selected" 
         format="dd-MM-yyyy"
-        language="da" 
+        :language="da"
         monday-first
-        bootstrapStyling
+        bootstrap-styling
         clear-button
+        :disabled-dates="disabledDates"
         :disabled="disabled"
       />
 
@@ -16,20 +17,16 @@
         :data-vv-as="label" 
         v-model="selected"
         type="hidden"
-        v-validate="{ date_format: 'YYYY-MM-DD', required: required }">
+        v-validate="{required: required}">
 
-      <span
-        v-show="errors.has(nameId)" 
-        class="text-danger"
-      >
-        {{ errors.first(nameId) }}
-      </span>
+      <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
     </div>
 </template>
 
 <script>
 
 import DateTimePicker from 'vuejs-datepicker'
+import { da } from 'vuejs-datepicker/dist/locale'
 
 export default {
   components: {
@@ -42,20 +39,19 @@ export default {
     value: [Date, String],
     required: Boolean,
     noLabel: Boolean,
-    label: {
-      default: 'Dato',
-      type: String
-    },
+    label: {default: 'Dato', type: String},
     disabledTo: [Date, String],
-    disabledFrom: [Date, String]
+    disabledFrom: [Date, String],
+    disabled: Boolean
   },
   data () {
     return {
-      disabled: {
+      disabledDates: {
         to: null,
         from: null
       },
-      selected: null
+      selected: null,
+      da: da
     }
   },
   computed: {
@@ -69,11 +65,11 @@ export default {
     },
 
     disabledTo (newVal) {
-      this.disabled.to = newVal ? new Date(newVal) : null
+      this.disabledDates.to = newVal ? new Date(newVal) : null
     },
 
     disabledFrom (newVal) {
-      this.disabled.from = newVal ? new Date(newVal) : null
+      this.disabledDates.from = newVal ? new Date(newVal) : null
     },
 
     value (newVal) {

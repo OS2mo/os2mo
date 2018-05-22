@@ -20,6 +20,7 @@ import os
 import flask
 import requests.auth
 
+from . import exceptions
 from . import tokens
 
 __all__ = (
@@ -86,7 +87,8 @@ def login(username):
             flask.request.full_path,
         )
 
-        raise PermissionError('connection failed')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_CONNECTION_FAILED)
 
     resp = flask.jsonify({
         "user": username,

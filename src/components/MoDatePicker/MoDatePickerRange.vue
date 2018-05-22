@@ -2,11 +2,11 @@
   <div class="form-row">
     <div v-show="hidden">
       <button class="btn btn-link" @click="hidden=false">
-        Vælg anden dato
+        {{$t('buttons.select_another_date')}}
       </button>
     </div>
     <mo-date-picker 
-      label="Startdato"
+      :label="$t('input_fields.start_date')"
       v-model="validFrom"
       v-show="!hidden"
       :disabled-from="validTo"
@@ -15,10 +15,11 @@
     />
 
     <mo-date-picker 
-      label="Slutdato"
+      :label="$t('input_fields.end_date')"
       v-model="validTo"
       v-show="!hidden"
       :disabled-to="validFrom"
+      :disabled="disableToDate"
       @input="updateDate()"
     />
   </div>
@@ -33,7 +34,8 @@
     },
     props: {
       value: Object,
-      initiallyHidden: Boolean
+      initiallyHidden: Boolean,
+      disableToDate: Boolean
     },
     data () {
       return {

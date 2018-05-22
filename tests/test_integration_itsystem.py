@@ -34,10 +34,22 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': (
-                    'invalid \'itsystem\', expected dict, got: null'
+                'error': True,
+                'error_key': 'E_INVALID_TYPE',
+                'description': (
+                    'Invalid \'itsystem\', expected dict, got: null'
                 ),
+                'key': 'itsystem',
+                'expected': 'dict',
+                'actual': 'null',
                 'status': 400,
+                'obj': {
+                    'itsystem': None,
+                    'type': 'it',
+                    'validity': {
+                        'from': '2017-12-01T00:00:00+01', 'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -55,7 +67,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
-                'message': 'no such user!',
+                'error': True,
+                'error_key': 'E_USER_NOT_FOUND',
+                'description': 'User not found.',
                 'status': 404,
             },
             json=[
@@ -76,10 +90,23 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
-                'message': (
-                    'invalid \'itsystem\', expected dict, got: null'
+                'error': True,
+                'error_key': 'E_INVALID_TYPE',
+                'description': (
+                    'Invalid \'itsystem\', expected dict, got: null'
                 ),
+                'key': 'itsystem',
+                'expected': 'dict',
+                'actual': 'null',
                 'status': 400,
+                'obj': {
+                    'itsystem': None,
+                    'type': 'it',
+                    'validity': {
+                        'from': '2017-12-01T00:00:00+01',
+                        'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -97,8 +124,18 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': 'missing start date!',
+                'error': True,
+                'error_key': 'V_MISSING_START_DATE',
+                'description': 'Missing start date.',
                 'status': 400,
+                'obj': {
+                    'itsystem': {
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb'},
+                    'type': 'it',
+                    'validity': {
+                        'from': None, 'to': None
+                    }
+                },
             },
             json=[
                 {
@@ -118,8 +155,12 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': "missing 'uuid'",
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'description': "Missing uuid",
+                'key': 'uuid',
                 'status': 400,
+                'obj': {}
             },
             json=[
                 {
@@ -137,8 +178,11 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/create'.format(userid),
             {
-                'message': "invalid uuid for 'uuid': '42'",
+                'error': True,
+                'error_key': 'E_INVALID_UUID',
+                'description': "Invalid uuid for 'uuid': '42'",
                 'status': 400,
+                'obj': {'uuid': '42'},
             },
             json=[
                 {
@@ -158,7 +202,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'original entry not found!',
+                'error': True,
+                'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -171,7 +217,7 @@ class Writing(util.LoRATestCase):
                         # WRONG:
                         'uuid': '00000000-0000-0000-0000-000000000000',
                         "validity": {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -188,7 +234,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'original entry not found!',
+                'error': True,
+                'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -218,7 +266,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': 'original entry not found!',
+                'error': True,
+                'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                'description': 'Original entry not found.',
                 'status': 400,
             },
             json=[
@@ -248,8 +298,14 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
             {
-                'message': "invalid 'uuid', expected str, got: null",
+                'error': True,
+                'error_key': 'E_INVALID_TYPE',
+                'description': "Invalid 'uuid', expected str, got: null",
+                'key': 'uuid',
+                'expected': 'str',
+                'actual': 'null',
                 'status': 400,
+                'obj': {'uuid': None},
             },
             json=[
                 {
@@ -259,7 +315,7 @@ class Writing(util.LoRATestCase):
                         'user_name': 'Fedtmule',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
-                            'from': '2002-02-14T00:00:00+01:00',
+                            'from': '1932-05-12T00:00:00+01:00',
                             'to': None,
                         },
                     },
@@ -286,7 +342,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                 },
@@ -296,10 +352,10 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
-                    'urn': 'urn:dk:cpr:person:1111111111',
+                    'urn': 'urn:dk:cpr:person:0906340000',
                 },
             ],
             'brugertyper': [
@@ -307,7 +363,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                     'urn': 'urn:email',
@@ -318,7 +374,7 @@ class Writing(util.LoRATestCase):
                     'virkning': {
                         'to_included': False,
                         'to': 'infinity',
-                        'from': '2002-02-14 00:00:00+01',
+                        'from': '1934-06-09 00:00:00+01',
                         'from_included': True,
                     },
                     'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -348,7 +404,7 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/'.format(userid),
                 {
-                    'cpr_no': '1111111111',
+                    'cpr_no': '0906340000',
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     'org': {
@@ -487,7 +543,12 @@ class Writing(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
-            {'message': 'original required!', 'status': 400},
+            {
+                'error': True,
+                'error_key': 'V_ORIGINAL_REQUIRED',
+                'description': 'Original required.',
+                'status': 400,
+            },
             status_code=400,
             json=req,
         )
@@ -504,7 +565,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -527,7 +588,7 @@ class Writing(util.LoRATestCase):
                     'user_name': 'Fedtmule',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1932-05-12T00:00:00+01:00',
                         'to': None,
                     },
                 },
@@ -545,7 +606,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -586,7 +647,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -643,7 +704,7 @@ class Writing(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               }],
         )
@@ -683,7 +744,7 @@ class Writing(util.LoRATestCase):
                     'user_name': 'Fedtmule',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2002-02-14T00:00:00+01:00',
+                        'from': '1932-05-12T00:00:00+01:00',
                         'to': '2020-01-01T00:00:00+01:00',
                     },
                 },
@@ -984,7 +1045,7 @@ class Reading(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -1016,7 +1077,7 @@ class Reading(util.LoRATestCase):
               'user_name': 'Fedtmule',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '2002-02-14T00:00:00+01:00',
+                  'from': '1932-05-12T00:00:00+01:00',
                   'to': None
               },
               }],

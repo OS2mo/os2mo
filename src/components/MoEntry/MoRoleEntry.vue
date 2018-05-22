@@ -2,7 +2,12 @@
   <div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
     <div class="form-row">
-      <mo-organisation-unit-picker class="col" label="Vælg enhed" v-model="entry.org_unit"/>
+      <mo-organisation-unit-search 
+        class="col" 
+        label="Vælg enhed" 
+        v-model="entry.org_unit"
+        required
+      />
       <mo-facet-picker facet="role_type" v-model="entry.role_type" required/>
     </div>
   </div>
@@ -10,13 +15,13 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitPicker,
+    MoOrganisationUnitSearch,
     MoFacetPicker
   },
   props: {

@@ -14,12 +14,12 @@ Employees
 This section describes how to interact with employees.
 
 '''
-import datetime
+
 import uuid
 
 import flask
-import werkzeug
 
+from .. import exceptions
 from . import address
 from . import association
 from . import common
@@ -186,7 +186,7 @@ def get_employee(id):
     if r:
         return flask.jsonify(r)
     else:
-        raise werkzeug.exceptions.NotFound('no such user')
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
@@ -411,7 +411,7 @@ def create_employee_relation(employee_uuid):
 
       [
         {
-          "value": "1234567890",
+          "value": "0101501234",
           "address_type": {
             "example": "5712345000014",
             "name": "EAN",
@@ -444,7 +444,9 @@ def create_employee_relation(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify('Unknown role type: ' + role_type), 400
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
             handler(common.get_connector().bruger).create(
@@ -828,7 +830,9 @@ def edit_employee(employee_uuid):
         handler = handlers.get(role_type)
 
         if not handler:
-            return flask.jsonify('Unknown role type: ' + role_type), 400
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
             handler(common.get_connector().bruger).edit(
@@ -874,8 +878,6 @@ def terminate_employee(employee_uuid):
     """
     date = common.get_valid_from(flask.request.get_json())
 
-    c = lora.Connector(effective_date=date)
-
     # Org funks
     types = (
         keys.ENGAGEMENT_KEY,
@@ -884,6 +886,9 @@ def terminate_employee(employee_uuid):
         keys.LEAVE_KEY,
         keys.MANAGER_KEY
     )
+
+    c = lora.Connector(effective_date=date)
+
     for key in types:
         for obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
@@ -949,6 +954,9 @@ def get_employee_history(employee_uuid):
                                       registreretfra='-infinity',
                                       registrerettil='infinity')
 
+    if not user_registrations:
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
+
     history_entries = list(map(common.convert_reg_to_history,
                                user_registrations))
 
@@ -973,7 +981,7 @@ def create_employee():
 
       {
         "name": "Name Name",
-        "cpr_no": "1234567890",
+        "cpr_no": "0101501234",
         "org": {
           "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
         }
@@ -987,12 +995,15 @@ def create_employee():
 
     req = flask.request.get_json()
 
-    name = req.get(keys.NAME)
-    org_uuid = req.get(keys.ORG).get('uuid')
-    cpr = req.get(keys.CPR_NO)
-    valid_from = str(datetime.datetime.now())
+    name = common.checked_get(req, keys.NAME, "", required=True)
+    org = common.checked_get(req, keys.ORG, {}, required=True)
+    org_uuid = common.get_uuid(org)
+    cpr = common.checked_get(req, keys.CPR_NO, "", required=True)
+
+    valid_from = util.get_cpr_birthdate(cpr)
     valid_to = util.positive_infinity
 
+    # TODO: put something useful into the user key
     bvn = str(uuid.uuid4())
 
     user = common.create_bruger_payload(

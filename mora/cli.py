@@ -325,8 +325,8 @@ def load_cli(app):
 
     @app.cli.command('import')
     @click.argument('spreadsheets', nargs=-1, type=click.Path())
-    @click.option('--destination-url', '-d',
-                  help='LoRA url')
+    @click.option('--dry-run', '-n', is_flag=True,
+                  help=("don't actually change anything"))
     @click.option('--verbose', '-v', count=True,
                   help='Show more output.')
     @click.option('--jobs', '-j', default=1, type=int,
@@ -341,21 +341,20 @@ def load_cli(app):
     @click.option('--exact', '-e', is_flag=True,
                   help="don't calculate missing values")
     @requires_auth
-    def import_(destination_url, spreadsheets, verbose, jobs, failfast,
-                include, check, exact):
+    def import_file(spreadsheets, dry_run, verbose, jobs, failfast,
+                    include, check, exact):
         '''
         Import an Excel spreadsheet into LoRa
         '''
 
-        # apparently, you cannot call tzlocal after importing gevent/eventlets
-        start = util.now()
-
         import grequests
+
+        start = util.now()
 
         sheetlines = importing.convert(spreadsheets,
                                        include=include, exact=exact)
 
-        if not destination_url:
+        if dry_run:
             for method, path, obj in sheetlines:
                 print(method, path,
                       json.dumps(obj, indent=2))
@@ -366,7 +365,8 @@ def load_cli(app):
             grequests.request(
                 # check means that we always get GET anything
                 method if not check else 'GET',
-                destination_url + path, session=lora.session,
+                settings.LORA_URL + path.rstrip('/'),
+                session=lora.session,
                 json=obj,
             )
             for method, path, obj in sheetlines

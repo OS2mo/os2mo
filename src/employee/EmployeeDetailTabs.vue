@@ -7,7 +7,7 @@
           :uuid="uuid" 
           detail="engagement"
           :columns="engagement"
-          :entry-component="components.engagement"
+          :entry-component="!hideActions ? components.engagement : undefined"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.addresses')">
@@ -15,6 +15,7 @@
           :uuid="uuid" 
           detail="address"
           :columns="address"
+          :entry-component="!hideActions ? components.address : undefined"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.roles')">
@@ -22,7 +23,7 @@
           :uuid="uuid" 
           detail="role"
           :columns="role"
-          :entry-component="components.role"
+          :entry-component="!hideActions ? components.role : undefined"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.it')">
@@ -30,7 +31,7 @@
           :uuid="uuid" 
           detail="it"
           :columns="it"
-          :entry-component="components.it"
+          :entry-component="!hideActions ? components.it : undefined"
         />
       </b-tab>
       <b-tab :title="$tc('tabs.employee.association', 2)">
@@ -38,7 +39,7 @@
           :uuid="uuid" 
           detail="association"
           :columns="association"
-          :entry-component="components.association"
+          :entry-component="!hideActions ? components.association : undefined"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.leave')">
@@ -46,7 +47,7 @@
           :uuid="uuid" 
           detail="leave"
           :columns="leave"
-          :entry-component="components.leave"
+          :entry-component="!hideActions ? components.leave : undefined"
         />
       </b-tab>
       <b-tab :title="$t('tabs.employee.manager')" >
@@ -54,7 +55,7 @@
           :uuid="uuid" 
           detail="manager"
           :columns="manager"
-          :entry-component="components.manager"
+          :entry-component="!hideActions ? components.manager : undefined"
         />
       </b-tab>
     </b-tabs>
@@ -66,6 +67,7 @@
   import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
   import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
   import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
@@ -78,7 +80,8 @@
       MoEmployeeDetail
     },
     props: {
-      uuid: String
+      uuid: String,
+      hideActions: Boolean
     },
     data () {
       return {
@@ -120,6 +123,7 @@
         ],
         components: {
           engagement: MoEngagementEntry,
+          address: MoAddressEntry,
           role: MoRoleEntry,
           it: MoItSystemEntry,
           association: MoAssociationEntry,

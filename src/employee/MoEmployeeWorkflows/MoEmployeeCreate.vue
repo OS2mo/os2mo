@@ -2,18 +2,20 @@
   <b-modal 
     id="employeeCreate" 
     size="lg" 
-    title="Ny medarbejder"
+    :title="$t('workflows.employee.new_employee')"
     ref="employeeCreate"
     hide-footer 
+    no-close-on-backdrop
+    @hidden="resetData"
     lazy
   >
-    <form @submit.stop.prevent="createEmployee()">
+    <form @submit.stop.prevent="createEmployee">
       <mo-cpr v-model="employee"/>
 
       <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
-      <h5>Adresser</h5>
+      <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
       <mo-add-many v-model="address" :entry-component="entry.address"/>
 
       <h5>{{$tc('workflows.employee.labels.association', 2)}}</h5>
@@ -25,11 +27,15 @@
       <h5>{{$tc('workflows.employee.labels.it_system', 2)}}</h5>
       <mo-add-many v-model="itSystem" :entry-component="entry.it"/>
 
-      <h5>{{$tc('workflows.employee.labels.manager', 1)}}</h5>
+      <h5>{{$tc('workflows.employee.labels.manager')}}</h5>
       <mo-add-many v-model="manager" :entry-component="entry.manager"/>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+      
     <div class="float-right">
-      <button-submit :is-disabled="!formValid" :is-loading="isLoading" />
+      <button-submit :is-loading="isLoading" />
     </div>
     </form>
   </b-modal>
@@ -72,6 +78,7 @@ export default {
       itSystem: [],
       manager: [],
       isLoading: false,
+      backendValidationError: null,
       entry: {
         address: MoAddressEntry,
         association: MoAssociationEntry,
@@ -89,32 +96,40 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
-    createEmployee () {
-      let vm = this
-      this.isLoading = true
-      let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
 
-      let newEmployee = {
-        name: this.employee.name,
-        cpr_no: this.employee.cpr_no,
-        org: this.$store.state.organisation
+    createEmployee (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        this.isLoading = true
+        let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
+
+        let newEmployee = {
+          name: this.employee.name,
+          cpr_no: this.employee.cpr_no,
+          org: this.$store.state.organisation
+        }
+
+        Employee.new(newEmployee)
+          .then(employeeUuid => {
+            Employee.create(employeeUuid, create)
+              .then(response => {
+                vm.isLoading = false
+                if (response.error) {
+                  vm.backendValidationError = response.error_key
+                } else {
+                  vm.$refs.employeeCreate.hide()
+                  vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+                }
+              })
+          })
+      } else {
+        this.$validator.validateAll()
       }
-
-      Employee.new(newEmployee)
-        .then(employeeUuid => {
-          Employee.create(employeeUuid, create)
-            .then(response => {
-              vm.isLoading = false
-              vm.$refs.employeeCreate.hide()
-              vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
-            })
-        })
     }
   }
 }

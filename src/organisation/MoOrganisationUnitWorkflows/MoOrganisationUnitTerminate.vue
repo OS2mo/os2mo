@@ -3,17 +3,31 @@
     id="orgUnitTerminate"
     ref="orgUnitTerminate"  
     size="lg" 
+    :title="$t('workflows.organisation.terminate_unit')"
+    @hidden="resetData"
     hide-footer 
-    title="Afslut enhed"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="endOrganisationUnit">
+    <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
-        <mo-organisation-unit-picker label="Enhed" class="col" v-model="org_unit"/>
-        <mo-date-picker label="Slutdato" v-model="terminate.validity.from" required/>
+        <mo-organisation-unit-search 
+          :label="$tc('input_fields.unit', 1)" 
+          class="col" 
+          v-model="org_unit"
+          required
+        />
+        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
       </div>
-      <div class="float-right">
-        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+      <div v-if="org_unit">
+        <p>Følgende vil blive afsluttet for enheden:</p>
+        <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
+      </div>
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+      <div class="float-right mt-3">
+        <button-submit :is-loading="isLoading"/>
       </div>
     </form>
   </b-modal>
@@ -22,8 +36,9 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
   export default {
     $_veeValidate: {
@@ -31,16 +46,18 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitPicker,
-      ButtonSubmit
+      MoOrganisationUnitSearch,
+      ButtonSubmit,
+      MoOrganisationDetailTabs
     },
     data () {
       return {
-        org_unit: {},
+        org_unit: null,
         terminate: {
           validity: {}
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     computed: {
@@ -51,20 +68,28 @@
         })
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
-      endOrganisationUnit () {
-        let vm = this
-        vm.isLoading = true
-        OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs.orgUnitTerminate.hide()
-          })
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
+
+      endOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
+          OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
+            .then(response => {
+              vm.isLoading = false
+              if (response.error) {
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.orgUnitTerminate.hide()
+              }
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }

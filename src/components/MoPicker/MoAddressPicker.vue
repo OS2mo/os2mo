@@ -1,7 +1,8 @@
 <template>
   <span>
     <mo-loader v-show="isLoading"/>
-    <div class="form-group" v-show="!isLoading">
+    <div class="col no-address" v-show="!isLoading && noAddresses && orgUnit">Ingen adresser er tilknyttet til enheden</div>
+    <div class="form-group" v-show="!isLoading && !noAddresses">
       <label :for="nameId">{{label}}</label>
       <select
         class="form-control col" 
@@ -9,6 +10,7 @@
         :name="nameId"
         :id="nameId"
         :disabled="isDisabled"
+        :noAddresses="noAddresses"
         @change="updateSelectedAddress()"
       >
         <option disabled>{{label}}</option>
@@ -57,6 +59,10 @@ export default {
 
     isDisabled () {
       return this.orgUnit == null
+    },
+
+    noAddresses () {
+      return this.addresses.length === 0
     }
   },
   watch: {
@@ -86,3 +92,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+ .no-address {
+    margin-top: 2.5rem;
+    color: #ff0000;
+  }
+</style>

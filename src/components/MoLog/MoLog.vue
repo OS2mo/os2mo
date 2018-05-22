@@ -5,9 +5,9 @@
       <b-tab :title="$t('tabs.log.worklog')" active> 
         <mo-worklog/>
       </b-tab>
-      <b-tab :title="$t('tabs.log.events')">
+      <!-- <b-tab :title="$t('tabs.log.events')">
         {{$t('tabs.log.events')}}
-      </b-tab>
+      </b-tab> -->
       <b-tab :title="$t('tabs.log.errors')">
         <mo-errors/>
       </b-tab>

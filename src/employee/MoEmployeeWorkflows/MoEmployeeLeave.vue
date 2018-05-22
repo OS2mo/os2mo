@@ -2,17 +2,23 @@
   <b-modal 
     id="employeeLeave" 
     size="lg" 
-    title="Meld orlov"
+    :title="$t('workflows.employee.leave')"
     ref="employeeLeave"
     hide-footer 
     lazy
+    no-close-on-backdrop
+    @hidden="resetData"
   >
-    <form @submit.prevent="createLeave">
+    <form @submit.stop.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
       <mo-leave-entry v-model="leave"/>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+      
       <div class="float-right">
-        <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+        <button-submit :is-loading="isLoading"/>
       </div>
     </form>
   </b-modal>
@@ -36,6 +42,7 @@ export default {
   data () {
     return {
       isLoading: false,
+      backendValidationError: null,
       employee: {},
       leave: {
         validity: {}
@@ -50,20 +57,28 @@ export default {
       })
     }
   },
-  mounted () {
-    this.$root.$on('bv::modal::hidden', resetData => {
-      Object.assign(this.$data, this.$options.data())
-    })
-  },
   methods: {
-    createLeave () {
-      let vm = this
-      vm.isLoading = true
-      Employee.leave(this.employee.uuid, [this.leave])
-        .then(response => {
-          vm.isLoading = false
-          vm.$refs.employeeLeave.hide()
-        })
+    resetData () {
+      Object.assign(this.$data, this.$options.data())
+    },
+
+    createLeave (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+        Employee.leave(this.employee.uuid, [this.leave])
+          .then(response => {
+            vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs.employeeLeave.hide()
+            }
+          })
+      } else {
+        this.$validator.validateAll()
+      }
     }
   }
 }

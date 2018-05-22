@@ -6,11 +6,13 @@
     "move_many_engagements": "Flyt mange engagementer",
     "terminate_employee": "Afslut medarbejder",
     "labels": {
-      "engagement": "Engagement",
+      "address": "@:shared.address",
+      "other_addresses": "Øvrige adresser",
       "association": "@:shared.association",
-      "role": "@:shared.role",
+      "engagement": "Engagement",
       "it_system": "@:shared.it_system",
-      "manager": "@:shared.manager"
+      "manager": "@:shared.manager",
+      "role": "@:shared.role"
     }
   },
   "organisation": {

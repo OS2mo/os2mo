@@ -21,6 +21,8 @@ import uuid
 import flask
 import werkzeug
 
+from mora.exceptions import ErrorCodes
+from .. import exceptions
 from .. import util
 
 from . import common
@@ -239,12 +241,11 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
         if not original:
-            raise KeyError('no such user!')
+            raise exceptions.HTTPException(ErrorCodes.E_USER_NOT_FOUND)
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        start = common.get_valid_from(req)
-        end = common.get_valid_to(req)
+        start, end = common.get_validities(req)
 
         rels.append(self.get_relation_for(systemid, start, end))
 
@@ -268,7 +269,7 @@ class ITSystems(common.AbstractRelationDetail):
         old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
 
         if not old_entry:
-            raise ValueError('original required!')
+            raise exceptions.HTTPException(ErrorCodes.V_ORIGINAL_REQUIRED)
 
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(

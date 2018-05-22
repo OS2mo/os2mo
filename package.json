@@ -1,6 +1,6 @@
 {
   "name": "mora",
-  "version": "0.1.1",
+  "version": "0.5.1",
   "description": "OS2 Mennesker + Organisation 2.0",
   "author": "Magenta ApS <info@magenta.dk>",
   "private": true,
@@ -23,7 +23,7 @@
     "node-sass": "^4.7.2",
     "popper.js": "^1.12.9",
     "sass-loader": "^6.0.6",
-    "v-autocomplete": "^1.8.1",
+    "v-autocomplete": "^1.8.2",
     "vee-validate": "^2.0.0",
     "vue": "^2.5.2",
     "vue-awesome": "^2.3.4",
@@ -32,7 +32,7 @@
     "vue-moment": "^3.1.0",
     "vue-router": "^3.0.1",
     "vue-shortkey": "^3.1.0",
-    "vuejs-datepicker": "^0.9.24",
+    "vuejs-datepicker": "^1.1.5",
     "vuex": "^3.0.1"
   },
   "devDependencies": {

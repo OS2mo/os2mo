@@ -1,24 +1,26 @@
 <template>
   <div class="card">
-    <div class="card-body">
+    <div class="card-body d-flex flex-column">
       <mo-loader v-show="isLoading"/>
-      <table class="table table-striped" v-show="!isLoading">
-        <thead>
-          <tr>
-            <th scope="col">{{$t('table_headers.person')}}</th>
-          </tr>
-        </thead>
+      <div id="employee-list-wrapper">
+        <table class="table table-striped" v-show="!isLoading">
+          <thead>
+            <tr>
+              <th scope="col">{{$t('table_headers.person')}}</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          <tr v-for="employee in employees" :key="employee.uuid">
-            <td>
-              <router-link class="nav-link" :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }">
-                {{employee.name}}
-              </router-link>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          <tbody>
+            <tr v-for="employee in employees" :key="employee.uuid">
+              <td>
+                <router-link class="nav-link" :to="{ name: 'EmployeeDetail', params: {'uuid': employee.uuid} }">
+                  {{employee.name}}
+                </router-link>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -63,3 +65,16 @@
     }
   }
 </script>
+
+<style scoped>
+.card-body {
+  min-height: 5vh;
+  max-height: 75vh;
+}
+
+#employee-list-wrapper {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll
+}
+</style>

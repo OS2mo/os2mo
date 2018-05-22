@@ -549,6 +549,19 @@ class Tests(util.LoRATestCase):
             }],
         )
 
+    def test_create_manager_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "manager",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
     def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()
 
@@ -1344,8 +1357,7 @@ class Tests(util.LoRATestCase):
     def test_edit_manager_minimal(self):
         self.load_sample_structures()
 
-        manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
-
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         req = [{
@@ -1353,10 +1365,10 @@ class Tests(util.LoRATestCase):
             "uuid": manager_uuid,
             "data": {
                 "responsibility": {
-                    'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+                    'uuid': "23c1d210-a52f-4f7e-85fa-856b03b2789e"
                 },
                 "validity": {
-                    "from": "2014-04-01T00:00:00+02",
+                    "from": "2016-04-01T00:00:00+02",
                 },
             },
         }]
@@ -1373,7 +1385,7 @@ class Tests(util.LoRATestCase):
                         'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         'urn': 'urn:mailto:ceo@example.com',
                         'virkning': {
-                            'from': '2014-04-01 00:00:00+02',
+                            'from': '2016-04-01 00:00:00+02',
                             'from_included': True,
                             'to': 'infinity',
                             'to_included': False,
@@ -1383,11 +1395,11 @@ class Tests(util.LoRATestCase):
                 "opgaver": [
                     {
                         "objekttype": "lederansvar",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        "uuid": "23c1d210-a52f-4f7e-85fa-856b03b2789e",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     },
@@ -1397,7 +1409,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     },
@@ -1408,7 +1420,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -1419,7 +1431,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -1430,7 +1442,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     },
@@ -1441,7 +1453,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -1455,7 +1467,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -1467,7 +1479,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
-                            "from": "2014-04-01 00:00:00+02",
+                            "from": "2016-04-01 00:00:00+02",
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "be736ee5-5c44-4ed9-"
@@ -1485,43 +1497,84 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
-            [
-                {
-                    'address': {'address_type': {'example': 'test@example.com',
-                                                 'name': 'Emailadresse',
-                                                 'scope': 'EMAIL',
-                                                 'user_key': 'Email',
-                                                 'uuid': 'c78eb6f7-8a9e-40b3-'
-                                                         'ac80-36b9f371c3e0'},
-                                'href': 'mailto:ceo@example.com',
-                                'name': 'ceo@example.com',
-                                'urn': 'urn:mailto:ceo@example.com'},
-                    'manager_level': {'example': None,
-                                      'name': 'Institut',
-                                      'scope': None,
-                                      'user_key': 'inst',
-                                      'uuid': 'ca76a441-6226-404f-'
-                                              '88a9-31e02e420e52'},
-                    'manager_type': {'example': None,
-                                     'name': 'Afdeling',
-                                     'scope': None,
-                                     'user_key': 'afd',
-                                     'uuid': '32547559-cfc1-4d97-'
-                                             '94c6-70b192eff825'},
-                    'org_unit': {'name': 'Humanistisk fakultet',
-                                 'user_key': 'hum',
-                                 'uuid': '9d07123e-47ac-4a9a-'
-                                         '88c8-da82e3a4bc9e'},
-                    'person': {'name': 'Anders And',
-                               'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-                    'responsibility': {'example': None,
-                                       'name': 'Institut',
-                                       'scope': None,
-                                       'user_key': 'inst',
-                                       'uuid': 'ca76a441-6226-404f-'
-                                               '88a9-31e02e420e52'},
-                    'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
-                    'validity': {'from': '2014-04-01T00:00:00+02:00',
-                                 'to': None}}
-            ]
+            [{
+                'address': {
+                    'href': 'mailto:ceo@example.com',
+                    'name': 'ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com',
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                },
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'responsibility': None,
+                'uuid': '06137e23-dcd1-49e8-9247-09563bae4bcd',
+                'validity': {
+                    'from': '2016-04-01T00:00:00+02:00', 'to': None,
+                },
+            }, {
+                'address': {
+                    'address_type': {
+                        'example': 'test@example.com',
+                        'name': 'Emailadresse',
+                        'scope': 'EMAIL',
+                        'user_key': 'Email',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+                    },
+                    'href': 'mailto:ceo@example.com',
+                    'name': 'ceo@example.com',
+                    'urn': 'urn:mailto:ceo@example.com'},
+                'manager_level': {'example': None,
+                                  'name': 'Institut',
+                                  'scope': None,
+                                  'user_key': 'inst',
+                                  'uuid': 'ca76a441-6226-404f-'
+                                          '88a9-31e02e420e52'},
+                'manager_type': {'example': None,
+                                 'name': 'Afdeling',
+                                 'scope': None,
+                                 'user_key': 'afd',
+                                 'uuid': '32547559-cfc1-4d97-'
+                                         '94c6-70b192eff825'},
+                'org_unit': {'name': 'Humanistisk fakultet',
+                             'user_key': 'hum',
+                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+                'person': {'name': 'Anders And',
+                           'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
+                'responsibility': {'example': None,
+                                   'name': 'Fakultet',
+                                   'scope': None,
+                                   'user_key': 'fak',
+                                   'uuid': '4311e351-6a3c-4e7e-'
+                                           'ae60-8a3b2938fbd6'},
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'validity': {'from': '2017-01-01T00:00:00+01:00',
+                             'to': None}
+            }]
         )

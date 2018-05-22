@@ -1,4 +1,5 @@
 import { Service } from './HttpCommon'
+import store from '@/vuex/store'
 
 export default {
   /**
@@ -29,7 +30,8 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        return error.response.data
       })
   },
 
@@ -39,9 +41,10 @@ export default {
    * @param {String} query - search query.
    * @returns {Array} a list of organisation units matching the query
    */
-  organisations (orgUuid, query) {
+  organisations (orgUuid, query, date) {
     query = query || ''
-    return Service.get(`/o/${orgUuid}/ou/?query=${query}`)
+    date = date || ''
+    return Service.get(`/o/${orgUuid}/ou/?query=${query}&at=${date}`)
       .then(response => {
         return response.data.items
       })

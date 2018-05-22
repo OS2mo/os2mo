@@ -9,8 +9,8 @@
         class="form-control" 
         type="text" 
         maxlength="10"
-        v-validate="{digits: 10}" 
-        />
+        v-validate="{digits: 10, required}" 
+      />
 
       <button 
         type="button" 
@@ -27,6 +27,10 @@
     <span v-show="errors.has(nameId)" class="text-danger">
       {{ errors.first(nameId) }}
     </span>
+
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
   </div>
 </template>
 
@@ -51,7 +55,8 @@ export default {
     return {
       nameId: 'cpr-search',
       cprNo: '',
-      isLoading: false
+      isLoading: false,
+      backendValidationError: null
     }
   },
   watch: {
@@ -65,8 +70,12 @@ export default {
       vm.isLoading = true
       return Search.cprLookup(this.cprNo)
         .then(response => {
-          this.$emit('input', response)
           vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response.error_key
+          } else {
+            this.$emit('input', response)
+          }
         })
     }
   }

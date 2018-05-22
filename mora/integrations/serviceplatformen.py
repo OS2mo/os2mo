@@ -10,10 +10,14 @@ import random
 
 from requests import HTTPError
 
-from mora import settings
+from .. import util
+from .. import settings
 
 
 def get_citizen(cpr):
+    if not util.is_cpr_number(cpr):
+        raise ValueError('invalid CPR number!')
+
     if settings.PROD_MODE:
         try:
             # TBC when SP library is extracted from AVA repo

@@ -8,12 +8,13 @@
 
 import datetime
 
-from unittest import TestCase
-
 import dateutil
 
+from mora import exceptions
 from mora import util
 from mora.service import common
+
+from .util import TestCase
 
 
 class TestClass(TestCase):
@@ -1673,19 +1674,19 @@ class TestClass(TestCase):
         ))
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {},
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
                 'validity': {},
             },
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {},
             {
                 'validity': {
@@ -1694,7 +1695,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
 
             },
@@ -1705,7 +1706,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            ValueError, common.get_valid_from,
+            exceptions.HTTPException, common.get_valid_from,
             {
 
             },
@@ -1790,19 +1791,19 @@ class TestClass(TestCase):
     def test_get_validities(self):
         # start time required
         self.assertRaises(
-            ValueError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {},
         )
 
         self.assertRaises(
-            ValueError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {
                 'validity': None,
             },
         )
 
         self.assertRaises(
-            ValueError,
+            exceptions.HTTPException,
             common.get_valid_from, {}, {
                 'validity': {
                     'from': None,
@@ -1870,6 +1871,36 @@ class TestClass(TestCase):
             }),
         )
 
+        self.assertEqual(
+            (datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+             datetime.datetime(2018, 4, 5, tzinfo=util.default_timezone)),
+            common.get_validities({
+                'validity': {
+                    'from': '2018-03-05',
+                    'to': '2018-04-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            (datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+             util.positive_infinity),
+            common.get_validities({
+                'validity': {
+                    'from': '2018-03-05'
+                },
+            }),
+        )
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "End date is before start date"):
+            common.get_validities({
+                'validity': {
+                    'from': '2019-03-05',
+                    'to': '2018-03-05',
+                },
+            })
+
     def test_get_uuid(self):
         testid = '00000000-0000-0000-0000-000000000000'
 
@@ -1891,7 +1922,7 @@ class TestClass(TestCase):
         )
 
         self.assertRaises(
-            ValueError,
+            exceptions.HTTPException,
             common.get_uuid,
             {
                 'uuid': 42,
@@ -1938,21 +1969,23 @@ class TestClass(TestCase):
             {},
         )
 
-        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Missing nonexistent"):
             common.checked_get(mapping, 'nonexistent', [], required=True)
 
-        with self.assertRaisesRegex(ValueError, "missing 'nonexistent'"):
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Missing nonexistent"):
             common.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(
-                ValueError,
-                'invalid \'dict\', expected list, got: {"1337": 1337}',
+                exceptions.HTTPException,
+                'Invalid \'dict\', expected list, got: {"1337": 1337}',
         ):
             common.checked_get(mapping, 'dict', [])
 
         with self.assertRaisesRegex(
-                ValueError,
-                r"invalid 'list', expected dict, got: \[1337\]",
+                exceptions.HTTPException,
+                r"Invalid 'list', expected dict, got: \[1337\]",
         ):
             common.checked_get(mapping, 'list', {})

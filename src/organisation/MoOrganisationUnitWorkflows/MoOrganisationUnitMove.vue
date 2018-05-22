@@ -3,14 +3,16 @@
     id="orgUnitMove"
     ref="orgUnitMove"
     size="lg" 
+    :title="$t('workflows.organisation.move_unit')"
+    @hidden="resetData"
     hide-footer 
-    title="Flyt enhed"
     lazy
+    no-close-on-backdrop
   >
-    <form @submit.prevent="moveOrganisationUnit">
+    <form @submit.stop.prevent="moveOrganisationUnit">
     <div class="form-row">
       <mo-date-picker 
-      label="Dato for flytning"
+      :label="$t('input_fields.move_date')"
       v-model="move.data.validity.from"
       required
       />
@@ -18,11 +20,16 @@
 
     <div class="form-row">
       <div class="col">
-        <mo-organisation-unit-picker v-model="original" label="Fremsøg enhed"/>
+        <mo-organisation-unit-search
+          v-model="original" 
+          :label="$t('input_fields.choose_unit')"
+          :date="move.data.validity.from"
+          required
+        />
       </div>
 
       <div class="form-group col">
-        <label>Nuværende overenhed</label>
+        <label>{{$t('input_fields.current_super_unit')}}</label>
         <input 
           type="text" 
           class="form-control" 
@@ -32,10 +39,19 @@
       </div>
     </div>
 
-    <mo-organisation-unit-picker v-model="move.data.parent" label="Angiv ny overenhed"/>
+    <mo-organisation-unit-search 
+      v-model="move.data.parent" 
+      :label="$t('input_fields.select_new_super_unit')"
+      :date="move.data.validity.from"
+      required
+    />
+
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
 
     <div class="float-right">
-      <button-submit :is-disabled="!formValid" :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading"/>
     </div> 
     </form>
   </b-modal>
@@ -43,7 +59,7 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import '@/filters/GetProperty'
@@ -53,7 +69,7 @@
       validator: 'new'
     },
     components: {
-      MoOrganisationUnitPicker,
+      MoOrganisationUnitSearch,
       MoDatePicker,
       ButtonSubmit
     },
@@ -69,41 +85,47 @@
       return {
         currentUnit: '',
         uuid: '',
-        original: {},
+        original: null,
         move: {
           data: {
             validity: {}
           }
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     watch: {
       original: {
         handler (newVal) {
-          this.getCurrentUnit(newVal.uuid)
+          if (this.original) return this.getCurrentUnit(newVal.uuid)
         },
         deep: true
       }
     },
-    mounted () {
-      this.$root.$on('bv::modal::hidden', resetData => {
-        Object.assign(this.$data, this.$options.data())
-      })
-    },
     methods: {
-      moveOrganisationUnit () {
-        let vm = this
-        vm.isLoading = true
+      resetData () {
+        Object.assign(this.$data, this.$options.data())
+      },
 
-        OrganisationUnit.move(this.original.uuid, this.move)
-          .then(response => {
-            vm.$refs.orgUnitMove.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+      moveOrganisationUnit (evt) {
+        evt.preventDefault()
+        if (this.formValid) {
+          let vm = this
+          vm.isLoading = true
+
+          OrganisationUnit.move(this.original.uuid, this.move)
+            .then(response => {
+              vm.isLoading = false
+              if (response.error) {
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.orgUnitMove.hide()
+              }
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       },
 
       getCurrentUnit (unitUuid) {

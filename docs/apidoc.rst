@@ -12,3 +12,4 @@ det sprog anvendes i al koden.
    blueprints/*
    backend
    api.md
+   errorcodes.rst

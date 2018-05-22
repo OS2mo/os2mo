@@ -251,6 +251,19 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(actual_role, expected)
 
+    def test_create_role_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "role",
+            }
+        ]
+
+        self.assertRequestFails(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
+            json=payload)
+
     def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
@@ -266,7 +279,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "org_unit": {
-                    'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
+                    'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
@@ -314,7 +327,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
-                        "uuid": "5991f9c2-9d82-45d5-9818-edf26fcc6d8b",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -386,12 +399,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_role = c.organisationfunktion.get(role_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
-            'brugerref']
-
-        self.assertEqual(expected_role, actual_role)
+        self.assertRegistrationsEqual(expected_role, actual_role)
 
     def test_edit_role_minimal(self):
         self.load_sample_structures()
@@ -535,7 +543,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "org_unit": {
-                    'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
+                    'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
                     "from": "2018-04-01T00:00:00+02",
@@ -583,7 +591,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
-                        "uuid": "5991f9c2-9d82-45d5-9818-edf26fcc6d8b",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -655,12 +663,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_role = c.organisationfunktion.get(role_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
-            'brugerref']
-
-        self.assertEqual(expected_role, actual_role)
+        self.assertRegistrationsEqual(expected_role, actual_role)
 
     def test_terminate_role(self):
         self.load_sample_structures()

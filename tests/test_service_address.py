@@ -52,10 +52,12 @@ class TestAddressLookup(util.TestCase):
             '/service/o/00000000-0000-0000-0000-000000000000/'
             'address_autocomplete/?q=42',
             {
-                'message': 'No local municipality found!',
-                'status': 404,
+                'error': True,
+                'error_key': 'E_NO_LOCAL_MUNICIPALITY',
+                'description': 'No local municipality found.',
+                'status': 400,
             },
-            status_code=404,
+            status_code=400,
         )
 
     @freezegun.freeze_time('2016-06-06')
@@ -105,10 +107,12 @@ class TestAddressLookup(util.TestCase):
             '/service/o/00000000-0000-0000-0000-000000000000/'
             'address_autocomplete/?q=42',
             {
-                'message': 'No local municipality found!',
-                'status': 404,
+                'error': True,
+                'error_key': 'E_NO_LOCAL_MUNICIPALITY',
+                'description': 'No local municipality found.',
+                'status': 400,
             },
-            status_code=404,
+            status_code=400,
         )
 
     @util.mock()

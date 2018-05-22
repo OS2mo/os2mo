@@ -1,18 +1,19 @@
 <template>
   <div class="form-group">
-    <label for="">{{ label }}</label>
+    <label :for="nameId">{{ label }}</label>
     <input 
       :name="nameId"
+      :id="nameId"
       data-vv-as="Enhed" 
-      ref="orgUnitPicker"
+      :ref="nameId"
       type="text" 
       class="form-control" 
-      placeholder="Vælg enhed"
+      :placeholder="$t('input_fields.choose_unit')"
       v-model="orgName"
       @click.stop="toggleTree()"
-      :disabled="isDisabled"
-      v-validate="{required: !isDisabled}"
+      v-validate="{required: required}"
     >
+
     <div 
       class="mo-input-group" 
       v-show="showTree"
@@ -45,13 +46,14 @@
         default: 'Angiv overenhed',
         type: String
       },
-      isDisabled: Boolean
+      isDisabled: Boolean,
+      required: Boolean
     },
     data () {
       return {
-        selectedSuperUnit: {},
+        selectedSuperUnit: null,
         showTree: false,
-        orgName: ''
+        orgName: null
       }
     },
     computed: {
@@ -61,13 +63,18 @@
 
       nameId () {
         return 'org-unit-' + this._uid
+      },
+
+      isRequired () {
+        if (this.isDisabled) return false
+        return this.required
       }
     },
     watch: {
       selectedSuperUnit (newVal) {
         this.orgName = newVal.name
         this.$validator.validate(this.nameId)
-        this.$refs.orgUnitPicker.blur()
+        this.$refs[this.nameId].blur()
 
         this.$emit('input', newVal)
         this.showTree = false

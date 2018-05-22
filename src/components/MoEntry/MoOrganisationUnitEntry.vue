@@ -1,20 +1,23 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="orgUnit.validity"/>
+      <mo-date-picker-range v-model="orgUnit.validity" disable-to-date/>
 
       <div class="form-row">
-        <mo-input label="Navn" v-model="orgUnit.name" required/>
+        <mo-input :label="$t('input_fields.name')" v-model="orgUnit.name" required/>
         
         <mo-facet-picker facet="org_unit_type" v-model="orgUnit.org_unit_type" required/>
       </div>
-      
-      <mo-organisation-unit-picker v-model="orgUnit.parent" :is-disabled="disableOrgUnitPicker"/>
+
+      <mo-organisation-unit-search
+        v-model="orgUnit.parent"
+        required
+      />
   </div>
 </template>
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoInput from '@/components/atoms/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
@@ -22,7 +25,7 @@ import MoAddMany from '@/components/MoAddMany/MoAddMany'
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitPicker,
+    MoOrganisationUnitSearch,
     MoFacetPicker,
     MoInput,
     MoAddMany

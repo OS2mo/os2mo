@@ -15,6 +15,7 @@ based on their CPR number.
 
 import flask
 
+from mora import exceptions
 from mora import util
 from mora.integrations.serviceplatformen import get_citizen
 from mora.service import keys
@@ -41,16 +42,24 @@ def search_cpr():
 
       {
         "name": "John Doe",
-        "cpr_no": "1234567890"
+        "cpr_no": "0101501234"
       }
 
     """
     cpr = flask.request.args['q']
 
-    if len(cpr) != 10:
-        raise ValueError('CPR no. should be 10 characters long')
-
-    sp_data = get_citizen(cpr)
+    try:
+        sp_data = get_citizen(cpr)
+    except KeyError:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR,
+            cpr=cpr,
+        )
+    except ValueError:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CPR_NOT_VALID,
+            cpr=cpr,
+        )
 
     return flask.jsonify(format_cpr_response(sp_data, cpr))
 

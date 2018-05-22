@@ -21,24 +21,22 @@ from . import common
 from . import keys
 from . import mapping
 from .. import lora
+from .. import validator
 
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
 
 def create_manager(employee_uuid, req):
-    # TODO: Validation
     c = lora.Connector()
 
-    org_unit_uuid = req.get(keys.ORG_UNIT).get('uuid')
+    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    address_obj = req.get(keys.ADDRESS)
-    manager_type_uuid = common.get_obj_value(req, (keys.MANAGER_TYPE, 'uuid'))
-    responsibility_uuid = common.get_obj_value(req,
-                                               (keys.RESPONSIBILITY, 'uuid'))
-    manager_level_uuid = common.get_obj_value(req,
-                                              (keys.MANAGER_LEVEL, 'uuid'))
+    address_obj = common.checked_get(req, keys.ADDRESS, {})
+    manager_type_uuid = common.get_mapping_uuid(req, keys.MANAGER_TYPE)
+    responsibility_uuid = common.get_mapping_uuid(req, keys.RESPONSIBILITY)
+    manager_level_uuid = common.get_mapping_uuid(req, keys.MANAGER_LEVEL)
 
     opgaver = list()
 
@@ -56,10 +54,15 @@ def create_manager(employee_uuid, req):
 
     # TODO: Figure out what to do with this
     # location_uuid = req.get(keys.LOCATION).get('uuid')
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
+    valid_from, valid_to = common.get_validities(req)
 
     bvn = str(uuid.uuid4())
+
+    # Validation
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+                                              valid_to)
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
 
     manager = common.create_organisationsfunktion_payload(
         funktionsnavn=keys.MANAGER_KEY,
@@ -86,8 +89,12 @@ def edit_manager(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=manager_uuid)
 
     data = req.get('data')
-    new_from = common.get_valid_from(data)
-    new_to = common.get_valid_to(data)
+    new_from, new_to = common.get_validities(data)
+
+    # Get org unit uuid for validation purposes
+    org_unit = common.get_obj_value(
+        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
+    org_unit_uuid = common.get_uuid(org_unit)
 
     payload = dict()
     payload['note'] = 'Rediger leder'
@@ -95,8 +102,7 @@ def edit_manager(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from = common.get_valid_from(original_data)
-        old_to = common.get_valid_to(original_data)
+        old_from, old_to = common.get_validities(original_data)
         payload = common.inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -110,19 +116,20 @@ def edit_manager(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.MANAGER_TYPE in data.keys():
+    if keys.MANAGER_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
             {'uuid': data.get(keys.MANAGER_TYPE).get('uuid')},
         ))
 
-    if keys.ORG_UNIT in data.keys():
+    if keys.ORG_UNIT in data:
+        org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
-            {'uuid': data.get(keys.ORG_UNIT).get('uuid')},
+            {'uuid': org_unit_uuid},
         ))
 
-    if keys.RESPONSIBILITY in data.keys():
+    if keys.RESPONSIBILITY in data:
         update_fields.append((
             mapping.RESPONSIBILITY_FIELD,
             {
@@ -131,7 +138,7 @@ def edit_manager(employee_uuid, req):
             },
         ))
 
-    if keys.MANAGER_LEVEL in data.keys():
+    if keys.MANAGER_LEVEL in data:
         update_fields.append((
             mapping.MANAGER_LEVEL_FIELD,
             {
@@ -155,5 +162,10 @@ def edit_manager(employee_uuid, req):
         mapping.MANAGER_FIELDS.difference({x[0] for x in update_fields}))
     payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
                                    payload)
+
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+                                              new_to)
+    validator.is_date_range_in_employee_range(employee_uuid, new_from,
+                                              new_to)
 
     c.organisationfunktion.update(payload, manager_uuid)

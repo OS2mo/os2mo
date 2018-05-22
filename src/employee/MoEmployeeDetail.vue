@@ -11,14 +11,11 @@
       @shown="getDetails"
     />
 
-    <mo-entry-modal
-      class="mt-3"
-      action="CREATE"
+    <mo-entry-create-modal 
       type="EMPLOYEE" 
+      class="mt-3"
       :uuid="uuid" 
-      :label="createLabel" 
       :entry-component="entryComponent"
-      :content-type="detail"
     />
   </div>
 </template>
@@ -28,12 +25,12 @@
   import Employee from '@/api/Employee'
   import { EventBus } from '@/EventBus'
   import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
-  import MoEntryModal from '@/components/MoEntryModal'
+  import MoEntryCreateModal from '@/components/MoEntryCreateModal'
 
   export default {
     components: {
       MoTableCollapsibleTense,
-      MoEntryModal
+      MoEntryCreateModal
     },
     props: {
       uuid: {type: String, required: true},
@@ -54,6 +51,11 @@
           past: false,
           future: false
         }
+      }
+    },
+    watch: {
+      uuid () {
+        this.getAllDetails()
       }
     },
     mounted () {
