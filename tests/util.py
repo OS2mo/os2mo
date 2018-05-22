@@ -406,9 +406,6 @@ class LoRATestCaseMixin(TestCaseMixin):
     def load_sample_structures(self, **kwargs):
         load_sample_structures(**kwargs)
 
-    def lora_port(self):
-        return self.__lora_port
-
     @classmethod
     def get_lora_environ(cls):
         '''Extra environment variables for the LoRA process.'''
@@ -482,18 +479,15 @@ class LoRATestCaseMixin(TestCaseMixin):
     def setUp(self):
         super().setUp()
 
-        oio_rest.app.app.config["DEBUG"] = True
-        oio_rest.app.app.config["TESTING"] = True
-        oio_rest.app.app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
-
-        self.__lora_server = werkzeug.serving.make_server(
+        lora_server = werkzeug.serving.make_server(
             'localhost', 0, oio_rest.app.app,
         )
-        (_, self.__lora_port) = self.__lora_server.socket.getsockname()
+        (_, self.lora_port) = lora_server.socket.getsockname()
 
         self.patches = [
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
-                self.__lora_port)),
+                self.lora_port,
+            )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
             patch('oio_rest.app.settings.DB_HOST', self.dsn['host'],
                   create=True),
@@ -515,17 +509,12 @@ class LoRATestCaseMixin(TestCaseMixin):
             p.start()
             self.addCleanup(p.stop)
 
-        self.__lora_thread = threading.Thread(
-            target=self.__lora_server.serve_forever,
+        threading.Thread(
+            target=lora_server.serve_forever,
             args=(),
-        )
-        self.__lora_thread.start()
+        ).start()
 
-        def halt():
-            self.__lora_server.shutdown()
-            self.__lora_thread.join()
-
-        self.addCleanup(halt)
+        self.addCleanup(lora_server.shutdown)
 
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):
