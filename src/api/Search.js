@@ -1,4 +1,5 @@
 import { Service } from './HttpCommon'
+import store from '@/vuex/store'
 
 export default {
   /**
@@ -29,7 +30,8 @@ export default {
         return response.data
       })
       .catch(error => {
-        console.log(error.response)
+        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        return error.response.data
       })
   },
 
