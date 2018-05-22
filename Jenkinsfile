@@ -13,7 +13,7 @@ pipeline {
     stage('Fetch') {
       steps {
         dir("../mox") {
-          git url: 'https://github.com/magenta-aps/mox', branch: 'feature/21379-mora-testsuite'
+          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
         }
 
         timeout(2) {
