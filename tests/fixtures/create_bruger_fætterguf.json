@@ -27,7 +27,6 @@
         ],
         "tilknyttedepersoner": [
             {
-                "objekttype": null,
                 "urn": "urn:dk:cpr:person:0905380000",
                 "virkning": {
                     "from": "1938-05-09T00:00:00+01:00",

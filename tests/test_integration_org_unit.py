@@ -402,8 +402,6 @@ class Tests(util.LoRATestCase):
         range """
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = {
             "name": "Fake Corp",
             "parent": {

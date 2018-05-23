@@ -4,7 +4,6 @@ pipeline {
   agent any
 
   environment {
-    MINIMOX_DIR = '/srv/minimox'
     BROWSER = 'Firefox'
     MOZ_HEADLESS = '1'
     PYTEST_ADDOPTS = '--color=yes'
@@ -13,6 +12,10 @@ pipeline {
   stages {
     stage('Fetch') {
       steps {
+        dir("../mox") {
+          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
+        }
+
         timeout(2) {
           ansiColor('xterm') {
             sh './build/run-fetch.sh'

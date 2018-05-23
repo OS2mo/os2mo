@@ -12,22 +12,23 @@ import json
 import os
 import pprint
 import re
-import signal
 import socket
 import subprocess
 import sys
-import tempfile
 import threading
-import time
-import unittest
+from unittest.mock import patch
 
 import flask_testing
+import psycopg2
 import requests
 import requests_mock
-import urllib3
+import testing.postgresql
+import time
 import werkzeug.serving
 
-from mora import lora, app, settings
+import oio_rest.app
+
+from mora import app, lora, settings
 from mora.converters import importing
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -403,35 +404,7 @@ class LoRATestCaseMixin(TestCaseMixin):
     '''
 
     def load_sample_structures(self, **kwargs):
-        self.assertIsNone(self.minimox.poll(), 'LoRA is not running!')
         load_sample_structures(**kwargs)
-
-    @classmethod
-    def flush_log(cls, *, silent=False):
-        '''read and print output from the server process
-
-        our test-runner enforces buffering of stdout, so we can safely
-        print out the process output; this ensures any exceptions,
-        etc. get reported to the user/test-runner
-
-        '''
-        cls.minimox_log.flush()
-        last_offset = cls.minimox_log_offset
-        cls.minimox_log_offset = os.path.getsize(cls.minimox_log.fileno())
-
-        data_len = cls.minimox_log_offset - last_offset
-        data = os.pread(cls.minimox_log.fileno(), data_len, last_offset)
-
-        if not silent and data:
-            print(data.decode('utf-8').rstrip())
-
-    @staticmethod
-    def lora_port():
-        try:
-            return LoRATestCaseMixin.__lora_port
-        except AttributeError:
-            LoRATestCaseMixin.__lora_port = get_unused_port()
-            return LoRATestCaseMixin.__lora_port
 
     @classmethod
     def get_lora_environ(cls):
@@ -439,99 +412,109 @@ class LoRATestCaseMixin(TestCaseMixin):
 
         return {}
 
-    @unittest.skipUnless('MINIMOX_DIR' in os.environ, 'MINIMOX_DIR not set!')
-    @classmethod
-    def setUpClass(cls):
-        MINIMOX_DIR = os.getenv('MINIMOX_DIR')
+    @staticmethod
+    def __init_db():
+        psql = testing.postgresql.Postgresql()
+        atexit.register(psql.stop)
 
-        env = {
-            **os.environ,
-            **cls.get_lora_environ(),
+        with psycopg2.connect(**psql.dsn()) as conn:
+            conn.autocommit = True
+
+            with conn.cursor() as curs:
+                curs.execute(
+                    "CREATE USER {} WITH SUPERUSER PASSWORD %s".format(
+                        oio_rest.app.settings.DB_USER,
+                    ),
+                    (
+                        oio_rest.app.settings.DB_PASSWORD,
+                    ),
+                )
+
+                curs.execute(
+                    "CREATE DATABASE {} WITH OWNER = %s".format(
+                        oio_rest.app.settings.
+                        DATABASE),
+                    (
+                        oio_rest.app.settings.DB_USER,
+                    ),
+                )
+
+        env = os.environ.copy()
+
+        env.update(
+            TESTING='1',
+            PYTHON=sys.executable,
+            MOX_DB=oio_rest.app.settings.DATABASE,
+            MOX_DB_USER=oio_rest.app.settings.DB_USER,
+            MOX_DB_PASSWORD=oio_rest.app.settings.DB_PASSWORD,
+        )
+
+        mkdb_path = os.path.join(
+            os.path.dirname(oio_rest.__file__),
+            '..', '..',
+            'db', 'mkdb.sh',
+        )
+
+        LoRATestCaseMixin.dsn = dsn = {
+            **psql.dsn(),
+
+            'database': oio_rest.app.settings.DATABASE,
+            'user': oio_rest.app.settings.DB_USER,
+            'password': oio_rest.app.settings.DB_PASSWORD,
         }
 
-        # Start a 'minimox' instance -- which is LoRA with the testing
-        # tweaks in the 'minimox' branch. We use a separate process
-        # since LoRA doesn't support Python 3, yet; the main downside
-        # to this is that we have to take measures not to leak that
-        # process.
-        cls.minimox_log_offset = 0
-        cls.minimox_log = tempfile.TemporaryFile(mode='w+')
-        cls.minimox = subprocess.Popen(
-            [os.path.join(MINIMOX_DIR, 'run-mox.py'), str(cls.lora_port())],
-            stdin=subprocess.DEVNULL,
-            stdout=cls.minimox_log.fileno(),
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-            cwd=MINIMOX_DIR,
-            env=env,
-        )
+        with psycopg2.connect(**dsn) as conn, conn.cursor() as curs:
+            curs.execute(subprocess.check_output([mkdb_path], env=env,
+                                                 stderr=subprocess.DEVNULL))
 
-        cls._orig_lora = settings.LORA_URL
-        settings.LORA_URL = 'http://localhost:{}/'.format(cls.lora_port())
-        settings.SAML_IDP_TYPE = None
-
-        # This is the first such measure: if the interpreter abruptly
-        # exits for some reason, tell the subprocess to exit as well
-        atexit.register(cls.minimox.send_signal, signal.SIGINT)
-
-        # wait for loading
-        s = requests.Session()
-        s.mount(
-            settings.LORA_URL,
-            requests.adapters.HTTPAdapter(
-                max_retries=urllib3.util.retry.Retry(
-                    20,
-                    backoff_factor=0.01,
-                ),
-            ),
-        )
-
-        try:
-            s.get(settings.LORA_URL + 'site-map').raise_for_status()
-        except Exception as e:
-            raise unittest.SkipTest('LoRA startup failed!')
+    dsn = None
 
     @classmethod
-    def tearDownClass(cls):
-        # first, we're cleaning up now, so clear the exit handler
-        atexit.unregister(cls.minimox.send_signal)
+    def setUpClass(cls):
+        super().setUpClass()
 
-        # second, terminate our child process
-        cls.minimox.send_signal(signal.SIGINT)
-
-        settings.LORA_URL = cls._orig_lora
-        cls.minimox_log.close()
+        if not cls.dsn:
+            cls.__init_db()
 
     def setUp(self):
         super().setUp()
 
-        self.assertIsNone(self.minimox.poll(), 'LoRA suddenly died!')
+        lora_server = werkzeug.serving.make_server(
+            'localhost', 0, oio_rest.app.app,
+        )
+        (_, self.lora_port) = lora_server.socket.getsockname()
 
-        self.flush_log()
+        self.patches = [
+            patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
+                self.lora_port,
+            )),
+            patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
+            patch('oio_rest.app.settings.DB_HOST', self.dsn['host'],
+                  create=True),
+            patch('oio_rest.app.settings.DB_PORT', self.dsn['port'],
+                  create=True),
+        ]
 
-    def tearDown(self):
-        self.assertIsNone(self.minimox.poll(), 'LoRA suddenly died!')
+        with psycopg2.connect(**self.dsn) as conn:
+            conn.autocommit = True
 
-        self.flush_log()
+            with conn.cursor() as curs:
+                from oio_common.db_structure import DATABASE_STRUCTURE
 
-        # delete all objects in the test instance; this does 'leak'
-        # information in that they continue to exist as registrations,
-        # but it's faster than recreating the database fully
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+                curs.execute("TRUNCATE TABLE {} CASCADE".format(
+                    ', '.join(sorted(DATABASE_STRUCTURE)),
+                ))
 
-        for t in map(c.__getattr__, c.scope_map):
-            for objid in t(bvn='%'):
-                t.delete(objid)
+        for p in self.patches:
+            p.start()
+            self.addCleanup(p.stop)
 
-        self.flush_log(silent=True)
+        threading.Thread(
+            target=lora_server.serve_forever,
+            args=(),
+        ).start()
 
-        super().tearDown()
-
-    def _perform_request(self, *args, **kwargs):
-        try:
-            return super()._perform_request(*args, **kwargs)
-        finally:
-            self.flush_log()
+        self.addCleanup(lora_server.shutdown)
 
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):
