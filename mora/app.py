@@ -22,8 +22,8 @@ templatedir = os.path.join(basedir, 'templates')
 distdir = os.path.join(basedir, '..', 'dist')
 
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
+app.cli = cli.group
 
-cli.load_cli(app)
 app.register_blueprint(auth.blueprint)
 
 for blueprint in service.blueprints:

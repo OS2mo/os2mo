@@ -8,10 +8,13 @@
 
 import json
 import os
+import uuid
 
-from mora.converters import importing
+import requests_mock
 
-from .. import util
+from mora.importing import processors, spreadsheets
+
+from . import util
 
 
 class MockTests(util.TestCase):
@@ -21,15 +24,15 @@ class MockTests(util.TestCase):
     def test_load(self, m):
         expected = util.get_fixture('MAGENTA_01.json')
 
-        self.assertEqual(expected, dict(importing.load_data([
+        self.assertEqual(expected, dict(spreadsheets.load_data([
             os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
         ])))
 
-        self.assertEqual(expected, dict(importing.load_data([
+        self.assertEqual(expected, dict(spreadsheets.load_data([
             os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
         ], exact=True)))
 
-        self.assertEqual(expected, dict(importing.load_data([
+        self.assertEqual(expected, dict(spreadsheets.load_data([
             os.path.join(util.IMPORTING_DIR, 'MAGENTA_01.csv'),
         ])))
 
@@ -54,7 +57,7 @@ class MockTests(util.TestCase):
             key=keyfunc,
         )
 
-        actual = sorted(importing.convert([
+        actual = sorted(spreadsheets.convert([
             os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
         ]), key=keyfunc)
         actual_path = os.path.join(util.FIXTURE_DIR, 'MAGENTA_01-actual.json')
@@ -67,9 +70,25 @@ class MockTests(util.TestCase):
 
     @util.mock('importing-wash.json')
     def test_addr_wash(self, m):
-        w = importing._wash_address
+        w = processors.wash_address
+        f = processors._fetch
 
-        w.cache_clear()
+        with self.subTest('mocking'):
+            with self.assertRaises(requests_mock.MockException):
+                f(uuid.uuid4())
+
+            with self.assertRaises(requests_mock.MockException):
+                f('kaflaflibob')
+
+            f.cache.clear()
+            f.cache['kaflaflibob', ] = None
+
+            self.assertIsNone(f('kaflaflibob'))
+
+            with self.assertRaises(requests_mock.MockException):
+                f(uuid.uuid4())
+
+        f.cache.clear()
 
         self.assertEqual(w('', None, None),
                          None)

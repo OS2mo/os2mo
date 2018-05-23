@@ -363,7 +363,18 @@ class Scope:
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 
-        for chunk in util.splitlist(uuids, 20):
+        # this is not exactly accurate but close enough
+        available_length = (
+            settings.MAX_REQUEST_LENGTH -
+            len(self.base_path) -
+            sum(map(len, self.connector.defaults)) -
+            sum(map(len, self.connector.defaults.values())) -
+            len(self.connector.defaults) * 2
+        )
+
+        per_length = 36 + len('&uuid=')
+
+        for chunk in util.splitlist(uuids, int(available_length / per_length)):
             for d in self.fetch(uuid=chunk):
                 yield d['id'], (d['registreringer'] if wantregs
                                 else d['registreringer'][0])
