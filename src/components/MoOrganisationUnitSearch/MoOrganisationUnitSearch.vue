@@ -66,7 +66,7 @@
         this.$emit('input', newVal)
       }
     },
-    mounted () {
+    created () {
       this.selectedSuperUnit = this.value
     },
     methods: {
