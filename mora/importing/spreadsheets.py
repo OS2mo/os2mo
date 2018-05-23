@@ -8,17 +8,15 @@
 
 import collections
 import datetime
-import functools
 import itertools
 import json
-import marshal
 import os
-import re
 import sys
 import uuid
 
 import pyexcel
 
+from . import processors
 from .. import util
 from .. import lora
 
@@ -44,33 +42,6 @@ OPGAVER_COLUMNS = {
 def nolower(s: str) -> str:
     return s if not s or not s.islower() else s.capitalize()
 
-
-def cached(func):
-    cache_file = '_'.join((
-        os.path.splitext(sys.modules[func.__module__].__file__)[0],
-        func.__name__,
-        '.data',
-    ))
-
-    @functools.wraps(func)
-    def wrapper(*args):
-        try:
-            return cache[args]
-        except KeyError:
-            cache[args] = result = func(*args)
-
-            with open(cache_file, 'wb') as fp:
-                marshal.dump(cache, fp, marshal.version)
-
-            return result
-
-    if os.path.exists(cache_file):
-        with open(cache_file, 'rb') as fp:
-            cache = marshal.load(fp)
-    else:
-        cache = {}
-
-    return wrapper
 
 def _make_relation(obj, k):
     val = obj[k]
@@ -155,79 +126,6 @@ def _make_opgaver_relation(obj):
         })
 
     return r
-
-
-@cached
-def wash(k):
-    r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
-                         params={
-                             'betegnelse': k,
-                         })
-    r.raise_for_status()
-
-    addrinfo = r.json()
-
-    if addrinfo["kategori"] == 'A' or len(addrinfo['resultater']) == 1:
-        return addrinfo['resultater'][0]['adresse']['id']
-
-
-def _wash_address(addrstring, postalcode, postaldistrict):
-    if not addrstring:
-        return None
-
-    # first, try a direct lookup...
-    v = wash('{}, {} {}'.format(
-        addrstring.strip(), postalcode, postaldistrict.strip(),
-    ))
-
-    # ..and return it without further processing if found
-    if v:
-        return v
-
-    # now, try a bit of massaging
-    if str(postalcode) == '8100':
-        postalcode = '8000'
-
-    q = addrstring.strip()
-
-    if re.search('\s*-\s*\d+\Z', q):
-        q = re.sub('-\d+\Z', '', q)
-
-    if q in ('Rådhuspladsen', 'Rådhuset') and str(postalcode) == '8000':
-        q = 'Rådhuspladsen 2'
-
-    if q.lower().startswith('dokk1'):
-        q = 'Hack Kampmanns Plads 2'
-
-    v = wash('{}, {} {}'.format(
-        q, postalcode, postaldistrict
-    ))
-
-    if v:
-        return v
-
-    if ',' in q:
-        q = q.rsplit(',', 1)[0]
-
-    q = re.sub(r'(\s*-\s*\d+)+\Z', '', q)
-
-    v = wash('{}, {} {}'.format(
-        q, postalcode, postaldistrict
-    ))
-
-    if v:
-        return v
-
-    if ' - ' in q:
-        for p in re.split('\s+-\s+', q):
-            v = wash('{}, {} {}'.format(
-                p, postalcode, postaldistrict
-            ))
-
-            if v:
-                return v
-
-    return None
 
 
 def _make_effect(from_, to):
@@ -362,7 +260,8 @@ def load_data(sheets, exact=False):
 
         elif address and postalcode and postaldistrict:
 
-            obj['adresse'] = _wash_address(address, postalcode, postaldistrict)
+            obj['adresse'] = processors.wash_address(address, postalcode,
+                                                     postaldistrict)
             obj['adresse_type'] = obj.get('adresse_type')
 
         else:
