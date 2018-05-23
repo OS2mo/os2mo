@@ -14,12 +14,13 @@ import os
 import sys
 import uuid
 
+import click
+import grequests
 import pyexcel
 
 from . import processors
 from .. import util
 from .. import lora
-
 from ..service import address
 
 
@@ -748,3 +749,73 @@ def convert_organisationfunktion(obj):
             ],
         },
     }
+
+
+def run(target, sheets, dry_run, verbose, jobs, failfast,
+        include, check, exact, **kwargs):
+
+    if any(kwargs.values()):
+        unsupported_args = [k for k in sorted(kwargs) if kwargs[k]]
+
+        raise click.BadOptionUsage(
+            'unsupported arguments: {}'.format(', '.join(unsupported_args)),
+        )
+
+    start = util.now()
+
+    sheetlines = convert(sheets, include=include, exact=exact)
+
+    if dry_run:
+        for method, path, obj in sheetlines:
+            print(method, path,
+                  json.dumps(obj, indent=2))
+
+        return
+
+    requests = (
+        grequests.request(
+            # check means that we always get GET anything
+            method if not check else 'GET',
+            target + path.rstrip('/'),
+            session=lora.session,
+            json=obj,
+        )
+        for method, path, obj in sheetlines
+    )
+
+    def fail(r, exc):
+        if verbose:
+            print(r.url)
+        print(*exc.args)
+        if failfast:
+            raise exc
+
+    total = 0
+
+    for r in grequests.imap(requests, size=jobs, exception_handler=fail):
+
+        if verbose:
+            print(r.url)
+
+        if check:
+            if r.ok:
+                print('EXISTS:', r.request.path_url)
+            elif r.status_code == 404:
+                print('CREATE:', r.request.path_url)
+
+        elif not r.ok:
+            try:
+                print(r.status_code, r.json())
+            except ValueError:
+                print(r.status_code, r.text)
+
+        if failfast:
+            r.raise_for_status()
+        else:
+            total += 1
+
+    duration = util.now() - start
+
+    print('imported {} objects in {} ({} per second)'.format(
+        total, duration, total / duration.total_seconds(),
+    ))
