@@ -147,7 +147,6 @@ API
 
 '''
 
-import itertools
 import json
 import re
 

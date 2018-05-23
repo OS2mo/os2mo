@@ -493,6 +493,9 @@ class LoRATestCaseMixin(TestCaseMixin):
                   create=True),
             patch('oio_rest.app.settings.DB_PORT', self.dsn['port'],
                   create=True),
+            patch('mora.importing.processors._fetch.cache', {}),
+            patch('mora.importing.processors._fetch.cache_file',
+                  os.devnull),
         ]
 
         with psycopg2.connect(**self.dsn) as conn:

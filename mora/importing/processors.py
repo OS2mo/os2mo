@@ -6,49 +6,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import functools
-import marshal
-import os
 import re
-import tempfile
 
 from .. import lora
+from .. import util
 
 
-def cached(func):
-    cache_file = os.path.join(
-        tempfile.gettempdir(),
-        '-'.join(
-            func.__module__.split('.') +
-            [
-                func.__name__,
-                str(os.getuid()),
-            ],
-        ) + '.data',
-    )
-
-    @functools.wraps(func)
-    def wrapper(*args):
-        try:
-            return cache[args]
-        except KeyError:
-            cache[args] = result = func(*args)
-
-            with open(cache_file, 'wb') as fp:
-                marshal.dump(cache, fp, marshal.version)
-
-            return result
-
-    try:
-        with open(cache_file, 'rb') as fp:
-            cache = marshal.load(fp)
-    except (IOError, EOFError):
-        cache = {}
-
-    return wrapper
-
-
-@cached
+@util.cached
 def _fetch(k):
     r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
                          params={

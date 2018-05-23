@@ -8,10 +8,13 @@
 
 import json
 import os
+import uuid
 
-from mora.importing import spreadsheets
+import requests_mock
 
-from .. import util
+from mora.importing import processors, spreadsheets
+
+from . import util
 
 
 class MockTests(util.TestCase):
@@ -67,9 +70,25 @@ class MockTests(util.TestCase):
 
     @util.mock('importing-wash.json')
     def test_addr_wash(self, m):
-        w = spreadsheets._wash_address
+        w = processors.wash_address
+        f = processors._fetch
 
-        w.cache_clear()
+        with self.subTest('mocking'):
+            with self.assertRaises(requests_mock.MockException):
+                f(uuid.uuid4())
+
+            with self.assertRaises(requests_mock.MockException):
+                f('kaflaflibob')
+
+            f.cache.clear()
+            f.cache['kaflaflibob', ] = None
+
+            self.assertIsNone(f('kaflaflibob'))
+
+            with self.assertRaises(requests_mock.MockException):
+                f(uuid.uuid4())
+
+        f.cache.clear()
 
         self.assertEqual(w('', None, None),
                          None)
