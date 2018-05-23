@@ -1929,12 +1929,32 @@ class TestClass(TestCase):
             },
         )
 
+        self.assertEqual(
+            None,
+            common.get_uuid(
+                {},
+                required=False,
+            ),
+        )
+
+        self.assertEqual(
+            testid,
+            common.get_uuid(
+                {
+                    'kaflaflibob': testid,
+                    'uuid': 42,
+                },
+                key='kaflaflibob',
+            ),
+        )
+
     def test_checked_get(self):
         mapping = {
             'list': [1337],
             'dict': {1337: 1337},
             'string': '1337',
             'int': 1337,
+            'null': None,
         }
 
         # when it's there
@@ -1966,6 +1986,11 @@ class TestClass(TestCase):
 
         self.assertEqual(
             common.checked_get(mapping, 'nonexistent', {}),
+            {},
+        )
+
+        self.assertEqual(
+            common.checked_get(mapping, 'null', {}),
             {},
         )
 

@@ -14,7 +14,7 @@ from mora import lora
 from mora import settings
 from mora import util as mora_util
 
-from .. import util as test_util
+from . import util as test_util
 
 
 class SimpleTests(unittest.TestCase):

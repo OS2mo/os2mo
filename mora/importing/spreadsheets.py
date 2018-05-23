@@ -6,21 +6,21 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
 import collections
-import functools
+import datetime
 import itertools
 import json
 import os
-import re
 import sys
 import uuid
 
+import click
+import grequests
 import pyexcel
 
+from . import processors
 from .. import util
 from .. import lora
-
 from ..service import address
 
 
@@ -40,11 +40,15 @@ OPGAVER_COLUMNS = {
 }
 
 
+def nolower(s: str) -> str:
+    return s if not s or not s.islower() else s.capitalize()
+
+
 def _make_relation(obj, k):
     val = obj[k]
     valtype = obj.get(k + '_type')
 
-    if not val:
+    if not val or val == 'NULL':
         key = 'uuid'
         val = None
     elif val.startswith('urn:'):
@@ -125,68 +129,6 @@ def _make_opgaver_relation(obj):
     return r
 
 
-@functools.lru_cache(10000)
-def _wash_address(addrstring, postalcode, postaldistrict):
-    if not addrstring:
-        return None
-
-    def wash(k):
-        r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
-                             params={
-                                 'betegnelse': k,
-                             })
-        r.raise_for_status()
-
-        addrinfo = r.json()
-
-        if addrinfo["kategori"] == 'A' or len(addrinfo['resultater']) == 1:
-            return addrinfo['resultater'][0]['adresse']['id']
-
-    # first, try a direct lookup...
-    v = wash('{}, {} {}'.format(
-        addrstring.strip(), postalcode, postaldistrict.strip(),
-    ))
-
-    # ..and return it without further processing if found
-    if v:
-        return v
-
-    # now, try a bit of massaging
-    if str(postalcode) == '8100':
-        postalcode = '8000'
-
-    q = addrstring.strip()
-
-    if re.search('\s*-\s*\d+\Z', q):
-        q = re.sub('-\d+\Z', '', q)
-
-    if q in ('Rådhuspladsen', 'Rådhuset') and str(postalcode) == '8000':
-        q = 'Rådhuspladsen 2'
-
-    v = wash('{}, {} {}'.format(
-        q, postalcode, postaldistrict
-    ))
-
-    if v:
-        return v
-
-    if ',' in q:
-        q = q.rsplit(',', 1)[0]
-
-    q = re.sub(r'(\s*-\s*\d+)+\Z', '', q)
-
-    v = wash('{}, {} {}'.format(
-        q, postalcode, postaldistrict
-    ))
-
-    if v:
-        return v
-
-    print('no address found for {!r}, {!r}, {!r}'.format(
-        addrstring, postalcode, postaldistrict
-    ))
-
-
 def _make_effect(from_, to):
     return {
         'from': util.to_lora_time(from_),
@@ -222,9 +164,9 @@ def load_data(sheets, exact=False):
     }
 
     type_formats = {
-        'tilknyttedepersoner': 'urn:dk:cpr:person:{:010d}',
-        'myndighed': 'urn:dk:kommune:{:d}',
-        'virksomhed': 'urn:dk:cvr:virksomhed:{:d}',
+        'tilknyttedepersoner': ('urn:dk:cpr:person:{:010d}', int),
+        'myndighed': ('urn:dk:kommune:{:d}', int),
+        'virksomhed': ('urn:dk:cvr:virksomhed:{:d}', int),
     }
 
     allow_invalid_types = {
@@ -237,12 +179,13 @@ def load_data(sheets, exact=False):
 
     for sheet in read_paths(sheets):
         if isinstance(sheet, dict):
-            dest.update(sheet)
+            for k, v in sheet.items():
+                dest.setdefault(k, []).extend(v)
             continue
 
         print(sheet.name, file=sys.stderr)
 
-        out = dest[sheet.name] = []
+        out = dest.setdefault(sheet.name, [])
 
         sheet.name_columns_by_row(0)
 
@@ -282,7 +225,7 @@ def load_data(sheets, exact=False):
 
         # ensure that all objects have an ID
         for i, obj in enumerate(itertools.chain.from_iterable(dest.values())):
-            if not obj['objektid']:
+            if not obj.get('objektid'):
                 obj['objektid'] = str(uuid.uuid4())
 
     # coerce all dates to strings
@@ -318,7 +261,8 @@ def load_data(sheets, exact=False):
 
         elif address and postalcode and postaldistrict:
 
-            obj['adresse'] = _wash_address(address, postalcode, postaldistrict)
+            obj['adresse'] = processors.wash_address(address, postalcode,
+                                                     postaldistrict)
             obj['adresse_type'] = obj.get('adresse_type')
 
         else:
@@ -331,23 +275,43 @@ def load_data(sheets, exact=False):
                 if isinstance(val, str):
                     val = val.strip()
 
-                if not val or util.is_uuid(val) or str(val).startswith('urn:'):
+                if (
+                    not val or
+                    val == 'NULL' or
+                    util.is_uuid(val) or
+                    str(val).startswith('urn:')
+                ):
                     continue
 
                 elif k in type_formats:
                     try:
-                        obj[k] = type_formats[k].format(
-                            val if val is not None else i,
-                        )
+                        fmt, fn = type_formats[k]
+                        obj[k] = fmt.format(fn(val if val is not None else i))
                     except ValueError as exc:
-                        raise ValueError(
-                            'Unknown value {!r} for {}: {}'.format(
-                                v, k, exc.args[0],
-                            ),
-                        )
+                        print('Unknown value {!r} for {}: {}'.format(
+                            v, k, exc.args[0],
+                        ))
 
                 elif k not in lora.ALL_RELATION_NAMES:
                     continue
+
+                elif k == 'tilknyttetenhed':
+                    print(obj)
+
+                    dest['organisationfunktion'].append(dict(
+                        objektid=str(uuid.uuid4()),
+                        tilknyttedeenheder=v,
+                        tilknyttedebrugere=obj['objektid'],
+                        tilknyttedeorganisationer=(
+                            obj['tilknyttedeorganisationer']
+                        ),
+                        funktionsnavn='Tilknytning',
+                        brugervendtnoegle='42',
+                        fra=obj['fra'],
+                        til=obj['til'],
+                    ))
+
+                    del obj[k]
 
                 elif val in uuid_mapping:
                     obj[k] = uuid_mapping[val]
@@ -434,7 +398,7 @@ def convert_klasse(obj):
         "tilstande": {
             "klassepubliceret": [
                 {
-                    "publiceret": obj['publiceret'],
+                    "publiceret": nolower(obj['publiceret']),
                     "virkning": virkning,
                 },
             ],
@@ -462,7 +426,7 @@ def convert_klassifikation(obj):
         'relationer': {
             k: [
                 {
-                    'uuid': obj[k] if len(obj[k]) == 32 else None,
+                    'uuid': obj[k] if obj[k] and len(obj[k]) == 32 else None,
                     'virkning': _make_effect(obj['fra'], obj['til']),
                 },
             ]
@@ -497,7 +461,7 @@ def convert_organisation(obj):
             'tilstande': {
                 'organisationgyldighed': [
                     {
-                        'gyldighed': obj['gyldighed'],
+                        'gyldighed': nolower(obj['gyldighed']),
                         'virkning': virkning,
                     },
                 ],
@@ -547,7 +511,7 @@ def convert_organisationenhed(obj):
         'tilstande': {
             'organisationenhedgyldighed': [
                 {
-                    'gyldighed': obj['gyldighed'],
+                    'gyldighed': nolower(obj['gyldighed']),
                     'virkning': virkning,
                 },
             ],
@@ -631,7 +595,7 @@ def convert_itsystem(obj):
         "tilstande": {
             "itsystemgyldighed": [
                 {
-                    "gyldighed": obj['gyldighed'],
+                    "gyldighed": nolower(obj['gyldighed']),
                     "virkning": virkning,
                 },
             ],
@@ -676,7 +640,7 @@ def convert_facet(obj):
         "tilstande": {
             "facetpubliceret": [
                 {
-                    "publiceret": obj['publiceret'],
+                    "publiceret": nolower(obj['publiceret']),
                     "virkning": virkning,
                 },
             ],
@@ -730,7 +694,7 @@ def convert_bruger(obj):
         "tilstande": {
             "brugergyldighed": [
                 {
-                    "gyldighed": obj['gyldighed'],
+                    "gyldighed": nolower(obj['gyldighed']),
                     "virkning": virkning,
                 },
             ],
@@ -779,9 +743,79 @@ def convert_organisationfunktion(obj):
         "tilstande": {
             "organisationfunktiongyldighed": [
                 {
-                    "gyldighed": obj['gyldighed'],
+                    "gyldighed": nolower(obj['gyldighed']),
                     "virkning": virkning,
                 },
             ],
         },
     }
+
+
+def run(target, sheets, dry_run, verbose, jobs, failfast,
+        include, check, exact, **kwargs):
+
+    if any(kwargs.values()):
+        unsupported_args = [k for k in sorted(kwargs) if kwargs[k]]
+
+        raise click.BadOptionUsage(
+            'unsupported arguments: {}'.format(', '.join(unsupported_args)),
+        )
+
+    start = util.now()
+
+    sheetlines = convert(sheets, include=include, exact=exact)
+
+    if dry_run:
+        for method, path, obj in sheetlines:
+            print(method, path,
+                  json.dumps(obj, indent=2))
+
+        return
+
+    requests = (
+        grequests.request(
+            # check means that we always get GET anything
+            method if not check else 'GET',
+            target + path.rstrip('/'),
+            session=lora.session,
+            json=obj,
+        )
+        for method, path, obj in sheetlines
+    )
+
+    def fail(r, exc):
+        if verbose:
+            print(r.url)
+        print(*exc.args)
+        if failfast:
+            raise exc
+
+    total = 0
+
+    for r in grequests.imap(requests, size=jobs, exception_handler=fail):
+
+        if verbose:
+            print(r.url)
+
+        if check:
+            if r.ok:
+                print('EXISTS:', r.request.path_url)
+            elif r.status_code == 404:
+                print('CREATE:', r.request.path_url)
+
+        elif not r.ok:
+            try:
+                print(r.status_code, r.json())
+            except ValueError:
+                print(r.status_code, r.text)
+
+        if failfast:
+            r.raise_for_status()
+        else:
+            total += 1
+
+    duration = util.now() - start
+
+    print('imported {} objects in {} ({} per second)'.format(
+        total, duration, total / duration.total_seconds(),
+    ))

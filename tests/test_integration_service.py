@@ -531,6 +531,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Anders And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                'user_key': 'andersand',
                 'cpr_no': '0906340000',
                 'org': {
                     'name': 'Aarhus Universitet',
@@ -545,6 +546,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Fedtmule',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                'user_key': 'fedtmule',
                 'cpr_no': '1205320000',
                 'org': {
                     'name': 'Aarhus Universitet',

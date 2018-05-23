@@ -29,6 +29,7 @@ SKIP_DIRS = {
     'sandbox',
     'node_modules',
     'bower_components',
+    'mox'
 }
 
 

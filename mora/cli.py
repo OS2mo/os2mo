@@ -6,8 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+'''Management utility for MORA.
+
+'''
+
+
 import base64
 import functools
+import importlib
 import json
 import os
 import posixpath
@@ -22,19 +28,21 @@ import warnings
 
 import click
 import flask
+import pyexcel
 import requests
 import urllib3
-import pyexcel
 
 from . import auth
 from . import lora
+from . import settings
 from . import tokens
 from . import util
-from . import settings
-from .converters import importing
 
 basedir = os.path.dirname(__file__)
 topdir = os.path.dirname(basedir)
+
+
+group = flask.cli.FlaskGroup('mora', help=__doc__)
 
 
 def requires_auth(func):
@@ -82,461 +90,415 @@ def requires_auth(func):
     return functools.update_wrapper(wrapper, func)
 
 
-def load_cli(app):
-    @app.cli.command()
-    @click.option('--outdir', '-o',
-                  default=os.path.join(topdir, 'docs', 'out'),
-                  help='Output directory.')
-    @click.option('--verbose', '-v', count=True,
-                  help='Show more output.')
-    @click.argument('args', nargs=-1)
-    def sphinx(outdir, verbose, args):
-        '''Build documentation'''
-        import sphinx.cmdline
+@group.command()
+@click.option('--outdir', '-o',
+              default=os.path.join(topdir, 'docs', 'out'),
+              help='Output directory.')
+@click.option('--verbose', '-v', count=True,
+              help='Show more output.')
+@click.argument('args', nargs=-1)
+def sphinx(outdir, verbose, args):
+    '''Build documentation'''
+    import sphinx.cmdline
 
-        docdir = os.path.join(topdir, 'docs')
-        blueprintdir = os.path.join(docdir, 'blueprints')
+    docdir = os.path.join(topdir, 'docs')
+    blueprintdir = os.path.join(docdir, 'blueprints')
 
-        os.makedirs(blueprintdir, exist_ok=True)
+    os.makedirs(blueprintdir, exist_ok=True)
 
-        for blueprint in app.iter_blueprints():
-            with open(os.path.join(blueprintdir,
-                                   blueprint.name + '.rst'), 'w') as fp:
-                fp.write(flask.render_template('blueprint.rst',
-                                               blueprint=blueprint))
+    for blueprint in flask.current_app.iter_blueprints():
+        with open(os.path.join(blueprintdir,
+                               blueprint.name + '.rst'), 'w') as fp:
+            fp.write(flask.render_template('blueprint.rst',
+                                           blueprint=blueprint))
 
-        with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
-            modules = sorted(m for m in sys.modules
-                             if m.split('.', 1)[0] == 'mora')
-            fp.write(flask.render_template('backend.rst',
-                                           modules=modules))
+    with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
+        modules = sorted(m for m in sys.modules
+                         if m.split('.', 1)[0] == 'mora')
+        fp.write(flask.render_template('backend.rst',
+                                       modules=modules))
 
-        if args:
-            args = list(args)
-        else:
-            args = [
-                '-b', 'html',
-                topdir,
-                outdir,
-            ]
+    if args:
+        args = list(args)
+    else:
+        args = [
+            '-b', 'html',
+            topdir,
+            outdir,
+        ]
 
-        args += ['-v'] * verbose
+    args += ['-v'] * verbose
 
-        os.environ['PATH'] = os.pathsep.join((
-            subprocess.check_output(['npm', 'bin']).decode()[:-1],
-            os.environ['PATH'],
-        ))
+    os.environ['PATH'] = os.pathsep.join((
+        subprocess.check_output(['npm', 'bin']).decode()[:-1],
+        os.environ['PATH'],
+    ))
 
-        r = sphinx.cmdline.main(['sphinx-build'] + args)
-        if r:
-            sys.exit(r)
+    r = sphinx.cmdline.main(['sphinx-build'] + args)
+    if r:
+        sys.exit(r)
 
-    @app.cli.command()
-    @click.argument('target', required=False)
-    def build(target=None):
-        'Build the frontend application.'
 
-        subprocess.check_call(['yarn'], cwd=topdir)
-        subprocess.check_call(['yarn', 'build'], cwd=topdir)
+@group.command()
+@click.argument('target', required=False)
+def build(target=None):
+    'Build the frontend application.'
 
-        if target:
-            subprocess.check_call(
-                ['yarn', 'run'] + ([target] if target else []),
-                cwd=topdir)
+    subprocess.check_call(['yarn'], cwd=topdir)
+    subprocess.check_call(['yarn', 'build'], cwd=topdir)
 
-    @app.cli.command()
-    def develop():
-        'Run for development.'
+    if target:
+        subprocess.check_call(
+            ['yarn', 'run'] + ([target] if target else []),
+            cwd=topdir)
 
-        with subprocess.Popen(['yarn', 'start'],
-                              close_fds=True,
-                              cwd=topdir) as proc:
-            try:
-                app.run()
-            finally:
-                proc.send_signal(signal.SIGINT)
-                proc.wait()
 
-    @app.cli.command()
-    @click.argument('args', nargs=-1)
-    def python(args):
-        os.execv(sys.executable, (sys.executable,) + args)
+@group.command()
+def develop():
+    'Run for development.'
 
-    @app.cli.command(with_appcontext=False)
-    @click.option('--verbose', '-v', count=True,
-                  help='Show more output.')
-    @click.option('--quiet', '-q', is_flag=True,
-                  help='Suppress all output.')
-    @click.option('--failfast/--no-failfast', '-f',
-                  default=False, show_default=True,
-                  help='Stop at first failure.')
-    @click.option('--buffer/--no-buffer', '-b/-B',
-                  default=True, show_default=True,
-                  help='Toggle buffering of standard output during runs.')
-    @click.option('--minimox-dir', help='Location for a checkout of the '
-                  'minimox branch of LoRA.')
-    @click.option('--browser', help='Specify browser for Selenium tests, '
-                  'e.g. "Safari", "Firefox" or "Chrome".')
-    @click.option('--list', '-l', 'do_list', is_flag=True,
-                  help='List all available tests',)
-    @click.option('--randomise', 'randomise', is_flag=True,
-                  help='Randomise execution order',)
-    @click.option('--keyword', '-k', 'keywords', multiple=True,
-                  help='Only run or list tests matching the given keyword',)
-    @click.argument('tests', nargs=-1)
-    def test(tests, quiet, verbose, minimox_dir, browser, do_list,
-             keywords, **kwargs):
-        verbosity = 0 if quiet else verbose + 1
-
-        if minimox_dir:
-            os.environ['MINIMOX_DIR'] = minimox_dir
-
-        if browser:
-            os.environ['BROWSER'] = browser
-
-        loader = unittest.TestLoader()
-
-        if tests:
-            suite = loader.loadTestsFromNames(tests)
-        else:
-            suite = loader.discover(
-                start_dir=os.path.join(topdir, 'tests'),
-                top_level_dir=os.path.join(topdir),
-            )
-
-        def expand_suite(suite):
-            for member in suite:
-                if isinstance(member, unittest.TestSuite):
-                    yield from expand_suite(member)
-                else:
-                    yield member
-
-        tests = list(expand_suite(suite))
-
-        if keywords:
-            tests = [
-                case
-                for k in keywords
-                for case in tests
-                if k in str(case)
-            ]
-
-        if kwargs.pop('randomise'):
-            random.SystemRandom().shuffle(tests)
-
-        suite = unittest.TestSuite(tests)
-
-        if do_list:
-            for case in suite:
-                if verbose:
-                    print(case)
-                elif not quiet:
-                    print(case.id())
-
-            return
-
+    with subprocess.Popen(['yarn', 'start'],
+                          close_fds=True,
+                          cwd=topdir) as proc:
         try:
-            runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
-            runner.run(suite)
+            flask.current_app.run()
+        finally:
+            proc.send_signal(signal.SIGINT)
+            proc.wait()
 
-        except Exception:
-            if verbosity > 1:
-                traceback.print_exc()
-            raise
 
-    @app.cli.command()
-    @click.option('--user', '-u',
-                  help="account user name",
-                  prompt='Enter user name')
-    @click.option('--password', '-p',
-                  help="account password")
-    @click.option('--raw', '-r', is_flag=True,
-                  help="don't pack and wrap the token")
-    @click.option('--verbose', '-v', is_flag=True,
-                  help="pretty-print the token")
-    @click.option('--insecure', '-k', is_flag=True,
-                  help="disable SSL/TLS security checks")
-    @click.option('--cert-only', '-c', is_flag=True,
-                  help="output embedded certificates in PEM form")
-    def auth(**options):
-        if options['insecure']:
-            warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
-        else:
-            warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
+@group.command()
+@click.argument('args', nargs=-1)
+def python(args):
+    os.execv(sys.executable, (sys.executable,) + args)
 
-        if options['user'] and not options['password']:
-            options['password'] = click.prompt(
-                'Enter password for {}'.format(
-                    options['user'],
-                ),
-                hide_input=True,
-                err=True,
-            )
 
-        try:
-            # this is where the magic happens
-            token = tokens.get_token(
-                options['user'], options['password'],
-                raw=options['raw'] or options['cert_only'],
-                verbose=options['verbose'],
-                insecure=options['insecure'],
-            )
-        except requests.exceptions.SSLError as e:
-            msg = ('SSL request failed; you probably need to install the '
-                   'appropriate certificate authority, or use the correct '
-                   'host name.')
-            print(msg, file=sys.stderr)
-            print('error:', e, file=sys.stderr)
+@group.command(with_appcontext=False)
+@click.option('--verbose', '-v', count=True,
+              help='Show more output.')
+@click.option('--quiet', '-q', is_flag=True,
+              help='Suppress all output.')
+@click.option('--failfast/--no-failfast', '-f',
+              default=False, show_default=True,
+              help='Stop at first failure.')
+@click.option('--buffer/--no-buffer', '-b/-B',
+              default=True, show_default=True,
+              help='Toggle buffering of standard output during runs.')
+@click.option('--minimox-dir', help='Location for a checkout of the '
+              'minimox branch of LoRA.')
+@click.option('--browser', help='Specify browser for Selenium tests, '
+              'e.g. "Safari", "Firefox" or "Chrome".')
+@click.option('--list', '-l', 'do_list', is_flag=True,
+              help='List all available tests',)
+@click.option('--randomise', 'randomise', is_flag=True,
+              help='Randomise execution order',)
+@click.option('--keyword', '-k', 'keywords', multiple=True,
+              help='Only run or list tests matching the given keyword',)
+@click.argument('tests', nargs=-1)
+def test(tests, quiet, verbose, minimox_dir, browser, do_list,
+         keywords, **kwargs):
+    verbosity = 0 if quiet else verbose + 1
 
-            raise click.Abort
+    if minimox_dir:
+        os.environ['MINIMOX_DIR'] = minimox_dir
 
-        if not options['cert_only']:
-            sys.stdout.write(token.decode())
+    if browser:
+        os.environ['BROWSER'] = browser
 
-        else:
-            from lxml import etree
+    loader = unittest.TestLoader()
 
-            for el in etree.fromstring(token).findall('.//{*}X509Certificate'):
-                data = base64.standard_b64decode(el.text)
-
-                sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
-
-    @app.cli.command()
-    @click.argument('paths', nargs=-1)
-    @requires_auth
-    def get(paths):
-        for path in paths:
-            print(path)
-
-            for obj in lora.fetch(path) or [None]:
-                if isinstance(obj, str):
-                    print(obj)
-                    obj = lora.get(path.split('?')[0], obj)
-
-                json.dump(obj, sys.stdout, indent=4)
-                sys.stdout.write('\n')
-
-    @app.cli.command()
-    @click.argument('path')
-    @click.argument('input', type=click.File('rb'), default='-')
-    @requires_auth
-    def update(path, input):
-        lora.put(path, json.load(input))
-
-    @app.cli.command('import')
-    @click.argument('spreadsheets', nargs=-1, type=click.Path())
-    @click.option('--dry-run', '-n', is_flag=True,
-                  help=("don't actually change anything"))
-    @click.option('--verbose', '-v', count=True,
-                  help='Show more output.')
-    @click.option('--jobs', '-j', default=1, type=int,
-                  help='Amount of parallel requests.')
-    @click.option('--failfast', '-f', is_flag=True,
-                  help='Stop at first error.')
-    @click.option('--include', '-I', multiple=True,
-                  help='include only the given types.')
-    @click.option('--check', '-c', is_flag=True,
-                  help=('check if import would overwrite any existing '
-                        'objects'))
-    @click.option('--exact', '-e', is_flag=True,
-                  help="don't calculate missing values")
-    @requires_auth
-    def import_file(spreadsheets, dry_run, verbose, jobs, failfast,
-                    include, check, exact):
-        '''
-        Import an Excel spreadsheet into LoRa
-        '''
-
-        import grequests
-
-        start = util.now()
-
-        sheetlines = importing.convert(spreadsheets,
-                                       include=include, exact=exact)
-
-        if dry_run:
-            for method, path, obj in sheetlines:
-                print(method, path,
-                      json.dumps(obj, indent=2))
-
-            return
-
-        requests = (
-            grequests.request(
-                # check means that we always get GET anything
-                method if not check else 'GET',
-                settings.LORA_URL + path.rstrip('/'),
-                session=lora.session,
-                json=obj,
-            )
-            for method, path, obj in sheetlines
+    if tests:
+        suite = loader.loadTestsFromNames(tests)
+    else:
+        suite = loader.discover(
+            start_dir=os.path.join(topdir, 'tests'),
+            top_level_dir=os.path.join(topdir),
         )
 
-        def fail(r, exc):
-            if verbose:
-                print(r.url)
-            print(*exc.args)
-            if failfast:
-                raise exc
-
-        total = 0
-
-        for r in grequests.imap(requests, size=jobs, exception_handler=fail):
-
-            if verbose:
-                print(r.url)
-
-            if check:
-                if r.ok:
-                    print('EXISTS:', r.request.path_url)
-                elif r.status_code == 404:
-                    print('CREATE:', r.request.path_url)
-
-            elif not r.ok:
-                try:
-                    print(r.status_code, r.json())
-                except ValueError:
-                    print(r.status_code, r.text)
-
-            if failfast:
-                r.raise_for_status()
+    def expand_suite(suite):
+        for member in suite:
+            if isinstance(member, unittest.TestSuite):
+                yield from expand_suite(member)
             else:
-                total += 1
+                yield member
 
-        duration = util.now() - start
+    tests = list(expand_suite(suite))
 
-        print('imported {} objects in {} ({} per second)'.format(
-            total, duration, total / duration.total_seconds(),
-        ))
+    if keywords:
+        tests = [
+            case
+            for k in keywords
+            for case in tests
+            if k in str(case)
+        ]
 
-    @app.cli.command('sheet-convert', with_appcontext=False)
-    @click.option('--sheet', '-s',
-                  help='only convert the given sheet')
-    @click.option('--quiet', '-q', is_flag=True,
-                  help='Suppress all output.')
-    @click.argument('source', type=click.Path())
-    @click.argument('destination', type=click.Path())
-    def sheetconvert(sheet, quiet, source, destination):
-        '''Convert a spreadsheet to another format.
+    if kwargs.pop('randomise'):
+        random.SystemRandom().shuffle(tests)
 
-        Supports CSV, ODS, XLSX and possibly more.
-        '''
+    suite = unittest.TestSuite(tests)
 
-        if not quiet:
-            print('{} -> {}'.format(source, destination))
+    if do_list:
+        for case in suite:
+            if verbose:
+                print(case)
+            elif not quiet:
+                print(case.id())
 
-        if sheet:
-            pyexcel.save_as(
-                file_name=source,
-                dest_file_name=destination,
-                sheet_name=sheet,
-            )
-        else:
-            pyexcel.save_book_as(
-                file_name=source,
-                dest_file_name=destination,
-            )
+        return
 
-    @app.cli.command()
-    @click.argument('spreadsheets', nargs=-1, type=click.Path())
-    @click.option('--output', '-o', type=click.File('w'), default='-')
-    @click.option('--compact', '-c', is_flag=True)
-    @click.option('--exact', '-e', is_flag=True,
-                  help="don't calculate missing values")
-    @requires_auth
-    def preimport(output, spreadsheets, compact, exact):
-        '''
-        Convert an Excel spreadsheet into JSON for faster importing
-        '''
-        d = importing.load_data(spreadsheets, exact=exact)
+    try:
+        runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
+        runner.run(suite)
 
-        if compact:
-            json.dump(d, output)
-        else:
-            json.dump(d, output, indent=2, sort_keys=True)
+    except Exception:
+        if verbosity > 1:
+            traceback.print_exc()
+        raise
 
-    @app.cli.command('load-fixtures')
-    @click.option('--quiet', '-q', is_flag=True,
-                  help='Suppress all output.')
-    @click.option('--minimal', is_flag=True,
-                  help='Just import the root unit.')
-    @click.option('--check', '-c', is_flag=True,
-                  help=('check if import would overwrite any existing '
-                        'objects'))
-    @requires_auth
-    def load_fixtures(**kwargs):
-        '''
-        Import the sample fixtures into LoRA.
-        '''
 
-        from tests import util
+@group.command('auth')
+@click.option('--user', '-u',
+              help="account user name",
+              prompt='Enter user name')
+@click.option('--password', '-p',
+              help="account password")
+@click.option('--raw', '-r', is_flag=True,
+              help="don't pack and wrap the token")
+@click.option('--verbose', '-v', is_flag=True,
+              help="pretty-print the token")
+@click.option('--insecure', '-k', is_flag=True,
+              help="disable SSL/TLS security checks")
+@click.option('--cert-only', '-c', is_flag=True,
+              help="output embedded certificates in PEM form")
+def auth_(**options):
+    if options['insecure']:
+        warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
+    else:
+        warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
 
-        util.load_sample_structures(
-            verbose=not kwargs.pop('quiet'),
-            **kwargs,
+    if options['user'] and not options['password']:
+        options['password'] = click.prompt(
+            'Enter password for {}'.format(
+                options['user'],
+            ),
+            hide_input=True,
+            err=True,
         )
 
-    @app.cli.command()
-    @click.option('--quiet', '-q', is_flag=True,
-                  help='Suppress all output.')
-    @click.option('--dry-run', '-n', is_flag=True,
-                  help=("don't actually change anything"))
-    @click.option('--yes', '-y', is_flag=True,
-                  help=("don't prompt for confirmation before making changes"))
-    @requires_auth
-    def fixroots(**kwargs):
-        '''
-        Import the sample fixtures into LoRA.
-        '''
+    try:
+        # this is where the magic happens
+        token = tokens.get_token(
+            options['user'], options['password'],
+            raw=options['raw'] or options['cert_only'],
+            verbose=options['verbose'],
+            insecure=options['insecure'],
+        )
+    except requests.exceptions.SSLError as e:
+        msg = ('SSL request failed; you probably need to install the '
+               'appropriate certificate authority, or use the correct '
+               'host name.')
+        print(msg, file=sys.stderr)
+        print('error:', e, file=sys.stderr)
 
-        # apparently, you cannot call tzlocal after importing gevent/eventlets
-        util.now()
+        raise click.Abort
 
-        import grequests
+    if not options['cert_only']:
+        sys.stdout.write(token.decode())
 
-        unitids = lora.organisationenhed(bvn='%')
-        requests = (
-            grequests.get(
-                posixpath.join(settings.LORA_URL,
-                               'organisation', 'organisationenhed'),
-                session=lora.session,
-                params={
-                    'uuid': unitids[i:i + 10],
+    else:
+        from lxml import etree
+
+        for el in etree.fromstring(token).findall('.//{*}X509Certificate'):
+            data = base64.standard_b64decode(el.text)
+
+            sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
+
+
+@group.command()
+@click.argument('paths', nargs=-1)
+@requires_auth
+def get(paths):
+    for path in paths:
+        print(path)
+
+        for obj in lora.fetch(path) or [None]:
+            if isinstance(obj, str):
+                print(obj)
+                obj = lora.get(path.split('?')[0], obj)
+
+            json.dump(obj, sys.stdout, indent=4)
+            sys.stdout.write('\n')
+
+
+@group.command()
+@click.argument('path')
+@click.argument('input', type=click.File('rb'), default='-')
+@requires_auth
+def update(path, input):
+    lora.put(path, json.load(input))
+
+
+@group.command('import')
+@click.argument('name')
+@click.argument('sheets', nargs=-1, type=click.Path())
+@click.option('--target', '-t', default=settings.LORA_URL)
+@click.option('--output', '-o', type=click.File('w'))
+@click.option('--compact', '-c', is_flag=True)
+@click.option('--dry-run', '-n', is_flag=True,
+              help=("don't actually change anything"))
+@click.option('--verbose', '-v', count=True,
+              help='Show more output.')
+@click.option('--jobs', '-j', default=1, type=int,
+              help='Amount of parallel requests.')
+@click.option('--failfast', '-f', is_flag=True,
+              help='Stop at first error.')
+@click.option('--include', '-I', multiple=True,
+              help='include only the given types.')
+@click.option('--check', '-c', is_flag=True,
+              help=('check if import would overwrite any existing '
+                    'objects'))
+@click.option('--exact', '-e', is_flag=True,
+              help="don't calculate missing values")
+@click.option('--delimiter', '-d', default=None, type=str)
+@requires_auth
+def import_file(name, **kwargs):
+    '''
+    Import an Excel spreadsheet into LoRa
+    '''
+
+    if '.' not in name:
+        module_name = 'mora.importing.' + name.replace('-', '_')
+
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError:
+        if flask.current_app.debug or kwargs['verbose']:
+            traceback.print_exc()
+
+        raise click.BadOptionUsage('{} is not a known importer'.format(name))
+
+    if not hasattr(module, 'run'):
+        raise click.BadOptionUsage('{} is not a valid importer'.format(name))
+
+    module.run(**kwargs)
+
+
+@group.command('sheet-convert', with_appcontext=False)
+@click.option('--sheet', '-s',
+              help='only convert the given sheet')
+@click.option('--quiet', '-q', is_flag=True,
+              help='Suppress all output.')
+@click.argument('source', type=click.Path())
+@click.argument('destination', type=click.Path())
+def sheetconvert(sheet, quiet, source, destination):
+    '''Convert a spreadsheet to another format.
+
+    Supports CSV, ODS, XLSX and possibly more.
+    '''
+
+    if not quiet:
+        print('{} -> {}'.format(source, destination))
+
+    if sheet:
+        pyexcel.save_as(
+            file_name=source,
+            dest_file_name=destination,
+            sheet_name=sheet,
+        )
+    else:
+        pyexcel.save_book_as(
+            file_name=source,
+            dest_file_name=destination,
+        )
+
+
+@group.command('load-fixtures')
+@click.option('--quiet', '-q', is_flag=True,
+              help='Suppress all output.')
+@click.option('--minimal', is_flag=True,
+              help='Just import the root unit.')
+@click.option('--check', '-c', is_flag=True,
+              help=('check if import would overwrite any existing '
+                    'objects'))
+@requires_auth
+def load_fixtures(**kwargs):
+    '''
+    Import the sample fixtures into LoRA.
+    '''
+
+    from tests import util
+
+    util.load_sample_structures(
+        verbose=not kwargs.pop('quiet'),
+        **kwargs,
+    )
+
+
+@group.command()
+@click.option('--quiet', '-q', is_flag=True,
+              help='Suppress all output.')
+@click.option('--dry-run', '-n', is_flag=True,
+              help=("don't actually change anything"))
+@click.option('--yes', '-y', is_flag=True,
+              help=("don't prompt for confirmation before making changes"))
+@requires_auth
+def fixroots(**kwargs):
+    '''
+    Import the sample fixtures into LoRA.
+    '''
+
+    # apparently, you cannot call tzlocal after importing gevent/eventlets
+    util.now()
+
+    import grequests
+
+    unitids = lora.organisationenhed(bvn='%')
+    requests = (
+        grequests.get(
+            posixpath.join(settings.LORA_URL,
+                           'organisation', 'organisationenhed'),
+            session=lora.session,
+            params={
+                'uuid': unitids[i:i + 10],
+            },
+        )
+        for i in range(0, len(unitids), 20)
+    )
+
+    for r in grequests.imap(requests, size=6):
+        for entry in r.json()['results'][0]:
+            unitid = entry['id']
+            unit = entry['registreringer'][-1]
+
+            if unit['relationer'].get('overordnet'):
+                continue
+
+            print(unitid)
+
+            tilhoerer = unit['relationer']['tilhoerer'][0]
+
+            unit['note'] = \
+                'Relation til organisation som overordnet tilføjet'
+            unit['relationer']['overordnet'] = [
+                {
+                    'uuid': tilhoerer['uuid'],
+                    'virkning': tilhoerer['virkning'].copy(),
                 },
-            )
-            for i in range(0, len(unitids), 20)
-        )
+            ]
 
-        for r in grequests.imap(requests, size=6):
-            for entry in r.json()['results'][0]:
-                unitid = entry['id']
-                unit = entry['registreringer'][-1]
+            print(json.dumps(unit, indent=2))
 
-                if unit['relationer'].get('overordnet'):
-                    continue
+            if not kwargs['dry_run'] and (
+                    kwargs['yes'] or
+                    click.prompt('Perform update', prompt_suffix='? ',
+                                 err=True).lower() in ('y', 'yes')
+            ):
+                lora.update(
+                    posixpath.join('organisation', 'organisationenhed',
+                                   unitid),
+                    unit,
+                )
 
-                print(unitid)
 
-                tilhoerer = unit['relationer']['tilhoerer'][0]
-
-                unit['note'] = \
-                    'Relation til organisation som overordnet tilføjet'
-                unit['relationer']['overordnet'] = [
-                    {
-                        'uuid': tilhoerer['uuid'],
-                        'virkning': tilhoerer['virkning'].copy(),
-                    },
-                ]
-
-                print(json.dumps(unit, indent=2))
-
-                if not kwargs['dry_run'] and (
-                        kwargs['yes'] or
-                        click.prompt('Perform update', prompt_suffix='? ',
-                                     err=True).lower() in ('y', 'yes')
-                ):
-                    lora.update(
-                        posixpath.join('organisation', 'organisationenhed',
-                                       unitid),
-                        unit,
-                    )
+if __name__ == '__main__':
+    group()

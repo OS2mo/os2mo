@@ -199,9 +199,10 @@ def get_one_orgunit(c, unitid, unit=None,
         r['child_count'] = len(children)
 
     elif details is UnitDetails.FULL:
-        r[keys.ORG_UNIT_TYPE] = facet.get_one_class(
-            c,
-            rels['enhedstype'][0]['uuid'],
+        unittype = common.get_uuid(rels['enhedstype'][0], required=False)
+
+        r[keys.ORG_UNIT_TYPE] = (
+            facet.get_one_class(c, unittype) if unittype else None
         )
 
         r[keys.PARENT] = get_one_orgunit(
@@ -719,7 +720,8 @@ def terminate_org_unit(unitid):
     """
     date = common.get_valid_from(flask.request.get_json())
 
-    c = lora.Connector(virkningfra=date, virkningtil='infinity')
+    c = lora.Connector(virkningfra=util.to_iso_time(date),
+                       virkningtil='infinity')
 
     validator.is_org_unit_termination_date_valid(unitid, date)
 

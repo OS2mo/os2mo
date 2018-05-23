@@ -11,10 +11,11 @@ import datetime
 import functools
 import itertools
 import json
-import math
+import marshal
 import os
 import re
 import sys
+import tempfile
 import typing
 import uuid
 
@@ -341,3 +342,39 @@ def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
                                  tzinfo=default_timezone)
     except ValueError:
         raise ValueError('invalid CPR number {}'.format(number))
+
+
+def cached(func):
+    @functools.wraps(func)
+    def wrapper(*args):
+        try:
+            return wrapper.cache[args]
+        except KeyError:
+            wrapper.cache[args] = result = func(*args)
+
+            with open(wrapper.cache_file, 'wb') as fp:
+                marshal.dump(wrapper.cache, fp, marshal.version)
+
+            return result
+
+    wrapper.cache = {}
+    wrapper.uncached = wrapper.__wrapped__
+
+    wrapper.cache_file = os.path.join(
+        tempfile.gettempdir(),
+        '-'.join(
+            func.__module__.split('.') +
+            [
+                func.__name__,
+                str(os.getuid()),
+            ],
+        ) + '.data',
+    )
+
+    try:
+        with open(wrapper.cache_file, 'rb') as fp:
+            wrapper.cache = marshal.load(fp)
+    except (IOError, EOFError):
+        wrapper.cache = {}
+
+    return wrapper

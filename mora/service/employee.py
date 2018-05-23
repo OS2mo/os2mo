@@ -61,10 +61,13 @@ def get_one_employee(c, userid, user=None, full=False):
         rels = user['relationer']
         orgid = rels['tilhoerer'][0]['uuid']
 
-        r[keys.CPR_NO] = (
-            rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
-        )
+        if rels.get('tilknyttedepersoner'):
+            r[keys.CPR_NO] = (
+                rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
+            )
+
         r[keys.ORG] = org.get_one_organisation(c, orgid)
+        r[keys.USER_KEY] = props['brugervendtnoegle']
 
     return r
 
@@ -975,6 +978,7 @@ def create_employee():
 
     :<json string name: The name of the employee
     :<json string cpr_no: The CPR no of the employee
+    :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
 
     .. sourcecode:: json
@@ -998,13 +1002,18 @@ def create_employee():
     name = common.checked_get(req, keys.NAME, "", required=True)
     org = common.checked_get(req, keys.ORG, {}, required=True)
     org_uuid = common.get_uuid(org)
-    cpr = common.checked_get(req, keys.CPR_NO, "", required=True)
+    cpr = common.checked_get(req, keys.CPR_NO, "", required=False)
+    userid = common.get_uuid(req, required=False)
 
-    valid_from = util.get_cpr_birthdate(cpr)
+    try:
+        valid_from = util.get_cpr_birthdate(cpr)
+    except ValueError:
+        valid_from = util.negative_infinity
+
     valid_to = util.positive_infinity
 
-    # TODO: put something useful into the user key
-    bvn = str(uuid.uuid4())
+    # TODO: put something useful into the default user key
+    bvn = common.checked_get(req, keys.USER_KEY, str(uuid.uuid4()))
 
     user = common.create_bruger_payload(
         valid_from=valid_from,
@@ -1015,6 +1024,6 @@ def create_employee():
         cpr=cpr,
     )
 
-    userid = c.bruger.create(user)
+    userid = c.bruger.create(user, uuid=userid)
 
     return flask.jsonify(userid)

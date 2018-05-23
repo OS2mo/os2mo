@@ -147,7 +147,6 @@ API
 
 '''
 
-import itertools
 import json
 import re
 
@@ -302,7 +301,7 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
         if addrformat == 'PHONE':
-            name = re.sub(r'^(\+45)(\d{4})(\d{4})$', r'\2 \3', name)
+            name = re.sub(r'^(\+45)(\d{8})$', r'\2', name)
 
         return {
             keys.ADDRESS_TYPE: addrclass,
@@ -338,7 +337,9 @@ class Addresses(common.AbstractRelationDetail):
 
         class_cache = common.cache(facet.get_one_class, c)
 
-        def convert(start, end, effect):
+        def convert(effect):
+            if not effect.get('relationer'):
+                return
             for addrrel in effect['relationer'].get('adresser', []):
                 if not c.is_effect_relevant(addrrel['virkning']):
                     continue
@@ -360,19 +361,7 @@ class Addresses(common.AbstractRelationDetail):
 
         return flask.jsonify(
             sorted(
-                itertools.chain.from_iterable(
-                    itertools.starmap(
-                        convert,
-                        self.scope.get_effects(
-                            id,
-                            {
-                                'relationer': (
-                                    'adresser',
-                                ),
-                            }
-                        ),
-                    ),
-                ),
+                convert(self.scope.get(id)),
                 key=(
                     lambda v: (
                         common.get_valid_from(v) or util.negative_infinity,
