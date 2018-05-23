@@ -215,5 +215,18 @@ class TestWritingIntegration(util.LoRATestCase):
                         "gyldighed": "Aktiv"
                     }
                 ]
-            }
+            },
+            "relationer": {
+                "myndighed": [
+                    {
+                        "urn": "urn:dk:kommune:751",
+                        "virkning": {
+                            "to": "infinity",
+                            "to_included": False,
+                            "from": "2016-01-01 00:00:00+01",
+                            "from_included": True
+                        }
+                    }
+                ]
+            },
         }, current)

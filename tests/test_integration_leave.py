@@ -256,7 +256,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
         leave_type = "62ec821f-4179-4758-bfdf-134529d186e9"
 
