@@ -426,11 +426,7 @@ class Scope:
         _check_response(r)
 
     def update(self, obj, uuid):
-        r = session.request(
-            'PATCH' if settings.USE_PATCH else 'PUT',
-            '{}/{}'.format(self.base_path, uuid),
-            json=obj,
-        )
+        r = session.put('{}/{}'.format(self.base_path, uuid), json=obj)
         _check_response(r)
         return r.json()['uuid']
 
