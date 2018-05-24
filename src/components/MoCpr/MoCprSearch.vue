@@ -16,7 +16,7 @@
         type="button" 
         class="btn btn-outline-primary" 
         @click="cprLookup()" 
-        :disabled="errors.has(nameId)" 
+        :disabled="errors.has(nameId) || !cprNo" 
         v-show="!isLoading">
         <icon name="search"/>
       </button>
