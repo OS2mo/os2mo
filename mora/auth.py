@@ -112,13 +112,12 @@ def login():
     return resp
 
 
-@blueprint.route('/service/user/<user>/logout', methods=['POST'])
+@blueprint.route('/service/user/logout', methods=['POST'])
 def logout(user=None):
     '''Attempt to log out as the given user name.
 
     .. :quickref: Authentication; Log out
 
-    :param username: The user ID to logout as.
     :return: Nothing.
 
     :statuscode 200: The logout succeeded --- which it almost always does.
