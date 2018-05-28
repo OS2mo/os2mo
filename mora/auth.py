@@ -55,8 +55,8 @@ class SAMLAuth(requests.auth.AuthBase):
         return r
 
 
-@blueprint.route('/service/user/<username>/login', methods=['POST'])
-def login(username):
+@blueprint.route('/service/user/login', methods=['POST'])
+def login():
     '''Attempt a login as the given user name. The internals of this login
     will be kept from the JavaScript by using httpOnly cookies.
 
@@ -65,8 +65,8 @@ def login(username):
     :statuscode 200: The login succeeded.
     :statuscode 401: The login failed.
 
-    :param username: The user ID to login as.
-
+    :<json string username: AD username and domain
+                            (format: <username>@<addomain>)
     :<json string password: The password of the user.
     :<json boolean rememberme: Whether to persist the login ---
         currently ignored.
@@ -77,7 +77,11 @@ def login(username):
     '''
 
     # TODO: remember me?
-    password = flask.request.get_json()['password']
+    json_payload = flask.request.get_json()
+
+    username = json_payload.get("username")
+    password = json_payload.get("password")
+
 
     try:
         assertion = tokens.get_token(username, password)
