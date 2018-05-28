@@ -82,7 +82,6 @@ def login():
     username = json_payload.get("username")
     password = json_payload.get("password")
 
-
     try:
         assertion = tokens.get_token(username, password)
     except requests.exceptions.ConnectionError as e:
