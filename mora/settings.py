@@ -17,6 +17,7 @@ MAX_REQUEST_LENGTH = 4096
 
 LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
+USE_PATCH = True
 
 SAML_IDP_TYPE = 'wso2'
 SAML_IDP_URL = None
