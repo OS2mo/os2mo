@@ -33,8 +33,8 @@ COOKIE_NAME = 'MO-Token'
 
 basedir = os.path.dirname(__file__)
 
-blueprint = flask.Blueprint('authentication', __name__, url_prefix='/mo',
-                            root_path=basedir)
+blueprint = flask.Blueprint('authentication', __name__,
+                            url_prefix='/service', root_path=basedir)
 
 
 class SAMLAuth(requests.auth.AuthBase):
@@ -55,7 +55,7 @@ class SAMLAuth(requests.auth.AuthBase):
         return r
 
 
-@blueprint.route('/service/user/login', methods=['POST'])
+@blueprint.route('/user/login', methods=['POST'])
 def login():
     '''Attempt a login as the given user name. The internals of this login
     will be kept from the JavaScript by using httpOnly cookies.
@@ -111,7 +111,7 @@ def login():
     return resp
 
 
-@blueprint.route('/service/user/logout', methods=['POST'])
+@blueprint.route('/user/logout', methods=['POST'])
 def logout():
     '''Attempt to log out as the given user name.
 

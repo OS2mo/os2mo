@@ -55,7 +55,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/login',
+                '/service/user/login',
                 {
                     'error_key': 'E_UNAUTHORIZED',
                     'description': (
@@ -84,7 +84,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/login',
+                '/service/user/login',
                 {
                     'error': True,
                     'error_key': 'E_UNAUTHORIZED',
@@ -113,7 +113,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/login',
+                '/service/user/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'username': 'USER',
@@ -139,7 +139,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/login',
+                '/service/user/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'username': 'USER',
@@ -158,7 +158,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE=None,
                                     SAML_IDP_URL=None):
             self.assertRequestResponse(
-                '/mo/service/user/login',
+                '/service/user/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
                     'username': 'USER',
