@@ -112,7 +112,7 @@ def login():
 
 
 @blueprint.route('/service/user/logout', methods=['POST'])
-def logout(user=None):
+def logout():
     '''Attempt to log out as the given user name.
 
     .. :quickref: Authentication; Log out
