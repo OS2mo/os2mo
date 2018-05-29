@@ -168,9 +168,10 @@ class Tests(util.LoRATestCase):
         }
 
         expected = {
-            'description': 'User with CPR no. 0906340000 already exists',
+            'cpr': '0906340000',
+            'description': 'Person with CPR number already exists.',
             'error': True,
-            'cause': 'validation',
+            'error_key': 'V_EXISTING_CPR',
             'status': 400
         }
 

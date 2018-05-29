@@ -28,8 +28,8 @@ def get_citizen(cpr):
         }
         certificate = settings.SP_CERTIFICATE_PATH
         try:
-            return service_person_stamdata_udvidet.get_citizen(sp_uuids, certificate,
-                                                        cpr)
+            return service_person_stamdata_udvidet.get_citizen(
+                sp_uuids, certificate, cpr)
         except HTTPError as e:
             if "PNRNotFound" in e.response.text:
                 raise KeyError('CPR not found')
