@@ -13,4 +13,6 @@ pyexcel-xlsx>=0.5.5
 pyexcel-ods>=0.5.2
 gevent~=1.2.2
 python-dateutil>=2.7.0
+pymysql>=0.8.1
+sqlalchemy>=1.2.7
 -e git+https://github.com/magenta-aps/service_person_stamdata_udvidet@master#egg=service_person_stamdata_udvidet

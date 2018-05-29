@@ -458,11 +458,16 @@ def create_org_unit():
     parent = common.checked_get(req, keys.PARENT, {}, required=True)
     parent_uuid = common.get_uuid(parent)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
+    if not organisationenhed_get:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
     org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
 
     org_unit_type = common.checked_get(req, keys.ORG_UNIT_TYPE, {},
                                        required=True)
     org_unit_type_uuid = common.get_uuid(org_unit_type)
+
+    org_unit_uuid = common.get_uuid(req, required=False)
 
     addresses = [
         address.get_relation_for(addr)
@@ -471,8 +476,11 @@ def create_org_unit():
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
-    # TODO
-    bvn = "{} {}".format(name, uuid.uuid4())
+    bvn = common.checked_get(req, keys.USER_KEY, "")
+    if not bvn:
+        bvn = "{} {}".format(name, uuid.uuid4())
+
+    print("'{}'".format(bvn))
 
     # TODO: Process address objects
 
@@ -490,7 +498,7 @@ def create_org_unit():
     validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
                                               valid_to)
 
-    unitid = c.organisationenhed.create(org_unit)
+    unitid = c.organisationenhed.create(org_unit, uuid=org_unit_uuid)
 
     return flask.jsonify(unitid)
 

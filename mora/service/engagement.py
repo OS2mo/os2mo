@@ -14,6 +14,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
+from .. import exceptions
 from .. import validator
 from . import common
 from . import keys
@@ -28,14 +29,24 @@ def create_engagement(employee_uuid, req):
     c = lora.Connector()
 
     org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
-    org_uuid = c.organisationenhed.get(
-        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    org_unit = c.organisationenhed.get(org_unit_uuid)
+    if not org_unit:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            uuid=org_unit_uuid
+        )
+    org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
     engagement_type_uuid = common.get_mapping_uuid(req, keys.ENGAGEMENT_TYPE,
                                                    required=True)
     valid_from, valid_to = common.get_validities(req)
 
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
+    engagement_uuid = common.get_uuid(req, required=False)
+
+    bvn = common.checked_get(req, keys.USER_KEY, "")
+    if not bvn:
+        bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
+                                keys.ENGAGEMENT_KEY)
 
     # Validation
     validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
@@ -54,7 +65,7 @@ def create_engagement(employee_uuid, req):
         opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
     )
 
-    c.organisationfunktion.create(engagement)
+    c.organisationfunktion.create(engagement, uuid=engagement_uuid)
 
 
 def edit_engagement(employee_uuid, req):

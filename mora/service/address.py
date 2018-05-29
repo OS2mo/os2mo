@@ -379,6 +379,13 @@ class Addresses(common.AbstractRelationDetail):
             virkningtil='infinity',
         )
 
+        if not original:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_NOT_FOUND,
+                uuid=id,
+                scope=self.scope.path
+            )
+
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
         rel = get_relation_for(req)

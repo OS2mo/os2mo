@@ -68,6 +68,12 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     ).organisationenhed
     gyldighed_key = "organisationenhedgyldighed"
 
+    if not scope.get(org_unit_uuid):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            uuid=org_unit_uuid
+        )
+
     if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.HTTPException(
@@ -84,6 +90,12 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
         virkningtil=util.to_lora_time(valid_to)
     ).bruger
     gyldighed_key = "brugergyldighed"
+
+    if not scope.get(employee_uuid):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_USER_NOT_FOUND,
+            uuid=employee_uuid
+        )
 
     if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
                                 gyldighed_key):
