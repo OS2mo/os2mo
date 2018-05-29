@@ -15,8 +15,10 @@ Customised to create and configure a virtual environment.
 
 from __future__ import print_function, absolute_import, unicode_literals
 
+import importlib
 import os
 import platform
+import site
 import subprocess
 import sys
 
@@ -102,6 +104,10 @@ if __name__ == "__main__":
         sys.exit(0)
 
     os.wait()
+
+    # Reload site to pick up all references to newly installed modules
+    # in particular those installed with -e
+    importlib.reload(site)
 
     os.environ.setdefault("FLASK_APP", "mora.app")
     os.environ.setdefault("FLASK_DEBUG", "1")
