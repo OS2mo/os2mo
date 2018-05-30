@@ -1000,8 +1000,7 @@ def create_employee():
     req = flask.request.get_json()
 
     name = common.checked_get(req, keys.NAME, "", required=True)
-    org = common.checked_get(req, keys.ORG, {}, required=True)
-    org_uuid = common.get_uuid(org)
+    org_uuid = common.get_mapping_uuid(req, keys.ORG, required=True)
     cpr = common.checked_get(req, keys.CPR_NO, "", required=False)
     userid = common.get_uuid(req, required=False)
 
@@ -1011,7 +1010,9 @@ def create_employee():
         valid_from = util.negative_infinity
 
     bruger = c.bruger.fetch(
-        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr))
+        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
+        tilhoerer=org_uuid
+    )
     if bruger:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_EXISTING_CPR,
