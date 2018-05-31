@@ -33,7 +33,7 @@ class Tests(util.LoRATestCase):
         }
 
         with notsouid.freeze_uuid(mock_uuid):
-            r = self._perform_request('/service/e/create', json=payload)
+            r = self.request('/service/e/create', json=payload)
         userid = r.json
 
         expected = {
@@ -175,7 +175,7 @@ class Tests(util.LoRATestCase):
             'status': 400
         }
 
-        actual = self._perform_request('/service/e/create', json=payload).json
+        actual = self.request('/service/e/create', json=payload).json
 
         self.assertEqual(expected, actual)
 
@@ -194,7 +194,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        uuid = self._perform_request('/service/e/create', json=payload).json
+        uuid = self.request('/service/e/create', json=payload).json
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 

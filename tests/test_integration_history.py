@@ -214,7 +214,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
         ]
 
         # Assert
-        r = self._perform_request(
+        r = self.request(
             '/service/e/{}/history/'.format(userid),
         )
         self.assert200(r)
@@ -235,7 +235,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
         self.load_sample_structures()
 
         # Act
-        r = self._perform_request(
+        r = self.request(
             '/service/ou/create',
             json={
                 "name": "History test",
@@ -305,7 +305,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
         ]
 
         # Assert
-        r = self._perform_request(
+        r = self.request(
             '/service/ou/{}/history/'.format(unitid),
         )
         actual_result = json.loads(r.get_data())

@@ -1363,7 +1363,7 @@ class Writing(util.LoRATestCase):
             }
         }
 
-        r = self._perform_request('/service/ou/create', json=payload)
+        r = self.request('/service/ou/create', json=payload)
         unitid = r.json
 
         address_rels = [
