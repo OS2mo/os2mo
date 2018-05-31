@@ -1159,7 +1159,7 @@ class Tests(util.LoRATestCase):
                     {'example': '<UUID>',
                      'name': 'Adresse',
                      'scope': 'DAR',
-                     'user_key': 'Adresse',
+                     'user_key': 'AdressePost',
                      'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
                     {'example': 'test@example.com',
                      'name': 'Emailadresse',
