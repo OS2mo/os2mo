@@ -156,7 +156,7 @@ class Tests(util.LoRATestCase):
             '/service/e/create', 400,
             json=payload)
 
-    def test_create_employee_existing_cpr(self):
+    def test_create_employee_existing_cpr_existing_org(self):
         self.load_sample_structures()
 
         payload = {
@@ -178,6 +178,27 @@ class Tests(util.LoRATestCase):
         actual = self._perform_request('/service/e/create', json=payload).json
 
         self.assertEqual(expected, actual)
+
+    def test_create_employee_existing_cpr_new_org(self):
+        """
+        Should be able to create employee with same CPR no,
+        but in different organisation
+        """
+        self.load_sample_structures()
+
+        payload = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0906340000",
+            "org": {
+                'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
+            }
+        }
+
+        uuid = self._perform_request('/service/e/create', json=payload).json
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        self.assertTrue(c.bruger.get(uuid))
 
     def test_cpr_lookup_prod_mode_false(self):
         # Arrange
