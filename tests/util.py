@@ -6,27 +6,22 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import atexit
 import contextlib
 import json
 import os
 import pprint
 import re
-import socket
-import subprocess
 import sys
 import threading
 from unittest.mock import patch
 
 import flask_testing
-import psycopg2
 import requests
 import requests_mock
-import testing.postgresql
 import time
 import werkzeug.serving
 
-import oio_rest.app
+from oio_rest.utils import test_support
 
 from mora import app, lora, settings
 from mora.importing import spreadsheets
@@ -62,20 +57,6 @@ def get_mock_data(mock_name):
 def get_mock_text(mock_name, mode='r'):
     with open(os.path.join(MOCKING_DIR, mock_name), mode) as fp:
         return fp.read()
-
-
-def get_unused_port():
-    '''Obtain an unused port suitable for connecting to a server.
-
-    Please note that due to not returning the allocated socket, this
-    function is vulnerable to a race condition: in the time between
-    call and port use, something else might acquire the port in
-    question. However, this rarely happens in practice.
-
-    '''
-    with socket.socket() as sock:
-        sock.bind(('', 0))
-        return sock.getsockname()[1]
 
 
 def load_fixture(path, fixture_name, uuid=None, *, verbose=False):
@@ -398,7 +379,7 @@ class TestCaseMixin(object):
             sort_inner_lists(actual))
 
 
-class LoRATestCaseMixin(TestCaseMixin):
+class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
@@ -406,118 +387,39 @@ class LoRATestCaseMixin(TestCaseMixin):
     def load_sample_structures(self, **kwargs):
         load_sample_structures(**kwargs)
 
-    @classmethod
-    def get_lora_environ(cls):
-        '''Extra environment variables for the LoRA process.'''
-
-        return {}
-
-    @staticmethod
-    def __init_db():
-        psql = testing.postgresql.Postgresql()
-        atexit.register(psql.stop)
-
-        with psycopg2.connect(**psql.dsn()) as conn:
-            conn.autocommit = True
-
-            with conn.cursor() as curs:
-                curs.execute(
-                    "CREATE USER {} WITH SUPERUSER PASSWORD %s".format(
-                        oio_rest.app.settings.DB_USER,
-                    ),
-                    (
-                        oio_rest.app.settings.DB_PASSWORD,
-                    ),
-                )
-
-                curs.execute(
-                    "CREATE DATABASE {} WITH OWNER = %s".format(
-                        oio_rest.app.settings.
-                        DATABASE),
-                    (
-                        oio_rest.app.settings.DB_USER,
-                    ),
-                )
-
-        env = os.environ.copy()
-
-        env.update(
-            TESTING='1',
-            PYTHON=sys.executable,
-            MOX_DB=oio_rest.app.settings.DATABASE,
-            MOX_DB_USER=oio_rest.app.settings.DB_USER,
-            MOX_DB_PASSWORD=oio_rest.app.settings.DB_PASSWORD,
-        )
-
-        mkdb_path = os.path.join(
-            os.path.dirname(oio_rest.__file__),
-            '..', '..',
-            'db', 'mkdb.sh',
-        )
-
-        LoRATestCaseMixin.dsn = dsn = {
-            **psql.dsn(),
-
-            'database': oio_rest.app.settings.DATABASE,
-            'user': oio_rest.app.settings.DB_USER,
-            'password': oio_rest.app.settings.DB_PASSWORD,
-        }
-
-        with psycopg2.connect(**dsn) as conn, conn.cursor() as curs:
-            curs.execute(subprocess.check_output([mkdb_path], env=env,
-                                                 stderr=subprocess.DEVNULL))
-
-    dsn = None
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        if not cls.dsn:
-            cls.__init_db()
-
     def setUp(self):
-        super().setUp()
-
         lora_server = werkzeug.serving.make_server(
-            'localhost', 0, oio_rest.app.app,
+            'localhost', 0, self.get_lora_app(),
         )
         (_, self.lora_port) = lora_server.socket.getsockname()
 
-        self.patches = [
+        patches = [
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
                 self.lora_port,
             )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
-            patch('oio_rest.app.settings.DB_HOST', self.dsn['host'],
-                  create=True),
-            patch('oio_rest.app.settings.DB_PORT', self.dsn['port'],
-                  create=True),
             patch('mora.importing.processors._fetch.cache', {}),
             patch('mora.importing.processors._fetch.cache_file',
                   os.devnull),
         ]
 
-        with psycopg2.connect(**self.dsn) as conn:
-            conn.autocommit = True
-
-            with conn.cursor() as curs:
-                from oio_common.db_structure import DATABASE_STRUCTURE
-
-                curs.execute("TRUNCATE TABLE {} CASCADE".format(
-                    ', '.join(sorted(DATABASE_STRUCTURE)),
-                ))
-
-        for p in self.patches:
+        # apply patches, then start the server -- so they're active
+        # while it's running
+        for p in patches:
             p.start()
-            self.addCleanup(p.stop)
 
         threading.Thread(
             target=lora_server.serve_forever,
             args=(),
         ).start()
 
+        # likewise, stop it, and *then* pop the patches
         self.addCleanup(lora_server.shutdown)
+
+        for p in patches:
+            self.addCleanup(p.stop)
+
+        super().setUp()
 
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):
