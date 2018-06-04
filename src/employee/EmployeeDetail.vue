@@ -3,7 +3,7 @@
     <div class="card-body">
       <mo-loader v-show="isLoading"/>
       <h4 class="card-title" v-show="!isLoading">
-        <icon name="user-o"/>
+        <icon name="user-alt"/>
         {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
       </h4>
       <div class="row">
