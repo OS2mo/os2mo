@@ -669,7 +669,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         valid_to = validity.get(keys.TO, sentinel)
 
         if valid_to is None:
-            return util.positive_infinity
+            return util.POSITIVE_INFINITY
 
         elif valid_to is not sentinel:
             return util.from_iso_time(valid_to)
@@ -677,7 +677,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
     if fallback is not None:
         return get_valid_to(fallback)
     else:
-        return util.positive_infinity
+        return util.POSITIVE_INFINITY
 
 
 def get_validities(obj, fallback=None):

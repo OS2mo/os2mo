@@ -77,11 +77,11 @@ class TestUtils(TestCase):
                               '1999-15-11 00:00:00+01')
 
         # make sure we can round-trip the edge cases correctly
-        self.assertEqual(util.parsedatetime(util.negative_infinity),
-                         util.negative_infinity)
+        self.assertEqual(util.parsedatetime(util.NEGATIVE_INFINITY),
+                         util.NEGATIVE_INFINITY)
 
-        self.assertEqual(util.parsedatetime(util.positive_infinity),
-                         util.positive_infinity)
+        self.assertEqual(util.parsedatetime(util.POSITIVE_INFINITY),
+                         util.POSITIVE_INFINITY)
 
     def test_to_frontend_time(self):
         self.assertEqual(util.to_frontend_time(self.today), '01-06-2015')

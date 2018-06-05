@@ -1743,7 +1743,7 @@ class TestClass(TestCase):
         ))
 
         self.assertEqual(
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
             common.get_valid_to({}),
         )
 
@@ -1751,11 +1751,11 @@ class TestClass(TestCase):
             common.get_valid_to({
                 'validity': {},
             }),
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {},
                 {
@@ -1766,7 +1766,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {
                     'validity': {
@@ -1777,7 +1777,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {},
                 {
@@ -1814,18 +1814,18 @@ class TestClass(TestCase):
         # still nothing
         self.assertEqual(
             common.get_valid_to({}, {}),
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
             common.get_valid_to({}, {
                 'validity': None,
             }),
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            util.positive_infinity,
+            util.POSITIVE_INFINITY,
             common.get_valid_to({}, {
                 'validity': {
                     'to': None,
@@ -1835,7 +1835,7 @@ class TestClass(TestCase):
 
         # actually set
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
             common.get_valid_from({
                 'validity': {
                     'from': '2018-03-05',
@@ -1844,7 +1844,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
             common.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
@@ -1854,7 +1854,7 @@ class TestClass(TestCase):
 
         # actually set in the fallback
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
             common.get_valid_from({}, {
                 'validity': {
                     'from': '2018-03-05',
@@ -1863,7 +1863,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
             common.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
@@ -1872,8 +1872,8 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            (datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
-             datetime.datetime(2018, 4, 5, tzinfo=util.default_timezone)),
+            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+             datetime.datetime(2018, 4, 5, tzinfo=util.DEFAULT_TIMEZONE)),
             common.get_validities({
                 'validity': {
                     'from': '2018-03-05',
@@ -1883,8 +1883,8 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            (datetime.datetime(2018, 3, 5, tzinfo=util.default_timezone),
-             util.positive_infinity),
+            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+             util.POSITIVE_INFINITY),
             common.get_validities({
                 'validity': {
                     'from': '2018-03-05'

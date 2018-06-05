@@ -243,12 +243,12 @@ class Connector:
         self.now = self.now.replace(microsecond=0)
 
         if self.__validity == 'past':
-            self.start = util.negative_infinity
+            self.start = util.NEGATIVE_INFINITY
             self.end = self.now
 
         elif self.__validity == 'future':
             self.start = self.now
-            self.end = util.positive_infinity
+            self.end = util.POSITIVE_INFINITY
 
         elif self.__validity == 'present':
             # we should probably use 'virkningstid' but that means we
@@ -264,7 +264,7 @@ class Connector:
             if 'virkningtil' in defaults:
                 self.end = util.parsedatetime(defaults.pop('virkningtil'))
             else:
-                self.end = self.start + util.minimal_interval
+                self.end = self.start + util.MINIMAL_INTERVAL
 
         else:
             raise exceptions.HTTPException(
