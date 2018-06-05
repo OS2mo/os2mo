@@ -48,7 +48,7 @@ MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
 # TODO: the default timezone should be configurable, shouldn't it?
 DEFAULT_TIMEZONE = dateutil.tz.gettz('Europe/Copenhagen')
 
-tzinfos = {
+_tzinfos = {
     None: DEFAULT_TIMEZONE,
     0: dateutil.tz.tzutc,
     1 * 60**2: DEFAULT_TIMEZONE,
@@ -93,7 +93,7 @@ def parsedatetime(s: str) -> datetime.datetime:
         pass
 
     try:
-        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
+        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
     except ValueError:
         raise exceptions.HTTPException('cannot parse {!r}'.format(s))
 
