@@ -240,7 +240,6 @@ class Connector:
         self.now = util.parsedatetime(
             defaults.pop('effective_date', None) or util.now(),
         )
-        self.now = self.now.replace(microsecond=0)
 
         if self.__validity == 'past':
             self.start = util.NEGATIVE_INFINITY
