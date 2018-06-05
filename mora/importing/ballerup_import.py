@@ -12,6 +12,7 @@ import os
 
 import click
 from requests import Session
+from sqlalchemy import union_all
 
 from . import spreadsheets
 from .ballerup import dawa
@@ -62,8 +63,7 @@ def lookup_addr_object(addr):
         postnummer=addr.postnummer
     )
     if not addr_uuid:
-        fail(addr.vejnavn, addr.husnummer, addr.bynavn, addr.uuid,
-             msg="Unable to extract address")
+        fail(addr.uuid, addr.vejnavn, addr.husnummer, addr.postnummer, addr.bynavn)
     return addr_uuid
 
 
@@ -71,10 +71,9 @@ def log(msg, error=False):
     click.echo(msg, err=error)
 
 
-def fail(*args, msg="Import failed"):
+def fail(*args):
     i = map(str, args)
     arg_string = ", ".join(i)
-    log(msg, True)
     log(arg_string, True)
 
 
@@ -86,11 +85,10 @@ def insert(path, payload, *args, method="POST"):
     )
     if not r:
         try:
-            r_json = r.json()
-            fail(json.dumps(r_json, indent=2),
-                 json.dumps(payload, indent=2), args)
+            fail(json.dumps(r.json(), indent=2),
+                 json.dumps(payload, indent=2), *args)
         except json.JSONDecodeError:
-            fail(r)
+            fail(r, json.dumps(payload, indent=2), *args)
     else:
         return r.json()
 
@@ -359,7 +357,18 @@ def bruger():
             }
         }
 
-    persons = db.session.query(db.t_person).all()
+    engagement = db.session.query(
+        db.Engagement.personUuid).subquery()
+    attachedpersons = db.session.query(
+        db.Attachedpersons.personUuid).subquery()
+    functionpersons = db.session.query(
+        db.Functionpersons.personUuid).subquery()
+
+    persons = db.session.query(db.Person).filter(
+        db.Person.uuid.in_(engagement.select()) |
+        db.Person.uuid.in_(attachedpersons.select()) |
+        db.Person.uuid.in_(functionpersons.select())
+    ).all()
     with click.progressbar(
         persons,
     ) as bar:
@@ -412,7 +421,7 @@ def engagement():
             e = engagement_payload(
                 engagement.unitUuid,
                 stilling_uuid,
-                get_class('engagement_type', user_key='unknown')['uuid'],
+                get_class('engagement_type', user_key='Ansat')['uuid'],
                 engagement.uuid,
                 engagement.userKey,
             )
@@ -445,7 +454,7 @@ def tilknytning():
             },
             "job_function": get_class('job_function', user_key='unknown'),
             "association_type": get_class('association_type',
-                                          user_key='unknown'),
+                                          user_key='Tilknyttet'),
             "validity": {
                 "from": "2010-01-01T00:00:00+00:00",
                 "to": None
@@ -529,5 +538,4 @@ def run(*args, compact=False, **kwargs):
     tilknytning()
     leder()
     # Importer orlov?
-    # Importer rolle?
     # Importer IT?

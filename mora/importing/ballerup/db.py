@@ -51,9 +51,14 @@ class GetGeographicDetails(Base):
 # OK
 t_attachedpersons = Table(
     'attachedpersons', metadata,
-    Column('unitUuid', String(36), nullable=False),
-    Column('personUuid', String(36), nullable=False)
+    Column('unitUuid', String(36), nullable=False, primary_key=True),
+    Column('personUuid', String(36), nullable=False, primary_key=True)
 )
+
+
+class Attachedpersons(Base):
+    __table__ = t_attachedpersons
+
 
 # OK
 t_classes = Table(
@@ -123,7 +128,7 @@ t_facetter = Table(
 t_functionpersons = Table(
     'functionpersons', metadata,
     Column('functionUuid', String(36), nullable=False, primary_key=True),
-    Column('personUuid', String(36), nullable=False, primary_key=True)
+    Column('personUuid', String(36), nullable=False, primary_key=True),
 )
 
 
