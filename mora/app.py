@@ -7,8 +7,8 @@
 #
 
 import os
-import traceback
 
+import werkzeug
 import flask
 
 from . import auth
@@ -41,11 +41,12 @@ def handle_invalid_usage(error):
 
     util.log_exception('unhandled exception')
 
-    return exceptions.HTTPException(
-        description=str(error),
-        error_key=exceptions.ErrorCodes.E_UNKNOWN,
-        stacktrace=traceback.format_exc(),
-    ).get_response()
+    if not isinstance(error, werkzeug.exceptions.HTTPException):
+        error = exceptions.HTTPException(
+            description=str(error),
+        )
+
+    return error.get_response()
 
 
 @app.route('/')

@@ -11,5 +11,4 @@ yarn unit
     --cov=mora \
     --cov-report=xml:build/coverage/python.xml \
     --cov-config=.coveragerc \
-    --junitxml=build/reports/python.xml \
-    tests mora
+    --junitxml=build/reports/python.xml

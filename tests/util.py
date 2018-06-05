@@ -289,7 +289,7 @@ class TestCaseMixin(object):
         '''
         message = message or 'request {!r} failed'.format(path)
 
-        r = self._perform_request(path, **kwargs)
+        r = self.request(path, **kwargs)
 
         actual = (
             json.loads(r.get_data(True))
@@ -326,11 +326,11 @@ class TestCaseMixin(object):
         '''
         message = message or "request {!r} didn't fail properly".format(path)
 
-        r = self._perform_request(path, **kwargs)
+        r = self.request(path, **kwargs)
 
         self.assertEqual(r.status_code, code, message)
 
-    def _perform_request(self, path, **kwargs):
+    def request(self, path, **kwargs):
         if 'json' in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist

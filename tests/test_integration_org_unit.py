@@ -261,7 +261,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        r = self._perform_request('/service/ou/create', json=payload)
+        r = self.request('/service/ou/create', json=payload)
         unitid = r.json
 
         expected = {
@@ -1179,8 +1179,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self._perform_request('/service/ou/{}/terminate'.format(unitid),
-                              json=payload)
+        self.request('/service/ou/{}/terminate'.format(unitid),
+                     json=payload)
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
