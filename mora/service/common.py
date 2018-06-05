@@ -81,10 +81,8 @@ FieldTuple = collections.namedtuple(
 )
 
 
-def get_connector():
+def get_connector(**loraparams):
     args = flask.request.args
-
-    loraparams = dict()
 
     if args.get('at'):
         loraparams['effective_date'] = util.from_iso_time(args['at'])
@@ -671,7 +669,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         valid_to = validity.get(keys.TO, sentinel)
 
         if valid_to is None:
-            return util.positive_infinity
+            return util.POSITIVE_INFINITY
 
         elif valid_to is not sentinel:
             return util.from_iso_time(valid_to)
@@ -679,7 +677,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
     if fallback is not None:
         return get_valid_to(fallback)
     else:
-        return util.positive_infinity
+        return util.POSITIVE_INFINITY
 
 
 def get_validities(obj, fallback=None):

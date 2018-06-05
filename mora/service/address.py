@@ -364,8 +364,8 @@ class Addresses(common.AbstractRelationDetail):
                 convert(self.scope.get(id)),
                 key=(
                     lambda v: (
-                        common.get_valid_from(v) or util.negative_infinity,
-                        common.get_valid_to(v) or util.positive_infinity,
+                        common.get_valid_from(v) or util.NEGATIVE_INFINITY,
+                        common.get_valid_to(v) or util.POSITIVE_INFINITY,
                         str(v[keys.NAME]),
                     )
                 ),

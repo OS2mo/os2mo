@@ -1007,7 +1007,7 @@ def create_employee():
     try:
         valid_from = util.get_cpr_birthdate(cpr)
     except ValueError:
-        valid_from = util.negative_infinity
+        valid_from = util.NEGATIVE_INFINITY
 
     bruger = c.bruger.fetch(
         tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
@@ -1019,7 +1019,7 @@ def create_employee():
             cpr=cpr
         )
 
-    valid_to = util.positive_infinity
+    valid_to = util.POSITIVE_INFINITY
 
     # TODO: put something useful into the default user key
     bvn = common.checked_get(req, keys.USER_KEY, str(uuid.uuid4()))
