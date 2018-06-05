@@ -18,7 +18,7 @@ ORG_URL = (
     'http://mox/organisation/organisation'
     '?bvn=%25'
     '&virkningfra=2001-01-01T00%3A00%3A00%2B01%3A00'
-    '&virkningtil=2001-01-02T00%3A00%3A00%2B01%3A00'
+    '&virkningtil=2001-01-01T00%3A00%3A00.000001%2B01%3A00'
 )
 
 

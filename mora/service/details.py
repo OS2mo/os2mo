@@ -71,15 +71,13 @@ def list_details(type, id):
     The value above informs you that at least one entry exists for each of
     'engagement' and 'leave' either in the past, present or future.
     '''
-    c = common.get_connector()
 
-    r = []
+    c = common.get_connector(virkningfra='-infinity',
+                             virkningtil='infinity')
 
     info = DETAIL_TYPES[type]
     search = {
         info.search: id,
-        'virkningfra': '-infinity',
-        'virkningtil': 'infinity',
     }
     scope = getattr(c, info.scope)
 
@@ -551,8 +549,6 @@ def get_detail(type, id, function):
                     'tilknyttedeorganisationer',
                 ),
             },
-            virkningfra='-infinity',
-            virkningtil='infinity',
         )
         if common.is_reg_valid(effect)
     ]

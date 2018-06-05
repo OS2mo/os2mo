@@ -1751,10 +1751,17 @@ class Writing(util.LoRATestCase):
             c.organisationenhed.get(unitid)['relationer']['adresser'],
         )
 
+        # it's in the future, so not written yet
         self.assertRequestResponse(
             '/service/ou/{}/details/address'.format(unitid),
-            addresses,
+            addresses[:-1],
         )
+
+        with freezegun.freeze_time('2017-01-02', tz_offset=1):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
 
     def test_edit_org_unit_address_overwrite(self, mock):
         self.load_sample_structures()

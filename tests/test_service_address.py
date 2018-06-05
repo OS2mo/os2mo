@@ -19,7 +19,7 @@ class TestAddressLookup(util.TestCase):
             'http://mox/organisation/organisation'
             '?uuid=00000000-0000-0000-0000-000000000000'
             '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
-            '&virkningtil=2016-06-07T00%3A00%3A00%2B02%3A00',
+            '&virkningtil=2016-06-06T00%3A00%3A00.000001%2B02%3A00',
             json={
                 "results": [
                     [{
@@ -67,7 +67,7 @@ class TestAddressLookup(util.TestCase):
             'http://mox/organisation/organisation'
             '?uuid=00000000-0000-0000-0000-000000000000'
             '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
-            '&virkningtil=2016-06-07T00%3A00%3A00%2B02%3A00',
+            '&virkningtil=2016-06-06T00%3A00%3A00.000001%2B02%3A00',
             json={
                 "results": [
                     [{
@@ -122,7 +122,7 @@ class TestAddressLookup(util.TestCase):
             'http://mox/organisation/organisation'
             '?uuid=456362c4-0ee4-4e5e-a72c-751239745e62'
             '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
-            '&virkningtil=2016-06-07T00%3A00%3A00%2B02%3A00',
+            '&virkningtil=2016-06-06T00%3A00%3A00.000001%2B02%3A00',
             json={
                 "results": [
                     [{

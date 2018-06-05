@@ -42,6 +42,8 @@ negative_infinity = datetime.datetime.min.replace(
         -datetime.timedelta(hours=23, minutes=59),
     ),
 )
+minimal_interval = datetime.timedelta(microseconds=1)
+
 
 # TODO: the default timezone should be configurable, shouldn't it?
 default_timezone = dateutil.tz.gettz('Europe/Copenhagen')
@@ -154,12 +156,6 @@ def to_frontend_time(s):
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
     return datetime.datetime.now().replace(tzinfo=default_timezone)
-
-
-def today() -> datetime.datetime:
-    '''Get midnight of current date, localized to the current time zone.'''
-    return datetime.datetime.combine(datetime.date.today(),
-                                     datetime.time(tzinfo=default_timezone))
 
 
 def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):

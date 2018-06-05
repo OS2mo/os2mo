@@ -26,7 +26,7 @@ class SimpleTests(unittest.TestCase):
         URL = (
             settings.LORA_URL + 'organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
-            '&virkningfra=2001-01-02T00%3A00%3A00%2B01%3A00'
+            '&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00'
             '&virkningtil=infinity'
         )
         m.get(

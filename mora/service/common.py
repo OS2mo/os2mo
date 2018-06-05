@@ -81,10 +81,8 @@ FieldTuple = collections.namedtuple(
 )
 
 
-def get_connector():
+def get_connector(**loraparams):
     args = flask.request.args
-
-    loraparams = dict()
 
     if args.get('at'):
         loraparams['effective_date'] = util.from_iso_time(args['at'])
