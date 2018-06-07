@@ -1,17 +1,19 @@
 <template>
 <div class="card card-margin">
   <div class="card-body">
-    <b-tabs>
+    <h5>{{label}}</h5>
+    <mo-worklog/>
+    <!-- <b-tabs>
       <b-tab :title="$t('tabs.log.worklog')" active> 
         <mo-worklog/>
       </b-tab>
-      <!-- <b-tab :title="$t('tabs.log.events')">
+      <b-tab :title="$t('tabs.log.events')">
         {{$t('tabs.log.events')}}
-      </b-tab> -->
+      </b-tab>
       <b-tab :title="$t('tabs.log.errors')">
         <mo-errors/>
       </b-tab>
-    </b-tabs>
+    </b-tabs> -->
   </div>
 </div>
 </template>
@@ -25,6 +27,11 @@ export default {
   components: {
     MoWorklog,
     MoErrors
+  },
+  data () {
+    return {
+      label: 'Arbejdslog'
+    }
   }
 }
 </script>
