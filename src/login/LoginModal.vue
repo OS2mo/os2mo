@@ -30,7 +30,7 @@
           Husk mig
         </b-form-checkbox>
       </div>
-{{user}}
+
       <button type="submit" aria-label="Log ind" class="btn btn-primary col">
         Log ind
       </button>
