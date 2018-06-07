@@ -1,4 +1,4 @@
-import { HTTP } from './HttpCommon'
+import { HTTP, Service } from './HttpCommon'
 import { EventBus } from '../EventBus'
 
 let currentUser = {
@@ -18,5 +18,15 @@ export default {
 
   getUser () {
     return currentUser
+  },
+
+  login (user) {
+    return Service.post('/user/login', user)
+      .then(response => {
+        console.log('Det virker sgu')
+      })
+      .catch(error => {
+        return error.response.data
+      })
   }
 }
