@@ -59,7 +59,7 @@ class Tests(util.LoRATestCase):
             'user_key': 'AU',
             'unit_count': 1,
             'person_count': 2,
-            'employment_count': 1,
+            'engagement_count': 1,
             'association_count': 1,
             'leave_count': 1,
             'role_count': 1,
