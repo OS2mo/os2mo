@@ -67,7 +67,7 @@ pipeline {
       steps {
         echo 'Deploying....'
 
-        timeout(1) {
+        timeout(5) {
           ansiColor('xterm') {
             sh './build/run-deploy.sh'
           }
