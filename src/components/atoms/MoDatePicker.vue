@@ -84,7 +84,8 @@ export default {
     }
   },
   created () {
-    this.selected = this.value ? new Date(this.value) : null
+    this.selected = this.value
+    this.date_string = this.value
   }
 }
 </script>
