@@ -74,6 +74,7 @@ export default {
           if (response.error) {
             vm.backendValidationError = response.error_key
           } else {
+            vm.backendValidationError = null
             this.$emit('input', response)
           }
         })
