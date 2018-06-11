@@ -3,8 +3,8 @@ fixture('Getting Started')
 
 test('My first test', async t => {
   await t
-      .click('.btn-text')
-      .typeText('input[name="username"]', 'Bendtner')
-      .typeText('input[name="password"]', '12345')
-      .click('button[type="submit"]')
+    .click('.btn-text')
+    .typeText('input[name="username"]', 'Bendtner')
+    .typeText('input[name="password"]', '12345')
+    .click('button[type="submit"]')
 })
