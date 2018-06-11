@@ -23,7 +23,6 @@ export default {
   login (user) {
     return Service.post('/user/login', user)
       .then(response => {
-        console.log('Det virker sgu')
       })
       .catch(error => {
         return error.response.data
