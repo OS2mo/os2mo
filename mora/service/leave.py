@@ -44,7 +44,7 @@ def create_leave(employee_uuid, req):
     validator.does_employee_have_active_engagement(employee_uuid, valid_from,
                                                    valid_to)
 
-    leave = create_organisationsfunktion_payload(
+    return create_organisationsfunktion_payload(
         funktionsnavn=keys.LEAVE_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
@@ -53,8 +53,6 @@ def create_leave(employee_uuid, req):
         tilknyttedeorganisationer=[org_uuid],
         funktionstype=leave_type_uuid,
     )
-
-    c.organisationfunktion.create(leave)
 
 
 def edit_leave(employee_uuid, req):

@@ -45,7 +45,7 @@ def create_role(employee_uuid, req):
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
 
-    role = create_organisationsfunktion_payload(
+    return create_organisationsfunktion_payload(
         funktionsnavn=keys.ROLE_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
@@ -55,8 +55,6 @@ def create_role(employee_uuid, req):
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=role_type_uuid,
     )
-
-    c.organisationfunktion.create(role)
 
 
 def edit_role(employee_uuid, req):

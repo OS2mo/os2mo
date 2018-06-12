@@ -64,7 +64,7 @@ def create_manager(employee_uuid, req):
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
 
-    manager = common.create_organisationsfunktion_payload(
+    return common.create_organisationsfunktion_payload(
         funktionsnavn=keys.MANAGER_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
@@ -78,8 +78,6 @@ def create_manager(employee_uuid, req):
             address.get_relation_for(address_obj),
         ] if address_obj else None,
     )
-
-    c.organisationfunktion.create(manager)
 
 
 def edit_manager(employee_uuid, req):
