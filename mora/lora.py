@@ -348,20 +348,22 @@ class Scope:
         params['maximalantalresultater'] = start + limit
 
         if 'uuid' in params:
-            uuids = util.uniqueify(params['uuid'])
+            uuids = util.uniqueify(params.pop('uuid'))
         else:
             uuids = self.fetch(**params)[start:start + limit]
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 
-        # this is not exactly accurate but close enough
-        available_length = (
-            settings.MAX_REQUEST_LENGTH -
-            len(self.base_path) -
-            sum(map(len, self.connector.defaults)) -
-            sum(map(len, self.connector.defaults.values())) -
-            len(self.connector.defaults) * 2
-        )
+        # as an optimisation, we want to minimize the amount of
+        # roundtrips whilst also avoiding too large requests -- to
+        # this, we calculate in advance how many we can request
+        available_length = settings.MAX_REQUEST_LENGTH
+        available_length -= 4  # for 'GET '
+        available_length -= len(self.base_path)
+
+        for k, v in itertools.chain(self.connector.defaults.items(),
+                                    params.items()):
+            available_length -= len(k) + len(str(v)) + 2
 
         per_length = 36 + len('&uuid=')
 
