@@ -344,7 +344,7 @@ class Scope:
 
     __call__ = fetch
 
-    def get_all(self, *, start=0, limit=1000, **params):
+    def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
         params['maximalantalresultater'] = start + limit
 
         if 'uuid' in params:
@@ -372,7 +372,9 @@ class Scope:
                 yield d['id'], (d['registreringer'] if wantregs
                                 else d['registreringer'][0])
 
-    def paged_get(self, func, *, start=0, limit=1000, **params):
+    def paged_get(self, func, *,
+                  start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                  **params):
 
         uuids = self.fetch(**params)
 
