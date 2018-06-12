@@ -218,6 +218,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
     else:
         raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
             'invalid details {!r}'.format(details),
         )
 
