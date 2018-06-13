@@ -31,6 +31,7 @@ from . import leave
 from . import org
 from . import role
 from .. import lora
+from .. import settings
 from .. import util
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
@@ -125,7 +126,7 @@ def list_employees(orgid):
     args = flask.request.args
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)) or 20,
+        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
         tilhoerer=str(orgid),
         gyldighed='Aktiv',

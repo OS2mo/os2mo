@@ -30,6 +30,7 @@ from . import mapping
 from . import org
 from .. import exceptions
 from .. import lora
+from .. import settings
 from .. import util
 from .. import validator
 
@@ -394,7 +395,7 @@ def list_orgunits(orgid):
     args = flask.request.args
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)) or 20,
+        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
         tilhoerer=str(orgid),
         gyldighed='Aktiv',
