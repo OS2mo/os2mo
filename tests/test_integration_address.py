@@ -1414,9 +1414,17 @@ class Writing(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-02-04T00:00:00+01:00',
+                    'to': '2017-10-22T00:00:00+02:00',
+                },
             },
         )
 
