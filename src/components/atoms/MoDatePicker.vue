@@ -64,7 +64,8 @@ export default {
     selected (newVal) {
       // send on a date-only string in ISO format, so that we
       // disregard timezones and the time-of-day
-      this.date_string = this.$moment(new Date(newVal)).format('YYYY-MM-DD')
+      this.date_string = newVal ?
+        this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
     },
 
     date_string (newVal) {
