@@ -32,6 +32,20 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+def get_relation_for(obj, *, fallback=None):
+    rel = {
+        'uuid': common.get_uuid(obj, fallback),
+        'objekttype': 'itsystem',
+    }
+
+    validity = common.get_validity_effect(obj, fallback)
+
+    if validity is not None:
+        rel['virkning'] = validity
+
+    return rel
+
+
 @blueprint.route('/o/<uuid:orgid>/it/')
 @util.restrictargs('at')
 def list_it_systems(orgid: uuid.UUID):
@@ -220,20 +234,13 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
     @staticmethod
-    def get_relation_for(value, start, end):
-        return {
-            'uuid': value,
-            'objekttype': 'itsystem',
-            'virkning': {
-                'from': util.to_lora_time(start),
-                'to': util.to_lora_time(end),
-            },
-        }
+    def get_relation_for(req, *, fallback=None):
+        systemobj = common.checked_get(req, keys.ITSYSTEM, {}, required=True)
+
+        return 'tilknyttedeitsystemer', get_relation_for(systemobj,
+                                                         fallback=req)
 
     def create(self, id, req):
-        systemobj = common.checked_get(req, keys.ITSYSTEM, {}, required=True)
-        systemid = common.get_uuid(systemobj)
-
         original = self.scope.get(
             uuid=id,
             virkningfra='-infinity',
@@ -243,15 +250,11 @@ class ITSystems(common.AbstractRelationDetail):
         if not original:
             raise exceptions.HTTPException(ErrorCodes.E_USER_NOT_FOUND)
 
-        rels = original['relationer'].get('tilknyttedeitsystemer', [])
-
-        start, end = common.get_validities(req)
-
-        rels.append(self.get_relation_for(systemid, start, end))
+        relname, rel = self.get_relation_for(req)
 
         payload = {
             'relationer': {
-                'tilknyttedeitsystemer': rels,
+                relname: original['relationer'].get(relname, []) + [rel],
             },
             'note': 'Tilføj IT-system',
         }
@@ -266,32 +269,23 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
         old_entry = req.get('original')
-        old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
 
         if not old_entry:
             raise exceptions.HTTPException(ErrorCodes.V_ORIGINAL_REQUIRED)
 
         # We are performing an update of a pre-existing effect
-        old_rel = self.get_relation_for(
-            common.get_uuid(old_entry),
-            common.get_valid_from(old_entry),
-            common.get_valid_to(old_entry),
-        )
+        relname = 'tilknyttedeitsystemer'
+        old_rel = get_relation_for(old_entry)
 
         new_entry = req['data']
+        new_rel = get_relation_for(new_entry, fallback=old_entry)
 
-        new_rel = self.get_relation_for(
-            common.get_uuid(new_entry, old_entry),
-            common.get_valid_from(new_entry, old_entry),
-            common.get_valid_to(new_entry, old_entry),
-        )
+        old_rels = original['relationer'].get(relname) or []
 
         payload = {
             'relationer': {
-                'tilknyttedeitsystemer': common.replace_relation_value(
-                    original['relationer'].get('tilknyttedeitsystemer') or [],
-                    old_rel, new_rel,
-                ),
+                relname: common.replace_relation_value(old_rels,
+                                                       old_rel, new_rel),
             },
             'note': 'Rediger IT-system',
         }

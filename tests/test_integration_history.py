@@ -157,27 +157,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                 'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
             },
             {
-                'action': 'Opret leder',
-                'life_cycle_code': 'Rettet',
-                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
-            },
-            {
-                'action': 'Opret orlov',
-                'life_cycle_code': 'Rettet',
-                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
-            },
-            {
-                'action': 'Opret rolle',
-                'life_cycle_code': 'Rettet',
-                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
-            },
-            {
-                'action': 'Opret tilknytning',
-                'life_cycle_code': 'Rettet',
-                'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
-            },
-            {
-                'action': 'Opret engagement',
+                'action': 'Opret engagement, tilknytning, rolle, orlov, leder',
                 'life_cycle_code': 'Rettet',
                 'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
             },

@@ -160,7 +160,14 @@ class Writing(util.LoRATestCase):
                 'description': "Missing uuid",
                 'key': 'uuid',
                 'status': 400,
-                'obj': {}
+                'obj': {
+                    'itsystem': {},
+                    'type': 'it',
+                    'validity': {
+                        'from': None,
+                        'to': None,
+                    },
+                },
             },
             json=[
                 {
@@ -438,9 +445,6 @@ class Writing(util.LoRATestCase):
 
         self.assertNotEqual(original, edited)
 
-        # XXX: Remove 'garbage' value placed as part of create operation
-        del edited['tilstande']['brugergyldighed'][0]['virkning']['notetekst']
-
         self.assertEqual(original['attributter'], edited['attributter'])
         self.assertEqual(original['tilstande'], edited['tilstande'])
 
@@ -502,9 +506,6 @@ class Writing(util.LoRATestCase):
         )
 
         edited = c.bruger.get(userid)
-
-        # XXX: Remove 'garbage' value placed as part of create operation
-        del edited['tilstande']['brugergyldighed'][0]['virkning']['notetekst']
 
         self.assertEqual(original['attributter'], edited['attributter'])
         self.assertEqual(original['tilstande'], edited['tilstande'])

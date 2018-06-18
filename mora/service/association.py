@@ -52,7 +52,7 @@ def create_association(employee_uuid, req):
                                                       org_unit_uuid,
                                                       valid_from)
 
-    association = create_organisationsfunktion_payload(
+    return create_organisationsfunktion_payload(
         funktionsnavn=keys.ASSOCIATION_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
@@ -66,8 +66,6 @@ def create_association(employee_uuid, req):
             address.get_relation_for(address_obj),
         ] if address_obj else None,
     )
-
-    c.organisationfunktion.create(association)
 
 
 def edit_association(employee_uuid, req):

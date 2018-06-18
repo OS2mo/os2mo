@@ -397,6 +397,10 @@ class Addresses(common.AbstractRelationDetail):
 
         self.scope.update(payload, id)
 
+    @staticmethod
+    def get_relation_for(req):
+        return 'adresser', get_relation_for(req)
+
     def edit(self, id, req):
         original = self.scope.get(
             uuid=id,

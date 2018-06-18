@@ -15,6 +15,7 @@ This section describes how to interact with employees.
 
 '''
 
+import collections
 import uuid
 
 import flask
@@ -443,9 +444,17 @@ def create_employee_relation(employee_uuid):
     }
 
     reqs = flask.request.get_json()
+    c = common.get_connector()
+
+    functions = []
+    rels = collections.defaultdict(list)
+    types = []
+
     for req in reqs:
         role_type = req.get('type')
         handler = handlers.get(role_type)
+
+        types.append(common.RELATION_TRANSLATIONS[role_type])
 
         if not handler:
             raise exceptions.HTTPException(
@@ -453,19 +462,43 @@ def create_employee_relation(employee_uuid):
                 message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
-            handler(common.get_connector().bruger).create(
-                str(employee_uuid),
-                req,
-            )
+            relname, rel = handler.get_relation_for(req)
+
+            rels[relname].append(rel)
 
         else:
-            handler(str(employee_uuid), req)
+            functions.append(handler(str(employee_uuid), req))
 
+    note = "Opret {}".format(', '.join(types))
+
+    if not rels:
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            "Opret {}".format(common.RELATION_TRANSLATIONS[role_type])
+            note,
         )
+    else:
+        original = c.bruger.get(uuid=employee_uuid,
+                                virkningfra='-infinity',
+                                virkningtil='infinity')
+
+        if original is None:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_USER_NOT_FOUND,
+            )
+
+        payload = {
+            'relationer': {
+                relname: original['relationer'].get(relname, []) + relvalues
+                for relname, relvalues in rels.items()
+            },
+            'note': note,
+        }
+
+        c.bruger.update(payload, employee_uuid)
+
+    for payload in functions:
+        c.organisationfunktion.create(payload)
 
     # TODO:
     return flask.jsonify(employee_uuid), 200
