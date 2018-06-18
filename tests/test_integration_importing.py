@@ -563,34 +563,35 @@ class IntegrationTests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/children',
-            [{'child_count': 3,
-              'name': 'Ballerup Kommune',
-              'user_key': 'BALLERUP',
-              'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'}],
+            [{
+                'child_count': 3,
+                'name': 'Ballerup Kommune',
+                'user_key': 'BALLERUP',
+                'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                'validity': {
+                    'from': '1964-05-24T00:00:00+01:00',
+                    'to': None,
+                },
+            }],
         )
 
         self.assertRequestResponse(
             '/service/ou/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4/children',
-            [
-                {
-                    "child_count": 0,
-                    "name": "Ballerup Bibliotek",
-                    "user_key": "BIBLIOTEK",
-                    "uuid": "921e44d3-2ec0-4c16-9935-2ec7976566dc"
-                },
-                {
-                    "child_count": 0,
-                    "name": "Ballerup Familiehus",
-                    "user_key": "FAMILIEHUS",
-                    "uuid": "c12393e9-ee1d-4b91-a6a9-a17508c055c9"
-                },
-                {
-                    "child_count": 0,
-                    "name": "Ballerup Idr\u00e6tspark",
-                    "user_key": "IDR\u00c6TSPARK",
-                    "uuid": "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
-                }
-            ],
+            [{'child_count': 0,
+              'name': 'Ballerup Bibliotek',
+              'user_key': 'BIBLIOTEK',
+              'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc',
+              'validity': {'from': '1993-01-01T00:00:00+01:00', 'to': None}},
+             {'child_count': 0,
+              'name': 'Ballerup Familiehus',
+              'user_key': 'FAMILIEHUS',
+              'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+              'validity': {'from': '2006-01-01T00:00:00+01:00', 'to': None}},
+             {'child_count': 0,
+              'name': 'Ballerup Idrætspark',
+              'user_key': 'IDRÆTSPARK',
+              'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc',
+              'validity': {'from': '1993-01-01T00:00:00+01:00', 'to': None}}],
         )
 
         for childid in (
@@ -622,6 +623,10 @@ class IntegrationTests(util.LoRATestCase):
                     'uuid': 'f2f93f92-d08f-4b76-904f-af9144e23195',
                 },
                 'parent': None,
+                'validity': {
+                    'from': '1964-05-24T00:00:00+01:00',
+                    'to': None,
+                },
             },
         )
 
@@ -629,43 +634,56 @@ class IntegrationTests(util.LoRATestCase):
             '/service/ou/c12393e9-ee1d-4b91-a6a9-a17508c055c9/',
             {
                 'name': 'Ballerup Familiehus',
-                'user_key': 'FAMILIEHUS',
-                'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
                 'org': {'name': 'Ballerup Kommune',
                         'user_key': 'Ballerup Kommune',
                         'uuid': '3a87187c-f25a-40a1-8d42-312b2e2b43bd'},
-                'org_unit_type': {'example': None,
-                                  'name': 'Fagligt Center',
-                                  'scope': None,
-                                  'user_key': 'Fagligt Center',
-                                  'uuid': '59f10075-88f6-4758-bf61-'
-                                  '454858170776'},
-                'parent': {'name': 'Ballerup Kommune',
-                           'user_key': 'BALLERUP',
-                           'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Fagligt Center',
+                    'scope': None,
+                    'user_key': 'Fagligt Center',
+                    'uuid': '59f10075-88f6-4758-bf61-454858170776',
+                },
+                'parent': {
+                    'name': 'Ballerup Kommune',
+                    'user_key': 'BALLERUP',
+                    'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                    'validity': {
+                        'from': '1964-05-24T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+                'user_key': 'FAMILIEHUS',
+                'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+                'validity': {'from': '2006-01-01T00:00:00+01:00', 'to': None},
             },
         )
 
         self.assertRequestResponse(
             '/service/o/3a87187c-f25a-40a1-8d42-312b2e2b43bd/ou/',
-            {
-                'items': [
-                    {'name': 'Ballerup Bibliotek',
-                     'user_key': 'BIBLIOTEK',
-                     'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc'},
-                    {'name': 'Ballerup Kommune',
-                     'user_key': 'BALLERUP',
-                     'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'},
-                    {'name': 'Ballerup Familiehus',
-                     'user_key': 'FAMILIEHUS',
-                     'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9'},
-                    {'name': 'Ballerup Idrætspark',
-                     'user_key': 'IDRÆTSPARK',
-                     'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'}
-                ],
-                'offset': 0,
-                'total': 4
-            }
+            {'items': [
+                {'name': 'Ballerup Bibliotek',
+                 'user_key': 'BIBLIOTEK',
+                 'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc',
+                 'validity': {'from': '1993-01-01T00:00:00+01:00',
+                              'to': None}},
+                {'name': 'Ballerup Kommune',
+                 'user_key': 'BALLERUP',
+                 'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                 'validity': {'from': '1964-05-24T00:00:00+01:00',
+                              'to': None}},
+                {'name': 'Ballerup Familiehus',
+                 'user_key': 'FAMILIEHUS',
+                 'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
+                 'validity': {'from': '2006-01-01T00:00:00+01:00',
+                              'to': None}},
+                {'name': 'Ballerup Idrætspark',
+                 'user_key': 'IDRÆTSPARK',
+                 'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc',
+                 'validity': {'from': '1993-01-01T00:00:00+01:00',
+                              'to': None}}],
+             'offset': 0,
+             'total': 4},
         )
 
         self.assertRequestResponse(
@@ -2404,6 +2422,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            }
                         },
                         'person': {
                             'name': 'Sune Skriver',
@@ -2436,10 +2458,15 @@ class IntegrationTests(util.LoRATestCase):
                         'user_key': 'Administrativ leder',
                         'uuid': 'ee8dd627-9ff1-47c2-b900-aa3c214a31ee',
                     },
-                    'org_unit': {'name': 'Ballerup Kommune',
-                                 'user_key': 'BALLERUP',
-                                 'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4'
-                                 },
+                    'org_unit': {
+                        'name': 'Ballerup Kommune',
+                        'user_key': 'BALLERUP',
+                        'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                        'validity': {
+                            'from': '1964-05-24T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
                     'person': {'name': 'Sanne Schäff',
                                'uuid': '1ce40e25-6238-4202-9e93-526b348ec745'},
                     'engagement_type': {
@@ -2473,6 +2500,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'person': {
                             'name': 'Sanne Schäff',
@@ -2503,6 +2534,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'person': {
                             'name': 'Sune Skriver',
@@ -2548,6 +2583,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'person': {
                             'name': 'Sanne Schäff',
@@ -2586,6 +2625,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'person': {
                             'name': 'Sanne Schäff',
@@ -2618,6 +2661,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'person': {
                             'name': 'Sanne Schäff',
@@ -2648,6 +2695,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'person': {
                             'name': 'Sanne Schäff',
@@ -2739,6 +2790,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
                         "validity": {
@@ -2784,6 +2839,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
                         "validity": {
@@ -3127,6 +3186,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'validity': {
                             'from': '1993-01-01T00:00:00+01:00',
@@ -3161,6 +3224,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'validity': {
                             'from': '2006-01-01T00:00:00+01:00',
@@ -3195,6 +3262,10 @@ class IntegrationTests(util.LoRATestCase):
                             'name': 'Ballerup Kommune',
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
+                            'validity': {
+                                'from': '1964-05-24T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         'validity': {
                             'from': '1993-01-01T00:00:00+01:00',

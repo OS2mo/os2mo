@@ -42,6 +42,10 @@ class Tests(util.LoRATestCase):
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                     "org": {
                         "name": "Aarhus Universitet",
@@ -80,6 +84,10 @@ class Tests(util.LoRATestCase):
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                     "validity": {
                         "from": "2017-01-01T00:00:00+01:00",
@@ -113,6 +121,10 @@ class Tests(util.LoRATestCase):
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                     "validity": {
                         "from": "2018-01-01T00:00:00+01:00",
@@ -145,7 +157,11 @@ class Tests(util.LoRATestCase):
                     'parent': {
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                     'validity': {
                         'from': '2016-01-01T00:00:00+01:00',
@@ -171,7 +187,11 @@ class Tests(util.LoRATestCase):
                     'parent': {
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                     'validity': {
                         'from': '2017-01-01T00:00:00+01:00',
@@ -197,7 +217,11 @@ class Tests(util.LoRATestCase):
                     'parent': {
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                     'validity': {
                         'from': '2018-01-01T00:00:00+01:00',
@@ -378,9 +402,17 @@ class Tests(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 'user_key': 'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-02-04T00:00:00+01:00',
+                    'to': '2017-10-22T00:00:00+02:00',
+                }
             },
         )
 
@@ -919,6 +951,10 @@ class Tests(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 'user_key': 'samf',
                 'uuid': org_unit_uuid,
@@ -1198,9 +1234,15 @@ class Tests(util.LoRATestCase):
                                            '88a9-31e02e420e52'},
                  'parent': {'name': 'Humanistisk fakultet',
                             'user_key': 'hum',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01T00:00:00+01:00',
+                                         'to': None}},
                  'user_key': 'fil',
                  'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                 'validity': {
+                     'from': '2016-01-01T00:00:00+01:00',
+                     'to': None,
+                 },
                  'validity': {'from': '2016-01-01T00:00:00+01:00',
                               'to': '2016-10-22T00:00:00+02:00'}}]
         )
@@ -1252,6 +1294,10 @@ class Tests(util.LoRATestCase):
                         'name': 'Afdeling for Fortidshistorik',
                         'user_key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                 ],
             },
@@ -1283,12 +1329,20 @@ class Tests(util.LoRATestCase):
                         'name': 'Filosofisk Institut',
                         'user_key': 'fil',
                         'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                     {
                         'child_count': 1,
                         'name': 'Historisk Institut',
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     },
                 ],
             },
@@ -1320,6 +1374,10 @@ class Tests(util.LoRATestCase):
                         'name': 'Filosofisk Institut',
                         'user_key': 'fil',
                         'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     },
                 ],
             },
