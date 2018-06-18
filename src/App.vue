@@ -10,8 +10,9 @@
   export default {
     name: 'app',
     mounted () {
-      if (process.env.NODE_ENV !== 'production') {
-        var usersnapKey = process.env.USERSNAP_KEY || null
+      var usersnapKey = process.env.USERSNAP_KEY || null
+      
+      if (usersnapKey) {
         var s = document.createElement('script')
         s.type = 'text/javascript'
         s.async = true
