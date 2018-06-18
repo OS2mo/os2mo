@@ -8,7 +8,7 @@
         />
       </div>
       <div class="col-1 v-center">
-        <button @click="remove()" type="button" class="btn btn-outline-danger">
+        <button @click="remove()" type="button" class="btn btn-outline-danger" :class="smallButtons ? 'btn-sm' : ''">
           <icon name="minus"/>
         </button>
       </div>
@@ -22,7 +22,8 @@ export default {
     entryComponent: {
       type: Object,
       required: true
-    }
+    },
+    smallButtons: Boolean
   },
   data () {
     return {
