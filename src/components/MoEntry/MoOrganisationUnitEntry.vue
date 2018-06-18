@@ -1,6 +1,6 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="orgUnit.validity" disable-to-date/>
+      <mo-date-picker-range v-model="orgUnit.validity" :disable-to-date="!creatingDate"/>
 
       <div class="form-row">
         <mo-input :label="$t('input_fields.name')" v-model="orgUnit.name" required/>
@@ -35,7 +35,8 @@ export default {
   },
   props: {
     value: Object,
-    disableOrgUnitPicker: Boolean
+    disableOrgUnitPicker: Boolean,
+    creatingDate: Boolean
   },
   data () {
     return {
