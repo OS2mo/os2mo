@@ -133,7 +133,8 @@ def get_one_class(c, classid, clazz=None):
 
         if not clazz:
             raise exceptions.HTTPException(
-                'no such class {!r}'.format(classid),
+                exceptions.ErrorCodes.E_UNKNOWN,
+                'no such class {!r}'.format(classid)
             )
 
     attrs = clazz['attributter']['klasseegenskaber'][0]

@@ -154,8 +154,8 @@ class OrgUnit(common.AbstractRelationDetail):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
-                                                  new_to)
+        # validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+        #                                           new_to)
 
         c.organisationenhed.update(payload, unitid)
 
@@ -495,8 +495,8 @@ def create_org_unit():
         adresser=addresses,
     )
 
-    validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                              valid_to)
+    # validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+    #                                           valid_to)
 
     unitid = c.organisationenhed.create(org_unit, uuid=org_unit_uuid)
 

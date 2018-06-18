@@ -16,6 +16,7 @@ This section describes how to interact with employee associations.
 
 import flask
 
+from mora import exceptions
 from .. import lora
 from .. import validator
 from . import address
@@ -33,8 +34,13 @@ def create_association(employee_uuid, req):
     c = lora.Connector()
 
     org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
-    org_uuid = c.organisationenhed.get(
-        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    org_unit = c.organisationenhed.get(org_unit_uuid)
+    if not org_unit:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            uuid=org_unit_uuid
+        )
+    org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
     association_type_uuid = common.get_mapping_uuid(req, keys.ASSOCIATION_TYPE,
                                                     required=True)

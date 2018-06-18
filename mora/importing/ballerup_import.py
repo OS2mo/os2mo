@@ -5,14 +5,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
+import collections
+import string
+from datetime import datetime
 import functools
 import json
 import os
 
 import click
 from requests import Session
-from sqlalchemy import union_all
+
+import csv
 
 from . import spreadsheets
 from .ballerup import dawa
@@ -21,13 +24,16 @@ from ..service import common
 
 session = Session()
 
-LORA_URL = os.environ.get('LORA_URL', "http://mox.lxc:8080")
+LORA_URL = os.environ.get('LORA_URL', "http://10.220.213.154:8080")
 MO_URL = os.environ.get('MO_URL', "http://localhost:5000/service")
 
 ORG_UUID = os.environ.get('ORG_UUID', "3a87187c-f25a-40a1-8d42-312b2e2b43bd")
 
 CSV_PATH = os.environ.get('CSV_PATH',
                           'mora/importing/ballerup/data/BALLERUP.csv')
+
+ORG_UNIT_CSV = "/home/cm/proj/Ballerup/data/org.csv"
+PERSON_CSV = "/home/cm/proj/Ballerup/data/person.csv"
 
 
 @functools.lru_cache(1024)
@@ -112,7 +118,7 @@ def address_payload(value, address_type):
 
 def create_klasse(bvn, titel, beskrivelse, ansvarlig, facet):
     virkning = {
-        "from": "2010-01-01 00:00:00+01:00",
+        "from": "-infinity",
         "to": "infinity"
     }
 
@@ -161,29 +167,53 @@ def stillingsbetegnelser():
     log('Importerer stillingsbetegnelser')
 
     # Get job titles by finding all rows referred to by engagements
-    jobtitles = db.session.query(
+    jobtitle_cache = {}
+
+    asdb_jobtitles = db.session.query(
         db.Jobtitles
     ).join(
         db.Engagement, db.Jobtitles.uuid == db.Engagement.stillingUuid
     ).distinct().all()
 
-    with click.progressbar(
-        jobtitles
-    ) as bar:
-        for row in bar:
-            k = create_klasse(
-                row.brugervendtnoegle,
+    for row in asdb_jobtitles:
+        title = row.title.lower()
+        jobtitle_cache[title] = (row.uuid, create_klasse(
+                row.title.lower(),
                 row.title,
                 str(row.objektid),
                 ORG_UUID,
                 get_facet('job_function')
-            )
-            insert(
-                "{}/klassifikation/klasse/{}".format(LORA_URL, row.uuid),
-                k,
-                row,
-                method="PUT"
-            )
+            ))
+
+    with open(PERSON_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            title = row['Stillingsbetegnelse']
+            if not jobtitle_cache.get(title.lower()):
+                jobtitle_cache[title.lower()] = (None, create_klasse(
+                    title.lower(),
+                    title,
+                    title,
+                    ORG_UUID,
+                    get_facet('job_function')
+                ))
+
+    with click.progressbar(
+        jobtitle_cache.values()
+    ) as bar:
+        for uuid, row in bar:
+            if uuid:
+                insert(
+                    "{}/klassifikation/klasse/{}".format(LORA_URL, uuid),
+                    row,
+                    method="PUT"
+                )
+            else:
+                insert(
+                    "{}/klassifikation/klasse".format(LORA_URL),
+                    row,
+                    method="POST"
+                )
 
 
 def lederansvar():
@@ -242,6 +272,40 @@ def ledertyper():
             )
 
 
+def enhedstyper():
+    log('Importerer enhedstyper')
+    with open(ORG_UNIT_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        unit_types = {row['enhedstype'] for row in reader}
+
+    with click.progressbar(
+        unit_types
+    ) as bar:
+        for row in bar:
+            unit = db.session.query(db.Jobtitles).filter(
+                db.Jobtitles.uuid == row).one()
+            k = create_klasse(
+                unit.brugervendtnoegle if unit.brugervendtnoegle else unit.title,
+                string.capwords(unit.title),
+                str(unit.objektid),
+                ORG_UUID,
+                get_facet('org_unit_type')
+            )
+            insert(
+                "{}/klassifikation/klasse/{}".format(LORA_URL, unit.uuid),
+                k,
+                row,
+                method="PUT"
+            )
+
+
+Enhed = collections.namedtuple(
+    'Enhed',
+    ['uuid', 'type', 'objectid', 'overordnetid', 'navn', 'enhedstype',
+     'gyldig_fra', 'gyldig_til', 'bvn']
+)
+
+
 def enhed():
     """
     Due to the parent/child structure found in org units we are forced
@@ -254,29 +318,22 @@ def enhed():
     # parent objektid to row
     structure = {}
 
-    def org_unit_payload(row, addrs):
-        uuid, unittype, objectid, overordnet, navn, bvn = row
-
-        valid_from = "2010-01-01"
-
-        org_unit_type = get_class("org_unit_type", user_key='unknown')[
-            'uuid']
-
+    def org_unit_payload(unit: Enhed, addrs):
         return {
-            "name": navn,
+            "name": unit.navn,
             "parent": {
-                "uuid": org_unit_map[overordnet]
+                "uuid": org_unit_map[unit.overordnetid]
             },
             "org_unit_type": {
-                "uuid": org_unit_type
+                "uuid": unit.enhedstype
             },
-            "user_key": bvn,
+            "user_key": unit.bvn,
             "validity": {
-                "from": valid_from,
-                "to": None,
+                "from": "1970-01-01",
+                "to": None
             },
             "addresses": addrs,
-            "uuid": uuid,
+            "uuid": unit.uuid,
         }
 
     def child_unit(addr_type, addr_uuids, u):
@@ -287,25 +344,53 @@ def enhed():
         )
         return payload
 
-    def root_unit(addr_type, addr_uuids, u):
+    def root_unit(addr_type, addr_uuids, u: Enhed):
         addresses = [{
             "uuid": a,
             "objekttype": addr_type['uuid']
         } for a in addr_uuids]
         payload = common.create_organisationsenhed_payload(
             u.navn,
-            "2010-01-01",
-            "infinity",
-            'root',
+            u.gyldig_fra,
+            "infinity" if u.gyldig_til is None else u.gyldig_til,
+            u.bvn,
             ORG_UUID,
-            get_class("org_unit_type", user_key='unknown')['uuid'],
+            u.enhedstype,
             ORG_UUID,
             addresses,
         )
         return payload
 
+    # Fetch dataset
+    data = []
+    with open(ORG_UNIT_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            asdb_unit = db.session.query(db.Unit).filter(
+                db.Unit.uuid == row['uuid']).one_or_none()
+
+            def format_date(d):
+                return datetime.strptime(d, '%d/%m/%Y').isoformat()
+
+            valid_from = format_date(row['gyldig_fra'])
+            valid_to = None if row[
+                                   'gyldig_til'] == "INFINITY" else format_date(
+                row['gyldig_til'])
+
+            data.append(Enhed(
+                row['uuid'],
+                row['type'],
+                row['objectid'],
+                row['overordnetid'],
+                row['navn'],
+                row['enhedstype'],
+                valid_from,
+                valid_to,
+                asdb_unit.brugervendtNoegle if asdb_unit else None
+            ))
+
     # Build structure
-    for row in db.session.query(db.t_unit):
+    for row in data:
         org_unit_map[row.objectid] = row.uuid
         entry = structure.setdefault(row.overordnetid, [])
         entry.append(row)
@@ -341,47 +426,87 @@ def enhed():
 
     with click.progressbar(length=len(org_unit_map) - 1) as bar:
         # 0 is the root enhed
-        traverse_units(0, bar)
+        traverse_units("0", bar)
 
+Person = collections.namedtuple(
+    'Person',
+    ['person_uuid', 'cpr', 'name', 'bvn']
+)
+
+Address = collections.namedtuple(
+    'Address',
+    ['person_uuid', 'value', 'type_uuid',
+     'gyldig_fra', 'gyldig_til']
+)
 
 def bruger():
     log('Importerer brugere')
 
-    def bruger_payload(row):
+    def bruger_payload(person: Person):
         return {
-            'uuid': row.uuid,
-            'cpr_no': row.personNumber,
-            'name': row.addresseringsnavn,
+            'uuid': person.person_uuid,
+            'cpr_no': person.cpr,
+            'name': person.name,
+            'user_key': person.bvn,
             'org': {
                 'uuid': ORG_UUID
             }
         }
 
-    engagement = db.session.query(
-        db.Engagement.personUuid).subquery()
+    bruger_cache = {}
+
     attachedpersons = db.session.query(
         db.Attachedpersons.personUuid).subquery()
     functionpersons = db.session.query(
         db.Functionpersons.personUuid).subquery()
 
-    persons = db.session.query(db.Person).filter(
-        db.Person.uuid.in_(engagement.select()) |
+    asdb_persons = db.session.query(db.Person).filter(
         db.Person.uuid.in_(attachedpersons.select()) |
         db.Person.uuid.in_(functionpersons.select())
     ).all()
+
+    with open(PERSON_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            cpr = row['Cpr-nummer']
+            bruger_cache[cpr] = Person(
+                person_uuid=row['PersonUID'],
+                cpr=cpr,
+                name="{} {}".format(row['Fornavn'], row['Efternavn']),
+                bvn=row['BrugerID']
+            )
+
+
+    for row in asdb_persons:
+        cpr = row.personNumber
+        if not bruger_cache.get(cpr):
+            bruger_cache[cpr] = Person(
+                person_uuid=row.uuid,
+                cpr=cpr,
+                name=row.addresseringsnavn,
+                bvn=None
+            )
+
     with click.progressbar(
-        persons,
+        bruger_cache.values(),
     ) as bar:
-        for row in bar:
-            payload = bruger_payload(row)
+        for person in bar:
+            payload = bruger_payload(person)
             insert('{}/e/create'.format(MO_URL), payload)
+
+
+Engagement = collections.namedtuple(
+    'Engagement',
+    ['person_uuid', 'org_enhed_uuid', 'stillingsbetegnelse',
+     'gyldig_fra', 'gyldig_til', 'bvn']
+)
 
 
 def engagement():
     log('Importerer engagementer')
 
     def engagement_payload(unit_id, job_function, engagement_type,
-                           engagement_uuid, bvn):
+                           bvn, valid_from, valid_to):
         payload = [{
             "type": "engagement",
             "org_unit": {
@@ -394,41 +519,78 @@ def engagement():
                 "uuid": engagement_type
             },
             "validity": {
-                "from": "2010-01-01T00:00:00+00:00",
-                "to": None
+                "from": valid_from,
+                "to": valid_to
             },
             "user_key": bvn
         }]
 
         return payload
 
-    engagements = db.session.query(db.Engagement).filter(
-        db.Engagement.personUuid.isnot(None),
-        db.Engagement.personUuid != "",
-        db.Engagement.personUuid != " "
-    ).all()
+    data = []
+    with open(PERSON_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            def format_date(d):
+                try:
+                    return datetime.strptime(d, '%d-%m-%Y').isoformat()
+                except ValueError:
+                    return datetime.strptime(d, '%m/%d/%Y').isoformat()
+
+            valid_from = format_date(row['Ansættelse gyldig fra'])
+            d = row['Ansættelse gyldig til']
+            valid_to = None if d == "31-12-9999" or d == "12/31/9999" else format_date(
+                d)
+            bvn = row['BrugerID']
+
+            data.append(Engagement(
+                person_uuid=row['PersonUID'],
+                org_enhed_uuid=row['Org-enhed OUID'],
+                stillingsbetegnelse=row['Stillingsbetegnelse'],
+                gyldig_fra=valid_from,
+                gyldig_til=valid_to,
+                bvn=bvn
+            ))
+
     with click.progressbar(
-        engagements,
+        data,
     ) as bar:
-        for engagement in bar:
-            bruger_uuid = engagement.personUuid
+        for engagement in bar:  # type: Engagement
+            bruger_uuid = engagement.person_uuid
 
-            stilling_uuid = engagement.stillingUuid
-            if not stilling_uuid:
-                stilling_uuid = get_class('job_function', user_key='unknown')[
-                    'uuid']
-
+            if engagement.stillingsbetegnelse:
+                stilling_uuid = get_class(
+                    'job_function',
+                    user_key=engagement.stillingsbetegnelse.lower())['uuid']
+            else:
+                stilling_uuid = get_class(
+                    'job_function', user_key='unknown')['uuid']
             e = engagement_payload(
-                engagement.unitUuid,
+                engagement.org_enhed_uuid,
                 stilling_uuid,
                 get_class('engagement_type', user_key='Ansat')['uuid'],
-                engagement.uuid,
-                engagement.userKey,
+                engagement.bvn,
+                engagement.gyldig_fra,
+                engagement.gyldig_til
             )
             insert("{}/e/{}/create".format(MO_URL, bruger_uuid), e)
 
+
+def adresser():
+    log('Importerer adresser')
+
+    engagement_map = {}
+
+    with open(PERSON_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        engagement_map = {e['EngagementUuid']: e['PersonUID'] for e in reader}
+
+    with click.progressbar(
+        engagement_map.items(),
+    ) as bar:
+        for e_uuid, p_uuid in bar:
             addrs = db.session.query(db.ContactChannel).filter(
-                db.ContactChannel.ownerUuid == engagement.uuid,
+                db.ContactChannel.ownerUuid == e_uuid,
                 db.ContactChannel.value != ' ').all()
 
             addr_payload = [
@@ -438,7 +600,7 @@ def engagement():
                 )
                 for addr in addrs
             ]
-            path = "{}/e/{}/create".format(MO_URL, engagement.personUuid)
+            path = "{}/e/{}/create".format(MO_URL, p_uuid)
             insert(path, addr_payload)
 
 
@@ -519,23 +681,44 @@ def leder():
             insert("{}/e/{}/create".format(MO_URL, person), payload=payload)
 
 
-def csv():
+def load_csv():
     log('Importerer CSV')
     spreadsheets.run(LORA_URL, (CSV_PATH,), False, False, 1, False, False,
                      False, False)
 
 
+def test():
+    jobtitles = db.session.query(db.Jobtitles.title).all()
+
+    asdb_persons = {p.title.lower() for p in jobtitles}
+
+    with open(PERSON_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        csv_persons = {p['Stillingsbetegnelse'].lower() for p in reader}
+
+    print("Common persons: {}".format(
+        len(asdb_persons.intersection(csv_persons))))
+    print("Not in A: {}".format(len(asdb_persons.difference(csv_persons))))
+    print("Not in B: {}".format(len(csv_persons.difference(asdb_persons))))
+    print(
+        "Lol: {}".format(len(csv_persons.symmetric_difference(asdb_persons))))
+    print(csv_persons.difference(asdb_persons))
+
+
 def run(*args, compact=False, **kwargs):
     if not compact:
-        csv()
+        load_csv()
         stillingsbetegnelser()
         lederansvar()
         ledertyper()
+        enhedstyper()
 
-    enhed()
-    bruger()
-    engagement()
-    tilknytning()
+    # test()
+    # enhed()
+    # bruger()
+    # engagement()
+    # adresser()
+    # tilknytning()
     leder()
     # Importer orlov?
     # Importer IT?
