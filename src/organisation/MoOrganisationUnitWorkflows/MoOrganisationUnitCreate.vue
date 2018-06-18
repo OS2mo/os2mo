@@ -11,7 +11,8 @@
   >
     <form @submit.stop.prevent="createOrganisationUnit">
       <mo-organisation-unit-entry
-        v-model="entry" 
+        v-model="entry"
+        :creating-date="true"
       />
 
       <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
