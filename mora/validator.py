@@ -9,6 +9,7 @@ import datetime
 from . import exceptions
 from . import lora
 from . import util
+from .service import common
 from .service import keys
 
 
@@ -109,41 +110,64 @@ def is_candidate_parent_valid(unitid: str, parent: str,
     """
     # Do not allow moving of the root org unit
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
     org_unit_relations = c.organisationenhed.get(
         uuid=unitid
     )['relationer']
-    if org_unit_relations['overordnet'][0]['uuid'] == \
-            org_unit_relations['tilhoerer'][0]['uuid']:
+    orgid = org_unit_relations['tilhoerer'][0]['uuid']
+
+    if org_unit_relations['overordnet'][0]['uuid'] == orgid:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
 
     # Use for checking that the candidate parent is not the units own subtree
+    seen = {unitid}
+
     c = lora.Connector(effective_date=from_date)
 
-    def is_node_valid(node_uuid: str) -> bool:
-        if node_uuid == unitid:
-            return False
+    while True:
+        # this captures moving to a child as well as moving into a loop
+        if parent in seen:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD,
+                org_unit_uuid=parent,
+            )
 
-        node = c.organisationenhed.get(
-            uuid=node_uuid
-        )
+        seen.add(parent)
 
-        # Check that the node is not inactive
-        if node['tilstande']['organisationenhedgyldighed'][0]['gyldighed'] == \
-                'Inaktiv':
-            return False
+        parentobj = c.organisationenhed.get(uuid=parent)
 
-        node_relations = node['relationer']
-        parent = node_relations['overordnet'][0]['uuid']
-        if parent == node_relations['tilhoerer'][0]['uuid']:
-            # Root org unit
-            return True
+        if not parent:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+                org_unit_uuid=parent,
+            )
 
-        return is_node_valid(parent)
+        # ensure the parent is active
+        if not common.is_reg_valid(parentobj):
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
+                org_unit_uuid=parent,
+            )
 
-    if not is_node_valid(parent):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD)
+        parentorg = parentobj['relationer']['tilhoerer'][0]['uuid']
+
+        # ensure it's in the same organisation
+        if parentorg != orgid:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_UNIT_OUTSIDE_ORG,
+                org_unit_uuid=parent,
+                current_org_uuid=orgid,
+                target_org_uuid=parentorg,
+            )
+
+        # now switch to the next parent
+        parent = parentobj['relationer']['overordnet'][0]['uuid']
+
+        # after iterating at least once, have we hit a proper root node?
+        # if so, we're done!
+        if parent == orgid:
+            break
 
 
 def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
