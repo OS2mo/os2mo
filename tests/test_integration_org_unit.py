@@ -1293,10 +1293,6 @@ class Tests(util.LoRATestCase):
                                          'to': None}},
                  'user_key': 'fil',
                  'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                 'validity': {
-                     'from': '2016-01-01T00:00:00+01:00',
-                     'to': None,
-                 },
                  'validity': {'from': '2016-01-01T00:00:00+01:00',
                               'to': '2016-10-22T00:00:00+02:00'}}]
         )
