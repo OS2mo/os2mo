@@ -13,7 +13,7 @@
     "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet."
   },
   "error": {
-    "E_UNAUTHORIZED": "Brugernavn eller password er forkert",
+    "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",
 
     "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}",
     "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
