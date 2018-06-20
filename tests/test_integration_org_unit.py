@@ -1135,6 +1135,60 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
+    def test_cannot_extend_beyond_parent(self):
+        """Should fail validation since the new validity period extends beyond
+        that of the parent. (#23155)"""
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        with self.subTest('too late'):
+            self.assertRequestResponse(
+                '/service/ou/{}/edit'.format(org_unit_uuid),
+                {
+                    'description': 'Date range exceeds validity range of '
+                    'associated org unit.',
+                    'error': True,
+                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                    'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'status': 400,
+                    'valid_from': '2016-01-01T00:00:00+01:00',
+                    'valid_to': None,
+                },
+                status_code=400,
+                json={
+                    "data": {
+                        "validity": {
+                            "from": "2016-01-01T00:00:00+01:00",
+                            "to": None,
+                        },
+                    },
+                })
+
+        with self.subTest('too soon'):
+            self.assertRequestResponse(
+                '/service/ou/{}/edit'.format(org_unit_uuid),
+                {
+                    'description': 'Date range exceeds validity range of '
+                    'associated org unit.',
+                    'error': True,
+                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                    'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'status': 400,
+                    'valid_from': '2010-01-01T00:00:00+01:00',
+                    'valid_to': '2019-01-01T00:00:00+01:00',
+                },
+                status_code=400,
+                json={
+                    "data": {
+                        "validity": {
+                            "from": "2010-01-01T00:00:00+01:00",
+                            "to": "2019-01-01T00:00:00+01:00",
+                        },
+                    },
+                })
+
     def test_move_org_unit_should_fail_when_moving_root_unit(self):
         """Should fail validation when trying to move the root org unit"""
 
