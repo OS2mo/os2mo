@@ -67,15 +67,23 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     ).organisationenhed
+    org_unit = scope.get(org_unit_uuid)
+
     gyldighed_key = "organisationenhedgyldighed"
 
-    if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
+    validities = [
+        common.get_effect_validity(state)
+        for state in org_unit.get('tilstande', {}).get(gyldighed_key, [])
+        if state['gyldighed'] == 'Aktiv'
+    ]
+
+    if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
-            valid_from=util.to_iso_time(valid_from),
-            valid_to=util.to_iso_time(valid_to)
+            valid_from=validities[0]['from'] if validities else None,
+            valid_to=validities[-1]['to'] if validities else None,
         )
 
 
