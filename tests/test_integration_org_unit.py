@@ -766,7 +766,7 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected, actual)
 
     def test_edit_org_unit_earlier_start(self):
-        # A generic example of editing an org unit
+        '''Test setting the start date to something earlier (#23182)'''
 
         self.load_sample_structures()
 
