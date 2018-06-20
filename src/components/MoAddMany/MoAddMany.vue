@@ -3,11 +3,12 @@
     <div v-for="(v, index) in values" :key="index">
       <mo-removable-component 
         :entry-component="entryComponent" 
+        :small-buttons="smallButtons"
         v-model="values[index]"
       />
     </div>
 
-    <button @click="add()" type="button" class="btn btn-outline-success">
+    <button @click="add()" type="button" class="btn btn-outline-success" :class="smallButtons ? 'btn-sm' : ''">
       <icon name="plus"/>
     </button>
   </div>
@@ -24,7 +25,8 @@ export default {
       type: Object,
       required: true
     },
-    hasInitialEntry: Boolean
+    hasInitialEntry: Boolean,
+    smallButtons: Boolean
   },
   data () {
     return {
