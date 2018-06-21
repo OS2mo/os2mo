@@ -54,7 +54,8 @@
     },
     data () {
       return {
-        user: {}
+        user: {},
+        isLoading: false
       }
     },
     created () {
@@ -67,8 +68,12 @@
     },
     methods: {
       logout () {
-        this.$router.push({
-          name: 'Login'
+        let vm = this
+        vm.isLoading = true
+        Auth.logout(this.user)
+        .then(response => {
+          vm.isLoading = false
+          vm.$router.push({name: 'Login'})
         })
       }
     }
