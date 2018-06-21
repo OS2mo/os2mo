@@ -6,14 +6,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import datetime
+import typing
+
 from . import exceptions
 from . import lora
 from . import util
+
 from .service import common
 from .service import keys
 
 
-def _is_date_range_valid(parent: str, startdate: datetime.datetime,
+def _is_date_range_valid(parent: typing.Union[dict, str],
+                         startdate: datetime.datetime,
                          enddate: datetime.datetime, lora_scope,
                          gyldighed_key: str) -> bool:
     """
@@ -62,6 +66,39 @@ def _is_date_range_valid(parent: str, startdate: datetime.datetime,
     return previous_end is not None and previous_end >= enddate
 
 
+def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
+    '''Approximate the bounds where this registration is active.
+
+    Please note that this method doesn't check for intermediate chunks
+    where the registration might be inactive, as that shouldn't happen in
+    practice.
+
+    '''
+
+    return {
+        'valid_from': util.to_iso_time(
+            min(
+                (
+                    common.get_effect_from(state)
+                    for state in common.get_states(reg)
+                    if state.get('gyldighed') == 'Aktiv'
+                ),
+                default=util.NEGATIVE_INFINITY,
+            ),
+        ),
+        'valid_to': util.to_iso_time(
+            max(
+                (
+                    common.get_effect_to(state)
+                    for state in common.get_states(reg)
+                    if state.get('gyldighed') == 'Aktiv'
+                ),
+                default=util.POSITIVE_INFINITY,
+            ),
+        ),
+    }
+
+
 def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
@@ -71,19 +108,12 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
 
     gyldighed_key = "organisationenhedgyldighed"
 
-    validities = [
-        common.get_effect_validity(state)
-        for state in org_unit.get('tilstande', {}).get(gyldighed_key, [])
-        if state['gyldighed'] == 'Aktiv'
-    ]
-
     if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
-            valid_from=validities[0]['from'] if validities else None,
-            valid_to=validities[-1]['to'] if validities else None,
+            **_get_active_validity(org_unit),
         )
 
 
@@ -92,15 +122,16 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     ).bruger
+    employee = scope.get(employee_uuid)
+
     gyldighed_key = "brugergyldighed"
 
-    if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
+    if not _is_date_range_valid(employee, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
             employee_uuid=employee_uuid,
-            valid_from=util.to_iso_time(valid_from),
-            valid_to=util.to_iso_time(valid_to)
+            **_get_active_validity(employee),
         )
 
 
