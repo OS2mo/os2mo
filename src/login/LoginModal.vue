@@ -31,6 +31,10 @@
         </b-form-checkbox>
       </div>
 
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
       <button type="submit" aria-label="Log ind" class="btn btn-primary col">
         Log ind
       </button>
@@ -49,10 +53,11 @@
     data () {
       return {
         user: {
-          username: '',
-          password: ''
+          username: null,
+          password: null
         },
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
     methods: {
@@ -62,10 +67,12 @@
         Auth.login(vm.user)
           .then(response => {
             vm.isLoading = false
-            vm.$router.push({name: this.destination})
-          })
-          .catch(error => {
-            return error.response.data
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.backendValidationError = null
+              vm.$router.push({name: this.destination})
+            }
           })
       }
     }
