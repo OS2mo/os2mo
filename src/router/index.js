@@ -14,7 +14,7 @@ const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   mode: 'history',
   routes: [
     {
@@ -36,6 +36,7 @@ export default new Router({
           name: 'Organisation',
           component: Organisation,
           redirect: { name: 'OrganisationLandingPage' },
+          meta: { requiresAuth: true },
 
           children: [
             {
@@ -55,6 +56,7 @@ export default new Router({
           name: 'Employee',
           component: Employee,
           redirect: { name: 'EmployeeList' },
+          meta: { requiresAuth: true },
 
           children: [
             {
@@ -72,12 +74,14 @@ export default new Router({
         {
           path: '/hjaelp',
           name: 'Help',
-          component: TheHelp
+          component: TheHelp,
+          meta: { requiresAuth: true }
         },
         {
           path: '/tidsmaskine',
           name: 'Timemachine',
-          component: MoTimeMachine
+          component: MoTimeMachine,
+          meta: { requiresAuth: true }
         },
         {
           path: '*',
@@ -88,3 +92,55 @@ export default new Router({
     }
   ]
 })
+
+router.beforeEach(function (to, from, next) {
+  // console.log('Global -- beforeEach - fired')
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+  // re-route
+    if (to.path === '/') {
+      next('/')
+    } else if (to.path === '/error') {
+      var err = new Error('My Error Message')
+    }
+      // pass the error to onError() callback.
+    next(err)
+  } else {
+    next()
+  }
+})
+
+// Global beforeResolve
+router.beforeResolve(function (to, from, next) {
+  // console.log('Global -- beforeResolve - fired.')
+  next()
+})
+
+// GLobal AFTER hooks:
+router.afterEach(function (to, from) {
+  // This fires after each route is entered.
+  // console.log(`Global -- afterEach - Just moved from '${from.path}' to '${to.path}'`)
+})
+
+// Register an Error Handler:
+router.onError(function (err) {
+  console.error('Handling this error', err.message)
+})
+
+// router.beforeEach((to, from, next) => {
+//   if (to.matched.some(record => record.meta.requiresAuth)) {
+//     // this route requires auth, check if logged in
+//     // if not, redirect to login page.
+//     if (!auth.loggedIn()) {
+//       next({
+//         path: '/login',
+//         query: { redirect: to.fullPath }
+//       })
+//     } else {
+//       next()
+//     }
+//   } else {
+//     next() // make sure to always call next()!
+//   }
+// })
+
+export default router
