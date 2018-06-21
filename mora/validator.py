@@ -176,7 +176,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
 
         parentobj = c.organisationenhed.get(uuid=parent)
 
-        if not parent:
+        if not parentobj:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
                 org_unit_uuid=parent,

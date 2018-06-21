@@ -1666,6 +1666,35 @@ class Tests(util.LoRATestCase):
             },
         )
 
+    def test_move_org_nowhere(self):
+        "Verify that we cannot move units to places that don't exist"
+
+        self.load_sample_structures()
+
+        org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            {
+                'description': 'Org unit not found.',
+                'error': True,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': '00000000-0000-0000-0000-000000000001',
+                'status': 404,
+            },
+            status_code=404,
+            json={
+                "data": {
+                    "parent": {
+                        'uuid': "00000000-0000-0000-0000-000000000001",
+                    },
+                    "validity": {
+                        "from": "2017-01-01",
+                    },
+                },
+            },
+        )
+
     def test_edit_org_unit_should_fail_validation_when_end_before_start(self):
         """Should fail validation when trying to edit an org unit with the
         to-time being before the from-time """
