@@ -51,7 +51,7 @@ class ErrorCodes(Enum):
     V_NO_ACTIVE_ENGAGEMENT = \
         400, "Employee must have an active engagement."
     V_UNIT_OUTSIDE_ORG = \
-        400, "Unit does not belong to the same organisation."
+        400, "Unit belongs to an organisation different from the current one."
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."

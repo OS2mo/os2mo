@@ -1291,7 +1291,7 @@ class Tests(util.LoRATestCase):
         )
 
     def test_move_org_unit(self):
-        # A generic example of editing an org unit
+        'Test successfully moving organisational units'
 
         self.load_sample_structures()
 
@@ -1540,7 +1540,7 @@ class Tests(util.LoRATestCase):
             json=req)
 
     def test_move_org_unit_wrong_org(self):
-        # A generic example of editing an org unit
+        'Verify that we cannot move a unit into another organisation'
 
         self.load_sample_structures()
 
@@ -1561,8 +1561,8 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/edit'.format(org_unit_uuid),
             {
-                'description': 'Unit does not belong to the same '
-                'organisation.',
+                'description': 'Unit belongs to an organisation different '
+                'from the current one.',
                 'error': True,
                 'error_key': 'V_UNIT_OUTSIDE_ORG',
                 'org_unit_uuid': other_unit_uuid,
@@ -1584,7 +1584,7 @@ class Tests(util.LoRATestCase):
         )
 
     def test_move_org_autoparent(self):
-        # A generic example of editing an org unit
+        "Verify that we cannot create cycles when moving organisational units"
 
         self.load_sample_structures()
 
