@@ -47,7 +47,8 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 "responsibility": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                },
                 "manager_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -124,7 +125,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                     },
                     {
                         "objekttype": "lederniveau",
@@ -233,7 +234,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Fedtmule',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
-                'responsibility': None,
+                'responsibility': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
                 'uuid': managerid,
                 'validity': {
                     'from': '2017-12-01T00:00:00+01:00',
@@ -255,7 +262,8 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "responsibility": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                },
                 "manager_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -319,7 +327,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                     },
                     {
                         "objekttype": "lederniveau",
@@ -416,7 +424,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Fedtmule',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
-                'responsibility': None,
+                'responsibility': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
                 'uuid': managerid,
                 'validity': {
                     'from': '2017-12-01T00:00:00+01:00', 'to': None,
@@ -589,7 +603,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "responsibility": {
-                    'uuid': "64dcaca7-daff-4d9f-b4a9-78f2920e8e50"
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "manager_level": {
                     "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
@@ -655,7 +669,7 @@ class Tests(util.LoRATestCase):
                     },
                     {
                         "objekttype": "lederansvar",
-                        "uuid": "64dcaca7-daff-4d9f-b4a9-78f2920e8e50",
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -871,7 +885,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'responsibility': None,
+                'responsibility': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
                 'uuid': manager_uuid,
                 'validity': {
                     'from': '2018-04-01T00:00:00+02:00', 'to': None,
@@ -923,7 +943,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "responsibility": {
-                    'uuid': "64dcaca7-daff-4d9f-b4a9-78f2920e8e50"
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "manager_level": {
                     "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
@@ -969,7 +989,7 @@ class Tests(util.LoRATestCase):
                 "opgaver": [
                     {
                         "objekttype": "lederansvar",
-                        "uuid": "64dcaca7-daff-4d9f-b4a9-78f2920e8e50",
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -1165,7 +1185,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'responsibility': None,
+                'responsibility': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                 'validity': {
                     'from': '2018-04-01T00:00:00+02:00', 'to': None,
@@ -1531,11 +1557,13 @@ class Tests(util.LoRATestCase):
                                       'to': None}},
             'person': {'name': 'Anders And',
                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-            'responsibility': {'example': None,
-                               'name': 'Fakultet',
-                               'scope': None,
-                               'user_key': 'fak',
-                               'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'},
+            'responsibility': {
+                'example': None,
+                'name': 'Fakultet',
+                'scope': None,
+                'user_key': 'fak',
+                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+            },
             'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
             'validity': {'from': '2017-01-01T00:00:00+01:00',
                          'to': None}
