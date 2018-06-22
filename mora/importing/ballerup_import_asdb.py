@@ -13,7 +13,6 @@ import json
 import os
 
 import click
-import pyexcel
 from requests import Session
 
 import csv
@@ -36,40 +35,6 @@ CSV_PATH = os.environ.get('CSV_PATH',
 ORG_UNIT_CSV = "/home/cm/proj/Ballerup/data/org.csv"
 PERSON_CSV = "/home/cm/proj/Ballerup/data/person.csv"
 
-MED_AMR_PATH = os.environ.get(
-    'MED_AMR_PATH',
-    '/home/cm/proj/Ballerup/data/MED-AMR-organisation.xlsx'
-)
-
-SD_LON_PATH = os.environ.get(
-    'SD_LON_PATH',
-    '/home/cm/proj/Ballerup/data/sd-lon-org.xlsx'
-)
-
-# Models
-
-Enhed = collections.namedtuple(
-    'Enhed',
-    ['uuid', 'objectid', 'overordnetid', 'navn', 'enhedstype',
-     'gyldig_fra', 'gyldig_til', 'bvn', 'addrs', 'type']
-)
-
-Person = collections.namedtuple(
-    'Person',
-    ['person_uuid', 'cpr', 'name', 'bvn']
-)
-
-Address = collections.namedtuple(
-    'Address',
-    ['person_uuid', 'value', 'type_uuid',
-     'gyldig_fra', 'gyldig_til']
-)
-
-Engagement = collections.namedtuple(
-    'Engagement',
-    ['person_uuid', 'org_enhed_uuid', 'stillingsbetegnelse',
-     'gyldig_fra', 'gyldig_til', 'bvn']
-)
 
 @functools.lru_cache(1024)
 def get_class(typename, **kwargs):
@@ -96,19 +61,6 @@ def get_facet(typename, **kwargs):
 
 
 @functools.lru_cache(1024)
-def get_unit(bvn):
-    r = session.get(
-        '{}/organisation/organisationenhed?bvn={}'.format(
-            LORA_URL, bvn),
-    )
-
-    assert r.ok
-
-    return r.json()['results'][0][0]
-
-
-
-@functools.lru_cache(1024)
 def lookup_addr_object(addr):
     addr_uuid = dawa.lookup(
         vejnavn=addr.vejnavn,
@@ -118,16 +70,6 @@ def lookup_addr_object(addr):
     )
     if not addr_uuid:
         fail(addr.uuid, addr.vejnavn, addr.husnummer, addr.postnummer, addr.bynavn)
-    return addr_uuid
-
-
-@functools.lru_cache(1024)
-def lookup_addr_fuzzy(addr):
-    addr_uuid = dawa.lookup_fuzzy(
-        q=addr
-    )
-    if not addr_uuid:
-        fail("Addr lookup failed:", addr)
     return addr_uuid
 
 
@@ -174,31 +116,7 @@ def address_payload(value, address_type):
     return payload
 
 
-def org_unit_payload(unit: Enhed, parent_uuid, addrs=None):
-    payload = {
-        "name": unit.navn,
-        "parent": {
-            "uuid": parent_uuid
-        },
-        "org_unit_type": {
-            "uuid": unit.enhedstype
-        },
-        "user_key": unit.bvn,
-        "validity": {
-            "from": "1970-01-01",
-            "to": None
-        },
-    }
-    if unit.uuid:
-        payload['uuid'] = unit.uuid
-    if addrs:
-        addr_type = get_class('address_type', user_key='AdressePost')
-        payload["addresses"] = [address_payload(addr, addr_type) for addr in addrs]
-
-    return payload
-
-
-def klasse_payload(bvn, titel, beskrivelse, ansvarlig, facet):
+def create_klasse(bvn, titel, beskrivelse, ansvarlig, facet):
     virkning = {
         "from": "-infinity",
         "to": "infinity"
@@ -259,7 +177,7 @@ def stillingsbetegnelser():
 
     for row in asdb_jobtitles:
         title = row.title.lower()
-        jobtitle_cache[title] = (row.uuid, klasse_payload(
+        jobtitle_cache[title] = (row.uuid, create_klasse(
                 row.title.lower(),
                 row.title,
                 str(row.objektid),
@@ -272,7 +190,7 @@ def stillingsbetegnelser():
         for row in reader:
             title = row['Stillingsbetegnelse']
             if not jobtitle_cache.get(title.lower()):
-                jobtitle_cache[title.lower()] = (None, klasse_payload(
+                jobtitle_cache[title.lower()] = (None, create_klasse(
                     title.lower(),
                     title,
                     title,
@@ -312,7 +230,7 @@ def lederansvar():
         responsibilities
     ) as bar:
         for row in bar:
-            k = klasse_payload(
+            k = create_klasse(
                 row.uuid,
                 row.title,
                 str(row.objektid),
@@ -339,7 +257,7 @@ def ledertyper():
         manager_types
     ) as bar:
         for row in bar:
-            k = klasse_payload(
+            k = create_klasse(
                 row.name.lower(),
                 row.name,
                 row.name,
@@ -366,7 +284,7 @@ def enhedstyper():
         for row in bar:
             unit = db.session.query(db.Jobtitles).filter(
                 db.Jobtitles.uuid == row).one()
-            k = klasse_payload(
+            k = create_klasse(
                 unit.brugervendtnoegle if unit.brugervendtnoegle else unit.title,
                 string.capwords(unit.title),
                 str(unit.objektid),
@@ -381,6 +299,13 @@ def enhedstyper():
             )
 
 
+Enhed = collections.namedtuple(
+    'Enhed',
+    ['uuid', 'type', 'objectid', 'overordnetid', 'navn', 'enhedstype',
+     'gyldig_fra', 'gyldig_til', 'bvn']
+)
+
+
 def enhed():
     """
     Due to the parent/child structure found in org units we are forced
@@ -389,9 +314,52 @@ def enhed():
     log('Importerer organisationsenheder')
 
     # objektid to uuid
-    org_unit_map = {'0': ORG_UUID}
+    org_unit_map = {0: ORG_UUID}
     # parent objektid to row
     structure = {}
+
+    def org_unit_payload(unit: Enhed, addrs):
+        return {
+            "name": unit.navn,
+            "parent": {
+                "uuid": org_unit_map[unit.overordnetid]
+            },
+            "org_unit_type": {
+                "uuid": unit.enhedstype
+            },
+            "user_key": unit.bvn,
+            "validity": {
+                "from": "1970-01-01",
+                "to": None
+            },
+            "addresses": addrs,
+            "uuid": unit.uuid,
+        }
+
+    def child_unit(addr_type, addr_uuids, u):
+        addresses = [address_payload(a, addr_type) for a in addr_uuids]
+        payload = org_unit_payload(
+            u,
+            addresses
+        )
+        return payload
+
+    def root_unit(addr_type, addr_uuids, u: Enhed):
+        addresses = [{
+            "uuid": a,
+            "objekttype": addr_type['uuid']
+        } for a in addr_uuids]
+        payload = common.create_organisationsenhed_payload(
+            u.navn,
+            u.gyldig_fra,
+            "infinity" if u.gyldig_til is None else u.gyldig_til,
+            u.bvn,
+            ORG_UUID,
+            u.enhedstype,
+            ORG_UUID,
+            addresses,
+        )
+        return payload
 
     # Fetch dataset
     data = []
@@ -409,28 +377,16 @@ def enhed():
                                    'gyldig_til'] == "INFINITY" else format_date(
                 row['gyldig_til'])
 
-            # Lookup the enhed address
-            addrs = db.session.query(
-                db.GetGeographicDetails).filter(
-                db.Unit.uuid == row['uuid'],
-                db.Unit.uuid == db.Locations.unitUuid,
-                db.Locations.GeographicUuid == db.GetGeographicDetails.uuid
-            ).all()
-            addr_type = get_class('address_type', user_key='AdressePost')
-            addr_uuids = [lookup_addr_object(geo) for geo in addrs]
-            addr_uuids = [uuid for uuid in addr_uuids if uuid]
-
             data.append(Enhed(
                 row['uuid'],
+                row['type'],
                 row['objectid'],
                 row['overordnetid'],
                 row['navn'],
                 row['enhedstype'],
                 valid_from,
                 valid_to,
-                asdb_unit.brugervendtNoegle if asdb_unit else None,
-                addr_uuids,
-                type=row['type']
+                asdb_unit.brugervendtNoegle if asdb_unit else None
             ))
 
     # Build structure
@@ -442,34 +398,28 @@ def enhed():
     def traverse_units(parent_id, bar):
         units = structure.get(parent_id, [])
         for u in units:
-            parent_id = org_unit_map[u.overordnetid]
+
+            # Lookup the enhed address
+            addrs = db.session.query(
+                db.GetGeographicDetails).filter(
+                db.Unit.uuid == u.uuid,
+                db.Unit.uuid == db.Locations.unitUuid,
+                db.Locations.GeographicUuid == db.GetGeographicDetails.uuid
+            ).all()
+            addr_type = get_class('address_type', user_key='AdressePost')
+            addr_uuids = [lookup_addr_object(geo) for geo in addrs]
+            addr_uuids = [uuid for uuid in addr_uuids if uuid]
+
+            # Special handling of root enhed
             if u.type == "root":
                 path = "{}/organisation/organisationenhed/{}".format(
                     LORA_URL, u.uuid)
-                addresses = [{
-                    "uuid": a,
-                    "objekttype": addr_type['uuid']
-                } for a in u.addrs]
-                payload = common.create_organisationsenhed_payload(
-                    u.navn,
-                    u.gyldig_fra,
-                    "infinity" if u.gyldig_til is None else u.gyldig_til,
-                    u.bvn,
-                    ORG_UUID,
-                    u.enhedstype,
-                    ORG_UUID,
-                    addresses,
-                )
+                payload = root_unit(addr_type, addr_uuids, u)
                 insert(path, payload, u, method="PUT")
             # Normal units
             else:
                 path = "{}/ou/create".format(MO_URL)
-                addresses = [address_payload(a, addr_type) for a in u.addrs]
-                payload = org_unit_payload(
-                    u,
-                    parent_id,
-                    addresses
-                )
+                payload = child_unit(addr_type, addr_uuids, u)
                 insert(path, payload, u)
             bar.update(1)
             traverse_units(u.objectid, bar)
@@ -478,6 +428,16 @@ def enhed():
         # 0 is the root enhed
         traverse_units("0", bar)
 
+Person = collections.namedtuple(
+    'Person',
+    ['person_uuid', 'cpr', 'name', 'bvn']
+)
+
+Address = collections.namedtuple(
+    'Address',
+    ['person_uuid', 'value', 'type_uuid',
+     'gyldig_fra', 'gyldig_til']
+)
 
 def bruger():
     log('Importerer brugere')
@@ -533,6 +493,13 @@ def bruger():
         for person in bar:
             payload = bruger_payload(person)
             insert('{}/e/create'.format(MO_URL), payload)
+
+
+Engagement = collections.namedtuple(
+    'Engagement',
+    ['person_uuid', 'org_enhed_uuid', 'stillingsbetegnelse',
+     'gyldig_fra', 'gyldig_til', 'bvn']
+)
 
 
 def engagement():
@@ -719,172 +686,39 @@ def load_csv():
     spreadsheets.run(LORA_URL, (CSV_PATH,), False, False, 1, False, False,
                      False, False)
 
-def med_amr_unit_types():
-    sheet = pyexcel.get_sheet(file_name=MED_AMR_PATH, name_columns_by_row=0)
-    records = sheet.to_records()
-    types = {u['OrgType'] for u in records}
-    for type in types:
-        k = klasse_payload(
-            bvn=type.lower(),
-            titel=type,
-            beskrivelse=type,
-            ansvarlig=ORG_UUID,
-            facet=get_facet('org_unit_type')
-        )
-        insert(
-            "{}/klassifikation/klasse".format(LORA_URL),
-            k,
-            method="POST"
-        )
+
+def test():
+    jobtitles = db.session.query(db.Jobtitles.title).all()
+
+    asdb_persons = {p.title.lower() for p in jobtitles}
+
+    with open(PERSON_CSV) as csvfile:
+        reader = csv.DictReader(csvfile)
+        csv_persons = {p['Stillingsbetegnelse'].lower() for p in reader}
+
+    print("Common persons: {}".format(
+        len(asdb_persons.intersection(csv_persons))))
+    print("Not in A: {}".format(len(asdb_persons.difference(csv_persons))))
+    print("Not in B: {}".format(len(csv_persons.difference(asdb_persons))))
+    print(
+        "Lol: {}".format(len(csv_persons.symmetric_difference(asdb_persons))))
+    print(csv_persons.difference(asdb_persons))
 
 
-def med_amr():
-    def med_amr_bvn(key):
-        return "MED_AMR_{}".format(key)
+def run(*args, compact=False, **kwargs):
+    if not compact:
+        load_csv()
+        stillingsbetegnelser()
+        lederansvar()
+        ledertyper()
+        enhedstyper()
 
-    def convert_from_sheet():
-        sheet = pyexcel.get_sheet(file_name=MED_AMR_PATH, name_columns_by_row=0)
-        records = sheet.to_records()
-        for row in records:
-            unit_type = get_class(
-                'org_unit_type',
-                user_key=row['OrgType'].lower()
-            )['uuid']
-            yield Enhed(
-                uuid=None,
-                objectid=row['Id'],
-                overordnetid=row['ParentID'],
-                navn=row['OrgEnhed'],
-                enhedstype=unit_type,
-                gyldig_fra=None,
-                gyldig_til=None,
-                bvn=med_amr_bvn(row['Id']),
-                addrs=None
-            )
-
-    rows = list(convert_from_sheet())
-
-    # parent objektid to row
-    structure = {}
-
-    for row in rows:  # type: Enhed
-        parent_id = row.overordnetid if row.overordnetid else 0
-        entry = structure.setdefault(parent_id, [])
-        entry.append(row)
-
-    def traverse_units(parent_id, bar):
-        units = structure.get(parent_id, [])
-        parent_uuid = get_unit(med_amr_bvn(parent_id))
-        if not parent_uuid:
-            print(med_amr_bvn(parent_id), parent_uuid)
-            return
-        for u in units:  # type: Enhed
-            payload = org_unit_payload(
-                u,
-                parent_uuid
-            )
-            insert("{}/ou/create".format(MO_URL), payload, u)
-            bar.update(1)
-            traverse_units(u.objectid, bar)
-
-    with click.progressbar(length=len(rows)) as bar:
-        traverse_units(0, bar)
-
-
-def sd_lon():
-    def sd_lon_bvr(key):
-        return "SD_LON_{}".format(key)
-
-    def convert_from_sheet():
-        sheet = pyexcel.get_sheet(file_name=SD_LON_PATH, name_columns_by_row=0)
-        records = sheet.to_records()
-        for row in records:
-            unit_type = get_class(
-                'org_unit_type',
-                user_key='unknown'
-            )['uuid']
-            address = row['Lokation-navn']
-            addr_uuid = lookup_addr_fuzzy(address) if address else None
-            yield Enhed(
-                uuid=None,
-                objectid=row['objektid'],
-                overordnetid=row['overordnetid'],
-                navn=row['Unit-navn'],
-                enhedstype=unit_type,
-                gyldig_fra=None,
-                gyldig_til=None,
-                bvn=sd_lon_bvr(row['objektid']),
-                addrs=[addr_uuid] if addr_uuid else []
-            )
-
-    rows = list(convert_from_sheet())
-
-    # parent objektid to row
-    structure = {}
-
-    for row in rows:  # type: Enhed
-        parent_id = row.overordnetid if row.overordnetid else 0
-        entry = structure.setdefault(parent_id, [])
-        entry.append(row)
-
-    def traverse_units(parent_id, bar):
-        units = structure.get(parent_id, [])
-        for u in units:  # type: Enhed
-            if parent_id is 0:
-                addr_type = get_class('address_type', user_key='AdressePost')
-                addresses = [{
-                    "uuid": a,
-                    "objekttype": addr_type['uuid']
-                } for a in u.addrs]
-                payload = common.create_organisationsenhed_payload(
-                    enhedsnavn=u.navn,
-                    valid_from="1970-01-01",
-                    valid_to="infinity",
-                    brugervendtnoegle=u.bvn,
-                    tilhoerer=ORG_UUID,
-                    enhedstype=u.enhedstype,
-                    overordnet=ORG_UUID,
-                    adresser=addresses
-                )
-                insert(
-                    "{}/organisation/organisationenhed".format(LORA_URL),
-                    payload,
-                    u,
-                    method="POST"
-                )
-            else:
-                parent_uuid = get_unit(sd_lon_bvr(parent_id))
-                payload = org_unit_payload(
-                    u,
-                    parent_uuid
-                )
-                insert("{}/ou/create".format(MO_URL), payload, u)
-            bar.update(1)
-            traverse_units(u.objectid, bar)
-
-    with click.progressbar(length=len(rows)) as bar:
-        traverse_units(0, bar)
-
-def run(*args, **kwargs):
-    # load_csv()
-    # stillingsbetegnelser()
-    # lederansvar()
-    # ledertyper()
-    # enhedstyper()
-
-    # MED-AMR
-    # med_amr_unit_types()
-    # med_amr()
-
-    # SD Løn
-    # sd_lon()
-
-    # IDM
-    enhed()
+    # test()
+    # enhed()
     # bruger()
     # engagement()
     # adresser()
     # tilknytning()
-    # leder()
+    leder()
     # Importer orlov?
     # Importer IT?

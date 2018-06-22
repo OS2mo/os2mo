@@ -549,6 +549,8 @@ def convert_organisationenhed(obj):
         }
     }
 
+    print(json.dumps(r, indent=2))
+
     return (
         'PUT', '/organisation/organisationenhed/' + obj['objektid'], r,
     )

@@ -480,8 +480,6 @@ def create_org_unit():
     if not bvn:
         bvn = "{} {}".format(name, uuid.uuid4())
 
-    print("'{}'".format(bvn))
-
     # TODO: Process address objects
 
     org_unit = common.create_organisationsenhed_payload(

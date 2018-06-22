@@ -46,3 +46,13 @@ def lookup(vejnavn, husnummer, bynavn, postnummer):
         r = requests.get("http://dawa.aws.dk/adresser/", params=params)
         if len(r.json()) == 1:
             return r.json()[0]['id']
+
+
+def lookup_fuzzy(q):
+    params = {
+        'struktur': 'mini',
+        'q': q
+    }
+    r = requests.get("http://dawa.aws.dk/adresser/", params=params)
+    if len(r.json()) == 1:
+        return r.json()[0]['id']
