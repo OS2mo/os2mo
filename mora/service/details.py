@@ -382,13 +382,15 @@ def get_detail(type, id, function):
             "name": "Anders And",
             "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
           },
-          "responsibility": {
-            "example": null,
-            "name": "Fakultet",
-            "scope": null,
-            "user_key": "fak",
-            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
-          },
+          "responsibility": [
+            {
+              "example": null,
+              "name": "Fakultet",
+              "scope": null,
+              "user_key": "fak",
+              "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+            }
+          ],
           "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
           "validity": {
             "from": "2017-01-01T00:00:00+01:00",
@@ -492,8 +494,14 @@ def get_detail(type, id, function):
     user_cache = {}
     unit_cache = {}
 
-    # the values are cache, getter, cachegetter -- if the last one is
-    # specified, we cache something other than the actual value
+    # the values are cache, getter, cachegetter, aslist
+    #
+    # if 'cachegetter' is specified, we cache something other than the
+    # actual value
+    #
+    # aslist means that we expect multiple values for that field, and
+    # return them as a list rather than a single object; otherwise, we
+    # just return the first hit
     converters = {
         'engagement': {
             keys.PERSON: (user_cache, get_employee_id, None, False),
@@ -520,8 +528,7 @@ def get_detail(type, id, function):
         'manager': {
             keys.PERSON: (user_cache, get_employee_id, None, False),
             keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            keys.RESPONSIBILITY: (class_cache, get_responsibility,
-                                  None, False),
+            keys.RESPONSIBILITY: (class_cache, get_responsibility, None, True),
             keys.MANAGER_LEVEL: (class_cache, get_manager_level, None, False),
             keys.MANAGER_TYPE: (class_cache, get_type_id, None, False),
             keys.ADDRESS: (class_cache, get_address, get_address_type, False),

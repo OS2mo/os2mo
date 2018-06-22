@@ -13,6 +13,7 @@ from unittest.mock import patch
 import freezegun
 
 from mora import lora
+from mora.service import common
 from tests import util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
@@ -237,13 +238,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Fedtmule',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Medlem',
                     'scope': None,
                     'user_key': 'medl',
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                },
+                }],
                 'uuid': managerid,
                 'validity': {
                     'from': '2017-12-01T00:00:00+01:00',
@@ -427,13 +428,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Fedtmule',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Medlem',
                     'scope': None,
                     'user_key': 'medl',
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                },
+                }],
                 'uuid': managerid,
                 'validity': {
                     'from': '2017-12-01T00:00:00+01:00', 'to': None,
@@ -569,7 +570,7 @@ class Tests(util.LoRATestCase):
                     'name': 'Fedtmule',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
-                'responsibility': None,
+                'responsibility': [],
                 'uuid': managerid,
                 'validity': {
                     'from': '2017-12-01T00:00:00+01:00',
@@ -831,13 +832,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Fakultet',
                     'scope': None,
                     'user_key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                },
+                }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                 'validity': {
                     'from': '2017-01-01T00:00:00+01:00',
@@ -888,13 +889,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Medlem',
                     'scope': None,
                     'user_key': 'medl',
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                },
+                }],
                 'uuid': manager_uuid,
                 'validity': {
                     'from': '2018-04-01T00:00:00+02:00', 'to': None,
@@ -1188,13 +1189,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Medlem',
                     'scope': None,
                     'user_key': 'medl',
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                },
+                }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                 'validity': {
                     'from': '2018-04-01T00:00:00+02:00', 'to': None,
@@ -1389,13 +1390,13 @@ class Tests(util.LoRATestCase):
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Fakultet',
                     'scope': None,
                     'user_key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                },
+                }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                 'validity': {
                     'from': '2017-01-01T00:00:00+01:00',
@@ -1560,13 +1561,13 @@ class Tests(util.LoRATestCase):
                                       'to': None}},
             'person': {'name': 'Anders And',
                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-            'responsibility': {
+            'responsibility': [{
                 'example': None,
                 'name': 'Fakultet',
                 'scope': None,
                 'user_key': 'fak',
                 'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-            },
+            }],
             'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
             'validity': {'from': '2017-01-01T00:00:00+01:00',
                          'to': None}
@@ -1632,13 +1633,13 @@ class Tests(util.LoRATestCase):
                 m['virkning']['from'] = '2016-04-01 00:00:00+02'
 
         expected_mora[0]['validity']['from'] = '2016-04-01T00:00:00+02:00'
-        expected_mora[0]['responsibility'] = {
+        expected_mora[0]['responsibility'] = [{
             'example': None,
             'name': 'Institut',
             'scope': None,
             'user_key': 'inst',
             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-        }
+        }]
 
         # compare them!
         actual_lora = c.organisationfunktion.get(manager_uuid)
@@ -1662,4 +1663,134 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager?validity=future'.format(userid),
             [],
+        )
+
+    def test_read_manager_multiple_responsibilities(self):
+        '''Test reading a manager with multiple responsibilities, all valid'''
+        self.load_sample_structures()
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        # inject multiple responsibilities
+        c = lora.Connector()
+
+        overwritten_responsibilities = [
+            {
+                "objekttype": "lederansvar",
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "virkning": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                }
+            },
+            {
+                "objekttype": "lederansvar",
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                "virkning": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                }
+            },
+            {
+                "objekttype": "lederniveau",
+                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                "virkning": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                }
+            },
+        ]
+
+        c.organisationfunktion.update(
+            {
+                'relationer': {
+                    'opgaver': overwritten_responsibilities,
+                }
+            },
+            manager_uuid,
+        )
+
+        with self.subTest('verify assumption about relation in LoRA'):
+            self.assertEqual(
+                sorted(
+                    c.organisationfunktion.get(manager_uuid)
+                    ['relationer']['opgaver'],
+                    key=common.get_uuid,
+                ),
+                overwritten_responsibilities,
+            )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [
+                {
+                    'address': {
+                        'address_type': {
+                            'example': 'test@example.com',
+                            'name': 'Emailadresse',
+                            'scope': 'EMAIL',
+                            'user_key': 'Email',
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        },
+                        'href': 'mailto:ceo@example.com',
+                        'name': 'ceo@example.com',
+                        'urn': 'urn:mailto:ceo@example.com',
+                    },
+                    'manager_level': {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
+                    'manager_type': {
+                        'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'org_unit': {
+                        'name': 'Humanistisk fakultet',
+                        'user_key': 'hum',
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
+                    },
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
+                    'responsibility': [
+                        {
+                            'example': None,
+                            'name': 'Medlem',
+                            'scope': None,
+                            'user_key': 'medl',
+                            'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                        },
+                        {
+                            'example': None,
+                            'name': 'Fakultet',
+                            'scope': None,
+                            'user_key': 'fak',
+                            'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                        },
+                    ],
+                    'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                    'validity': {
+                        'from': '2017-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
         )
