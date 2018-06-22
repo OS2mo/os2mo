@@ -488,10 +488,6 @@ class Tests(util.LoRATestCase):
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                'validity': {
-                    'from': '2016-01-01T00:00:00+01:00',
-                    'to': None,
-                },
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -525,10 +521,6 @@ class Tests(util.LoRATestCase):
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                'validity': {
-                    'from': '2016-01-01T00:00:00+01:00',
-                    'to': None,
-                },
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',

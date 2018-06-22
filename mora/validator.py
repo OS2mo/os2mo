@@ -6,19 +6,24 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import datetime
+import typing
+
 from . import exceptions
 from . import lora
 from . import util
+
+from .service import common
 from .service import keys
 
 
-def _is_date_range_valid(parent: str, startdate: datetime.datetime,
+def _is_date_range_valid(parent: typing.Union[dict, str],
+                         startdate: datetime.datetime,
                          enddate: datetime.datetime, lora_scope,
                          gyldighed_key: str) -> bool:
     """
     Determine if the given dates are within validity of the parent unit.
 
-    :param parent: The UUID of the parent unit.
+    :param parent: Ether the UUID of the parent unit, or a dict containing it.
     :param startdate: The candidate start date.
     :param enddate: The candidate end date.
     :param lora_scope: A scope object from a LoRa connector.
@@ -61,20 +66,54 @@ def _is_date_range_valid(parent: str, startdate: datetime.datetime,
     return previous_end is not None and previous_end >= enddate
 
 
+def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
+    '''Approximate the bounds where this registration is active.
+
+    Please note that this method doesn't check for intermediate chunks
+    where the registration might be inactive, as that shouldn't happen in
+    practice.
+
+    '''
+
+    return {
+        'valid_from': util.to_iso_time(
+            min(
+                (
+                    common.get_effect_from(state)
+                    for state in common.get_states(reg)
+                    if state.get('gyldighed') == 'Aktiv'
+                ),
+                default=util.NEGATIVE_INFINITY,
+            ),
+        ),
+        'valid_to': util.to_iso_time(
+            max(
+                (
+                    common.get_effect_to(state)
+                    for state in common.get_states(reg)
+                    if state.get('gyldighed') == 'Aktiv'
+                ),
+                default=util.POSITIVE_INFINITY,
+            ),
+        ),
+    }
+
+
 def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     ).organisationenhed
+    org_unit = scope.get(org_unit_uuid)
+
     gyldighed_key = "organisationenhedgyldighed"
 
-    if not _is_date_range_valid(org_unit_uuid, valid_from, valid_to, scope,
+    if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
-            valid_from=util.to_iso_time(valid_from),
-            valid_to=util.to_iso_time(valid_to)
+            **_get_active_validity(org_unit),
         )
 
 
@@ -83,15 +122,16 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     ).bruger
+    employee = scope.get(employee_uuid)
+
     gyldighed_key = "brugergyldighed"
 
-    if not _is_date_range_valid(employee_uuid, valid_from, valid_to, scope,
+    if not _is_date_range_valid(employee, valid_from, valid_to, scope,
                                 gyldighed_key):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
             employee_uuid=employee_uuid,
-            valid_from=util.to_iso_time(valid_from),
-            valid_to=util.to_iso_time(valid_to)
+            **_get_active_validity(employee),
         )
 
 
@@ -109,41 +149,64 @@ def is_candidate_parent_valid(unitid: str, parent: str,
     """
     # Do not allow moving of the root org unit
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
     org_unit_relations = c.organisationenhed.get(
         uuid=unitid
     )['relationer']
-    if org_unit_relations['overordnet'][0]['uuid'] == \
-            org_unit_relations['tilhoerer'][0]['uuid']:
+    orgid = org_unit_relations['tilhoerer'][0]['uuid']
+
+    if org_unit_relations['overordnet'][0]['uuid'] == orgid:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
 
     # Use for checking that the candidate parent is not the units own subtree
+    seen = {unitid}
+
     c = lora.Connector(effective_date=from_date)
 
-    def is_node_valid(node_uuid: str) -> bool:
-        if node_uuid == unitid:
-            return False
+    while True:
+        # this captures moving to a child as well as moving into a loop
+        if parent in seen:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD,
+                org_unit_uuid=parent,
+            )
 
-        node = c.organisationenhed.get(
-            uuid=node_uuid
-        )
+        seen.add(parent)
 
-        # Check that the node is not inactive
-        if node['tilstande']['organisationenhedgyldighed'][0]['gyldighed'] == \
-                'Inaktiv':
-            return False
+        parentobj = c.organisationenhed.get(uuid=parent)
 
-        node_relations = node['relationer']
-        parent = node_relations['overordnet'][0]['uuid']
-        if parent == node_relations['tilhoerer'][0]['uuid']:
-            # Root org unit
-            return True
+        if not parentobj:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+                org_unit_uuid=parent,
+            )
 
-        return is_node_valid(parent)
+        # ensure the parent is active
+        if not common.is_reg_valid(parentobj):
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
+                org_unit_uuid=parent,
+            )
 
-    if not is_node_valid(parent):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD)
+        parentorg = parentobj['relationer']['tilhoerer'][0]['uuid']
+
+        # ensure it's in the same organisation
+        if parentorg != orgid:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_UNIT_OUTSIDE_ORG,
+                org_unit_uuid=parent,
+                current_org_uuid=orgid,
+                target_org_uuid=parentorg,
+            )
+
+        # now switch to the next parent
+        parent = parentobj['relationer']['overordnet'][0]['uuid']
+
+        # after iterating at least once, have we hit a proper root node?
+        # if so, we're done!
+        if parent == orgid:
+            break
 
 
 def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):

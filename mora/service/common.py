@@ -735,6 +735,11 @@ def replace_relation_value(relations: typing.List[dict],
             exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
+def get_states(reg):
+    for tilstand in reg.get('tilstande', {}).values():
+        yield from tilstand
+
+
 def is_reg_valid(reg):
     """
     Check if a given registration is valid
@@ -744,9 +749,8 @@ def is_reg_valid(reg):
     """
 
     return any(
-        gyldighed_obj.get('gyldighed') == 'Aktiv'
-        for tilstand in reg.get('tilstande', {}).values()
-        for gyldighed_obj in tilstand
+        state.get('gyldighed') == 'Aktiv'
+        for state in get_states(reg)
     )
 
 
