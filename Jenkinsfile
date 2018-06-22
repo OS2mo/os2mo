@@ -12,7 +12,7 @@ pipeline {
   stages {
     stage('Fetch') {
       steps {
-        dir("../mox") {
+        dir("mox") {
           git url: 'https://github.com/magenta-aps/mox', branch: 'development'
         }
 
