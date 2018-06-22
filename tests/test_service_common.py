@@ -9,6 +9,7 @@
 import datetime
 
 import dateutil
+import freezegun
 
 from mora import exceptions
 from mora import util as mora_util
@@ -2053,3 +2054,71 @@ class TestClass(util.TestCase):
                 r"Invalid 'list', expected dict, got: \[1337\]",
         ):
             common.checked_get(mapping, 'list', {})
+
+    def test_get_urn(self):
+        with self.subTest('bad string'):
+            with self.assertRaisesRegex(
+                exceptions.HTTPException,
+                "invalid urn for 'urn': '42'",
+            ) as ctxt:
+                common.get_urn({'urn': '42'})
+
+            self.assertEqual(
+                {
+                    'description': "invalid urn for 'urn': '42'",
+                    'error': True,
+                    'error_key': 'E_INVALID_URN',
+                    'obj': {'urn': '42'},
+                    'status': 400,
+                },
+                ctxt.exception.response.json,
+            )
+
+            self.assertEqual(
+                "400 Bad Request: invalid urn for 'urn': '42'",
+                str(ctxt.exception),
+            )
+
+        with self.assertRaisesRegex(
+            exceptions.HTTPException,
+            "Invalid 'urn', expected str, got: 42",
+        ) as ctxt:
+            common.get_urn({'urn': 42})
+
+        self.assertEqual(
+            {
+                'description': "Invalid 'urn', expected str, got: 42",
+                'error': True,
+                'error_key': 'E_INVALID_TYPE',
+                'expected': 'str',
+                'actual': '42',
+                'key': 'urn',
+                'obj': {'urn': 42},
+                'status': 400,
+            },
+            ctxt.exception.response.json,
+        )
+
+    @freezegun.freeze_time('2018-01-01')
+    @util.mock()
+    def test_history_missing(self, mock):
+        userid = '00000000-0000-0000-0000-000000000000'
+
+        mock.get(
+            'http://mox/organisation/bruger'
+            '?uuid=' + userid +
+            '&virkningtil=2018-01-01T00%3A00%3A00.000001%2B01%3A00'
+            '&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00',
+            json={
+                "results": [],
+            },
+        )
+
+        with self.assertRaisesRegex(
+            exceptions.HTTPException,
+            '404 Not Found: User not found.',
+        ):
+            common.add_bruger_history_entry(
+                userid,
+                'kaflaflibob',
+            )
