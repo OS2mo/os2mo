@@ -5,6 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+import collections
 import datetime
 import typing
 
@@ -14,6 +16,7 @@ from . import util
 
 from .service import common
 from .service import keys
+from .service import mapping
 
 
 def _is_date_range_valid(parent: typing.Union[dict, str],
@@ -114,6 +117,23 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
             **_get_active_validity(org_unit),
+        )
+
+
+def is_distinct_responsibility(
+    fields: typing.List[typing.Tuple[common.FieldTuple, typing.Mapping]],
+):
+    uuid_counts = collections.Counter(
+        value['uuid']
+        for field, value in fields
+        if field == mapping.RESPONSIBILITY_FIELD
+    )
+    duplicates = sorted(v for v, c in uuid_counts.items() if c > 1)
+
+    if duplicates:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_DUPLICATED_RESPONSIBILITY,
+            duplicates=duplicates
         )
 
 

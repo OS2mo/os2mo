@@ -168,4 +168,6 @@ def edit_manager(employee_uuid, req):
     validator.is_date_range_in_employee_range(employee_uuid, new_from,
                                               new_to)
 
+    validator.is_distinct_responsibility(update_fields)
+
     c.organisationfunktion.update(payload, manager_uuid)
