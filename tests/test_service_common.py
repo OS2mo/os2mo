@@ -1605,7 +1605,7 @@ class TestClass(TestCase):
         # Assert
         self.assertEqual(expected_result, actual_result)
 
-    def test_set_object_value_existing_path(self):
+    def test_set_obj_value_existing_path(self):
         # Arrange
         obj = {'test1': {'test2': [{'key1': 'val1'}]}}
         path = ('test1', 'test2')
@@ -1622,12 +1622,12 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = common.set_object_value(obj, path, val)
+        actual_result = common.set_obj_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
 
-    def test_set_object_value_new_path(self):
+    def test_set_obj_value_new_path(self):
         # Arrange
         obj = {}
         path = ('test1', 'test2')
@@ -1643,7 +1643,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = common.set_object_value(obj, path, val)
+        actual_result = common.set_obj_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)

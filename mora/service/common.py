@@ -225,17 +225,17 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
             'gyldighed': "Inaktiv",
             'virkning': _create_virkning(old_from, new_from)
         }
-        payload = set_object_value(payload, path, [val])
+        payload = set_obj_value(payload, path, [val])
     if new_to < old_to:
         val = {
             'gyldighed': "Inaktiv",
             'virkning': _create_virkning(new_to, old_to)
         }
-        payload = set_object_value(payload, path, [val])
+        payload = set_obj_value(payload, path, [val])
     return payload
 
 
-def set_object_value(obj: dict, path: tuple, val: typing.List[dict]):
+def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
 
@@ -329,7 +329,7 @@ def ensure_bounds(valid_from: datetime.datetime,
                     updated_props.append(last)
 
         if updated_props:
-            payload = set_object_value(payload, field.path, updated_props)
+            payload = set_obj_value(payload, field.path, updated_props)
     return payload
 
 
@@ -358,7 +358,7 @@ def update_payload(
             # so disregard existing props
             updated_props = [val]
 
-        payload = set_object_value(payload, field_tuple.path, updated_props)
+        payload = set_obj_value(payload, field_tuple.path, updated_props)
 
     return payload
 
@@ -461,7 +461,7 @@ def inactivate_org_funktion_payload(enddate, note):
         'virkning': _create_virkning(enddate, 'infinity')
     }
 
-    payload = set_object_value({'note': note}, obj_path, [val_inactive])
+    payload = set_obj_value({'note': note}, obj_path, [val_inactive])
 
     return payload
 
@@ -785,7 +785,7 @@ def add_bruger_history_entry(employee_uuid, note: str):
         'note': note
     }
 
-    payload = set_object_value(payload, path, [gyldighed])
+    payload = set_obj_value(payload, path, [gyldighed])
     c.bruger.update(payload, employee_uuid)
 
 
