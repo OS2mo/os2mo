@@ -52,7 +52,7 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
 
     '''
 
-    if not username or not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
+    if not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
         return 'N/A'
 
     if insecure is None:
