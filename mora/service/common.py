@@ -22,7 +22,9 @@ import operator
 import typing
 import uuid
 
+
 import flask
+import werkzeug
 
 from . import keys
 from .. import exceptions
@@ -343,23 +345,26 @@ def update_payload(
         obj: dict,
         payload: dict,
 ):
-    for field in relevant_fields:
-        field_tuple, val = field
-        val['virkning'] = _create_virkning(valid_from, valid_to)
+    combined_fields = werkzeug.datastructures.OrderedMultiDict(relevant_fields)
+
+    for field_tuple, vals in combined_fields.lists():
+        for val in vals:
+            val['virkning'] = _create_virkning(valid_from, valid_to)
 
         # Get original properties
         props = get_obj_value(obj, field_tuple.path, field_tuple.filter_fn)
 
         if field_tuple.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
-            updated_props = _merge_obj_effects(props, val)
+            updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
-            updated_props = props + [val]
+            updated_props = props + vals
         else:
             # Zero-to-one relation - LoRa does the merging for us,
             # so disregard existing props
-            updated_props = [val]
+            assert 0 <= len(vals) <= 1
+            updated_props = vals
 
         payload = set_obj_value(payload, field_tuple.path, updated_props)
 
@@ -368,7 +373,7 @@ def update_payload(
 
 def _merge_obj_effects(
         orig_objs: typing.List[dict],
-        new: dict,
+        new_objs: typing.List[dict],
 ) -> typing.List[dict]:
     """
     Performs LoRa-like merging of a relation object, with a current list of
@@ -380,21 +385,23 @@ def _merge_obj_effects(
     of objects from a zero-to-one relation, i.e. no overlapping time periods
 
     :param orig_objs: A list of objects with virkningstider
-    :param new: A new object with virkningstid, to be merged
+    :param new_objs: A new object with virkningstid, to be merged
                 into the original list.
     :return: A list of merged objects
     """
-    # TODO: Implement merging of two lists?
-
-    result = [new]
+    result = new_objs
 
     if orig_objs is None:
         return result
 
-    sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
+    sorted_orig = sorted(orig_objs, key=get_effect_from)
 
-    new_from = get_effect_from(new)
-    new_to = get_effect_to(new)
+    # sanity checks
+    assert len({get_effect_to(obj) for obj in new_objs}) == 1
+    assert len({get_effect_from(obj) for obj in new_objs}) == 1
+
+    new_from = get_effect_from(new_objs[0])
+    new_to = get_effect_to(new_objs[0])
 
     for orig in sorted_orig:
         orig_from = get_effect_from(orig)
