@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import sys
+import traceback
 import typing
 from enum import Enum
 
@@ -14,12 +16,21 @@ import werkzeug.exceptions
 
 
 class ErrorCodes(Enum):
+    @property
+    def description(self):
+        return self.value[1]
+
+    @property
+    def code(self):
+        return self.value[0]
+
     # Validation errors
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
     V_INVALID_VALIDITY = 400, "Invalid validity."
     V_MISSING_START_DATE = 400, "Missing start date."
     V_END_BEFORE_START = 400, "End date is before start date."
     V_ORIGINAL_REQUIRED = 400, "Original required."
+    V_EXISTING_CPR = 400, "Person with CPR number already exists."
     V_NO_PERSON_FOR_CPR = 404, "No person found for given CPR number."
     V_CPR_NOT_VALID = 400, "Not a valid CPR number."
     V_ORG_UNIT_MOVE_TO_CHILD = \
@@ -39,6 +50,8 @@ class ErrorCodes(Enum):
              "org unit."
     V_NO_ACTIVE_ENGAGEMENT = \
         400, "Employee must have an active engagement."
+    V_UNIT_OUTSIDE_ORG = \
+        400, "Unit belongs to an organisation different from the current one."
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
@@ -63,39 +76,31 @@ class ErrorCodes(Enum):
 
 class HTTPException(werkzeug.exceptions.HTTPException):
     key = ErrorCodes.E_UNKNOWN
-    description = "Unknown error"
-    code = 500
 
     def __init__(self,
                  error_key: typing.Optional[ErrorCodes]=None,
                  message: typing.Optional[str]=None,
-                 **context) -> None:
-        if error_key:
+                 **extras) -> None:
+
+        if error_key is not None:
             self.key = error_key
 
-        code, description = self.key.value
+        body = {
+            'error': True,
+            'description': message or self.key.description,
+            'status': self.key.code,
+            'error_key': self.key.name,
+            **extras,
+        }
 
-        if message:
-            description = message
-        self.description = description
+        # this aids debugging
+        if flask.current_app.debug:
+            body.update(
+                exception=sys.exc_info()[1] and str(sys.exc_info()[1]),
+                context=traceback.format_stack()[-10:-1],
+            )
 
-        self.code = code
-        self.context = context
+        r = flask.jsonify(body)
+        r.status_code = self.key.code
 
-        super().__init__(description)
-
-    def get_headers(self, environ=None):
-        return [('Content-Type', flask.current_app.config['JSONIFY_MIMETYPE'])]
-
-    def get_body(self, environ=None):
-        return flask.json.dumps(
-            {
-                'error': True,
-                'description': self.description,
-                'status': self.code,
-                'error_key': self.key.name,
-
-                **self.context,
-            },
-            indent=2,
-        )
+        super().__init__(body['description'], response=r)

@@ -147,7 +147,6 @@ API
 
 '''
 
-import itertools
 import json
 import re
 
@@ -233,7 +232,8 @@ def get_relation_for(addrobj, fallback=None):
 
     else:
         raise exceptions.HTTPException(
-            'unknown address scope {!r}!'.format(scope),
+            exceptions.ErrorCodes.E_INVALID_INPUT,
+            'unknown address scope {!r}!'.format(scope)
         )
 
     return r
@@ -290,9 +290,10 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise exceptions.HTTPException('invalid urn {!r}'.format(
-                addrrel['urn'],
-            ))
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'invalid urn {!r}'.format(addrrel['urn'])
+            )
 
         name = urn[len(prefix):]
         href = (
@@ -315,6 +316,7 @@ def get_one_address(c, addrrel, class_cache=None):
 
     else:
         raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
             'invalid address scope {!r}'.format(addrformat),
         )
 
@@ -365,8 +367,8 @@ class Addresses(common.AbstractRelationDetail):
                 convert(self.scope.get(id)),
                 key=(
                     lambda v: (
-                        common.get_valid_from(v) or util.negative_infinity,
-                        common.get_valid_to(v) or util.positive_infinity,
+                        common.get_valid_from(v) or util.NEGATIVE_INFINITY,
+                        common.get_valid_to(v) or util.POSITIVE_INFINITY,
                         str(v[keys.NAME]),
                     )
                 ),
@@ -416,7 +418,11 @@ class Addresses(common.AbstractRelationDetail):
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise exceptions.HTTPException('no addresses to edit!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'no addresses to edit!',
+                original=original
+            )
 
         addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 

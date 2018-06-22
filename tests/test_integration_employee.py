@@ -22,6 +22,8 @@ class Tests(util.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+
         payload = {
             "name": "Torkild Testperson",
             "cpr_no": "0101501234",
@@ -30,10 +32,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-
         with notsouid.freeze_uuid(mock_uuid):
-            r = self._perform_request('/service/e/create', json=payload)
+            r = self.request('/service/e/create', json=payload)
         userid = r.json
 
         expected = {
@@ -105,7 +105,44 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
+                'user_key': mock_uuid,
                 'cpr_no': '0101501234',
+                'uuid': userid,
+            },
+        )
+
+    def test_create_employee_like_import(self):
+        '''Test creating a user that has no CPR number, but does have a
+        user_key and a given UUID.
+
+        '''
+        self.load_sample_structures()
+
+        userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
+
+        self.assertRequestResponse(
+            '/service/e/create',
+            userid,
+            json={
+                'name': 'Teodor Testfætter',
+                'user_key': 'testfætter',
+                'org': {
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'uuid': userid,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/'.format(userid),
+            {
+                'name': 'Teodor Testfætter',
+                'user_key': 'testfætter',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
                 'uuid': userid,
             },
         )
@@ -118,6 +155,50 @@ class Tests(util.LoRATestCase):
         self.assertRequestFails(
             '/service/e/create', 400,
             json=payload)
+
+    def test_create_employee_existing_cpr_existing_org(self):
+        self.load_sample_structures()
+
+        payload = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0906340000",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        }
+
+        expected = {
+            'cpr': '0906340000',
+            'description': 'Person with CPR number already exists.',
+            'error': True,
+            'error_key': 'V_EXISTING_CPR',
+            'status': 400
+        }
+
+        actual = self.request('/service/e/create', json=payload).json
+
+        self.assertEqual(expected, actual)
+
+    def test_create_employee_existing_cpr_new_org(self):
+        """
+        Should be able to create employee with same CPR no,
+        but in different organisation
+        """
+        self.load_sample_structures()
+
+        payload = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0906340000",
+            "org": {
+                'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
+            }
+        }
+
+        uuid = self.request('/service/e/create', json=payload).json
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        self.assertTrue(c.bruger.get(uuid))
 
     def test_cpr_lookup_prod_mode_false(self):
         # Arrange

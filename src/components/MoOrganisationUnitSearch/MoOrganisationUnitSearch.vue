@@ -8,6 +8,7 @@
         data-vv-as="Enhed" 
         :items="items" 
         v-model="selectedSuperUnit" 
+        @item-selected="selected"
         :get-label="getLabel" 
         :component-item='template'
         @update-items="updateItems"
@@ -47,7 +48,6 @@
     },
     data () {
       return {
-        item: null,
         selectedSuperUnit: null,
         items: [],
         template: MoOrganisationUnitSearchTemplate,
@@ -66,8 +66,8 @@
         this.$emit('input', newVal)
       }
     },
-    mounted () {
-      this.selectedSuperUnit = this.value
+    created () {
+      if (this.value !== undefined) this.selectedSuperUnit = this.value
     },
     methods: {
       getLabel (item) {

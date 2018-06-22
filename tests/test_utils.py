@@ -20,13 +20,20 @@ from .util import TestCase
 
 @freezegun.freeze_time('2015-06-01T01:10')
 class TestUtils(TestCase):
+    @property
+    def now(self):
+        return util.now()
+
+    @property
+    def today(self):
+        return util.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     def test_to_lora_time(self):
         tests = {
-            util.today():
+            self.today:
             '2015-06-01T00:00:00+02:00',
 
-            util.now():
+            self.now:
             '2015-06-01T01:10:00+02:00',
 
             '01-06-2017':
@@ -70,15 +77,14 @@ class TestUtils(TestCase):
                               '1999-15-11 00:00:00+01')
 
         # make sure we can round-trip the edge cases correctly
-        self.assertEqual(util.parsedatetime(util.negative_infinity),
-                         util.negative_infinity)
+        self.assertEqual(util.parsedatetime(util.NEGATIVE_INFINITY),
+                         util.NEGATIVE_INFINITY)
 
-        self.assertEqual(util.parsedatetime(util.positive_infinity),
-                         util.positive_infinity)
+        self.assertEqual(util.parsedatetime(util.POSITIVE_INFINITY),
+                         util.POSITIVE_INFINITY)
 
     def test_to_frontend_time(self):
-        self.assertEqual(util.to_frontend_time(util.today()),
-                         '01-06-2015')
+        self.assertEqual(util.to_frontend_time(self.today), '01-06-2015')
 
         self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
                          '31-12-2017')
@@ -103,9 +109,9 @@ class TestUtils(TestCase):
         self.assertEqual('01-06-2015',
                          util.to_frontend_time(datetime.date.today()))
         self.assertEqual('01-06-2015',
-                         util.to_frontend_time(util.today()))
+                         util.to_frontend_time(self.today))
         self.assertEqual('2015-06-01T01:10:00+02:00',
-                         util.to_frontend_time(util.now()))
+                         util.to_frontend_time(self.now))
         self.assertEqual('01-01-2015',
                          util.to_frontend_time(datetime.date(2015, 1, 1)))
         self.assertEqual('01-06-2015',

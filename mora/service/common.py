@@ -81,10 +81,8 @@ FieldTuple = collections.namedtuple(
 )
 
 
-def get_connector():
+def get_connector(**loraparams):
     args = flask.request.args
-
-    loraparams = dict()
 
     if args.get('at'):
         loraparams['effective_date'] = util.from_iso_time(args['at'])
@@ -124,6 +122,9 @@ def checked_get(
             return default
 
     elif not isinstance(v, type(default)):
+        if not required and v is None:
+            return default
+
         expected = type(default).__name__
         actual = json.dumps(v)
         raise exceptions.HTTPException(
@@ -144,11 +145,14 @@ def get_uuid(
     mapping: D,
     fallback: D=None,
     *,
+    required: bool=True,
     key: typing.Hashable=keys.UUID
 ) -> str:
-    v = checked_get(mapping, key, '', fallback=fallback, required=True)
+    v = checked_get(mapping, key, '', fallback=fallback, required=required)
 
-    if not util.is_uuid(v):
+    if not v and not required:
+        return None
+    elif not util.is_uuid(v):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_UUID,
             message='Invalid uuid for {!r}: {!r}'.format(key, v),
@@ -619,13 +623,15 @@ def create_bruger_payload(
                     'uuid': tilhoerer
                 }
             ],
-            'tilknyttedepersoner': [
-                {
-                    'urn': 'urn:dk:cpr:person:{}'.format(cpr),
-                }
-            ],
         }
     }
+
+    if cpr:
+        user['relationer']['tilknyttedepersoner'] = [
+            {
+                'urn': 'urn:dk:cpr:person:{}'.format(cpr),
+            },
+        ]
 
     user = _set_virkning(user, virkning)
 
@@ -663,7 +669,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
         valid_to = validity.get(keys.TO, sentinel)
 
         if valid_to is None:
-            return util.positive_infinity
+            return util.POSITIVE_INFINITY
 
         elif valid_to is not sentinel:
             return util.from_iso_time(valid_to)
@@ -671,7 +677,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
     if fallback is not None:
         return get_valid_to(fallback)
     else:
-        return util.positive_infinity
+        return util.POSITIVE_INFINITY
 
 
 def get_validities(obj, fallback=None):
@@ -729,6 +735,11 @@ def replace_relation_value(relations: typing.List[dict],
             exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
+def get_states(reg):
+    for tilstand in reg.get('tilstande', {}).values():
+        yield from tilstand
+
+
 def is_reg_valid(reg):
     """
     Check if a given registration is valid
@@ -738,9 +749,8 @@ def is_reg_valid(reg):
     """
 
     return any(
-        gyldighed_obj.get('gyldighed') == 'Aktiv'
-        for tilstand in reg.get('tilstande', {}).values()
-        for gyldighed_obj in tilstand
+        state.get('gyldighed') == 'Aktiv'
+        for state in get_states(reg)
     )
 
 

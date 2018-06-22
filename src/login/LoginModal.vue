@@ -3,25 +3,30 @@
     id="login"
     size="md"
     hide-footer
-    title="Log ind">
+    title="Log ind"
+  >
     <form @submit.prevent="gotoMo()">
       <div class="form-group col">
         <b-form-input
           name="username"
           type="text"
           placeholder="Brugernavn"
-          v-model="user.username"/>
+          v-model="user.username"
+        />
       </div>
       <div class="form-group col">
         <b-form-input
           name="password"
           type="password"
-          placeholder="Adgangskode"/>
+          placeholder="Adgangskode"
+          v-model="user.password"
+        />
       </div>
       <div class="form-group col">
         <b-form-checkbox
           id="checkbox1"
-          value="accepted">
+          value="accepted"
+        >
           Husk mig
         </b-form-checkbox>
       </div>
@@ -44,16 +49,23 @@
     data () {
       return {
         user: {
-          username: ''
-        }
+          username: '',
+          password: ''
+        },
+        isLoading: false
       }
     },
     methods: {
       gotoMo () {
         let vm = this
-        Auth.setUser(vm.user)
+        vm.isLoading = true
+        Auth.login(vm.user)
           .then(response => {
+            vm.isLoading = false
             vm.$router.push({name: this.destination})
+          })
+          .catch(error => {
+            return error.response.data
           })
       }
     }

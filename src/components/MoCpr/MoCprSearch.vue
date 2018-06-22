@@ -16,7 +16,7 @@
         type="button" 
         class="btn btn-outline-primary" 
         @click="cprLookup()" 
-        :disabled="errors.has(nameId)" 
+        :disabled="errors.has(nameId) || !cprNo" 
         v-show="!isLoading">
         <icon name="search"/>
       </button>
@@ -74,6 +74,7 @@ export default {
           if (response.error) {
             vm.backendValidationError = response.error_key
           } else {
+            vm.backendValidationError = null
             this.$emit('input', response)
           }
         })

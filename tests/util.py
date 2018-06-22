@@ -6,29 +6,25 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import atexit
 import contextlib
 import json
 import os
 import pprint
 import re
-import signal
-import socket
-import subprocess
 import sys
-import tempfile
 import threading
-import time
-import unittest
+from unittest.mock import patch
 
 import flask_testing
 import requests
 import requests_mock
-import urllib3
+import time
 import werkzeug.serving
 
-from mora import lora, app, settings
-from mora.converters import importing
+from oio_rest.utils import test_support
+
+from mora import app, lora, settings
+from mora.importing import spreadsheets
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -63,20 +59,6 @@ def get_mock_text(mock_name, mode='r'):
         return fp.read()
 
 
-def get_unused_port():
-    '''Obtain an unused port suitable for connecting to a server.
-
-    Please note that due to not returning the allocated socket, this
-    function is vulnerable to a race condition: in the time between
-    call and port use, something else might acquire the port in
-    question. However, this rarely happens in practice.
-
-    '''
-    with socket.socket() as sock:
-        sock.bind(('', 0))
-        return sock.getsockname()[1]
-
-
 def load_fixture(path, fixture_name, uuid=None, *, verbose=False):
     '''Load a fixture, i.e. a JSON file with the 'fixtures' directory,
     into LoRA at the given path & UUID.
@@ -91,7 +73,7 @@ def load_fixture(path, fixture_name, uuid=None, *, verbose=False):
 def import_fixture(fixture_name):
     path = os.path.join(IMPORTING_DIR, fixture_name)
     print(fixture_name, path)
-    for method, path, obj in importing.convert([path]):
+    for method, path, obj in spreadsheets.convert([path]):
         r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
                              json=obj)
         r.raise_for_status()
@@ -307,7 +289,7 @@ class TestCaseMixin(object):
         '''
         message = message or 'request {!r} failed'.format(path)
 
-        r = self._perform_request(path, **kwargs)
+        r = self.request(path, **kwargs)
 
         actual = (
             json.loads(r.get_data(True))
@@ -344,11 +326,11 @@ class TestCaseMixin(object):
         '''
         message = message or "request {!r} didn't fail properly".format(path)
 
-        r = self._perform_request(path, **kwargs)
+        r = self.request(path, **kwargs)
 
         self.assertEqual(r.status_code, code, message)
 
-    def _perform_request(self, path, **kwargs):
+    def request(self, path, **kwargs):
         if 'json' in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist
@@ -397,141 +379,47 @@ class TestCaseMixin(object):
             sort_inner_lists(actual))
 
 
-class LoRATestCaseMixin(TestCaseMixin):
+class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
 
     def load_sample_structures(self, **kwargs):
-        self.assertIsNone(self.minimox.poll(), 'LoRA is not running!')
         load_sample_structures(**kwargs)
 
-    @classmethod
-    def flush_log(cls, *, silent=False):
-        '''read and print output from the server process
-
-        our test-runner enforces buffering of stdout, so we can safely
-        print out the process output; this ensures any exceptions,
-        etc. get reported to the user/test-runner
-
-        '''
-        cls.minimox_log.flush()
-        last_offset = cls.minimox_log_offset
-        cls.minimox_log_offset = os.path.getsize(cls.minimox_log.fileno())
-
-        data_len = cls.minimox_log_offset - last_offset
-        data = os.pread(cls.minimox_log.fileno(), data_len, last_offset)
-
-        if not silent and data:
-            print(data.decode('utf-8').rstrip())
-
-    @staticmethod
-    def lora_port():
-        try:
-            return LoRATestCaseMixin.__lora_port
-        except AttributeError:
-            LoRATestCaseMixin.__lora_port = get_unused_port()
-            return LoRATestCaseMixin.__lora_port
-
-    @classmethod
-    def get_lora_environ(cls):
-        '''Extra environment variables for the LoRA process.'''
-
-        return {}
-
-    @unittest.skipUnless('MINIMOX_DIR' in os.environ, 'MINIMOX_DIR not set!')
-    @classmethod
-    def setUpClass(cls):
-        MINIMOX_DIR = os.getenv('MINIMOX_DIR')
-
-        env = {
-            **os.environ,
-            **cls.get_lora_environ(),
-        }
-
-        # Start a 'minimox' instance -- which is LoRA with the testing
-        # tweaks in the 'minimox' branch. We use a separate process
-        # since LoRA doesn't support Python 3, yet; the main downside
-        # to this is that we have to take measures not to leak that
-        # process.
-        cls.minimox_log_offset = 0
-        cls.minimox_log = tempfile.TemporaryFile(mode='w+')
-        cls.minimox = subprocess.Popen(
-            [os.path.join(MINIMOX_DIR, 'run-mox.py'), str(cls.lora_port())],
-            stdin=subprocess.DEVNULL,
-            stdout=cls.minimox_log.fileno(),
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-            cwd=MINIMOX_DIR,
-            env=env,
-        )
-
-        cls._orig_lora = settings.LORA_URL
-        settings.LORA_URL = 'http://localhost:{}/'.format(cls.lora_port())
-        settings.SAML_IDP_TYPE = None
-
-        # This is the first such measure: if the interpreter abruptly
-        # exits for some reason, tell the subprocess to exit as well
-        atexit.register(cls.minimox.send_signal, signal.SIGINT)
-
-        # wait for loading
-        s = requests.Session()
-        s.mount(
-            settings.LORA_URL,
-            requests.adapters.HTTPAdapter(
-                max_retries=urllib3.util.retry.Retry(
-                    20,
-                    backoff_factor=0.01,
-                ),
-            ),
-        )
-
-        try:
-            s.get(settings.LORA_URL + 'site-map').raise_for_status()
-        except Exception as e:
-            raise unittest.SkipTest('LoRA startup failed!')
-
-    @classmethod
-    def tearDownClass(cls):
-        # first, we're cleaning up now, so clear the exit handler
-        atexit.unregister(cls.minimox.send_signal)
-
-        # second, terminate our child process
-        cls.minimox.send_signal(signal.SIGINT)
-
-        settings.LORA_URL = cls._orig_lora
-        cls.minimox_log.close()
-
     def setUp(self):
+        lora_server = werkzeug.serving.make_server(
+            'localhost', 0, self.get_lora_app(),
+        )
+        (_, self.lora_port) = lora_server.socket.getsockname()
+
+        patches = [
+            patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
+                self.lora_port,
+            )),
+            patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
+            patch('mora.importing.processors._fetch.cache', {}),
+            patch('mora.importing.processors._fetch.cache_file',
+                  os.devnull),
+        ]
+
+        # apply patches, then start the server -- so they're active
+        # while it's running
+        for p in patches:
+            p.start()
+
+        threading.Thread(
+            target=lora_server.serve_forever,
+            args=(),
+        ).start()
+
+        # likewise, stop it, and *then* pop the patches
+        self.addCleanup(lora_server.shutdown)
+
+        for p in patches:
+            self.addCleanup(p.stop)
+
         super().setUp()
-
-        self.assertIsNone(self.minimox.poll(), 'LoRA suddenly died!')
-
-        self.flush_log()
-
-    def tearDown(self):
-        self.assertIsNone(self.minimox.poll(), 'LoRA suddenly died!')
-
-        self.flush_log()
-
-        # delete all objects in the test instance; this does 'leak'
-        # information in that they continue to exist as registrations,
-        # but it's faster than recreating the database fully
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
-        for t in map(c.__getattr__, c.scope_map):
-            for objid in t(bvn='%'):
-                t.delete(objid)
-
-        self.flush_log(silent=True)
-
-        super().tearDown()
-
-    def _perform_request(self, *args, **kwargs):
-        try:
-            return super()._perform_request(*args, **kwargs)
-        finally:
-            self.flush_log()
 
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):

@@ -31,6 +31,7 @@ from . import leave
 from . import org
 from . import role
 from .. import lora
+from .. import settings
 from .. import util
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
@@ -61,10 +62,13 @@ def get_one_employee(c, userid, user=None, full=False):
         rels = user['relationer']
         orgid = rels['tilhoerer'][0]['uuid']
 
-        r[keys.CPR_NO] = (
-            rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
-        )
+        if rels.get('tilknyttedepersoner'):
+            r[keys.CPR_NO] = (
+                rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
+            )
+
         r[keys.ORG] = org.get_one_organisation(c, orgid)
+        r[keys.USER_KEY] = props['brugervendtnoegle']
 
     return r
 
@@ -122,7 +126,7 @@ def list_employees(orgid):
     args = flask.request.args
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)) or 20,
+        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
         tilhoerer=str(orgid),
         gyldighed='Aktiv',
@@ -975,6 +979,7 @@ def create_employee():
 
     :<json string name: The name of the employee
     :<json string cpr_no: The CPR no of the employee
+    :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
 
     .. sourcecode:: json
@@ -996,15 +1001,29 @@ def create_employee():
     req = flask.request.get_json()
 
     name = common.checked_get(req, keys.NAME, "", required=True)
-    org = common.checked_get(req, keys.ORG, {}, required=True)
-    org_uuid = common.get_uuid(org)
-    cpr = common.checked_get(req, keys.CPR_NO, "", required=True)
+    org_uuid = common.get_mapping_uuid(req, keys.ORG, required=True)
+    cpr = common.checked_get(req, keys.CPR_NO, "", required=False)
+    userid = common.get_uuid(req, required=False)
 
-    valid_from = util.get_cpr_birthdate(cpr)
-    valid_to = util.positive_infinity
+    try:
+        valid_from = util.get_cpr_birthdate(cpr)
+    except ValueError:
+        valid_from = util.NEGATIVE_INFINITY
 
-    # TODO: put something useful into the user key
-    bvn = str(uuid.uuid4())
+    bruger = c.bruger.fetch(
+        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
+        tilhoerer=org_uuid
+    )
+    if bruger:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_EXISTING_CPR,
+            cpr=cpr
+        )
+
+    valid_to = util.POSITIVE_INFINITY
+
+    # TODO: put something useful into the default user key
+    bvn = common.checked_get(req, keys.USER_KEY, str(uuid.uuid4()))
 
     user = common.create_bruger_payload(
         valid_from=valid_from,
@@ -1015,6 +1034,6 @@ def create_employee():
         cpr=cpr,
     )
 
-    userid = c.bruger.create(user)
+    userid = c.bruger.create(user, uuid=userid)
 
     return flask.jsonify(userid)

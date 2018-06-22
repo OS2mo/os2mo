@@ -29,6 +29,7 @@ from . import keys
 from . import mapping
 from . import orgunit
 from .. import util
+from .. import settings
 from .. import exceptions
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
@@ -71,15 +72,13 @@ def list_details(type, id):
     The value above informs you that at least one entry exists for each of
     'engagement' and 'leave' either in the past, present or future.
     '''
-    c = common.get_connector()
 
-    r = []
+    c = common.get_connector(virkningfra='-infinity',
+                             virkningtil='infinity')
 
     info = DETAIL_TYPES[type]
     search = {
         info.search: id,
-        'virkningfra': '-infinity',
-        'virkningtil': 'infinity',
     }
     scope = getattr(c, info.scope)
 
@@ -415,7 +414,8 @@ def get_detail(type, id, function):
             exceptions.ErrorCodes.E_INVALID_FUNCTION_TYPE)
 
     search.update(
-        limit=int(flask.request.args.get('limit', 0)) or 20,
+        limit=int(flask.request.args.get('limit', 0)) or
+        settings.DEFAULT_PAGE_SIZE,
         start=int(flask.request.args.get('start', 0)),
         funktionsnavn=keys.FUNCTION_KEYS[function],
     )
@@ -551,8 +551,6 @@ def get_detail(type, id, function):
                     'tilknyttedeorganisationer',
                 ),
             },
-            virkningfra='-infinity',
-            virkningtil='infinity',
         )
         if common.is_reg_valid(effect)
     ]
