@@ -20,6 +20,12 @@ from .util import TestCase
 class TestClass(TestCase):
     maxDiff = None
 
+    def test_exception_stringification(self):
+        self.assertEqual(
+            "500 Internal Server Error: Unknown Error.",
+            str(exceptions.HTTPException()),
+        )
+
     def test_get_obj_path(self):
         # Arrange
         obj = {

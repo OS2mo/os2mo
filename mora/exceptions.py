@@ -77,6 +77,10 @@ class ErrorCodes(Enum):
 class HTTPException(werkzeug.exceptions.HTTPException):
     key = ErrorCodes.E_UNKNOWN
 
+    @property
+    def code(self):
+        return self.key.code
+
     def __init__(self,
                  error_key: typing.Optional[ErrorCodes]=None,
                  message: typing.Optional[str]=None,
