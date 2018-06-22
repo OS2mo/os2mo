@@ -9,7 +9,6 @@
 from __future__ import generator_stop
 
 import collections
-import datetime
 import functools
 import itertools
 import uuid
@@ -238,44 +237,44 @@ class Connector:
     def __init__(self, **defaults):
         self.__validity = defaults.pop('validity', None) or 'present'
 
-        self.today = util.parsedatetime(
-            defaults.pop('effective_date', None) or util.today(),
+        self.now = util.parsedatetime(
+            defaults.pop('effective_date', None) or util.now(),
         )
-        self.tomorrow = self.today + datetime.timedelta(days=1)
 
         if self.__validity == 'past':
-            self.__daterange = (util.negative_infinity, self.today)
-            defaults.update(
-                virkningfra='-infinity',
-                virkningtil=util.to_lora_time(self.today),
-            )
+            self.start = util.NEGATIVE_INFINITY
+            self.end = self.now
 
         elif self.__validity == 'future':
-            self.__daterange = (self.tomorrow, util.positive_infinity)
-
-            defaults.update(
-                virkningfra=util.to_lora_time(self.tomorrow),
-                virkningtil='infinity',
-            )
+            self.start = self.now
+            self.end = util.POSITIVE_INFINITY
 
         elif self.__validity == 'present':
-            if 'virkningfra' in defaults or 'virkningtil' in defaults:
-                self.today = util.parsedatetime(defaults['virkningfra'])
-                self.tomorrow = util.parsedatetime(defaults['virkningtil'])
-
-            else:
-                defaults.update(
-                    virkningfra=util.to_lora_time(self.today),
-                    virkningtil=util.to_lora_time(self.tomorrow),
+            # we should probably use 'virkningstid' but that means we
+            # have to override each and every single invocation of the
+            # accessors later on
+            if 'virkningfra' in defaults:
+                self.start = self.now = util.parsedatetime(
+                    defaults.pop('virkningfra'),
                 )
+            else:
+                self.start = self.now
 
-            self.__daterange = (self.today, self.tomorrow)
+            if 'virkningtil' in defaults:
+                self.end = util.parsedatetime(defaults.pop('virkningtil'))
+            else:
+                self.end = self.start + util.MINIMAL_INTERVAL
 
         else:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.V_INVALID_VALIDITY,
                 validity=self.__validity
             )
+
+        defaults.update(
+            virkningfra=util.to_lora_time(self.start),
+            virkningtil=util.to_lora_time(self.end),
+        )
 
         self.__defaults = defaults
 
@@ -289,17 +288,9 @@ class Connector:
 
     def __is_range_relevant(self, start, end):
         if self.validity == 'present':
-            return util.do_ranges_overlap(
-                start, end,
-                *self.__daterange,
-            )
-
+            return util.do_ranges_overlap(self.start, self.end, start, end)
         else:
-            return (
-                util.do_ranges_overlap(start, end, *self.__daterange) and
-                not util.do_ranges_overlap(start, end,
-                                           self.today, self.tomorrow)
-            )
+            return start >= self.start and end <= self.end
 
     def get_date_chunks(self, dates):
         a, b = itertools.tee(sorted(dates))
@@ -353,22 +344,37 @@ class Scope:
 
     __call__ = fetch
 
-    def get_all(self, *, start=0, limit=1000, **params):
+    def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
         params['maximalantalresultater'] = start + limit
 
         if 'uuid' in params:
-            uuids = util.uniqueify(params['uuid'])
+            uuids = util.uniqueify(params.pop('uuid'))
         else:
             uuids = self.fetch(**params)[start:start + limit]
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 
-        for chunk in util.splitlist(uuids, 20):
+        # as an optimisation, we want to minimize the amount of
+        # roundtrips whilst also avoiding too large requests -- to
+        # this, we calculate in advance how many we can request
+        available_length = settings.MAX_REQUEST_LENGTH
+        available_length -= 4  # for 'GET '
+        available_length -= len(self.base_path)
+
+        for k, v in itertools.chain(self.connector.defaults.items(),
+                                    params.items()):
+            available_length -= len(k) + len(str(v)) + 2
+
+        per_length = 36 + len('&uuid=')
+
+        for chunk in util.splitlist(uuids, int(available_length / per_length)):
             for d in self.fetch(uuid=chunk):
                 yield d['id'], (d['registreringer'] if wantregs
                                 else d['registreringer'][0])
 
-    def paged_get(self, func, *, start=0, limit=1000, **params):
+    def paged_get(self, func, *,
+                  start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                  **params):
 
         uuids = self.fetch(**params)
 
@@ -415,7 +421,11 @@ class Scope:
         _check_response(r)
 
     def update(self, obj, uuid):
-        r = session.put('{}/{}'.format(self.base_path, uuid), json=obj)
+        r = session.request(
+            'PATCH' if settings.USE_PATCH else 'PUT',
+            '{}/{}'.format(self.base_path, uuid),
+            json=obj,
+        )
         _check_response(r)
         return r.json()['uuid']
 

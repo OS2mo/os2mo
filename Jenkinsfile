@@ -4,7 +4,6 @@ pipeline {
   agent any
 
   environment {
-    MINIMOX_DIR = '/srv/minimox'
     BROWSER = 'Firefox'
     MOZ_HEADLESS = '1'
     PYTEST_ADDOPTS = '--color=yes'
@@ -13,7 +12,11 @@ pipeline {
   stages {
     stage('Fetch') {
       steps {
-        timeout(2) {
+        dir("../mox") {
+          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
+        }
+
+        timeout(5) {
           ansiColor('xterm') {
             sh './build/run-fetch.sh'
           }
@@ -23,7 +26,7 @@ pipeline {
 
     stage('Check') {
       steps {
-        timeout(2) {
+        timeout(1) {
           ansiColor('xterm') {
             sh './build/run-check.sh'
           }
@@ -33,9 +36,7 @@ pipeline {
 
     stage('Build') {
       steps {
-        echo 'Building...'
-
-        timeout(10) {
+        timeout(4) {
           ansiColor('xterm') {
             sh './build/run-build.sh'
           }
@@ -50,9 +51,7 @@ pipeline {
 
     stage('Test') {
       steps {
-        echo 'Testing..'
-
-        timeout(15) {
+        timeout(12) {
           ansiColor('xterm') {
             sh './build/run-tests.sh'
           }
@@ -62,9 +61,7 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        echo 'Deploying....'
-
-        timeout(1) {
+        timeout(5) {
           ansiColor('xterm') {
             sh './build/run-deploy.sh'
           }

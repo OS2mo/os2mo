@@ -11,10 +11,11 @@ import datetime
 import functools
 import itertools
 import json
-import math
+import marshal
 import os
 import re
 import sys
+import tempfile
 import typing
 import uuid
 
@@ -29,27 +30,29 @@ from . import exceptions
 PLACEHOLDER = "\u2014"
 
 # timezone-aware versions of min/max
-positive_infinity = datetime.datetime.max.replace(
+POSITIVE_INFINITY = datetime.datetime.max.replace(
     tzinfo=dateutil.tz.tzoffset(
         'MAX',
         datetime.timedelta(hours=23, minutes=59),
     ),
 )
-negative_infinity = datetime.datetime.min.replace(
+NEGATIVE_INFINITY = datetime.datetime.min.replace(
     tzinfo=dateutil.tz.tzoffset(
         'MIN',
         -datetime.timedelta(hours=23, minutes=59),
     ),
 )
+MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
+
 
 # TODO: the default timezone should be configurable, shouldn't it?
-default_timezone = dateutil.tz.gettz('Europe/Copenhagen')
+DEFAULT_TIMEZONE = dateutil.tz.gettz('Europe/Copenhagen')
 
-tzinfos = {
-    None: default_timezone,
+_tzinfos = {
+    None: DEFAULT_TIMEZONE,
     0: dateutil.tz.tzutc,
-    1 * 60**2: default_timezone,
-    2 * 60**2: default_timezone,
+    1 * 60**2: DEFAULT_TIMEZONE,
+    2 * 60**2: DEFAULT_TIMEZONE,
 }
 
 
@@ -61,7 +64,7 @@ def parsedatetime(s: str) -> datetime.datetime:
     if isinstance(s, datetime.date):
         dt = s
 
-        if dt in (positive_infinity, negative_infinity):
+        if dt in (POSITIVE_INFINITY, NEGATIVE_INFINITY):
             return dt
 
         if not isinstance(dt, datetime.datetime):
@@ -70,14 +73,14 @@ def parsedatetime(s: str) -> datetime.datetime:
             )
 
         if not dt.tzinfo:
-            dt = dt.replace(tzinfo=default_timezone)
+            dt = dt.replace(tzinfo=DEFAULT_TIMEZONE)
 
         return dt
 
     elif s == 'infinity':
-        return positive_infinity
+        return POSITIVE_INFINITY
     elif s == '-infinity':
-        return negative_infinity
+        return NEGATIVE_INFINITY
 
     if ' ' in s:
         # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
@@ -90,9 +93,12 @@ def parsedatetime(s: str) -> datetime.datetime:
         pass
 
     try:
-        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=tzinfos)
+        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
     except ValueError:
-        raise exceptions.HTTPException('cannot parse {!r}'.format(s))
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
+            'cannot parse {!r}'.format(s)
+        )
 
     return dt
 
@@ -104,9 +110,9 @@ def do_ranges_overlap(first_start, first_end, second_start, second_end):
 def to_lora_time(s):
     dt = parsedatetime(s)
 
-    if dt == positive_infinity:
+    if dt == POSITIVE_INFINITY:
         return 'infinity'
-    elif dt == negative_infinity:
+    elif dt == NEGATIVE_INFINITY:
         return '-infinity'
     else:
         return dt.isoformat()
@@ -122,8 +128,8 @@ def to_iso_time(s):
     dt = parsedatetime(s)
 
     return (
-        dt.astimezone(default_timezone).isoformat()
-        if dt not in (positive_infinity, negative_infinity)
+        dt.astimezone(DEFAULT_TIMEZONE).isoformat()
+        if dt not in (POSITIVE_INFINITY, NEGATIVE_INFINITY)
         else None
     )
 
@@ -132,7 +138,7 @@ def from_iso_time(s):
     dt = dateutil.parser.isoparse(s)
 
     if not dt.tzinfo:
-        dt = dt.replace(tzinfo=default_timezone)
+        dt = dt.replace(tzinfo=DEFAULT_TIMEZONE)
 
     return dt
 
@@ -140,9 +146,9 @@ def from_iso_time(s):
 def to_frontend_time(s):
     dt = parsedatetime(s)
 
-    if dt == positive_infinity:
+    if dt == POSITIVE_INFINITY:
         return 'infinity'
-    elif dt == negative_infinity:
+    elif dt == NEGATIVE_INFINITY:
         return '-infinity'
     elif dt and dt.time().replace(tzinfo=None) == datetime.time():
         return unparsedate(dt.date())
@@ -152,13 +158,7 @@ def to_frontend_time(s):
 
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
-    return datetime.datetime.now().replace(tzinfo=default_timezone)
-
-
-def today() -> datetime.datetime:
-    '''Get midnight of current date, localized to the current time zone.'''
-    return datetime.datetime.combine(datetime.date.today(),
-                                     datetime.time(tzinfo=default_timezone))
+    return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
 def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
@@ -338,6 +338,42 @@ def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
 
     try:
         return datetime.datetime(century + year, month, day,
-                                 tzinfo=default_timezone)
+                                 tzinfo=DEFAULT_TIMEZONE)
     except ValueError:
         raise ValueError('invalid CPR number {}'.format(number))
+
+
+def cached(func):
+    @functools.wraps(func)
+    def wrapper(*args):
+        try:
+            return wrapper.cache[args]
+        except KeyError:
+            wrapper.cache[args] = result = func(*args)
+
+            with open(wrapper.cache_file, 'wb') as fp:
+                marshal.dump(wrapper.cache, fp, marshal.version)
+
+            return result
+
+    wrapper.cache = {}
+    wrapper.uncached = wrapper.__wrapped__
+
+    wrapper.cache_file = os.path.join(
+        tempfile.gettempdir(),
+        '-'.join(
+            func.__module__.split('.') +
+            [
+                func.__name__,
+                str(os.getuid()),
+            ],
+        ) + '.data',
+    )
+
+    try:
+        with open(wrapper.cache_file, 'rb') as fp:
+            wrapper.cache = marshal.load(fp)
+    except (IOError, EOFError):
+        wrapper.cache = {}
+
+    return wrapper

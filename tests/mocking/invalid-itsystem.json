@@ -1,5 +1,5 @@
 {
-  "http://mox/organisation/bruger?virkningtil=2018-03-21T00%3A00%3A00%2B01%3A00&virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&uuid=34705881-8af9-4254-ac3f-31738eae0be8": {
+  "http://mox/organisation/bruger?virkningtil=2018-03-20T00%3A00%3A00.000001%2B01%3A00&virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&uuid=34705881-8af9-4254-ac3f-31738eae0be8": {
     "results": [
       [
         {
@@ -169,7 +169,7 @@
       ]
     ]
   },
-  "http://mox/organisation/itsystem?uuid=a7ecd46a-9d70-4170-bde9-9bf44cf8632b&virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&virkningtil=2018-03-21T00%3A00%3A00%2B01%3A00": {
+  "http://mox/organisation/itsystem?uuid=a7ecd46a-9d70-4170-bde9-9bf44cf8632b&virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&virkningtil=2018-03-20T00%3A00%3A00.000001%2B01%3A00": {
     "results": [
       [
         {
@@ -242,7 +242,7 @@
       ]
     ]
   },
-  "http://mox/organisation/itsystem?virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&uuid=990255f7-44c7-4fec-9ef8-27fe73763afd&virkningtil=2018-03-21T00%3A00%3A00%2B01%3A00": {
+  "http://mox/organisation/itsystem?virkningfra=2018-03-20T00%3A00%3A00%2B01%3A00&uuid=990255f7-44c7-4fec-9ef8-27fe73763afd&virkningtil=2018-03-20T00%3A00%3A00.000001%2B01%3A00": {
     "results": [
       [
         {

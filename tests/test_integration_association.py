@@ -197,6 +197,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Fedtmule',
@@ -290,7 +294,7 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'Adresse',
+                        'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
@@ -421,7 +425,7 @@ class Tests(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'Adresse',
+                    'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
             },
@@ -437,6 +441,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Fedtmule',
@@ -484,7 +492,7 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'Adresse',
+                        'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
@@ -625,7 +633,7 @@ class Tests(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'Adresse',
+                    'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
             },
@@ -641,6 +649,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Fedtmule',
@@ -873,6 +885,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -917,6 +933,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1215,6 +1235,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1428,7 +1452,11 @@ class Tests(util.LoRATestCase):
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
-                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1476,6 +1504,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Samfundsvidenskabelige fakultet',
                 'user_key': 'samf',
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             validity={
                 'from': '2018-04-01T00:00:00+02:00',
@@ -1664,6 +1696,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1686,6 +1722,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Samfundsvidenskabelige fakultet',
                 'user_key': 'samf',
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             validity={
                 'from': '2018-04-01T00:00:00+02:00',
@@ -1904,6 +1944,10 @@ class AddressTests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1937,7 +1981,7 @@ class AddressTests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'Adresse',
+                        'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
@@ -2095,7 +2139,7 @@ class AddressTests(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'Adresse',
+                    'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 'href': 'https://www.openstreetmap.org/'

@@ -15,7 +15,7 @@
       <input 
         :name="nameId"
         :data-vv-as="label" 
-        v-model="selected"
+        v-model="date_string"
         type="hidden"
         v-validate="{required: required}">
 
@@ -51,6 +51,7 @@ export default {
         from: null
       },
       selected: null,
+      date_string: null,
       da: da
     }
   },
@@ -61,6 +62,12 @@ export default {
   },
   watch: {
     selected (newVal) {
+      // send on a date-only string in ISO format, so that we
+      // disregard timezones and the time-of-day
+      this.date_string = newVal ? this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
+    },
+
+    date_string (newVal) {
       this.$emit('input', newVal)
     },
 
@@ -77,7 +84,8 @@ export default {
     }
   },
   created () {
-    this.selected = this.value ? new Date(this.value) : null
+    this.selected = this.value
+    this.date_string = this.value
   }
 }
 </script>

@@ -17,7 +17,7 @@ from . import util
 
 
 @util.mock()
-@freezegun.freeze_time('2010-06-01')
+@freezegun.freeze_time('2010-06-01', tz_offset=2)
 class Tests(util.TestCase):
     def test_get_date_chunks(self, m):
         def check(validity, dates, expected):
@@ -42,10 +42,13 @@ class Tests(util.TestCase):
             '2011-01-01',
         ]
 
+        with self.subTest('prerequisite'):
+            self.assertEqual('2010-06-01T02:00:00+02:00',
+                             mora_util.now().isoformat())
+
         with self.subTest('present I'):
             check('present', dates, [
                 ('2010-06-01T00:00:00+02:00', '2010-06-01T12:00:00+02:00'),
-                ('2010-06-01T12:00:00+02:00', '2010-06-02T00:00:00+02:00'),
             ])
 
         with self.subTest('past I'):
@@ -56,6 +59,7 @@ class Tests(util.TestCase):
 
         with self.subTest('future I'):
             check('future', dates, [
+                ('2010-06-01T12:00:00+02:00', '2010-06-02T00:00:00+02:00'),
                 ('2010-06-02T00:00:00+02:00', '2010-06-03T00:00:00+02:00'),
                 ('2010-06-03T00:00:00+02:00', '2011-01-01T00:00:00+01:00'),
             ])
@@ -95,7 +99,7 @@ class Tests(util.TestCase):
         URL = (
             settings.LORA_URL + 'organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
-            '&virkningfra=2010-06-02T00%3A00%3A00%2B02%3A00'
+            '&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00'
             '&virkningtil=infinity'
         )
         m.get(

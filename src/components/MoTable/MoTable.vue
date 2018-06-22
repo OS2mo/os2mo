@@ -1,7 +1,7 @@
 <template>
   <div>
     <mo-loader v-show="isLoading"/>
-    <div v-show="!isLoading">
+    <div v-show="!isLoading" class="scroll">
     <span v-if="!contentAvailable">Intet at vise</span>
     <b-form-checkbox-group v-model="selected">
     <table v-if="contentAvailable" class="table table-striped">
@@ -112,5 +112,11 @@
 <style scoped>
   table {
     margin-top: 0;
+  }
+
+  .scroll {
+    max-height: 55vh;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 </style>

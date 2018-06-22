@@ -31,6 +31,7 @@ import werkzeug
 from . import common
 from . import keys
 from .. import exceptions
+from .. import settings
 from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
@@ -133,6 +134,7 @@ def get_one_class(c, classid, clazz=None):
 
         if not clazz:
             raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
                 'no such class {!r}'.format(classid),
             )
 
@@ -226,7 +228,7 @@ def get_classes(orgid: uuid.UUID, facet: str):
     c = common.get_connector()
 
     start = int(flask.request.args.get('start') or 0)
-    limit = int(flask.request.args.get('limit') or 1000)
+    limit = int(flask.request.args.get('limit') or settings.DEFAULT_PAGE_SIZE)
 
     facetids = c.facet(
         bvn=facet_name, ansvarlig=str(orgid),

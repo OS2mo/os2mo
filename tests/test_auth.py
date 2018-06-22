@@ -18,7 +18,7 @@ ORG_URL = (
     'http://mox/organisation/organisation'
     '?bvn=%25'
     '&virkningfra=2001-01-01T00%3A00%3A00%2B01%3A00'
-    '&virkningtil=2001-01-02T00%3A00%3A00%2B01%3A00'
+    '&virkningtil=2001-01-01T00%3A00%3A00.000001%2B01%3A00'
 )
 
 
@@ -55,7 +55,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/USER/login',
+                '/service/user/login',
                 {
                     'error_key': 'E_UNAUTHORIZED',
                     'description': (
@@ -66,6 +66,7 @@ class MockTests(util.TestCase):
                     'status': 401,
                 },
                 json={
+                    'username': 'USER',
                     'password': 's3cr1t!',
                 },
                 status_code=401,
@@ -83,7 +84,7 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/USER/login',
+                '/service/user/login',
                 {
                     'error': True,
                     'error_key': 'E_UNAUTHORIZED',
@@ -94,6 +95,7 @@ class MockTests(util.TestCase):
                     'status': 401,
                 },
                 json={
+                    'username': 'USER',
                     'password': 's3cr1t!',
                 },
                 status_code=401,
@@ -111,9 +113,10 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='wso2',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/USER/login',
+                '/service/user/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
+                    'username': 'USER',
                     'password': 's3cr1t!',
                 },
             )
@@ -136,9 +139,10 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
-                '/mo/service/user/USER/login',
+                '/service/user/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
+                    'username': 'USER',
                     'password': 's3cr1t!',
                 },
             )
@@ -154,9 +158,10 @@ class MockTests(util.TestCase):
         with util.override_settings(SAML_IDP_TYPE=None,
                                     SAML_IDP_URL=None):
             self.assertRequestResponse(
-                '/mo/service/user/USER/login',
+                '/service/user/login',
                 {'role': [], 'token': 'N/A', 'user': 'USER'},
                 json={
+                    'username': 'USER',
                     'password': 's3cr1t!',
                 },
             )

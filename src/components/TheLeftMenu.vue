@@ -2,7 +2,7 @@
   <div class="card col">
     <div class="card-body d-flex flex-column">
       <h4 class="card-title">
-        <icon name="folder-o"/>
+        <icon name="folder-open"/>
         Overblik
       </h4>
       <div id="tree-wrapper">

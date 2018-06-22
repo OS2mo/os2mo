@@ -1,6 +1,6 @@
 <template>
   <div class="col-sm-3 box text-white ml-3">
-    <icon :name="icon" scale="3"/>
+    <icon class="icon-box" :name="icon" scale="3"/>
     <p>{{label}}</p>
     <span class="text-size">{{info}}</span>
   </div>
@@ -24,7 +24,13 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+  .icon-box {
+    width: 7.4vh;
+    height: 7.4vh;
+  }
+
   .box {
+    margin: 0.5rem;
     background-color: #007bff;
     min-height: 10vh;
     display: block;
@@ -36,4 +42,5 @@
     line-height: 0vh;
     font-size: 2vh;
   }
+
 </style>

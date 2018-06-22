@@ -83,7 +83,7 @@ class Writing(util.LoRATestCase):
             'example': '<UUID>',
             'name': 'Adresse',
             'scope': 'DAR',
-            'user_key': 'Adresse',
+            'user_key': 'AdressePost',
             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
         }
 
@@ -394,7 +394,7 @@ class Writing(util.LoRATestCase):
             'example': '<UUID>',
             'name': 'Adresse',
             'scope': 'DAR',
-            'user_key': 'Adresse',
+            'user_key': 'AdressePost',
             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
         }
 
@@ -448,7 +448,7 @@ class Writing(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'user_key': 'Adresse',
+                        'user_key': 'AdressePost',
                     },
                     'validity': {
                         'to': None,
@@ -476,7 +476,7 @@ class Writing(util.LoRATestCase):
             'example': '<UUID>',
             'name': 'Adresse',
             'scope': 'DAR',
-            'user_key': 'Adresse',
+            'user_key': 'AdressePost',
             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
         }
 
@@ -679,7 +679,7 @@ class Writing(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'Adresse',
+                        'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -716,7 +716,7 @@ class Writing(util.LoRATestCase):
             'example': '<UUID>',
             'name': 'Adresse',
             'scope': 'DAR',
-            'user_key': 'Adresse',
+            'user_key': 'AdressePost',
             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
         }
 
@@ -922,7 +922,7 @@ class Writing(util.LoRATestCase):
                 "example": "<UUID>",
                 "name": "Adresse",
                 "scope": "DAR",
-                "user_key": "Adresse",
+                "user_key": "AdressePost",
                 "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
             },
             "href": "https://www.openstreetmap.org/"
@@ -1062,7 +1062,7 @@ class Writing(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'Adresse',
+                    'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 'href': 'https://www.openstreetmap.org/'
@@ -1087,7 +1087,7 @@ class Writing(util.LoRATestCase):
             'example': '<UUID>',
             'name': 'Adresse',
             'scope': 'DAR',
-            'user_key': 'Adresse',
+            'user_key': 'AdressePost',
             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
         }
 
@@ -1218,7 +1218,7 @@ class Writing(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                         },
                         'type': 'address',
@@ -1258,7 +1258,7 @@ class Writing(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                         },
                         'type': 'address',
@@ -1351,7 +1351,7 @@ class Writing(util.LoRATestCase):
                         "example": "<UUID>",
                         "name": "Adresse",
                         "scope": "DAR",
-                        "user_key": "Adresse",
+                        "user_key": "AdressePost",
                         "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
                     "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
@@ -1363,7 +1363,7 @@ class Writing(util.LoRATestCase):
             }
         }
 
-        r = self._perform_request('/service/ou/create', json=payload)
+        r = self.request('/service/ou/create', json=payload)
         unitid = r.json
 
         address_rels = [
@@ -1414,9 +1414,17 @@ class Writing(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-02-04T00:00:00+01:00',
+                    'to': '2017-10-22T00:00:00+02:00',
+                },
             },
         )
 
@@ -1462,7 +1470,7 @@ class Writing(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'Adresse',
+                        'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -1501,7 +1509,7 @@ class Writing(util.LoRATestCase):
                 "example": "<UUID>",
                 "name": "Adresse",
                 "scope": "DAR",
-                "user_key": "Adresse",
+                "user_key": "AdressePost",
                 "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
             },
             "validity": {
@@ -1660,7 +1668,7 @@ class Writing(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'Adresse',
+                    'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 'href': 'https://www.openstreetmap.org/'
@@ -1751,10 +1759,17 @@ class Writing(util.LoRATestCase):
             c.organisationenhed.get(unitid)['relationer']['adresser'],
         )
 
+        # it's in the future, so not written yet
         self.assertRequestResponse(
             '/service/ou/{}/details/address'.format(unitid),
-            addresses,
+            addresses[:-1],
         )
+
+        with freezegun.freeze_time('2017-01-02', tz_offset=1):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                addresses,
+            )
 
     def test_edit_org_unit_address_overwrite(self, mock):
         self.load_sample_structures()
@@ -1783,7 +1798,7 @@ class Writing(util.LoRATestCase):
                     "example": "<UUID>",
                     "name": "Adresse",
                     "scope": "DAR",
-                    "user_key": "Adresse",
+                    "user_key": "AdressePost",
                     "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                 },
                 "href": "https://www.openstreetmap.org/"
@@ -1862,7 +1877,7 @@ class Writing(util.LoRATestCase):
                     "example": "<UUID>",
                     "name": "Adresse",
                     "scope": "DAR",
-                    "user_key": "Adresse",
+                    "user_key": "AdressePost",
                     "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                 },
                 "href": "https://www.openstreetmap.org/"
@@ -1889,7 +1904,7 @@ class Writing(util.LoRATestCase):
                     "example": "<UUID>",
                     "name": "Adresse",
                     "scope": "DAR",
-                    "user_key": "Adresse",
+                    "user_key": "AdressePost",
                     "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                 },
                 "uuid": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
@@ -1908,7 +1923,7 @@ class Writing(util.LoRATestCase):
                 'example': '<UUID>',
                 'name': 'Adresse',
                 'scope': 'DAR',
-                'user_key': 'Adresse',
+                'user_key': 'AdressePost',
                 'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
             },
             'href': 'https://www.openstreetmap.org/'
@@ -2065,7 +2080,7 @@ class Reading(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/'
@@ -2106,7 +2121,7 @@ class Reading(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/'
@@ -2147,7 +2162,7 @@ class Reading(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/'
@@ -2188,7 +2203,7 @@ class Reading(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/'
@@ -2213,7 +2228,7 @@ class Reading(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'Adresse',
+                            'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/'
@@ -2337,7 +2352,7 @@ class Reading(util.LoRATestCase):
                                 'example': '<UUID>',
                                 'name': 'Adresse',
                                 'scope': 'DAR',
-                                'user_key': 'Adresse',
+                                'user_key': 'AdressePost',
                                 'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                             },
                             'href': 'https://www.openstreetmap.org/'

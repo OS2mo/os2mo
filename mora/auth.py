@@ -33,8 +33,8 @@ COOKIE_NAME = 'MO-Token'
 
 basedir = os.path.dirname(__file__)
 
-blueprint = flask.Blueprint('authentication', __name__, url_prefix='/mo',
-                            root_path=basedir)
+blueprint = flask.Blueprint('authentication', __name__,
+                            url_prefix='/service', root_path=basedir)
 
 
 class SAMLAuth(requests.auth.AuthBase):
@@ -55,8 +55,8 @@ class SAMLAuth(requests.auth.AuthBase):
         return r
 
 
-@blueprint.route('/service/user/<username>/login', methods=['POST'])
-def login(username):
+@blueprint.route('/user/login', methods=['POST'])
+def login():
     '''Attempt a login as the given user name. The internals of this login
     will be kept from the JavaScript by using httpOnly cookies.
 
@@ -65,8 +65,8 @@ def login(username):
     :statuscode 200: The login succeeded.
     :statuscode 401: The login failed.
 
-    :param username: The user ID to login as.
-
+    :<json string username: AD username and domain
+                            (format: <username>@<addomain>)
     :<json string password: The password of the user.
     :<json boolean rememberme: Whether to persist the login ---
         currently ignored.
@@ -77,7 +77,10 @@ def login(username):
     '''
 
     # TODO: remember me?
-    password = flask.request.get_json()['password']
+    json_payload = flask.request.get_json()
+
+    username = json_payload.get("username")
+    password = json_payload.get("password")
 
     try:
         assertion = tokens.get_token(username, password)
@@ -108,13 +111,12 @@ def login(username):
     return resp
 
 
-@blueprint.route('/service/user/<user>/logout', methods=['POST'])
-def logout(user=None):
+@blueprint.route('/user/logout', methods=['POST'])
+def logout():
     '''Attempt to log out as the given user name.
 
     .. :quickref: Authentication; Log out
 
-    :param username: The user ID to logout as.
     :return: Nothing.
 
     :statuscode 200: The logout succeeded --- which it almost always does.

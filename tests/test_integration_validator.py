@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from mora import exceptions, lora
+from mora import exceptions
 from mora import util as mora_util
 from mora import validator
 from tests import util
@@ -20,6 +20,7 @@ class TestHelper(util.LoRATestCase):
     PARENT = SAMF_UNIT
 
     def setUp(self):
+        super().setUp()
         self.load_sample_structures()
 
     def expire_org_unit(self, org_unit):
