@@ -197,6 +197,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Fedtmule',
@@ -437,6 +441,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': unitid,
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Fedtmule',
@@ -641,6 +649,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Fedtmule',
@@ -873,6 +885,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -917,6 +933,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1215,6 +1235,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1428,7 +1452,11 @@ class Tests(util.LoRATestCase):
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
-                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1476,6 +1504,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Samfundsvidenskabelige fakultet',
                 'user_key': 'samf',
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             validity={
                 'from': '2018-04-01T00:00:00+02:00',
@@ -1664,6 +1696,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',
@@ -1686,6 +1722,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Samfundsvidenskabelige fakultet',
                 'user_key': 'samf',
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             validity={
                 'from': '2018-04-01T00:00:00+02:00',
@@ -1904,6 +1944,10 @@ class AddressTests(util.LoRATestCase):
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             'person': {
                 'name': 'Anders And',

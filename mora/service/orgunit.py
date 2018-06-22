@@ -184,6 +184,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]
     rels = unit['relationer']
+    validities = unit['tilstande']['organisationenhedgyldighed']
 
     r = {
         'name': attrs['enhedsnavn'],
@@ -223,8 +224,7 @@ def get_one_orgunit(c, unitid, unit=None,
             'invalid details {!r}'.format(details),
         )
 
-    if validity is not None:
-        r[keys.VALIDITY] = validity
+    r[keys.VALIDITY] = validity or common.get_effect_validity(validities[0])
 
     return r
 
@@ -244,6 +244,7 @@ def get_children(type, parentid):
 
     :<jsonarr string name: Human-readable name of the unit.
     :<jsonarr string user_key: Short, unique key identifying the unit.
+    :<jsonarr object validity: Validity range of the organisational unit.
     :<jsonarr uuid uuid: Machine-friendly UUID of the unit.
     :<jsonarr int child_count: Number of org. units nested immediately beneath
                                the organisation.
@@ -318,7 +319,7 @@ def get_orgunit(unitid):
       {
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
-        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
         "org": {
           "name": "Aarhus Universitet",
           "user_key": "AU",
@@ -334,7 +335,15 @@ def get_orgunit(unitid):
         "parent": {
           "name": "Historisk Institut",
           "user_key": "hist",
-          "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+          "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+          "validity": {
+            "from": "2016-01-01T00:00:00+01:00",
+            "to": "2019-01-01T00:00:00+01:00"
+          }
+        },
+        "validity": {
+          "from": "2016-01-01T00:00:00+01:00",
+          "to": "2019-01-01T00:00:00+01:00"
         }
       }
 
@@ -382,7 +391,11 @@ def list_orgunits(orgid):
           {
             "name": "Samfundsvidenskabelige fakultet",
             "user_key": "samf",
-            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "validity": {
+              "from": "2017-01-01T00:00:00+01:00",
+              "to": null
+            }
           }
         ],
         "offset": 0,
