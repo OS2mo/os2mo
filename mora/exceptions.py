@@ -95,9 +95,11 @@ class HTTPException(werkzeug.exceptions.HTTPException):
 
         # this aids debugging
         if flask.current_app.debug:
+            cause = self.__cause__ or sys.exc_info()[1]
+
             body.update(
-                exception=sys.exc_info()[1] and str(sys.exc_info()[1]),
-                context=traceback.format_stack()[-10:-1],
+                exception=cause and str(cause),
+                context=traceback.format_exc().splitlines(),
             )
 
         r = flask.jsonify(body)
