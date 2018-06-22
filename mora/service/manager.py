@@ -35,16 +35,17 @@ def create_manager(employee_uuid, req):
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
     address_obj = common.checked_get(req, keys.ADDRESS, {})
     manager_type_uuid = common.get_mapping_uuid(req, keys.MANAGER_TYPE)
-    responsibility_uuid = common.get_mapping_uuid(req, keys.RESPONSIBILITY)
     manager_level_uuid = common.get_mapping_uuid(req, keys.MANAGER_LEVEL)
 
-    opgaver = list()
+    responsibilities = common.checked_get(req, keys.RESPONSIBILITY, [])
 
-    if responsibility_uuid:
-        opgaver.append({
+    opgaver = [
+        {
             'objekttype': 'lederansvar',
-            'uuid': responsibility_uuid
-        })
+            'uuid': common.get_uuid(responsibility)
+        }
+        for responsibility in responsibilities
+    ]
 
     if manager_level_uuid:
         opgaver.append({
@@ -119,22 +120,21 @@ def edit_manager(employee_uuid, req):
     if keys.MANAGER_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
-            {'uuid': data.get(keys.MANAGER_TYPE).get('uuid')},
+            {'uuid': common.get_mapping_uuid(data, keys.MANAGER_TYPE)},
         ))
 
     if keys.ORG_UNIT in data:
-        org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
-            {'uuid': org_unit_uuid},
+            {'uuid': common.get_mapping_uuid(data, keys.ORG_UNIT)},
         ))
 
-    if keys.RESPONSIBILITY in data:
+    for responsibility in common.checked_get(data, keys.RESPONSIBILITY, []):
         update_fields.append((
             mapping.RESPONSIBILITY_FIELD,
             {
                 'objekttype': 'lederansvar',
-                'uuid': data.get(keys.RESPONSIBILITY).get('uuid')
+                'uuid': common.get_uuid(responsibility),
             },
         ))
 
@@ -143,7 +143,7 @@ def edit_manager(employee_uuid, req):
             mapping.MANAGER_LEVEL_FIELD,
             {
                 'objekttype': 'lederniveau',
-                'uuid': data.get(keys.MANAGER_LEVEL).get('uuid')
+                'uuid': common.get_mapping_uuid(data, keys.MANAGER_LEVEL),
             },
         ))
 

@@ -50,9 +50,9 @@ class Tests(util.LoRATestCase):
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                 },
-                "responsibility": {
+                "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
-                },
+                }],
                 "manager_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -265,9 +265,9 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "responsibility": {
+                "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
-                },
+                }],
                 "manager_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -592,6 +592,256 @@ class Tests(util.LoRATestCase):
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
             json=payload)
 
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_create_manager_multiple_responsibilities(self, m):
+        '''Can we create a manager with more than one responsibility?'''
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "manager",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                'address': {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                },
+                "responsibility": [
+                    {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
+                    {'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"},
+                ],
+                "manager_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "manager_level": {
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                },
+                "validity": {
+                    "from": "2017-12-01T00:00:00+01",
+                    "to": "2017-12-02T00:00:00+01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse('/service/e/{}/create'.format(userid),
+                                   userid, json=payload)
+
+        expected = {
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-12-02 00:00:00+01',
+                            'to_included': False,
+                        },
+                    },
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                    }
+                ],
+                "opgaver": [
+                    {
+                        "objekttype": "lederansvar",
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                    },
+                    {
+                        "objekttype": "lederansvar",
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
+                    },
+                    {
+                        "objekttype": "lederniveau",
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                    },
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                    }
+                ],
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": mock_uuid,
+                        "funktionsnavn": "Leder"
+                    }
+                ]
+            }
+        }
+
+        managers = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        self.assertEqual(len(managers), 1)
+        managerid = managers[0]
+
+        actual_manager = c.organisationfunktion.get(managerid)
+
+        self.assertRegistrationsEqual(actual_manager, expected)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'address': {
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                },
+                'manager_level': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+                'person': {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                'responsibility': [
+                    {
+                        'example': None,
+                        'name': 'Fakultet',
+                        'scope': None,
+                        'user_key': 'fak',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                    },
+                    {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
+                ],
+                'uuid': managerid,
+                'validity': {
+                    'from': '2017-12-01T00:00:00+01:00',
+                    'to': '2017-12-02T00:00:00+01:00',
+                },
+            }],
+        )
+
     def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()
 
@@ -606,9 +856,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
-                "responsibility": {
+                "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
+                }],
                 "manager_level": {
                     "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                 },
@@ -918,9 +1168,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
-                "responsibility": {
+                "responsibility": [{
                     'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
-                },
+                }],
                 "manager_level": {
                     "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
@@ -946,9 +1196,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
-                "responsibility": {
+                "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
+                }],
                 "manager_level": {
                     "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                 },
@@ -1603,9 +1853,9 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "uuid": manager_uuid,
                 "data": {
-                    "responsibility": {
+                    "responsibility": [{
                         'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
-                    },
+                    }],
                     "validity": {
                         "from": "2016-04-01T00:00:00+02",
                     },
