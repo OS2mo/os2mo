@@ -5,6 +5,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+import copy
+
 from unittest.mock import patch
 
 import freezegun
@@ -1582,6 +1585,16 @@ class Tests(util.LoRATestCase):
                 expected_mora,
             )
 
+            self.assertRequestResponse(
+                '/service/e/{}/details/manager?validity=past'.format(userid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/manager?validity=future'.format(userid),
+                [],
+            )
+
         # perform the operation
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),
@@ -1599,9 +1612,10 @@ class Tests(util.LoRATestCase):
             }])
 
         # adjust the data as expected
-        expected_lora['note'] = 'Rediger leder'
-        expected_lora['livscykluskode'] = 'Rettet'
-        expected_lora['relationer']['opgaver'][0]['uuid'] = \
+        expected_changed_lora = copy.deepcopy(expected_lora)
+        expected_changed_lora['note'] = 'Rediger leder'
+        expected_changed_lora['livscykluskode'] = 'Rettet'
+        expected_changed_lora['relationer']['opgaver'][0]['uuid'] = \
             "ca76a441-6226-404f-88a9-31e02e420e52"
 
         for g, f in (
@@ -1614,7 +1628,7 @@ class Tests(util.LoRATestCase):
                 ('relationer', 'tilknyttedeorganisationer'),
                 ('tilstande', 'organisationfunktiongyldighed'),
         ):
-            for m in expected_lora[g][f]:
+            for m in expected_changed_lora[g][f]:
                 m['virkning']['from'] = '2016-04-01 00:00:00+02'
 
         expected_mora[0]['validity']['from'] = '2016-04-01T00:00:00+02:00'
@@ -1627,10 +1641,25 @@ class Tests(util.LoRATestCase):
         }
 
         # compare them!
-        self.assertRegistrationsEqual(c.organisationfunktion.get(manager_uuid),
-                                      expected_lora)
+        actual_lora = c.organisationfunktion.get(manager_uuid)
+
+        with self.subTest('LoRA'):
+            self.assertRegistrationsNotEqual(actual_lora, expected_lora,
+                                             "the edit didn't take :(")
+            self.assertRegistrationsEqual(expected_changed_lora, actual_lora,
+                                          "wrong results!")
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             expected_mora,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager?validity=future'.format(userid),
+            [],
         )
