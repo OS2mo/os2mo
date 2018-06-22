@@ -11,13 +11,13 @@ import datetime
 import dateutil
 
 from mora import exceptions
-from mora import util
+from mora import util as mora_util
 from mora.service import common
 
-from .util import TestCase
+from . import util
 
 
-class TestClass(TestCase):
+class TestClass(util.TestCase):
     maxDiff = None
 
     def test_exception_stringification(self):
@@ -338,8 +338,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_times_are_inside_bounds(self):
         # Arrange
-        new_from = util.parsedatetime('2013-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2013-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -409,8 +409,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_expanding_from_time(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2014-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2014-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -495,8 +495,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_diminishing_from_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-07-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-07-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -569,8 +569,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_expanding_to_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2017-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2017-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -655,8 +655,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_diminishing_to_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2014-07-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2014-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -729,8 +729,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_ztm(self):
         # Arrange
-        new_from = util.parsedatetime('2000-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-07-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2000-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -831,8 +831,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_expanding_to_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2016-07-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2016-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -915,8 +915,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_expanding_from_time(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1000,8 +1000,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_inside_bounds(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1074,8 +1074,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_extending_both_ends(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1168,8 +1168,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_extending_both_ends_single_effect(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1235,8 +1235,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_handles_unknown_fields(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'unknown': {
@@ -1782,7 +1782,7 @@ class TestClass(TestCase):
         ))
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to({}),
         )
 
@@ -1790,11 +1790,11 @@ class TestClass(TestCase):
             common.get_valid_to({
                 'validity': {},
             }),
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {},
                 {
@@ -1805,7 +1805,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {
                     'validity': {
@@ -1816,7 +1816,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {},
                 {
@@ -1853,18 +1853,18 @@ class TestClass(TestCase):
         # still nothing
         self.assertEqual(
             common.get_valid_to({}, {}),
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
             common.get_valid_to({}, {
                 'validity': None,
             }),
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to({}, {
                 'validity': {
                     'to': None,
@@ -1874,7 +1874,7 @@ class TestClass(TestCase):
 
         # actually set
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_from({
                 'validity': {
                     'from': '2018-03-05',
@@ -1883,7 +1883,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
@@ -1893,7 +1893,7 @@ class TestClass(TestCase):
 
         # actually set in the fallback
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_from({}, {
                 'validity': {
                     'from': '2018-03-05',
@@ -1902,7 +1902,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
@@ -1911,8 +1911,8 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
-             datetime.datetime(2018, 4, 5, tzinfo=util.DEFAULT_TIMEZONE)),
+            (datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
+             datetime.datetime(2018, 4, 5, tzinfo=mora_util.DEFAULT_TIMEZONE)),
             common.get_validities({
                 'validity': {
                     'from': '2018-03-05',
@@ -1922,8 +1922,8 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
-             util.POSITIVE_INFINITY),
+            (datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
+             mora_util.POSITIVE_INFINITY),
             common.get_validities({
                 'validity': {
                     'from': '2018-03-05'
