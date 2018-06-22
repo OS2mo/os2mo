@@ -84,6 +84,8 @@ pipeline {
         conditionalCoverageTargets: '90, 0, 0',                 \
         lineCoverageTargets: '95, 0, 0',                        \
         maxNumberOfBuilds: 0
+
+      cleanWs()
     }
   }
 }
