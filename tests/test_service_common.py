@@ -65,7 +65,7 @@ class TestClass(TestCase):
 
         path = ('test1',)
 
-        expected_props = {}
+        expected_props = None
 
         # Act
         actual_props = common.get_obj_value(obj, path)
@@ -82,11 +82,13 @@ class TestClass(TestCase):
 
         path = ('test1', 'test2')
 
-        expected_props = {}
+        expected_props = None
 
         # Act
-        with self.assertRaises(AttributeError):
-            common.get_obj_value(obj, path)
+        actual_props = common.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
 
     def test_update_payload_complex(self):
         # Arrange

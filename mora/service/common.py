@@ -18,6 +18,7 @@ import datetime
 import enum
 import functools
 import json
+import operator
 import typing
 import uuid
 
@@ -254,8 +255,10 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
 
 
 def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
-    props = functools.reduce(lambda x, y: x and x.get(y, {}),
-                             path, obj)
+    try:
+        props = functools.reduce(operator.getitem, path, obj)
+    except (LookupError, TypeError):
+        return None
 
     if filter_fn:
         return list(filter(filter_fn, props))
@@ -383,9 +386,13 @@ def _merge_obj_effects(
     """
     # TODO: Implement merging of two lists?
 
+    result = [new]
+
+    if orig_objs is None:
+        return result
+
     sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
 
-    result = [new]
     new_from = get_effect_from(new)
     new_to = get_effect_to(new)
 
@@ -418,7 +425,7 @@ def _merge_obj_effects(
                 new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
                 result.append(new_obj_after)
 
-    return sorted(result, key=lambda x: x['virkning']['from'])
+    return sorted(result, key=get_effect_from)
 
 
 def _create_virkning(valid_from: str, valid_to: str) -> dict:
