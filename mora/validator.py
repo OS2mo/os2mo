@@ -23,7 +23,7 @@ def _is_date_range_valid(parent: typing.Union[dict, str],
     """
     Determine if the given dates are within validity of the parent unit.
 
-    :param parent: The UUID of the parent unit.
+    :param parent: Ether the UUID of the parent unit, or a dict containing it.
     :param startdate: The candidate start date.
     :param enddate: The candidate end date.
     :param lora_scope: A scope object from a LoRa connector.
