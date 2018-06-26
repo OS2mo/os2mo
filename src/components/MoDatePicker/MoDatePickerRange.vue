@@ -6,6 +6,7 @@
       </button>
     </div>
     <mo-date-picker 
+      class="from-date"
       :label="$t('input_fields.start_date')"
       v-model="validFrom"
       v-show="!hidden"
