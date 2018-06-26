@@ -1,5 +1,7 @@
+import { baseURL } from './support'
+
 fixture('Getting Started')
-  .page('http://localhost:8080/login/')
+  .page(`${baseURL}/login/`)
 
 test('My first test', async t => {
   await t

@@ -1,7 +1,8 @@
 import { Selector } from 'testcafe'
+import { baseURL } from './support'
 
 fixture('Organisation test')
-  .page('http://localhost:8080/organisation/')
+  .page(`${baseURL}/organisation/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4`)
 
 const unitSelect = Selector('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
