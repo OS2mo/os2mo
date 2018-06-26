@@ -1,6 +1,5 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
     <div class="form-row">
       <mo-facet-picker 
         v-show="noPreselectedType"
@@ -29,6 +28,7 @@
         </span>
       </div>
     </div>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>
 </template>
 

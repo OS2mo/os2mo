@@ -57,8 +57,8 @@ export default {
 
     disabledDates () {
       return {
-        from: this.validDates.to ? this.validDates.to : null,
-        to: this.validDates.from ? this.validDates.from : null
+        from: this.validDates && this.validDates.to ? new Date(this.validDates.to) : null,
+        to: this.validDates && this.validDates.from ? new Date(this.validDates.from) : null
       }
     }
   },

@@ -3,7 +3,7 @@
     <div v-for="(v, index) in values" :key="index">
       <mo-removable-component 
         :entry-component="entryComponent" 
-        v-model="values[index]"
+        :validity-hidden="validityHidden"
       />
     </div>
 
@@ -24,7 +24,8 @@ export default {
       type: Object,
       required: true
     },
-    hasInitialEntry: Boolean
+    hasInitialEntry: Boolean,
+    validityHidden: Boolean
   },
   data () {
     return {

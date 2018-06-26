@@ -1,10 +1,5 @@
 <template>
   <div>
-    <mo-date-picker-range 
-      v-model="entry.validity" 
-      :initially-hidden="datePickerHidden"
-      :disabled-dates="orgUnitValidity"
-    />
     <div class="form-row">
       <mo-organisation-unit-search
         class="col" 
@@ -15,6 +10,11 @@
       <mo-facet-picker facet="job_function" v-model="entry.job_function" required/>
       <mo-facet-picker facet="engagement_type" v-model="entry.engagement_type" required/>
     </div>
+    <mo-date-picker-range 
+      v-model="entry.validity" 
+      :initially-hidden="datePickerHidden"
+      :disabled-dates="orgUnitValidity"
+    />
   </div>
 </template>
 
