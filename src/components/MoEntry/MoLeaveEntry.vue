@@ -1,9 +1,9 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
     <div class="form-row">
       <mo-facet-picker facet="leave_type" v-model="entry.leave_type" required/>
     </div>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
   </div>
 </template>
 

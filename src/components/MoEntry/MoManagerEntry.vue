@@ -1,6 +1,5 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/> 
     <div class="form-row">
       <mo-organisation-unit-search
         v-model="entry.org_unit" 
@@ -24,6 +23,8 @@
     </div>
 
     <mo-add-many v-model="entry.responsibility" :entry-component="facetPicker" has-initial-entry small-buttons/>
+    
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
   </div>
 </template>
 
@@ -44,7 +45,7 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object
+    validityHidden: Boolean
   },
   data () {
     return {
@@ -75,10 +76,6 @@ export default {
         this.$emit('input', newVal)
       },
       deep: true
-    },
-
-    validity (newVal) {
-      this.entry.validity = newVal
     }
   },
   created () {

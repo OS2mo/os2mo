@@ -13,10 +13,6 @@
     <mo-employee-picker v-model="employee" required/>
 
     <div class="form-row">
-      <mo-date-picker :label="$t('input_fields.move_date')" class="col" v-model="move.data.validity.from" required/>
-    </div>
-    
-    <div class="form-row">
       <mo-engagement-picker v-model="original" :employee="employee" required/>
     </div>
 
@@ -29,6 +25,23 @@
       />       
     </div>
 
+    <div class="form-row">
+      <mo-date-picker 
+        class="col"
+        :label="$t('input_fields.move_date')" 
+        v-model="move.data.validity.from"
+        :valid-dates="validDates"
+        required/>
+    </div>
+
+    <mo-confirm-checkbox
+      :entry-date="move.data.validity.from"
+      :entry-name="original.engagement_type.name"
+      :entry-org-name="original.org_unit.name"
+      v-if="dateConflict" 
+      required
+    />
+
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError)}}
     </div>
@@ -37,13 +50,6 @@
       <button-submit :is-loading="isLoading"/>
     </div>
 
-    <mo-confirm-checkbox
-      :entry-date="move.data.validity.from"
-      :entry-name="original.engagement_type.name"
-      :entry-org-name="original.org_unit.name"
-      v-if="this.dateConflict" 
-      required
-    />
   </form>
 </b-modal>
 </template>
@@ -104,6 +110,10 @@
           if (this.move.data.validity.from <= this.original.validity.to) return true
         }
         return false
+      },
+
+      validDates () {
+        return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
       }
     },
     methods: {

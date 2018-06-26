@@ -1,9 +1,17 @@
 <template>
   <div>
+    <h5> 
+      <button @click="add()" type="button" class="btn btn-outline-success" style="border:none!important">
+        <icon name="plus"/>
+      </button>
+      {{label}}
+    </h5>
+
     <div v-for="(v, index) in values" :key="index">
       <mo-removable-component 
         :entry-component="entryComponent" 
         :small-buttons="smallButtons"
+        :validity-hidden="validityHidden"
         v-model="values[index]"
       />
     </div>
@@ -26,7 +34,9 @@ export default {
       required: true
     },
     hasInitialEntry: Boolean,
-    smallButtons: Boolean
+    smallButtons: Boolean,
+    validityHidden: Boolean,
+    label: String
   },
   data () {
     return {
@@ -49,3 +59,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.even {
+  background-color: #eee;
+}
+</style>

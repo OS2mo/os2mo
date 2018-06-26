@@ -11,9 +11,6 @@
   >
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
-        <mo-date-picker-range class="col" v-model="rename.data.validity"/>
-      </div>
-      <div class="form-row">
         <mo-organisation-unit-search 
           label="Enhed" 
           class="col"
@@ -26,6 +23,10 @@
         <mo-input v-model="rename.data.name" :label="$t('input_fields.new_name')" required/>
       </div>
 
+      <div class="form-row">
+        <mo-date-picker-range class="col" v-model="rename.data.validity"/>
+      </div>
+      
       <div class="alert alert-danger" v-if="compareName">
         {{$t('alerts.error.COMPARE_ORG_RENAME_NAMES')}}
       </div>

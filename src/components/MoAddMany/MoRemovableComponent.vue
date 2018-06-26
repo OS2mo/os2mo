@@ -5,6 +5,7 @@
         <component 
           :is="entryComponent"
           v-model="entryValue"
+          :validity-hidden="validityHidden"
         />
       </div>
       <div class="col-1 v-center">
@@ -23,7 +24,8 @@ export default {
       type: Object,
       required: true
     },
-    smallButtons: Boolean
+    smallButtons: Boolean,
+    validityHidden: Boolean
   },
   data () {
     return {

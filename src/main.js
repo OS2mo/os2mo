@@ -7,6 +7,7 @@ import router from './router'
 import VueI18n from 'vue-i18n'
 import { da } from './i18n/da'
 import VeeValidate, { Validator } from 'vee-validate'
+import DateInRange from './validators/DateInRange'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
 import store from './vuex/store'
@@ -31,6 +32,8 @@ const veeConfig = {
 }
 
 Validator.localize('da', messagesDA)
+
+Validator.extend('date_in_range', DateInRange)
 
 Vue.use(BootstrapVue)
 Vue.use(VueI18n)
