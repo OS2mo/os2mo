@@ -12,8 +12,7 @@ const searchItem = searchInput.find('.v-autocomplete-list')
 test('MoOrganisationUnitCreate', async t => {
   await t
     .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
-    .click('#orgUnitCreate')
-    .setTestSpeed(0.3)
+    .click('.btn-unit-create')
     .typeText('input[data-vv-as="Navn"]', 'Ballerup Fredagsbar')
     .click(unitSelect)
     .click(unitOption.withText('Supportcenter'))
