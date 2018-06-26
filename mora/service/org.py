@@ -165,7 +165,7 @@ def get_organisation(orgid):
         'child_count': len(children),
         'unit_count': len(units),
         'person_count': len(users),
-        'employment_count': len(engagements),
+        'engagement_count': len(engagements),
         'association_count': len(associations),
         'leave_count': len(leaves),
         'role_count': len(roles),

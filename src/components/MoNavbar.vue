@@ -30,7 +30,7 @@
           <icon name="user"/> {{user.username}}
         </template>
         <b-dropdown-item @click="logout()">
-          <icon name="sign-out"/> Log ud
+          <icon name="sign-out-alt"/> Log ud
         </b-dropdown-item>
       </b-dropdown>
     </div>

@@ -29,6 +29,7 @@ from . import keys
 from . import mapping
 from . import orgunit
 from .. import util
+from .. import settings
 from .. import exceptions
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
@@ -413,7 +414,8 @@ def get_detail(type, id, function):
             exceptions.ErrorCodes.E_INVALID_FUNCTION_TYPE)
 
     search.update(
-        limit=int(flask.request.args.get('limit', 0)) or 20,
+        limit=int(flask.request.args.get('limit', 0)) or
+        settings.DEFAULT_PAGE_SIZE,
         start=int(flask.request.args.get('start', 0)),
         funktionsnavn=keys.FUNCTION_KEYS[function],
     )

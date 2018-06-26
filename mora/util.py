@@ -95,7 +95,10 @@ def parsedatetime(s: str) -> datetime.datetime:
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
     except ValueError:
-        raise exceptions.HTTPException('cannot parse {!r}'.format(s))
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
+            'cannot parse {!r}'.format(s)
+        )
 
     return dt
 

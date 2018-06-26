@@ -232,7 +232,8 @@ def get_relation_for(addrobj, fallback=None):
 
     else:
         raise exceptions.HTTPException(
-            'unknown address scope {!r}!'.format(scope),
+            exceptions.ErrorCodes.E_INVALID_INPUT,
+            'unknown address scope {!r}!'.format(scope)
         )
 
     return r
@@ -289,9 +290,10 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise exceptions.HTTPException('invalid urn {!r}'.format(
-                addrrel['urn'],
-            ))
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'invalid urn {!r}'.format(addrrel['urn'])
+            )
 
         name = urn[len(prefix):]
         href = (
@@ -314,6 +316,7 @@ def get_one_address(c, addrrel, class_cache=None):
 
     else:
         raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
             'invalid address scope {!r}'.format(addrformat),
         )
 
@@ -415,7 +418,11 @@ class Addresses(common.AbstractRelationDetail):
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise exceptions.HTTPException('no addresses to edit!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'no addresses to edit!',
+                original=original
+            )
 
         addresses = common.replace_relation_value(addresses, old_rel, new_rel)
 

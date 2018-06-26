@@ -11,17 +11,19 @@
   >
     <form @submit.stop.prevent="createOrganisationUnit">
       <mo-organisation-unit-entry
-        v-model="entry" 
+        v-model="entry"
+        :creating-date="true"
       />
 
       <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
-      <mo-address-entry v-model="postAddress" preselected-type="AdressePost" required/>
-      <mo-address-entry v-model="phone" preselected-type="Telefon" required/>
+      <mo-address-entry v-model="postAddress" preselected-type="AdressePost" validity-hidden required/>
+      <mo-address-entry v-model="phone" preselected-type="Telefon" validity-hidden required/>
 
-      <h5>{{$tc('workflows.employee.labels.other_addresses')}}</h5>
       <mo-add-many
         :entry-component="addressEntry"
+        :label="$tc('workflows.employee.labels.other_addresses')"
         v-model="addresses"
+        validity-hidden
       />
 
       <div class="alert alert-danger" v-if="backendValidationError">

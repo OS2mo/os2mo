@@ -10,13 +10,6 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="moveOrganisationUnit">
-    <div class="form-row">
-      <mo-date-picker 
-      :label="$t('input_fields.move_date')"
-      v-model="move.data.validity.from"
-      required
-      />
-    </div>
 
     <div class="form-row">
       <div class="col">
@@ -45,6 +38,14 @@
       :date="move.data.validity.from"
       required
     />
+    
+    <div class="form-row">
+      <mo-date-picker 
+      :label="$t('input_fields.move_date')"
+      v-model="move.data.validity.from"
+      required
+      />
+    </div>
 
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError)}}

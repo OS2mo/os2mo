@@ -10,8 +10,8 @@
     <mo-workflow>
       <mo-workflow-button :label="$t('workflows.employee.new_employee')" icon="user-plus" v-b-modal.employeeCreate/>
       <mo-workflow-button :label="$t('workflows.employee.leave')" icon="user-md" v-b-modal.employeeLeave/>
-      <mo-workflow-button :label="$t('workflows.employee.move_engagement')" icon="share-square-o" v-b-modal.employeeMove/>
-      <mo-workflow-button :label="$t('workflows.employee.move_many_engagements')" icon="share-square-o" v-b-modal.employeeMoveMany/>
+      <mo-workflow-button :label="$t('workflows.employee.move_engagement')" icon="user-tag" v-b-modal.employeeMove/>
+      <mo-workflow-button :label="$t('workflows.employee.move_many_engagements')" icon="users" v-b-modal.employeeMoveMany/>
       <mo-workflow-button :label="$t('workflows.employee.terminate_employee')" icon="user-times" v-b-modal.employeeTerminate/>
     </mo-workflow>
 

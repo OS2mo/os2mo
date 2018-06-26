@@ -59,7 +59,7 @@ class Tests(util.LoRATestCase):
             'user_key': 'AU',
             'unit_count': 1,
             'person_count': 2,
-            'employment_count': 1,
+            'engagement_count': 1,
             'association_count': 1,
             'leave_count': 1,
             'role_count': 1,
@@ -159,6 +159,10 @@ class Tests(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
             ],
         )
@@ -178,6 +182,10 @@ class Tests(util.LoRATestCase):
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
             ],
         )
@@ -189,12 +197,20 @@ class Tests(util.LoRATestCase):
                     "name": "Humanistisk fakultet",
                     "user_key": "hum",
                     "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01:00",
+                        "to": None,
+                    },
                     "child_count": 2,
                 },
                 {
                     "name": "Samfundsvidenskabelige fakultet",
                     "user_key": "samf",
                     "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "validity": {
+                        "from": "2017-01-01T00:00:00+01:00",
+                        "to": None,
+                    },
                     "child_count": 0,
                 }
             ],
@@ -208,31 +224,55 @@ class Tests(util.LoRATestCase):
                 'user_key': 'frem',
                 'name': 'Afdeling for Samtidshistorik',
                 'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
             },
             {
                 'user_key': 'root',
                 'name': 'Overordnet Enhed',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             {
                 'user_key': 'fil',
                 'name': 'Filosofisk Institut',
                 'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             {
                 'user_key': 'hum',
                 'name': 'Humanistisk fakultet',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             {
                 'user_key': 'samf',
                 'name': 'Samfundsvidenskabelige fakultet',
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None,
+                },
             },
             {
                 'user_key': 'hist',
                 'name': 'Historisk Institut',
                 'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': '2019-01-01T00:00:00+01:00',
+                },
             },
         ]
 
@@ -252,14 +292,22 @@ class Tests(util.LoRATestCase):
                 {
                     'items': [
                         {
-                            'user_key': 'hum',
-                            'name': 'Humanistisk fakultet',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'user_key': 'frem',
+                            'name': 'Afdeling for Samtidshistorik',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
                         },
                         {
-                            'user_key': 'hist',
-                            'name': 'Historisk Institut',
-                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'user_key': 'fil',
+                            'name': 'Filosofisk Institut',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                     ],
                     'offset': 0,
@@ -272,7 +320,35 @@ class Tests(util.LoRATestCase):
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
                 '?limit=3&start=1',
                 {
-                    'items': result_list[1:4],
+                    'items': [
+                        {
+                            'user_key': 'frem',
+                            'name': 'Afdeling for Samtidshistorik',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
+                        },
+                        {
+                            'user_key': 'hum',
+                            'name': 'Humanistisk fakultet',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
+                        },
+                        {
+                            'user_key': 'hist',
+                            'name': 'Historisk Institut',
+                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
+                        },
+                    ],
                     'offset': 1,
                     'total': 6
                 }
@@ -285,19 +361,31 @@ class Tests(util.LoRATestCase):
                 {
                     'items': [
                         {
-                            'user_key': 'root',
-                            'name': 'Overordnet Enhed',
-                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'user_key': 'frem',
+                            'name': 'Afdeling for Samtidshistorik',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
                         },
                         {
-                            'user_key': 'hum',
-                            'name': 'Humanistisk fakultet',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'user_key': 'fil',
+                            'name': 'Filosofisk Institut',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         {
                             'user_key': 'hist',
                             'name': 'Historisk Institut',
                             'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
                         },
                     ],
                     'offset': 0,
@@ -311,19 +399,31 @@ class Tests(util.LoRATestCase):
                 {
                     'items': [
                         {
-                            'user_key': 'frem',
-                            'name': 'Afdeling for Samtidshistorik',
-                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'user_key': 'root',
+                            'name': 'Overordnet Enhed',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         {
-                            'user_key': 'fil',
-                            'name': 'Filosofisk Institut',
-                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'user_key': 'hum',
+                            'name': 'Humanistisk fakultet',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                         {
                             'user_key': 'samf',
                             'name': 'Samfundsvidenskabelige fakultet',
                             'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'validity': {
+                                'from': '2017-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
                         },
                     ],
                     'offset': 3,
@@ -337,9 +437,13 @@ class Tests(util.LoRATestCase):
                 '?query=frem',
                 {
                     'items': [{
-                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'name': 'Afdeling for Samtidshistorik',
                         'user_key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2019-01-01T00:00:00+01:00',
+                        },
                     }],
                     'offset': 0,
                     'total': 1
@@ -354,6 +458,10 @@ class Tests(util.LoRATestCase):
                         'name': 'Overordnet Enhed',
                         'user_key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'validity': {
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': None,
+                        },
                     }],
                     'offset': 0,
                     'total': 1
@@ -381,6 +489,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -462,6 +574,10 @@ class Tests(util.LoRATestCase):
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None,
+                },
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -483,11 +599,15 @@ class Tests(util.LoRATestCase):
             [{'child_count': 2,
               'name': 'Humanistisk fakultet',
               'user_key': 'hum',
-              'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+              'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+              'validity': {'from': '2016-01-01T00:00:00+01:00',
+                           'to': None}},
              {'child_count': 0,
               'name': 'Samfundsvidenskabelige fakultet',
               'user_key': 'samf',
-              'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0'}],
+              'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+              'validity': {'from': '2017-01-01T00:00:00+01:00',
+                           'to': None}}],
         )
 
     def test_employee(self):
@@ -601,8 +721,8 @@ class Tests(util.LoRATestCase):
             {
                 'items': [
                     {
-                        'name': 'Andersine And',
-                        'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                     }
                 ],
                 'offset': 0,
@@ -616,8 +736,8 @@ class Tests(util.LoRATestCase):
             {
                 'items': [
                     {
-                        'name': 'Fedtmule',
-                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        'name': 'Andersine And',
+                        'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
                     }
                 ],
                 'offset': 1,
@@ -757,6 +877,10 @@ class Tests(util.LoRATestCase):
                     'name': 'Humanistisk fakultet',
                     'user_key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 'person': {
                     'name': 'Anders And',
@@ -831,6 +955,10 @@ class Tests(util.LoRATestCase):
                     'name': 'Humanistisk fakultet',
                     'user_key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
                 },
                 'person': {
                     'name': 'Anders And',
@@ -997,6 +1125,10 @@ class Tests(util.LoRATestCase):
                     "name": "Humanistisk fakultet",
                     "user_key": "hum",
                     "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01:00",
+                        "to": None,
+                    },
                 },
                 'manager_type': {
                     'example': None,
