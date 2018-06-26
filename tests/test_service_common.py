@@ -1751,6 +1751,136 @@ class TestClass(util.TestCase):
         # Assert
         self.assertEqual(expected_result, actual_result)
 
+    def test_merge_obj_9(self):
+        """Handle overwriting where orig contains multiple entries
+        with semi-arbitrary virkningstider"""
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2010-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2017-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever4',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = [
+            {
+                'uuid': 'whatever5',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever6',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+        ]
+
+        expected_result = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2014-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2010-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2014-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever5',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever6',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever4',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        # Act
+        actual_result = common._merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
     def test_set_obj_value_existing_path(self):
         # Arrange
         obj = {'test1': {'test2': [{'key1': 'val1'}]}}

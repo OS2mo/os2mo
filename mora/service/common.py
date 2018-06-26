@@ -381,12 +381,13 @@ def _merge_obj_effects(
     producing a merged list of relation to be inserted into LoRa, similar to
     how LoRa performs merging of zero-to-one relations.
 
-    We assume that the list of objects satisfy the same contraints as a list
-    of objects from a zero-to-one relation, i.e. no overlapping time periods
+    We currently expect that the list of new objects all have the
+    same virkningstid
 
     :param orig_objs: A list of objects with virkningstider
-    :param new_objs: A new object with virkningstid, to be merged
-                into the original list.
+    :param new_objs: A list of new objects with virkningstider, to be merged
+                into the original list. All of the virkningstider
+                should be identical.
     :return: A list of merged objects
     """
     result = new_objs
@@ -409,25 +410,38 @@ def _merge_obj_effects(
 
         if new_to <= orig_from or orig_to <= new_from:
             # Not affected, add orig as-is
+            # [---New---)
+            #             [---Orig---)
+            # or
+            #              [---New---)
+            # [---Orig---)
             result.append(orig)
             continue
 
         if new_from <= orig_from:
             if orig_to <= new_to:
-                # Orig is completely contained in new, ignore
+                # Orig is completely contained in new, ignore orig
+                # [------New------)
+                #   [---Orig---)
                 continue
             else:
-                # New end overlaps orig beginning
+                # New end overlaps orig beginning, change orig start time.
+                # [---New---)
+                #        [---Orig---)
                 new_rel = copy.deepcopy(orig)
                 new_rel['virkning']['from'] = util.to_lora_time(new_to)
                 result.append(new_rel)
         elif new_from < orig_to:
-            # New beginning overlaps with orig end
+            # New beginning overlaps with orig end, change orig end time.
+            #       [---New---)
+            # [---Orig---)
             new_obj_before = copy.deepcopy(orig)
             new_obj_before['virkning']['to'] = util.to_lora_time(new_from)
             result.append(new_obj_before)
             if new_to < orig_to:
-                # New is contained in orig
+                # New is contained in orig, split orig in two
+                #    [---New---)
+                # [------Orig------)
                 new_obj_after = copy.deepcopy(orig)
                 new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
                 result.append(new_obj_after)
