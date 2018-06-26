@@ -69,13 +69,6 @@ export default {
       this.dateString = newVal ? this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
     },
 
-    disabledDates: {
-      handler (newVal) {
-        this.$validator.validate(this.nameId)
-      },
-      deep: true
-    },
-
     dateString (newVal) {
       this.$emit('input', newVal)
     },

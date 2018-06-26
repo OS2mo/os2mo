@@ -17,7 +17,7 @@ export default {
     $validator: '$validator'
   },
   props: {
-    entryDate: Date,
+    entryDate: [Date, String],
     entryName: String,
     entryOrgName: String
   },

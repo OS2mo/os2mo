@@ -18,15 +18,13 @@ import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoInput from '@/components/atoms/MoInput'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
 export default {
   components: {
     MoDatePickerRange,
     MoOrganisationUnitSearch,
     MoFacetPicker,
-    MoInput,
-    MoAddMany
+    MoInput
   },
   inject: {
     $validator: '$validator'

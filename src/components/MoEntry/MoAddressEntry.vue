@@ -10,7 +10,7 @@
       />
       
       <div class="form-group col">
-        <div v-if="entry.address_type != null">
+        <div v-if="entry.address_type">
           <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
           <label :for="nameId" v-if="entry.address_type.scope!='DAR'">{{entry.address_type.name}}</label>
           <input
@@ -50,7 +50,6 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object,
     validityHidden: Boolean,
     required: Boolean,
     label: String,

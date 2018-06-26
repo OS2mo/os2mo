@@ -15,20 +15,15 @@
       <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
-      <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
-      <mo-add-many v-model="address" :entry-component="entry.address" validity-hidden/>
+      <mo-add-many v-model="address" :entry-component="entry.address" :label="$tc('workflows.employee.labels.address', 2)" validity-hidden/>
 
-      <h5>{{$tc('workflows.employee.labels.association', 2)}}</h5>
-      <mo-add-many v-model="association" :entry-component="entry.association" validity-hidden/>
+      <mo-add-many v-model="association" :entry-component="entry.association" :label="$tc('workflows.employee.labels.association', 2)" validity-hidden/>
       
-      <h5>{{$tc('workflows.employee.labels.role', 2)}}</h5>
-      <mo-add-many v-model="role" :entry-component="entry.role" validity-hidden/>
+      <mo-add-many v-model="role" :entry-component="entry.role" :label="$tc('workflows.employee.labels.role', 2)" validity-hidden/>
 
-      <h5>{{$tc('workflows.employee.labels.it_system', 2)}}</h5>
-      <mo-add-many v-model="itSystem" :entry-component="entry.it" validity-hidden/>
+      <mo-add-many v-model="itSystem" :entry-component="entry.it" :label="$tc('workflows.employee.labels.it_system', 2)" validity-hidden/>
 
-      <h5>{{$tc('workflows.employee.labels.manager')}}</h5>
-      <mo-add-many v-model="manager" :entry-component="entry.manager" validity-hidden/>
+      <mo-add-many v-model="manager" :entry-component="entry.manager" :label="$tc('workflows.employee.labels.manager')" validity-hidden/>
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
