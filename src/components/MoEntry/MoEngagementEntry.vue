@@ -1,16 +1,20 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
     <div class="form-row">
       <mo-organisation-unit-search
         class="col" 
         :label="$t('input_fields.choose_unit')" 
         v-model="entry.org_unit"
         required
-      />
+      />  
       <mo-facet-picker facet="job_function" v-model="entry.job_function" required/>
       <mo-facet-picker facet="engagement_type" v-model="entry.engagement_type" required/>
     </div>
+    <mo-date-picker-range 
+      v-model="entry.validity" 
+      :initially-hidden="datePickerHidden"
+      :disabled-dates="orgUnitValidity"
+    />
   </div>
 </template>
 
@@ -37,6 +41,12 @@ export default {
   computed: {
     datePickerHidden () {
       return this.validity != null
+    },
+    orgUnitValidity () {
+      if (this.entry.org_unit) {
+        return this.entry.org_unit.validity
+      }
+      return {}
     }
   },
   watch: {

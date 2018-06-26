@@ -1,6 +1,5 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
     <div class="form-row">
       <mo-facet-picker 
         v-show="noPreselectedType"
@@ -11,7 +10,7 @@
       />
       
       <div class="form-group col">
-        <div v-if="entry.address_type != null">
+        <div v-if="entry.address_type">
           <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
           <label :for="nameId" v-if="entry.address_type.scope!='DAR'">{{entry.address_type.name}}</label>
           <input
@@ -29,6 +28,7 @@
         </span>
       </div>
     </div>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>
 </template>
 
@@ -50,7 +50,6 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object,
     validityHidden: Boolean,
     required: Boolean,
     label: String,
