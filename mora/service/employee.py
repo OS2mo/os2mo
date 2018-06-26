@@ -340,7 +340,7 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string type: **"manager"**
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string manager_type: The manager type
-    :<jsonarr array responsibilities: The manager responsibilities
+    :<jsonarr array responsibility: The manager responsibilities
     :<jsonarr string manager_level: The manager level
     :<jsonarr string address: The associated address.
     :<jsonarr string address_type: The type of the associated address.
@@ -357,7 +357,7 @@ def create_employee_relation(employee_uuid):
           "manager_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "responsibilities": [
+          "responsibility": [
             {
               "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
             }
@@ -794,7 +794,7 @@ def edit_employee(employee_uuid):
               "manager_type": {
                 "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
               },
-              "responsibilities": [
+              "responsibility": [
                 {
                   "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
                 }
