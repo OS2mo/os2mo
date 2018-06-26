@@ -7,6 +7,7 @@
 #
 
 import copy
+import unittest
 
 from unittest.mock import patch
 
@@ -1452,6 +1453,172 @@ class Tests(util.LoRATestCase):
                 },
             }],
         )
+
+    @unittest.expectedFailure
+    def test_edit_manager_handles_adapted_zero_to_many_field(self):
+        """Edits of parts of the object should handle adapted zero-to-many
+        fields correctly, i.e. multiple fields sharing the same
+        relation should remain intact when only one of the
+        fields are updated"""
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        req = [{
+            "type": "manager",
+            "uuid": manager_uuid,
+            "data": {
+                "responsibility": [{
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                }],
+                "validity": {
+                    "from": "2018-04-01T00:00:00+02",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/edit'.format(userid),
+            userid, json=req)
+
+        expected_manager = {
+            "note": "Rediger leder",
+            "relationer": {
+                'adresser': [
+                    {
+                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'urn': 'urn:mailto:ceo@example.com',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False,
+                        },
+                    },
+                ],
+                "opgaver": [
+                    {
+                        "objekttype": "lederniveau",
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                    {
+                        "objekttype": "lederansvar",
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "objekttype": "lederansvar",
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+            },
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
+                        }
+                    },
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "be736ee5-5c44-4ed9-"
+                                             "b4a4-15ffa19e2848",
+                        "funktionsnavn": "Leder"
+                    }
+                ]
+            },
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
 
     def test_terminate_manager(self):
         self.load_sample_structures()
