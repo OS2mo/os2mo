@@ -345,12 +345,13 @@ class Scope:
     __call__ = fetch
 
     def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
-        params['maximalantalresultater'] = start + limit
+        params['maximalantalresultater'] = limit
+        params['foersteresultat'] = start
 
         if 'uuid' in params:
             uuids = util.uniqueify(params.pop('uuid'))
         else:
-            uuids = self.fetch(**params)[start:start + limit]
+            uuids = self.fetch(**params)
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 

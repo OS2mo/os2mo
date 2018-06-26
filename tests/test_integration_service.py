@@ -292,6 +292,45 @@ class Tests(util.LoRATestCase):
                 {
                     'items': [
                         {
+                            'user_key': 'frem',
+                            'name': 'Afdeling for Samtidshistorik',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
+                        },
+                        {
+                            'user_key': 'fil',
+                            'name': 'Filosofisk Institut',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': None,
+                            },
+                        },
+                    ],
+                    'offset': 0,
+                    'total': 6
+                }
+            )
+
+        with self.subTest('list with a limit and a start'):
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
+                '?limit=3&start=1',
+                {
+                    'items': [
+                        {
+                            'user_key': 'frem',
+                            'name': 'Afdeling for Samtidshistorik',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01T00:00:00+01:00',
+                                'to': '2019-01-01T00:00:00+01:00',
+                            },
+                        },
+                        {
                             'user_key': 'hum',
                             'name': 'Humanistisk fakultet',
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -310,17 +349,6 @@ class Tests(util.LoRATestCase):
                             },
                         },
                     ],
-                    'offset': 0,
-                    'total': 6
-                }
-            )
-
-        with self.subTest('list with a limit and a start'):
-            self.assertRequestResponse(
-                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
-                '?limit=3&start=1',
-                {
-                    'items': result_list[1:4],
                     'offset': 1,
                     'total': 6
                 }
@@ -333,18 +361,18 @@ class Tests(util.LoRATestCase):
                 {
                     'items': [
                         {
-                            'user_key': 'root',
-                            'name': 'Overordnet Enhed',
-                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'user_key': 'frem',
+                            'name': 'Afdeling for Samtidshistorik',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',
-                                'to': None,
+                                'to': '2019-01-01T00:00:00+01:00',
                             },
                         },
                         {
-                            'user_key': 'hum',
-                            'name': 'Humanistisk fakultet',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'user_key': 'fil',
+                            'name': 'Filosofisk Institut',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',
                                 'to': None,
@@ -371,18 +399,18 @@ class Tests(util.LoRATestCase):
                 {
                     'items': [
                         {
-                            'user_key': 'frem',
-                            'name': 'Afdeling for Samtidshistorik',
-                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'user_key': 'root',
+                            'name': 'Overordnet Enhed',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',
-                                'to': '2019-01-01T00:00:00+01:00',
+                                'to': None,
                             },
                         },
                         {
-                            'user_key': 'fil',
-                            'name': 'Filosofisk Institut',
-                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'user_key': 'hum',
+                            'name': 'Humanistisk fakultet',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',
                                 'to': None,
@@ -693,8 +721,8 @@ class Tests(util.LoRATestCase):
             {
                 'items': [
                     {
-                        'name': 'Andersine And',
-                        'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                     }
                 ],
                 'offset': 0,
@@ -708,8 +736,8 @@ class Tests(util.LoRATestCase):
             {
                 'items': [
                     {
-                        'name': 'Fedtmule',
-                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        'name': 'Andersine And',
+                        'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
                     }
                 ],
                 'offset': 1,
