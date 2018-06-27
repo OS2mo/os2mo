@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import store from '@/vuex/store'
 const LoginPage = () => import('@/login/LoginPage')
 const MoBase = () => import('@/MoBase')
 const Organisation = () => import('@/organisation/Organisation')
@@ -14,6 +15,22 @@ const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 
 Vue.use(Router)
 
+const ifNotAuthenticated = (to, from, next) => {
+  if (!store.getters.isAuthenticated) {
+    next()
+    return
+  }
+  next('/')
+}
+
+const ifAuthenticated = (to, from, next) => {
+  if (store.getters.isAuthenticated) {
+    next()
+    return
+  }
+  next('/login')
+}
+
 const router = new Router({
   mode: 'history',
   routes: [
@@ -24,7 +41,8 @@ const router = new Router({
     },
     {
       path: '',
-      redirect: { name: 'Login' }
+      redirect: { name: 'Login' },
+      beforeEnter: ifNotAuthenticated
     },
     {
       path: '/',
@@ -36,7 +54,7 @@ const router = new Router({
           name: 'Organisation',
           component: Organisation,
           redirect: { name: 'OrganisationLandingPage' },
-          meta: { requiresAuth: true },
+          beforeEnter: ifAuthenticated,
 
           children: [
             {
@@ -56,7 +74,7 @@ const router = new Router({
           name: 'Employee',
           component: Employee,
           redirect: { name: 'EmployeeList' },
-          meta: { requiresAuth: true },
+          beforeEnter: ifAuthenticated,
 
           children: [
             {
@@ -75,72 +93,23 @@ const router = new Router({
           path: '/hjaelp',
           name: 'Help',
           component: TheHelp,
-          meta: { requiresAuth: true }
+          beforeEnter: ifAuthenticated
         },
         {
           path: '/tidsmaskine',
           name: 'Timemachine',
           component: MoTimeMachine,
-          meta: { requiresAuth: true }
+          beforeEnter: ifAuthenticated
         },
         {
           path: '*',
           name: 'PageNotFound',
-          component: PageNotFound
+          component: PageNotFound,
+          beforeEnter: ifAuthenticated
         }
       ]
     }
   ]
 })
-
-router.beforeEach(function (to, from, next) {
-  // console.log('Global -- beforeEach - fired')
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-  // re-route
-    if (to.path === '/') {
-      next('/')
-    } else if (to.path === '/error') {
-      var err = new Error('My Error Message')
-    }
-      // pass the error to onError() callback.
-    next(err)
-  } else {
-    next()
-  }
-})
-
-// Global beforeResolve
-router.beforeResolve(function (to, from, next) {
-  // console.log('Global -- beforeResolve - fired.')
-  next()
-})
-
-// GLobal AFTER hooks:
-router.afterEach(function (to, from) {
-  // This fires after each route is entered.
-  // console.log(`Global -- afterEach - Just moved from '${from.path}' to '${to.path}'`)
-})
-
-// Register an Error Handler:
-router.onError(function (err) {
-  console.error('Handling this error', err.message)
-})
-
-// router.beforeEach((to, from, next) => {
-//   if (to.matched.some(record => record.meta.requiresAuth)) {
-//     // this route requires auth, check if logged in
-//     // if not, redirect to login page.
-//     if (!auth.loggedIn()) {
-//       next({
-//         path: '/login',
-//         query: { redirect: to.fullPath }
-//       })
-//     } else {
-//       next()
-//     }
-//   } else {
-//     next() // make sure to always call next()!
-//   }
-// })
 
 export default router
