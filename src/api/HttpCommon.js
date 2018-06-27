@@ -14,23 +14,14 @@ const Service = axios.create({
   }
 })
 
-function responseErrorHandler (error) {
-  if (error.response.status === 401) {
-    // Route to login page, or something
-    console.log(error.response.statusText)
-  }
-}
-
 export default {
   get (url) {
     return Service
       .get(url)
-      .catch(responseErrorHandler)
   },
 
   post (url, payload) {
     return Service
       .post(url, payload)
-      .catch(responseErrorHandler)
   }
 }
