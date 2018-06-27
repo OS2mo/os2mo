@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h5> 
-      <button @click="add()" type="button" class="btn btn-outline-success" style="border:none!important">
+    <h5 :class="smallButtons ? 'h5-label' : ''"> 
+      <button @click="add()" type="button" class="btn btn-outline-success" :class="smallButtons ? 'btn-sm' : ''" style="border:none!important">
         <icon name="plus"/>
       </button>
       {{label}}
@@ -15,10 +15,6 @@
         v-model="values[index]"
       />
     </div>
-
-    <button @click="add()" type="button" class="btn btn-outline-success" :class="smallButtons ? 'btn-sm' : ''">
-      <icon name="plus"/>
-    </button>
   </div>
 </template>
 
@@ -29,6 +25,7 @@ export default {
     MoRemovableComponent
   },
   props: {
+    value: Array,
     entryComponent: {
       type: Object,
       required: true
@@ -48,8 +45,12 @@ export default {
     this.$emit('input', data)
   },
   mounted () {
-    if (this.hasInitialEntry) {
-      this.add()
+    if (this.value) {
+      this.values = this.value
+    } else {
+      if (this.hasInitialEntry) {
+        this.add()
+      }
     }
   },
   methods: {
@@ -61,7 +62,8 @@ export default {
 </script>
 
 <style scoped>
-.even {
-  background-color: #eee;
+.h5-label {
+  font-size: 1rem;
+  font-weight: 400;
 }
 </style>

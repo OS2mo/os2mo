@@ -20,6 +20,7 @@
 <script>
 export default {
   props: {
+    value: Object,
     entryComponent: {
       type: Object,
       required: true
@@ -35,6 +36,9 @@ export default {
   },
   updated () {
     this.$emit('input', this.entryValue)
+  },
+  created () {
+    this.entryValue = this.value
   },
   methods: {
     remove () {

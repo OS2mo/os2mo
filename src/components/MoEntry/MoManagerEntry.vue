@@ -22,7 +22,7 @@
       />
     </div>
 
-    <mo-add-many v-model="entry.responsibility" :entry-component="facetPicker" has-initial-entry small-buttons/>
+    <mo-add-many v-model="entry.responsibility" :entry-component="facetPicker" label="Lederansvar" has-initial-entry small-buttons/>
     
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
   </div>
@@ -49,10 +49,7 @@ export default {
   },
   data () {
     return {
-      entry: {
-        validity: {}
-      },
-      test: {}
+      entry: {}
     }
   },
   computed: {
@@ -63,8 +60,10 @@ export default {
     facetPicker () {
       return {
         components: { MoFacetPicker },
+        props: { value: Object },
         data () { return { val: null } },
         watch: { val (newVal) { this.$emit('input', newVal) } },
+        created () { this.val = this.value },
         template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
       }
     }
