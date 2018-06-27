@@ -165,3 +165,43 @@ class MockTests(util.TestCase):
                     'password': 's3cr1t!',
                 },
             )
+
+    def test_empty_user(self):
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/login',
+                {
+                    'error': True,
+                    'error_key': 'E_UNAUTHORIZED',
+                    'description': (
+                        'Username/password cannot be blank'
+                    ),
+                    'status': 401,
+                },
+                json={
+                    'username': '',
+                    'password': 's3cr1t!',
+                },
+                status_code=401,
+            )
+
+    def test_empty_pass(self):
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/login',
+                {
+                    'error': True,
+                    'error_key': 'E_UNAUTHORIZED',
+                    'description': (
+                        'Username/password cannot be blank'
+                    ),
+                    'status': 401,
+                },
+                json={
+                    'username': 'USER',
+                    'password': '',
+                },
+                status_code=401,
+            )

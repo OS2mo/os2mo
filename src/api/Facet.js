@@ -1,4 +1,4 @@
-import { Service } from './HttpCommon'
+import Service from './HttpCommon'
 
 export default {
 
