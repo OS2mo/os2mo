@@ -27,7 +27,7 @@
 
       <b-dropdown id="ddown1" variant="primary">
         <template slot="button-content">
-          <icon name="user"/> {{user.username}}
+          <icon name="user"/> {{username}}
         </template>
         <b-dropdown-item @click="logout()">
           <icon name="sign-out-alt"/> Log ud
@@ -38,8 +38,8 @@
 </template>
 
 <script>
-  import Auth from '@/api/Auth'
-  import { EventBus } from '@/EventBus'
+  import { mapGetters } from 'vuex'
+  import {AUTH_LOGOUT} from '@/vuex/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
   import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
@@ -58,19 +58,16 @@
         isLoading: false
       }
     },
-    created () {
-      this.user = Auth.getUser()
-    },
-    mounted () {
-      EventBus.$on('login-success', login => {
-        this.user = login
+    computed: {
+      ...mapGetters({
+        username: 'username'
       })
     },
     methods: {
       logout () {
         let vm = this
         vm.isLoading = true
-        Auth.logout(this.user)
+        this.$store.dispatch(AUTH_LOGOUT, vm.user)
         .then(response => {
           vm.isLoading = false
           vm.$router.push({name: 'Login'})
