@@ -18,10 +18,13 @@ import datetime
 import enum
 import functools
 import json
+import operator
 import typing
 import uuid
 
+
 import flask
+import werkzeug
 
 from . import keys
 from .. import exceptions
@@ -225,17 +228,17 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
             'gyldighed': "Inaktiv",
             'virkning': _create_virkning(old_from, new_from)
         }
-        payload = set_object_value(payload, path, [val])
+        payload = set_obj_value(payload, path, [val])
     if new_to < old_to:
         val = {
             'gyldighed': "Inaktiv",
             'virkning': _create_virkning(new_to, old_to)
         }
-        payload = set_object_value(payload, path, [val])
+        payload = set_obj_value(payload, path, [val])
     return payload
 
 
-def set_object_value(obj: dict, path: tuple, val: typing.List[dict]):
+def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
 
@@ -254,8 +257,10 @@ def set_object_value(obj: dict, path: tuple, val: typing.List[dict]):
 
 
 def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
-    props = functools.reduce(lambda x, y: x and x.get(y, {}),
-                             path, obj)
+    try:
+        props = functools.reduce(operator.getitem, path, obj)
+    except (LookupError, TypeError):
+        return None
 
     if filter_fn:
         return list(filter(filter_fn, props))
@@ -329,7 +334,7 @@ def ensure_bounds(valid_from: datetime.datetime,
                     updated_props.append(last)
 
         if updated_props:
-            payload = set_object_value(payload, field.path, updated_props)
+            payload = set_obj_value(payload, field.path, updated_props)
     return payload
 
 
@@ -340,32 +345,35 @@ def update_payload(
         obj: dict,
         payload: dict,
 ):
-    for field in relevant_fields:
-        field_tuple, val = field
-        val['virkning'] = _create_virkning(valid_from, valid_to)
+    combined_fields = werkzeug.datastructures.OrderedMultiDict(relevant_fields)
+
+    for field_tuple, vals in combined_fields.lists():
+        for val in vals:
+            val['virkning'] = _create_virkning(valid_from, valid_to)
 
         # Get original properties
         props = get_obj_value(obj, field_tuple.path, field_tuple.filter_fn)
 
         if field_tuple.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
-            updated_props = _merge_obj_effects(props, val)
+            updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
-            updated_props = props + [val]
+            updated_props = props + vals
         else:
             # Zero-to-one relation - LoRa does the merging for us,
             # so disregard existing props
-            updated_props = [val]
+            assert 0 <= len(vals) <= 1
+            updated_props = vals
 
-        payload = set_object_value(payload, field_tuple.path, updated_props)
+        payload = set_obj_value(payload, field_tuple.path, updated_props)
 
     return payload
 
 
 def _merge_obj_effects(
         orig_objs: typing.List[dict],
-        new: dict,
+        new_objs: typing.List[dict],
 ) -> typing.List[dict]:
     """
     Performs LoRa-like merging of a relation object, with a current list of
@@ -373,21 +381,28 @@ def _merge_obj_effects(
     producing a merged list of relation to be inserted into LoRa, similar to
     how LoRa performs merging of zero-to-one relations.
 
-    We assume that the list of objects satisfy the same contraints as a list
-    of objects from a zero-to-one relation, i.e. no overlapping time periods
+    We currently expect that the list of new objects all have the
+    same virkningstid
 
     :param orig_objs: A list of objects with virkningstider
-    :param new: A new object with virkningstid, to be merged
-                into the original list.
+    :param new_objs: A list of new objects with virkningstider, to be merged
+                into the original list. All of the virkningstider
+                should be identical.
     :return: A list of merged objects
     """
-    # TODO: Implement merging of two lists?
+    result = new_objs
 
-    sorted_orig = sorted(orig_objs, key=lambda x: x['virkning']['from'])
+    if orig_objs is None:
+        return result
 
-    result = [new]
-    new_from = get_effect_from(new)
-    new_to = get_effect_to(new)
+    sorted_orig = sorted(orig_objs, key=get_effect_from)
+
+    # sanity checks
+    assert len({get_effect_to(obj) for obj in new_objs}) == 1
+    assert len({get_effect_from(obj) for obj in new_objs}) == 1
+
+    new_from = get_effect_from(new_objs[0])
+    new_to = get_effect_to(new_objs[0])
 
     for orig in sorted_orig:
         orig_from = get_effect_from(orig)
@@ -395,30 +410,43 @@ def _merge_obj_effects(
 
         if new_to <= orig_from or orig_to <= new_from:
             # Not affected, add orig as-is
+            # [---New---)
+            #             [---Orig---)
+            # or
+            #              [---New---)
+            # [---Orig---)
             result.append(orig)
             continue
 
         if new_from <= orig_from:
             if orig_to <= new_to:
-                # Orig is completely contained in new, ignore
+                # Orig is completely contained in new, ignore orig
+                # [------New------)
+                #   [---Orig---)
                 continue
             else:
-                # New end overlaps orig beginning
+                # New end overlaps orig beginning, change orig start time.
+                # [---New---)
+                #        [---Orig---)
                 new_rel = copy.deepcopy(orig)
                 new_rel['virkning']['from'] = util.to_lora_time(new_to)
                 result.append(new_rel)
         elif new_from < orig_to:
-            # New beginning overlaps with orig end
+            # New beginning overlaps with orig end, change orig end time.
+            #       [---New---)
+            # [---Orig---)
             new_obj_before = copy.deepcopy(orig)
             new_obj_before['virkning']['to'] = util.to_lora_time(new_from)
             result.append(new_obj_before)
             if new_to < orig_to:
-                # New is contained in orig
+                # New is contained in orig, split orig in two
+                #    [---New---)
+                # [------Orig------)
                 new_obj_after = copy.deepcopy(orig)
                 new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
                 result.append(new_obj_after)
 
-    return sorted(result, key=lambda x: x['virkning']['from'])
+    return sorted(result, key=get_effect_from)
 
 
 def _create_virkning(valid_from: str, valid_to: str) -> dict:
@@ -461,7 +489,7 @@ def inactivate_org_funktion_payload(enddate, note):
         'virkning': _create_virkning(enddate, 'infinity')
     }
 
-    payload = set_object_value({'note': note}, obj_path, [val_inactive])
+    payload = set_obj_value({'note': note}, obj_path, [val_inactive])
 
     return payload
 
@@ -785,7 +813,7 @@ def add_bruger_history_entry(employee_uuid, note: str):
         'note': note
     }
 
-    payload = set_object_value(payload, path, [gyldighed])
+    payload = set_obj_value(payload, path, [gyldighed])
     c.bruger.update(payload, employee_uuid)
 
 

@@ -17,7 +17,9 @@ API.
 '''
 
 import collections
+import functools
 import itertools
+import operator
 
 import flask
 
@@ -380,13 +382,15 @@ def get_detail(type, id, function):
             "name": "Anders And",
             "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
           },
-          "responsibility": {
-            "example": null,
-            "name": "Fakultet",
-            "scope": null,
-            "user_key": "fak",
-            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
-          },
+          "responsibility": [
+            {
+              "example": null,
+              "name": "Fakultet",
+              "scope": null,
+              "user_key": "fak",
+              "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+            }
+          ],
           "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
           "validity": {
             "from": "2017-01-01T00:00:00+01:00",
@@ -425,57 +429,58 @@ def get_detail(type, id, function):
 
     def get_address(effect):
         try:
-            rel = effect['relationer']['adresser'][-1]
+            rels = effect['relationer']['adresser']
         except KeyError:
-            return None
+            return
 
-        return address.get_one_address(c, rel, class_cache)
+        yield from map(functools.partial(address.get_one_address,
+                                         c, class_cache=class_cache),
+                       rels)
 
     def get_address_type(effect):
         try:
-            rel = effect['relationer']['adresser'][-1]
+            rels = effect['relationer']['adresser']
         except KeyError:
-            return None
+            return
 
-        return rel['objekttype']
+        yield from map(operator.itemgetter('objekttype'), rels)
 
     def get_employee_id(effect):
-        return effect['relationer']['tilknyttedebrugere'][-1]['uuid']
+        yield from effect['relationer']['tilknyttedebrugere']
 
     def get_unit_id(effect):
         # 'Leave' objects do not contains this relation, so we need to guard
         #  ourselves here
         try:
-            return effect['relationer']['tilknyttedeenheder'][-1]['uuid']
+            yield from effect['relationer']['tilknyttedeenheder']
         except (KeyError, IndexError):
-            return None
+            pass
 
     def get_type_id(effect):
         try:
-            rels = effect['relationer']
-            return rels['organisatoriskfunktionstype'][-1]['uuid']
+            yield from effect['relationer']['organisatoriskfunktionstype']
         except (KeyError, IndexError):
-            return None
+            pass
 
     def get_title_id(effect):
         try:
-            return effect['relationer']['opgaver'][-1]['uuid']
+            yield from effect['relationer']['opgaver']
         except (KeyError, IndexError):
-            return None
+            pass
 
     def get_responsibility(effect):
         try:
-            return list(filter(mapping.RESPONSIBILITY_FIELD.filter_fn,
-                               effect['relationer']['opgaver']))[-1]['uuid']
+            yield from filter(mapping.RESPONSIBILITY_FIELD.filter_fn,
+                              effect['relationer']['opgaver'])
         except (KeyError, IndexError):
-            return None
+            pass
 
     def get_manager_level(effect):
         try:
-            return list(filter(mapping.MANAGER_LEVEL_FIELD.filter_fn,
-                               effect['relationer']['opgaver']))[-1]['uuid']
+            yield from filter(mapping.MANAGER_LEVEL_FIELD.filter_fn,
+                              effect['relationer']['opgaver'])
         except (KeyError, IndexError):
-            return None
+            pass
 
     #
     # all these caches might be overkill when just listing one
@@ -489,38 +494,44 @@ def get_detail(type, id, function):
     user_cache = {}
     unit_cache = {}
 
-    # the values are cache, getter, cachegetter -- if the last one is
-    # specified, we cache something other than the actual value
+    # the values are cache, getter, cachegetter, aslist
+    #
+    # if 'cachegetter' is specified, we cache something other than the
+    # actual value
+    #
+    # aslist means that we expect multiple values for that field, and
+    # return them as a list rather than a single object; otherwise, we
+    # just return the first hit
     converters = {
         'engagement': {
-            keys.PERSON: (user_cache, get_employee_id, None),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
-            keys.JOB_FUNCTION: (class_cache, get_title_id, None),
-            keys.ENGAGEMENT_TYPE: (class_cache, get_type_id, None),
+            keys.PERSON: (user_cache, get_employee_id, None, False),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            keys.JOB_FUNCTION: (class_cache, get_title_id, None, False),
+            keys.ENGAGEMENT_TYPE: (class_cache, get_type_id, None, False),
         },
         'association': {
-            keys.PERSON: (user_cache, get_employee_id, None),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
-            keys.JOB_FUNCTION: (class_cache, get_title_id, None),
-            keys.ASSOCIATION_TYPE: (class_cache, get_type_id, None),
-            keys.ADDRESS: (class_cache, get_address, get_address_type),
+            keys.PERSON: (user_cache, get_employee_id, None, False),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            keys.JOB_FUNCTION: (class_cache, get_title_id, None, False),
+            keys.ASSOCIATION_TYPE: (class_cache, get_type_id, None, False),
+            keys.ADDRESS: (class_cache, get_address, get_address_type, False),
         },
         'role': {
-            keys.PERSON: (user_cache, get_employee_id, None),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
-            keys.ROLE_TYPE: (class_cache, get_type_id, None),
+            keys.PERSON: (user_cache, get_employee_id, None, False),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            keys.ROLE_TYPE: (class_cache, get_type_id, None, False),
         },
         'leave': {
-            keys.PERSON: (user_cache, get_employee_id, None),
-            keys.LEAVE_TYPE: (class_cache, get_type_id, None),
+            keys.PERSON: (user_cache, get_employee_id, None, False),
+            keys.LEAVE_TYPE: (class_cache, get_type_id, None, False),
         },
         'manager': {
-            keys.PERSON: (user_cache, get_employee_id, None),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None),
-            keys.RESPONSIBILITY: (class_cache, get_responsibility, None),
-            keys.MANAGER_LEVEL: (class_cache, get_manager_level, None),
-            keys.MANAGER_TYPE: (class_cache, get_type_id, None),
-            keys.ADDRESS: (class_cache, get_address, get_address_type),
+            keys.PERSON: (user_cache, get_employee_id, None, False),
+            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            keys.RESPONSIBILITY: (class_cache, get_responsibility, None, True),
+            keys.MANAGER_LEVEL: (class_cache, get_manager_level, None, False),
+            keys.MANAGER_TYPE: (class_cache, get_type_id, None, False),
+            keys.ADDRESS: (class_cache, get_address, get_address_type, False),
         }
     }
 
@@ -555,10 +566,21 @@ def get_detail(type, id, function):
         if common.is_reg_valid(effect)
     ]
 
+    def as_values(vs):
+        if not vs:
+            return
+
+        for v in vs:
+            if isinstance(v, str):
+                yield v
+            else:
+                yield common.get_uuid(v)
+
     # extract all object IDs
-    for cache, getter, cachegetter in converters[function].values():
+    for cache, getter, cachegetter, aslist in converters[function].values():
         for start, end, funcid, effect in function_effects:
-            cache[(cachegetter or getter)(effect)] = None
+            for v in as_values((cachegetter or getter)(effect)):
+                cache[v] = None
 
     # fetch and convert each object once, rather than multiple times
     class_cache.update({
@@ -580,16 +602,23 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
+    def get_one(cache, getter, cachegetter, aslist):
+        values = getter(effect)
+
+        if cache and not cachegetter:
+            values = (cache[common.get_uuid(v)] for v in values)
+
+        if aslist:
+            return list(values)
+        else:
+            # TODO: what if we get multiple?
+            return next(values, None)
+
     # finally, gather it all in the appropriate objects
     def convert(start, end, funcid, effect):
         func = {
-            key: (
-                cache.get(getter(effect))
-                if cache and not cachegetter
-                else getter(effect)
-            )
-            for key, (cache, getter, cachegetter)
-            in converters[function].items()
+            key: get_one(*args)
+            for key, args in converters[function].items()
         }
 
         func[keys.VALIDITY] = {
