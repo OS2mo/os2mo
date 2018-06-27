@@ -7,6 +7,9 @@
 </template>
 
 <script>
+  import axios from 'axios'
+  import {AUTH_LOGOUT} from '@/vuex/actions/auth'
+
   export default {
     name: 'app',
     mounted () {
@@ -20,6 +23,20 @@
         var x = document.getElementsByTagName('script')[0]
         x.parentNode.insertBefore(s, x)
       }
+    },
+
+    created: function () {
+      let vm = this
+      axios.interceptors.response.use(undefined, function (err) {
+        return new Promise(function (resolve, reject) {
+          if (err.response.status === 401 && err.response.config && !err.response.config.__isRetryRequest) {
+          // if you ever get an unauthorized, logout the user
+            vm.$store.dispatch(AUTH_LOGOUT)
+            .then(() => vm.$router.push({name: 'Login'}))
+          }
+          throw err
+        })
+      })
     }
   }
 </script>
