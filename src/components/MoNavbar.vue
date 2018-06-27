@@ -98,12 +98,12 @@
       color: #e5e0de !important;
   
       &:hover {
-        border-bottom: 3px solid #cda000;
+        border-bottom: 3px solid #e5e0de;
       }
     }
   
     .router-link-active {
-      border-bottom: 3px solid #cda000;
+      border-bottom: 3px solid #e5e0de;
     }
   }
 </style>
