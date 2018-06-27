@@ -25,8 +25,8 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .icon-box {
-    width: 7.4vh;
-    height: 7.4vh;
+    width: 5.5vh;
+    height: 5.5vh;
   }
 
   .box {
