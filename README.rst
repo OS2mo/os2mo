@@ -108,6 +108,7 @@ videreudviklingsprocessen af og til være nødvendigt at
 
 Opsætning af udviklingsmiljø
 ----------------------------
+
 I princippet er det muligt at fortage videreudvikling af MORa uden at have
 en kørende instans af LoRa (idet man blot skriver tests til den udviklede
 kode), men i praksis vil det være mest praktisk med en kørende LoRa, som man
@@ -235,13 +236,22 @@ Som vil angive, hvad den korrekte syntaks er::
 
 For yderligere detaljer om brugen af manage.py henvises til kildekoden.
 
+Konfiguration
+~~~~~~~~~~~~~
+
+Indstillinger gemmes i ``config/mora.json``. Den vigtiste er
+``LORA_URL``; denne kan også sættes som en miljøvariabel::
+
+  MORA_LORA_URL=http://localhost:5000 ./manage.py run
+
+
 Testsuiten
 -----------
 Der arbejdes i proktet med tre typer af tests:
 
 1. Unit tests
 2. Integration tests
-3. End-to-end tests (Selenium tests)
+3. End-to-end tests
 
 Der kræves ikke nogen yderligere opsætning for at køre unit testene (samt nogle af
 integrationstestene), idet disse blot kan køres med kommandoen fra rodmappen
@@ -294,6 +304,14 @@ gøres på følgende måde::
 
   $ ./manage.py test --minimox=/path/to/folder/minimox tests.test_integration.IntegrationTests
   $ ./manage.py test --minimox=/path/to/folder/minimox tests.test_integration.IntegrationTests.test_should_add_one_new_contact_channel_correctly
+
+End-to-end tests
+----------------
+
+Vores end-to-end tests køres typisk som en del af testsuiten. For at
+køre den direkte mød en udviklingsmaskine anvendes eksempelvist::
+
+  BASE_URL=http://localhost:5000/ yarn testcafe --speed 0.5 firefox e2e-tests
 
 Installering
 ------------
