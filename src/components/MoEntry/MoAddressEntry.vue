@@ -26,7 +26,7 @@
         <span v-show="errors.has(nameId)" class="text-danger">
           {{ errors.first(nameId) }}
         </span>
-      </div><pre>{{entry}}</pre>
+      </div>
     </div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>
@@ -96,22 +96,19 @@ export default {
   },
   watch: {
     contactInfo: {
-      handler(newValue) {
+      handler (newValue) {
         this.entry.type = 'address'
         this.entry.value = newValue
         this.$emit('input', this.entry)
       }
     },
-    // entry: {
-    //   handler (newVal) {
-    //     console.log("newval here")
-    //     console.log(newVal)
-    //     newVal.type = 'address'
-    //     this.$emit('input', newVal)
-    //   },
-    //   deep: true
-    // },
-
+    entry: {
+      handler (newVal) {
+        newVal.type = 'address'
+        this.$emit('input', newVal)
+      },
+      deep: true
+    },
     address: {
       handler (val) {
         if (val == null) return
