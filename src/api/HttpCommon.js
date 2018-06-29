@@ -1,4 +1,6 @@
 import axios from 'axios'
+import store from '@/vuex/store'
+import {AUTH_LOGOUT} from '@/vuex/actions/auth'
 
 /**
  * Defines the base url and headers for http calls
@@ -13,6 +15,17 @@ const Service = axios.create({
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
   }
 })
+
+Service.interceptors.response.use(
+  undefined, err => {
+    return new Promise(function (resolve, reject) {
+      if (err.response.status === 401 && err.response.config && !err.response.config.__isRetryRequest) {
+        store.dispatch(AUTH_LOGOUT)
+      }
+      throw err
+    })
+  }
+)
 
 export default {
   get (url) {
