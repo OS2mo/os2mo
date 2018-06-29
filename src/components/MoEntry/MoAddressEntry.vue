@@ -17,7 +17,7 @@
             :name="nameId" 
             v-if="entry.address_type.scope!='DAR'"
             :data-vv-as="entry.address_type.name"
-            v-model="entry.value" 
+            v-model="contactInfo" 
             type="text" 
             class="form-control"
             v-validate="validityRules" 
@@ -26,7 +26,7 @@
         <span v-show="errors.has(nameId)" class="text-danger">
           {{ errors.first(nameId) }}
         </span>
-      </div>
+      </div><pre>{{entry}}</pre>
     </div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>
@@ -57,6 +57,7 @@ export default {
   },
   data () {
     return {
+      contactInfo: '',
       entry: {
         validity: {},
         address_type: {},
@@ -94,13 +95,22 @@ export default {
     }
   },
   watch: {
-    entry: {
-      handler (newVal) {
-        newVal.type = 'address'
-        this.$emit('input', newVal)
-      },
-      deep: true
+    contactInfo: {
+      handler(newValue) {
+        this.entry.type = 'address'
+        this.entry.value = newValue
+        this.$emit('input', this.entry)
+      }
     },
+    // entry: {
+    //   handler (newVal) {
+    //     console.log("newval here")
+    //     console.log(newVal)
+    //     newVal.type = 'address'
+    //     this.$emit('input', newVal)
+    //   },
+    //   deep: true
+    // },
 
     address: {
       handler (val) {
@@ -124,7 +134,7 @@ export default {
       }
     }
     this.entry = this.value
-    this.entry.value = this.value.name
+    this.contactInfo = this.value.name
   }
 }
 </script>
