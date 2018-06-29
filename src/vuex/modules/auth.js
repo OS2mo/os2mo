@@ -57,6 +57,9 @@ const actions = {
       sessionStorage.removeItem('access_token')
       sessionStorage.removeItem('username')
       resolve()
+      .then(response => {
+        window.location = '/login'
+      })
     })
   }
 }
