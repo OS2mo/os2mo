@@ -1746,8 +1746,10 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.request('/service/ou/{}/terminate'.format(unitid),
-                     json=payload)
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(unitid),
+            unitid,
+            json=payload)
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
@@ -1963,7 +1965,11 @@ class Tests(util.LoRATestCase):
                 'associated org unit.',
                 'error': True,
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                'status': 400},
+                'status': 400,
+                'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_to': None,
+            },
             status_code=400,
             json={
                 "validity": {
@@ -1981,7 +1987,11 @@ class Tests(util.LoRATestCase):
                 'associated org unit.',
                 'error': True,
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                'status': 400},
+                'status': 400,
+                'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_to': '2019-01-01T00:00:00+01:00',
+            },
             status_code=400,
             json={
                 "validity": {
@@ -2000,6 +2010,9 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
+                'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_to': '2019-01-01T00:00:00+01:00',
             },
             status_code=400,
             json={
