@@ -1,7 +1,7 @@
 const moment = require('moment')
 
 export default {
-  getMessage (field, [range]) {
+  getMessage (field, range) {
     if (range.from && !range.to) {
       return `${field} skal være over ${moment(range.from).format('DD-MM-YYYY')}`
     }
@@ -12,7 +12,7 @@ export default {
 
     return `${field} skal være mellem ${moment(range.from).format('DD-MM-YYYY')} og ${moment(range.to).format('DD-MM-YYYY')}`
   },
-  validate (value, [range]) {
+  validate (value, range) {
     value = new Date(value)
 
     let aboveMin = range.from ? value > range.from : true

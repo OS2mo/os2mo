@@ -1,6 +1,6 @@
 <template>
   <div class="form-row">
-    <span v-show="hidden">
+    <span v-if="hidden">
       <button class="btn btn-link" @click="hidden=false">
         {{$t('buttons.select_another_date')}}
       </button>
@@ -8,7 +8,7 @@
     <mo-date-picker 
       :label="$t('input_fields.start_date')"
       v-model="validFrom"
-      v-show="!hidden"
+      v-if="!hidden"
       :valid-dates="validStartDateRange"
       @input="updateDate()"
       required
@@ -17,7 +17,7 @@
     <mo-date-picker 
       :label="$t('input_fields.end_date')"
       v-model="validTo"
-      v-show="!hidden"
+      v-if="!hidden"
       :valid-dates="validEndDateRange"
       :disabled="disableToDate"
       @input="updateDate()"

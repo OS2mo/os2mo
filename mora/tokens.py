@@ -52,8 +52,14 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
 
     '''
 
-    if not username or not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
+    if not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
         return 'N/A'
+
+    if not username or not passwd:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_UNAUTHORIZED,
+            message="Username/password cannot be blank"
+        )
 
     if insecure is None:
         insecure = settings.SAML_IDP_INSECURE
