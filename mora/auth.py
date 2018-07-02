@@ -73,8 +73,6 @@ def login():
         currently ignored.
 
     :>json string user: The name of the user.
-    :>json string token: Retained for compatibility with original UI.
-    :>json string role: Retained for compatibility with original UI.
     '''
 
     # TODO: remember me?
