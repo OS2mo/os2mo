@@ -126,8 +126,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "type": "manager",
                     "org_unit": {
                         'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                    "responsibility": {
-                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    "responsibility": [{
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"}],
                     "manager_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                     },

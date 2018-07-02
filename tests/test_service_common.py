@@ -9,16 +9,23 @@
 import datetime
 
 import dateutil
+import freezegun
 
 from mora import exceptions
-from mora import util
+from mora import util as mora_util
 from mora.service import common
 
-from .util import TestCase
+from . import util
 
 
-class TestClass(TestCase):
+class TestClass(util.TestCase):
     maxDiff = None
+
+    def test_exception_stringification(self):
+        self.assertEqual(
+            "500 Internal Server Error: Unknown Error.",
+            str(exceptions.HTTPException()),
+        )
 
     def test_get_obj_path(self):
         # Arrange
@@ -40,11 +47,44 @@ class TestClass(TestCase):
         # Assert
         self.assertEqual(expected_props, actual_props)
 
-    def test_get_obj_path_missing(self):
+    def test_get_obj_path_none(self):
         # Arrange
         obj = {
             'whatever': 'no',
             'test1': None,
+        }
+
+        path = ('test1', 'test2')
+
+        expected_props = None
+
+        # Act
+        actual_props = common.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_get_obj_path_missing(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+        }
+
+        path = ('test1',)
+
+        expected_props = None
+
+        # Act
+        actual_props = common.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_get_obj_path_weird(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+            'test1': 42,
         }
 
         path = ('test1', 'test2')
@@ -299,8 +339,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_times_are_inside_bounds(self):
         # Arrange
-        new_from = util.parsedatetime('2013-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2013-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -370,8 +410,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_expanding_from_time(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2014-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2014-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -456,8 +496,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_diminishing_from_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-07-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-07-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -530,8 +570,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_expanding_to_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2017-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2017-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -616,8 +656,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_aztm_diminishing_to_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2014-07-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2014-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -690,8 +730,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_ztm(self):
         # Arrange
-        new_from = util.parsedatetime('2000-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-07-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2000-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -792,8 +832,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_expanding_to_time(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2016-07-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2016-07-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -876,8 +916,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_expanding_from_time(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -961,8 +1001,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_inside_bounds(self):
         # Arrange
-        new_from = util.parsedatetime('2012-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2015-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2012-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2015-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1035,8 +1075,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_extending_both_ends(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1129,8 +1169,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_zto_extending_both_ends_single_effect(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'test1': {
@@ -1196,8 +1236,8 @@ class TestClass(TestCase):
 
     def test_ensure_bounds_handles_unknown_fields(self):
         # Arrange
-        new_from = util.parsedatetime('2010-01-01T00:00:00+00:00')
-        new_to = util.parsedatetime('2020-01-01T00:00:00+00:00')
+        new_from = mora_util.parsedatetime('2010-01-01T00:00:00+00:00')
+        new_to = mora_util.parsedatetime('2020-01-01T00:00:00+00:00')
 
         original = {
             'unknown': {
@@ -1240,7 +1280,7 @@ class TestClass(TestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_merge_obj_1(self):
-        # New obj overlaps beginning and ending of originals
+        '''New obj overlaps beginning and ending of originals'''
         # Arrange
         orig_objs = [
             {
@@ -1263,15 +1303,17 @@ class TestClass(TestCase):
             }
         ]
 
-        new = {
-            'uuid': 'whatever3',
-            'virkning': {
-                'from': '2016-01-01T00:00:00+01:00',
-                'from_included': True,
-                'to': '2018-01-01T00:00:00+01:00',
-                'to_included': False,
+        new = [
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
             }
-        }
+        ]
 
         expected_result = [
             {
@@ -1313,7 +1355,7 @@ class TestClass(TestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_merge_obj_2(self):
-        # Original timespan completely contains new timespan
+        '''Original timespan completely contains new timespan'''
         # Arrange
         orig_objs = [
             {
@@ -1327,15 +1369,17 @@ class TestClass(TestCase):
             }
         ]
 
-        new = {
-            'uuid': 'whatever3',
-            'virkning': {
-                'from': '2016-01-01T00:00:00+01:00',
-                'from_included': True,
-                'to': '2018-01-01T00:00:00+01:00',
-                'to_included': False,
+        new = [
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
             }
-        }
+        ]
 
         expected_result = [
             {
@@ -1377,7 +1421,7 @@ class TestClass(TestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_merge_obj_3(self):
-        # New doesn't overlap with originals
+        '''New doesn't overlap with originals'''
         # Arrange
         orig_objs = [
             {
@@ -1400,15 +1444,17 @@ class TestClass(TestCase):
             }
         ]
 
-        new = {
-            'uuid': 'whatever3',
-            'virkning': {
-                'from': '2016-01-01T00:00:00+01:00',
-                'from_included': True,
-                'to': '2018-01-01T00:00:00+01:00',
-                'to_included': False,
+        new = [
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
             }
-        }
+        ]
 
         expected_result = [
             {
@@ -1450,7 +1496,7 @@ class TestClass(TestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_merge_obj_4(self):
-        # New completely overlaps with old
+        '''New completely overlaps with old'''
         # Arrange
         orig_objs = [
             {
@@ -1473,15 +1519,17 @@ class TestClass(TestCase):
             }
         ]
 
-        new = {
-            'uuid': 'whatever3',
-            'virkning': {
-                'from': '2010-01-01T00:00:00+01:00',
-                'from_included': True,
-                'to': '2020-01-01T00:00:00+01:00',
-                'to_included': False,
+        new = [
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2010-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
             }
-        }
+        ]
 
         expected_result = [
             {
@@ -1505,7 +1553,7 @@ class TestClass(TestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_merge_obj_5(self):
-        # Handle infinity
+        '''Handle infinity'''
         # Arrange
         orig_objs = [
             {
@@ -1519,15 +1567,17 @@ class TestClass(TestCase):
             }
         ]
 
-        new = {
-            'uuid': 'whatever2',
-            'virkning': {
-                'from': '2016-01-01T00:00:00+01:00',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False,
+        new = [
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
             }
-        }
+        ]
 
         expected_result = [
             {
@@ -1560,7 +1610,7 @@ class TestClass(TestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_merge_obj_6(self):
-        # Handle -infinity
+        '''Handle -infinity'''
         # Arrange
         orig_objs = [
             {
@@ -1574,15 +1624,17 @@ class TestClass(TestCase):
             }
         ]
 
-        new = {
-            'uuid': 'whatever2',
-            'virkning': {
-                'from': '-infinity',
-                'from_included': False,
-                'to': 'infinity',
-                'to_included': False,
+        new = [
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
             }
-        }
+        ]
 
         expected_result = [
             {
@@ -1605,7 +1657,231 @@ class TestClass(TestCase):
         # Assert
         self.assertEqual(expected_result, actual_result)
 
-    def test_set_object_value_existing_path(self):
+    def test_merge_obj_7(self):
+        '''Handle writing more than one entry'''
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = [
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        expected_result = new
+
+        # Act
+        actual_result = common._merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_8(self):
+        '''Handle overwriting more than one entry'''
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = [
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        expected_result = new
+
+        # Act
+        actual_result = common._merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_merge_obj_9(self):
+        """Handle overwriting where orig contains multiple entries
+        with semi-arbitrary virkningstider"""
+        # Arrange
+        orig_objs = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2016-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2010-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2017-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2015-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False,
+                }
+            },
+            {
+                'uuid': 'whatever4',
+                'virkning': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False,
+                }
+            }
+        ]
+
+        new = [
+            {
+                'uuid': 'whatever5',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever6',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+        ]
+
+        expected_result = [
+            {
+                'uuid': 'whatever1',
+                'virkning': {
+                    'from': '-infinity',
+                    'from_included': False,
+                    'to': '2014-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever2',
+                'virkning': {
+                    'from': '2010-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2014-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever5',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever6',
+                'virkning': {
+                    'from': '2014-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2018-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever3',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': '2020-01-01T00:00:00+01:00',
+                    'to_included': False
+                }
+            },
+            {
+                'uuid': 'whatever4',
+                'virkning': {
+                    'from': '2018-01-01T00:00:00+01:00',
+                    'from_included': False,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            }
+        ]
+
+        # Act
+        actual_result = common._merge_obj_effects(orig_objs, new)
+
+        actual_result = sorted(actual_result,
+                               key=lambda x: x.get('virkning').get('from'))
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_obj_value_existing_path(self):
         # Arrange
         obj = {'test1': {'test2': [{'key1': 'val1'}]}}
         path = ('test1', 'test2')
@@ -1622,12 +1898,12 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = common.set_object_value(obj, path, val)
+        actual_result = common.set_obj_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
 
-    def test_set_object_value_new_path(self):
+    def test_set_obj_value_new_path(self):
         # Arrange
         obj = {}
         path = ('test1', 'test2')
@@ -1643,7 +1919,7 @@ class TestClass(TestCase):
         }
 
         # Act
-        actual_result = common.set_object_value(obj, path, val)
+        actual_result = common.set_obj_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1743,7 +2019,7 @@ class TestClass(TestCase):
         ))
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to({}),
         )
 
@@ -1751,11 +2027,11 @@ class TestClass(TestCase):
             common.get_valid_to({
                 'validity': {},
             }),
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {},
                 {
@@ -1766,7 +2042,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {
                     'validity': {
@@ -1777,7 +2053,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to(
                 {},
                 {
@@ -1814,18 +2090,18 @@ class TestClass(TestCase):
         # still nothing
         self.assertEqual(
             common.get_valid_to({}, {}),
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
             common.get_valid_to({}, {
                 'validity': None,
             }),
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            util.POSITIVE_INFINITY,
+            mora_util.POSITIVE_INFINITY,
             common.get_valid_to({}, {
                 'validity': {
                     'to': None,
@@ -1835,7 +2111,7 @@ class TestClass(TestCase):
 
         # actually set
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_from({
                 'validity': {
                     'from': '2018-03-05',
@@ -1844,7 +2120,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
@@ -1854,7 +2130,7 @@ class TestClass(TestCase):
 
         # actually set in the fallback
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_from({}, {
                 'validity': {
                     'from': '2018-03-05',
@@ -1863,7 +2139,7 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
             common.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
@@ -1872,8 +2148,8 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
-             datetime.datetime(2018, 4, 5, tzinfo=util.DEFAULT_TIMEZONE)),
+            (datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
+             datetime.datetime(2018, 4, 5, tzinfo=mora_util.DEFAULT_TIMEZONE)),
             common.get_validities({
                 'validity': {
                     'from': '2018-03-05',
@@ -1883,8 +2159,8 @@ class TestClass(TestCase):
         )
 
         self.assertEqual(
-            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
-             util.POSITIVE_INFINITY),
+            (datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
+             mora_util.POSITIVE_INFINITY),
             common.get_validities({
                 'validity': {
                     'from': '2018-03-05'
@@ -2014,3 +2290,71 @@ class TestClass(TestCase):
                 r"Invalid 'list', expected dict, got: \[1337\]",
         ):
             common.checked_get(mapping, 'list', {})
+
+    def test_get_urn(self):
+        with self.subTest('bad string'):
+            with self.assertRaisesRegex(
+                exceptions.HTTPException,
+                "invalid urn for 'urn': '42'",
+            ) as ctxt:
+                common.get_urn({'urn': '42'})
+
+            self.assertEqual(
+                {
+                    'description': "invalid urn for 'urn': '42'",
+                    'error': True,
+                    'error_key': 'E_INVALID_URN',
+                    'obj': {'urn': '42'},
+                    'status': 400,
+                },
+                ctxt.exception.response.json,
+            )
+
+            self.assertEqual(
+                "400 Bad Request: invalid urn for 'urn': '42'",
+                str(ctxt.exception),
+            )
+
+        with self.assertRaisesRegex(
+            exceptions.HTTPException,
+            "Invalid 'urn', expected str, got: 42",
+        ) as ctxt:
+            common.get_urn({'urn': 42})
+
+        self.assertEqual(
+            {
+                'description': "Invalid 'urn', expected str, got: 42",
+                'error': True,
+                'error_key': 'E_INVALID_TYPE',
+                'expected': 'str',
+                'actual': '42',
+                'key': 'urn',
+                'obj': {'urn': 42},
+                'status': 400,
+            },
+            ctxt.exception.response.json,
+        )
+
+    @freezegun.freeze_time('2018-01-01')
+    @util.mock()
+    def test_history_missing(self, mock):
+        userid = '00000000-0000-0000-0000-000000000000'
+
+        mock.get(
+            'http://mox/organisation/bruger'
+            '?uuid=' + userid +
+            '&virkningtil=2018-01-01T00%3A00%3A00.000001%2B01%3A00'
+            '&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00',
+            json={
+                "results": [],
+            },
+        )
+
+        with self.assertRaisesRegex(
+            exceptions.HTTPException,
+            '404 Not Found: User not found.',
+        ):
+            common.add_bruger_history_entry(
+                userid,
+                'kaflaflibob',
+            )

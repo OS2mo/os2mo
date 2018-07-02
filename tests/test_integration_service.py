@@ -1137,13 +1137,13 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
-                'responsibility': {
+                'responsibility': [{
                     'example': None,
                     'name': 'Fakultet',
                     'scope': None,
                     'user_key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
-                },
+                }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                 "validity": {
                     'from': '2017-01-01T00:00:00+01:00',

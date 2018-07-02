@@ -766,7 +766,7 @@ def terminate_org_unit(unitid):
         'virkning': common._create_virkning(date, 'infinity')
     }
 
-    payload = common.set_object_value(dict(), obj_path, [val_inactive])
+    payload = common.set_obj_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
     c.organisationenhed.update(payload, unitid)

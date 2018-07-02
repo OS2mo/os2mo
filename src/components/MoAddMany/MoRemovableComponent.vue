@@ -9,7 +9,7 @@
         />
       </div>
       <div class="col-1 v-center">
-        <button @click="remove()" type="button" class="btn btn-outline-danger">
+        <button @click="remove()" type="button" class="btn btn-outline-danger" :class="smallButtons ? 'btn-sm' : ''">
           <icon name="minus"/>
         </button>
       </div>
@@ -20,10 +20,12 @@
 <script>
 export default {
   props: {
+    value: Object,
     entryComponent: {
       type: Object,
       required: true
     },
+    smallButtons: Boolean,
     validityHidden: Boolean
   },
   data () {
@@ -34,6 +36,9 @@ export default {
   },
   updated () {
     this.$emit('input', this.entryValue)
+  },
+  created () {
+    this.entryValue = this.value
   },
   methods: {
     remove () {
