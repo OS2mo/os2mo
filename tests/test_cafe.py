@@ -45,7 +45,7 @@ class TestCafeTests(util.LiveLoRATestCase):
 
         browser = os.environ.get('BROWSER',
                                  'safari' if platform.system() == 'Darwin'
-                                 else 'chromium:headless')
+                                 else 'chromium:headless --no-sandbox')
 
         process = subprocess.run(
             [
