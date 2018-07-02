@@ -62,7 +62,9 @@ export default {
       Organisation.getAll(this.atDate)
         .then(response => {
           vm.orgs = response
-          vm.selectedOrganisation = response[0]
+          if (!vm.selectedOrganisation) {
+            vm.selectedOrganisation = response[0]
+          }
         })
     },
 
