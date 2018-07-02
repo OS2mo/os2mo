@@ -260,12 +260,12 @@ def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
         if effect['tilstande']
                  ['organisationenhedgyldighed'][0]
                  ['gyldighed'] == 'Aktiv' and
-        start < end_date
+        start < end_date < end
     ]
 
     if not effects:
         raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_TERMINATE_UNIT_BEFORE_START_DATE,
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
         )
 
 
