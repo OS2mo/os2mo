@@ -13,7 +13,7 @@ pipeline {
     stage('Fetch') {
       steps {
         dir("../mox") {
-          git url: 'https://github.com/magenta-aps/mox', branch: 'feature/21273_searches_and_sorting'
+          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
         }
 
         timeout(5) {
