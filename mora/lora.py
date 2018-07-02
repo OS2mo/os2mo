@@ -145,26 +145,24 @@ ALL_RELATION_NAMES = {
 
 
 def _check_response(r):
-    try:
-        r.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+    if not r.ok:
         try:
-            d = r.json()
-        except ValueError:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
-                message=r.text)
+            msg = r.json()['message']
+        except (ValueError, KeyError):
+            msg = r.text
 
-        if r.status_code == 400 and d:
+        if r.status_code == 400:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_INVALID_INPUT,
-                message=r.json()['message'])
-        elif r.status_code in (401, 403) and d:
+                message=msg)
+        elif r.status_code in (401, 403):
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNAUTHORIZED,
-                message=r.json()['message'])
+                message=msg)
         else:
-            raise
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN,
+                message=msg)
 
     return r
 
