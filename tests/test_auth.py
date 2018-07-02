@@ -114,7 +114,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                {'user': 'USER'},
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
@@ -140,7 +140,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                {'user': 'USER'},
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
@@ -159,7 +159,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=None):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                {'user': 'USER'},
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',

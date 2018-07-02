@@ -22,6 +22,7 @@ import requests.auth
 
 from . import exceptions
 from . import tokens
+from . import util
 
 __all__ = (
     'SAMLAuth',
@@ -85,18 +86,13 @@ def login():
     try:
         assertion = tokens.get_token(username, password)
     except requests.exceptions.ConnectionError as e:
-        flask.current_app.logger.exception(
-            'AN ERROR OCCURRED in %r',
-            flask.request.full_path,
-        )
+        util.log_exception(e)
 
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_CONNECTION_FAILED)
 
     resp = flask.jsonify({
         "user": username,
-        "token": 'N/A',
-        "role": [],
     })
 
     if assertion:
@@ -126,17 +122,3 @@ def logout():
     response.delete_cookie(COOKIE_NAME)
 
     return response
-
-
-@blueprint.route('/acl/', methods=['POST', 'GET'])
-def acl():
-    '''Obtain the access control lists of the user --- of which we have
-    none.
-
-    .. :quickref: Authentication; Deprecated.
-
-    :deprecated: Retained for compatibility with original UI.
-
-    '''
-
-    return flask.jsonify([])
