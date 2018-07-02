@@ -4,7 +4,7 @@
       <button class="btn btn-link" @click="hidden=false">
         {{$t('buttons.select_another_date')}}
       </button>
-    </div>
+    </span>
     <mo-date-picker 
       class="from-date"
       :label="$t('input_fields.start_date')"
