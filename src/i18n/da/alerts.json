@@ -23,6 +23,7 @@
     "V_DATE_OUTSIDE_EMPL_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende medarbejder",
     "V_DATE_OUTSIDE_ORG_UNIT_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende organisation",
     "V_END_BEFORE_START": "Slut dato er før start dato",
+    "V_EXISTING_CPR": "Person med dette CPR nummer findes allerede",
     "V_INVALID_VALIDITY": "Ugyldig interval",
     "V_MISSING_REQUIRED_VALUE": "Manglende værdi er påkrævet",
     "V_MISSING_START_DATE": "Manglende start dato",

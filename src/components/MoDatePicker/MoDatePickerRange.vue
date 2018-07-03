@@ -1,9 +1,9 @@
 <template>
   <div class="form-row">
-    <span v-if="hidden">
-      <button class="btn btn-link" @click="hidden=false">
+    <span class="btn btn-link" v-if="hidden">
+      <a @click="hidden=false">
         {{$t('buttons.select_another_date')}}
-      </button>
+      </a>
     </span>
     <mo-date-picker 
       :label="$t('input_fields.start_date')"
