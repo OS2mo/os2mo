@@ -342,41 +342,55 @@ class TestCaseMixin(object):
 
         return self.client.open(path, **kwargs)
 
-    def assertRegistrationsEqual(self, expected, actual):
-        def sort_inner_lists(obj):
-            """Sort all inner lists and tuples by their JSON string value,
-            recursively. This is quite stupid and slow, but works!
+    @staticmethod
+    def __sort_inner_lists(obj):
+        """Sort all inner lists and tuples by their JSON string value,
+        recursively. This is quite stupid and slow, but works!
 
-            This is purely to help comparison tests, as we don't care about the
-            list ordering
+        This is purely to help comparison tests, as we don't care
+        about the list ordering
 
-            """
-            if isinstance(obj, dict):
-                return {
-                    k: sort_inner_lists(v)
-                    for k, v in obj.items()
-                }
-            elif isinstance(obj, (list, tuple)):
-                return sorted(
-                    map(sort_inner_lists, obj),
-                    key=(lambda p: json.dumps(p, sort_keys=True)),
-                )
-            else:
-                return obj
+        """
+        if isinstance(obj, dict):
+            return {
+                k: TestCase.__sort_inner_lists(v)
+                for k, v in obj.items()
+            }
+        elif isinstance(obj, (list, tuple)):
+            return sorted(
+                map(TestCase.__sort_inner_lists, obj),
+                key=(lambda p: json.dumps(p, sort_keys=True)),
+            )
+        else:
+            return obj
+
+    def assertRegistrationsEqual(self, expected, actual, message=None):
 
         # drop lora-generated timestamps & users
-        expected.pop('fratidspunkt', None)
-        expected.pop('tiltidspunkt', None)
-        expected.pop('brugerref', None)
+        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+            expected.pop(k, None)
+            actual.pop(k, None)
 
-        actual.pop('fratidspunkt', None)
-        actual.pop('tiltidspunkt', None)
-        actual.pop('brugerref', None)
+        actual = self.__sort_inner_lists(actual)
+        expected = self.__sort_inner_lists(expected)
+
+        if actual != expected:
+            pprint.pprint(actual)
 
         # Sort all inner lists and compare
-        return self.assertEqual(
-            sort_inner_lists(expected),
-            sort_inner_lists(actual))
+        return self.assertEqual(expected, actual, message)
+
+    def assertRegistrationsNotEqual(self, expected, actual, message=None):
+        # drop lora-generated timestamps & users
+        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+            expected.pop(k, None)
+            actual.pop(k, None)
+
+        actual = self.__sort_inner_lists(actual)
+        expected = self.__sort_inner_lists(expected)
+
+        # Sort all inner lists and compare
+        return self.assertNotEqual(expected, actual, message)
 
 
 class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):

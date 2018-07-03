@@ -12,8 +12,8 @@ pipeline {
   stages {
     stage('Fetch') {
       steps {
-        dir("../mox") {
-          git url: 'https://github.com/magenta-aps/mox', branch: 'feature/21273_searches_and_sorting'
+        dir("mox") {
+          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
         }
 
         timeout(5) {
@@ -84,6 +84,8 @@ pipeline {
         conditionalCoverageTargets: '90, 0, 0',                 \
         lineCoverageTargets: '95, 0, 0',                        \
         maxNumberOfBuilds: 0
+
+      cleanWs()
     }
   }
 }

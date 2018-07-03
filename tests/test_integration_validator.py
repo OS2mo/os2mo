@@ -9,6 +9,8 @@
 from mora import exceptions
 from mora import util as mora_util
 from mora import validator
+from mora.service import mapping
+
 from tests import util
 
 
@@ -167,6 +169,71 @@ class TestValidator(TestHelper):
         # Should be callable without raising exception
         validator.is_date_range_in_employee_range(employee_uuid,
                                                   valid_from, valid_to)
+
+    def test_is_distinct_responsibility_with_duplicate(self):
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            validator.is_distinct_responsibility([
+                (
+                    mapping.RESPONSIBILITY_FIELD,
+                    {
+                        'objekttype': 'lederansvar',
+                        'uuid': '00000000-0000-0000-0000-000000000000',
+                    },
+                ),
+                (
+                    mapping.RESPONSIBILITY_FIELD,
+                    {
+                        'objekttype': 'lederansvar',
+                        'uuid': '00000000-0000-0000-0000-000000000000',
+                    },
+                ),
+                (
+                    mapping.RESPONSIBILITY_FIELD,
+                    {
+                        'objekttype': 'lederansvar',
+                        'uuid': '00000000-0000-0000-0000-000000000001',
+                    },
+                ),
+            ])
+
+        self.assertEqual(
+            ctxt.exception.response.json,
+            {
+                'description': 'Manager has the same responsibility more than '
+                'once.',
+                'duplicates': [
+                    '00000000-0000-0000-0000-000000000000',
+                ],
+                'error': True,
+                'error_key': 'V_DUPLICATED_RESPONSIBILITY',
+                'status': 400,
+            },
+        )
+
+    def test_is_distinct_responsibility_no_duplicate(self):
+        validator.is_distinct_responsibility([
+            (
+                mapping.RESPONSIBILITY_FIELD,
+                {
+                    'objekttype': 'lederansvar',
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                },
+            ),
+            (
+                mapping.RESPONSIBILITY_FIELD,
+                {
+                    'objekttype': 'lederansvar',
+                    'uuid': '00000000-0000-0000-0000-000000000001',
+                },
+            ),
+            (
+                mapping.MANAGER_LEVEL_FIELD,
+                {
+                    'objekttype': 'hestefest',
+                    'uuid': '00000000-0000-0000-0000-000000000001',
+                },
+            ),
+        ])
 
 
 class TestIntegrationMoveOrgUnitValidator(TestHelper):

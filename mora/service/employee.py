@@ -340,7 +340,7 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string type: **"manager"**
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string manager_type: The manager type
-    :<jsonarr string responsibility: The manager responsibility
+    :<jsonarr array responsibility: The manager responsibilities
     :<jsonarr string manager_level: The manager level
     :<jsonarr string address: The associated address.
     :<jsonarr string address_type: The type of the associated address.
@@ -357,9 +357,11 @@ def create_employee_relation(employee_uuid):
           "manager_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "responsibility": {
-            "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
-          },
+          "responsibility": [
+            {
+              "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
+            }
+          ],
           "manager_level": {
             "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
           },
@@ -773,7 +775,7 @@ def edit_employee(employee_uuid):
     :<jsonarr string manager_type: The manager type
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string manager_type: The manager type
-    :<jsonarr string responsibility: The manager responsibility
+    :<jsonarr array responsibilities: The manager responsibilities
     :<jsonarr string manager_level: The manager level
     :<jsonarr string address: The associated address.
     :<jsonarr string address_type: The type of the associated address.
@@ -792,9 +794,11 @@ def edit_employee(employee_uuid):
               "manager_type": {
                 "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
               },
-              "responsibility": {
-                "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
-              },
+              "responsibility": [
+                {
+                  "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
+                }
+              ],
               "manager_level": {
                 "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
               },

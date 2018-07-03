@@ -423,7 +423,7 @@ class Scope:
 
     def update(self, obj, uuid):
         r = session.request(
-            'PATCH' if settings.USE_PATCH else 'PUT',
+            'PATCH',
             '{}/{}'.format(self.base_path, uuid),
             json=obj,
         )

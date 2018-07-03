@@ -52,6 +52,8 @@ class ErrorCodes(Enum):
         400, "Employee must have an active engagement."
     V_UNIT_OUTSIDE_ORG = \
         400, "Unit belongs to an organisation different from the current one."
+    V_DUPLICATED_RESPONSIBILITY = \
+        400, "Manager has the same responsibility more than once."
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
@@ -77,6 +79,10 @@ class ErrorCodes(Enum):
 class HTTPException(werkzeug.exceptions.HTTPException):
     key = ErrorCodes.E_UNKNOWN
 
+    @property
+    def code(self):
+        return self.key.code
+
     def __init__(self,
                  error_key: typing.Optional[ErrorCodes]=None,
                  message: typing.Optional[str]=None,
@@ -95,9 +101,11 @@ class HTTPException(werkzeug.exceptions.HTTPException):
 
         # this aids debugging
         if flask.current_app.debug:
+            cause = self.__cause__ or sys.exc_info()[1]
+
             body.update(
-                exception=sys.exc_info()[1] and str(sys.exc_info()[1]),
-                context=traceback.format_stack()[-10:-1],
+                exception=cause and str(cause),
+                context=traceback.format_exc().splitlines(),
             )
 
         r = flask.jsonify(body)
