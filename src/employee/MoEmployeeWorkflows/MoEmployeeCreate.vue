@@ -28,7 +28,7 @@
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
       </div>
-      
+
     <div class="float-right">
       <button-submit :is-loading="isLoading" />
     </div>
@@ -111,6 +111,11 @@ export default {
 
         Employee.new(newEmployee)
           .then(employeeUuid => {
+            vm.isLoading = false
+            if (employeeUuid.error) {
+              vm.backendValidationError = employeeUuid.error_key
+              return
+            }
             Employee.create(employeeUuid, create)
               .then(response => {
                 vm.isLoading = false

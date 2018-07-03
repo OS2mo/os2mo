@@ -77,8 +77,8 @@ export default {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
-        return error.response
+        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        return error.response.data
       })
   },
 
