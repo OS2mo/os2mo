@@ -32,7 +32,6 @@
     "V_NO_PERSON_FOR_CPR": "Ingen personer er fundet med det indtastet CPR nummer",
     "V_ORG_UNIT_MOVE_TO_CHILD": "Organisationsenheden kan ikke flyttes under dens egen underenheder",
     "V_ORIGINAL_REQUIRED": "Original er påkrævet",
-    "V_TERMINATE_UNIT_BEFORE_START_DATE": "Kan ikke afslutte organisationsenheden før dens start dato",
     "V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES": "Kan ikke afslutte en enhed med aktive underenheder og roller"
   }
 }

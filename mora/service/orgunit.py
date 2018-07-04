@@ -738,7 +738,9 @@ def terminate_org_unit(unitid):
     c = lora.Connector(virkningfra=util.to_iso_time(date),
                        virkningtil='infinity')
 
-    validator.is_org_unit_termination_date_valid(unitid, date)
+    validator.is_date_range_in_org_unit_range(
+        unitid, date - util.MINIMAL_INTERVAL, date,
+    )
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,

@@ -37,8 +37,6 @@ class ErrorCodes(Enum):
         400, "Org unit cannot be moved to one of its own child units"
     V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES = \
         400, "Cannot terminate unit with active children and roles."
-    V_TERMINATE_UNIT_BEFORE_START_DATE = \
-        400, "Cannot terminate org unit before its starting date."
     V_DATE_OUTSIDE_ORG_UNIT_RANGE = \
         400, "Date range exceeds validity range of associated org unit."
     V_DATE_OUTSIDE_EMPL_RANGE = \
