@@ -309,7 +309,7 @@ End-to-end tests
 ----------------
 
 Vores end-to-end tests køres typisk som en del af testsuiten. For at
-køre den direkte mød en udviklingsmaskine anvendes eksempelvist::
+køre den direkte mod en udviklingsmaskine anvendes eksempelvist::
 
   BASE_URL=http://localhost:5000/ yarn testcafe --speed 0.5 firefox e2e-tests
 
