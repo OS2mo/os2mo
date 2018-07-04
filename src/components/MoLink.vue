@@ -42,7 +42,7 @@
       parts () {
         let contents = this.column ? this.value[this.column] : this.value
 
-        if (this.column === 'address_type') contents = this.value['address'] ? this.value['address'][this.column] : null
+        if (this.column === 'address_type') contents = this.value['address'] ? this.value['address'][this.column] : this.value['address_type']
         if (!(contents instanceof Array)) {
           contents = [contents]
         }
