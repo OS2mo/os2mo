@@ -273,3 +273,45 @@ class Tests(util.TestCase):
                 )
             ],
         )
+
+    def test_auth_error(self, m):
+        m.get(
+            'http://mox/organisation/organisationenhed?uuid=42',
+            text="go away",
+            status_code=500,
+        )
+
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            lora.organisationenhed.get('42')
+
+        self.assertEqual(
+            {
+                'error': True,
+                'status': 500,
+                'error_key': 'E_UNKNOWN',
+                'description': 'go away',
+            },
+            ctxt.exception.response.json,
+        )
+
+    def test_failing_auth(self, m):
+        m.get(
+            'http://mox/organisation/organisationenhed?uuid=42',
+            json={
+                "message": "go away",
+            },
+            status_code=401,
+        )
+
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            lora.organisationenhed.get('42')
+
+        self.assertEqual(
+            {
+                'error': True,
+                'status': 401,
+                'error_key': 'E_UNAUTHORIZED',
+                'description': 'go away',
+            },
+            ctxt.exception.response.json,
+        )

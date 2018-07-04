@@ -22,7 +22,7 @@ Service.interceptors.response.use(
       if (err.response.status === 401 && err.response.config && !err.response.config.__isRetryRequest) {
         store.dispatch(AUTH_LOGOUT)
       }
-      throw err
+      reject(err)
     })
   }
 )

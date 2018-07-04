@@ -4,8 +4,8 @@ pipeline {
   agent any
 
   environment {
-    BROWSER = 'Firefox'
-    MOZ_HEADLESS = '1'
+    BROWSER = 'chromium:headless'
+    NODE_ENV = 'testing'
     PYTEST_ADDOPTS = '--color=yes'
   }
 
