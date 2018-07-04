@@ -12,11 +12,8 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       "/service": {
-        target: 'http://moxauth.local/service',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/service': ''
-        }
+        target: process.env.BASE_URL || "http://localhost:5000/",
+        changeOrigin: true
       }
     },
 
