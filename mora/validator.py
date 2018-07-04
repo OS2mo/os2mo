@@ -105,10 +105,14 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
 
 
 def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
+    # query for the full range of effects; otherwise,
+    # _get_active_validity() won't return any useful data for time
+    # intervals predating the creation of the unit
     scope = lora.Connector(
         virkningfra=util.to_lora_time(util.NEGATIVE_INFINITY),
         virkningtil=util.to_lora_time(util.POSITIVE_INFINITY)
     ).organisationenhed
+
     org_unit = scope.get(org_unit_uuid)
 
     if not org_unit:
