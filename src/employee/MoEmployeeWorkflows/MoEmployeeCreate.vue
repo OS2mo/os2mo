@@ -101,7 +101,14 @@ export default {
       if (this.formValid) {
         let vm = this
         this.isLoading = true
-        let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
+        let create = [].concat(this.address, this.association, this.role, this.itSystem, this.manager)
+
+        create.forEach(e => {
+          if (!e.validity) {
+            e.validity = this.engagement.validity
+          }
+        })
+        create.push(this.engagement)
 
         let newEmployee = {
           name: this.employee.name,
