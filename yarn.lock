@@ -6557,6 +6557,10 @@ testcafe-reporter-xunit@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/testcafe-reporter-xunit/-/testcafe-reporter-xunit-2.1.0.tgz#e6d66c572ce15af266706af0fd610b2a841dd443"
 
+testcafe-vue-selectors@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/testcafe-vue-selectors/-/testcafe-vue-selectors-3.0.0.tgz#bb6e8564a2050eef84cfe4fe2ec560af4b2049e9"
+
 testcafe@^0.20.2:
   version "0.20.2"
   resolved "https://registry.yarnpkg.com/testcafe/-/testcafe-0.20.2.tgz#7214a03a5975157b282ce25d0df2feb1459e3454"
