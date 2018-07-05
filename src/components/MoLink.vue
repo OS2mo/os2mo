@@ -1,5 +1,5 @@
 <template>
-  <ul>
+  <ul :class="classes">
     <li v-for="(part, index) in parts" :key="index">
       <a v-if="part.href" v-bind:href="part.href"
          target="_blank"
@@ -39,11 +39,30 @@
       }
     },
     computed: {
+      classes () {
+        if (this.column && this.field) {
+          return [this.column + '-' + this.field]
+        } else if (this.column) {
+          return [this.column]
+        } else if (this.field) {
+          return [this.field]
+        } else {
+          return []
+        }
+      },
+
       parts () {
         let contents = this.column ? this.value[this.column] : this.value
 
-        if (this.column === 'address_type') contents = this.value['address'] ? this.value['address'][this.column] : this.value['address_type']
-        if (!(contents instanceof Array)) {
+        if (this.column === 'address_type' && this.value) {
+          contents = this.value['address']
+            ? this.value['address'][this.column]
+            : this.value['address_type']
+        }
+
+        if (!contents) {
+          contents = []
+        } else if (!(contents instanceof Array)) {
           contents = [contents]
         }
 
@@ -52,7 +71,7 @@
         for (let i = 0; i < contents.length; i++) {
           let c = contents[i]
           let p = {}
-          p.text = c[this.field] || '\u2014'
+          p.text = (this.field ? c[this.field] : c) || '\u2014'
           p.href = c ? c.href : ''
           if (handler && c && c.uuid) {
             p.target = {
