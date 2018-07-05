@@ -46,7 +46,7 @@
           return [this.column]
         } else if (this.field) {
           return [this.field]
-        } else{
+        } else {
           return []
         }
       },
