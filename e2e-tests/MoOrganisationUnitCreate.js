@@ -19,7 +19,8 @@ const parentItem = parentInput.find('.v-autocomplete-list-item label')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-const dateLink = dialog.find('.from-date input.form-control')
+const newDate = dialog.find('.btn-link')
+const newDateInput = dialog.find('.address-date .from-date input.form-control')
 
 test('Workflow: create unit', async t => {
   let today = moment()
@@ -44,13 +45,13 @@ test('Workflow: create unit', async t => {
   // fail, rather than merely failing at form submit.
 
   await t
-    .setTestSpeed(0.6)
+    .setTestSpeed(0.8)
     .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
     .click('.btn-unit-create')
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Ballerup Fredagsbar')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Ballerup VM 2018')
 
     .click(unitSelect)
     .click(unitOption.withText('Supportcenter'))
@@ -74,12 +75,13 @@ test('Workflow: create unit', async t => {
     .pressKey('down enter')
     .expect(addressInput.find('input').value).contains('Hold-An Vej')
 
-    .click(dateLink)
-    .hover(dialog.find('.btn-link .day:not(.blank)')
+    .click(newDate)
+    .click(newDateInput)
+    .hover(dialog.find('.address-date .from-date .vdp-datepicker .day:not(.blank)')
            .withText(today.date().toString()))
-    .click(dialog.find('.btn-link .day:not(.blank)')
+    .click(dialog.find('.address-date .from-date .vdp-datepicker .day:not(.blank)')
            .withText(today.date().toString()))
-    .expect(dateLink.value).eql(today.format('DD-MM-YYYY'))
+    .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
 
     .typeText(dialog.find('input[data-vv-as="Telefonnummer"]'), '44772000')
 
