@@ -31,6 +31,10 @@
         </b-form-checkbox>
       </div>
 
+      <div class="alert alert-danger" v-if="status">
+        {{$t('alerts.error.' + status)}}
+      </div>
+
       <button type="submit" aria-label="Log ind" class="btn btn-primary col">
         Log ind
       </button>
@@ -39,7 +43,8 @@
 </template>
 
 <script>
-  import Auth from '@/api/Auth'
+  import { mapGetters } from 'vuex'
+  import {AUTH_REQUEST} from '@/vuex/actions/auth'
 
   export default {
     name: 'login-modal',
@@ -49,23 +54,25 @@
     data () {
       return {
         user: {
-          username: '',
-          password: ''
+          username: null,
+          password: null
         },
         isLoading: false
       }
+    },
+    computed: {
+      ...mapGetters({
+        status: 'status'
+      })
     },
     methods: {
       gotoMo () {
         let vm = this
         vm.isLoading = true
-        Auth.login(vm.user)
+        this.$store.dispatch(AUTH_REQUEST, vm.user)
           .then(response => {
             vm.isLoading = false
             vm.$router.push({name: this.destination})
-          })
-          .catch(error => {
-            return error.response.data
           })
       }
     }

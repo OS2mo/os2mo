@@ -1,6 +1,5 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/> 
     <div class="form-row">
       <mo-organisation-unit-search
         v-model="entry.org_unit" 
@@ -20,13 +19,12 @@
         facet="manager_level" 
         v-model="entry.manager_level"
         required
-      />  
-      <mo-facet-picker 
-        facet="responsibility" 
-        v-model="entry.responsibility"
-        required
-      /> 
+      />
     </div>
+
+    <mo-add-many v-model="entry.responsibility" :entry-component="facetPicker" label="Lederansvar" has-initial-entry small-buttons/>
+    
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
   </div>
 </template>
 
@@ -35,28 +33,39 @@ import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
 export default {
   components: {
     MoDatePickerRange,
     MoOrganisationUnitSearch,
     MoFacetPicker,
-    MoAddressPicker
+    MoAddressPicker,
+    MoAddMany
   },
   props: {
     value: Object,
-    validity: Object
+    validityHidden: Boolean
   },
   data () {
     return {
-      entry: {
-        validity: {}
-      }
+      entry: {}
     }
   },
   computed: {
     datePickerHidden () {
       return this.validity != null
+    },
+
+    facetPicker () {
+      return {
+        components: { MoFacetPicker },
+        props: { value: Object },
+        data () { return { val: null } },
+        watch: { val (newVal) { this.$emit('input', newVal) } },
+        created () { this.val = this.value },
+        template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
+      }
     }
   },
   watch: {
@@ -66,10 +75,6 @@ export default {
         this.$emit('input', newVal)
       },
       deep: true
-    },
-
-    validity (newVal) {
-      this.entry.validity = newVal
     }
   },
   created () {

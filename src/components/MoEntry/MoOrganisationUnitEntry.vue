@@ -1,10 +1,7 @@
 <template>
   <div>
-      <mo-date-picker-range v-model="orgUnit.validity" :disable-to-date="!creatingDate"/>
-
       <div class="form-row">
         <mo-input :label="$t('input_fields.name')" v-model="orgUnit.name" required/>
-        
         <mo-facet-picker facet="org_unit_type" v-model="orgUnit.org_unit_type" required/>
       </div>
 
@@ -12,6 +9,7 @@
         v-model="orgUnit.parent"
         required
       />
+      <mo-date-picker-range v-model="orgUnit.validity" :disable-to-date="!creatingDate"/>
   </div>
 </template>
 
@@ -20,15 +18,13 @@ import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoInput from '@/components/atoms/MoInput'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
 
 export default {
   components: {
     MoDatePickerRange,
     MoOrganisationUnitSearch,
     MoFacetPicker,
-    MoInput,
-    MoAddMany
+    MoInput
   },
   inject: {
     $validator: '$validator'

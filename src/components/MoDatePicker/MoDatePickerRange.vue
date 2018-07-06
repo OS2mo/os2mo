@@ -1,24 +1,26 @@
 <template>
   <div class="form-row">
-    <div v-show="hidden">
-      <button class="btn btn-link" @click="hidden=false">
+    <span class="btn btn-link" v-if="hidden">
+      <a @click="hidden=false">
         {{$t('buttons.select_another_date')}}
-      </button>
-    </div>
+      </a>
+    </span>
     <mo-date-picker 
+      class="from-date"
       :label="$t('input_fields.start_date')"
       v-model="validFrom"
-      v-show="!hidden"
-      :disabled-from="validTo"
+      v-if="!hidden"
+      :valid-dates="validStartDateRange"
       @input="updateDate()"
       required
     />
 
     <mo-date-picker 
+      class="to-date"
       :label="$t('input_fields.end_date')"
       v-model="validTo"
-      v-show="!hidden"
-      :disabled-to="validFrom"
+      v-if="!hidden"
+      :valid-dates="validEndDateRange"
       :disabled="disableToDate"
       @input="updateDate()"
     />
@@ -35,13 +37,41 @@
     props: {
       value: Object,
       initiallyHidden: Boolean,
-      disableToDate: Boolean
+      disableToDate: Boolean,
+      disabledDates: Object
     },
     data () {
       return {
         validFrom: null,
         validTo: null,
         hidden: false
+      }
+    },
+    computed: {
+      validStartDateRange () {
+        let range = {
+          from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
+          to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
+        }
+
+        if (this.validTo && (!range.to || Date(this.validTo) < range.to)) {
+          range.to = new Date(this.validTo)
+        }
+
+        return range
+      },
+
+      validEndDateRange () {
+        let range = {
+          from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
+          to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
+        }
+
+        if (this.validFrom && new Date(this.validFrom) > range.from) {
+          range.from = new Date(this.validFrom)
+        }
+
+        return range
       }
     },
     watch: {

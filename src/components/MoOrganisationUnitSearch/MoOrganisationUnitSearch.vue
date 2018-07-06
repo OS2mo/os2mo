@@ -61,7 +61,10 @@
     },
     watch: {
       selectedSuperUnit (newVal) {
-        if (this.selectedSuperUnit == null) return
+        if (this.selectedSuperUnit == null) {
+          this.$emit('input', null)
+          return
+        }
         this.item = newVal.name
         this.$emit('input', newVal)
       }

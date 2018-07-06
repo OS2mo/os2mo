@@ -1746,8 +1746,10 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.request('/service/ou/{}/terminate'.format(unitid),
-                     json=payload)
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(unitid),
+            unitid,
+            json=payload)
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
@@ -1959,15 +1961,64 @@ class Tests(util.LoRATestCase):
                 "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             ),
             {
-                'description': 'Cannot terminate org unit '
-                               'before its starting date.',
+                'description': 'Date range exceeds validity range of '
+                'associated org unit.',
                 'error': True,
-                'error_key': 'V_TERMINATE_UNIT_BEFORE_START_DATE',
-                'status': 400},
+                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                'status': 400,
+                'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_to': None,
+            },
             status_code=400,
             json={
                 "validity": {
                     "from": "2000-01-01T00:00:00+01"
                 }
             },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            ),
+            {
+                'description': 'Date range exceeds validity range of '
+                'associated org unit.',
+                'error': True,
+                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                'status': 400,
+                'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_to': '2019-01-01T00:00:00+01:00',
+            },
+            status_code=400,
+            json={
+                "validity": {
+                    "from": "2100-01-01T00:00:00+01"
+                }
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(
+                "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            ),
+            {
+                'description': 'Date range exceeds validity range of '
+                'associated org unit.',
+                'error': True,
+                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                'status': 400,
+                'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_to': '2019-01-01T00:00:00+01:00',
+            },
+            status_code=400,
+            json={
+                "validity": {
+                    "from": "2016-01-01 00:00:00+01"
+                }
+            },
+            message='No terminating on creation date!'
         )

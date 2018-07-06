@@ -15,25 +15,20 @@
       <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
-      <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
-      <mo-add-many v-model="address" :entry-component="entry.address"/>
+      <mo-add-many v-model="address" :entry-component="entry.address" :label="$tc('workflows.employee.labels.address', 2)" validity-hidden/>
 
-      <h5>{{$tc('workflows.employee.labels.association', 2)}}</h5>
-      <mo-add-many v-model="association" :entry-component="entry.association"/>
+      <mo-add-many v-model="association" :entry-component="entry.association" :label="$tc('workflows.employee.labels.association', 2)" validity-hidden/>
       
-      <h5>{{$tc('workflows.employee.labels.role', 2)}}</h5>
-      <mo-add-many v-model="role" :entry-component="entry.role"/>
+      <mo-add-many v-model="role" :entry-component="entry.role" :label="$tc('workflows.employee.labels.role', 2)" validity-hidden/>
 
-      <h5>{{$tc('workflows.employee.labels.it_system', 2)}}</h5>
-      <mo-add-many v-model="itSystem" :entry-component="entry.it"/>
+      <mo-add-many v-model="itSystem" :entry-component="entry.it" :label="$tc('workflows.employee.labels.it_system', 2)" validity-hidden/>
 
-      <h5>{{$tc('workflows.employee.labels.manager')}}</h5>
-      <mo-add-many v-model="manager" :entry-component="entry.manager"/>
+      <mo-add-many v-model="manager" :entry-component="entry.manager" :label="$tc('workflows.employee.labels.manager')" validity-hidden/>
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
       </div>
-      
+
     <div class="float-right">
       <button-submit :is-loading="isLoading" />
     </div>
@@ -106,7 +101,14 @@ export default {
       if (this.formValid) {
         let vm = this
         this.isLoading = true
-        let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
+        let create = [].concat(this.address, this.association, this.role, this.itSystem, this.manager)
+
+        create.forEach(e => {
+          if (!e.validity) {
+            e.validity = this.engagement.validity
+          }
+        })
+        create.push(this.engagement)
 
         let newEmployee = {
           name: this.employee.name,
@@ -116,6 +118,11 @@ export default {
 
         Employee.new(newEmployee)
           .then(employeeUuid => {
+            vm.isLoading = false
+            if (employeeUuid.error) {
+              vm.backendValidationError = employeeUuid.error_key
+              return
+            }
             Employee.create(employeeUuid, create)
               .then(response => {
                 vm.isLoading = false

@@ -11,9 +11,10 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      // '/mo/': 'http://localhost:5000/',
-      // '/service/': 'http://localhost:5000/',
-      "/": "http://moxauth.local/"
+      "/service": {
+        target: process.env.BASE_URL || "http://localhost:5000/",
+        changeOrigin: true
+      }
     },
 
     // Various Dev Server settings

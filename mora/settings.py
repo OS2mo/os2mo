@@ -18,7 +18,6 @@ DEFAULT_PAGE_SIZE = 2000
 
 LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
-USE_PATCH = True
 
 SAML_IDP_TYPE = 'wso2'
 SAML_IDP_URL = None

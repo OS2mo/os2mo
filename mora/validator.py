@@ -5,6 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+import collections
 import datetime
 import typing
 
@@ -14,6 +16,7 @@ from . import util
 
 from .service import common
 from .service import keys
+from .service import mapping
 
 
 def _is_date_range_valid(parent: typing.Union[dict, str],
@@ -53,6 +56,8 @@ def _is_date_range_valid(parent: typing.Union[dict, str],
         elif start != previous_end:
             # non-consecutive chunk - so not valid for that time
             return False
+        elif start >= enddate or end <= startdate:
+            continue
 
         vs = effect['tilstande'][gyldighed_key]
 
@@ -100,11 +105,20 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
 
 
 def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
+    # query for the full range of effects; otherwise,
+    # _get_active_validity() won't return any useful data for time
+    # intervals predating the creation of the unit
     scope = lora.Connector(
-        virkningfra=util.to_lora_time(valid_from),
-        virkningtil=util.to_lora_time(valid_to)
+        virkningfra=util.to_lora_time(util.NEGATIVE_INFINITY),
+        virkningtil=util.to_lora_time(util.POSITIVE_INFINITY)
     ).organisationenhed
+
     org_unit = scope.get(org_unit_uuid)
+
+    if not org_unit:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+        )
 
     gyldighed_key = "organisationenhedgyldighed"
 
@@ -114,6 +128,23 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
             **_get_active_validity(org_unit),
+        )
+
+
+def is_distinct_responsibility(
+    fields: typing.List[typing.Tuple[common.FieldTuple, typing.Mapping]],
+):
+    uuid_counts = collections.Counter(
+        value['uuid']
+        for field, value in fields
+        if field == mapping.RESPONSIBILITY_FIELD
+    )
+    duplicates = sorted(v for v, c in uuid_counts.items() if c > 1)
+
+    if duplicates:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_DUPLICATED_RESPONSIBILITY,
+            duplicates=duplicates
         )
 
 
@@ -207,46 +238,6 @@ def is_candidate_parent_valid(unitid: str, parent: str,
         # if so, we're done!
         if parent == orgid:
             break
-
-
-def is_org_unit_termination_date_valid(unitid: str, end_date: datetime):
-    """
-    Check if the inactivation date is valid.
-
-    :param unitid: The UUID of the org unit.
-    :param end_date: The candidate end-date.
-    :return: True if the inactivation date is valid and false otherwise.
-    """
-    c = lora.Connector(virkningfra=end_date, virkningtil='infinity')
-
-    if not c.organisationenhed.get(unitid):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND)
-
-    # Find a org unit effect that's active, and that has a start date before
-    #  our termination date
-    effects = [
-        (start, end, effect)
-        for start, end, effect in
-        c.organisationenhed.get_effects(
-            unitid,
-            {
-                'tilstande': (
-                    'organisationenhedgyldighed',
-                ),
-            },
-            {}
-        )
-        if effect['tilstande']
-                 ['organisationenhedgyldighed'][0]
-                 ['gyldighed'] == 'Aktiv' and
-        start < end_date
-    ]
-
-    if not effects:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_TERMINATE_UNIT_BEFORE_START_DATE,
-        )
 
 
 def does_employee_have_existing_association(employee_uuid, org_unit_uuid,

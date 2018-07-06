@@ -7,10 +7,10 @@
     @shortkey="theAction()"
   >
     <mo-workflow>
-      <mo-workflow-button :label="$t('workflows.organisation.create_unit')" icon="plus-circle" v-b-modal.orgUnitCreate/>
-      <mo-workflow-button :label="$t('workflows.organisation.rename_unit')" icon="edit" v-b-modal.orgUnitRename/>
-      <mo-workflow-button :label="$t('workflows.organisation.move_unit')" icon="share-square" v-b-modal.orgUnitMove/>
-      <mo-workflow-button :label="$t('workflows.organisation.terminate_unit')" icon="ban" v-b-modal.orgUnitTerminate/>
+      <mo-workflow-button class="btn-unit-create" :label="$t('workflows.organisation.create_unit')" icon="plus-circle" v-b-modal.orgUnitCreate/>
+      <mo-workflow-button class="btn-unit-rename" :label="$t('workflows.organisation.rename_unit')" icon="edit" v-b-modal.orgUnitRename/>
+      <mo-workflow-button class="btn-unit-move" :label="$t('workflows.organisation.move_unit')" icon="share-square" v-b-modal.orgUnitMove/>
+      <mo-workflow-button class="btn-unit-terminate" :label="$t('workflows.organisation.terminate_unit')" icon="ban" v-b-modal.orgUnitTerminate/>
     </mo-workflow>
 
     <!-- Modal Component -->

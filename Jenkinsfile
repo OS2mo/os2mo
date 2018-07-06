@@ -4,15 +4,15 @@ pipeline {
   agent any
 
   environment {
-    BROWSER = 'Firefox'
-    MOZ_HEADLESS = '1'
+    BROWSER = 'chromium:headless'
+    NODE_ENV = 'testing'
     PYTEST_ADDOPTS = '--color=yes'
   }
 
   stages {
     stage('Fetch') {
       steps {
-        dir("../mox") {
+        dir("mox") {
           git url: 'https://github.com/magenta-aps/mox', branch: 'development'
         }
 
@@ -84,6 +84,8 @@ pipeline {
         conditionalCoverageTargets: '90, 0, 0',                 \
         lineCoverageTargets: '95, 0, 0',                        \
         maxNumberOfBuilds: 0
+
+      cleanWs()
     }
   }
 }

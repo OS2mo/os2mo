@@ -738,7 +738,9 @@ def terminate_org_unit(unitid):
     c = lora.Connector(virkningfra=util.to_iso_time(date),
                        virkningtil='infinity')
 
-    validator.is_org_unit_termination_date_valid(unitid, date)
+    validator.is_date_range_in_org_unit_range(
+        unitid, date - util.MINIMAL_INTERVAL, date,
+    )
 
     children = c.organisationenhed.paged_get(
         get_one_orgunit,
@@ -766,7 +768,7 @@ def terminate_org_unit(unitid):
         'virkning': common._create_virkning(date, 'infinity')
     }
 
-    payload = common.set_object_value(dict(), obj_path, [val_inactive])
+    payload = common.set_obj_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
     c.organisationenhed.update(payload, unitid)

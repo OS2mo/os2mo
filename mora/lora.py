@@ -145,26 +145,24 @@ ALL_RELATION_NAMES = {
 
 
 def _check_response(r):
-    try:
-        r.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+    if not r.ok:
         try:
-            d = r.json()
-        except ValueError:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
-                message=r.text)
+            msg = r.json()['message']
+        except (ValueError, KeyError):
+            msg = r.text
 
-        if r.status_code == 400 and d:
+        if r.status_code == 400:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_INVALID_INPUT,
-                message=r.json()['message'])
-        elif r.status_code in (401, 403) and d:
+                message=msg)
+        elif r.status_code in (401, 403):
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNAUTHORIZED,
-                message=r.json()['message'])
+                message=msg)
         else:
-            raise
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN,
+                message=msg)
 
     return r
 
@@ -345,12 +343,13 @@ class Scope:
     __call__ = fetch
 
     def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
-        params['maximalantalresultater'] = start + limit
+        params['maximalantalresultater'] = limit
+        params['foersteresultat'] = start
 
         if 'uuid' in params:
             uuids = util.uniqueify(params.pop('uuid'))
         else:
-            uuids = self.fetch(**params)[start:start + limit]
+            uuids = self.fetch(**params)
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 
@@ -422,7 +421,7 @@ class Scope:
 
     def update(self, obj, uuid):
         r = session.request(
-            'PATCH' if settings.USE_PATCH else 'PUT',
+            'PATCH',
             '{}/{}'.format(self.base_path, uuid),
             json=obj,
         )

@@ -11,7 +11,6 @@
     name: 'app',
     mounted () {
       var usersnapKey = process.env.USERSNAP_KEY || null
-
       if (usersnapKey) {
         var s = document.createElement('script')
         s.type = 'text/javascript'

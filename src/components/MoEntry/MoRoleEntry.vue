@@ -1,6 +1,5 @@
 <template>
   <div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="datePickerHidden"/>
     <div class="form-row">
       <mo-organisation-unit-search 
         class="col" 
@@ -10,6 +9,7 @@
       />
       <mo-facet-picker facet="role_type" v-model="entry.role_type" required/>
     </div>
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>
 </template>
 
@@ -26,18 +26,13 @@ export default {
   },
   props: {
     value: Object,
-    validity: Object
+    validityHidden: Boolean
   },
   data () {
     return {
       entry: {
         validity: {}
       }
-    }
-  },
-  computed: {
-    datePickerHidden () {
-      return this.validity != null
     }
   },
   watch: {
@@ -47,10 +42,6 @@ export default {
         this.$emit('input', newVal)
       },
       deep: true
-    },
-
-    validity (newVal) {
-      this.entry.validity = newVal
     }
   },
   created () {

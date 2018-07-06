@@ -17,7 +17,11 @@
           v-model="org_unit"
           required
         />
-        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
+        <mo-date-picker
+          :label="$t('input_fields.end_date')"
+          :valid-dates="validDates"
+          v-model="terminate.validity.from"
+          required/>
       </div>
       <div v-if="org_unit">
         <p>Følgende vil blive afsluttet for enheden:</p>
@@ -61,6 +65,10 @@
       }
     },
     computed: {
+      validDates () {
+        return this.org_unit ? this.org_unit.validity : {}
+      },
+
       formValid () {
         // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {

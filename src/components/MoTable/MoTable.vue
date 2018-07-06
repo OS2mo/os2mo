@@ -29,24 +29,11 @@
             <b-form-checkbox :value="c"/>
           </td>
           <td v-for="(col, index) in columns" :key="index">
-            <mo-link :value="c" :column="col.data"/>
+            <mo-link :value="c" :column="col.data" :field="col.field"/>
           </td>
-          <td>
-            {{c.validity | getProperty('from') | date}}
-          </td>
-          <td>
-            {{c.validity.to | date}}
-          </td>
-          <td>
-            <!-- <mo-entry-modal
-              action="EDIT"
-              :type="type"
-              :uuid="editUuid"
-              :entry-component="editComponent"
-              :content="c"
-              :content-type="contentType"
-            /> -->
-         
+          <td>{{c.validity.from | date}}</td>
+          <td>{{c.validity.to | date}}</td>
+          <td>         
             <mo-entry-edit-modal 
               :type="type"
               :uuid="editUuid"

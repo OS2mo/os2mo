@@ -114,7 +114,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                {'user': 'USER'},
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
@@ -140,7 +140,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                {'user': 'USER'},
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
@@ -159,9 +159,49 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=None):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'role': [], 'token': 'N/A', 'user': 'USER'},
+                {'user': 'USER'},
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
                 },
+            )
+
+    def test_empty_user(self):
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/login',
+                {
+                    'error': True,
+                    'error_key': 'E_UNAUTHORIZED',
+                    'description': (
+                        'Username/password cannot be blank'
+                    ),
+                    'status': 401,
+                },
+                json={
+                    'username': '',
+                    'password': 's3cr1t!',
+                },
+                status_code=401,
+            )
+
+    def test_empty_pass(self):
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/login',
+                {
+                    'error': True,
+                    'error_key': 'E_UNAUTHORIZED',
+                    'description': (
+                        'Username/password cannot be blank'
+                    ),
+                    'status': 401,
+                },
+                json={
+                    'username': 'USER',
+                    'password': '',
+                },
+                status_code=401,
             )

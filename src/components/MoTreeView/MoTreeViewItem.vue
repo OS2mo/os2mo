@@ -3,7 +3,7 @@
       <span @click="toggle">
         <icon class="icon" v-if="hasChildren" :name="open ? 'caret-down' : 'caret-right'"/>
       </span>
-        <icon class="icon" v-if="!hasChildren"/>
+      <span class="icon" v-if="!hasChildren"/>
 
       <router-link 
         v-if="linkable"
@@ -127,6 +127,7 @@
   .icon {
     color: #343a40;
     width: 1rem;
+    display: inline-block;
   }
   .link-color{
     color: #212529;
