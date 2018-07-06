@@ -11,6 +11,7 @@ from unittest import mock
 import freezegun
 
 from . import util
+from mora import util as mora_util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -18,37 +19,47 @@ from . import util
 class Tests(util.TestCase):
     maxDiff = None
 
+    @util.override_settings(PROD_MODE=False)
     def test_cpr_lookup_prod_mode_false(self, m):
-        # Arrange
-        cpr = "0101501234"
-
-        expected = {
-            'name': 'Merle Mortensen',
-            'cpr_no': cpr
-        }
-
-        # Act
-        with util.override_settings(PROD_MODE=False):
+        with self.subTest('found'):
             self.assertRequestResponse(
-                '/service/e/cpr_lookup/?q={}'.format(cpr),
-                expected)
+                '/service/e/cpr_lookup/?q=0101501234',
+                {
+                    'name': 'Merle Mortensen',
+                    'cpr_no': "0101501234"
+                })
 
-            with mock.patch(
-                'mora.integrations.serviceplatformen._get_citizen_stub',
-                side_effect=KeyError('go away'),
-                assert_called_with='asdasdasdx',
-            ):
-                self.assertRequestResponse(
-                    '/service/e/cpr_lookup/?q=1111111111',
-                    {
-                        'cpr': '1111111111',
-                        'error_key': 'V_NO_PERSON_FOR_CPR',
-                        'description': 'No person found for given CPR number.',
-                        'error': True,
-                        'status': 404,
-                    },
-                    status_code=404,
-                )
+        with self.subTest('too early'):
+            self.assertEqual(mora_util.get_cpr_birthdate(2004936541).year,
+                             1893)
+
+            self.assertRequestResponse(
+                '/service/e/cpr_lookup/?q=2004936541',
+                {
+                    'cpr': '2004936541',
+                    'description': 'No person found for given CPR number.',
+                    'error': True,
+                    'error_key': 'V_NO_PERSON_FOR_CPR',
+                    'status': 404,
+                },
+                status_code=404,
+            )
+
+        with self.subTest('too late'):
+            self.assertEqual(mora_util.get_cpr_birthdate(2004256543).year,
+                             2025)
+
+            self.assertRequestResponse(
+                '/service/e/cpr_lookup/?q=2004256543',
+                {
+                    'cpr': '2004256543',
+                    'description': 'No person found for given CPR number.',
+                    'error': True,
+                    'error_key': 'V_NO_PERSON_FOR_CPR',
+                    'status': 404,
+                },
+                status_code=404,
+            )
 
     def test_cpr_lookup_raises_on_wrong_length(self, m):
         # Arrange
