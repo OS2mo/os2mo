@@ -57,7 +57,7 @@ MALE_FIRST_NAMES = [
     'Malthe',
     'Elias',
     'Christian',
-    'Mads'
+    'Mads',
     'Gustav',
     'Villads',
     'Tobias',
@@ -166,7 +166,7 @@ LAST_NAMES = [
     'Poulsen',
     'Johansen',
     'Møller',
-    'Mortensen'
+    'Mortensen',
 ]
 
 # as of 2018, the oldest living Dane was born in 1908...
