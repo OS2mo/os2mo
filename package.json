@@ -1,6 +1,6 @@
 {
   "name": "mora",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "OS2 Mennesker + Organisation 2.0",
   "author": "Magenta ApS <info@magenta.dk>",
   "private": true,
@@ -23,6 +23,7 @@
     "popper.js": "^1.12.9",
     "sass-loader": "^6.0.6",
     "testcafe": "^0.20.2",
+    "testcafe-vue-selectors": "^3.0.0",
     "v-autocomplete": "git+https://github.com/magenta-aps/v-autocomplete.git",
     "vee-validate": "^2.0.0",
     "vue": "^2.5.2",

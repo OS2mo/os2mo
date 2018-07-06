@@ -29,7 +29,7 @@
             <b-form-checkbox :value="c"/>
           </td>
           <td v-for="(col, index) in columns" :key="index">
-            <mo-link :value="c" :column="col.data"/>
+            <mo-link :value="c" :column="col.data" :field="col.field"/>
           </td>
           <td>{{c.validity.from | date}}</td>
           <td>{{c.validity.to | date}}</td>
