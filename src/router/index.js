@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import store from '@/vuex/store'
 const LoginPage = () => import('@/login/LoginPage')
 const MoBase = () => import('@/MoBase')
 const Organisation = () => import('@/organisation/Organisation')
@@ -14,6 +15,22 @@ const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 
 Vue.use(Router)
 
+const ifNotAuthenticated = (to, from, next) => {
+  if (!store.getters.isAuthenticated) {
+    next()
+    return
+  }
+  next('/')
+}
+
+const ifAuthenticated = (to, from, next) => {
+  if (store.getters.isAuthenticated) {
+    next()
+    return
+  }
+  next('/login')
+}
+
 const router = new Router({
   mode: 'history',
   routes: [
@@ -24,7 +41,8 @@ const router = new Router({
     },
     {
       path: '',
-      redirect: { name: 'Login' }
+      redirect: { name: 'Login' },
+      beforeEnter: ifNotAuthenticated
     },
     {
       path: '/',
@@ -36,6 +54,7 @@ const router = new Router({
           name: 'Organisation',
           component: Organisation,
           redirect: { name: 'OrganisationLandingPage' },
+          beforeEnter: ifAuthenticated,
 
           children: [
             {
@@ -55,6 +74,7 @@ const router = new Router({
           name: 'Employee',
           component: Employee,
           redirect: { name: 'EmployeeList' },
+          beforeEnter: ifAuthenticated,
 
           children: [
             {
@@ -72,17 +92,20 @@ const router = new Router({
         {
           path: '/hjaelp',
           name: 'Help',
-          component: TheHelp
+          component: TheHelp,
+          beforeEnter: ifAuthenticated
         },
         {
           path: '/tidsmaskine',
           name: 'Timemachine',
-          component: MoTimeMachine
+          component: MoTimeMachine,
+          beforeEnter: ifAuthenticated
         },
         {
           path: '*',
           name: 'PageNotFound',
-          component: PageNotFound
+          component: PageNotFound,
+          beforeEnter: ifAuthenticated
         }
       ]
     }
