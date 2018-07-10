@@ -32,7 +32,8 @@
       </div>
     </div>
 
-    <mo-organisation-unit-search 
+    <mo-organisation-unit-search
+      class="parentUnit"
       v-model="move.data.parent" 
       :label="$t('input_fields.select_new_super_unit')"
       :date="move.data.validity.from"
@@ -40,7 +41,8 @@
     />
     
     <div class="form-row">
-      <mo-date-picker 
+      <mo-date-picker
+      class="moveDate"
       :label="$t('input_fields.move_date')"
       v-model="move.data.validity.from"
       required
