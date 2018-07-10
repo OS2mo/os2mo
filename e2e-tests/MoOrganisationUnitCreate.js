@@ -57,10 +57,10 @@ test('Workflow: create unit', async t => {
     .click(unitOption.withText('Supportcenter'))
 
     .click(parentInput)
-    .typeText(parentInput.find('input'), 'Bib')
-    .expect(parentItem.withText('Ballerup Bibliotek').visible).ok()
+    .typeText(parentInput.find('input'), 'fam')
+    .expect(parentItem.withText('Ballerup Familiehus').visible).ok()
     .pressKey('down enter')
-    .expect(parentInput.find('input').value).eql('Ballerup Bibliotek')
+    .expect(parentInput.find('input').value).eql('Ballerup Familiehus')
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
