@@ -2,12 +2,12 @@
   <div>
     <div class="form-row">
       <mo-organisation-unit-search 
-        class="col" 
+        class="col unit-role" 
         label="Vælg enhed" 
         v-model="entry.org_unit"
         required
       />
-      <mo-facet-picker facet="role_type" v-model="entry.role_type" required/>
+      <mo-facet-picker class="select-role" facet="role_type" v-model="entry.role_type" required/>
     </div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>

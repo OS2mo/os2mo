@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-row">
-      <mo-it-system-picker v-model="entry.itsystem" :preselected="entry.uuid"/>
+      <mo-it-system-picker class="select-itSystem" v-model="entry.itsystem" :preselected="entry.uuid"/>
     </div>
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>

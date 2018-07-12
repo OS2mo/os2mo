@@ -4,12 +4,12 @@
       <mo-organisation-unit-search
         v-model="entry.org_unit" 
         label="Angiv enhed" 
-        class="col"
+        class="col unit-manager"
         required
       />
-      <mo-address-picker v-model="entry.address" :org-unit="entry.org_unit" class="col"/>
+      <mo-address-picker class="col address-manager" v-model="entry.address" :org-unit="entry.org_unit"/>
     </div> 
-    <div class="form-row">
+    <div class="form-row select-manager">
       <mo-facet-picker 
         facet="manager_type" 
         v-model="entry.manager_type" 
@@ -22,7 +22,14 @@
       />
     </div>
 
-    <mo-add-many v-model="entry.responsibility" :entry-component="facetPicker" label="Lederansvar" has-initial-entry small-buttons/>
+    <mo-add-many
+      class="responsibility-manager"
+      v-model="entry.responsibility" 
+      :entry-component="facetPicker" 
+      label="Lederansvar" 
+      has-initial-entry 
+      small-buttons
+    />
     
     <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
   </div>
