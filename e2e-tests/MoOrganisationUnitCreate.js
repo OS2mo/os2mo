@@ -1,7 +1,7 @@
-let moment = require('moment')
-
 import { Selector } from 'testcafe'
 import { baseURL } from './support'
+
+let moment = require('moment')
 
 fixture('Organisation test')
   .page(`${baseURL}/organisation/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4`)
