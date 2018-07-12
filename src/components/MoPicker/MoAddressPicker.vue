@@ -9,6 +9,7 @@
         v-model="selected"
         :name="nameId"
         :id="nameId"
+        data-vv-as="Adresser"
         :disabled="isDisabled"
         :noAddresses="noAddresses"
         @change="updateSelectedAddress()"
