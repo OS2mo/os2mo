@@ -10,7 +10,7 @@
     @hidden="resetData"
   >
   <form @submit.stop.prevent="moveEmployee">
-    <mo-employee-picker v-model="employee" required/>
+    <mo-employee-picker class="search-employee" v-model="employee" required/>
 
     <div class="form-row">
       <mo-engagement-picker v-model="original" :employee="employee" required/>
@@ -27,7 +27,7 @@
 
     <div class="form-row">
       <mo-date-picker 
-        class="col"
+        class="col from-date"
         :label="$t('input_fields.move_date')" 
         v-model="move.data.validity.from"
         :valid-dates="validDates"
