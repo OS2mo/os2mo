@@ -81,6 +81,7 @@ test('Workflow: create unit', async t => {
            .withText(today.date().toString()))
     .click(dialog.find('.address-date .from-date .vdp-datepicker .day:not(.blank)')
            .withText(today.date().toString()))
+    .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
 
     .typeText(dialog.find('input[data-vv-as="Telefonnummer"]'), '44772000')
 
