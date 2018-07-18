@@ -26,7 +26,7 @@
       <tbody>
         <tr v-for="(c, index) in content" :key="index">
           <td v-if="multiSelect">
-            <b-form-checkbox :value="c"/>
+            <b-form-checkbox class="checkbox-employee" data-vv-as="checkbox" :value="c"/>
           </td>
           <td v-for="(col, index) in columns" :key="index">
             <mo-link :value="c" :column="col.data" :field="col.field"/>

@@ -16,6 +16,8 @@ const parentFromItem = parentFromInput.find('.from-unit .v-autocomplete-list-ite
 const parentToInput = dialog.find('.to-unit .v-autocomplete[data-vv-as="Enhed"]')
 const parentToItem = parentToInput.find('.to-unit .v-autocomplete-list-item label')
 
+const checkboxInput = dialog.find('.checkbox-employee[data-vv-as="checkbox"]')
+
 test('Workflow: moveMany employee', async t => {
   let today = moment()
 
@@ -44,4 +46,6 @@ test('Workflow: moveMany employee', async t => {
     .expect(parentToItem.withText('Ballerup Kommune').visible).ok()
     .pressKey('down enter')
     .expect(parentToInput.find('input').value).eql('Ballerup Kommune')
+
+    .click(checkboxInput)
 })
