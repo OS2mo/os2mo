@@ -19,8 +19,8 @@ const parentItem = parentInput.find('.v-autocomplete-list-item label')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-const newDate = dialog.find('.btn-link')
-const newDateInput = dialog.find('.address-date .from-date input.form-control')
+// const newDate = dialog.find('.btn-link')
+// const newDateInput = dialog.find('.address-date input.form-control')
 
 test('Workflow: create unit', async t => {
   let today = moment()
@@ -75,13 +75,13 @@ test('Workflow: create unit', async t => {
     .pressKey('down enter')
     .expect(addressInput.find('input').value).contains('Hold-An Vej')
 
-    .click(newDate)
-    .click(newDateInput)
-    .hover(dialog.find('.address-date .from-date .vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
-    .click(dialog.find('.address-date .from-date .vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
-    .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
+    // .click(newDate)
+    // .click(newDateInput)
+    // .hover(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
+    //        .withText(today.date().toString()))
+    // .click(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
+    //        .withText(today.date().toString()))
+    // .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
 
     .typeText(dialog.find('input[data-vv-as="Telefonnummer"]'), '44772000')
 
