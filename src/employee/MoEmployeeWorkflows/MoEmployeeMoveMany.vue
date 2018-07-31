@@ -22,7 +22,7 @@
           :is-disabled="dateSelected" 
           :label="$t('input_fields.move_from')"
           v-model="orgUnitSource" 
-          class="col" 
+          class="col from-unit" 
           required
         />
         
@@ -30,12 +30,12 @@
           :is-disabled="dateSelected" 
           :label="$t('input_fields.move_to')"
           v-model="orgUnitDestination" 
-          class="col"
+          class="col to-unit"
           required
         />       
       </div>
 
-      <mo-table 
+      <mo-table
         v-if="sourceSelected"
         :content="employees" 
         :columns="columns"
