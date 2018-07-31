@@ -28,10 +28,10 @@ test('Workflow: move unit', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(unitInput)
-    .typeText(unitInput.find('input'), 'vm 2018')
-    .expect(unitItem.withText('Ballerup VM 2018').visible).ok()
+    .typeText(unitInput.find('input'), 'fam')
+    .expect(unitItem.withText('Ballerup Familiehus').visible).ok()
     .pressKey('down enter')
-    .expect(unitInput.find('input').value).eql('Ballerup VM 2018')
+    .expect(unitInput.find('input').value).eql('Ballerup Familiehus')
 
     .click(parentInput)
     .typeText(parentInput.find('input'), 'idræt')
@@ -57,16 +57,16 @@ test('Workflow: move unit', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(unitInput)
-    .typeText(unitInput.find('input'), 'vm 2018')
-    .expect(unitItem.withText('Ballerup VM 2018').visible).ok()
+    .typeText(unitInput.find('input'), 'fam')
+    .expect(unitItem.withText('Ballerup Familiehus').visible).ok()
     .pressKey('down enter')
-    .expect(unitInput.find('input').value).eql('Ballerup VM 2018')
+    .expect(unitInput.find('input').value).eql('Ballerup Familiehus')
 
     .click(parentInput)
-    .typeText(parentInput.find('input'), 'fam')
-    .expect(parentItem.withText('Ballerup Familiehus').visible).ok()
+    .typeText(parentInput.find('input'), 'kom')
+    .expect(parentItem.withText('Ballerup Kommune').visible).ok()
     .pressKey('down enter')
-    .expect(parentInput.find('input').value).eql('Ballerup Familiehus')
+    .expect(parentInput.find('input').value).eql('Ballerup Kommune')
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

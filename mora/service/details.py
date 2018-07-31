@@ -602,7 +602,7 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
-    def get_one(cache, getter, cachegetter, aslist):
+    def get_one(effect, cache, getter, cachegetter, aslist):
         values = getter(effect)
 
         if cache and not cachegetter:
@@ -617,7 +617,7 @@ def get_detail(type, id, function):
     # finally, gather it all in the appropriate objects
     def convert(start, end, funcid, effect):
         func = {
-            key: get_one(*args)
+            key: get_one(effect, *args)
             for key, args in converters[function].items()
         }
 

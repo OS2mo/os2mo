@@ -15,7 +15,6 @@ import sys
 import uuid
 
 import click
-import grequests
 import pyexcel
 
 from . import processors
@@ -753,6 +752,10 @@ def convert_organisationfunktion(obj):
 
 def run(target, sheets, dry_run, verbose, jobs, failfast,
         include, check, exact, **kwargs):
+    # only import when actually needed, and do so lazily lazily to
+    # avoid deadlocks caused by its horrible monkey patches to
+    # builtins
+    import grequests
 
     if any(kwargs.values()):
         unsupported_args = [k for k in sorted(kwargs) if kwargs[k]]

@@ -11,8 +11,17 @@
   >
     <form @submit.stop.prevent="endEmployee">
       <div class="form-row">
-        <mo-employee-picker v-model="employee" required class="col"/>
-        <mo-date-picker :label="$t('input_fields.end_date')" v-model="terminate.validity.from" required/>
+        <mo-employee-picker 
+          class="col search-employee" 
+          v-model="employee" 
+          required
+        />
+        <mo-date-picker 
+          class="from-date" 
+          :label="$t('input_fields.end_date')" 
+          v-model="terminate.validity.from" 
+          required
+        />
       </div>
         
         <div v-if="employee">
