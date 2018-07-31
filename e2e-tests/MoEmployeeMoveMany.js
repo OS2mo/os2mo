@@ -48,4 +48,8 @@ test('Workflow: moveMany employee', async t => {
     .expect(parentToInput.find('input').value).eql('Ballerup Kommune')
 
     .click(checkboxInput)
+
+    .click(dialog.find('.btn-primary'))
+
+    .expect(Selector('#orgUnitRename').exists).notOk()
 })
