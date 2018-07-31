@@ -1418,3 +1418,166 @@ class Tests(util.LoRATestCase):
                     'role': False,
                 },
             )
+
+    def test_details_multiple(self):
+        """Test that multiple details of a single type renders as expected"""
+        self.load_sample_structures()
+        c = lora.Connector()
+
+        engagement = {
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Engagement",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "note": "Automatisk indl\u00e6sning",
+            "relationer": {
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "opgaver": [
+                    {
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from": "2017-01-01 00:00:00+01:00",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            }
+        }
+
+        c.organisationfunktion.create(
+            engagement, '09e79d96-2904-444f-94b1-0e98b0b07e7c')
+
+        expected = [{
+            'engagement_type': {
+                'example': None,
+                'name': 'Afdeling',
+                'scope': None,
+                'user_key': 'afd',
+                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+            },
+            'job_function': {
+                'example': None,
+                'name': 'Fakultet',
+                'scope': None,
+                'user_key': 'fak',
+                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+            },
+            'org_unit': {
+                'name': 'Humanistisk fakultet',
+                'user_key': 'hum',
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01T00:00:00+01:00',
+                    'to': None
+                }
+            },
+            'person': {
+                'name': 'Anders And',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            },
+            'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
+            'validity': {
+                'from': '2017-01-01T00:00:00+01:00',
+                'to': None
+            }
+        }, {
+            'engagement_type': {
+                'example': None,
+                'name': 'Institut',
+                'scope': None,
+                'user_key': 'inst',
+                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+            },
+            'job_function': {
+                'example': None,
+                'name': 'Fakultet',
+                'scope': None,
+                'user_key': 'fak',
+                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+            },
+            'org_unit': {
+                'name': 'Samfundsvidenskabelige fakultet',
+                'user_key': 'samf',
+                'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'validity': {
+                    'from': '2017-01-01T00:00:00+01:00',
+                    'to': None
+                }
+            },
+            'person': {
+                'name': 'Anders And',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            },
+            'uuid': '09e79d96-2904-444f-94b1-0e98b0b07e7c',
+            'validity': {
+                'from': '2017-01-01T00:00:00+01:00',
+                'to': None
+            }
+        }]
+
+        actual = self.request(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            '/details/engagement',
+        ).json
+
+        def sorter(e):
+            return e['uuid']
+
+        self.assertEqual(
+            sorted(expected, key=sorter),
+            sorted(actual, key=sorter)
+        )
