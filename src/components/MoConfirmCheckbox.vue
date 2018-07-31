@@ -1,6 +1,6 @@
 <template>
   <div class="input-group alert" :class="errors.has('confirm') ? 'alert-warning' : 'alert-success'">
-    <input :name="nameId" type="checkbox" v-validate="'required'" v-model="confirm">
+    <input data-vv-as="checkbox" :name="nameId" type="checkbox" v-validate="'required'" v-model="confirm">
     <h5>{{$t('alerts.error.CONFIRM_ENGAGEMENT_END_DATE', 
       {engagementName: entryName,
       orgName: entryOrgName, 
