@@ -1,10 +1,12 @@
 import axios from 'axios'
 import store from '@/vuex/store'
 import {AUTH_LOGOUT} from '@/vuex/actions/auth'
+import router from '../router'
 
 /**
  * Defines the base url and headers for http calls
  */
+
 
 const Service = axios.create({
   baseURL: '/service',
@@ -16,21 +18,22 @@ const Service = axios.create({
   }
 })
 
-Service.interceptors.response.use(
-  undefined, err => {
-    return new Promise(function (resolve, reject) {
-      if (err.response.status === 401 && err.response.config && !err.response.config.__isRetryRequest) {
-        store.dispatch(AUTH_LOGOUT)
-      }
-      reject(err)
-    })
-  }
-)
-
 export default {
   get (url) {
     return Service
       .get(url)
+      .catch(err => {
+        console.warn('request failed', err)
+
+        if (err.response.status === 401 || err.response.status === 403) {
+          return store.dispatch(AUTH_LOGOUT).then(() =>
+                                                  router.push({name: 'Login'}))
+        }
+
+        return new Promise(function (resolve, reject) {
+          reject(err)
+        })
+      })
   },
 
   post (url, payload) {
