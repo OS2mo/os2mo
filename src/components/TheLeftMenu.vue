@@ -32,11 +32,12 @@
 .card-body {
   min-height: 5vh;
   max-height: 90vh;
+  width: 100%;
 }
 
 #tree-wrapper {
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll
+  overflow-x: auto;
+  overflow-y: scroll;
 }
 </style>
