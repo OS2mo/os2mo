@@ -53,7 +53,9 @@ def requires_auth(func):
     @click.option('--insecure', '-k', is_flag=True,
                   help="disable SSL/TLS security checks")
     def wrapper(*args, **options):
-        if options.pop('insecure'):
+        insecure = options.pop('insecure')
+
+        if insecure:
             warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
 
             lora.session.verify = False
@@ -73,6 +75,7 @@ def requires_auth(func):
             assertion = tokens.get_token(
                 options.pop('user'),
                 options.pop('password'),
+                insecure=insecure,
             )
 
             lora.session.auth = auth.SAMLAuth(assertion)
@@ -328,6 +331,7 @@ def get(paths):
 
             json.dump(obj, sys.stdout, indent=4)
             sys.stdout.write('\n')
+
 
 
 @group.command()
