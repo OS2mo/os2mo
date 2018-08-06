@@ -7,9 +7,9 @@
 #
 
 import freezegun
+from mock import patch
 
 from mora.auth import tokens
-
 from . import util
 
 IDP_URL = 'mock://idp'
@@ -22,6 +22,11 @@ ORG_URL = (
 )
 
 
+# FIXME: itsdangerous.py has EPOCH hardcoded to 2011/01/01 for whatever reason,
+#        which breaks when using dates earlier than that.
+#        Fix has been implemented, awaiting next release:
+#        https://github.com/pallets/itsdangerous/issues/46
+@patch('itsdangerous.EPOCH', 0)
 @freezegun.freeze_time('2001-01-01')
 class MockTests(util.TestCase):
     @util.mock()
@@ -114,7 +119,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'user': 'USER'},
+                '',
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
@@ -140,7 +145,7 @@ class MockTests(util.TestCase):
                                     SAML_IDP_URL=IDP_URL):
             self.assertRequestResponse(
                 '/service/user/login',
-                {'user': 'USER'},
+                '',
                 json={
                     'username': 'USER',
                     'password': 's3cr1t!',
@@ -152,19 +157,6 @@ class MockTests(util.TestCase):
                     tokens.get_token('X', 'Y', raw=True),
                     util.get_mock_text('auth/adfs-assertion.xml', 'rb')
                 )
-
-    @util.mock()
-    def test_disabled_login(self, mock):
-        with util.override_settings(SAML_IDP_TYPE=None,
-                                    SAML_IDP_URL=None):
-            self.assertRequestResponse(
-                '/service/user/login',
-                {'user': 'USER'},
-                json={
-                    'username': 'USER',
-                    'password': 's3cr1t!',
-                },
-            )
 
     def test_empty_user(self):
         with util.override_settings(SAML_IDP_TYPE='adfs',
