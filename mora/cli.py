@@ -32,11 +32,9 @@ import pyexcel
 import requests
 import urllib3
 
-from . import auth
-from . import exceptions
 from . import lora
 from . import settings
-from . import tokens
+from .auth import auth, tokens
 from . import util
 
 basedir = os.path.dirname(__file__)

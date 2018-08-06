@@ -14,9 +14,9 @@ import lxml.etree
 import flask
 import requests
 
-from . import exceptions
-from . import settings
-from . import util
+from mora import exceptions
+from mora import settings
+from mora import util
 
 IDP_TEMPLATES = {
     'adfs': 'adfs-soap-request.xml',
@@ -38,7 +38,7 @@ def _gzipstring(s):
     return compressor.compress(s) + compressor.flush()
 
 
-def _pack(s):
+def pack(s):
     return b'saml-gzipped ' + base64.standard_b64encode(_gzipstring(s))
 
 
@@ -110,7 +110,7 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
 
     assertion = lxml.etree.tostring(tokens[0], pretty_print=verbose)
 
-    return assertion if raw else _pack(assertion)
+    return assertion if raw else pack(assertion)
 
 
 __all__ = (

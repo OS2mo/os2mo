@@ -19,10 +19,19 @@ DEFAULT_PAGE_SIZE = 2000
 LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
 
+AUTH = 'token'  # 'sso' or 'token'
+
+# Token auth config
 SAML_IDP_TYPE = 'wso2'
-SAML_IDP_URL = None
+SAML_IDP_URL = 'https://localhost:9443/services/wso2carbon-sts'
 SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = False
+
+# SSO config
+SSO_SAML_METADATA_URL = '/url/to/sso/metadata'
+
+# Secret key used for cookie-based sessions
+SECRET_KEY = 'SECRET'
 
 SP_SERVICE_UUID = ""
 SP_SERVICE_AGREEMENT_UUID = ""

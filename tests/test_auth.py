@@ -8,7 +8,7 @@
 
 import freezegun
 
-from mora import tokens
+from mora.auth import tokens
 
 from . import util
 

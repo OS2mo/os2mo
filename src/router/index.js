@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 const LoginPage = () => import('@/login/LoginPage')
+const Landing = () => import('@/landing/LandingPage')
 const MoBase = () => import('@/MoBase')
 const Organisation = () => import('@/organisation/Organisation')
 const OrganisationLandingPage = () => import('@/organisation/OrganisationLandingPage')
@@ -18,13 +19,14 @@ const router = new Router({
   mode: 'history',
   routes: [
     {
+      path: '',
+      name: 'Landing',
+      component: Landing
+    },
+    {
       path: '/login',
       name: 'Login',
       component: LoginPage
-    },
-    {
-      path: '',
-      redirect: { name: 'Login' }
     },
     {
       path: '/',

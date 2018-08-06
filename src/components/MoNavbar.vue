@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
     <div class="logo col-1"/>
-    
+
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
       aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -22,7 +22,7 @@
       <mo-search-bar class="ml-auto mr-auto"/>
 
       <mo-time-machine-button/>
-      
+
       <help-button/>
 
       <b-dropdown id="ddown1" variant="primary">
@@ -38,12 +38,12 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
   import {AUTH_LOGOUT} from '@/vuex/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
   import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
+  import Service from '@/api/HttpCommon'
 
   export default {
     components: {
@@ -55,12 +55,13 @@
     data () {
       return {
         user: {},
-        isLoading: false
+        isLoading: false,
+        username: 'N/A'
       }
     },
-    computed: {
-      ...mapGetters({
-        username: 'username'
+    created () {
+      Service.get('/user').then(response => {
+        this.username = response.data
       })
     },
     methods: {
@@ -70,7 +71,7 @@
         this.$store.dispatch(AUTH_LOGOUT, vm.user)
         .then(response => {
           vm.isLoading = false
-          vm.$router.push({name: 'Login'})
+          window.location.replace('/')
         })
       }
     }
@@ -96,12 +97,12 @@
     .nav-link {
       font-family: Oswald,Arial,sans-serif !important;
       color: #e5e0de !important;
-  
+
       &:hover {
         border-bottom: 3px solid #e5e0de;
       }
     }
-  
+
     .router-link-active {
       border-bottom: 3px solid #e5e0de;
     }

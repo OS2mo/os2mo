@@ -15,7 +15,7 @@ import uuid
 
 import requests
 
-from . import auth
+from .auth import auth
 from . import exceptions
 from . import settings
 from . import util

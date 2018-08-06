@@ -8,14 +8,15 @@
 
 import os
 
-import werkzeug
 import flask
+import werkzeug
 
-from . import auth
 from . import cli
 from . import exceptions
 from . import service
+from . import settings
 from . import util
+from .auth import auth, sso
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -24,7 +25,16 @@ distdir = os.path.join(basedir, '..', 'dist')
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 app.cli = cli.group
 
+app.config.update({
+    # Secret key used for default flask.session storage
+    # TODO: Remove when/if we move to non cookie-based sessions
+    'SECRET_KEY': settings.SECRET_KEY,
+})
+
 app.register_blueprint(auth.blueprint)
+
+if settings.AUTH == 'sso':
+    sso.init_app(app)
 
 for blueprint in service.blueprints:
     app.register_blueprint(blueprint)
@@ -57,3 +67,4 @@ def root(path=''):
             exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
 
     return flask.send_file('index.html')
+

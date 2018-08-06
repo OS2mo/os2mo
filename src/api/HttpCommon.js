@@ -17,26 +17,16 @@ const Service = axios.create({
   }
 })
 
-export default {
-  get (url) {
-    return Service
-      .get(url)
-      .catch(err => {
-        console.warn('request failed', err)
-
-        if (err.response.status === 401 || err.response.status === 403) {
-          return store.dispatch(AUTH_LOGOUT).then(() =>
-                                                  router.push({name: 'Login'}))
-        }
-
-        return new Promise(function (resolve, reject) {
-          reject(err)
-        })
-      })
-  },
-
-  post (url, payload) {
-    return Service
-      .post(url, payload)
+Service.interceptors.response.use(
+  undefined, err => {
+    return new Promise(function (resolve, reject) {
+      if (err.response.status === 401 || err.response.status === 403) {
+        store.dispatch(AUTH_LOGOUT)
+          .then(response => {
+            router.push({name: 'Login'})
+          })
+      }
+      reject(err)
+    })
   }
-}
+)
