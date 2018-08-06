@@ -67,4 +67,3 @@ def root(path=''):
             exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
 
     return flask.send_file('index.html')
-

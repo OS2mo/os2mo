@@ -1,3 +1,11 @@
+#
+# Copyright (c) 2017-2018, Magenta ApS
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
 import os
 
 import flask
@@ -12,7 +20,8 @@ basedir = os.path.dirname(__file__)
 
 def acs(sender, subject, attributes, auth):
     """Custom assertion consumer service (acs) for use with flask_saml"""
-    flask.session[moauth.COOKIE_NAME] = tokens.pack(str.encode(str(auth.assertion)))
+    flask.session[moauth.COOKIE_NAME] = tokens.pack(
+        str.encode(str(auth.assertion)))
     flask.session['username'] = subject
 
 

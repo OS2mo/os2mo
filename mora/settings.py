@@ -23,7 +23,7 @@ AUTH = 'token'  # 'sso' or 'token'
 
 # Token auth config
 SAML_IDP_TYPE = 'wso2'
-SAML_IDP_URL = 'https://localhost:9443/services/wso2carbon-sts'
+SAML_IDP_URL = None
 SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = False
 

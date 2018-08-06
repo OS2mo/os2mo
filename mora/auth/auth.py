@@ -46,7 +46,7 @@ class SAMLAuth(requests.auth.AuthBase):
     def __call__(self, r):
         if self.assertion:
             assertion = self.assertion
-        elif flask.session.get(COOKIE_NAME):
+        elif flask.session and flask.session.get(COOKIE_NAME):
             assertion = flask.session[COOKIE_NAME]
         else:
             assertion = None
