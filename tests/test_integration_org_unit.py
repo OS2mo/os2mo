@@ -479,6 +479,8 @@ class Tests(util.LoRATestCase):
             'status': 400,
             'valid_from': '2016-01-01T00:00:00+01:00',
             'valid_to': None,
+            'wanted_valid_from': '2010-02-04T00:00:00+01:00',
+            'wanted_valid_to': '2017-10-22T00:00:00+02:00'
         }
 
         self.assertRequestResponse('/service/ou/create', expected,
@@ -784,6 +786,8 @@ class Tests(util.LoRATestCase):
                     'status': 400,
                     'valid_from': '2016-01-01T00:00:00+01:00',
                     'valid_to': None,
+                    'wanted_valid_from': '2010-01-01T00:00:00+01:00',
+                    'wanted_valid_to': None,
                 },
                 status_code=400,
                 json={
@@ -1476,6 +1480,8 @@ class Tests(util.LoRATestCase):
                     'status': 400,
                     'valid_from': '2016-01-01T00:00:00+01:00',
                     'valid_to': '2019-01-01T00:00:00+01:00',
+                    'wanted_valid_from': '2016-01-01T00:00:00+01:00',
+                    'wanted_valid_to': None
                 },
                 status_code=400,
                 json={
@@ -1499,6 +1505,8 @@ class Tests(util.LoRATestCase):
                     'status': 400,
                     'valid_from': '2016-01-01T00:00:00+01:00',
                     'valid_to': '2019-01-01T00:00:00+01:00',
+                    'wanted_valid_from': '2010-01-01T00:00:00+01:00',
+                    'wanted_valid_to': '2019-01-01T00:00:00+01:00',
                 },
                 status_code=400,
                 json={
@@ -1794,6 +1802,7 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'error_key': 'E_ORG_UNIT_NOT_FOUND',
                 'description': 'Org unit not found.',
+                'org_unit_uuid': '00000000-0000-0000-0000-000000000000',
                 'status': 404,
             },
             status_code=404,
@@ -1969,6 +1978,8 @@ class Tests(util.LoRATestCase):
                 'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 'valid_from': '2016-01-01T00:00:00+01:00',
                 'valid_to': None,
+                'wanted_valid_from': '1999-12-31T23:59:59.999999+01:00',
+                'wanted_valid_to': '2000-01-01T00:00:00+01:00',
             },
             status_code=400,
             json={
@@ -1991,6 +2002,8 @@ class Tests(util.LoRATestCase):
                 'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                 'valid_from': '2016-01-01T00:00:00+01:00',
                 'valid_to': '2019-01-01T00:00:00+01:00',
+                'wanted_valid_from': '2099-12-31T23:59:59.999999+01:00',
+                'wanted_valid_to': '2100-01-01T00:00:00+01:00',
             },
             status_code=400,
             json={
@@ -2013,6 +2026,8 @@ class Tests(util.LoRATestCase):
                 'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                 'valid_from': '2016-01-01T00:00:00+01:00',
                 'valid_to': '2019-01-01T00:00:00+01:00',
+                'wanted_valid_from': '2015-12-31T23:59:59.999999+01:00',
+                'wanted_valid_to': '2016-01-01T00:00:00+01:00',
             },
             status_code=400,
             json={
