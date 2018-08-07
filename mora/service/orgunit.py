@@ -353,7 +353,10 @@ def get_orgunit(unitid):
     r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
 
     if not r:
-        raise werkzeug.exceptions.NotFound('no such unit!')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=unitid,
+        )
 
     return flask.jsonify(r)
 
@@ -833,7 +836,10 @@ def get_org_unit_history(unitid):
                                                  registrerettil='infinity')
 
     if not unit_registrations:
-        raise werkzeug.exceptions.NotFound('no such unit')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=unitid,
+        )
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))
