@@ -1955,7 +1955,7 @@ class Reading(util.LoRATestCase):
                 )
 
             self.assertRegex(log_res.output[0],
-                             r"^ERROR:mora.app:AN ERROR OCCURRED in '[^']*': "
+                             "AN ERROR OCCURRED in '[^']*': "
                              "invalid address relation")
 
         self.load_sample_structures(minimal=False)
