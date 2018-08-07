@@ -64,6 +64,14 @@ group = AppGroup(
 )
 
 
+class Exit(click.ClickException):
+    def __init__(self, exit_code: int=1):
+        self.exit_code = exit_code
+
+    def show(self):
+        pass
+
+
 def requires_auth(func):
     @click.option('--user', '-u',
                   help="account user name")
@@ -275,12 +283,15 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
     try:
         runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
-        runner.run(suite)
+        result = runner.run(suite)
 
     except Exception:
         if verbosity > 1:
             traceback.print_exc()
         raise
+
+    if not result.wasSuccessful():
+        raise Exit()
 
 
 @group.command('auth')
