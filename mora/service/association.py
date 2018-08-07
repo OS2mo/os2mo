@@ -16,12 +16,13 @@ This section describes how to interact with employee associations.
 
 import flask
 
-from .. import lora
-from .. import validator
 from . import address
 from . import common
 from . import keys
 from . import mapping
+from .. import exceptions
+from .. import lora
+from .. import validator
 from .common import (create_organisationsfunktion_payload, ensure_bounds,
                      inactivate_old_interval, update_payload)
 
@@ -33,8 +34,15 @@ def create_association(employee_uuid, req):
     c = lora.Connector()
 
     org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
-    org_uuid = c.organisationenhed.get(
-        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    org_unit = c.organisationenhed.get(org_unit_uuid)
+
+    if not org_unit:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=org_unit_uuid,
+        )
+
+    org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
     association_type_uuid = common.get_mapping_uuid(req, keys.ASSOCIATION_TYPE,
                                                     required=True)
