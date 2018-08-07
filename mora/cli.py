@@ -33,6 +33,7 @@ import requests
 import urllib3
 
 from . import auth
+from . import exceptions
 from . import lora
 from . import settings
 from . import tokens
@@ -100,12 +101,17 @@ def requires_auth(func):
 
             return func(*args, **options)
         except urllib3.exceptions.HTTPWarning as e:
-            print(e)
+            if flask.current_app.debug:
+                traceback.print_exc()
+            else:
+                print(e)
             print('or use -k/--insecure to suppress this warning')
             raise click.Abort()
 
-        except PermissionError as e:
-            print('Authentication failed:', e)
+        except exceptions.HTTPException as exc:
+            click.secho('Authentication failed! {}'.format(exc),
+                        fg='red', bold=True)
+            click.echo(json.dumps(exc.body, indent=2))
             raise click.Abort()
 
     return functools.update_wrapper(wrapper, func)
@@ -340,16 +346,20 @@ def auth_(**options):
 @requires_auth
 def get(paths):
     for path in paths:
-        print(path)
+        click.secho(path, bold=True)
 
-        for obj in lora.fetch(path) or [None]:
-            if isinstance(obj, str):
-                print(obj)
-                obj = lora.get(path.split('?')[0], obj)
+        try:
+            for obj in lora.fetch(path) or [None]:
+                if isinstance(obj, str):
+                    click.echo(obj)
+                    obj = lora.get(path.split('?')[0], obj)
 
-            json.dump(obj, sys.stdout, indent=4)
-            sys.stdout.write('\n')
+                json.dump(obj, sys.stdout, indent=4)
+                sys.stdout.write('\n')
 
+        except exceptions.HTTPException as exc:
+            click.secho('ERROR: {}'.format(exc), fg='red', bold=True)
+            json.dump(exc.body, sys.stdout, indent=2)
 
 
 @group.command()
