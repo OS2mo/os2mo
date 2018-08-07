@@ -403,6 +403,8 @@ def update(path, input):
 @click.option('--exact', '-e', is_flag=True,
               help="don't calculate missing values")
 @click.option('--delimiter', '-d', default=None, type=str)
+@click.option('--charset', '-c', default=None, type=str,
+              help='input file encoding')
 @requires_auth
 def import_file(name, **kwargs):
     '''

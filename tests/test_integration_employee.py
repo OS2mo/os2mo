@@ -152,9 +152,41 @@ class Tests(util.LoRATestCase):
 
         payload = {}
 
-        self.assertRequestFails(
-            '/service/e/create', 400,
-            json=payload)
+        self.assertRequestResponse(
+            '/service/e/create',
+            {
+                'description': 'Missing name',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'name',
+                'obj': {},
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
+
+    def test_create_employee_fails_on_invalid_cpr(self):
+        payload = {
+            "name": "Torkild Testperson",
+            "cpr_no": "1",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/e/create',
+            {
+                'cpr': '1',
+                'description': 'Not a valid CPR number.',
+                'error': True,
+                'error_key': 'V_CPR_NOT_VALID',
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
 
     def test_create_employee_existing_cpr_existing_org(self):
         self.load_sample_structures()
@@ -222,6 +254,36 @@ class Tests(util.LoRATestCase):
         # Arrange
 
         # Act
-        self.assertRequestFails('/service/e/cpr_lookup/?q=1234/', 400)
-        self.assertRequestFails('/service/e/cpr_lookup/?q=1234567890123/',
-                                400)
+        self.assertRequestResponse(
+            '/service/e/cpr_lookup/?q=1234/',
+            {
+                'cpr': '1234/',
+                'description': 'Not a valid CPR number.',
+                'error': True,
+                'error_key': 'V_CPR_NOT_VALID',
+                'status': 400,
+            },
+            status_code=400,
+        )
+        self.assertRequestResponse(
+            '/service/e/cpr_lookup/?q=1234',
+            {
+                'cpr': '1234',
+                'description': 'Not a valid CPR number.',
+                'error': True,
+                'error_key': 'V_CPR_NOT_VALID',
+                'status': 400,
+            },
+            status_code=400,
+        )
+        self.assertRequestResponse(
+            '/service/e/cpr_lookup/?q=1234567890123',
+            {
+                'cpr': '1234567890123',
+                'description': 'Not a valid CPR number.',
+                'error': True,
+                'error_key': 'V_CPR_NOT_VALID',
+                'status': 400,
+            },
+            status_code=400,
+        )
