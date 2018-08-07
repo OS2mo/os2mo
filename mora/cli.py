@@ -452,6 +452,8 @@ def sheetconvert(sheet, quiet, source, destination):
 @click.option('--check', '-c', is_flag=True,
               help=('check if import would overwrite any existing '
                     'objects'))
+@click.option('--delete', '-d', is_flag=True,
+              help=('empty and delete organisation first'))
 @requires_auth
 def load_fixtures(**kwargs):
     '''
