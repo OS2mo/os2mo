@@ -254,9 +254,9 @@ def get_address_class(c, addrrel, class_cache):
 
 def get_one_address(c, addrrel, class_cache=None):
     addrclass = get_address_class(c, addrrel, class_cache)
-    addrformat = common.checked_get(addrclass, 'scope', 'DAR')
+    scope = common.checked_get(addrclass, 'scope', 'DAR')
 
-    if addrformat == 'DAR':
+    if scope == 'DAR':
         # unfortunately, we cannot live with struktur=mini, as it omits
         # the formatted address :(
         r = session.get(
@@ -284,8 +284,8 @@ def get_one_address(c, addrrel, class_cache=None):
             keys.UUID: addrrel['uuid'],
         }
 
-    elif addrformat in URN_PREFIXES:
-        prefix = URN_PREFIXES[addrformat]
+    elif scope in URN_PREFIXES:
+        prefix = URN_PREFIXES[scope]
 
         urn = addrrel['urn']
 
@@ -297,12 +297,12 @@ def get_one_address(c, addrrel, class_cache=None):
 
         name = urn[len(prefix):]
         href = (
-            HREF_PREFIXES[addrformat] + name
-            if addrformat in HREF_PREFIXES
+            HREF_PREFIXES[scope] + name
+            if scope in HREF_PREFIXES
             else None
         )
 
-        if addrformat == 'PHONE':
+        if scope == 'PHONE':
             name = re.sub(r'^(\+45)(\d{8})$', r'\2', name)
 
         return {
@@ -317,7 +317,7 @@ def get_one_address(c, addrrel, class_cache=None):
     else:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_INPUT,
-            'invalid address scope {!r}'.format(addrformat),
+            'invalid address scope {!r}'.format(scope),
         )
 
 
