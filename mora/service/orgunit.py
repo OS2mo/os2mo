@@ -473,6 +473,10 @@ def create_org_unit():
 
     name = common.checked_get(req, keys.NAME, "", required=True)
 
+    unitid = common.get_uuid(req, required=False)
+    bvn = common.checked_get(req, keys.USER_KEY,
+                             "{} {}".format(name, uuid.uuid4()))
+
     parent_uuid = common.get_mapping_uuid(req, keys.PARENT, required=True)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
 
@@ -500,11 +504,6 @@ def create_org_unit():
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
 
-    # TODO
-    bvn = "{} {}".format(name, uuid.uuid4())
-
-    # TODO: Process address objects
-
     org_unit = common.create_organisationsenhed_payload(
         valid_from=valid_from,
         valid_to=valid_to,
@@ -520,7 +519,7 @@ def create_org_unit():
         validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
                                                   valid_to)
 
-    unitid = c.organisationenhed.create(org_unit)
+    unitid = c.organisationenhed.create(org_unit, unitid)
 
     return flask.jsonify(unitid)
 
