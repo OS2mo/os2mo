@@ -473,14 +473,25 @@ def create_org_unit():
 
     name = common.checked_get(req, keys.NAME, "", required=True)
 
-    parent = common.checked_get(req, keys.PARENT, {}, required=True)
-    parent_uuid = common.get_uuid(parent)
+    parent_uuid = common.get_mapping_uuid(req, keys.PARENT, required=True)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
-    org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
 
-    org_unit_type = common.checked_get(req, keys.ORG_UNIT_TYPE, {},
-                                       required=True)
-    org_unit_type_uuid = common.get_uuid(org_unit_type)
+    if organisationenhed_get:
+        org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
+    else:
+        organisation_get = c.organisation(uuid=parent_uuid)
+
+        if organisation_get:
+            org_uuid = parent_uuid
+        else:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_ORG_NOT_FOUND,
+                org_uuid=parent_uuid,
+                org_unit_uuid=unitid,
+            )
+
+    org_unit_type_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT_TYPE,
+                                                 required=False)
 
     addresses = [
         address.get_relation_for(addr)
@@ -505,8 +516,9 @@ def create_org_unit():
         adresser=addresses,
     )
 
-    validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                              valid_to)
+    if org_uuid != parent_uuid:
+        validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+                                                  valid_to)
 
     unitid = c.organisationenhed.create(org_unit)
 
