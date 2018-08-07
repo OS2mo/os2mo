@@ -189,6 +189,23 @@ class TestUtils(TestCase):
         with self.assertRaisesRegex(ValueError, '^invalid CPR number'):
             util.get_cpr_birthdate(10101010000)
 
+    def test_urnquote(self):
+        data = {
+            '42': '42',
+            'abc': 'abc',
+            'aBc': 'a%42c',
+
+            # from https://docs.python.org/3/library/urllib.parse.html
+            'el niño': 'el%20ni%c3%b1o',
+            'El Niño': '%45l%20%4ei%c3%b1o',
+        }
+
+        for s, expected in data.items():
+            with self.subTest(s):
+                self.assertEqual(util.urnquote(s), expected)
+
+                self.assertEqual(util.urnunquote(util.urnquote(s)), s)
+
 
 class TestAppUtils(unittest.TestCase):
     def test_restrictargs(self):

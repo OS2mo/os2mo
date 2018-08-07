@@ -9,6 +9,7 @@
 import collections
 import datetime
 import functools
+import io
 import itertools
 import json
 import marshal
@@ -17,6 +18,7 @@ import re
 import sys
 import tempfile
 import typing
+import urllib.parse
 import uuid
 
 import flask
@@ -377,3 +379,33 @@ def cached(func):
         wrapper.cache = {}
 
     return wrapper
+
+
+URN_SAFE = frozenset(b'abcdefghijklmnopqrstuvwxyz'
+                     b'0123456789'
+                     b'+')
+
+
+def urnquote(s):
+    '''Quote the given string so that it may safely pass through
+    case-insensitive URN handling.
+
+    Strictly speaking, the resulting string is not valid for a URN, as
+    they may not contain anything other than colon, letters and
+    digits. We add '+' and '%' to the mix so that we can roundtrip
+    arbitrary text. Meh.
+
+    '''
+
+    with io.StringIO('w') as buf:
+        for character in s.encode('utf-8'):
+            if character in URN_SAFE:
+                buf.write(chr(character))
+            else:
+                buf.write('%{:02x}'.format(character))
+
+        return buf.getvalue()
+
+
+# provide an alias for consistency
+urnunquote = urllib.parse.unquote

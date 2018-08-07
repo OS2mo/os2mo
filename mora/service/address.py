@@ -172,6 +172,7 @@ URN_PREFIXES = {
     'EAN': 'urn:magenta.dk:ean:',
     'WWW': 'urn:magenta.dk:www:',
     'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
+    'TEXT': 'urn:text:',
 }
 
 HREF_PREFIXES = {
@@ -223,6 +224,9 @@ def get_relation_for(addrobj, fallback=None):
 
                 if not value.startswith('+'):
                     value = '+45' + value
+            elif scope == 'TEXT':
+                # make sure that we roundtrip uppercase letters properly!
+                value = util.urnquote(value)
 
             if not util.is_urn(value):
                 value = prefix + value
@@ -304,6 +308,8 @@ def get_one_address(c, addrrel, class_cache=None):
 
         if scope == 'PHONE':
             name = re.sub(r'^(\+45)(\d{8})$', r'\2', name)
+        elif scope == 'TEXT':
+            name = util.urnunquote(name)
 
         return {
             keys.ADDRESS_TYPE: addrclass,
