@@ -508,17 +508,3 @@ klasse.delete = functools.partial(delete, 'klassifikation/klasse')
 # organisation = Connector('organisation/organisation')
 # organisationenhed = Connector('organisation/organisationenhed')
 # klasse = Connector('klassifikation/klasse')
-
-
-# TODO: this function is used a lot, but should we put it elsewhere...
-def get_org_unit(unitid: str) -> dict:
-    """
-    Get an org unit for in the time span from -infinity to +infinity
-    :param unitid: the UUID of the org unit
-    :return: the org unit
-    """
-    return organisationenhed.get(
-        uuid=unitid,
-        virkningfra='-infinity',
-        virkningtil='infinity'
-    )
