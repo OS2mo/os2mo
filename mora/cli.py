@@ -169,9 +169,10 @@ def sphinx(outdir, verbose, args):
         os.environ['PATH'],
     ))
 
-    r = sphinx.cmdline.main(['sphinx-build'] + args)
+    r = sphinx.cmdline.main(args)
+
     if r:
-        sys.exit(r)
+        raise Exit(r)
 
 
 @group.command()
