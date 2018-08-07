@@ -172,12 +172,15 @@ class Tests(util.LoRATestCase):
             'description': 'Person with CPR number already exists.',
             'error': True,
             'error_key': 'V_EXISTING_CPR',
-            'status': 400
+            'status': 409
         }
 
-        actual = self.request('/service/e/create', json=payload).json
-
-        self.assertEqual(expected, actual)
+        self.assertRequestResponse(
+            '/service/e/create',
+            expected,
+            json=payload,
+            status_code=409,
+        )
 
     def test_create_employee_existing_cpr_new_org(self):
         """
