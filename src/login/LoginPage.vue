@@ -45,7 +45,7 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
+  import {mapGetters} from 'vuex'
   import Service from '@/api/HttpCommon'
 
   export default {
@@ -70,8 +70,7 @@
       gotoMo () {
         Service.post('/user/login', this.user)
           .then(response => {
-            let redirect = this.$route.query.redirect
-            console.log(redirect)
+            let redirect = this.$route.query.redirect || '/'
             window.location.replace(redirect)
           })
       }
@@ -85,6 +84,9 @@
   #login-wrapper {
     text-align: center;
     margin-top: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 500px;
   }
 
   .btn-text {
@@ -106,11 +108,11 @@
     margin-right: 5px;
   }
 
-  .btn-bg:hover{
+  .btn-bg:hover {
     background-color: #002f5d;
   }
 
-  h1,h4 {
+  h1, h4 {
     color: white;
   }
 
