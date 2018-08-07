@@ -230,6 +230,19 @@ def override_lora_url(lora_url='http://mox/'):
     return override_settings(LORA_URL=lora_url)
 
 
+@contextlib.contextmanager
+def override_config(**overrides):
+    originals = {}
+
+    for k, v in overrides.items():
+        originals[k] = app.app.config[k]
+        app.app.config[k] = v
+
+    yield
+
+    app.app.config.update(overrides)
+
+
 class mock(requests_mock.Mocker):
     '''Decorator for running a function under requests_mock, with the
     given mocking fixture loaded, and optionally overriding the LORA

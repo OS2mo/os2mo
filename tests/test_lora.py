@@ -274,10 +274,64 @@ class Tests(util.TestCase):
             ],
         )
 
-    def test_auth_error(self, m):
+    def test_errors(self, m):
+        for status_in, status_out, error_key in (
+            (400, 400, 'E_INVALID_INPUT'),
+            (401, 401, 'E_UNAUTHORIZED'),
+            (403, 401, 'E_UNAUTHORIZED'),
+            (426, 500, 'E_UNKNOWN'),
+            (500, 500, 'E_UNKNOWN'),
+        ):
+            with self.subTest('{} - json'.format(status_in)):
+                m.get(
+                    'http://mox/organisation/organisationenhed?uuid=42',
+                    json={
+                        "message": "go away",
+                    },
+                    status_code=status_in,
+                )
+
+                with self.assertRaises(exceptions.HTTPException) as ctxt:
+                    lora.organisationenhed.get('42')
+
+                self.assertEqual(
+                    {
+                        'error': True,
+                        'status': status_out,
+                        'error_key': error_key,
+                        'description': 'go away',
+                    },
+                    ctxt.exception.response.json,
+                )
+
+            with self.subTest('{} - text'.format(status_in)):
+                m.get(
+                    'http://mox/organisation/organisationenhed?uuid=42',
+                    text="I hate you",
+                    status_code=status_in,
+                )
+
+                with self.assertRaises(exceptions.HTTPException) as ctxt:
+                    lora.organisationenhed.get('42')
+
+                self.assertEqual(
+                    {
+                        'error': True,
+                        'status': status_out,
+                        'error_key': error_key,
+                        'description': 'I hate you',
+                    },
+                    ctxt.exception.response.json,
+                )
+
+    @util.override_config(DEBUG=True)
+    def test_error_debug(self, m):
         m.get(
             'http://mox/organisation/organisationenhed?uuid=42',
-            text="go away",
+            json={
+                "message": "go away",
+                "something": "other",
+            },
             status_code=500,
         )
 
@@ -290,28 +344,10 @@ class Tests(util.TestCase):
                 'status': 500,
                 'error_key': 'E_UNKNOWN',
                 'description': 'go away',
-            },
-            ctxt.exception.response.json,
-        )
-
-    def test_failing_auth(self, m):
-        m.get(
-            'http://mox/organisation/organisationenhed?uuid=42',
-            json={
-                "message": "go away",
-            },
-            status_code=401,
-        )
-
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
-            lora.organisationenhed.get('42')
-
-        self.assertEqual(
-            {
-                'error': True,
-                'status': 401,
-                'error_key': 'E_UNAUTHORIZED',
-                'description': 'go away',
+                'context': {
+                    'message': 'go away',
+                    'something': 'other',
+                },
             },
             ctxt.exception.response.json,
         )

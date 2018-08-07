@@ -147,22 +147,24 @@ ALL_RELATION_NAMES = {
 def _check_response(r):
     if not r.ok:
         try:
-            msg = r.json()['message']
+            cause = r.json()
+            msg = cause['message']
         except (ValueError, KeyError):
+            cause = None
             msg = r.text
 
         if r.status_code == 400:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_INVALID_INPUT,
-                message=msg)
+                message=msg, cause=cause)
         elif r.status_code in (401, 403):
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNAUTHORIZED,
-                message=msg)
+                message=msg, cause=cause)
         else:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNKNOWN,
-                message=msg)
+                message=msg, cause=cause)
 
     return r
 
@@ -408,12 +410,11 @@ class Scope:
         if uuid:
             r = session.put('{}/{}'.format(self.base_path, uuid),
                             json=obj)
-            _check_response(r)
-            return uuid
         else:
             r = session.post(self.base_path, json=obj)
-            _check_response(r)
-            return r.json()['uuid']
+
+        _check_response(r)
+        return r.json()['uuid']
 
     def delete(self, uuid):
         r = session.delete('{}/{}'.format(self.base_path, uuid))

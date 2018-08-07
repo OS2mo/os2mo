@@ -84,6 +84,8 @@ class HTTPException(werkzeug.exceptions.HTTPException):
     def __init__(self,
                  error_key: typing.Optional[ErrorCodes]=None,
                  message: typing.Optional[str]=None,
+                 *,
+                 cause=None,
                  **extras) -> None:
 
         if error_key is not None:
@@ -99,14 +101,22 @@ class HTTPException(werkzeug.exceptions.HTTPException):
 
         # this aids debugging
         if flask.current_app.debug:
-            cause = self.__cause__ or sys.exc_info()[1]
+            if cause is None:
+                self.__cause__ or sys.exc_info()[1]
 
-            body.update(
-                exception=cause and str(cause),
-                context=traceback.format_exc().splitlines(),
-            )
+            if isinstance(cause, Exception):
+                body.update(
+                    exception=str(cause),
+                    context=traceback.format_exc().splitlines(),
+                )
+            elif cause:
+                body['context'] = cause
 
-        r = flask.jsonify(body)
-        r.status_code = self.key.code
+        super().__init__(body['description'])
 
-        super().__init__(body['description'], response=r)
+        try:
+            self.body = body
+            self.response = flask.jsonify(body)
+            self.response.status_code = self.key.code
+        except RuntimeError:
+            pass
