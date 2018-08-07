@@ -31,6 +31,8 @@ from . import exceptions
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
 
+_sentinel = object()
+
 # timezone-aware versions of min/max
 POSITIVE_INFINITY = datetime.datetime.max.replace(
     tzinfo=dateutil.tz.tzoffset(
@@ -62,7 +64,7 @@ def unparsedate(d: datetime.date) -> str:
     return d.strftime('%d-%m-%Y')
 
 
-def parsedatetime(s: str) -> datetime.datetime:
+def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
     if isinstance(s, datetime.date):
         dt = s
 
@@ -97,10 +99,16 @@ def parsedatetime(s: str) -> datetime.datetime:
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
     except ValueError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'cannot parse {!r}'.format(s)
-        )
+        if default is not _sentinel:
+            return default
+        else:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'cannot parse {!r}'.format(s)
+            )
+
+    if dt.date() == POSITIVE_INFINITY.date():
+        return POSITIVE_INFINITY
 
     return dt
 

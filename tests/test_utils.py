@@ -83,6 +83,13 @@ class TestUtils(TestCase):
         self.assertEqual(util.parsedatetime(util.POSITIVE_INFINITY),
                          util.POSITIVE_INFINITY)
 
+        # we frequently get these dates in spreadsheets
+        self.assertEqual(util.parsedatetime('31-12-9999'),
+                         util.POSITIVE_INFINITY)
+
+        # test fallback
+        self.assertEqual(util.parsedatetime('blyf', 'flaf'), 'flaf')
+
     def test_to_frontend_time(self):
         self.assertEqual(util.to_frontend_time(self.today), '01-06-2015')
 
