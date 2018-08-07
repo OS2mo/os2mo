@@ -315,3 +315,22 @@ class Tests(util.TestCase):
             },
             ctxt.exception.response.json,
         )
+
+    def test_finding_nothing(self, m):
+        m.get(
+            'http://mox/organisation/organisationenhed?uuid=42',
+            json={
+                'results': []
+            },
+        )
+
+        self.assertIsNone(lora.organisationenhed.get('42'))
+
+        m.get(
+            'http://mox/organisation/organisationenhed?uuid=42',
+            json={
+                'results': []
+            },
+        )
+
+        self.assertIsNone(lora.organisationenhed.get('42'))
