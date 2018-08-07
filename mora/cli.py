@@ -42,7 +42,25 @@ basedir = os.path.dirname(__file__)
 topdir = os.path.dirname(basedir)
 
 
-group = flask.cli.FlaskGroup('mora', help=__doc__)
+class AppGroup(flask.cli.FlaskGroup):
+    __context_settings = {
+        'help_option_names': ['-h', '--help']
+    }
+
+    def command(self, *args, **kwargs):
+        kwargs.setdefault('context_settings', self.__context_settings)
+
+        return super().command(*args, **kwargs)
+
+    def group(self, *args, **kwargs):
+        kwargs.setdefault('context_settings', self.__context_settings)
+
+        return super().group(*args, **kwargs)
+
+
+group = AppGroup(
+    'mora', help=__doc__,
+)
 
 
 def requires_auth(func):
