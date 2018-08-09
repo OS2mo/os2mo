@@ -36,6 +36,12 @@ BUILD_DIR = os.path.join(BASE_DIR, 'build')
 REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
 
 
+def is_frontend_built():
+    return os.path.isfile(
+        os.path.join(app.distdir, 'index.html'),
+    )
+
+
 def jsonfile_to_dict(path):
     """
     Reads JSON from resources folder and converts to Python dictionary

@@ -12,8 +12,10 @@ import json
 import os
 import platform
 import subprocess
+import unittest
 
 from mora import util as mora_util
+from mora import app
 
 from . import util
 
@@ -25,6 +27,13 @@ class TestCafeTests(util.LiveLoRATestCase):
     JSON_REPORT_FILE = os.path.join(util.REPORTS_DIR, "testcafe.json")
     TEST_DIR = os.path.join(util.BASE_DIR, "e2e-tests")
 
+    TESTCAFE_COMMAND = os.path.join(util.BASE_DIR,
+                                    "node_modules", ".bin", "testcafe")
+
+    @unittest.skipUnless(
+        util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
+        'frontend sources & TestCafé command required!',
+    )
     def test_with_testcafe(self):
         # Start the testing process
         print("----------------------")
@@ -49,8 +58,7 @@ class TestCafeTests(util.LiveLoRATestCase):
 
         process = subprocess.run(
             [
-                os.path.join(util.BASE_DIR,
-                             "node_modules", ".bin", "testcafe"),
+                self.TESTCAFE_COMMAND,
                 "'{} --no-sandbox'".format(browser),
                 self.TEST_DIR,
                 "-r", ','.join(["spec",
