@@ -49,7 +49,8 @@ class TestCafeTests(util.LiveLoRATestCase):
 
         process = subprocess.run(
             [
-                "node_modules/.bin/testcafe",
+                os.path.join(util.BASE_DIR,
+                             "node_modules", ".bin", "testcafe"),
                 "'{} --no-sandbox'".format(browser),
                 self.TEST_DIR,
                 "-r", ','.join(["spec",
