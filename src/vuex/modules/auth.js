@@ -27,7 +27,7 @@ const mutations = {
 
 const actions = {
   [AUTH_REQUEST]: ({commit}, user) => {
-    window.location.replace('/service/login?redirect=' + window.location)
+    window.location.href = '/service/login?redirect=' + window.location
   },
 
   [AUTH_LOGOUT]: ({commit, dispatch}, user) => {

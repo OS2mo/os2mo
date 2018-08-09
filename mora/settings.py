@@ -29,9 +29,7 @@ SAML_IDP_INSECURE = False
 
 # SSO config
 SSO_SAML_METADATA_URL = '/url/to/sso/metadata'
-
-# Secret key used for cookie-based sessions
-SECRET_KEY = 'SECRET'
+SSO_SAML_USERNAME_ATTR = 'urn:oid:2.5.4.41'
 
 SP_SERVICE_UUID = ""
 SP_SERVICE_AGREEMENT_UUID = ""

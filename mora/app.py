@@ -10,6 +10,7 @@ import os
 
 import flask
 import werkzeug
+from flask_session import Session
 
 from . import cli
 from . import exceptions
@@ -26,10 +27,10 @@ app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 app.cli = cli.group
 
 app.config.update({
-    # Secret key used for default flask.session storage
-    # TODO: Remove when/if we move to non cookie-based sessions
-    'SECRET_KEY': settings.SECRET_KEY,
+    'SESSION_TYPE': 'filesystem'
 })
+
+Session(app)
 
 app.register_blueprint(auth.blueprint)
 
