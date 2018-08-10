@@ -138,4 +138,4 @@ def get_login():
             return flask.redirect(flask.url_for('login', next=redirect))
         elif settings.AUTH == 'token':
             return flask.redirect('/login?redirect={}'.format(redirect))
-    return flask.send_file('index.html')
+    return flask.redirect('/')

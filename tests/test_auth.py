@@ -5,11 +5,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
+import flask
 import freezegun
-from mock import patch
+from mock import patch, MagicMock
 
-from mora.auth import tokens
+from mora.auth import tokens, sso, auth
 from . import util
 
 IDP_URL = 'mock://idp'
@@ -158,6 +158,23 @@ class MockTests(util.TestCase):
                     util.get_mock_text('auth/adfs-assertion.xml', 'rb')
                 )
 
+    @patch('mora.auth.tokens.get_token', lambda *x, **y: 'token')
+    def test_successful_login_sets_session(self):
+        with util.override_settings(SAML_IDP_TYPE='adfs',
+                                    SAML_IDP_URL=IDP_URL):
+            self.assertRequestResponse(
+                '/service/user/login',
+                '',
+                json={
+                    'username': 'USER',
+                    'password': 's3cr1t!',
+                },
+            )
+
+            with self.client.session_transaction() as sess:
+                self.assertEqual(sess.get('username'), 'USER')
+                self.assertEqual(sess.get(auth.COOKIE_NAME), 'token')
+
     def test_empty_user(self):
         with util.override_settings(SAML_IDP_TYPE='adfs',
                                     SAML_IDP_URL=IDP_URL):
@@ -197,3 +214,47 @@ class MockTests(util.TestCase):
                 },
                 status_code=401,
             )
+
+    def test_logout_clears_session(self):
+        with self.client.session_transaction() as sess:
+            sess['whatever'] = 'test'
+
+        with self.client.session_transaction() as sess:
+            self.assertIn('whatever', sess)
+
+        self.assertRequestResponse(
+            '/service/logout',
+            '',
+            json=None
+        )
+
+        with self.client.session_transaction() as sess:
+            self.assertNotIn('whatever', sess)
+
+    def test_get_user_returns_username(self):
+        with self.client.session_transaction() as sess:
+            sess['username'] = 'USERNAME'
+
+        self.assertRequestResponse(
+            '/service/user',
+            'USERNAME',
+        )
+
+    def test_get_user_no_username(self):
+        self.assertRequestResponse(
+            '/service/user',
+            'N/A',
+        )
+
+    @patch('mora.auth.tokens.pack', lambda x: x)
+    def test_sso_acs_sets_session(self):
+        authobj = MagicMock()
+        authobj.xmlstr = b'xmlstr'
+
+        with util.override_settings(SSO_SAML_USERNAME_ATTR='username'):
+            attrs = {'username': ['USER']}
+
+            sso.acs('sender', 'subject', attrs, authobj)
+
+            self.assertEqual(flask.session.get('username'), 'USER')
+            self.assertEqual(flask.session.get(auth.COOKIE_NAME), b'xmlstr')

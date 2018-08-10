@@ -26,10 +26,12 @@ distdir = os.path.join(basedir, '..', 'dist')
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 app.cli = cli.group
 
+# Session setup
 app.config.update({
-    'SESSION_TYPE': 'filesystem'
+    'SESSION_TYPE': 'filesystem',
+    'SESSION_PERMANENT': False,
+    'SESSION_FILE_DIR': settings.SESSION_FILE_DIR
 })
-
 Session(app)
 
 app.register_blueprint(auth.blueprint)

@@ -19,9 +19,8 @@ basedir = os.path.dirname(__file__)
 
 
 def acs(sender, subject, attributes, auth):
-    """Custom assertion consumer service (acs) for use with flask_saml"""
-    xmlstr = auth.xmlstr
-    flask.session[moauth.COOKIE_NAME] = tokens.pack(xmlstr)
+    """Custom assertion consumer service for use with flask_saml"""
+    flask.session[moauth.COOKIE_NAME] = tokens.pack(auth.xmlstr)
     flask.session['username'] = attributes[settings.SSO_SAML_USERNAME_ATTR][0]
 
 
