@@ -7,7 +7,6 @@ import router from '../router'
  * Defines the base url and headers for http calls
  */
 
-
 const Service = axios.create({
   baseURL: '/service',
   headers: {
