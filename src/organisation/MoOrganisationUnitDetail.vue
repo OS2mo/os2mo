@@ -13,6 +13,7 @@
 
     <mo-entry-create-modal
       type="ORG_UNIT"
+      class="mt-3"
       :uuid="uuid" 
       :entry-component="entryComponent"
       v-if="!hideCreate"
