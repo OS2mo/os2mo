@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-row">
-      <mo-organisation-unit-search
+      <mo-organisation-unit-picker
         v-model="entry.org_unit" 
         label="Angiv enhed" 
         class="col unit-manager"
@@ -37,7 +37,7 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
@@ -45,7 +45,7 @@ import MoAddMany from '@/components/MoAddMany/MoAddMany'
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitSearch,
+    MoOrganisationUnitPicker,
     MoFacetPicker,
     MoAddressPicker,
     MoAddMany

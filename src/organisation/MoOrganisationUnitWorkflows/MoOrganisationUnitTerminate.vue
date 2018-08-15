@@ -11,7 +11,7 @@
   >
     <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
-        <mo-organisation-unit-search 
+        <mo-organisation-unit-picker 
           :label="$tc('input_fields.unit', 1)" 
           class="col" 
           v-model="org_unit"
@@ -40,7 +40,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
@@ -50,7 +50,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitSearch,
+      MoOrganisationUnitPicker,
       ButtonSubmit,
       MoOrganisationDetailTabs
     },

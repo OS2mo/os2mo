@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-row">
-      <mo-organisation-unit-search 
+      <mo-organisation-unit-picker
         class="col unit-role" 
         label="Vælg enhed" 
         v-model="entry.org_unit"
@@ -15,13 +15,13 @@
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitSearch,
+    MoOrganisationUnitPicker,
     MoFacetPicker
   },
   props: {

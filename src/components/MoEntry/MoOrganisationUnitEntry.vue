@@ -5,24 +5,25 @@
         <mo-facet-picker facet="org_unit_type" v-model="orgUnit.org_unit_type" required/>
       </div>
 
-      <mo-organisation-unit-search
+      <mo-organisation-unit-picker
         v-model="orgUnit.parent"
         required
       />
+
       <mo-date-picker-range v-model="orgUnit.validity" :disable-to-date="!creatingDate"/>
   </div>
 </template>
 
 <script>
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoInput from '@/components/atoms/MoInput'
 
 export default {
   components: {
     MoDatePickerRange,
-    MoOrganisationUnitSearch,
+    MoOrganisationUnitPicker,
     MoFacetPicker,
     MoInput
   },
