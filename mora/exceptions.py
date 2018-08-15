@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import inspect
 import sys
 import traceback
 import typing
@@ -101,10 +102,23 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         if flask.current_app.debug:
             cause = self.__cause__ or sys.exc_info()[1]
 
-            body.update(
-                exception=cause and str(cause),
-                context=traceback.format_exc().splitlines(),
-            )
+            if cause:
+                body.update(
+                    exception=str(cause),
+                    context=traceback.format_exc().splitlines(),
+                )
+            else:
+                body.update(
+                    exception=str(self),
+                    context=''.join(
+                        traceback.format_stack(
+                            f=inspect.getouterframes(
+                                inspect.currentframe(),
+                            )[1].frame,
+                            limit=5,
+                        ),
+                    ).split('\n'),
+                )
 
         r = flask.jsonify(body)
         r.status_code = self.key.code
