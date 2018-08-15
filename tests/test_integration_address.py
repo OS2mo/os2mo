@@ -600,7 +600,7 @@ class Writing(util.LoRATestCase):
                 "data": {
                     'value': 'user@example.com',
                     "validity": {
-                        'to': '2010-01-01T00:00:00+01:00',
+                        'to': '2009-12-31T23:59:59',
                     },
                 }
             }],
@@ -617,7 +617,7 @@ class Writing(util.LoRATestCase):
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '1934-06-09T00:00:00+01:00',
-                        'to': '2010-01-01T00:00:00+01:00',
+                        'to': '2009-12-31T23:59:59.999999+01:00',
                     },
                 },
             ],
@@ -652,7 +652,7 @@ class Writing(util.LoRATestCase):
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
                         'from': '1934-06-09T00:00:00+01:00',
-                        'to': '2010-01-01T00:00:00+01:00',
+                        'to': '2009-12-31T23:59:59.999999+01:00',
                     },
                 },
                 "data": {
@@ -931,7 +931,7 @@ class Writing(util.LoRATestCase):
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "validity": {
                 "from": "2016-01-01T00:00:00+01:00",
-                "to": "2019-01-01T00:00:00+01:00"
+                "to": "2018-12-31T23:59:59.999999+01:00"
             }
         }
 
@@ -965,7 +965,7 @@ class Writing(util.LoRATestCase):
                 'urn': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00',
-                    'to': '2019-01-01T00:00:00+01:00',
+                    'to': '2018-12-31T23:59:59.999999+01:00',
                 },
             }],
         )
@@ -979,7 +979,7 @@ class Writing(util.LoRATestCase):
                 'urn': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00',
-                    'to': '2019-01-01T00:00:00+01:00',
+                    'to': '2018-12-31T23:59:59.999999+01:00',
                 },
             }],
         )
@@ -1423,7 +1423,7 @@ class Writing(util.LoRATestCase):
                 'uuid': unitid,
                 'validity': {
                     'from': '2016-02-04T00:00:00+01:00',
-                    'to': '2017-10-22T00:00:00+02:00',
+                    'to': '2017-10-21T23:59:59.999999+02:00',
                 },
             },
         )
@@ -1461,7 +1461,7 @@ class Writing(util.LoRATestCase):
                     'name': '11223344',
                     'validity': {
                         'from': '2015-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
+                        'to': '2017-10-21T23:59:59.999999+02:00',
                     },
                     'urn': 'urn:magenta.dk:telefon:+4511223344',
                 },
@@ -1478,7 +1478,7 @@ class Writing(util.LoRATestCase):
                     'name': 'Åbogade 15, 8200 Aarhus N',
                     'validity': {
                         'from': '2016-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
+                        'to': '2017-10-21T23:59:59.999999+02:00',
                     },
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
@@ -1514,7 +1514,7 @@ class Writing(util.LoRATestCase):
             },
             "validity": {
                 "from": "2016-01-01T00:00:00+01:00",
-                "to": "2019-01-01T00:00:00+01:00",
+                "to": "2018-12-31T23:59:59.999999+01:00",
             },
         }
 
@@ -1587,7 +1587,7 @@ class Writing(util.LoRATestCase):
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00',
-                    'to': '2019-01-01T00:00:00+01:00',
+                    'to': '2018-12-31T23:59:59.999999+01:00',
                 },
             }],
         )
@@ -2237,7 +2237,7 @@ class Reading(util.LoRATestCase):
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
                             'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'to': '2018-12-31T23:59:59.999999+01:00',
                         },
                     },
                 ],
@@ -2362,7 +2362,7 @@ class Reading(util.LoRATestCase):
                             'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                             'validity': {
                                 'from': '2016-01-01T00:00:00+01:00',
-                                'to': '2019-01-01T00:00:00+01:00',
+                                'to': '2018-12-31T23:59:59.999999+01:00',
                             },
                         },
                     ],

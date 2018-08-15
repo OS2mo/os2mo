@@ -38,6 +38,7 @@ export default {
   props: {
     value: [Date, String],
     required: Boolean,
+    isTerminator: Boolean,
     noLabel: Boolean,
     label: {default: 'Dato', type: String},
     validDates: Object,
@@ -66,7 +67,20 @@ export default {
     selected (newVal) {
       // send on a date-only string in ISO format, so that we
       // disregard timezones and the time-of-day
-      this.dateString = newVal ? this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
+      if (newVal) {
+        let dt = new Date(newVal)
+
+        console.log(this.isTerminator)
+        if (this.isTerminator) {
+          dt.setHours(23, 59, 59, 999)
+        } else {
+          dt.setHours(0, 0, 0, 0)
+        }
+
+        this.dateString = this.$moment(dt).toISOString(true)
+      } else {
+        this.dateString = null
+      }
     },
 
     dateString (newVal) {

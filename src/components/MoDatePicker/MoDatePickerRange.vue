@@ -23,6 +23,7 @@
       :valid-dates="validEndDateRange"
       :disabled="disableToDate"
       @input="updateDate()"
+      is-terminator
     />
   </div>
 </template>
@@ -49,10 +50,7 @@
     },
     computed: {
       validStartDateRange () {
-        let range = {
-          from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
-          to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
-        }
+        let range = this.getDisabledRange()
 
         if (this.validTo && (!range.to || Date(this.validTo) < range.to)) {
           range.to = new Date(this.validTo)
@@ -62,10 +60,7 @@
       },
 
       validEndDateRange () {
-        let range = {
-          from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
-          to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
-        }
+        let range = this.getDisabledRange()
 
         if (this.validFrom && new Date(this.validFrom) > range.from) {
           range.from = new Date(this.validFrom)
@@ -93,6 +88,12 @@
       }
     },
     methods: {
+      getDisabledRange () {
+        return {
+          from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
+          to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
+        }
+      },
       updateDate () {
         let obj = {
           from: null,

@@ -621,10 +621,7 @@ def get_detail(type, id, function):
             for key, args in converters[function].items()
         }
 
-        func[keys.VALIDITY] = {
-            keys.FROM: util.to_iso_time(start),
-            keys.TO: util.to_iso_time(end),
-        }
+        func[keys.VALIDITY] = common.get_validity(start, end)
         func[keys.UUID] = funcid
 
         return func

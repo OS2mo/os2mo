@@ -224,10 +224,7 @@ class ITSystems(common.AbstractRelationDetail):
         return {
             'uuid': value,
             'objekttype': 'itsystem',
-            'virkning': {
-                'from': util.to_lora_time(start),
-                'to': util.to_lora_time(end),
-            },
+            'virkning': common.get_validity_effect(start, end),
         }
 
     def create(self, id, req):
@@ -245,9 +242,8 @@ class ITSystems(common.AbstractRelationDetail):
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        start, end = common.get_validities(req)
-
-        rels.append(self.get_relation_for(systemid, start, end))
+        rels.append(self.get_relation_for(systemid,
+                                          *common.get_validities(req)))
 
         payload = {
             'relationer': {
@@ -274,16 +270,14 @@ class ITSystems(common.AbstractRelationDetail):
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(
             common.get_uuid(old_entry),
-            common.get_valid_from(old_entry),
-            common.get_valid_to(old_entry),
+            *common.get_validities(old_entry),
         )
 
         new_entry = req['data']
 
         new_rel = self.get_relation_for(
             common.get_uuid(new_entry, old_entry),
-            common.get_valid_from(new_entry, old_entry),
-            common.get_valid_to(new_entry, old_entry),
+            *common.get_validities(new_entry, old_entry),
         )
 
         payload = {

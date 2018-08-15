@@ -21,7 +21,7 @@
           :label="$t('input_fields.end_date')"
           :valid-dates="validDates"
           v-model="terminate.validity.from"
-          required/>
+          is-terminator required/>
       </div>
       <div v-if="org_unit">
         <p>Følgende vil blive afsluttet for enheden:</p>

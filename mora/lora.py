@@ -9,6 +9,7 @@
 from __future__ import generator_stop
 
 import collections
+import datetime
 import functools
 import itertools
 import uuid
@@ -487,8 +488,13 @@ class Scope:
                 if group in reg
             }
 
+            if end != util.POSITIVE_INFINITY:
+                end_time = end - datetime.timedelta.resolution
+            else:
+                end_time = end
+
             if any(k for g in effect.values() for k in g.values()):
-                yield start, end, effect
+                yield start, end_time, effect
 
 
 organisation = functools.partial(fetch, 'organisation/organisation')

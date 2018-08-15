@@ -280,7 +280,12 @@ def get_effect_from(effect: dict) -> datetime.datetime:
 
 
 def get_effect_to(effect: dict) -> datetime.datetime:
-    return util.parsedatetime(effect['virkning']['to'])
+    dt = util.parsedatetime(effect['virkning']['to'])
+
+    if not effect['virkning']['to_included'] and dt != util.POSITIVE_INFINITY:
+        dt -= datetime.timedelta.resolution
+
+    return dt
 
 
 def get_effect_validity(effect):
@@ -700,7 +705,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
             return util.POSITIVE_INFINITY
 
         elif valid_to is not sentinel:
-            return util.from_iso_time(valid_to)
+            return util.adjust_end_date(util.from_iso_time(valid_to))
 
     if fallback is not None:
         return get_valid_to(fallback)
@@ -711,24 +716,37 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
 def get_validities(obj, fallback=None):
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
+
     if valid_to < valid_from:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_END_BEFORE_START,
             obj=obj
         )
+
     return valid_from, valid_to
+
+
+def get_effect(valid_from, valid_to):
+    return {
+        'from_included': valid_from != util.NEGATIVE_INFINITY,
+        'to_included': False,
+        keys.FROM: util.to_lora_time(valid_from),
+        keys.TO: util.to_lora_time(util.adjust_end_date(valid_to)),
+    }
+
+
+def get_validity(valid_from, valid_to):
+    return {
+        keys.FROM: util.to_iso_time(valid_from),
+        keys.TO: util.to_iso_time(util.adjust_end_date(valid_to)),
+    }
 
 
 def get_validity_effect(entry, fallback=None):
     if keys.VALIDITY not in entry and fallback is None:
         return None
 
-    valid_from, valid_to = get_validities(entry, fallback)
-
-    return {
-        keys.FROM: util.to_lora_time(valid_from),
-        keys.TO: util.to_lora_time(valid_to),
-    }
+    return get_effect(*get_validities(entry, fallback))
 
 
 def replace_relation_value(relations: typing.List[dict],

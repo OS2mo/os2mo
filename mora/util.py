@@ -118,6 +118,19 @@ def to_lora_time(s):
         return dt.isoformat()
 
 
+def adjust_end_date(dt):
+    if (
+        dt not in (POSITIVE_INFINITY, NEGATIVE_INFINITY) and
+        dt.time() >= datetime.time(23, 59)
+    ):
+        return datetime.datetime.combine(
+            dt.date() + datetime.timedelta(days=1),
+            datetime.time(tzinfo=dt.tzinfo),
+        )
+    else:
+        return dt
+
+
 def to_iso_time(s):
     '''Return an ISO 8601 string representing the time and date given by `s`.
 

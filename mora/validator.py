@@ -53,7 +53,8 @@ def _is_date_range_valid(parent: typing.Union[dict, str],
             if startdate < start:
                 # start is too late!
                 return False
-        elif start != previous_end:
+        elif start not in (previous_end,
+                           previous_end + datetime.timedelta.resolution):
             # non-consecutive chunk - so not valid for that time
             return False
         elif start >= enddate or end <= startdate:
