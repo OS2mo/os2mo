@@ -43,6 +43,7 @@
   import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
+  import { mapGetters } from 'vuex'
 
   export default {
     $_veeValidate: {
@@ -65,6 +66,10 @@
       }
     },
     computed: {
+      ...mapGetters({
+        currentOrgUnit: 'organisationUnit/getOrgUnit'
+      }),
+
       validDates () {
         return this.org_unit ? this.org_unit.validity : {}
       },
@@ -76,9 +81,21 @@
         })
       }
     },
+    watch: {
+      currentOrgUnit: {
+        handler (val) {
+          this.org_unit = val
+        },
+        deep: true
+      }
+    },
+    mounted () {
+      this.org_unit = this.currentOrgUnit
+    },
     methods: {
       resetData () {
         Object.assign(this.$data, this.$options.data())
+        this.org_unit = this.currentOrgUnit
       },
 
       endOrganisationUnit (evt) {
