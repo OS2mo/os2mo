@@ -2,7 +2,15 @@
   <div>
     <mo-loader v-show="isLoading"/>
     <div v-show="!isLoading" class="scroll">
-    <span v-if="!contentAvailable">Intet at vise</span>
+    <table v-if="!contentAvailable" class="table">
+      <tbody>
+      <tr>
+        <td>
+          <span>Intet at vise</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
     <b-form-checkbox-group v-model="selected">
     <table v-if="contentAvailable" class="table table-striped">
       <thead>
