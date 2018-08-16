@@ -3,5 +3,9 @@
 set -e
 
 yarn
-./manage.py python -- -m pip install -r requirements-test.txt
-./manage.py python -- -m pip install -e mox/oio_rest
+python3 -m venv "$VENV"
+
+. "$VENV"/bin/activate
+
+pip install -r requirements-test.txt
+pip install -e mox/oio_rest

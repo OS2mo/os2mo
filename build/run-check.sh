@@ -1,3 +1,7 @@
 #!/bin/sh
 
-exec ./manage.py python -- -m flake8 --exit-zero
+set -e
+
+. "$VENV"/bin/activate
+
+flake8 --exit-zero

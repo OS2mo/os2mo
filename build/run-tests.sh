@@ -1,10 +1,14 @@
 #!/bin/sh
 
+set -e
+
 BASEDIR="$(cd $(dirname $0)/..; pwd)"
+
+. "$VENV"/bin/activate
 
 mkdir -p build/coverage build/reports
 
-./manage.py python -- -m pytest \
+exec py.test \
     --verbose \
     --cov=mora \
     --cov-report=xml:build/coverage/python.xml \
