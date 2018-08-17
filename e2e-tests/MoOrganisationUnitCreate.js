@@ -14,8 +14,7 @@ const unitOption = unitSelect.find('option')
 const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
-const parentInput = dialog.find('.v-autocomplete[data-vv-as="Enhed"]')
-const parentItem = parentInput.find('.v-autocomplete-list-item label')
+const parentInput = dialog.find('input[data-vv-as="Enhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
@@ -57,10 +56,7 @@ test('Workflow: create unit', async t => {
     .click(unitOption.withText('Supportcenter'))
 
     .click(parentInput)
-    .typeText(parentInput.find('input'), 'fam')
-    .expect(parentItem.withText('Ballerup Familiehus').visible).ok()
-    .pressKey('down enter')
-    .expect(parentInput.find('input').value).eql('Ballerup Familiehus')
+    .click(dialog.find('li .item .link-color'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

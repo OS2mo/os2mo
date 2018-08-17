@@ -9,8 +9,7 @@ const dialog = Selector('#employeeCreate')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 // Engagement
-const parentEngagementInput = dialog.find('.v-autocomplete[data-vv-as="Enhed"]')
-const parentEngagementItem = parentEngagementInput.find('.v-autocomplete-list-item label')
+const parentEngagementInput = dialog.find('input[data-vv-as="Enhed"]')
 
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
 const jobFunctionEngagementOption = jobFunctionEngagementSelect.find('option')
@@ -28,8 +27,7 @@ const addressInput = dialog.find('.v-autocomplete[data-vv-as="Lokation"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
 // Association
-const parentAssociationInput = dialog.find('.unit-association .v-autocomplete[data-vv-as="Enhed"]')
-const parentAssociationItem = parentAssociationInput.find('.unit-association .v-autocomplete-list-item label')
+const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Enhed"]')
 
 const addressAssociationSelect = dialog.find('.address-association select[data-vv-as="Adresser"]')
 const addressAssociationOption = addressAssociationSelect.find('option')
@@ -41,8 +39,7 @@ const associationTypeSelect = dialog.find('.select-association select[data-vv-as
 const associationTypeOption = associationTypeSelect.find('option')
 
 // Role
-const parentRoleInput = dialog.find('.unit-role .v-autocomplete[data-vv-as="Enhed"]')
-const parentRoleItem = parentRoleInput.find('.unit-role .v-autocomplete-list-item label')
+const parentRoleInput = dialog.find('.unit-role input[data-vv-as="Enhed"]')
 
 const roleTypeSelect = dialog.find('.select-role select[data-vv-as="Rolletype"]')
 const roleTypeOption = roleTypeSelect.find('option')
@@ -52,8 +49,7 @@ const itSystemSelect = dialog.find('.select-itSystem select[data-vv-as="IT syste
 const itSystemOption = itSystemSelect.find('option')
 
 // Manager
-const parentManagerInput = dialog.find('.unit-manager .v-autocomplete[data-vv-as="Enhed"]')
-const parentManagerItem = parentManagerInput.find('.unit-manager .v-autocomplete-list-item label')
+const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Enhed"]')
 
 const addressManagerSelect = dialog.find('.address-manager select[data-vv-as="Adresser"]')
 const addressManagerOption = addressManagerSelect.find('option')
@@ -82,17 +78,14 @@ test('Workflow: create employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     // CPR Number
-    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920001')
+    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920006')
     .click(dialog.find('.btn-outline-primary'))
     .click(checkbox)
     .expect(checkbox.checked).ok()
 
     // Engagement
     .click(parentEngagementInput)
-    .typeText(parentEngagementInput.find('input'), 'fam')
-    .expect(parentEngagementItem.withText('Ballerup Familiehus').visible).ok()
-    .pressKey('down enter')
-    .expect(parentEngagementInput.find('input').value).eql('Ballerup Familiehus')
+    .click(dialog.find('li .item .link-color'))
 
     .click(jobFunctionEngagementSelect)
     .click(jobFunctionEngagementOption.withText('Afdelingssygeplejerske'))
@@ -123,13 +116,10 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-association .btn-outline-success'))
 
     .click(parentAssociationInput)
-    .typeText(parentAssociationInput.find('input'), 'fam')
-    .expect(parentAssociationItem.withText('Ballerup Familiehus').visible).ok()
-    .pressKey('down enter')
-    .expect(parentAssociationInput.find('input').value).eql('Ballerup Familiehus')
+    .doubleClick(dialog.find('.unit-association li .item'))
 
     .click(addressAssociationSelect)
-    .click(addressAssociationOption.withText('(Henvendelsessted) Torvevej 21, 2740 Skovlunde'))
+    .click(addressAssociationOption.withText('(Postadresse) Banegårdspladsen 1, 2750'))
 
     .click(jobFunctionAssociationSelect)
     .click(jobFunctionAssociationOption.withText('Afdelingschef'))
@@ -141,10 +131,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-role .btn-outline-success'))
 
     .click(parentRoleInput)
-    .typeText(parentRoleInput.find('input'), 'fam')
-    .expect(parentRoleItem.withText('Ballerup Familiehus').visible).ok()
-    .pressKey('down enter')
-    .expect(parentRoleInput.find('input').value).eql('Ballerup Familiehus')
+    .click(dialog.find('.unit-role li .item'))
 
     .click(roleTypeSelect)
     .click(roleTypeOption.withText('Tillidsmand'))
@@ -159,10 +146,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-manager .btn-outline-success'))
 
     .click(parentManagerInput)
-    .typeText(parentManagerInput.find('input'), 'fam')
-    .expect(parentManagerItem.withText('Ballerup Familiehus').visible).ok()
-    .pressKey('down enter')
-    .expect(parentManagerInput.find('input').value).eql('Ballerup Familiehus')
+    .click(dialog.find('.unit-manager li .item'))
 
     .click(addressManagerSelect)
     .click(addressManagerOption.withText('(Henvendelsessted) Torvevej 21, 2740 Skovlunde'))

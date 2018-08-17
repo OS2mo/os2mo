@@ -10,11 +10,9 @@ const dialog = Selector('#employeeMoveMany')
 
 const fromInput = dialog.find('input.form-control')
 
-const parentFromInput = dialog.find('.from-unit .v-autocomplete[data-vv-as="Enhed"]')
-const parentFromItem = parentFromInput.find('.from-unit .v-autocomplete-list-item label')
+const parentFromInput = dialog.find('.from-unit input[data-vv-as="Enhed"]')
 
-const parentToInput = dialog.find('.to-unit .v-autocomplete[data-vv-as="Enhed"]')
-const parentToItem = parentToInput.find('.to-unit .v-autocomplete-list-item label')
+const parentToInput = dialog.find('.to-unit input[data-vv-as="Enhed"]')
 
 const checkboxInput = dialog.find('.checkbox-employee[data-vv-as="checkbox"]')
 
@@ -36,16 +34,10 @@ test('Workflow: moveMany employee', async t => {
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(parentFromInput)
-    .typeText(parentFromInput.find('input'), 'fam')
-    .expect(parentFromItem.withText('Ballerup Familiehus').visible).ok()
-    .pressKey('down enter')
-    .expect(parentFromInput.find('input').value).eql('Ballerup Familiehus')
+    .click(dialog.find('.from-unit li .item .link-color'))
 
     .click(parentToInput)
-    .typeText(parentToInput.find('input'), 'kom')
-    .expect(parentToItem.withText('Ballerup Kommune').visible).ok()
-    .pressKey('down enter')
-    .expect(parentToInput.find('input').value).eql('Ballerup Kommune')
+    .click(dialog.find('.to-unit li .item .link-color'))
 
     .click(checkboxInput)
 
