@@ -149,7 +149,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.unit-manager li .item'))
 
     .click(addressManagerSelect)
-    .click(addressManagerOption.withText('(Henvendelsessted) Torvevej 21, 2740 Skovlunde'))
+    .click(addressManagerOption.withText('(Postadresse) Banegårdspladsen 1, 2750'))
 
     .click(managerTypeSelect)
     .click(managerTypeOption.withText('Direktør'))
