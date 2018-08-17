@@ -109,7 +109,7 @@ videreudviklingsprocessen af og til være nødvendigt at
 Opsætning af udviklingsmiljø
 ----------------------------
 
-I princippet er det muligt at fortage videreudvikling af MORa uden at have
+I princippet er det muligt at foretage videreudvikling af MORa uden at have
 en kørende instans af LoRa (idet man blot skriver tests til den udviklede
 kode), men i praksis vil det være mest praktisk med en kørende LoRa, som man
 kan udvikle op imod. Det anbefales derfor at installere LoRa i eksempelvis en
@@ -129,8 +129,8 @@ Efterfølgende klones MORa-projektet fra GitHub::
   $ git clone https://github.com/magenta-aps/mora
 
 
-Nyere NodeJS versioner er ikke includeret i Ubuntu 16.04 (LTS),
-derfor bør NodeJS LTS versionen installeres via et eksternt apt repository.
+Nyere NodeJS-versioner er ikke includeret i Ubuntu 16.04 (LTS),
+derfor bør NodeJS LTS-versionen installeres via et eksternt apt repository.
 
 Installationen af NodeJS kan udføres i følgende trin,
 
@@ -309,7 +309,7 @@ End-to-end tests
 ----------------
 
 Vores end-to-end tests køres typisk som en del af testsuiten. For at
-køre den direkte mod en udviklingsmaskine anvendes eksempelvist::
+køre den direkte mod en udviklingsmaskine anvendes eksempelvis::
 
   BASE_URL=http://localhost:5000/ yarn testcafe --speed 0.5 firefox e2e-tests
 
@@ -325,7 +325,7 @@ Gør følgende for at installere MORa på Ubuntu 16.04::
   # installér afhængigheder
   sudo apt install python3-venv
 
-  # tilføj nodesource nøgle
+  # tilføj nodesource-nøgle
   sudo apt-key add /srv/mora/setup/nodesource/nodesource.gpg.key
 
   # tilføj nodesource apt repository
