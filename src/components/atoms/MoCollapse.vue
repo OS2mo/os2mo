@@ -5,9 +5,10 @@
       class="card-header" 
       v-b-toggle="nameId" 
       aria-expanded="true" 
-      :aria-controls="nameId">
-        <icon :name="open ? 'caret-down' : 'caret-right'"/>
-        <strong>{{title}}</strong>
+      :aria-controls="nameId"
+    >
+      <icon :name="open ? 'caret-down' : 'caret-right'"/>
+      <strong>{{title}}</strong>
     </div>
   </div>
   <b-collapse :id="nameId" :visible="open" @shown="$emit('shown')">
