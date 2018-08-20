@@ -61,7 +61,7 @@
     },
     created () {
       Service.get('/user').then(response => {
-        this.username = response.data
+        this.username = response.data || 'N/A'
       })
     },
     methods: {

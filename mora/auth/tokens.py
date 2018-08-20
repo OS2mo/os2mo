@@ -14,9 +14,9 @@ import lxml.etree
 import flask
 import requests
 
-from mora import exceptions
-from mora import settings
-from mora import util
+from .. import exceptions
+from .. import settings
+from .. import util
 
 IDP_TEMPLATES = {
     'adfs': 'adfs-soap-request.xml',

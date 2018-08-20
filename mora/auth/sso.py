@@ -11,7 +11,7 @@ import os
 import flask
 import flask_saml
 
-from . import auth as moauth
+from . import base
 from . import tokens
 from .. import settings
 
@@ -20,7 +20,7 @@ basedir = os.path.dirname(__file__)
 
 def acs(sender, subject, attributes, auth):
     """Custom assertion consumer service for use with flask_saml"""
-    flask.session[moauth.COOKIE_NAME] = tokens.pack(auth.xmlstr)
+    flask.session[base.TOKEN_KEY] = tokens.pack(auth.xmlstr)
     flask.session['username'] = attributes[settings.SSO_SAML_USERNAME_ATTR][0]
 
 

@@ -9,7 +9,7 @@ import flask
 import freezegun
 from mock import patch, MagicMock
 
-from mora.auth import tokens, sso, auth
+from mora.auth import tokens, sso, base
 from . import util
 
 IDP_URL = 'mock://idp'
@@ -22,11 +22,6 @@ ORG_URL = (
 )
 
 
-# FIXME: itsdangerous.py has EPOCH hardcoded to 2011/01/01 for whatever reason,
-#        which breaks when using dates earlier than that.
-#        Fix has been implemented, awaiting next release:
-#        https://github.com/pallets/itsdangerous/issues/46
-@patch('itsdangerous.EPOCH', 0)
 @freezegun.freeze_time('2001-01-01')
 class MockTests(util.TestCase):
     @util.mock()
@@ -173,7 +168,7 @@ class MockTests(util.TestCase):
 
             with self.client.session_transaction() as sess:
                 self.assertEqual(sess.get('username'), 'USER')
-                self.assertEqual(sess.get(auth.COOKIE_NAME), 'token')
+                self.assertEqual(sess.get(base.TOKEN_KEY), 'token')
 
     def test_empty_user(self):
         with util.override_settings(SAML_IDP_TYPE='adfs',
@@ -243,7 +238,7 @@ class MockTests(util.TestCase):
     def test_get_user_no_username(self):
         self.assertRequestResponse(
             '/service/user',
-            'N/A',
+            None,
         )
 
     @patch('mora.auth.tokens.pack', lambda x: x)
@@ -257,4 +252,4 @@ class MockTests(util.TestCase):
             sso.acs('sender', 'subject', attrs, authobj)
 
             self.assertEqual(flask.session.get('username'), 'USER')
-            self.assertEqual(flask.session.get(auth.COOKIE_NAME), b'xmlstr')
+            self.assertEqual(flask.session.get(base.TOKEN_KEY), b'xmlstr')

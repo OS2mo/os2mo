@@ -10,14 +10,14 @@ import os
 
 import flask
 import werkzeug
-from flask_session import Session
+import flask_session
 
 from . import cli
 from . import exceptions
 from . import service
 from . import settings
 from . import util
-from .auth import auth, sso
+from .auth import base, sso
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -32,9 +32,9 @@ app.config.update({
     'SESSION_PERMANENT': False,
     'SESSION_FILE_DIR': settings.SESSION_FILE_DIR
 })
-Session(app)
+flask_session.Session(app)
 
-app.register_blueprint(auth.blueprint)
+app.register_blueprint(base.blueprint)
 
 if settings.AUTH == 'sso':
     sso.init_app(app)

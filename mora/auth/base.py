@@ -31,7 +31,7 @@ __all__ = (
     'logout',
 )
 
-COOKIE_NAME = 'MO-Token'
+TOKEN_KEY = 'MO-Token'
 
 basedir = os.path.dirname(__file__)
 
@@ -46,8 +46,8 @@ class SAMLAuth(requests.auth.AuthBase):
     def __call__(self, r):
         if self.assertion:
             assertion = self.assertion
-        elif flask.session and flask.session.get(COOKIE_NAME):
-            assertion = flask.session[COOKIE_NAME]
+        elif flask.session and flask.session.get(TOKEN_KEY):
+            assertion = flask.session[TOKEN_KEY]
         else:
             assertion = None
 
@@ -66,7 +66,7 @@ def get_user():
     :return: The username of the user who is currently logged in.
     '''
 
-    username = flask.session.get('username') or 'N/A'
+    username = flask.session.get('username') or None
 
     return flask.jsonify(username)
 
@@ -107,7 +107,9 @@ def login():
     flask.session['username'] = username
 
     if assertion:
-        flask.session[COOKIE_NAME] = assertion
+        flask.session[TOKEN_KEY] = assertion
+    else:
+        flask.session.clear()
 
     return flask.make_response()
 
@@ -128,12 +130,13 @@ def logout():
 
 
 @blueprint.route('/login', methods=['GET'])
+@util.restrictargs('redirect')
 def get_login():
     """
     Direct user towards appropriate login page, given the chosen auth method
     """
     redirect = flask.request.args.get('redirect')
-    if settings.AUTH and not flask.session.get(COOKIE_NAME):
+    if settings.AUTH:
         if settings.AUTH == 'sso':
             return flask.redirect(flask.url_for('login', next=redirect))
         elif settings.AUTH == 'token':

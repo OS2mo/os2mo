@@ -34,7 +34,7 @@ import urllib3
 
 from . import lora
 from . import settings
-from .auth import auth, tokens
+from .auth import base, tokens
 from . import util
 
 basedir = os.path.dirname(__file__)
@@ -103,7 +103,7 @@ def requires_auth(func):
                 insecure=insecure,
             )
 
-            lora.session.auth = auth.SAMLAuth(assertion)
+            lora.session.auth = base.SAMLAuth(assertion)
 
             return func(*args, **options)
         except urllib3.exceptions.HTTPWarning as e:

@@ -15,14 +15,14 @@ import uuid
 
 import requests
 
-from .auth import auth
+from .auth import base
 from . import exceptions
 from . import settings
 from . import util
 
 session = requests.Session()
 session.verify = settings.CA_BUNDLE or True
-session.auth = auth.SAMLAuth()
+session.auth = base.SAMLAuth()
 session.headers = {
     'User-Agent': 'MORA/0.1',
 }
