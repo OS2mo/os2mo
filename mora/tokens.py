@@ -53,16 +53,13 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
     '''
 
     if not settings.SAML_IDP_URL or not settings.SAML_IDP_TYPE:
-        return 'N/A'
+        return None
 
     if not username or not passwd:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_UNAUTHORIZED,
             message="Username/password cannot be blank"
         )
-
-    if insecure is None:
-        insecure = settings.SAML_IDP_INSECURE
 
     created = util.now()
     expires = created + datetime.timedelta(hours=1)
@@ -78,17 +75,20 @@ def get_token(username, passwd, raw=False, verbose=False, insecure=None):
         expires=expires.isoformat(),
     )
 
+    if insecure is None:
+        insecure = settings.SAML_IDP_INSECURE
+
     if insecure:
         verify = False
     else:
         verify = settings.CA_BUNDLE or True
 
     with requests.post(
-            settings.SAML_IDP_URL,
-            data=requestxml, verify=verify, headers={
-                'Content-Type': 'application/soap+xml; charset=utf-8',
-            },
-            stream=True,
+        settings.SAML_IDP_URL,
+        data=requestxml, verify=verify, headers={
+            'Content-Type': 'application/soap+xml; charset=utf-8',
+        },
+        stream=True,
     ) as resp:
         ct = resp.headers.get('Content-Type', '').split(';')[0]
 

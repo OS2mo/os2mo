@@ -14,6 +14,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
+from .. import exceptions
 from .. import validator
 from . import common
 from . import keys
@@ -28,8 +29,15 @@ def create_engagement(employee_uuid, req):
     c = lora.Connector()
 
     org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
-    org_uuid = c.organisationenhed.get(
-        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
+    org_unit = c.organisationenhed.get(org_unit_uuid)
+
+    if not org_unit:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=org_unit_uuid,
+        )
+
+    org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
     job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
     engagement_type_uuid = common.get_mapping_uuid(req, keys.ENGAGEMENT_TYPE,
                                                    required=True)

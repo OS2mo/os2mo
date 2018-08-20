@@ -353,7 +353,10 @@ def get_orgunit(unitid):
     r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
 
     if not r:
-        raise werkzeug.exceptions.NotFound('no such unit!')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=unitid,
+        )
 
     return flask.jsonify(r)
 
@@ -436,8 +439,8 @@ def create_org_unit():
     **Example Request**:
 
     :<json string name: The name of the org unit
-    :<json string parent: The parent org unit
-    :<json string org_unit_type: The type of org unit
+    :<json uuid parent: The parent org unit or organisation
+    :<json uuid org_unit_type: The type of org unit
     :<json list addresses: A list of address objects.
     :<json object validity: The validity of the created object.
 
@@ -470,14 +473,29 @@ def create_org_unit():
 
     name = common.checked_get(req, keys.NAME, "", required=True)
 
-    parent = common.checked_get(req, keys.PARENT, {}, required=True)
-    parent_uuid = common.get_uuid(parent)
-    organisationenhed_get = c.organisationenhed.get(parent_uuid)
-    org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
+    unitid = common.get_uuid(req, required=False)
+    bvn = common.checked_get(req, keys.USER_KEY,
+                             "{} {}".format(name, uuid.uuid4()))
 
-    org_unit_type = common.checked_get(req, keys.ORG_UNIT_TYPE, {},
-                                       required=True)
-    org_unit_type_uuid = common.get_uuid(org_unit_type)
+    parent_uuid = common.get_mapping_uuid(req, keys.PARENT, required=True)
+    organisationenhed_get = c.organisationenhed.get(parent_uuid)
+
+    if organisationenhed_get:
+        org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
+    else:
+        organisation_get = c.organisation(uuid=parent_uuid)
+
+        if organisation_get:
+            org_uuid = parent_uuid
+        else:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
+                parent_uuid=parent_uuid,
+                org_unit_uuid=unitid,
+            )
+
+    org_unit_type_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT_TYPE,
+                                                 required=False)
 
     addresses = [
         address.get_relation_for(addr)
@@ -485,11 +503,6 @@ def create_org_unit():
     ]
     valid_from = common.get_valid_from(req)
     valid_to = common.get_valid_to(req)
-
-    # TODO
-    bvn = "{} {}".format(name, uuid.uuid4())
-
-    # TODO: Process address objects
 
     org_unit = common.create_organisationsenhed_payload(
         valid_from=valid_from,
@@ -502,10 +515,11 @@ def create_org_unit():
         adresser=addresses,
     )
 
-    validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                              valid_to)
+    if org_uuid != parent_uuid:
+        validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+                                                  valid_to)
 
-    unitid = c.organisationenhed.create(org_unit)
+    unitid = c.organisationenhed.create(org_unit, unitid)
 
     return flask.jsonify(unitid)
 
@@ -833,7 +847,10 @@ def get_org_unit_history(unitid):
                                                  registrerettil='infinity')
 
     if not unit_registrations:
-        raise werkzeug.exceptions.NotFound('no such unit')
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=unitid,
+        )
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))

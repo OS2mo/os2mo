@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
 import random
 
 import service_person_stamdata_udvidet

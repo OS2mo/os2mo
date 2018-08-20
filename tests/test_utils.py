@@ -83,6 +83,13 @@ class TestUtils(TestCase):
         self.assertEqual(util.parsedatetime(util.POSITIVE_INFINITY),
                          util.POSITIVE_INFINITY)
 
+        # we frequently get these dates in spreadsheets
+        self.assertEqual(util.parsedatetime('31-12-9999'),
+                         util.POSITIVE_INFINITY)
+
+        # test fallback
+        self.assertEqual(util.parsedatetime('blyf', 'flaf'), 'flaf')
+
     def test_to_frontend_time(self):
         self.assertEqual(util.to_frontend_time(self.today), '01-06-2015')
 
@@ -188,6 +195,23 @@ class TestUtils(TestCase):
 
         with self.assertRaisesRegex(ValueError, '^invalid CPR number'):
             util.get_cpr_birthdate(10101010000)
+
+    def test_urnquote(self):
+        data = {
+            '42': '42',
+            'abc': 'abc',
+            'aBc': 'a%42c',
+
+            # from https://docs.python.org/3/library/urllib.parse.html
+            'el niño': 'el%20ni%c3%b1o',
+            'El Niño': '%45l%20%4ei%c3%b1o',
+        }
+
+        for s, expected in data.items():
+            with self.subTest(s):
+                self.assertEqual(util.urnquote(s), expected)
+
+                self.assertEqual(util.urnunquote(util.urnquote(s)), s)
 
 
 class TestAppUtils(unittest.TestCase):
