@@ -50,8 +50,8 @@ class ErrorCodes(Enum):
         400, "Employee must have an active engagement."
     V_UNIT_OUTSIDE_ORG = \
         400, "Unit belongs to an organisation different from the current one."
-    V_ORG_NOT_FOUND = \
-        400, "Corresponding organisation not found."
+    V_PARENT_NOT_FOUND = \
+        404, "Corresponding parent unit or organisation not found."
     V_DUPLICATED_RESPONSIBILITY = \
         400, "Manager has the same responsibility more than once."
 

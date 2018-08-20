@@ -439,8 +439,8 @@ def create_org_unit():
     **Example Request**:
 
     :<json string name: The name of the org unit
-    :<json string parent: The parent org unit
-    :<json string org_unit_type: The type of org unit
+    :<json uuid parent: The parent org unit or organisation
+    :<json uuid org_unit_type: The type of org unit
     :<json list addresses: A list of address objects.
     :<json object validity: The validity of the created object.
 
@@ -489,8 +489,8 @@ def create_org_unit():
             org_uuid = parent_uuid
         else:
             raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_ORG_NOT_FOUND,
-                org_uuid=parent_uuid,
+                exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
+                parent_uuid=parent_uuid,
                 org_unit_uuid=unitid,
             )
 

@@ -1089,6 +1089,41 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    def test_create_missing_parent(self):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = {
+            "name": "Fake Corp",
+            "parent": {
+                'uuid': "00000000-0000-0000-0000-000000000000"
+            },
+            "org_unit_type": {
+                'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+            },
+            "addresses": [],
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2018-01-01",
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/create',
+            {
+                'description':
+                'Corresponding parent unit or organisation not found.',
+                'error': True,
+                'error_key': 'V_PARENT_NOT_FOUND',
+                'org_unit_uuid': None,
+                'parent_uuid': '00000000-0000-0000-0000-000000000000',
+                'status': 404,
+            },
+            json=payload,
+            status_code=404,
+        )
+
     def test_rename_org_unit(self):
         # A generic example of editing an org unit
 
