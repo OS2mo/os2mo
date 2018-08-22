@@ -8,7 +8,18 @@
         required
       />
       <mo-address-picker class="col address-manager" v-model="entry.address" :org-unit="entry.org_unit"/>
-    </div> 
+    </div>
+
+      <mo-add-many
+        class="address-manager"
+        v-model="entry.manager_address"
+        :entry-component="MoManagerAddressPicker" 
+        label="Leder adresser" 
+        has-initial-entry 
+        small-buttons
+      />
+      <mo-manager-address-picker v-model="entry.manager_address"/>
+
     <div class="form-row select-manager">
       <mo-facet-picker 
         facet="manager_type" 
@@ -41,6 +52,7 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
 
 export default {
   components: {
@@ -48,7 +60,8 @@ export default {
     MoOrganisationUnitPicker,
     MoFacetPicker,
     MoAddressPicker,
-    MoAddMany
+    MoAddMany,
+    MoManagerAddressPicker
   },
   props: {
     value: Object,
