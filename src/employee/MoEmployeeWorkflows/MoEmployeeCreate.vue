@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="createEmployee">
       <mo-cpr v-model="employee"/>
 
-      <h5>{{$t('workflows.employee.labels.engagement')}}</h5>
+      <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
       <mo-engagement-entry v-model="engagement"/>
 
       <mo-add-many class="btn-address" v-model="address" :entry-component="entry.address" :label="$tc('workflows.employee.labels.address', 2)" validity-hidden/>
