@@ -5,41 +5,58 @@ pipeline {
 
   environment {
     BROWSER = 'chromium:headless'
-    VENV = "${env.WORKSPACE}/venv"
+    PIPENV_VENV_IN_PROJECT = '1'
     NODE_ENV = 'testing'
     PYTEST_ADDOPTS = '--color=yes'
   }
 
   stages {
-    stage('Fetch') {
+    stage('Build Frontend') {
+      agent {
+        docker { image 'node:latest' }
+      }
       steps {
-        dir("mox") {
-          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
+        timeout(5) {
+          sh 'yarn && yarn build'
         }
+      }
+    }
 
+    stage('Create Environment') {
+      steps {
         timeout(5) {
           ansiColor('xterm') {
-            sh './build/run-fetch.sh'
+            sh 'pipenv sync --dev'
           }
         }
       }
     }
 
-    stage('Check') {
+    stage('Code Checks') {
       steps {
         timeout(1) {
           ansiColor('xterm') {
-            sh './build/run-check.sh'
+            sh 'pipenv run flake8 --exit-zero mora tests'
           }
         }
       }
     }
 
-    stage('Build') {
+    stage('Run Tests') {
       steps {
-        timeout(4) {
+        timeout(12) {
           ansiColor('xterm') {
-            sh './build/run-build.sh'
+            sh 'pipenv run test'
+          }
+        }
+      }
+    }
+
+    stage('Build Docs') {
+      steps {
+        timeout(1) {
+          ansiColor('xterm') {
+            sh 'pipenv run sphinx'
           }
         }
 
@@ -47,16 +64,6 @@ pipeline {
           allowMissing: true, reportDir: 'docs/out',
           reportFiles: 'index.html', reportName: 'Documentation'
         ]
-      }
-    }
-
-    stage('Test') {
-      steps {
-        timeout(12) {
-          ansiColor('xterm') {
-            sh './build/run-tests.sh'
-          }
-        }
       }
     }
 

@@ -6942,9 +6942,9 @@ uuid@^3.0.0, uuid@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
 
-"v-autocomplete@git+https://github.com/magenta-aps/v-autocomplete.git":
+"v-autocomplete@https://github.com/magenta-aps/v-autocomplete/archive/master.tar.gz":
   version "1.8.2"
-  resolved "git+https://github.com/magenta-aps/v-autocomplete.git#7ea8738e845ee5b92673f5c30cb1dd622242c747"
+  resolved "https://github.com/magenta-aps/v-autocomplete/archive/master.tar.gz#6f124be6505dcffaa5cfd5369fad77666379f02b"
 
 validate-npm-package-license@^3.0.1:
   version "3.0.1"
