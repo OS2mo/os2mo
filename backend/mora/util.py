@@ -166,19 +166,6 @@ def from_iso_time(s):
     return dt
 
 
-def to_frontend_time(s):
-    dt = parsedatetime(s)
-
-    if dt == POSITIVE_INFINITY:
-        return 'infinity'
-    elif dt == NEGATIVE_INFINITY:
-        return '-infinity'
-    elif dt and dt.time().replace(tzinfo=None) == datetime.time():
-        return unparsedate(dt.date())
-    else:
-        return dt.isoformat()
-
-
 def now() -> datetime.datetime:
     '''Get the current time, localized to the current time zone.'''
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)

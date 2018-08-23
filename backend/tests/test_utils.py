@@ -91,46 +91,6 @@ class TestUtils(TestCase):
         # test fallback
         self.assertEqual(util.parsedatetime('blyf', 'flaf'), 'flaf')
 
-    def test_to_frontend_time(self):
-        self.assertEqual(util.to_frontend_time(self.today), '01-06-2015')
-
-        self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
-                         '31-12-2017')
-        self.assertEqual(util.to_frontend_time('infinity'), 'infinity')
-        self.assertEqual(util.to_frontend_time('-infinity'), '-infinity')
-
-        self.assertEqual(
-            util.to_frontend_time('1980-07-01 00:00:00+02'),
-            '01-07-1980',
-        )
-
-        self.assertEqual(
-            util.to_frontend_time('1980-01-01 00:00:00+01'),
-            '01-01-1980',
-        )
-
-        self.assertEqual(
-            util.to_frontend_time('1980-07-01 02:00:00+02'),
-            '1980-07-01T02:00:00+02:00',
-        )
-
-        self.assertEqual('01-06-2015',
-                         util.to_frontend_time(datetime.date.today()))
-        self.assertEqual('01-06-2015',
-                         util.to_frontend_time(self.today))
-        self.assertEqual('2015-06-01T01:10:00+02:00',
-                         util.to_frontend_time(self.now))
-        self.assertEqual('01-01-2015',
-                         util.to_frontend_time(datetime.date(2015, 1, 1)))
-        self.assertEqual('01-06-2015',
-                         util.to_frontend_time(datetime.date(2015, 6, 1)))
-
-        self.assertEqual('-infinity',
-                         util.to_frontend_time('-infinity'))
-
-        self.assertEqual('infinity',
-                         util.to_frontend_time('infinity'))
-
     def test_splitlist(self):
         self.assertEqual(
             list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)),

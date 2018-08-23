@@ -553,10 +553,10 @@ def add_bruger_history_entry(employee_uuid, note: str):
 def convert_reg_to_history(reg):
     return {
         'user_ref': reg['brugerref'],
-        'from': util.to_frontend_time(
+        'from': util.to_iso_time(
             reg['fratidspunkt']['tidsstempeldatotid'],
         ),
-        'to': util.to_frontend_time(
+        'to': util.to_iso_time(
             reg['tiltidspunkt']['tidsstempeldatotid'],
         ),
         'life_cycle_code': reg['livscykluskode'],
