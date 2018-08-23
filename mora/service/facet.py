@@ -37,6 +37,9 @@ from .. import util
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
                             url_prefix='/service')
 
+# TODO: we should probably move this into the frontend - in
+# actualilty, the translation services little purpose other than to
+# make the application less flexible
 FACETS = {
     keys.ADDRESS_TYPE: 'Adressetype',
     keys.ASSOCIATION_TYPE: 'Tilknytningstype',
@@ -52,6 +55,10 @@ FACETS = {
     # keys.USER_TYPE: 'Brugertype',
     keys.LEAVE_TYPE: 'Orlovstype',
     keys.MANAGER_ADDRESS_TYPE: 'Lederadresse',
+}
+
+FACET_NAMES = {
+    v: k for k, v in FACETS.items()
 }
 
 
@@ -95,16 +102,18 @@ def list_facets(orgid):
 
     r = []
 
-    for facet_name, facet_key in FACETS.items():
-        for facetid, facet in c.facet.get_all(bvn=facet_key,
-                                              ansvarlig=str(orgid),
-                                              publiceret='Publiceret'):
-            r.append(get_one_facet(c, facetid, facet_name, orgid, facet))
+    for facetid, facet in c.facet.get_all(ansvarlig=str(orgid),
+                                          publiceret='Publiceret'):
+        facet_name = FACET_NAMES.get(
+            facet['attributter']['facetegenskaber'][0]['brugervendtnoegle'],
+        )
+
+        r.append(get_one_facet(c, facetid, facet_name, orgid, facet))
 
     return flask.jsonify(sorted(
         r,
         # use locale-aware sorting
-        key=lambda f: locale.strxfrm(f['name']),
+        key=lambda f: locale.strxfrm(f['name']) if f['name'] else '',
     ))
 
 
@@ -119,8 +128,8 @@ def get_one_facet(c, facetid, facet_name, orgid, facet=None, data=None):
             facet['attributter']
             ['facetegenskaber'][0]
             ['brugervendtnoegle'],
-        'path': flask.url_for('facet.get_classes', orgid=orgid,
-                              facet=facet_name),
+        'path': facet_name and flask.url_for('facet.get_classes', orgid=orgid,
+                                             facet=facet_name),
     }
 
     if data:
