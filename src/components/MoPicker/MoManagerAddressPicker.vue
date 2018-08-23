@@ -115,18 +115,18 @@ export default {
       },
       deep: true
     }
+  },
+  created () {
+    if (this.value.uuid) {
+      this.address = {
+        location: {
+          name: this.value.name,
+          uuid: this.value.value
+        }
+      }
+    }
+    this.entry = this.value
+    this.contactInfo = this.value.name
   }
-  // created () {
-  //   if (this.value.uuid) {
-  //     this.address = {
-  //       location: {
-  //         name: this.value.name,
-  //         uuid: this.value.value
-  //       }
-  //     }
-  //   }
-  //   this.entry = this.value
-  //   this.contactInfo = this.value.name
-  // }
 }
 </script>

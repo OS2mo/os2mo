@@ -13,12 +13,11 @@
       <mo-add-many
         class="address-manager"
         v-model="entry.manager_address"
-        :entry-component="MoManagerAddressPicker" 
+        :entry-component="managerAddressPicker" 
         label="Leder adresser" 
         has-initial-entry 
         small-buttons
       />
-      <mo-manager-address-picker v-model="entry.manager_address"/>
 
     <div class="form-row select-manager">
       <mo-facet-picker 
@@ -85,6 +84,16 @@ export default {
         watch: { val (newVal) { this.$emit('input', newVal) } },
         created () { this.val = this.value },
         template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
+      }
+    },
+    managerAddressPicker () {
+      return {
+        components: { MoManagerAddressPicker },
+        props: { value: Object },
+        data () { return { val: null } },
+        watch: { val (newVal) { this.$emit('input', newVal) } },
+        created () { this.val = this.value },
+        template: `<mo-manager-address-picker v-model="val" required/>`
       }
     }
   },
