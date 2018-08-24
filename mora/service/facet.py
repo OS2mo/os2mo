@@ -54,7 +54,7 @@ FACETS = {
     keys.ROLE_TYPE: 'Rolletype',
     # keys.USER_TYPE: 'Brugertype',
     keys.LEAVE_TYPE: 'Orlovstype',
-    keys.MANAGER_ADDRESS_TYPE: 'Lederadresse',
+    keys.MANAGER_ADDRESS_TYPE: 'Lederadressetype',
 }
 
 FACET_NAMES = {
