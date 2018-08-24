@@ -55,6 +55,7 @@ MANAGER_KEY = 'Leder'
 MANAGER_TYPE = 'manager_type'
 MANAGER_LEVEL = 'manager_level'
 RESPONSIBILITY = 'responsibility'
+MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
