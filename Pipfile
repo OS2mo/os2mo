@@ -9,6 +9,7 @@ python_version = "3.5"
 [scripts]
 build = "flask build"
 sphinx = "flask sphinx"
+serve = "gunicorn --reload --threads=4 --access-logfile=- mora.app:app"
 test = "py.test --verbose --cov=mora --cov-report=xml:build/coverage/python.xml --cov-config=.coveragerc --junitxml=build/reports/python.xml"
 
 [packages]
@@ -27,6 +28,8 @@ service-person-stamdata-udvidet = {editable = true, ref = "master", git = "https
 Flask = "~=1.0.0"
 Sphinx = "~=1.7.6"
 sphinx_rtd_theme = ">=0.2.4"
+gunicorn = ">=19.9.0"
+setproctitle = "*"
 
 [dev-packages]
 freezegun = ">=0.3.9"
