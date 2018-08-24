@@ -46,8 +46,8 @@ class SAMLAuth(requests.auth.AuthBase):
     def __call__(self, r):
         if self.assertion:
             assertion = self.assertion
-        elif flask.session and flask.session.get(TOKEN_KEY):
-            assertion = flask.session[TOKEN_KEY]
+        elif flask.session:
+            assertion = flask.session.get(TOKEN_KEY)
         else:
             assertion = None
 
@@ -66,7 +66,7 @@ def get_user():
     :return: The username of the user who is currently logged in.
     '''
 
-    username = flask.session.get('username') or None
+    username = flask.session.get('username')
 
     return flask.jsonify(username)
 
