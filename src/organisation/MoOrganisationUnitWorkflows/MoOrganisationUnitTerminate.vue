@@ -23,14 +23,14 @@
           v-model="terminate.validity.from"
           required/>
       </div>
-      <div v-if="org_unit">
+      <div class="mb-3" v-if="org_unit">
         <p>Følgende vil blive afsluttet for enheden:</p>
         <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
       </div>
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
       </div>
-      <div class="float-right mt-3">
+      <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
     </form>
