@@ -119,7 +119,7 @@ test('Workflow: create employee', async t => {
     .doubleClick(dialog.find('.unit-association li .item'))
 
     .click(addressAssociationSelect)
-    .click(addressAssociationOption.withText('(Postadresse) Banegårdspladsen 1, 2750'))
+    .click(addressAssociationOption.withText('(Henvendelsessted) Torvevej 21, 2740 Skovlunde'))
 
     .click(jobFunctionAssociationSelect)
     .click(jobFunctionAssociationOption.withText('Afdelingschef'))
@@ -139,7 +139,7 @@ test('Workflow: create employee', async t => {
     // IT System
     .click(dialog.find('.btn-itSystem .btn-outline-success'))
 
-    .click(itSystemSelect)
+    .doubleClick(itSystemSelect)
     .click(itSystemOption.withText('Active Directory'))
 
     // Manager
