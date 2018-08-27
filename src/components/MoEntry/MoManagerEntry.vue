@@ -12,13 +12,13 @@
 
       <mo-add-many
         class="address-manager"
-        v-model="entry.manager_address"
+        v-model="entry.manager_address_type"
         :entry-component="managerAddressPicker" 
-        label="Leder adresser" 
+        label="Lederadressetype" 
         has-initial-entry 
         small-buttons
       />
-
+{{entry}}
     <div class="form-row select-manager">
       <mo-facet-picker 
         facet="manager_type" 
