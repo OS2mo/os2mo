@@ -1,7 +1,13 @@
 <template>
   <div>
     <h5 :class="smallButtons ? 'h5-label' : ''"> 
-      <button @click="add()" type="button" class="btn btn-outline-success" :class="smallButtons ? 'btn-sm' : ''" style="border:none!important">
+      <button 
+        @click="add()" 
+        type="button" 
+        class="btn btn-outline-success" 
+        :class="smallButtons ? 'btn-sm' : ''" 
+        style="border:none!important"
+      >
         <icon name="plus"/>
       </button>
       {{label}}

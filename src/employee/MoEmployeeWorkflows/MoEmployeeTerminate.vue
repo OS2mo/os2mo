@@ -24,12 +24,12 @@
         />
       </div>
         
-        <div v-if="employee">
+        <div class="mb-3" v-if="employee">
           <p>Følgende vil blive afsluttet for medarbejderen:</p>
           <mo-employee-detail-tabs :uuid="employee.uuid" hide-actions/>
         </div>
 
-        <div class="float-right mt-3">
+        <div class="float-right">
           <button-submit :is-loading="isLoading"/>
         </div>
     

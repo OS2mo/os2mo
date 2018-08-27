@@ -1,6 +1,7 @@
 <template>
   <div class="form-group col">
     <label>{{label}}</label>
+
     <v-autocomplete 
       v-model="selectedItem"
       :items="addressSuggestions"
@@ -11,6 +12,7 @@
       @update-items="getGeographicalLocation"
       v-validate="{required: true}"
     />
+    
     <span v-show="errors.has(nameId)" class="text-danger">
       {{ errors.first(nameId) }}
     </span>

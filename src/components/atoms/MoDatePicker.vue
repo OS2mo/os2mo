@@ -1,6 +1,7 @@
 <template>
   <div class="form-group col">
     <label v-if="!noLabel" id="date-label" for="date">{{label}}</label>
+
     <date-time-picker 
       v-model="selected" 
       format="dd-MM-yyyy"
@@ -17,9 +18,12 @@
       :data-vv-as="label" 
       v-model="dateString"
       type="hidden"
-      v-validate="{required: required, date_in_range: validDates}">
+      v-validate="{required: required, date_in_range: validDates}"
+    >
 
-    <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
+    <span v-show="errors.has(nameId)" class="text-danger">
+      {{ errors.first(nameId) }}
+    </span>
   </div>
 </template>
 
