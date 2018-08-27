@@ -14,6 +14,7 @@
   "responsibility": "Lederansvar",
   "manager_type": "Ledertype",
   "manager_level": "Lederniveau",
+  "manager_address_type": "Lederadressetype",
   "association_type": "Tilknytningstype",
   "leave_type": "Orlovstype",
   "start_date": "Startdato",

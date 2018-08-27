@@ -114,7 +114,7 @@
           {label: 'responsibility', data: 'responsibility'},
           {label: 'manager_type', data: 'manager_type'},
           {label: 'manager_level', data: 'manager_level'},
-          {label: 'address_type', data: 'address_type'},
+          {label: 'manager_address_type', data: 'value'},
           {label: 'address', data: 'address'}
         ],
         address: [
