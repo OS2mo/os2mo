@@ -15,11 +15,12 @@
         :creating-date="true"
       />
 
-      <h5>{{$tc('workflows.employee.labels.address', 2)}}</h5>
-      <mo-address-entry v-model="postAddress" preselected-type="AdressePost" validity-hidden required/>
-      <mo-address-entry v-model="phone" preselected-type="Telefon" validity-hidden required/>
+      <h5 class="mt-3">{{$tc('workflows.employee.labels.address', 2)}}</h5>
+      <mo-address-entry class="mt-3" v-model="postAddress" preselected-type="AdressePost" validity-hidden required/>
+      <mo-address-entry class="mt-3" v-model="phone" preselected-type="Telefon" validity-hidden required/>
 
       <mo-add-many
+        class="mt-3"
         :entry-component="addressEntry"
         :label="$tc('workflows.employee.labels.other_addresses')"
         v-model="addresses"

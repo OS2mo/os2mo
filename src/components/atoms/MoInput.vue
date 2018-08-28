@@ -1,6 +1,7 @@
 <template>
   <div class="form-group col">
     <label for="">{{label}}</label>
+    
     <input 
       v-model="selected" 
       :name="nameId"

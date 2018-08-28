@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-row">
-      <mo-address-search-field v-model="address" :label="label" :global="global"/>
+      <mo-address-search-field class="mb-0" v-model="address" :label="label" :global="global"/>
       <label class="form-check-label">
         <input class="form-check-input" type="checkbox" v-model="global"/> 
         Søg i hele landet

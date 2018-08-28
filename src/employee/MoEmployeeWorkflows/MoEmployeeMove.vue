@@ -13,7 +13,7 @@
     <mo-employee-picker class="search-employee" v-model="employee" required/>
 
     <div class="form-row">
-      <mo-engagement-picker v-model="original" :employee="employee" required/>
+      <mo-engagement-picker class="mt-3" v-model="original" :employee="employee" required/>
     </div>
 
     <div class="form-row">
@@ -31,7 +31,8 @@
         :label="$t('input_fields.move_date')" 
         v-model="move.data.validity.from"
         :valid-dates="validDates"
-        required/>
+        required
+      />
     </div>
 
     <mo-confirm-checkbox
