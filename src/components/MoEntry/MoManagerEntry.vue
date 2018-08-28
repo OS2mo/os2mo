@@ -12,7 +12,7 @@
 
       <mo-add-many
         class="address-manager"
-        v-model="entry.manager_address_type"
+        v-model="entry.address"
         :entry-component="managerAddressPicker" 
         label="Lederadressetype" 
         has-initial-entry 
