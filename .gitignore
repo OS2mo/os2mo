@@ -82,8 +82,7 @@ celerybeat-schedule
 
 # virtualenv
 /venv-*/
-venv/
-ENV/
+/.venv/
 
 # Spyder project settings
 .spyderproject
@@ -100,7 +99,6 @@ yarn-debug.log*
 yarn-error.log*
 /test/unit/coverage/
 /test/e2e/reports/
-selenium-debug.log
 
 # IDE config files
 .idea/
