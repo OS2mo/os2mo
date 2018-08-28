@@ -531,7 +531,7 @@ def get_detail(type, id, function):
             keys.RESPONSIBILITY: (class_cache, get_responsibility, None, True),
             keys.MANAGER_LEVEL: (class_cache, get_manager_level, None, False),
             keys.MANAGER_TYPE: (class_cache, get_type_id, None, False),
-            keys.ADDRESS: (class_cache, get_address, get_address_type, False),
+            keys.ADDRESS: (class_cache, get_address, get_address_type, True),
         }
     }
 
