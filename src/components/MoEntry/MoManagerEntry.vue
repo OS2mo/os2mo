@@ -8,11 +8,10 @@
         required
       />
     </div>
-
       <mo-add-many
         class="address-manager"
+        v-model="entry.address" 
         :entry-component="managerAddressPicker"
-        v-model="entry.address"
         label="Lederadressetype"
         has-initial-entry 
         small-buttons
@@ -90,12 +89,10 @@ export default {
 
     managerAddressPicker () {
       return {
-        components: { MoAddressEntry },
+        components: { MoManagerAddressPicker },
         props: { value: Object },
-        data () { return { val: null } },
-        watch: { val (newVal) { this.$emit('input', newVal) } },
-        created () { this.val = this.value },
-        template: `<mo-address-entry facet-picker facet="manager_address_type" v-model="val" required/>`
+        data () { return { val: this.value } },
+        template: `<mo-manager-address-picker v-model="val" required/>`
       }
     }
   },
