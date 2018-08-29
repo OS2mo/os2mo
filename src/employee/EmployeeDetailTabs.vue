@@ -103,8 +103,8 @@
           {label: 'org_unit', data: 'org_unit'},
           {label: 'job_function', data: 'job_function'},
           {label: 'association_type', data: 'association_type'},
-          {label: 'address', data: 'address'},
-          {label: 'address_type', data: 'address_type'}
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'}
         ],
         leave: [
           {label: 'leave_type', data: 'leave_type'}
@@ -114,12 +114,12 @@
           {label: 'responsibility', data: 'responsibility'},
           {label: 'manager_type', data: 'manager_type'},
           {label: 'manager_level', data: 'manager_level'},
-          {label: 'manager_address_type', data: 'value'},
+          {label: 'address_type', data: 'address_type'},
           {label: 'address', data: 'address'}
         ],
         address: [
           {label: 'address_type', data: 'address_type'},
-          {label: 'value', data: null}
+          {label: 'address', data: null}
         ],
         components: {
           engagement: MoEngagementEntry,

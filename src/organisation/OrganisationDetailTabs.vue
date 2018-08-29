@@ -79,7 +79,7 @@
         ],
         address: [
           {label: 'address_type', data: 'address_type'},
-          {label: 'value', data: null}
+          {label: 'address', data: null}
         ],
         engagement: [
           {label: 'person', data: 'person'},
@@ -104,7 +104,7 @@
           {label: 'responsibility', data: 'responsibility'},
           {label: 'manager_type', data: 'manager_type'},
           {label: 'manager_level', data: 'manager_level'},
-          {label: 'manager_address_type', data: 'address_type'},
+          {label: 'address_type', data: 'address_type'},
           {label: 'address', data: 'address'}
         ],
         components: {
