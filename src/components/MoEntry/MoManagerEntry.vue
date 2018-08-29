@@ -7,18 +7,17 @@
         class="col unit-manager"
         required
       />
-      <mo-address-picker class="col address-manager" v-model="entry.address" :org-unit="entry.org_unit"/>
     </div>
 
       <mo-add-many
         class="address-manager"
-        v-model="entry.manager_address_type"
-        :entry-component="managerAddressPicker" 
-        label="Lederadressetype" 
+        :entry-component="managerAddressPicker"
+        v-model="entry.address"
+        label="Lederadressetype"
         has-initial-entry 
         small-buttons
       />
-{{entry}}
+
     <div class="form-row select-manager">
       <mo-facet-picker 
         facet="manager_type" 
@@ -86,6 +85,7 @@ export default {
         template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
       }
     },
+
     managerAddressPicker () {
       return {
         components: { MoManagerAddressPicker },

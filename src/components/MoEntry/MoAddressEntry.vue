@@ -36,7 +36,6 @@
   </div>
 </template>
 
-
 <script>
 import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
