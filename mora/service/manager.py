@@ -33,7 +33,7 @@ def create_manager(employee_uuid, req):
     org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
     org_uuid = c.organisationenhed.get(
         org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    address_obj = common.checked_get(req, keys.ADDRESS, {})
+    address_objs = common.checked_get(req, keys.ADDRESS, [])
     manager_type_uuid = common.get_mapping_uuid(req, keys.MANAGER_TYPE)
     manager_level_uuid = common.get_mapping_uuid(req, keys.MANAGER_LEVEL)
 
@@ -75,9 +75,7 @@ def create_manager(employee_uuid, req):
         tilknyttedeenheder=[org_unit_uuid],
         funktionstype=manager_type_uuid,
         opgaver=opgaver,
-        adresser=[
-            address.get_relation_for(address_obj),
-        ] if address_obj else None,
+        adresser=[address.get_relation_for(addr) for addr in address_objs],
     )
 
     c.organisationfunktion.create(manager)
@@ -147,9 +145,7 @@ def edit_manager(employee_uuid, req):
             },
         ))
 
-    if data.get(keys.ADDRESS):
-        address_obj = data.get(keys.ADDRESS) or original_data[keys.ADDRESS]
-
+    for address_obj in common.checked_get(data, keys.ADDRESS, []):
         update_fields.append((
             mapping.SINGLE_ADDRESS_FIELD,
             address.get_relation_for(address_obj),

@@ -38,7 +38,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                'address': {
+                'address': [{
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
@@ -50,7 +50,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
-                },
+                }],
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 }],
@@ -199,7 +199,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': {
+                'address': [{
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
@@ -211,7 +211,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -401,7 +401,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': None,
+                'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -555,7 +555,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': None,
+                'address': [],
                 'manager_level': None,
                 'manager_type': None,
                 'org_unit': {
@@ -607,7 +607,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                'address': {
+                'address': [{
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
@@ -619,7 +619,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
-                },
+                }],
                 "responsibility": [
                     {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
                     {'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"},
@@ -779,7 +779,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': {
+                'address': [{
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
@@ -791,7 +791,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -1044,7 +1044,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [{
-                'address': {
+                'address': [{
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
                     'urn': 'urn:mailto:ceo@example.com',
@@ -1055,7 +1055,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Email',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
@@ -1102,7 +1102,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': {
+                'address': [{
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
                     'urn': 'urn:mailto:ceo@example.com',
@@ -1113,7 +1113,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Email',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': '20304060',
                     'name': 'Telefonnummer',
@@ -1184,7 +1184,7 @@ class Tests(util.LoRATestCase):
                 },
             },
             "data": {
-                "address": {
+                "address": [{
                     "address_type": {
                         'example': '<UUID>',
                         'name': 'Adresse',
@@ -1193,7 +1193,7 @@ class Tests(util.LoRATestCase):
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-                },
+                }],
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
@@ -1400,7 +1400,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': {
+                'address': [{
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
@@ -1412,7 +1412,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': '20304060',
                     'name': 'Telefonnummer',
@@ -1768,7 +1768,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [{
-                'address': {
+                'address': [{
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
                     'urn': 'urn:mailto:ceo@example.com',
@@ -1779,7 +1779,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Email',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
@@ -1948,7 +1948,7 @@ class Tests(util.LoRATestCase):
         }
 
         expected_mora = [{
-            'address': {
+            'address': [{
                 'address_type': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -1958,7 +1958,7 @@ class Tests(util.LoRATestCase):
                 },
                 'href': 'mailto:ceo@example.com',
                 'name': 'ceo@example.com',
-                'urn': 'urn:mailto:ceo@example.com'},
+                'urn': 'urn:mailto:ceo@example.com'}],
             'manager_level': {'example': None,
                               'name': 'Institut',
                               'scope': None,
@@ -2148,7 +2148,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [
                 {
-                    'address': {
+                    'address': [{
                         'address_type': {
                             'example': 'test@example.com',
                             'name': 'Emailadresse',
@@ -2159,7 +2159,7 @@ class Tests(util.LoRATestCase):
                         'href': 'mailto:ceo@example.com',
                         'name': 'ceo@example.com',
                         'urn': 'urn:mailto:ceo@example.com',
-                    },
+                    }],
                     'manager_level': {
                         'example': None,
                         'name': 'Institut',

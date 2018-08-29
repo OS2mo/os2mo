@@ -55,9 +55,15 @@
         let contents = this.column ? this.value[this.column] : this.value
 
         if (this.column === 'address_type' && this.value) {
-          contents = this.value['address']
-            ? this.value['address'][this.column]
-            : this.value['address_type']
+          let address = this.value['address']
+
+          if (address instanceof Array) {
+            contents = address.map(a => a['address_type'])
+          } else if (address && address[this.column]) {
+            contents = address[this.column]
+          } else {
+            contents = this.value['address_type']
+          }
         }
 
         if (!contents) {
