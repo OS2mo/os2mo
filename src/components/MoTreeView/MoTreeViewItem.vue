@@ -120,6 +120,7 @@
     cursor: pointer;
     list-style-type: none;
     display: block;
+    white-space: nowrap;
   }
   .nav-link {
     display: inline-block;

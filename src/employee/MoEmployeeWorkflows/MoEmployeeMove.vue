@@ -10,14 +10,14 @@
     @hidden="resetData"
   >
   <form @submit.stop.prevent="moveEmployee">
-    <mo-employee-picker v-model="employee" required/>
+    <mo-employee-picker class="search-employee" v-model="employee" required/>
 
     <div class="form-row">
-      <mo-engagement-picker v-model="original" :employee="employee" required/>
+      <mo-engagement-picker class="mt-3" v-model="original" :employee="employee" required/>
     </div>
 
     <div class="form-row">
-      <mo-organisation-unit-search
+      <mo-organisation-unit-picker
         :label="$t('input_fields.move_to')" 
         class="col" 
         v-model="move.data.org_unit"
@@ -27,11 +27,12 @@
 
     <div class="form-row">
       <mo-date-picker 
-        class="col"
+        class="col from-date"
         :label="$t('input_fields.move_date')" 
         v-model="move.data.validity.from"
         :valid-dates="validDates"
-        required/>
+        required
+      />
     </div>
 
     <mo-confirm-checkbox
@@ -57,7 +58,7 @@
 <script>
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
@@ -69,7 +70,7 @@
     },
     components: {
       MoDatePicker,
-      MoOrganisationUnitSearch,
+      MoOrganisationUnitPicker,
       MoEngagementPicker,
       MoEmployeePicker,
       ButtonSubmit,

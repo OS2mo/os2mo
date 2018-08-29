@@ -1010,18 +1010,24 @@ def create_employee():
     userid = common.get_uuid(req, required=False)
 
     try:
-        valid_from = util.get_cpr_birthdate(cpr)
-    except ValueError:
-        valid_from = util.NEGATIVE_INFINITY
+        valid_from = \
+            util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
+    except ValueError as exc:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CPR_NOT_VALID,
+            cpr=cpr,
+            cause=exc,
+        )
 
-    bruger = c.bruger.fetch(
+    userids = c.bruger.fetch(
         tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
         tilhoerer=org_uuid
     )
-    if bruger:
+
+    if userids and userid not in userids:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_EXISTING_CPR,
-            cpr=cpr
+            cpr=cpr,
         )
 
     valid_to = util.POSITIVE_INFINITY

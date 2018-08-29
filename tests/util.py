@@ -88,14 +88,35 @@ def import_fixture(fixture_name):
         r.raise_for_status()
 
 
-def load_sample_structures(*, verbose=False, minimal=False, check=False):
+def load_sample_structures(*, verbose=False, minimal=False, check=False,
+                           delete=False):
     '''Inject our test data into LoRA.
 
     '''
+    orgid = '456362c4-0ee4-4e5e-a72c-751239745e62'
+
+    if delete:
+        c = lora.Connector()
+
+        print('deleting', c.organisation.path, orgid, file=sys.stderr)
+        c.organisation.delete(orgid)
+
+        for scope, rel in (
+            (c.facet, 'ansvarlig'),
+            (c.klasse, 'ansvarlig'),
+            (c.organisationenhed, 'tilhoerer'),
+            (c.organisationfunktion, 'tilknyttedeorganisationer'),
+            (c.bruger, 'tilhoerer'),
+            (c.itsystem, 'tilhoerer'),
+        ):
+            for objid in scope.fetch(**{rel: orgid}):
+                print('deleting', scope.path, objid, file=sys.stderr)
+                scope.delete(objid)
+
     fixtures = [(
         'organisation/organisation',
         'create_organisation_AU.json',
-        '456362c4-0ee4-4e5e-a72c-751239745e62',
+        orgid,
     )]
 
     units = {
@@ -213,6 +234,19 @@ def override_settings(**overrides):
 
 def override_lora_url(lora_url='http://mox/'):
     return override_settings(LORA_URL=lora_url)
+
+
+@contextlib.contextmanager
+def override_config(**overrides):
+    originals = {}
+
+    for k, v in overrides.items():
+        originals[k] = app.app.config[k]
+        app.app.config[k] = v
+
+    yield
+
+    app.app.config.update(overrides)
 
 
 class mock(requests_mock.Mocker):

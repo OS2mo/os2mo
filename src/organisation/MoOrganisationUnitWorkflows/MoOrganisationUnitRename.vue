@@ -11,7 +11,7 @@
   >
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
-        <mo-organisation-unit-search 
+        <mo-organisation-unit-picker
           label="Enhed" 
           class="col"
           v-model="original"
@@ -41,7 +41,7 @@
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoInput from '@/components/atoms/MoInput'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import { mapGetters } from 'vuex'
@@ -52,7 +52,7 @@
     },
     components: {
       MoDatePickerRange,
-      MoOrganisationUnitSearch,
+      MoOrganisationUnitPicker,
       MoInput,
       ButtonSubmit
     },

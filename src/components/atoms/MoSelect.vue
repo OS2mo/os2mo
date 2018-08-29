@@ -1,6 +1,7 @@
 <template>
   <div class="form-group col">
     <label :for="nameId">{{label}}</label>
+    
     <select 
       :name="nameId"
       :id="nameId"
@@ -16,6 +17,7 @@
           {{o.name}}
       </option>
     </select>
+    
     <span v-show="errors.has(nameId)" class="text-danger">
       {{ errors.first(nameId) }}
     </span>

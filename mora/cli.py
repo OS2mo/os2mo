@@ -33,6 +33,7 @@ import requests
 import urllib3
 
 from . import auth
+from . import exceptions
 from . import lora
 from . import settings
 from . import tokens
@@ -42,7 +43,33 @@ basedir = os.path.dirname(__file__)
 topdir = os.path.dirname(basedir)
 
 
-group = flask.cli.FlaskGroup('mora', help=__doc__)
+class AppGroup(flask.cli.FlaskGroup):
+    __context_settings = {
+        'help_option_names': ['-h', '--help']
+    }
+
+    def command(self, *args, **kwargs):
+        kwargs.setdefault('context_settings', self.__context_settings)
+
+        return super().command(*args, **kwargs)
+
+    def group(self, *args, **kwargs):
+        kwargs.setdefault('context_settings', self.__context_settings)
+
+        return super().group(*args, **kwargs)
+
+
+group = AppGroup(
+    'mora', help=__doc__,
+)
+
+
+class Exit(click.ClickException):
+    def __init__(self, exit_code: int=1):
+        self.exit_code = exit_code
+
+    def show(self):
+        pass
 
 
 def requires_auth(func):
@@ -53,7 +80,9 @@ def requires_auth(func):
     @click.option('--insecure', '-k', is_flag=True,
                   help="disable SSL/TLS security checks")
     def wrapper(*args, **options):
-        if options.pop('insecure'):
+        insecure = options.pop('insecure')
+
+        if insecure:
             warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
 
             lora.session.verify = False
@@ -73,18 +102,24 @@ def requires_auth(func):
             assertion = tokens.get_token(
                 options.pop('user'),
                 options.pop('password'),
+                insecure=insecure,
             )
 
             lora.session.auth = auth.SAMLAuth(assertion)
 
             return func(*args, **options)
         except urllib3.exceptions.HTTPWarning as e:
-            print(e)
+            if flask.current_app.debug:
+                traceback.print_exc()
+            else:
+                print(e)
             print('or use -k/--insecure to suppress this warning')
             raise click.Abort()
 
-        except PermissionError as e:
-            print('Authentication failed:', e)
+        except exceptions.HTTPException as exc:
+            click.secho('Authentication failed! {}'.format(exc),
+                        fg='red', bold=True)
+            click.echo(json.dumps(exc.body, indent=2))
             raise click.Abort()
 
     return functools.update_wrapper(wrapper, func)
@@ -248,12 +283,15 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
     try:
         runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
-        runner.run(suite)
+        result = runner.run(suite)
 
     except Exception:
         if verbosity > 1:
             traceback.print_exc()
         raise
+
+    if not result.wasSuccessful():
+        raise Exit()
 
 
 @group.command('auth')
@@ -319,15 +357,20 @@ def auth_(**options):
 @requires_auth
 def get(paths):
     for path in paths:
-        print(path)
+        click.secho(path, bold=True)
 
-        for obj in lora.fetch(path) or [None]:
-            if isinstance(obj, str):
-                print(obj)
-                obj = lora.get(path.split('?')[0], obj)
+        try:
+            for obj in lora.fetch(path) or [None]:
+                if isinstance(obj, str):
+                    click.echo(obj)
+                    obj = lora.get(path.split('?')[0], obj)
 
-            json.dump(obj, sys.stdout, indent=4)
-            sys.stdout.write('\n')
+                json.dump(obj, sys.stdout, indent=4)
+                sys.stdout.write('\n')
+
+        except exceptions.HTTPException as exc:
+            click.secho('ERROR: {}'.format(exc), fg='red', bold=True)
+            json.dump(exc.body, sys.stdout, indent=2)
 
 
 @group.command()
@@ -360,6 +403,8 @@ def update(path, input):
 @click.option('--exact', '-e', is_flag=True,
               help="don't calculate missing values")
 @click.option('--delimiter', '-d', default=None, type=str)
+@click.option('--charset', '-c', default=None, type=str,
+              help='input file encoding')
 @requires_auth
 def import_file(name, **kwargs):
     '''
@@ -420,6 +465,8 @@ def sheetconvert(sheet, quiet, source, destination):
 @click.option('--check', '-c', is_flag=True,
               help=('check if import would overwrite any existing '
                     'objects'))
+@click.option('--delete', '-d', is_flag=True,
+              help=('empty and delete organisation first'))
 @requires_auth
 def load_fixtures(**kwargs):
     '''

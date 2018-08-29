@@ -1,7 +1,7 @@
-let moment = require('moment')
-
 import { Selector } from 'testcafe'
 import { baseURL } from './support'
+
+let moment = require('moment')
 
 fixture('Organisation test')
   .page(`${baseURL}/organisation/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4`)
@@ -14,10 +14,12 @@ const unitOption = unitSelect.find('option')
 const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
-const parentInput = dialog.find('.v-autocomplete[data-vv-as="Enhed"]')
-const parentItem = parentInput.find('.v-autocomplete-list-item label')
+const parentInput = dialog.find('input[data-vv-as="Enhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
+
+// const newDate = dialog.find('.btn-link')
+// const newDateInput = dialog.find('.address-date input.form-control')
 
 test('Workflow: create unit', async t => {
   let today = moment()
@@ -42,12 +44,19 @@ test('Workflow: create unit', async t => {
   // fail, rather than merely failing at form submit.
 
   await t
+    .setTestSpeed(0.8)
     .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
     .click('.btn-unit-create')
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Ballerup Fredagsbar')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Ballerup VM 2018')
+
+    .click(unitSelect)
+    .click(unitOption.withText('Supportcenter'))
+
+    .click(parentInput)
+    .click(dialog.find('li .item .link-color'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -56,21 +65,19 @@ test('Workflow: create unit', async t => {
            .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
-    .click(unitSelect)
-    .click(unitOption.withText('Supportcenter'))
-
-    .click(parentInput)
-    .typeText(parentInput.find('input'), 'Bib')
-    .expect(parentItem.withText('Ballerup Bibliotek').visible).ok()
-    .pressKey('down enter')
-    .expect(parentInput.find('input').value).eql('Ballerup Bibliotek')
-
     .click(addressInput)
     .typeText(addressInput.find('input'), 'Hold-An')
     .expect(addressItem.withText('Hold-An Vej').visible).ok()
     .pressKey('down enter')
-
     .expect(addressInput.find('input').value).contains('Hold-An Vej')
+
+    // .click(newDate)
+    // .click(newDateInput)
+    // .hover(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
+    //        .withText(today.date().toString()))
+    // .click(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
+    //        .withText(today.date().toString()))
+    // .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
 
     .typeText(dialog.find('input[data-vv-as="Telefonnummer"]'), '44772000')
 
@@ -80,4 +87,3 @@ test('Workflow: create unit', async t => {
 
   // TODO: verify that the unit was actually created, somehow?
 })
-

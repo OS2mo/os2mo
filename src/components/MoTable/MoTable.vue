@@ -2,7 +2,15 @@
   <div>
     <mo-loader v-show="isLoading"/>
     <div v-show="!isLoading" class="scroll">
-    <span v-if="!contentAvailable">Intet at vise</span>
+    <table v-if="!contentAvailable" class="table">
+      <tbody>
+      <tr>
+        <td>
+          <span>Intet at vise</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
     <b-form-checkbox-group v-model="selected">
     <table v-if="contentAvailable" class="table table-striped">
       <thead>
@@ -26,7 +34,7 @@
       <tbody>
         <tr v-for="(c, index) in content" :key="index">
           <td v-if="multiSelect">
-            <b-form-checkbox :value="c"/>
+            <b-form-checkbox class="checkbox-employee" data-vv-as="checkbox" :value="c"/>
           </td>
           <td v-for="(col, index) in columns" :key="index">
             <mo-link :value="c" :column="col.data" :field="col.field"/>

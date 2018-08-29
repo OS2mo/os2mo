@@ -15,7 +15,6 @@ import sys
 import uuid
 
 import click
-import grequests
 import pyexcel
 
 from . import processors
@@ -772,17 +771,6 @@ def run(target, sheets, dry_run, verbose, jobs, failfast,
 
         return
 
-    requests = (
-        grequests.request(
-            # check means that we always get GET anything
-            method if not check else 'GET',
-            target + path.rstrip('/'),
-            session=lora.session,
-            json=obj,
-        )
-        for method, path, obj in sheetlines
-    )
-
     def fail(r, exc):
         if verbose:
             print(r.url)
@@ -790,10 +778,38 @@ def run(target, sheets, dry_run, verbose, jobs, failfast,
         if failfast:
             raise exc
 
+    # only use grequests for parallel workloads -- and import it
+    # lazily to avoid deadlocks caused by its horrible monkey patches
+    # to builtins
+    if jobs > 1:  # pragma: no cover
+        import grequests
+
+        responses = grequests.imap(
+            (
+                grequests.request(
+                    method if not check else 'GET',
+                    target + path.rstrip('/'),
+                    json=obj,
+                    session=lora.session,
+                )
+                for method, path, obj in sheetlines
+            ),
+            size=jobs,
+            exception_handler=fail,
+        )
+    else:
+        responses = (
+            lora.session.request(
+                method if not check else 'GET',
+                target + path.rstrip('/'),
+                json=obj,
+            )
+            for method, path, obj in sheetlines
+        )
+
     total = 0
 
-    for r in grequests.imap(requests, size=jobs, exception_handler=fail):
-
+    for r in responses:
         if verbose:
             print(r.url)
 

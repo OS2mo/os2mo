@@ -28,7 +28,11 @@
         </span>
       </div>
     </div>
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
+    <mo-date-picker-range
+      class="address-date"
+      v-model="entry.validity" 
+      :initially-hidden="validityHidden"
+    />
   </div>
 </template>
 

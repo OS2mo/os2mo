@@ -118,6 +118,7 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     if not org_unit:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=org_unit_uuid,
         )
 
     gyldighed_key = "organisationenhedgyldighed"
@@ -127,6 +128,8 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
+            wanted_valid_from=util.to_iso_time(valid_from),
+            wanted_valid_to=util.to_iso_time(valid_to),
             **_get_active_validity(org_unit),
         )
 

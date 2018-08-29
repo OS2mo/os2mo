@@ -13,7 +13,7 @@
 
     <div class="form-row">
       <div class="col">
-        <mo-organisation-unit-search
+        <mo-organisation-unit-picker
           v-model="original" 
           :label="$t('input_fields.choose_unit')"
           :date="move.data.validity.from"
@@ -32,7 +32,8 @@
       </div>
     </div>
 
-    <mo-organisation-unit-search 
+    <mo-organisation-unit-picker
+      class="parentUnit"
       v-model="move.data.parent" 
       :label="$t('input_fields.select_new_super_unit')"
       :date="move.data.validity.from"
@@ -40,7 +41,8 @@
     />
     
     <div class="form-row">
-      <mo-date-picker 
+      <mo-date-picker
+      class="moveDate"
       :label="$t('input_fields.move_date')"
       v-model="move.data.validity.from"
       required
@@ -60,7 +62,7 @@
 
 <script>
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoOrganisationUnitSearch from '@/components/MoOrganisationUnitSearch/MoOrganisationUnitSearch'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import '@/filters/GetProperty'
@@ -70,7 +72,7 @@
       validator: 'new'
     },
     components: {
-      MoOrganisationUnitSearch,
+      MoOrganisationUnitPicker,
       MoDatePicker,
       ButtonSubmit
     },

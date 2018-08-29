@@ -1,6 +1,10 @@
 <template>
-  <div class="input-group alert" :class="errors.has('cpr-result') ? 'alert-warning' : 'alert-success'" v-show="showAlert">
-    <input :name="nameId" type="checkbox" v-validate="'required'" v-model="cprApproved">
+  <div 
+    class="input-group alert" 
+    :class="errors.has('cpr-result') ? 'alert-warning' : 'alert-success'" 
+    v-show="showAlert"
+  >
+    <input data-vv-as="checkbox" :name="nameId" type="checkbox" v-validate="'required'" v-model="cprApproved">
     <h5>{{value.name}}</h5>
   </div>
 </template>

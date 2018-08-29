@@ -1,6 +1,7 @@
 <template>
   <div>
     <label v-if="!noLabel">{{label}}</label>
+    
     <div class="input-group">
       <input 
         :name="nameId" 

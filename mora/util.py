@@ -9,6 +9,7 @@
 import collections
 import datetime
 import functools
+import io
 import itertools
 import json
 import marshal
@@ -17,6 +18,7 @@ import re
 import sys
 import tempfile
 import typing
+import urllib.parse
 import uuid
 
 import flask
@@ -28,6 +30,8 @@ from . import exceptions
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
+
+_sentinel = object()
 
 # timezone-aware versions of min/max
 POSITIVE_INFINITY = datetime.datetime.max.replace(
@@ -60,7 +64,7 @@ def unparsedate(d: datetime.date) -> str:
     return d.strftime('%d-%m-%Y')
 
 
-def parsedatetime(s: str) -> datetime.datetime:
+def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
     if isinstance(s, datetime.date):
         dt = s
 
@@ -95,10 +99,16 @@ def parsedatetime(s: str) -> datetime.datetime:
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
     except ValueError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'cannot parse {!r}'.format(s)
-        )
+        if default is not _sentinel:
+            return default
+        else:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'cannot parse {!r}'.format(s)
+            )
+
+    if dt.date() == POSITIVE_INFINITY.date():
+        return POSITIVE_INFINITY
 
     return dt
 
@@ -377,3 +387,33 @@ def cached(func):
         wrapper.cache = {}
 
     return wrapper
+
+
+URN_SAFE = frozenset(b'abcdefghijklmnopqrstuvwxyz'
+                     b'0123456789'
+                     b'+')
+
+
+def urnquote(s):
+    '''Quote the given string so that it may safely pass through
+    case-insensitive URN handling.
+
+    Strictly speaking, the resulting string is not valid for a URN, as
+    they may not contain anything other than colon, letters and
+    digits. We add '+' and '%' to the mix so that we can roundtrip
+    arbitrary text. Meh.
+
+    '''
+
+    with io.StringIO('w') as buf:
+        for character in s.encode('utf-8'):
+            if character in URN_SAFE:
+                buf.write(chr(character))
+            else:
+                buf.write('%{:02x}'.format(character))
+
+        return buf.getvalue()
+
+
+# provide an alias for consistency
+urnunquote = urllib.parse.unquote
