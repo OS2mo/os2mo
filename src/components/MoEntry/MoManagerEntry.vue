@@ -51,6 +51,7 @@ import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
 export default {
   components: {
@@ -59,7 +60,8 @@ export default {
     MoFacetPicker,
     MoAddressPicker,
     MoAddMany,
-    MoManagerAddressPicker
+    MoManagerAddressPicker,
+    MoAddressEntry
   },
   props: {
     value: Object,
@@ -88,12 +90,12 @@ export default {
 
     managerAddressPicker () {
       return {
-        components: { MoManagerAddressPicker },
+        components: { MoAddressEntry },
         props: { value: Object },
         data () { return { val: null } },
         watch: { val (newVal) { this.$emit('input', newVal) } },
         created () { this.val = this.value },
-        template: `<mo-manager-address-picker v-model="val" required/>`
+        template: `<mo-address-entry facet-picker facet="manager_address_type" v-model="val" required/>`
       }
     }
   },
