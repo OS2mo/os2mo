@@ -255,7 +255,7 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
         if not original:
-            raise exceptions.HTTPException(ErrorCodes.E_USER_NOT_FOUND)
+            raise exceptions.HTTPException(ErrorCodes.E_NOT_FOUND)
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 

@@ -68,8 +68,8 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'error': True,
-                'error_key': 'E_USER_NOT_FOUND',
-                'description': 'User not found.',
+                'error_key': 'E_NOT_FOUND',
+                'description': 'Not found.',
                 'status': 404,
             },
             json=[
