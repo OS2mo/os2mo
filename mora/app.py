@@ -8,14 +8,16 @@
 
 import os
 
-import werkzeug
 import flask
+import werkzeug
+import flask_session
 
-from . import auth
 from . import cli
 from . import exceptions
 from . import service
+from . import settings
 from . import util
+from .auth import base, sso
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -24,7 +26,18 @@ distdir = os.path.join(basedir, '..', 'dist')
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 app.cli = cli.group
 
-app.register_blueprint(auth.blueprint)
+# Session setup
+app.config.update({
+    'SESSION_TYPE': 'filesystem',
+    'SESSION_PERMANENT': False,
+    'SESSION_FILE_DIR': settings.SESSION_FILE_DIR
+})
+flask_session.Session(app)
+
+app.register_blueprint(base.blueprint)
+
+if settings.AUTH == 'sso':
+    sso.init_app(app)
 
 for blueprint in service.blueprints:
     app.register_blueprint(blueprint)

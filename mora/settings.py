@@ -19,10 +19,19 @@ DEFAULT_PAGE_SIZE = 2000
 LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
 
+AUTH = 'token'  # 'sso' or 'token'
+
+SESSION_FILE_DIR = '/tmp'
+
+# Token auth config
 SAML_IDP_TYPE = 'wso2'
 SAML_IDP_URL = None
 SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = False
+
+# SSO config
+SSO_SAML_METADATA_URL = '/url/to/sso/metadata'
+SSO_SAML_USERNAME_ATTR = ''
 
 SP_SERVICE_UUID = ""
 SP_SERVICE_AGREEMENT_UUID = ""

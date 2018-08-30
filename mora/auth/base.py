@@ -20,9 +20,10 @@ import os
 import flask
 import requests.auth
 
-from . import exceptions
 from . import tokens
-from . import util
+from .. import exceptions
+from .. import settings
+from .. import util
 
 __all__ = (
     'SAMLAuth',
@@ -30,7 +31,7 @@ __all__ = (
     'logout',
 )
 
-COOKIE_NAME = 'MO-Token'
+TOKEN_KEY = 'MO-Token'
 
 basedir = os.path.dirname(__file__)
 
@@ -45,8 +46,8 @@ class SAMLAuth(requests.auth.AuthBase):
     def __call__(self, r):
         if self.assertion:
             assertion = self.assertion
-        elif flask.request:
-            assertion = flask.request.cookies.get(COOKIE_NAME)
+        elif flask.session:
+            assertion = flask.session.get(TOKEN_KEY)
         else:
             assertion = None
 
@@ -54,6 +55,20 @@ class SAMLAuth(requests.auth.AuthBase):
             r.headers['Authorization'] = assertion
 
         return r
+
+
+@blueprint.route('/user', methods=['GET'])
+def get_user():
+    '''Get the currently logged in user
+
+    .. :quickref: Authentication; Get user
+
+    :return: The username of the user who is currently logged in.
+    '''
+
+    username = flask.session.get('username')
+
+    return flask.jsonify(username)
 
 
 @blueprint.route('/user/login', methods=['POST'])
@@ -89,25 +104,19 @@ def login():
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_CONNECTION_FAILED)
 
-    resp = flask.jsonify({
-        "user": username,
-    })
+    flask.session['username'] = username
 
     if assertion:
-        resp.set_cookie(
-            COOKIE_NAME, assertion,
-            secure=flask.request.is_secure,
-            httponly=True,
-        )
+        flask.session[TOKEN_KEY] = assertion
     else:
-        resp.delete_cookie(COOKIE_NAME)
+        flask.session.clear()
 
-    return resp
+    return flask.make_response()
 
 
-@blueprint.route('/user/logout', methods=['POST'])
+@blueprint.route('/logout', methods=['POST'])
 def logout():
-    '''Attempt to log out as the given user name.
+    '''Attempt to log out
 
     .. :quickref: Authentication; Log out
 
@@ -116,7 +125,20 @@ def logout():
     :statuscode 200: The logout succeeded --- which it almost always does.
     '''
 
-    response = flask.make_response()
-    response.delete_cookie(COOKIE_NAME)
+    flask.session.clear()
+    return flask.make_response()
 
-    return response
+
+@blueprint.route('/login', methods=['GET'])
+@util.restrictargs('redirect')
+def get_login():
+    """
+    Direct user towards appropriate login page, given the chosen auth method
+    """
+    redirect = flask.request.args.get('redirect')
+    if settings.AUTH:
+        if settings.AUTH == 'sso':
+            return flask.redirect(flask.url_for('login', next=redirect))
+        elif settings.AUTH == 'token':
+            return flask.redirect('/login?redirect={}'.format(redirect))
+    return flask.redirect('/')
