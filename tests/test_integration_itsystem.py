@@ -534,6 +534,118 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(new_relations, edited['relationer'])
 
+    def test_create_unit_itsystem(self):
+        self.load_sample_structures()
+
+        unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        lora_obj = c.organisationenhed.get(unitid)
+
+        self.assertNotIn('tilknyttedeitsystemer', lora_obj['relationer'])
+
+        details = {
+            'address': True,
+            'association': False,
+            'engagement': False,
+            'it': False,
+            'leave': False,
+            'manager': False,
+            'org_unit': True,
+            'role': False,
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/'.format(unitid),
+            details,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=present'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=future'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "it",
+                    "itsystem": {
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    },
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01",
+                        "to": None,
+                    },
+                },
+            ])
+
+        details['it'] = True
+
+        lora_obj['livscykluskode'] = 'Rettet'
+        lora_obj['note'] = 'Tilføj IT-system'
+        lora_obj['relationer']['tilknyttedeitsystemer'] = [
+            {
+                'objekttype': 'itsystem',
+                'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                'virkning': {
+                    'from': '2016-01-01 '
+                    '00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                },
+            },
+        ]
+
+        self.assertRegistrationsEqual(
+            lora_obj,
+            c.organisationenhed.get(unitid),
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/'.format(unitid),
+            details,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=present'.format(unitid),
+            [
+                {
+                    'name': 'Active Directory',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=future'.format(unitid),
+            [],
+        )
+
     def test_edit_itsystem_no_overwrite(self):
         self.load_sample_structures()
 
@@ -1206,3 +1318,23 @@ class Reading(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/details/it',
             [],
         )
+
+    def test_reading_unit(self):
+        self.load_sample_structures()
+
+        for unitid in (
+            '2874e1dc-85e6-4269-823a-e1125484dfd3',
+            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            'b688513d-11f7-4efc-b679-ab082a2055d0',
+            '85715fc7-925d-401b-822d-467eb4b163b6',
+            'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+            '04c78fc2-72d2-4d02-b55f-807af19eac48',
+        ):
+            for validity in ('past', 'present', 'future'):
+                with self.subTest('{} - {}'.format(unitid, validity)):
+                    self.assertRequestResponse(
+                        '/service/ou/{}/details/it?validity={}'.format(
+                            unitid, validity,
+                        ),
+                        [],
+                    )

@@ -1434,6 +1434,7 @@ class Writing(util.LoRATestCase):
                 'address': True,
                 'association': False,
                 'engagement': False,
+                'it': False,
                 'leave': False,
                 'manager': False,
                 'org_unit': True,

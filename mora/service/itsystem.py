@@ -90,7 +90,6 @@ def list_it_systems(orgid: uuid.UUID):
 class ITSystems(common.AbstractRelationDetail):
     def has(self, reg):
         return (
-            self.scope.path == 'organisation/bruger' and
             reg and reg.get('relationer') and
             reg['relationer'].get('tilknyttedeitsystemer') and
             any(util.is_uuid(rel.get('uuid'))
@@ -168,9 +167,6 @@ class ITSystems(common.AbstractRelationDetail):
 
         '''
 
-        if self.scope.path != 'organisation/bruger':
-            raise werkzeug.exceptions.NotFound('no IT systems on units, yet!')
-
         c = self.scope.connector
 
         system_cache = common.cache(c.itsystem.get)
@@ -211,7 +207,7 @@ class ITSystems(common.AbstractRelationDetail):
                 itertools.chain.from_iterable(
                     itertools.starmap(
                         convert,
-                        c.bruger.get_effects(
+                        self.scope.get_effects(
                             id,
                             {
                                 'relationer': (
@@ -219,11 +215,13 @@ class ITSystems(common.AbstractRelationDetail):
                                 ),
                                 'tilstande': (
                                     'brugergyldighed',
+                                    'organisationenhedgyldighed',
                                 ),
                             },
                             {
                                 'attributter': (
                                     'brugeregenskaber',
+                                    'organisationenhedegenskaber',
                                 ),
                             },
                         ),
