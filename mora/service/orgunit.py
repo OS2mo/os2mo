@@ -25,6 +25,7 @@ import werkzeug
 from . import address
 from . import common
 from . import facet
+from . import itsystem
 from . import keys
 from . import mapping
 from . import org
@@ -166,6 +167,7 @@ class OrgUnit(common.AbstractRelationDetail):
 
 RELATION_TYPES = {
     'address': address.Addresses,
+    'it': itsystem.ITSystems,
     'org_unit': OrgUnit,
 }
 

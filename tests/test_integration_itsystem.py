@@ -68,8 +68,8 @@ class Writing(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/create',
             {
                 'error': True,
-                'error_key': 'E_USER_NOT_FOUND',
-                'description': 'User not found.',
+                'error_key': 'E_NOT_FOUND',
+                'description': 'Not found.',
                 'status': 404,
             },
             json=[
@@ -213,7 +213,9 @@ class Writing(util.LoRATestCase):
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "original": {
                         'name': 'Active Directory',
-                        'user_name': 'Fedtmule',
+                        'reference': None,
+                        'type': None,
+                        'user_key': 'AD',
                         # WRONG:
                         'uuid': '00000000-0000-0000-0000-000000000000',
                         "validity": {
@@ -245,7 +247,9 @@ class Writing(util.LoRATestCase):
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "original": {
                         'name': 'Active Directory',
-                        'user_name': 'Fedtmule',
+                        'reference': None,
+                        'type': None,
+                        'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
                             # WRONG:
@@ -277,7 +281,9 @@ class Writing(util.LoRATestCase):
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "original": {
                         'name': 'Active Directory',
-                        'user_name': 'Fedtmule',
+                        'reference': None,
+                        'type': None,
+                        'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
                             'from': '2001-02-14T00:00:00+01:00',
@@ -312,7 +318,9 @@ class Writing(util.LoRATestCase):
                     "type": "it",
                     "original": {
                         'name': 'Active Directory',
-                        'user_name': 'Fedtmule',
+                        'reference': None,
+                        'type': None,
+                        'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
                             'from': '1932-05-12T00:00:00+01:00',
@@ -327,7 +335,7 @@ class Writing(util.LoRATestCase):
             status_code=400,
         )
 
-    def test_create_itsystem(self):
+    def test_create_employee_itsystem(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -474,7 +482,9 @@ class Writing(util.LoRATestCase):
                 [
                     {
                         'name': 'Active Directory',
-                        'user_name': 'Anders And',
+                        'reference': None,
+                        'type': None,
+                        'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
                             'from': '2017-12-01T00:00:00+01:00',
@@ -524,6 +534,118 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(new_relations, edited['relationer'])
 
+    def test_create_unit_itsystem(self):
+        self.load_sample_structures()
+
+        unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        lora_obj = c.organisationenhed.get(unitid)
+
+        self.assertNotIn('tilknyttedeitsystemer', lora_obj['relationer'])
+
+        details = {
+            'address': True,
+            'association': False,
+            'engagement': False,
+            'it': False,
+            'leave': False,
+            'manager': False,
+            'org_unit': True,
+            'role': False,
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/'.format(unitid),
+            details,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=present'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=future'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "it",
+                    "itsystem": {
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    },
+                    "validity": {
+                        "from": "2016-01-01T00:00:00+01",
+                        "to": None,
+                    },
+                },
+            ])
+
+        details['it'] = True
+
+        lora_obj['livscykluskode'] = 'Rettet'
+        lora_obj['note'] = 'Tilføj IT-system'
+        lora_obj['relationer']['tilknyttedeitsystemer'] = [
+            {
+                'objekttype': 'itsystem',
+                'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                'virkning': {
+                    'from': '2016-01-01 '
+                    '00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                },
+            },
+        ]
+
+        self.assertRegistrationsEqual(
+            lora_obj,
+            c.organisationenhed.get(unitid),
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/'.format(unitid),
+            details,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=present'.format(unitid),
+            [
+                {
+                    'name': 'Active Directory',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
+                    'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                    'validity': {
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': None,
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=future'.format(unitid),
+            [],
+        )
+
     def test_edit_itsystem_no_overwrite(self):
         self.load_sample_structures()
 
@@ -563,14 +685,18 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
                   'from': '1932-05-12T00:00:00+01:00',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
                   'from': '2016-01-01T00:00:00+01:00',
@@ -586,7 +712,9 @@ class Writing(util.LoRATestCase):
                 "type": "it",
                 "original": {
                     'name': 'Active Directory',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
                         'from': '1932-05-12T00:00:00+01:00',
@@ -604,14 +732,18 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
                   'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               },
              {'name': 'Lokal Rammearkitektur',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
                   'from': '2016-01-01T00:00:00+01:00',
@@ -627,7 +759,9 @@ class Writing(util.LoRATestCase):
                 "type": "it",
                 "original": {
                     'name': 'Lokal Rammearkitektur',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     "validity": {
                         'from': '2016-01-01T00:00:00+01:00',
@@ -645,14 +779,18 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
                   'from': '1932-05-12T00:00:00+01:00',
                   'to': '2020-01-01T00:00:00+01:00'},
               },
              {'name': 'Lokal Rammearkitektur',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
                   'from': '2016-01-01T00:00:00+01:00',
@@ -668,7 +806,9 @@ class Writing(util.LoRATestCase):
                 "type": "it",
                 "original": {
                     'name': 'Lokal Rammearkitektur',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     "validity": {
                         'from': '2016-01-01T00:00:00+01:00',
@@ -689,7 +829,9 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'name': 'Active Directory',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
                         'from': '2016-01-01T00:00:00+01:00',
@@ -702,7 +844,9 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
                   'from': '1932-05-12T00:00:00+01:00',
@@ -722,7 +866,9 @@ class Writing(util.LoRATestCase):
                 "type": "it",
                 "original": {
                     'name': 'Active Directory',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
                         'from': '2016-01-01T00:00:00+01:00',
@@ -742,7 +888,9 @@ class Writing(util.LoRATestCase):
             [
                 {
                     'name': 'Active Directory',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
                         'from': '1932-05-12T00:00:00+01:00',
@@ -751,7 +899,9 @@ class Writing(util.LoRATestCase):
                 },
                 {
                     'name': 'Active Directory',
-                    'user_name': 'Fedtmule',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
                         'from': '2016-01-01T00:00:00+01:00',
@@ -760,11 +910,6 @@ class Writing(util.LoRATestCase):
                 },
             ],
         )
-
-
-@freezegun.freeze_time('2017-01-01', tz_offset=1)
-class Writing2(util.LoRATestCase):
-    maxDiff = None
 
     @freezegun.freeze_time('2018-03-22', tz_offset=1)
     def test_like_frontend(self):
@@ -794,8 +939,10 @@ class Writing2(util.LoRATestCase):
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
             [
                 {
-                    "name": "Lokal Rammearkitektur",
-                    "user_name": "Anders And",
+                    'name': 'Lokal Rammearkitektur',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
                         "from": "2018-03-01T01:00:00+01:00",
@@ -812,8 +959,10 @@ class Writing2(util.LoRATestCase):
                 "type": "it",
                 "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                 "original": {
-                    "name": "Lokal Rammearkitektur",
-                    "user_name": "Anders And",
+                    'name': 'Lokal Rammearkitektur',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
                         "from": "2018-03-01T01:00:00+01:00",
@@ -821,8 +970,10 @@ class Writing2(util.LoRATestCase):
                     }
                 },
                 "data": {
-                    "name": "Lokal Rammearkitektur",
-                    "user_name": "Anders And",
+                    'name': 'Lokal Rammearkitektur',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
                         "from": "2018-03-01T00:00:00.000Z",
@@ -840,8 +991,10 @@ class Writing2(util.LoRATestCase):
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
             [
                 {
-                    "name": "Lokal Rammearkitektur",
-                    "user_name": "Anders And",
+                    'name': 'Lokal Rammearkitektur',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
                         "from": "2018-03-01T01:00:00+01:00",
@@ -858,8 +1011,10 @@ class Writing2(util.LoRATestCase):
                 "type": "it",
                 "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                 "original": {
-                    "name": "Lokal Rammearkitektur",
-                    "user_name": "Anders And",
+                    'name': 'Lokal Rammearkitektur',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
                         "from": "2018-03-01T01:00:00+01:00",
@@ -867,8 +1022,10 @@ class Writing2(util.LoRATestCase):
                     }
                 },
                 "data": {
-                    "name": "Lokal Rammearkitektur",
-                    "user_name": "Anders And",
+                    'name': 'Lokal Rammearkitektur',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRa',
                     "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                     "validity": {
                         "from": "2018-03-01T00:00:00.000Z",
@@ -886,8 +1043,10 @@ class Writing2(util.LoRATestCase):
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
             [
                 {
-                    "name": "Active Directory",
-                    "user_name": "Anders And",
+                    'name': 'Active Directory',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                     "validity": {
                         "from": "2018-03-01T01:00:00+01:00",
@@ -912,87 +1071,121 @@ class Writing2(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/details/it?validity=past'.format(userid),
                 [{'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-07T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-07T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Lokal Rammearkitektur',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'LoRa',
                   'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                   'validity': {'from': '2018-03-08T00:00:00+01:00',
                                'to': '2018-03-09T00:00:00+01:00'}}],
@@ -1003,7 +1196,9 @@ class Writing2(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/details/it?validity=present'.format(userid),
                 [{'name': 'Active Directory',
-                  'user_name': 'Sanne Schäff',
+                  'reference': None,
+                  'type': None,
+                  'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-05T01:00:00+01:00',
                                'to': None}}],
@@ -1018,7 +1213,7 @@ class Writing2(util.LoRATestCase):
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):
-    def test_reading(self):
+    def test_reading_organisation(self):
         self.load_sample_structures()
 
         self.assertRequestResponse(
@@ -1040,17 +1235,24 @@ class Reading(util.LoRATestCase):
             ],
         )
 
+    def test_reading_employee(self):
+        self.load_sample_structures()
+
         self.assertRequestResponse(
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it',
             [{'name': 'Active Directory',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
                   'from': '1932-05-12T00:00:00+01:00',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
                   'from': '2016-01-01T00:00:00+01:00',
@@ -1075,7 +1277,9 @@ class Reading(util.LoRATestCase):
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
             '?at=2018-06-01',
             [{'name': 'Active Directory',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
                   'from': '1932-05-12T00:00:00+01:00',
@@ -1088,7 +1292,9 @@ class Reading(util.LoRATestCase):
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
             '?at=2018-06-01&validity=past',
             [{'name': 'Lokal Rammearkitektur',
-              'user_name': 'Fedtmule',
+              'reference': None,
+              'type': None,
+              'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
                   'from': '2016-01-01T00:00:00+01:00',
@@ -1112,3 +1318,23 @@ class Reading(util.LoRATestCase):
             '/service/e/00000000-0000-0000-0000-000000000000/details/it',
             [],
         )
+
+    def test_reading_unit(self):
+        self.load_sample_structures()
+
+        for unitid in (
+            '2874e1dc-85e6-4269-823a-e1125484dfd3',
+            '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            'b688513d-11f7-4efc-b679-ab082a2055d0',
+            '85715fc7-925d-401b-822d-467eb4b163b6',
+            'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+            '04c78fc2-72d2-4d02-b55f-807af19eac48',
+        ):
+            for validity in ('past', 'present', 'future'):
+                with self.subTest('{} - {}'.format(unitid, validity)):
+                    self.assertRequestResponse(
+                        '/service/ou/{}/details/it?validity={}'.format(
+                            unitid, validity,
+                        ),
+                        [],
+                    )
