@@ -22,7 +22,9 @@ class TestInvalidItSystem(util.TestCase):
             [
                 {
                     'name': 'Lokal Rammearkitektur',
-                    'user_name': 'Sune Skriver',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRA',
                     'uuid': '990255f7-44c7-4fec-9ef8-27fe73763afd',
                     'validity': {
                         'from': '2018-03-05T08:47:00+01:00', 'to': None,
@@ -30,7 +32,9 @@ class TestInvalidItSystem(util.TestCase):
                 },
                 {
                     'name': 'Active Directory',
-                    'user_name': 'Sune Skriver',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'AD',
                     'uuid': 'a7ecd46a-9d70-4170-bde9-9bf44cf8632b',
                     'validity': {
                         'from': '2018-03-14T08:58:00+01:00', 'to': None,
@@ -38,7 +42,9 @@ class TestInvalidItSystem(util.TestCase):
                 },
                 {
                     'name': 'Lokal Rammearkitektur',
-                    'user_name': 'Sune Skriver',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRA',
                     'uuid': '990255f7-44c7-4fec-9ef8-27fe73763afd',
                     'validity': {
                         'from': '2018-03-19T08:57:00+01:00', 'to': None,
@@ -46,7 +52,9 @@ class TestInvalidItSystem(util.TestCase):
                 },
                 {
                     'name': 'Lokal Rammearkitektur',
-                    'user_name': 'Sune Skriver',
+                    'reference': None,
+                    'type': None,
+                    'user_key': 'LoRA',
                     'uuid': '990255f7-44c7-4fec-9ef8-27fe73763afd',
                     'validity': {
                         'from': '2018-03-19T09:21:00+01:00', 'to': None,
