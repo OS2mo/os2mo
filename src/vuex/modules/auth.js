@@ -4,7 +4,7 @@ import Service from '@/api/HttpCommon'
 
 const state = {
   accessToken: sessionStorage.getItem('access_token') || '',
-  username: sessionStorage.getItem('username') || '',
+  username: null,
   status: ''
 }
 
@@ -26,40 +26,16 @@ const mutations = {
 }
 
 const actions = {
-  setAccessToken (state, token) {
-    if (token == null) return
-    sessionStorage.setItem('access_token', token)
-  },
-
   [AUTH_REQUEST]: ({commit}, user) => {
-    return new Promise((resolve, reject) => {
-      Service.post('/user/login', user)
-        .then(resp => {
-          const token = resp.data.token
-          const username = resp.data.user
-          sessionStorage.setItem('access_token', token)
-          sessionStorage.setItem('username', username)
-          commit(AUTH_SUCCESS, {token: token, username: username})
-          resolve(resp)
-        })
-        .catch(err => {
-          commit(AUTH_ERROR, err.response.data.error_key)
-          sessionStorage.removeItem(AUTH_REQUEST)
-          reject(err)
-        })
-    })
+    window.location.href = '/service/login?redirect=' + window.location
   },
 
   [AUTH_LOGOUT]: ({commit, dispatch}, user) => {
     return new Promise((resolve, reject) => {
-      Service.post('/user/logout', user)
-      commit(AUTH_LOGOUT)
-      sessionStorage.removeItem('access_token')
-      sessionStorage.removeItem('username')
-      resolve()
-      .then(response => {
-        window.location = '/login'
-      })
+      Service.post('/logout', user)
+        .then(response => {
+          resolve()
+        })
     })
   }
 }

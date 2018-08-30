@@ -5,6 +5,7 @@ pipeline {
 
   environment {
     BROWSER = 'chromium:headless'
+    VENV = "${env.WORKSPACE}/venv"
     NODE_ENV = 'testing'
     PYTEST_ADDOPTS = '--color=yes'
   }

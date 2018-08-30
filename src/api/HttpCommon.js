@@ -1,7 +1,7 @@
 import axios from 'axios'
 import store from '@/vuex/store'
 import {AUTH_LOGOUT} from '@/vuex/actions/auth'
-import router from '../router'
+import {AUTH_REQUEST} from "../vuex/actions/auth";
 
 /**
  * Defines the base url and headers for http calls
@@ -25,8 +25,7 @@ export default {
         console.warn('request failed', err)
 
         if (err.response.status === 401 || err.response.status === 403) {
-          return store.dispatch(AUTH_LOGOUT).then(() =>
-                                                  router.push({name: 'Login'}))
+          return store.dispatch(AUTH_REQUEST)
         }
 
         return new Promise(function (resolve, reject) {
