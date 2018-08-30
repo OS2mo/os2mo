@@ -13,5 +13,5 @@ test('Read IT System', async t => {
     .expect(VueSelector('mo-link').filter('.name').innerText)
     .contains('Lokal Rammearkitektur')
     .expect(VueSelector('mo-link').filter('.user_name').innerText)
-    .contains('Sanne Schäff')
+    .contains('—')
 })

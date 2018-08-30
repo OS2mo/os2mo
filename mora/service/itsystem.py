@@ -90,7 +90,6 @@ def list_it_systems(orgid: uuid.UUID):
 class ITSystems(common.AbstractRelationDetail):
     def has(self, reg):
         return (
-            self.scope.path == 'organisation/bruger' and
             reg and reg.get('relationer') and
             reg['relationer'].get('tilknyttedeitsystemer') and
             any(util.is_uuid(rel.get('uuid'))
@@ -124,8 +123,14 @@ class ITSystems(common.AbstractRelationDetail):
 
         :<jsonarr string name:
             The name of the IT system in question.
-        :<jsonarr string user_name:
-            The user name on the IT system, sort of.
+        :<jsonarr string user_key:
+            Short, unique key identifying the IT-system in question.
+        :<jsonarr string reference:
+            Optional string describing the elements of the IT system.
+        :<jsonarr string type:
+            Optional string describing the type of the IT system.
+        :<jsonarr string name:
+            The name of the IT system in question.
         :<jsonarr string uuid: Machine-friendly UUID.
         :<jsonarr string validity: The validity times of the object.
 
@@ -138,34 +143,38 @@ class ITSystems(common.AbstractRelationDetail):
           [
             {
               "name": "Lokal Rammearkitektur",
-              "user_name": "Fedtmule",
+              "reference": null,
+              "type": null,
+              "user_key": "LoRa",
               "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
               "validity": {
-                  "from": "2016-01-01T00:00:00+01:00",
-                  "to": "2018-01-01T00:00:00+01:00"
+                "from": "2016-01-01T00:00:00+01:00",
+                "to": "2018-01-01T00:00:00+01:00"
               },
             },
             {
               "name": "Active Directory",
-              "user_name": "Fedtmule",
+              "reference": null,
+              "type": null,
+              "user_key": "AD",
               "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
               "validity": {
-                  "from": "2002-02-14T00:00:00+01:00",
-                  "to": null
+                "from": "2002-02-14T00:00:00+01:00",
+                "to": null
               },
             }
           ]
 
         '''
 
-        if self.scope.path != 'organisation/bruger':
-            raise werkzeug.exceptions.NotFound('no IT systems on units, yet!')
-
         c = self.scope.connector
 
         system_cache = common.cache(c.itsystem.get)
 
         def convert(start, end, effect):
+            if not common.is_reg_valid(effect):
+                return
+
             rels = effect['relationer']
 
             for systemrel in rels.get('tilknyttedeitsystemer', []):
@@ -173,7 +182,6 @@ class ITSystems(common.AbstractRelationDetail):
                     continue
 
                 try:
-                    attrs = effect['attributter']['brugeregenskaber'][0]
                     systemid = systemrel['uuid']
 
                     system_attrs = (
@@ -186,8 +194,10 @@ class ITSystems(common.AbstractRelationDetail):
                 yield {
                     "uuid": systemid,
 
-                    "name": system_attrs['itsystemnavn'],
-                    "user_name": attrs['brugernavn'],
+                    "name": system_attrs.get('itsystemnavn'),
+                    "reference": system_attrs.get('konfigurationreference'),
+                    "type": system_attrs.get('itsystemtype'),
+                    "user_key": system_attrs.get('brugervendtnoegle'),
 
                     keys.VALIDITY: common.get_effect_validity(systemrel),
                 }
@@ -197,7 +207,7 @@ class ITSystems(common.AbstractRelationDetail):
                 itertools.chain.from_iterable(
                     itertools.starmap(
                         convert,
-                        c.bruger.get_effects(
+                        self.scope.get_effects(
                             id,
                             {
                                 'relationer': (
@@ -205,11 +215,13 @@ class ITSystems(common.AbstractRelationDetail):
                                 ),
                                 'tilstande': (
                                     'brugergyldighed',
+                                    'organisationenhedgyldighed',
                                 ),
                             },
                             {
                                 'attributter': (
                                     'brugeregenskaber',
+                                    'organisationenhedegenskaber',
                                 ),
                             },
                         ),
@@ -241,7 +253,7 @@ class ITSystems(common.AbstractRelationDetail):
         )
 
         if not original:
-            raise exceptions.HTTPException(ErrorCodes.E_USER_NOT_FOUND)
+            raise exceptions.HTTPException(ErrorCodes.E_NOT_FOUND)
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
