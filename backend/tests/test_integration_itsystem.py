@@ -214,7 +214,7 @@ class Writing(util.LoRATestCase):
                     "original": {
                         'name': 'Active Directory',
                         'reference': None,
-                        'type': None,
+                        'system_type': None,
                         'user_key': 'AD',
                         # WRONG:
                         'uuid': '00000000-0000-0000-0000-000000000000',
@@ -248,7 +248,7 @@ class Writing(util.LoRATestCase):
                     "original": {
                         'name': 'Active Directory',
                         'reference': None,
-                        'type': None,
+                        'system_type': None,
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
@@ -282,7 +282,7 @@ class Writing(util.LoRATestCase):
                     "original": {
                         'name': 'Active Directory',
                         'reference': None,
-                        'type': None,
+                        'system_type': None,
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
@@ -319,7 +319,7 @@ class Writing(util.LoRATestCase):
                     "original": {
                         'name': 'Active Directory',
                         'reference': None,
-                        'type': None,
+                        'system_type': None,
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
@@ -483,7 +483,7 @@ class Writing(util.LoRATestCase):
                     {
                         'name': 'Active Directory',
                         'reference': None,
-                        'type': None,
+                        'system_type': None,
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
@@ -630,7 +630,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     'validity': {
@@ -686,7 +686,7 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
@@ -695,7 +695,7 @@ class Writing(util.LoRATestCase):
               },
              {'name': 'Lokal Rammearkitektur',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
@@ -713,7 +713,7 @@ class Writing(util.LoRATestCase):
                 "original": {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
@@ -733,7 +733,7 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
@@ -742,7 +742,7 @@ class Writing(util.LoRATestCase):
               },
              {'name': 'Lokal Rammearkitektur',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
@@ -760,7 +760,7 @@ class Writing(util.LoRATestCase):
                 "original": {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     "validity": {
@@ -780,7 +780,7 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
@@ -789,7 +789,7 @@ class Writing(util.LoRATestCase):
               },
              {'name': 'Lokal Rammearkitektur',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
@@ -807,7 +807,7 @@ class Writing(util.LoRATestCase):
                 "original": {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     "validity": {
@@ -830,7 +830,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
@@ -845,7 +845,7 @@ class Writing(util.LoRATestCase):
             '/service/e/{}/details/it'.format(userid),
             [{'name': 'Active Directory',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
@@ -867,7 +867,7 @@ class Writing(util.LoRATestCase):
                 "original": {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
@@ -889,7 +889,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
@@ -900,7 +900,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
@@ -941,7 +941,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
@@ -961,7 +961,7 @@ class Writing(util.LoRATestCase):
                 "original": {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
@@ -992,7 +992,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
@@ -1012,7 +1012,7 @@ class Writing(util.LoRATestCase):
                 "original": {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
@@ -1023,7 +1023,7 @@ class Writing(util.LoRATestCase):
                 "data": {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                     "validity": {
@@ -1044,7 +1044,7 @@ class Writing(util.LoRATestCase):
                 {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                     "validity": {
@@ -1071,119 +1071,119 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/details/it?validity=past'.format(userid),
                 [{'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2017-12-15T01:00:00+01:00',
                                'to': '2018-03-06T01:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-02T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-07T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-07T00:00:00+01:00',
                                'to': '2018-03-08T00:00:00+01:00'}},
                  {'name': 'Lokal Rammearkitektur',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'LoRa',
                   'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                   'validity': {'from': '2018-03-08T00:00:00+01:00',
@@ -1196,7 +1196,7 @@ class Writing(util.LoRATestCase):
                 '/service/e/{}/details/it?validity=present'.format(userid),
                 [{'name': 'Active Directory',
                   'reference': None,
-                  'type': None,
+                  'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                   'validity': {'from': '2018-03-05T01:00:00+01:00',
@@ -1220,13 +1220,13 @@ class Reading(util.LoRATestCase):
             [
 
                 {
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     'name': 'Lokal Rammearkitektur',
                 },
                 {
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     'name': 'Active Directory',
@@ -1241,7 +1241,7 @@ class Reading(util.LoRATestCase):
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it',
             [{'name': 'Active Directory',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
@@ -1250,7 +1250,7 @@ class Reading(util.LoRATestCase):
               },
              {'name': 'Lokal Rammearkitektur',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
@@ -1277,7 +1277,7 @@ class Reading(util.LoRATestCase):
             '?at=2018-06-01',
             [{'name': 'Active Directory',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
@@ -1292,7 +1292,7 @@ class Reading(util.LoRATestCase):
             '?at=2018-06-01&validity=past',
             [{'name': 'Lokal Rammearkitektur',
               'reference': None,
-              'type': None,
+              'system_type': None,
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {

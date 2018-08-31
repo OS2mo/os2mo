@@ -42,7 +42,7 @@ def list_it_systems(orgid: uuid.UUID):
 
     :>jsonarr string uuid: The universally unique identifier of the system.
     :>jsonarr string name: The name of the system.
-    :>jsonarr string type: The type of the system.
+    :>jsonarr string system_type: The type of the system.
     :>jsonarr string user_key: A human-readable unique key for the system.
 
     :status 200: Always.
@@ -54,13 +54,13 @@ def list_it_systems(orgid: uuid.UUID):
       [
         {
           "name": "Lokal Rammearkitektur",
-          "type": null,
+          "system_type": null,
           "user_key": "LoRa",
           "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
         },
         {
           "name": "Active Directory",
-          "type": null,
+          "system_type": null,
           "user_key": "AD",
           "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
         }
@@ -76,7 +76,7 @@ def list_it_systems(orgid: uuid.UUID):
         return {
             'uuid': systemid,
             'name': attrs.get('itsystemnavn'),
-            'type': attrs.get('itsystemtype'),
+            'system_type': attrs.get('itsystemtype'),
             'user_key': attrs['brugervendtnoegle'],
         }
 
@@ -126,8 +126,8 @@ class ITSystems(common.AbstractRelationDetail):
             Short, unique key identifying the IT-system in question.
         :<jsonarr string reference:
             Optional string describing the elements of the IT system.
-        :<jsonarr string type:
-            Optional string describing the type of the IT system.
+        :<jsonarr string system_type:
+            Optional string describing the system_type of the IT system.
         :<jsonarr string name:
             The name of the IT system in question.
         :<jsonarr string uuid: Machine-friendly UUID.
@@ -143,7 +143,7 @@ class ITSystems(common.AbstractRelationDetail):
             {
               "name": "Lokal Rammearkitektur",
               "reference": null,
-              "type": null,
+              "system_type": null,
               "user_key": "LoRa",
               "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
               "validity": {
@@ -154,7 +154,7 @@ class ITSystems(common.AbstractRelationDetail):
             {
               "name": "Active Directory",
               "reference": null,
-              "type": null,
+              "system_type": null,
               "user_key": "AD",
               "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
               "validity": {
@@ -195,7 +195,7 @@ class ITSystems(common.AbstractRelationDetail):
 
                     "name": system_attrs.get('itsystemnavn'),
                     "reference": system_attrs.get('konfigurationreference'),
-                    "type": system_attrs.get('itsystemtype'),
+                    "system_type": system_attrs.get('itsystemtype'),
                     "user_key": system_attrs.get('brugervendtnoegle'),
 
                     keys.VALIDITY: common.get_effect_validity(systemrel),

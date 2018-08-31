@@ -23,7 +23,7 @@ class TestInvalidItSystem(util.TestCase):
                 {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRA',
                     'uuid': '990255f7-44c7-4fec-9ef8-27fe73763afd',
                     'validity': {
@@ -33,7 +33,7 @@ class TestInvalidItSystem(util.TestCase):
                 {
                     'name': 'Active Directory',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': 'a7ecd46a-9d70-4170-bde9-9bf44cf8632b',
                     'validity': {
@@ -43,7 +43,7 @@ class TestInvalidItSystem(util.TestCase):
                 {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRA',
                     'uuid': '990255f7-44c7-4fec-9ef8-27fe73763afd',
                     'validity': {
@@ -53,7 +53,7 @@ class TestInvalidItSystem(util.TestCase):
                 {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
+                    'system_type': None,
                     'user_key': 'LoRA',
                     'uuid': '990255f7-44c7-4fec-9ef8-27fe73763afd',
                     'validity': {
