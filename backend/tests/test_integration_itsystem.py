@@ -972,7 +972,6 @@ class Writing(util.LoRATestCase):
                 "data": {
                     'name': 'Lokal Rammearkitektur',
                     'reference': None,
-                    'type': None,
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {

@@ -1093,8 +1093,6 @@ class Tests(util.LoRATestCase):
     def test_create_missing_parent(self):
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = {
             "name": "Fake Corp",
             "parent": {

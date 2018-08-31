@@ -19,7 +19,6 @@ import itertools
 import uuid
 
 import flask
-import werkzeug
 
 from mora.exceptions import ErrorCodes
 from .. import exceptions

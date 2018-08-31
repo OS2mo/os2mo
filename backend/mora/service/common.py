@@ -166,13 +166,17 @@ def get_uuid(
 
 
 def get_mapping_uuid(mapping, key, required=False):
-    """Extract a UUID from a mapping structure identified by 'key'
+    """Extract a UUID from a mapping structure identified by 'key'.
     Expects a structure along the lines of:
-    {
-      "org": {
-        "uuid": <UUID>
+
+    .. sourcecode:: python
+
+      {
+        "org": {
+          "uuid": "<UUID>"
+        }
       }
-    }
+
     """
     obj = checked_get(mapping, key, {}, required=required)
     if obj:

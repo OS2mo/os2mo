@@ -15,7 +15,6 @@ import subprocess
 import unittest
 
 from mora import util as mora_util
-from mora import app
 
 from . import util
 

@@ -5,5 +5,6 @@ Server-side codebase
 .. automodule:: {{module}}
    :members:
    :undoc-members:
+   :noindex:
 
 {% endfor %}
