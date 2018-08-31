@@ -38,7 +38,9 @@ from .auth import base, tokens
 from . import util
 
 basedir = os.path.dirname(__file__)
-topdir = os.path.dirname(basedir)
+backenddir = os.path.dirname(basedir)
+topdir = os.path.dirname(backenddir)
+frontenddir = os.path.join(topdir, 'frontend')
 
 
 class AppGroup(flask.cli.FlaskGroup):
@@ -57,8 +59,15 @@ class AppGroup(flask.cli.FlaskGroup):
         return super().group(*args, **kwargs)
 
 
+def create_app(self):
+    from . import app
+
+    return app.app
+
+
 group = AppGroup(
     'mora', help=__doc__,
+    create_app=create_app,
 )
 
 
@@ -177,13 +186,13 @@ def sphinx(outdir, verbose, args):
 def build(target=None):
     'Build the frontend application.'
 
-    subprocess.check_call(['yarn'], cwd=topdir)
-    subprocess.check_call(['yarn', 'build'], cwd=topdir)
+    subprocess.check_call(['yarn'], cwd=frontenddir)
+    subprocess.check_call(['yarn', 'build'], cwd=frontenddir)
 
     if target:
         subprocess.check_call(
             ['yarn', 'run'] + ([target] if target else []),
-            cwd=topdir)
+            cwd=frontenddir)
 
 
 @group.command()
@@ -192,7 +201,7 @@ def develop():
 
     with subprocess.Popen(['yarn', 'start'],
                           close_fds=True,
-                          cwd=topdir) as proc:
+                          cwd=frontenddir) as proc:
         try:
             flask.current_app.run()
         finally:
@@ -244,8 +253,8 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
         suite = loader.loadTestsFromNames(tests)
     else:
         suite = loader.discover(
-            start_dir=os.path.join(topdir, 'tests'),
-            top_level_dir=os.path.join(topdir),
+            start_dir=os.path.join(backenddir, 'tests'),
+            top_level_dir=os.path.join(backenddir),
         )
 
     def expand_suite(suite):
