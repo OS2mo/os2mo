@@ -116,16 +116,16 @@ export default {
     }
   },
   created () {
-      if (this.value.uuid) {
-        this.address = {
-          location: {
-            name: this.value.name,
-            uuid: this.value.uuid
-          }
+    if (this.value.uuid) {
+      this.address = {
+        location: {
+          name: this.value.name,
+          uuid: this.value.uuid
         }
       }
-      this.entry = this.value
-      this.contactInfo = this.value.name
+    }
+    this.entry = this.value
+    this.contactInfo = this.value.name
   }
 }
 </script>
