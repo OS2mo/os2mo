@@ -21,9 +21,36 @@ import json
 import os
 import sys
 
-TOP_DIR = os.path.dirname(__file__)
+import flask
 
-sys.path.insert(0, TOP_DIR)
+TOP_DIR = os.path.dirname(os.path.dirname(__file__))
+BACKEND_DIR = os.path.join(TOP_DIR, 'backend')
+FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
+
+DOCS_DIR = os.path.join(TOP_DIR, 'docs')
+BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
+
+#
+# -- Generated files ------------------------------------------------------
+#
+sys.path.insert(0, BACKEND_DIR)
+
+from mora.app import app
+
+os.makedirs(BLUEPRINTS_DIR, exist_ok=True)
+
+with app.app_context():
+    for blueprint in app.iter_blueprints():
+        with open(os.path.join(BLUEPRINTS_DIR,
+                               blueprint.name + '.rst'), 'w') as fp:
+            fp.write(flask.render_template('blueprint.rst',
+                                           blueprint=blueprint))
+
+    with open(os.path.join(DOCS_DIR, 'backend.rst'), 'w') as fp:
+        modules = sorted(m for m in sys.modules
+                         if m.split('.', 1)[0] == 'mora')
+        fp.write(flask.render_template('backend.rst',
+                                       modules=modules))
 
 
 # -- General configuration ------------------------------------------------
@@ -77,7 +104,7 @@ author = 'Magenta ApS'
 # built documents.
 #
 
-with open(os.path.join(TOP_DIR, 'package.json')) as fp:
+with open(os.path.join(FRONTEND_DIR, 'package.json')) as fp:
     # 'version' is the short X.Y version and 'release' is the full
     # version, including alpha/beta/rc tags.
     release = version = json.load(fp)['version']
@@ -93,6 +120,7 @@ language = None
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = [
+    'docs',
     '_build',
     'Thumbs.db',
     '.DS_Store',
@@ -124,7 +152,7 @@ html_theme_options = {
 }
 
 html_show_sphinx = False
-html_logo = 'docs/graphics/logo.svg'
+html_logo = 'graphics/logo.svg'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

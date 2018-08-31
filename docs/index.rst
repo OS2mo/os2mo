@@ -9,8 +9,8 @@ MedarbejderOrganisation + LoRa. Indholdet er opdelt i følgende sektioner:
    :maxdepth: 2
 
    README
-   docs/manual-test-lib.rst
-   docs/apidoc.rst
+   manual-test-lib.rst
+   apidoc.rst
 
 
 Indices and tables

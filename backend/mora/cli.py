@@ -133,55 +133,6 @@ def requires_auth(func):
 
 
 @group.command()
-@click.option('--outdir', '-o',
-              default=os.path.join(topdir, 'docs', 'out'),
-              help='Output directory.')
-@click.option('--verbose', '-v', count=True,
-              help='Show more output.')
-@click.argument('args', nargs=-1)
-def sphinx(outdir, verbose, args):
-    '''Build documentation'''
-    import sphinx.cmdline
-
-    docdir = os.path.join(topdir, 'docs')
-    blueprintdir = os.path.join(docdir, 'blueprints')
-
-    os.makedirs(blueprintdir, exist_ok=True)
-
-    for blueprint in flask.current_app.iter_blueprints():
-        with open(os.path.join(blueprintdir,
-                               blueprint.name + '.rst'), 'w') as fp:
-            fp.write(flask.render_template('blueprint.rst',
-                                           blueprint=blueprint))
-
-    with open(os.path.join(docdir, 'backend.rst'), 'w') as fp:
-        modules = sorted(m for m in sys.modules
-                         if m.split('.', 1)[0] == 'mora')
-        fp.write(flask.render_template('backend.rst',
-                                       modules=modules))
-
-    if args:
-        args = list(args)
-    else:
-        args = [
-            '-b', 'html',
-            topdir,
-            outdir,
-        ]
-
-    args += ['-v'] * verbose
-
-    os.environ['PATH'] = os.pathsep.join((
-        subprocess.check_output(['npm', 'bin']).decode()[:-1],
-        os.environ['PATH'],
-    ))
-
-    r = sphinx.cmdline.main(['sphinx-build'] + args)
-    if r:
-        sys.exit(r)
-
-
-@group.command()
 @click.argument('target', required=False)
 def build(target=None):
     'Build the frontend application.'
