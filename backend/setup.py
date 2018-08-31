@@ -19,9 +19,12 @@ from distutils import log
 
 import setuptools
 
-BASEDIR = os.path.dirname(__file__)
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+TOPDIR = os.path.dirname(BACKEND_DIR)
+FRONTEND_DIR = os.path.join(TOPDIR, 'frontend')
 
-with open(os.path.join(BASEDIR, 'package.json')) as fp:
+
+with open(os.path.join(FRONTEND_DIR, 'package.json')) as fp:
     node_data = json.load(fp)
 
 
@@ -35,10 +38,10 @@ class build_frontend(build):
             return
 
         log.info('running "yarn"')
-        subprocess.check_call(['yarn'], cwd=BASEDIR)
+        subprocess.check_call(['yarn'], cwd=FRONTEND_DIR)
 
         log.info('running "yarn build"')
-        subprocess.check_call(['yarn', 'build'], cwd=BASEDIR)
+        subprocess.check_call(['yarn', 'build'], cwd=FRONTEND_DIR)
 
 
 class build_data(build):
@@ -49,7 +52,7 @@ class build_data(build):
         import flask
         from mora import app
 
-        docdir = os.path.join(BASEDIR, 'docs')
+        docdir = os.path.join(TOPDIR, 'docs')
         blueprintdir = os.path.join(docdir, 'blueprints')
 
         os.makedirs(blueprintdir, exist_ok=True)
@@ -100,7 +103,14 @@ setuptools.setup(
         'build': mobuild,
         'install': moinstall,
     },
-    packages=setuptools.find_packages(exclude=['tests']),
+    packages=setuptools.find_packages(where=BACKEND_DIR, exclude=['tests']),
+    test_loader='unittest:TestLoader',
+
+    entry_points={
+        'console_scripts': [
+            'mora = mora.cli:group',
+        ],
+    },
 
     classifiers=[
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
