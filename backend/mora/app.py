@@ -1,3 +1,4 @@
+
 #
 # Copyright (c) 2017-2018, Magenta ApS
 #
@@ -21,7 +22,7 @@ from .auth import base, sso
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
-distdir = os.path.join(basedir, '..', 'dist')
+distdir = os.path.join(basedir, '..', '..', 'frontend', 'dist')
 
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 app.cli = cli.group
