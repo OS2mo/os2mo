@@ -39,7 +39,6 @@
   </div>
 </template>
 
-
 <script>
   import MoTableCollapsible from './MoTableCollapsible'
 
@@ -47,6 +46,7 @@
     components: {
       MoTableCollapsible
     },
+
     props: {
       columns: Array,
       loading: Object,

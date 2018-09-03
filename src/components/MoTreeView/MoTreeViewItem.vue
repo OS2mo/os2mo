@@ -43,9 +43,11 @@
 
   export default {
     name: 'MoTreeViewItem',
+
     components: {
       MoLoader
     },
+
     props: {
       value: Object,
       model: Object,
@@ -53,6 +55,7 @@
       linkable: Boolean,
       atDate: [Date, String]
     },
+
     data () {
       return {
         selected: {},
@@ -60,11 +63,13 @@
         loading: true
       }
     },
+
     computed: {
       hasChildren () {
         return this.model.child_count > 0
       }
     },
+
     watch: {
       model (val) {
         this.loadChildren()
@@ -78,12 +83,14 @@
         this.loadChildren()
       }
     },
+
     mounted () {
       if (this.firstOpen) {
         this.loadChildren()
       }
       this.open = this.firstOpen
     },
+
     methods: {
       toggle () {
         this.open = !this.open
@@ -108,35 +115,41 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   ul {
     padding-left: 1.25rem;
   }
+
   .extra-padding {
     padding-left: 0.05rem;
   }
+
   .item {
     cursor: pointer;
     list-style-type: none;
     display: block;
     white-space: nowrap;
   }
+
   .nav-link {
     display: inline-block;
   }
+
   .icon {
     color: #343a40;
     width: 1rem;
     display: inline-block;
   }
+
   .link-color{
     color: #212529;
     text-decoration: none;
   }
+
   .link-color:hover{
     color: #007bff;
   }
+
   .router-link-active{
     color:#007bff;
   }

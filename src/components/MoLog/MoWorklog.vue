@@ -6,8 +6,7 @@
       v-bind:key="log.value" 
       role="alert"
     >
-    {{$t('alerts.success.' + log.type, {uuid: log.value})}}
-
+      {{$t('alerts.success.' + log.type, {uuid: log.value})}}
     </div>
   </div>
 </template>
@@ -17,11 +16,13 @@
 
   export default {
     name: 'MoWorklog',
+
     computed: {
       ...mapGetters({
         worklogs: 'log/getWorkLog'
       })
     },
+
     methods: {
       reverse (array) {
         return array.length ? array.slice().reverse() : array

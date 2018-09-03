@@ -9,6 +9,7 @@
         <div class="col">
           <p class="card-text">Enhedsnr.: {{orgUnit.user_key}}</p>
         </div>
+
         <div class="mr-3">
           <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
         </div>
@@ -29,14 +30,17 @@
       MoHistory,
       OrganisationDetailTabs
     },
+
     data () {
       return {
         orgUnit: {}
       }
     },
+
     mounted () {
       this.updateDetails()
     },
+
     methods: {
       updateDetails () {
         var vm = this

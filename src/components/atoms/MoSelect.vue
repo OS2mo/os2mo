@@ -25,38 +25,43 @@
 </template>
 
 <script>
-export default {
-  name: 'MoSelect',
-  inject: {
-    $validator: '$validator'
-  },
-  props: {
-    value: Object,
-    options: Array,
-    label: String,
-    required: Boolean,
-    disabled: Boolean
-  },
-  data () {
-    return {
-      selected: null
-    }
-  },
-  computed: {
-    nameId () {
-      return 'mo-select-' + this._uid
+  export default {
+    name: 'MoSelect',
+
+    inject: {
+      $validator: '$validator'
     },
 
-    isRequired () {
-      if (this.disabled) return false
-      return this.required
-    }
-  },
-  watch: {
-    value (val) {
-      this.selected = val
-      this.$validator.validate(this.nameId)
+    props: {
+      value: Object,
+      options: Array,
+      label: String,
+      required: Boolean,
+      disabled: Boolean
+    },
+
+    data () {
+      return {
+        selected: null
+      }
+    },
+
+    computed: {
+      nameId () {
+        return 'mo-select-' + this._uid
+      },
+  
+      isRequired () {
+        if (this.disabled) return false
+        return this.required
+      }
+    },
+
+    watch: {
+      value (val) {
+        this.selected = val
+        this.$validator.validate(this.nameId)
+      }
     }
   }
-}
 </script>

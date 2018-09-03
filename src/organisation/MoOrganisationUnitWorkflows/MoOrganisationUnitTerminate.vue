@@ -17,19 +17,26 @@
           v-model="org_unit"
           required
         />
+
         <mo-date-picker
           :label="$t('input_fields.end_date')"
           :valid-dates="validDates"
           v-model="terminate.validity.from"
           required/>
       </div>
+
       <div class="mb-3" v-if="org_unit">
         <p>Følgende vil blive afsluttet for enheden:</p>
-        <mo-organisation-detail-tabs :uuid="org_unit.uuid" timemachine-friendly/>
+        <mo-organisation-detail-tabs 
+          :uuid="org_unit.uuid" 
+          timemachine-friendly
+        />
       </div>
+
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
       </div>
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -48,12 +55,14 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       MoDatePicker,
       MoOrganisationUnitPicker,
       ButtonSubmit,
       MoOrganisationDetailTabs
     },
+
     data () {
       return {
         org_unit: null,
@@ -64,6 +73,7 @@
         backendValidationError: null
       }
     },
+
     computed: {
       validDates () {
         return this.org_unit ? this.org_unit.validity : {}
@@ -76,6 +86,7 @@
         })
       }
     },
+
     methods: {
       resetData () {
         Object.assign(this.$data, this.$options.data())

@@ -22,6 +22,7 @@
         v-model="entry" 
         :disable-org-unit-picker="disableOrgUnitPicker"
       />
+
       <div class="float-right">
         <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
       </div>
@@ -39,9 +40,11 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       ButtonSubmit
     },
+
     props: {
       uuid: String,
       label: String,
@@ -67,6 +70,7 @@
         }
       }
     },
+
     data () {
       return {
         entry: {},
@@ -75,16 +79,19 @@
         isLoading: false
       }
     },
+
     computed: {
       idLabel () {
         return 'moCreate' + this._uid
       },
+
       formValid () {
         // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       },
+
       disableOrgUnitPicker () {
         return this.type === 'ORG_UNIT' && this.action === 'EDIT'
       },
@@ -111,6 +118,7 @@
         return this.entryComponent !== undefined
       }
     },
+
     watch: {
       content: {
         handler (newVal) {
@@ -119,6 +127,7 @@
         deep: true
       }
     },
+
     mounted () {
       this.org = this.$store.state.organisation
 
@@ -138,10 +147,12 @@
         }
       })
     },
+
     beforeDestroy () {
       this.$root.$off(['bv::modal::hidden'])
       this.$root.$off(['bv::modal::shown'])
     },
+
     methods: {
       handleContent (content) {
         this.entry = JSON.parse(JSON.stringify(content))

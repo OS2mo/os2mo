@@ -33,6 +33,7 @@
       MoTableCollapsibleTense,
       MoEntryCreateModal
     },
+
     props: {
       uuid: {
         type: String,
@@ -48,6 +49,7 @@
       createLabel: String,
       hideCreate: Boolean
     },
+
     data () {
       return {
         details: {
@@ -62,27 +64,31 @@
         }
       }
     },
+
     mounted () {
       EventBus.$on('organisation-unit-changed', () => {
         this.getAllDetails()
       })
     },
+
     watch: {
       uuid () {
         // listener for the time machine
         this.getAllDetails()
       }
     },
+
     created () {
       this.getDetails('present')
     },
+
     beforeDestroy () {
       EventBus.$off(['organisation-unit-changed'])
     },
+
     methods: {
       getAllDetails () {
         let tense = ['past', 'present', 'future']
-
         tense.forEach(t => {
           this.getDetails(t)
         })

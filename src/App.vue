@@ -9,6 +9,7 @@
 <script>
   export default {
     name: 'app',
+
     mounted () {
       var usersnapKey = process.env.USERSNAP_KEY || null
       if (usersnapKey) {
@@ -32,5 +33,4 @@
   .container-top-margin {
     margin-top: 4em;
   }
-
 </style>

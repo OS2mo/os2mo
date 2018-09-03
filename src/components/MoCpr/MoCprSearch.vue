@@ -36,50 +36,56 @@
 </template>
 
 <script>
-import Search from '@/api/Search'
-import MoLoader from '@/components/atoms/MoLoader'
+  import Search from '@/api/Search'
+  import MoLoader from '@/components/atoms/MoLoader'
 
-export default {
-  name: 'MoCprSearch',
-  inject: {
-    $validator: '$validator'
-  },
-  components: {
-    MoLoader
-  },
-  props: {
-    noLabel: Boolean,
-    label: {type: String, default: 'CPR nummer'},
-    required: Boolean
-  },
-  data () {
-    return {
-      nameId: 'cpr-search',
-      cprNo: '',
-      isLoading: false,
-      backendValidationError: null
-    }
-  },
-  watch: {
-    cprNo () {
-      this.$emit('input', {})
-    }
-  },
-  methods: {
-    cprLookup () {
-      let vm = this
-      vm.isLoading = true
-      return Search.cprLookup(this.cprNo)
-        .then(response => {
-          vm.isLoading = false
-          if (response.error) {
-            vm.backendValidationError = response.error_key
-          } else {
-            vm.backendValidationError = null
-            this.$emit('input', response)
-          }
-        })
+  export default {
+    name: 'MoCprSearch',
+
+    inject: {
+      $validator: '$validator'
+    },
+
+    components: {
+      MoLoader
+    },
+
+    props: {
+      noLabel: Boolean,
+      label: {type: String, default: 'CPR nummer'},
+      required: Boolean
+    },
+
+    data () {
+      return {
+        nameId: 'cpr-search',
+        cprNo: '',
+        isLoading: false,
+        backendValidationError: null
+      }
+    },
+
+    watch: {
+      cprNo () {
+        this.$emit('input', {})
+      }
+    },
+
+    methods: {
+      cprLookup () {
+        let vm = this
+        vm.isLoading = true
+        return Search.cprLookup(this.cprNo)
+          .then(response => {
+            vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.backendValidationError = null
+              this.$emit('input', response)
+            }
+          })
+      }
     }
   }
-}
 </script>

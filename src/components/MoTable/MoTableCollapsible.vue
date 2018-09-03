@@ -1,5 +1,9 @@
 <template>
-  <mo-collapse :title="title" :initially-open="initiallyOpen" @shown="$emit('shown')">
+  <mo-collapse 
+    :title="title" 
+    :initially-open="initiallyOpen" 
+    @shown="$emit('shown')"
+  >
     <mo-table 
       :columns="columns"
       :content="content"
@@ -22,6 +26,7 @@
       MoCollapse,
       MoTable
     },
+
     props: {
       title: String,
       columns: Array,
@@ -39,6 +44,7 @@
         required: true
       }
     },
+
     methods: {
       isCollapsed (val) {
         this.$emit('is-collapsed', val)

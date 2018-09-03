@@ -12,6 +12,7 @@ export default {
 
     return `${field} skal være mellem ${moment(range.from).format('DD-MM-YYYY')} og ${moment(range.to).format('DD-MM-YYYY')}`
   },
+
   validate (value, range) {
     value = new Date(value)
 

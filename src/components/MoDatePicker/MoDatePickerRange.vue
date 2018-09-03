@@ -5,7 +5,8 @@
         {{$t('buttons.select_another_date')}}
       </a>
     </span>
-    <mo-date-picker 
+
+    <mo-date-picker
       class="from-date"
       :label="$t('input_fields.start_date')"
       v-model="validFrom"
@@ -34,12 +35,14 @@
     components: {
       MoDatePicker
     },
+
     props: {
       value: Object,
       initiallyHidden: Boolean,
       disableToDate: Boolean,
       disabledDates: Object
     },
+
     data () {
       return {
         validFrom: null,
@@ -47,17 +50,16 @@
         hidden: false
       }
     },
+
     computed: {
       validStartDateRange () {
         let range = {
           from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
           to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
         }
-
         if (this.validTo && (!range.to || Date(this.validTo) < range.to)) {
           range.to = new Date(this.validTo)
         }
-
         return range
       },
 
@@ -66,14 +68,13 @@
           from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
           to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
         }
-
         if (this.validFrom && new Date(this.validFrom) > range.from) {
           range.from = new Date(this.validFrom)
         }
-
         return range
       }
     },
+
     watch: {
       value: {
         handler (newVal) {
@@ -85,6 +86,7 @@
         deep: true
       }
     },
+
     created () {
       this.hidden = this.initiallyHidden
       if (this.value !== undefined) {
@@ -92,6 +94,7 @@
         this.validTo = this.value.to
       }
     },
+
     methods: {
       updateDate () {
         let obj = {
@@ -101,11 +104,9 @@
         if (this.validFrom) {
           obj.from = this.validFrom
         }
-
         if (this.validTo) {
           obj.to = this.validTo
         }
-
         this.$emit('input', obj)
       }
     }

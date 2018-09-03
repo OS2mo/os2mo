@@ -11,6 +11,7 @@
           hide-create
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.organisation.addresses')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -20,6 +21,7 @@
           :entry-component="timemachineFriendly ? undefined : components.address"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.organisation.engagements')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -28,6 +30,7 @@
           :columns="engagement"
         />
       </b-tab>
+
       <b-tab :title="$tc('tabs.organisation.association', 2)">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -36,6 +39,7 @@
           :columns="association"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.organisation.roles')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -44,6 +48,7 @@
           :columns="role"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.organisation.managers')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -65,11 +70,13 @@
     components: {
       MoOrganisationUnitDetail
     },
+
     props: {
       uuid: {type: String, required: true},
       atDate: [Date, String],
       timemachineFriendly: Boolean
     },
+
     data () {
       return {
         org_unit: [

@@ -28,62 +28,67 @@
 </template>
 
 <script>
+  import DateTimePicker from 'vuejs-datepicker'
+  import { da } from 'vuejs-datepicker/dist/locale'
 
-import DateTimePicker from 'vuejs-datepicker'
-import { da } from 'vuejs-datepicker/dist/locale'
-
-export default {
-  components: {
-    DateTimePicker
-  },
-  inject: {
-    $validator: '$validator'
-  },
-  props: {
-    value: [Date, String],
-    required: Boolean,
-    noLabel: Boolean,
-    label: {default: 'Dato', type: String},
-    validDates: Object,
-    disabled: Boolean
-  },
-  data () {
-    return {
-      selected: null,
-      dateString: null,
-      da: da
-    }
-  },
-  computed: {
-    nameId () {
-      return 'date-picker-' + this._uid
+  export default {
+    components: {
+      DateTimePicker
     },
 
-    disabledDates () {
+    inject: {
+      $validator: '$validator'
+    },
+
+    props: {
+      value: [Date, String],
+      required: Boolean,
+      noLabel: Boolean,
+      label: {default: 'Dato', type: String},
+      validDates: Object,
+      disabled: Boolean
+    },
+
+    data () {
       return {
-        from: this.validDates && this.validDates.to ? new Date(this.validDates.to) : null,
-        to: this.validDates && this.validDates.from ? new Date(this.validDates.from) : null
+        selected: null,
+        dateString: null,
+        da: da
       }
-    }
-  },
-  watch: {
-    selected (newVal) {
-      // send on a date-only string in ISO format, so that we
-      // disregard timezones and the time-of-day
-      this.dateString = newVal ? this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
     },
 
-    dateString (newVal) {
-      this.$emit('input', newVal)
+    computed: {
+      nameId () {
+        return 'date-picker-' + this._uid
+      },
+
+      disabledDates () {
+        return {
+          from: this.validDates && this.validDates.to ? new Date(this.validDates.to) : null,
+          to: this.validDates && this.validDates.from ? new Date(this.validDates.from) : null
+        }
+      }
     },
 
-    value (newVal) {
-      this.selected = newVal
+    watch: {
+      selected (newVal) {
+        // send on a date-only string in ISO format, so that we
+        // disregard timezones and the time-of-day
+        this.dateString = newVal ? this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
+      },
+
+      dateString (newVal) {
+        this.$emit('input', newVal)
+      },
+
+      value (newVal) {
+        this.selected = newVal
+      }
+    },
+
+    created () {
+      this.selected = this.value
+      this.dateString = this.value
     }
-  },
-  created () {
-    this.selected = this.value
-    this.dateString = this.value
   }
-}
 </script>

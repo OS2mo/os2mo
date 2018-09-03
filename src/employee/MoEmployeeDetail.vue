@@ -32,6 +32,7 @@
       MoTableCollapsibleTense,
       MoEntryCreateModal
     },
+
     props: {
       uuid: {type: String, required: true},
       detail: {type: String, required: true},
@@ -39,6 +40,7 @@
       entryComponent: Object,
       createLabel: String
     },
+
     data () {
       return {
         details: {
@@ -53,17 +55,20 @@
         }
       }
     },
+
     watch: {
       uuid () {
         this.getAllDetails()
       }
     },
+
     mounted () {
       this.getDetails('present')
       EventBus.$on('employee-changed', () => {
         this.getAllDetails()
       })
     },
+
     methods: {
       getAllDetails () {
         let tense = ['present', 'future', 'past']

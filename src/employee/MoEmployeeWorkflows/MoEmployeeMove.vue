@@ -9,50 +9,58 @@
     no-close-on-backdrop
     @hidden="resetData"
   >
-  <form @submit.stop.prevent="moveEmployee">
-    <mo-employee-picker class="search-employee" v-model="employee" required/>
-
-    <div class="form-row">
-      <mo-engagement-picker class="mt-3" v-model="original" :employee="employee" required/>
-    </div>
-
-    <div class="form-row">
-      <mo-organisation-unit-picker
-        :label="$t('input_fields.move_to')" 
-        class="col" 
-        v-model="move.data.org_unit"
-        required
-      />       
-    </div>
-
-    <div class="form-row">
-      <mo-date-picker 
-        class="col from-date"
-        :label="$t('input_fields.move_date')" 
-        v-model="move.data.validity.from"
-        :valid-dates="validDates"
+    <form @submit.stop.prevent="moveEmployee">
+      <mo-employee-picker 
+        class="search-employee" 
+        v-model="employee" 
         required
       />
-    </div>
 
-    <mo-confirm-checkbox
-      :entry-date="move.data.validity.from"
-      :entry-name="original.engagement_type.name"
-      :entry-org-name="original.org_unit.name"
-      v-if="dateConflict" 
-      required
-    />
+      <div class="form-row">
+        <mo-engagement-picker 
+          class="mt-3" 
+          v-model="original" 
+          :employee="employee" 
+          required
+        />
+      </div>
 
-    <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError)}}
-    </div>
+      <div class="form-row">
+        <mo-organisation-unit-picker
+          :label="$t('input_fields.move_to')" 
+          class="col" 
+          v-model="move.data.org_unit"
+          required
+        />       
+      </div>
 
-    <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
-    </div>
+      <div class="form-row">
+        <mo-date-picker 
+          class="col from-date"
+          :label="$t('input_fields.move_date')" 
+          v-model="move.data.validity.from"
+          :valid-dates="validDates"
+          required
+        />
+      </div>
 
-  </form>
-</b-modal>
+      <mo-confirm-checkbox
+        :entry-date="move.data.validity.from"
+        :entry-name="original.engagement_type.name"
+        :entry-org-name="original.org_unit.name"
+        v-if="dateConflict" 
+        required
+      />
+
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
+
+      <div class="float-right">
+        <button-submit :is-loading="isLoading"/>
+      </div>
+    </form>
+  </b-modal>
 </template>
 
 <script>
@@ -68,6 +76,7 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       MoDatePicker,
       MoOrganisationUnitPicker,
@@ -76,11 +85,13 @@
       ButtonSubmit,
       MoConfirmCheckbox
     },
+
     props: {
       entryName: String,
       entryDate: Date,
       entryOrgName: String
     },
+
     data () {
       return {
         employee: {},
@@ -95,6 +106,7 @@
         }
       }
     },
+
     computed: {
       formValid () {
         // loop over all contents of the fields object and check if they exist and valid.
@@ -117,6 +129,7 @@
         return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
       }
     },
+
     methods: {
       resetData () {
         Object.assign(this.$data, this.$options.data())

@@ -12,6 +12,7 @@
     "ORGANISATION_MOVE": "Organisationsenheden med UUID {uuid} er blevet flyttet",
     "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet."
   },
+
   "error": {
     "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",
 

@@ -40,9 +40,11 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       ButtonSubmit
     },
+
     props: {
       uuid: String,
       entryComponent: Object,
@@ -56,6 +58,7 @@
         }
       }
     },
+
     data () {
       return {
         entry: {},
@@ -63,10 +66,12 @@
         backendValidationError: null
       }
     },
+
     computed: {
       nameId () {
         return 'moCreate' + this._uid
       },
+  
       formValid () {
         // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
@@ -78,14 +83,17 @@
         return this.entryComponent !== undefined
       }
     },
+
     mounted () {
       this.$root.$on('bv::modal::hidden', () => {
         Object.assign(this.$data, this.$options.data())
       })
     },
+
     beforeDestroy () {
       this.$root.$off(['bv::modal::hidden'])
     },
+
     methods: {
       create () {
         this.isLoading = true
