@@ -3,22 +3,26 @@
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
       <div class="col text-center">
         <h1>Velkommen til MO</h1>
-        <h4>Medarbejder|Organisation</h4>
+        <h4>Medarbejder | Organisation</h4>
       </div>
     </nav>
-    <div id="login-wrapper" class="col">
-      <button class="btn btn-primary btn-bg" @click="setDestination('Employee')">
-        <icon name="user" scale="1.8"/>
-        <span class="btn-text">Medarbejder</span>
-      </button>
-        <br>
-      <button class="btn btn-success btn-bg-2" @click="setDestination('Organisation')">
-        <icon name="share-alt" scale="1.8"/>
-        <span class="btn-text">Organisation</span>
-      </button>
+
+    <div id="login-wrapper">
+      <div class="col">
+        <button class="btn btn-primary btn-employee" @click="setDestination('Employee')">
+          <icon name="user" scale="2"/>
+          <span class="btn-text">Medarbejder</span>
+        </button>
+      </div>
+
+      <div class="col">
+        <button class="btn btn-success btn-org mt-3" @click="setDestination('Organisation')">
+          <icon name="share-alt" scale="2"/>
+          <span class="btn-text">Organisation</span>
+        </button>
+      </div>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -33,39 +37,33 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
   #login-wrapper {
     text-align: center;
-    margin-top: 200px;
+    margin-top: 10em;
   }
 
   .btn-text {
-    float: right;
     margin-left: 1em;
-    margin-top: 5px;
-    vertical-align: middle;
-    font-size: 18px;
+    font-size: 1.2em;
   }
 
-  .btn-bg {
+  .btn-employee {
     background-color: #4a5a79;
     cursor: pointer;
+    max-width: 12em;
   }
 
-  .btn-bg-2 {
+  .btn-org {
     cursor: pointer;
-    margin-top: 10px;
-    margin-right: 5px;
+    max-width: 12em;
   }
 
-  .btn-bg:hover{
+  .btn-employee:hover{
     background-color: #002f5d;
   }
 
   h1,h4 {
-    color: white;
+    color: #ffffff;
   }
-
 </style>
