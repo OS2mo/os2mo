@@ -108,4 +108,4 @@ yarn-error.log*
 *.sln
 
 # configuration
-config/mora.json
+setup/mora.json

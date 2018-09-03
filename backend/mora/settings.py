@@ -11,7 +11,7 @@ from os import path as _path
 from . import util as _util
 
 BASE_DIR = _path.dirname(_path.dirname(_path.abspath(__file__)))
-CONFIG_FILE = _path.join(BASE_DIR, 'config', 'mora.json')
+CONFIG_FILE = _path.join(BASE_DIR, '..', 'setup', 'mora.json')
 
 MAX_REQUEST_LENGTH = 4096
 DEFAULT_PAGE_SIZE = 2000
