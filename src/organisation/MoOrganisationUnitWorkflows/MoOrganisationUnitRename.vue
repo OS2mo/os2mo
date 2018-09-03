@@ -20,11 +20,18 @@
       </div>
 
       <div class="form-row">
-        <mo-input v-model="rename.data.name" :label="$t('input_fields.new_name')" required/>
+        <mo-input 
+          v-model="rename.data.name" 
+          :label="$t('input_fields.new_name')" 
+          required
+        />
       </div>
 
       <div class="form-row">
-        <mo-date-picker-range class="col" v-model="rename.data.validity"/>
+        <mo-date-picker-range 
+          class="col" 
+          v-model="rename.data.validity"
+        />
       </div>
       
       <div class="alert alert-danger" v-if="compareName">
@@ -50,12 +57,14 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       MoDatePickerRange,
       MoOrganisationUnitPicker,
       MoInput,
       ButtonSubmit
     },
+
     data () {
       return {
         original: null,
@@ -68,6 +77,7 @@
         isLoading: false
       }
     },
+
     computed: {
       ...mapGetters({
         orgUnit: 'organisationUnit/getOrgUnit'
@@ -79,6 +89,7 @@
           return this.fields[field] && this.fields[field].valid
         })
       },
+
       compareName () {
         if (this.rename.data.name && this.original.name) {
           if (this.original.name == null) return true
@@ -87,6 +98,7 @@
         return false
       }
     },
+
     watch: {
       orgUnit: {
         handler (val) {
@@ -95,9 +107,11 @@
         deep: true
       }
     },
+
     mounted () {
       this.original = this.orgUnit
     },
+
     methods: {
       resetData () {
         Object.assign(this.$data, this.$options.data())

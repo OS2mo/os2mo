@@ -18,34 +18,38 @@
 </template>
 
 <script>
+  export default {
+    name: 'MoInput',
+    inject: {
+      $validator: '$validator'
+    },
 
-export default {
-  name: 'MoInput',
-  inject: {
-    $validator: '$validator'
-  },
-  props: {
-    value: String,
-    label: String,
-    required: Boolean
-  },
-  data () {
-    return {
-      selected: null
+    props: {
+      value: String,
+      label: String,
+      required: Boolean
+    },
+
+    data () {
+      return {
+        selected: null
+      }
+    },
+
+    computed: {
+      nameId () {
+        return 'mo-input-' + this._uid
+      }
+    },
+
+    watch: {
+      selected (val) {
+        this.$emit('input', val)
+      }
+    },
+
+    created () {
+      this.selected = this.value
     }
-  },
-  computed: {
-    nameId () {
-      return 'mo-input-' + this._uid
-    }
-  },
-  watch: {
-    selected (val) {
-      this.$emit('input', val)
-    }
-  },
-  created () {
-    this.selected = this.value
   }
-}
 </script>

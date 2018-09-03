@@ -15,57 +15,60 @@
       :placeholder="$t('input_fields.search_for_employee')"
       v-validate="{ required: required }"
     />
-    <span
-      v-show="errors.has('employee-picker')" 
-      class="text-danger"
-    >
+
+    <span v-show="errors.has('employee-picker')" class="text-danger">
       {{ errors.first('employee-picker') }}
     </span>
   </div>
 </template>
 
 <script>
-import Search from '@/api/Search'
-import VAutocomplete from 'v-autocomplete'
-import 'v-autocomplete/dist/v-autocomplete.css'
-import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
+  import Search from '@/api/Search'
+  import VAutocomplete from 'v-autocomplete'
+  import 'v-autocomplete/dist/v-autocomplete.css'
+  import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
 
-export default {
-  name: 'MoEmployeePicker',
-  components: {
-    VAutocomplete
-  },
-  inject: {
-    $validator: '$validator'
-  },
-  props: {
-    noLabel: Boolean,
-    required: Boolean
-  },
-  data () {
-    return {
-      item: null,
-      items: [],
-      template: MoSearchBarTemplate
-    }
-  },
-  methods: {
-    getLabel (item) {
-      return item ? item.name : null
+  export default {
+    name: 'MoEmployeePicker',
+
+    components: {
+      VAutocomplete
     },
 
-    updateItems (query) {
-      let vm = this
-      let org = this.$store.state.organisation
-      Search.employees(org.uuid, query)
-        .then(response => {
-          vm.items = response
-        })
+    inject: {
+      $validator: '$validator'
     },
 
-    selected (value) {
-      this.$emit('input', value)
+    props: {
+      noLabel: Boolean,
+      required: Boolean
+    },
+
+    data () {
+      return {
+        item: null,
+        items: [],
+        template: MoSearchBarTemplate
+      }
+    },
+
+    methods: {
+      getLabel (item) {
+        return item ? item.name : null
+      },
+
+      updateItems (query) {
+        let vm = this
+        let org = this.$store.state.organisation
+        Search.employees(org.uuid, query)
+          .then(response => {
+            vm.items = response
+          })
+      },
+
+      selected (value) {
+        this.$emit('input', value)
+      }
     }
   }
-}
 </script>

@@ -21,6 +21,7 @@
             <th scope="col">Udført af</th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="h in history" v-bind:key="h.date">
             <td>{{h.from | date}}</td>
@@ -55,11 +56,13 @@
         }
       }
     },
+
     data () {
       return {
         history: []
       }
     },
+
     methods: {
       reloadHistory (val) {
         if (val) this.getHistory()

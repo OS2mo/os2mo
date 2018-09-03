@@ -1,7 +1,14 @@
 <template>
   <span>
     <mo-loader v-show="isLoading"/>
-    <div class="col no-address" v-show="!isLoading && noAddresses && orgUnit">Ingen adresser er tilknyttet til enheden</div>
+
+    <div 
+      class="col no-address" 
+      v-show="!isLoading && noAddresses && orgUnit"
+    >
+      Ingen adresser er tilknyttet til enheden
+    </div>
+
     <div class="form-group" v-show="!isLoading && !noAddresses">
       <label :for="nameId">{{label}}</label>
       <select
@@ -28,70 +35,78 @@
 </template>
 
 <script>
-import OrganisationUnit from '@/api/OrganisationUnit'
-import MoLoader from '@/components/atoms/MoLoader'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoLoader from '@/components/atoms/MoLoader'
 
-export default {
-  name: 'AddressPicker',
-  inject: {
-    $validator: '$validator'
-  },
-  components: {
-    MoLoader
-  },
-  props: {
-    value: Object,
-    orgUnit: {
-      type: Object
-    }
-  },
-  data () {
-    return {
-      label: 'Adresser',
-      selected: {},
-      addresses: [],
-      isLoading: false
-    }
-  },
-  computed: {
-    nameId () {
-      return 'mo-address-picker-' + this._uid
+  export default {
+    name: 'AddressPicker',
+
+    inject: {
+      $validator: '$validator'
     },
 
-    isDisabled () {
-      return this.orgUnit == null
+    components: {
+      MoLoader
     },
 
-    noAddresses () {
-      return this.addresses.length === 0
-    }
-  },
-  watch: {
-    orgUnit () {
+    props: {
+      value: Object,
+      orgUnit: {
+        type: Object
+      }
+    },
+
+    data () {
+      return {
+        label: 'Adresser',
+        selected: {},
+        addresses: [],
+        isLoading: false
+      }
+    },
+
+    computed: {
+      nameId () {
+        return 'mo-address-picker-' + this._uid
+      },
+
+      isDisabled () {
+        return this.orgUnit == null
+      },
+
+      noAddresses () {
+        return this.addresses.length === 0
+      }
+    },
+
+    watch: {
+      orgUnit () {
+        this.getAddresses()
+      }
+    },
+
+    mounted () {
       this.getAddresses()
-    }
-  },
-  mounted () {
-    this.getAddresses()
-    this.selected = this.value
-  },
-  methods: {
-    getAddresses () {
-      if (this.orgUnit == null) return
-      let vm = this
-      vm.isLoading = true
-      OrganisationUnit.getAddressDetails(this.orgUnit.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.addresses = response
-        })
+      this.selected = this.value
     },
 
-    updateSelectedAddress () {
-      this.$emit('input', this.selected)
+    methods: {
+      getAddresses () {
+        if (this.orgUnit == null) return
+        let vm = this
+        vm.isLoading = true
+        OrganisationUnit.getAddressDetails(this.orgUnit.uuid)
+          .then(response => {
+            vm.isLoading = false
+            vm.addresses = response
+          })
+      },
+
+      updateSelectedAddress () {
+        this.$emit('input', this.selected)
+      }
     }
   }
-}
 </script>
 
 <style scoped>

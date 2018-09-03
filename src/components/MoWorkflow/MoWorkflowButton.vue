@@ -1,13 +1,14 @@
 <template>
-    <button type="button" class="btn btn-primary btn-workflow">
-      <icon class="btn-icon" :name="icon"/>
-      <label class="btn-label">{{label}}</label>
-    </button>
+  <button type="button" class="btn btn-primary btn-workflow">
+    <icon class="btn-icon" :name="icon"/>
+    <label class="btn-label">{{label}}</label>
+  </button>
 </template>
 
 <script>
   export default {
     name: 'MoWorkflowButton',
+
     props: {
       label: {type: String, required: true},
       icon: {type: String, required: true}
@@ -15,7 +16,6 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
   .btn-workflow {
     display: block;

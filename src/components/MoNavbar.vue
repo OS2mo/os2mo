@@ -2,8 +2,15 @@
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
     <div class="logo col-1"/>
 
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-      aria-expanded="false" aria-label="Toggle navigation">
+    <button 
+      class="navbar-toggler" 
+      type="button" 
+      data-toggle="collapse" 
+      data-target="#navbarSupportedContent" 
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false" 
+      aria-label="Toggle navigation"
+    >
       <span class="navbar-toggler-icon"></span>
     </button>
 
@@ -12,6 +19,7 @@
         <li class="nav-item">
           <router-link class="nav-link" :to="{ name: 'Employee'}">{{$t('navbar.employee')}}</router-link>
         </li>
+
         <li class="nav-item">
           <router-link class="nav-link" :to="{ name: 'Organisation'}">{{$t('navbar.organisation')}}</router-link>
         </li>
@@ -29,6 +37,7 @@
         <template slot="button-content">
           <icon name="user"/> {{username}}
         </template>
+
         <b-dropdown-item @click="logout()">
           <icon name="sign-out-alt"/> Log ud
         </b-dropdown-item>
@@ -52,6 +61,7 @@
       MoSearchBar,
       MoOrganisationPicker
     },
+
     data () {
       return {
         user: {},
@@ -59,11 +69,13 @@
         username: 'N/A'
       }
     },
+
     created () {
       Service.get('/user').then(response => {
         this.username = response.data || 'N/A'
       })
     },
+
     methods: {
       logout () {
         let vm = this
@@ -78,7 +90,6 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
   .logo {
     background-image: url('../assets/logo/os2_small.svg');
@@ -90,9 +101,11 @@
     height: 50px;
     margin-left: -1em;
   }
+
   nav {
     height: 50px;
   }
+
   .nav-item {
     .nav-link {
       font-family: Oswald,Arial,sans-serif !important;

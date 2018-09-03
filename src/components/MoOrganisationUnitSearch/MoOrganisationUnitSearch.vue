@@ -19,7 +19,9 @@
       />
     </div>
 
-    <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
+    <span v-show="errors.has(nameId)" class="text-danger">
+      {{ errors.first(nameId) }}
+    </span>
   </div>
 </template>
 
@@ -31,12 +33,15 @@
   
   export default {
     name: 'MoOrganisationUnitSearch',
+
     components: {
       VAutocomplete
     },
+
     inject: {
       $validator: '$validator'
     },
+
     props: {
       value: Object,
       date: Date,
@@ -46,6 +51,7 @@
       },
       required: Boolean
     },
+
     data () {
       return {
         selectedSuperUnit: null,
@@ -54,11 +60,13 @@
         noItem: [{name: 'Ingen resultater matcher din søgning'}]
       }
     },
+
     computed: {
       nameId () {
         return 'org-unit-' + this._uid
       }
     },
+
     watch: {
       selectedSuperUnit (newVal) {
         if (this.selectedSuperUnit == null) {
@@ -69,9 +77,11 @@
         this.$emit('input', newVal)
       }
     },
+
     created () {
       if (this.value !== undefined) this.selectedSuperUnit = this.value
     },
+
     methods: {
       getLabel (item) {
         return item ? item.name : null

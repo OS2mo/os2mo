@@ -26,12 +26,14 @@
       MoTreeViewItem,
       MoLoader
     },
+
     props: {
       value: Object,
       orgUuid: String,
       linkable: Boolean,
       atDate: [Date, String]
     },
+
     data () {
       return {
         children: [],
@@ -39,6 +41,7 @@
         isLoading: false
       }
     },
+
     watch: {
       orgUuid () {
         this.getChildren()
@@ -52,6 +55,7 @@
         this.$emit('input', val)
       }
     },
+
     mounted () {
       this.getChildren()
 
@@ -59,6 +63,7 @@
         this.getChildren()
       })
     },
+
     methods: {
       getChildren () {
         if (this.orgUuid === undefined) return

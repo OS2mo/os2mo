@@ -6,6 +6,7 @@
          link="noopener noreferrer nofollow">
         {{ part.text }}
       </a>
+
       <router-link v-else-if="part.target" class="link-color" :to="part.target">
         {{ part.text }}
       </router-link>
@@ -29,6 +30,7 @@
         default: null
       }
     },
+
     data () {
       return {
         column_handlers: {
@@ -38,6 +40,7 @@
         }
       }
     },
+
     computed: {
       classes () {
         if (this.column && this.field) {

@@ -1,7 +1,6 @@
 import axios from 'axios'
 import store from '@/vuex/store'
-import {AUTH_LOGOUT} from '@/vuex/actions/auth'
-import {AUTH_REQUEST} from "../vuex/actions/auth";
+import {AUTH_REQUEST} from '@/vuex/actions/auth'
 
 /**
  * Defines the base url and headers for http calls

@@ -43,9 +43,11 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       ButtonSubmit
     },
+
     props: {
       uuid: String,
       label: String,
@@ -62,6 +64,7 @@
         }
       }
     },
+
     data () {
       return {
         entry: {},
@@ -70,10 +73,12 @@
         backendValidationError: null
       }
     },
+
     computed: {
       nameId () {
         return 'moEdit' + this._uid
       },
+
       disableOrgUnitPicker () {
         return this.type === 'ORG_UNIT'
       },
@@ -89,6 +94,7 @@
         })
       }
     },
+
     watch: {
       content: {
         handler (newVal) {
@@ -97,6 +103,7 @@
         deep: true
       }
     },
+
     mounted () {
       this.handleContent(this.content)
 
@@ -106,9 +113,11 @@
         }
       })
     },
+
     beforeDestroy () {
       this.$root.$off(['bv::modal::shown'])
     },
+
     methods: {
       handleContent (content) {
         this.entry = JSON.parse(JSON.stringify(content))

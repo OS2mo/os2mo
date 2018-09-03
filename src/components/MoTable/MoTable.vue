@@ -11,14 +11,12 @@
       </tr>
       </tbody>
     </table>
+
     <b-form-checkbox-group v-model="selected">
     <table v-if="contentAvailable" class="table table-striped">
       <thead>
         <tr>
-          <th v-if="multiSelect">
-             <!-- <b-form-checkbox
-              v-model="selectAll"/> -->
-          </th>
+          <th v-if="multiSelect"></th>
           <th 
             scope="col" 
             v-for="(col, index) in columns" 
@@ -31,13 +29,22 @@
           <th></th>
         </tr>
       </thead>
+
       <tbody>
         <tr v-for="(c, index) in content" :key="index">
           <td v-if="multiSelect">
-            <b-form-checkbox class="checkbox-employee" data-vv-as="checkbox" :value="c"/>
+            <b-form-checkbox 
+              class="checkbox-employee" 
+              data-vv-as="checkbox" 
+              :value="c"
+            />
           </td>
           <td v-for="(col, index) in columns" :key="index">
-            <mo-link :value="c" :column="col.data" :field="col.field"/>
+            <mo-link 
+              :value="c" 
+              :column="col.data" 
+              :field="col.field"
+            />
           </td>
           <td>{{c.validity.from | date}}</td>
           <td>{{c.validity.to | date}}</td>
@@ -71,6 +78,7 @@
       MoLink,
       MoEntryEditModal
     },
+
     props: {
       content: Array,
       contentType: String,
@@ -84,17 +92,20 @@
         required: true
       }
     },
+
     data () {
       return {
         selectAll: false,
         selected: []
       }
     },
+
     computed: {
       contentAvailable () {
         return this.content ? this.content.length > 0 : false
       }
     },
+
     watch: {
       selected (newVal) {
         this.$emit('selected-changed', newVal)
@@ -103,7 +114,6 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   table {
     margin-top: 0;

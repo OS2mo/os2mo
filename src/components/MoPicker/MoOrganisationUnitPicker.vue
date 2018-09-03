@@ -15,16 +15,16 @@
       v-validate="{required: required}"
     >
 
-    <div 
-      class="mo-input-group" 
-      v-show="showTree"
-    >
+    <div class="mo-input-group" v-show="showTree">
       <mo-tree-view 
         v-model="selectedSuperUnit"
         :org-uuid="orgUuid" 
       />
     </div>
-    <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
+
+    <span v-show="errors.has(nameId)" class="text-danger">
+      {{ errors.first(nameId) }}
+    </span>
   </div>
 </template>
 
@@ -35,12 +35,15 @@
 
   export default {
     name: 'MoOrganisationUnitPicker',
+
     components: {
       MoTreeView
     },
+
     inject: {
       $validator: '$validator'
     },
+
     props: {
       value: Object,
       label: {
@@ -50,6 +53,7 @@
       isDisabled: Boolean,
       required: Boolean
     },
+
     data () {
       return {
         selectedSuperUnit: null,
@@ -57,6 +61,7 @@
         orgName: null
       }
     },
+
     computed: {
       ...mapGetters({
         orgUuid: 'organisation/getUuid'
@@ -71,6 +76,7 @@
         return this.required
       }
     },
+
     watch: {
       selectedSuperUnit (newVal) {
         this.orgName = newVal.name
@@ -81,9 +87,11 @@
         this.showTree = false
       }
     },
+
     mounted () {
       this.selectedSuperUnit = this.value || this.selectedSuperUnit
     },
+
     methods: {
       getSelectedOrganistionUnit () {
         this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
@@ -96,7 +104,6 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .form-group {
     position: relative;

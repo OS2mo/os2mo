@@ -52,7 +52,9 @@
         data-vv-as="Valg af engagementer"
       >
 
-      <span v-show="errors.has(nameId)" class="text-danger">{{ errors.first(nameId) }}</span>
+      <span v-show="errors.has(nameId)" class="text-danger">
+        {{ errors.first(nameId) }}
+      </span>
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
@@ -77,12 +79,14 @@
     $_veeValidate: {
       validator: 'new'
     },
+
     components: {
       MoDatePicker,
       MoOrganisationUnitPicker,
       MoTable,
       ButtonSubmit
     },
+
     data () {
       return {
         employees: [],
@@ -99,6 +103,7 @@
         ]
       }
     },
+
     computed: {
       formValid () {
         // loop over all contents of the fields object and check if they exist and valid.
@@ -119,6 +124,7 @@
         return 'engagement-picker-' + this._uid
       }
     },
+
     watch: {
       orgUnitSource: {
         handler (newVal) {
@@ -127,10 +133,12 @@
         deep: true
       }
     },
+
     methods: {
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
+  
       selectedEmployees (val) {
         this.selected = val
       },

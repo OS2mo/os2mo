@@ -1,6 +1,7 @@
 <template>
   <div>
     <mo-loader v-show="isLoading"/>
+
     <b-tabs v-show="!isLoading" lazy>
       <b-tab :title="$t('tabs.employee.engagements')" active> 
         <mo-employee-detail 
@@ -10,6 +11,7 @@
           :entry-component="!hideActions ? components.engagement : undefined"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.employee.addresses')">
         <mo-employee-detail 
           :uuid="uuid" 
@@ -18,6 +20,7 @@
           :entry-component="!hideActions ? components.address : undefined"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.employee.roles')">
         <mo-employee-detail 
           :uuid="uuid" 
@@ -26,6 +29,7 @@
           :entry-component="!hideActions ? components.role : undefined"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.employee.it')">
         <mo-employee-detail 
           :uuid="uuid" 
@@ -34,6 +38,7 @@
           :entry-component="!hideActions ? components.it : undefined"
         />
       </b-tab>
+
       <b-tab :title="$tc('tabs.employee.association', 2)">
         <mo-employee-detail 
           :uuid="uuid" 
@@ -42,6 +47,7 @@
           :entry-component="!hideActions ? components.association : undefined"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.employee.leave')">
         <mo-employee-detail 
           :uuid="uuid" 
@@ -50,6 +56,7 @@
           :entry-component="!hideActions ? components.leave : undefined"
         />
       </b-tab>
+
       <b-tab :title="$t('tabs.employee.manager')" >
         <mo-employee-detail 
           :uuid="uuid" 
@@ -79,10 +86,12 @@
       MoLoader,
       MoEmployeeDetail
     },
+
     props: {
       uuid: String,
       hideActions: Boolean
     },
+
     data () {
       return {
         isLoading: false,

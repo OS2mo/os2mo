@@ -5,6 +5,7 @@
         <icon name="folder-open"/>
         Overblik
       </h4>
+
       <div id="tree-wrapper">
         <mo-tree-view :org-uuid="orgUuid" linkable/>
       </div>
@@ -20,6 +21,7 @@
     components: {
       MoTreeView
     },
+
     computed: {
       ...mapGetters({
         orgUuid: 'organisation/getUuid'

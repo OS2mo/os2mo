@@ -17,8 +17,6 @@
     "managers": "Ledere"
   },
   "log": {
-    "worklog": "Arbejdslog",
-    "events": "Begivenheder",
-    "errors": "Fejl"
+    "worklog": "Arbejdslog"
   }
 }

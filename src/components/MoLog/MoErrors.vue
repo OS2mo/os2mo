@@ -13,21 +13,23 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+  import { mapGetters } from 'vuex'
 
-export default {
-  name: 'MoError',
-  computed: {
-    ...mapGetters({
-      errors: 'log/getErrors'
-    })
-  },
-  methods: {
-    reverse (array) {
-      return array.length ? array.slice().reverse() : array
+  export default {
+    name: 'MoError',
+
+    computed: {
+      ...mapGetters({
+        errors: 'log/getErrors'
+      })
+    },
+
+    methods: {
+      reverse (array) {
+        return array.length ? array.slice().reverse() : array
+      }
     }
   }
-}
 </script>
 
 <style scoped>
