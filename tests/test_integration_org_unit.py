@@ -28,7 +28,8 @@ class Tests(util.LoRATestCase):
             [
                 {
                     "name": "Afdeling for Fremtidshistorik",
-                    'path': '/Overordnet Enhed/Humanistisk fakultet/Historisk Institut',
+                    'path': ('/Overordnet Enhed/Humanistisk fakultet/' +
+                             'Historisk Institut'),
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     'org_unit_type': {
@@ -66,6 +67,8 @@ class Tests(util.LoRATestCase):
             [
                 {
                     "name": "Afdeling for Samtidshistorik",
+                    "path": ("Overordnet Enhed/Humanistisk fakultet" +
+                             "/Historisk Institut"),
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
