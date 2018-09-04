@@ -205,6 +205,17 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.FULL:
         unittype = common.get_uuid(rels['enhedstype'][0], required=False)
 
+        if rels['overordnet'][0]['uuid']is not None:
+            parent = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
+                                     details=UnitDetails.FULL)
+            if parent is not None:
+                path = parent['path'] + '/' + parent['name']
+            try:
+                r['path'] = path
+                r['user_key'] = path[1:]
+            except NameError:
+                r['path'] = ''
+
         r[keys.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
         )
