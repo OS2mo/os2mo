@@ -12,6 +12,9 @@ Organisational units
 
 This section describes how to interact with organisational units.
 
+For more information regarding reading relations involving organisational
+units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
+
 '''
 
 import enum
@@ -242,13 +245,14 @@ def get_children(type, parentid):
     :param type: 'o' if the parent is an organistion, and 'ou' if it's a unit.
     :param uuid parentid: The UUID of the parent.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the children valid at this point in time,
+        in ISO-8601 format.
 
-    :<jsonarr string name: Human-readable name of the unit.
-    :<jsonarr string user_key: Short, unique key identifying the unit.
-    :<jsonarr object validity: Validity range of the organisational unit.
-    :<jsonarr uuid uuid: Machine-friendly UUID of the unit.
-    :<jsonarr int child_count: Number of org. units nested immediately beneath
+    :>jsonarr string name: Human-readable name of the unit.
+    :>jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr object validity: Validity range of the organisational unit.
+    :>jsonarr uuid uuid: Machine-friendly UUID of the unit.
+    :>jsonarr int child_count: Number of org. units nested immediately beneath
                                the organisation.
 
     :status 200: Whenever the organisation or unit exists and is readable.
@@ -264,13 +268,21 @@ def get_children(type, parentid):
           "name": "Humanistisk fakultet",
           "user_key": "hum",
           "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-          "child_count": 2
+          "child_count": 2,
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2019-01-01T00:00:00+00:00"
+          }
         },
         {
           "name": "Samfundsvidenskabelige fakultet",
           "user_key": "samf",
           "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-          "child_count": 0
+          "child_count": 0,
+          "validity": {
+              "from": "2016-01-01T00:00:00+00:00",
+              "to": "2019-01-01T00:00:00+00:00"
+          }
         }
       ]
 
@@ -303,13 +315,22 @@ def get_children(type, parentid):
 @blueprint.route('/ou/<uuid:unitid>/')
 @util.restrictargs('at')
 def get_orgunit(unitid):
-    '''Query organisational units in an organisation.
+    '''Get an organisational unit
 
     .. :quickref: Unit; Get
 
     :param uuid unitid: UUID of the unit to retrieve.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the unit at this point in time,
+        in ISO-8601 format.
+
+    :>json string name: The name of the org unit
+    :>json string user_key: A unique key for the org unit.
+    :>json uuid uuid: The UUId of the org unit
+    :>json uuid parent: The parent org unit or organisation
+    :>json uuid org: The organisation the unit belongs to
+    :>json uuid org_unit_type: The type of org unit
+    :>json object validity: The validity of the created object.
 
     :status 200: Whenever the object exists.
     :status 404: Otherwise.
@@ -372,18 +393,20 @@ def list_orgunits(orgid):
 
     :param uuid orgid: UUID of the organisation to search.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the units valid at this point in time,
+        in ISO-8601 format.
     :queryparam int start: Index of first unit for paging.
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
-    :<json string items: The returned items.
-    :<json string offset: Pagination offset.
-    :<json string total: Total number of items available on this query.
+    :>json string items: The returned items.
+    :>json string offset: Pagination offset.
+    :>json string total: Total number of items available on this query.
 
-    :<jsonarr string name: Human-readable name.
-    :<jsonarr string uuid: Machine-friendly UUID.
-    :<jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr string name: Human-readable name.
+    :>jsonarr string uuid: Machine-friendly UUID.
+    :>jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr object validity: Validity range of the organisational unit.
 
     :status 200: Always.
 
@@ -461,8 +484,24 @@ def create_org_unit():
         "org_unit_type": {
           "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
         },
-        "valid_from": "2016-01-01T00:00:00+00:00",
-        "valid_to": "2018-01-01T00:00:00+00:00"
+        "validity": {
+          "from": "2016-01-01T00:00:00+00:00",
+          "to": null
+        },
+        "addresses": [{
+          "value": "0101501234",
+          "address_type": {
+            "example": "5712345000014",
+            "name": "EAN",
+            "scope": "EAN",
+            "user_key": "EAN",
+            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+          },
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
+        }]
       }
 
     :returns: UUID of created org unit
@@ -587,8 +626,50 @@ def edit_org_unit(unitid):
         }
       ]
 
-    See also :http:post:`/service/e/(uuid:employee_uuid)/edit` for
-    further examples for the individual types.
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string value: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+    :<jsonarr object validity: A validity object
+
+    See :ref:`Adresses <address>` for more information.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "original": {
+            "value": "0101501234",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "data": {
+            "value": "123456789",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
+        }
+      ]
 
     """
 
@@ -636,7 +717,7 @@ def create_org_unit_relation(unitid):
       }
 
     Request payload contains a list of creation objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
+    by the attribute ``type``. Each of these object types are detailed below:
 
 
     **Address**:
@@ -648,6 +729,9 @@ def create_org_unit_relation(unitid):
     :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object validity: A validity object
+
+    See :ref:`Adresses <address>` for more information.
 
     .. sourcecode:: json
 
@@ -716,11 +800,7 @@ def terminate_org_unit(unitid):
         }
       }
 
-    **Example response**:
-
-    .. sourcecode:: json
-
-      "85715fc7-925d-401b-822d-467eb4b163b6"
+    :returns: UUID of the terminated org unit
 
     **Validation**:
 
@@ -798,15 +878,18 @@ def terminate_org_unit(unitid):
 def get_org_unit_history(unitid):
     """
     Get the history of an org unit
+
+    .. :quickref: Unit; Get history
+
     :param unitid: The UUID of the org unit
 
     **Example response**:
 
-    :<jsonarr string from: When the change is active from
-    :<jsonarr string to: When the change is active to
-    :<jsonarr string action: The action performed
-    :<jsonarr string life_cycle_code: The type of action performed
-    :<jsonarr string user_ref: A reference to the user who made the change
+    :>jsonarr string from: When the change is active from
+    :>jsonarr string to: When the change is active to
+    :>jsonarr string action: The action performed
+    :>jsonarr string life_cycle_code: The type of action performed
+    :>jsonarr string user_ref: A reference to the user who made the change
 
     .. sourcecode:: json
 

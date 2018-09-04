@@ -13,6 +13,9 @@ Employees
 
 This section describes how to interact with employees.
 
+For more information regarding reading relations involving employees, refer to
+:http:get:`/service/(any:type)/(uuid:id)/details/`
+
 '''
 
 import uuid
@@ -82,19 +85,20 @@ def list_employees(orgid):
 
     :param uuid orgid: UUID of the organisation to search.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show employees at this point in time,
+        in ISO-8601 format.
     :queryparam int start: Index of first unit for paging.
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by employees matching this string.
         Please note that this only applies to attributes of the user, not the
         relations or engagements they have.
 
-    :<json string items: The returned items.
-    :<json string offset: Pagination offset.
-    :<json string total: Total number of items available on this query.
+    :>json string items: The returned items.
+    :>json string offset: Pagination offset.
+    :>json string total: Total number of items available on this query.
 
-    :<jsonarr string name: Human-readable name.
-    :<jsonarr string uuid: Machine-friendly UUID.
+    :>jsonarr string name: Human-readable name.
+    :>jsonarr string uuid: Machine-friendly UUID.
 
     :status 200: Always.
 
@@ -152,13 +156,14 @@ def get_employee(id):
 
     .. :quickref: Employee; Get
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the employee at this point in time,
+        in ISO-8601 format.
 
-    :<json string name: Human-readable name.
-    :<json string uuid: Machine-friendly UUID.
-    :<json object org: The organisation that this employee belongs to, as
+    :>json string name: Human-readable name.
+    :>json string uuid: Machine-friendly UUID.
+    :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
-    :<json string cpr_no: CPR number of for the corresponding person.
+    :>json string cpr_no: CPR number of for the corresponding person.
         Please note that this is the only means for obtaining the CPR
         number; due to confidentiality requirements, all other end
         points omit it.
@@ -216,7 +221,7 @@ def create_employee_relation(employee_uuid):
       }
 
     Request payload contains a list of creation objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
+    by the attribute ``type``. Each of these object types are detailed below:
 
     **Engagement**:
 
@@ -225,6 +230,9 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``job_function`` and ``engagement_type`` should contain
+    UUIDs obtained from their respective facet endpoints
 
     .. sourcecode:: json
 
@@ -254,8 +262,11 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``job_function`` and ``association_type`` should contain
+    UUIDs obtained from their respective facet endpoints.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -272,19 +283,19 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "address": {
-            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-          },
-          "address_type": {
-            "example": "<UUID>",
-            "name": "Adresse",
-            "scope": "DAR",
-            "user_key": "Adresse",
-            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": {
+              "example": "<UUID>",
+              "name": "Adresse",
+              "scope": "DAR",
+              "user_key": "Adresse",
+              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            }
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
-          },
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
         }
       ]
 
@@ -317,6 +328,9 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string role_type: The role type
     :<jsonarr object validity: The validities of the created object.
 
+    The parameter ``role_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+
     .. sourcecode:: json
 
       [
@@ -343,8 +357,11 @@ def create_employee_relation(employee_uuid):
     :<jsonarr array responsibility: The manager responsibilities
     :<jsonarr string manager_level: The manager level
     :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``manager_type``, ``responsibility`` and ``manager_level``
+    should contain UUIDs obtained from their respective facet endpoints.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -366,14 +383,14 @@ def create_employee_relation(employee_uuid):
             "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
           },
           "address": {
-            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-          },
-          "address_type": {
-            "example": "<UUID>",
-            "name": "Adresse",
-            "scope": "DAR",
-            "user_key": "Adresse",
-            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": {
+              "example": "<UUID>",
+              "name": "Adresse",
+              "scope": "DAR",
+              "user_key": "Adresse",
+              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            }
           },
           "validity": {
             "from": "2016-01-01T00:00:00+00:00",
@@ -387,6 +404,9 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string type: **"leave"**
     :<jsonarr string leave_type: The leave type
     :<jsonarr object validity: The validities of the created object.
+
+    The parameter ``leave_type`` should contain a UUID obtained from the
+    respective facet endpoint.
 
     .. sourcecode:: json
 
@@ -409,9 +429,12 @@ def create_employee_relation(employee_uuid):
     :<jsonarr object address_type: The type of the address, exactly as
         returned by returned by
         :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr string address: The value of the address field. Please
+    :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object validity: The validities of the created object.
+
+    See :ref:`Adresses <address>` for more information.
 
     .. sourcecode:: json
 
@@ -494,7 +517,7 @@ def edit_employee(employee_uuid):
       }
 
     Request payload contains a list of edit objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
+    by the attribute ``type``. Each of these object types are detailed below:
 
     **Engagement**:
 
@@ -517,6 +540,9 @@ def edit_employee(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr object validity: The validities of the changes.
+
+    The parameters ``job_function`` and ``engagement_type`` should contain
+    UUIDs obtained from their respective facet endpoints
 
     .. sourcecode:: json
 
@@ -571,9 +597,12 @@ def edit_employee(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
-    :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
+    :<jsonarr string address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
+
+    The parameters ``job_function`` and ``association_type`` should contain
+    UUIDs obtained from their respective facet endpoints.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -596,14 +625,14 @@ def edit_employee(employee_uuid):
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
             "address": {
-              "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-            },
-            "address_type": {
-              "example": "<UUID>",
-              "name": "Adresse",
-              "scope": "DAR",
-              "user_key": "Adresse",
-              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+              "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+              "address_type": {
+                "example": "<UUID>",
+                "name": "Adresse",
+                "scope": "DAR",
+                "user_key": "Adresse",
+                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+              }
             }
           },
           "data": {
@@ -680,6 +709,9 @@ def edit_employee(employee_uuid):
     :<jsonarr string role_type: The role type
     :<jsonarr object validity: The validities of the changes.
 
+    The parameter ``role_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+
     .. sourcecode:: json
 
       [
@@ -729,6 +761,9 @@ def edit_employee(employee_uuid):
     :<jsonarr string leave_type: The leave type
     :<jsonarr object validity: The validities of the changes.
 
+    The parameter ``leave_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+
     .. sourcecode:: json
 
       [
@@ -777,9 +812,12 @@ def edit_employee(employee_uuid):
     :<jsonarr string manager_type: The manager type
     :<jsonarr array responsibilities: The manager responsibilities
     :<jsonarr string manager_level: The manager level
-    :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
+    :<jsonarr string address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
+
+    The parameters ``manager_type``, ``responsibility`` and ``manager_level``
+    should contain UUIDs obtained from their respective facet endpoints.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -802,6 +840,16 @@ def edit_employee(employee_uuid):
               "manager_level": {
                 "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
               },
+              "address": {
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "address_type": {
+                  "example": "<UUID>",
+                  "name": "Adresse",
+                  "scope": "DAR",
+                  "user_key": "Adresse",
+                  "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                }
+              },
               "validity": {
                   "from": "2016-01-01T00:00:00+00:00",
                   "to": "2018-01-01T00:00:00+00:00"
@@ -815,6 +863,51 @@ def edit_employee(employee_uuid):
             "manager_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
             }
+          }
+        }
+      ]
+
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string value: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+    :<jsonarr object validity: A validity object
+
+    See :ref:`Adresses <address>` for more information.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "original": {
+            "value": "0101501234",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "data": {
+            "value": "123456789",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
           }
         }
       ]
@@ -871,7 +964,7 @@ def terminate_employee(employee_uuid):
 
     :param employee_uuid: The UUID of the employee to be terminated.
 
-    :<json string valid_from: The date on which the termination should happen,
+    :<json string from: The date on which the termination should happen,
                               in ISO 8601.
 
     **Example Request**:
@@ -919,6 +1012,9 @@ def terminate_employee(employee_uuid):
 def get_employee_history(employee_uuid):
     """
     Get the history of an employee
+
+    .. :quickref: Employee; Get history
+
     :param employee_uuid: The UUID of the employee
 
     **Example response**:
@@ -985,15 +1081,19 @@ def create_employee():
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
+    :<json string uuid: An **optional** parameter, that will be used as the
+      UUID for the employee.
 
     .. sourcecode:: json
 
       {
         "name": "Name Name",
         "cpr_no": "0101501234",
+        "user_key": "1234",
         "org": {
           "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-        }
+        },
+        "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f"
       }
 
     :returns: UUID of created employee

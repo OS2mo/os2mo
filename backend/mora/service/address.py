@@ -5,13 +5,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 '''Addresses
 ---------
+.. _address:
 
-Within the context of MO, we have to forms of address, `DAR`_ and
+
+Within the context of MO, we have two forms of addresses, `DAR`_ and
 everything else. **DAR** is short for *Danmarks Adresseregister* or
-the *Address Register of Denmark*, and constitutes a UUID reprenting a
+the *Address Register of Denmark*, and constitutes a UUID representing a
 DAWA address or access address. We represent other addresses merely
 through their textual value.
 
@@ -92,12 +93,13 @@ EAN
 PNUMBER
       A production unit number, as registered with the Danish CVR.
 
-Example data
-~~~~~~~~~~~~
+
+Reading
+^^^^^^^
 
 An example of reading the main two different types of addresses:
 
-.. sourcecode: json
+.. sourcecode:: json
 
   [
     {
@@ -134,10 +136,54 @@ An example of reading the main two different types of addresses:
     }
   ]
 
-Of these, ``name`` should be used for displaying the address and
-``href`` for a hyperlink target. The ``uuid`` and ``urn`` keys
-uniquely represent the address value for editing, although any such
-operation should specify the entire object.
+* ``name`` is a human-readable value for displaying the address
+* ``href`` should be used as a hyperlink target
+* ``urn`` and ``uuid`` are used for uniquely representing the address
+  value for editing, which is detailed below.
+* ``validity`` is a validity object.
+* ``address_type`` is an address type object, equal to one of the types from
+  the facet endpoint detailed above.
+
+Writing
+^^^^^^^
+
+An example of objects for writing the two main types of addresses:
+
+.. sourcecode:: json
+
+  [
+    {
+      "value": "0101501234",
+      "address_type": {
+        "example": "5712345000014",
+        "name": "EAN",
+        "scope": "EAN",
+        "user_key": "EAN",
+        "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+      }
+    },
+    {
+      "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+      "address_type": {
+        "example": "<UUID>",
+        "name": "Adresse",
+        "scope": "DAR",
+        "user_key": "Adresse",
+        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+      }
+    }
+  ]
+
+* ``value`` the value of the address, if **not** a DAR address. This should be
+  provided in human-readable format, as the backend takes care of correctly
+  formatting the value into a URN
+* ``uuid``: the uuid of the address, if the type **is** a DAR address.
+* ``address_type`` is an address type object, equal to one of the types from
+  the facet endpoint detailed above.
+
+More information regarding creating and editing addresses can be found in the
+sections on creating and editing relations for employees and organisational
+units.
 
 .. _DAR: http://dawa.aws.dk/dok/api/adresse
 

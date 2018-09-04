@@ -51,7 +51,8 @@ def list_organisations():
 
     .. :quickref: Organisation; List
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show organisations at this point in time,
+        in ISO-8601 format.
 
     :<jsonarr string name: Human-readable name of the organisation.
     :<jsonarr string user_key: Short, unique key identifying the unit.
@@ -96,7 +97,8 @@ def get_organisation(orgid):
 
     .. :quickref: Organisation; Getter
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the organisation at this point in time,
+        in ISO-8601 format.
 
     :<json string name: Human-readable name of the organisation.
     :<json string user_key: Short, unique key identifying the unit.
@@ -105,7 +107,11 @@ def get_organisation(orgid):
                             the organisation.
     :<json int person_count: Amount of people belonging to this organisation.
     :<json int unit_count: Amount of units belonging to this organisation.
-    :<json int employment_count: Amount of employments in this organisation?
+    :<json int employment_count: Amount of employments in this organisation.
+    :<json int association_count: Amount of associations in this organisation.
+    :<json int leave_count: Amount of leaves in this organisation.
+    :<json int role_count: Amount of roles in this organisation.
+    :<json int manager_count: Amount of managers in this organisation.
 
     :status 200: Whenever the organisation exists and is readable.
     :status 404: When no such organisation exists.
