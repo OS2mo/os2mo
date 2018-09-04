@@ -1,0 +1,11 @@
+build:
+  image: latest
+
+formats: []
+
+requirements_file: backend/requirements.txt
+
+python:
+  version: 3.5
+  setup_py_install: false
+  python.use_system_site_packages: true
