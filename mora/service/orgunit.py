@@ -212,7 +212,6 @@ def get_one_orgunit(c, unitid, unit=None,
                 path = parent['path'] + '/' + parent['name']
             try:
                 r['path'] = path
-                r['user_key'] = path[1:]
             except NameError:
                 r['path'] = ''
 
