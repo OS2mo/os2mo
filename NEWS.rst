@@ -1,6 +1,15 @@
-Version 0.9.0
--------------
+Version 0.9.0 (in development)
+==============================
 
-New features:
+Internal changes
+----------------
 
 * Updated API documentation and README
+* Reorganisation of source code layout.
+
+UI changes
+----------
+
+
+Bugs fixed
+----------
