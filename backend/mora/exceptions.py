@@ -16,6 +16,22 @@ import werkzeug.exceptions
 
 
 class ErrorCodes(Enum):
+    '''This enumeration describes the possible errors codes returned by
+    the application. Each item in the enumeration consists of three
+    values:
+
+    * A unique string identifying the code.
+    * An integer identifying the HTTP status code returned for the
+      error — see :rfc:`2616#section-10`.
+    * An human-readable string describing the circumstances of the
+      error.
+
+    The special code :py:attr:`mora.exceptions.ErrorCodes.E_UNKNOWN`
+    means that an unknown, internal error occurred within the
+    application. This is most likely a bug.
+
+    '''
+
     @property
     def description(self):
         return self.value[1]
