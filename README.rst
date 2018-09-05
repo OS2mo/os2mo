@@ -24,8 +24,8 @@ refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ og den
 `Lokale Rammearkitektur <https://digitaliser.dk/group/3101080/members>`_.
 Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
 
-.. image:: docs/graphics/mo.png
    :width: 800
+.. image:: docs/graphics/os2mo-1280.png
 
 Opbygning
 ---------
