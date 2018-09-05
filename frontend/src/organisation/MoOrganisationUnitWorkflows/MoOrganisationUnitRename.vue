@@ -67,7 +67,7 @@
 
     data () {
       return {
-        original: null,
+        original: this.orgUnit,
         rename: {
           data: {
             name: '',
@@ -114,7 +114,8 @@
 
     methods: {
       resetData () {
-        Object.assign(this.$data, this.$options.data())
+        this.rename.data.name = ''
+        this.rename.data.validity = {}
       },
 
       renameOrganisationUnit (evt) {
