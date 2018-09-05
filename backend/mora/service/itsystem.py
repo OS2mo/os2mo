@@ -20,12 +20,12 @@ import uuid
 
 import flask
 
-from mora.exceptions import ErrorCodes
+from ..exceptions import ErrorCodes
 from .. import exceptions
+from .. import mapping
 from .. import util
 
-from . import common
-from . import keys
+from .. import common
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
@@ -171,7 +171,7 @@ class ITSystems(common.AbstractRelationDetail):
         system_cache = common.cache(c.itsystem.get)
 
         def convert(start, end, effect):
-            if not common.is_reg_valid(effect):
+            if not util.is_reg_valid(effect):
                 return
 
             rels = effect['relationer']
@@ -198,7 +198,7 @@ class ITSystems(common.AbstractRelationDetail):
                     "system_type": system_attrs.get('itsystemtype'),
                     "user_key": system_attrs.get('brugervendtnoegle'),
 
-                    keys.VALIDITY: common.get_effect_validity(systemrel),
+                    mapping.VALIDITY: util.get_effect_validity(systemrel),
                 }
 
         return flask.jsonify(
@@ -226,7 +226,7 @@ class ITSystems(common.AbstractRelationDetail):
                         ),
                     ),
                 ),
-                key=common.get_valid_from,
+                key=util.get_valid_from,
             ),
         )
 
@@ -242,8 +242,9 @@ class ITSystems(common.AbstractRelationDetail):
         }
 
     def create(self, id, req):
-        systemobj = common.checked_get(req, keys.ITSYSTEM, {}, required=True)
-        systemid = common.get_uuid(systemobj)
+        systemobj = util.checked_get(req, mapping.ITSYSTEM, {},
+                                     required=True)
+        systemid = util.get_uuid(systemobj)
 
         original = self.scope.get(
             uuid=id,
@@ -256,7 +257,7 @@ class ITSystems(common.AbstractRelationDetail):
 
         rels = original['relationer'].get('tilknyttedeitsystemer', [])
 
-        start, end = common.get_validities(req)
+        start, end = util.get_validities(req)
 
         rels.append(self.get_relation_for(systemid, start, end))
 
@@ -284,17 +285,17 @@ class ITSystems(common.AbstractRelationDetail):
 
         # We are performing an update of a pre-existing effect
         old_rel = self.get_relation_for(
-            common.get_uuid(old_entry),
-            common.get_valid_from(old_entry),
-            common.get_valid_to(old_entry),
+            util.get_uuid(old_entry),
+            util.get_valid_from(old_entry),
+            util.get_valid_to(old_entry),
         )
 
         new_entry = req['data']
 
         new_rel = self.get_relation_for(
-            common.get_uuid(new_entry, old_entry),
-            common.get_valid_from(new_entry, old_entry),
-            common.get_valid_to(new_entry, old_entry),
+            util.get_uuid(new_entry, old_entry),
+            util.get_valid_from(new_entry, old_entry),
+            util.get_valid_to(new_entry, old_entry),
         )
 
         payload = {

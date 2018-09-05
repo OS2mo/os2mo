@@ -14,7 +14,7 @@ from unittest.mock import patch
 import freezegun
 
 from mora import lora
-from mora.service import common
+from mora import util as mora_util
 from tests import util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
@@ -2139,7 +2139,7 @@ class Tests(util.LoRATestCase):
                 sorted(
                     c.organisationfunktion.get(manager_uuid)
                     ['relationer']['opgaver'],
-                    key=common.get_uuid,
+                    key=mora_util.get_uuid,
                 ),
                 overwritten_responsibilities,
             )

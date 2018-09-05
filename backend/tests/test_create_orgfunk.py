@@ -8,7 +8,7 @@
 
 import unittest
 
-from mora.service.common import create_organisationsfunktion_payload
+from mora.common import create_organisationsfunktion_payload
 
 
 class TestCreateOrgFunk(unittest.TestCase):

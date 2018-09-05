@@ -9,7 +9,7 @@
 from mora import exceptions
 from mora import util as mora_util
 from mora import validator
-from mora.service import mapping
+from mora import mapping
 
 from tests import util
 

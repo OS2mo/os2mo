@@ -1,9 +1,9 @@
 # -*- conf -*-
 [run]
 branch = True
+source =
+     mora/
 omit =
-     venv*
-     tests/*
      mora/cli.py
      mora/importing/aak_engagements.py
      mora/importing/preimport.py
