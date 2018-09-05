@@ -1419,7 +1419,7 @@ class Writing(util.LoRATestCase):
                         'to': None,
                     },
                 },
-                'path': '/Overordnet Enhed',
+                'path': 'Overordnet Enhed',
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
                 'uuid': unitid,
                 'validity': {
