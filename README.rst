@@ -32,7 +32,7 @@ Opbygning
 
 Den modulære opbygning af MORa ses på nedenstående figur.
 
-.. image:: docs/graphics/MORaModuler6.svg
+.. image:: docs/graphics/MOmoduler.png
    :width: 800
 
 MORa består af frontend og en middleend og sidstnævnte kommunikerer med en LoRa
