@@ -6,8 +6,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-'''Common utilities
-----------------
+'''Common LoRA logic
+-----------------
+
+This module provides various methods and classes for representing or
+creating LoRA objects from our object representations. Although
+similar to py:module:`mora.util`, they aren't mere utility methods, and
+can have deep knowledge of how we expect LoRA to behave.
 
 '''
 

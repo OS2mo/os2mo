@@ -6,6 +6,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+'''Utility methods
+---------------
+
+This module contains various utility methods, i.e. a collection of
+various small functions used in many places.
+
+'''
+
+
 import collections
 import copy
 import datetime
