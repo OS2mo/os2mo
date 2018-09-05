@@ -5,6 +5,9 @@
 
 BUILD_DIR="$TOPDIR"/backend/build
 
+# We'll want warnings during our test run!
+export PYTHONWARNINGS=default
+
 #
 # create the output directories
 #
@@ -20,10 +23,16 @@ mkdir -p "$BUILD_DIR"/coverage "$BUILD_DIR"/reports
 # for unittest, so we should probably move to another testrunner,
 # eventually
 #
-exec py.test \
-    --verbose \
-    --cov=mora \
-    --cov-report=xml:"$BUILD_DIR"/coverage/python.xml \
-    --cov-config=.coveragerc \
-    --junitxml="$BUILD_DIR"/reports/python.xml \
-    "$@"
+coverage run \
+         --rcfile="$TOPDIR"/backend/.coveragerc \
+         -m mora.cli \
+         test --verbose --buffer \
+         --xml-report "$BUILD_DIR"/reports \
+         "$@"
+
+coverage report \
+         --rcfile="$TOPDIR"/backend/.coveragerc
+
+coverage xml \
+         --rcfile="$TOPDIR"/backend/.coveragerc \
+         -o "$BUILD_DIR"/coverage/python.xml

@@ -12,11 +12,8 @@ import typing
 
 from . import exceptions
 from . import lora
+from . import mapping
 from . import util
-
-from .service import common
-from .service import keys
-from .service import mapping
 
 
 def _is_date_range_valid(parent: typing.Union[dict, str],
@@ -84,8 +81,8 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
         'valid_from': util.to_iso_time(
             min(
                 (
-                    common.get_effect_from(state)
-                    for state in common.get_states(reg)
+                    util.get_effect_from(state)
+                    for state in util.get_states(reg)
                     if state.get('gyldighed') == 'Aktiv'
                 ),
                 default=util.NEGATIVE_INFINITY,
@@ -94,8 +91,8 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
         'valid_to': util.to_iso_time(
             max(
                 (
-                    common.get_effect_to(state)
-                    for state in common.get_states(reg)
+                    util.get_effect_to(state)
+                    for state in util.get_states(reg)
                     if state.get('gyldighed') == 'Aktiv'
                 ),
                 default=util.POSITIVE_INFINITY,
@@ -135,7 +132,7 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
 
 
 def is_distinct_responsibility(
-    fields: typing.List[typing.Tuple[common.FieldTuple, typing.Mapping]],
+    fields: typing.List[typing.Tuple[mapping.FieldTuple, typing.Mapping]],
 ):
     uuid_counts = collections.Counter(
         value['uuid']
@@ -217,7 +214,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
             )
 
         # ensure the parent is active
-        if not common.is_reg_valid(parentobj):
+        if not util.is_reg_valid(parentobj):
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
                 org_unit_uuid=parent,
@@ -260,7 +257,7 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
 
     r = c.organisationfunktion(tilknyttedeenheder=org_unit_uuid,
                                tilknyttedebrugere=employee_uuid,
-                               funktionsnavn=keys.ASSOCIATION_KEY)
+                               funktionsnavn=mapping.ASSOCIATION_KEY)
     if r:
         existing = r[-1]
         if association_uuid and existing == association_uuid:
@@ -278,7 +275,7 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
         virkningtil=util.to_lora_time(valid_to)
     )
     r = c.organisationfunktion(tilknyttedebrugere=employee_uuid,
-                               funktionsnavn=keys.ENGAGEMENT_KEY)
+                               funktionsnavn=mapping.ENGAGEMENT_KEY)
 
     valid_effects = [
         (start, end, effect)

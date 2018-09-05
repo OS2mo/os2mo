@@ -201,11 +201,11 @@ import requests
 
 from .. import exceptions
 from .. import lora
+from .. import mapping
 from .. import util
 
-from . import common
+from .. import common
 from . import facet
-from . import keys
 
 session = requests.Session()
 session.headers = {
@@ -234,10 +234,10 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
 
 
 def get_relation_for(addrobj, fallback=None):
-    typeobj = common.checked_get(addrobj, keys.ADDRESS_TYPE, {},
-                                 fallback=fallback, required=True)
-    scope = common.checked_get(typeobj, 'scope', '', required=True)
-    validity = common.get_validity_effect(addrobj, fallback=fallback)
+    typeobj = util.checked_get(addrobj, mapping.ADDRESS_TYPE, {},
+                               fallback=fallback, required=True)
+    scope = util.checked_get(typeobj, 'scope', '', required=True)
+    validity = util.get_validity_effect(addrobj, fallback=fallback)
 
     r = {}
 
@@ -245,8 +245,8 @@ def get_relation_for(addrobj, fallback=None):
         r['virkning'] = validity
 
     if scope == 'DAR':
-        r['uuid'] = common.get_uuid(addrobj, fallback)
-        r['objekttype'] = common.checked_get(typeobj, keys.UUID, 'DAR')
+        r['uuid'] = util.get_uuid(addrobj, fallback)
+        r['objekttype'] = util.checked_get(typeobj, mapping.UUID, 'DAR')
 
     elif scope in URN_PREFIXES:
         # this is the fallback: we want to use the 'urn' key if set
@@ -255,14 +255,15 @@ def get_relation_for(addrobj, fallback=None):
         # want to report that the *value* is missing in the
         # exception/error message.
         if (
-            keys.VALUE not in addrobj and (
+            mapping.VALUE not in addrobj and (
                 'urn' in addrobj or fallback and 'urn' in fallback
             )
         ):
-            value = common.get_urn(addrobj, fallback)
+            value = util.get_urn(addrobj, fallback)
 
         else:
-            value = common.checked_get(addrobj, keys.VALUE, '', required=True)
+            value = util.checked_get(addrobj, mapping.VALUE, '',
+                                     required=True)
             prefix = URN_PREFIXES[scope]
 
             if scope == 'PHONE':
@@ -278,7 +279,7 @@ def get_relation_for(addrobj, fallback=None):
                 value = prefix + value
 
         r['urn'] = value
-        r['objekttype'] = common.get_uuid(typeobj)
+        r['objekttype'] = util.get_uuid(typeobj)
 
     else:
         raise exceptions.HTTPException(
@@ -304,7 +305,7 @@ def get_address_class(c, addrrel, class_cache):
 
 def get_one_address(c, addrrel, class_cache=None):
     addrclass = get_address_class(c, addrrel, class_cache)
-    scope = common.checked_get(addrclass, 'scope', 'DAR')
+    scope = util.checked_get(addrclass, 'scope', 'DAR')
 
     if scope == 'DAR':
         # unfortunately, we cannot live with struktur=mini, as it omits
@@ -321,8 +322,8 @@ def get_one_address(c, addrrel, class_cache=None):
         addrobj = r.json()
 
         return {
-            keys.ADDRESS_TYPE: addrclass,
-            keys.HREF: (
+            mapping.ADDRESS_TYPE: addrclass,
+            mapping.HREF: (
                 'https://www.openstreetmap.org/'
                 '?mlon={}&mlat={}&zoom=16'.format(
                     *addrobj['adgangsadresse']
@@ -330,8 +331,8 @@ def get_one_address(c, addrrel, class_cache=None):
                 )
             ),
 
-            keys.NAME: addrobj['adressebetegnelse'],
-            keys.UUID: addrrel['uuid'],
+            mapping.NAME: addrobj['adressebetegnelse'],
+            mapping.UUID: addrrel['uuid'],
         }
 
     elif scope in URN_PREFIXES:
@@ -358,12 +359,12 @@ def get_one_address(c, addrrel, class_cache=None):
             name = util.urnunquote(name)
 
         return {
-            keys.ADDRESS_TYPE: addrclass,
+            mapping.ADDRESS_TYPE: addrclass,
 
-            keys.HREF: href,
+            mapping.HREF: href,
 
-            keys.NAME: name,
-            keys.URN: urn,
+            mapping.NAME: name,
+            mapping.URN: urn,
         }
 
     else:
@@ -410,7 +411,7 @@ class Addresses(common.AbstractRelationDetail):
 
                     continue
 
-                addr[keys.VALIDITY] = common.get_effect_validity(addrrel)
+                addr[mapping.VALIDITY] = util.get_effect_validity(addrrel)
 
                 yield addr
 
@@ -419,9 +420,9 @@ class Addresses(common.AbstractRelationDetail):
                 convert(self.scope.get(id)),
                 key=(
                     lambda v: (
-                        common.get_valid_from(v) or util.NEGATIVE_INFINITY,
-                        common.get_valid_to(v) or util.POSITIVE_INFINITY,
-                        str(v[keys.NAME]),
+                        util.get_valid_from(v) or util.NEGATIVE_INFINITY,
+                        util.get_valid_to(v) or util.POSITIVE_INFINITY,
+                        str(v[mapping.NAME]),
                     )
                 ),
             ),
@@ -456,8 +457,8 @@ class Addresses(common.AbstractRelationDetail):
             virkningtil='infinity',
         )
 
-        old_entry = common.checked_get(req, 'original', {}, required=True)
-        new_entry = common.checked_get(req, 'data', {}, required=True)
+        old_entry = util.checked_get(req, 'original', {}, required=True)
+        new_entry = util.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
             raise exceptions.HTTPException(
@@ -524,7 +525,7 @@ def address_autocomplete(orgid):
 
     """
     q = flask.request.args['q']
-    global_lookup = common.get_args_flag('global')
+    global_lookup = util.get_args_flag('global')
 
     if not global_lookup:
         org = lora.Connector().organisation.get(orgid)

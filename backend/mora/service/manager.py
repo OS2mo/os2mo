@@ -17,10 +17,10 @@ import uuid
 import flask
 
 from . import address
-from . import common
-from . import keys
-from . import mapping
+from .. import common
+from .. import mapping
 from .. import lora
+from .. import util
 from .. import validator
 
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
@@ -30,19 +30,22 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
 def create_manager(employee_uuid, req):
     c = lora.Connector()
 
-    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
-    org_uuid = c.organisationenhed.get(
-        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    address_obj = common.checked_get(req, keys.ADDRESS, {})
-    manager_type_uuid = common.get_mapping_uuid(req, keys.MANAGER_TYPE)
-    manager_level_uuid = common.get_mapping_uuid(req, keys.MANAGER_LEVEL)
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=True)
+    org_uuid = (
+        c.organisationenhed.get(org_unit_uuid)
+        ['relationer']['tilhoerer'][0]['uuid']
+    )
+    address_obj = util.checked_get(req, mapping.ADDRESS, {})
+    manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
+    manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
 
-    responsibilities = common.checked_get(req, keys.RESPONSIBILITY, [])
+    responsibilities = util.checked_get(req, mapping.RESPONSIBILITY, [])
 
     opgaver = [
         {
             'objekttype': 'lederansvar',
-            'uuid': common.get_uuid(responsibility)
+            'uuid': util.get_uuid(responsibility)
         }
         for responsibility in responsibilities
     ]
@@ -54,8 +57,8 @@ def create_manager(employee_uuid, req):
         })
 
     # TODO: Figure out what to do with this
-    # location_uuid = req.get(keys.LOCATION).get('uuid')
-    valid_from, valid_to = common.get_validities(req)
+    # location_uuid = req.get(mapping.LOCATION).get('uuid')
+    valid_from, valid_to = util.get_validities(req)
 
     bvn = str(uuid.uuid4())
 
@@ -66,7 +69,7 @@ def create_manager(employee_uuid, req):
                                               valid_to)
 
     manager = common.create_organisationsfunktion_payload(
-        funktionsnavn=keys.MANAGER_KEY,
+        funktionsnavn=mapping.MANAGER_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
         brugervendtnoegle=bvn,
@@ -90,12 +93,12 @@ def edit_manager(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=manager_uuid)
 
     data = req.get('data')
-    new_from, new_to = common.get_validities(data)
+    new_from, new_to = util.get_validities(data)
 
     # Get org unit uuid for validation purposes
-    org_unit = common.get_obj_value(
+    org_unit = util.get_obj_value(
         original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-    org_unit_uuid = common.get_uuid(org_unit)
+    org_unit_uuid = util.get_uuid(org_unit)
 
     payload = dict()
     payload['note'] = 'Rediger leder'
@@ -103,7 +106,7 @@ def edit_manager(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from, old_to = common.get_validities(original_data)
+        old_from, old_to = util.get_validities(original_data)
         payload = common.inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
@@ -117,38 +120,40 @@ def edit_manager(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.MANAGER_TYPE in data:
+    if mapping.MANAGER_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
-            {'uuid': common.get_mapping_uuid(data, keys.MANAGER_TYPE)},
+            {'uuid': util.get_mapping_uuid(data, mapping.MANAGER_TYPE)},
         ))
 
-    if keys.ORG_UNIT in data:
+    if mapping.ORG_UNIT in data:
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
-            {'uuid': common.get_mapping_uuid(data, keys.ORG_UNIT)},
+            {'uuid': util.get_mapping_uuid(data, mapping.ORG_UNIT)},
         ))
 
-    for responsibility in common.checked_get(data, keys.RESPONSIBILITY, []):
+    for responsibility in util.checked_get(data, mapping.RESPONSIBILITY, []):
         update_fields.append((
             mapping.RESPONSIBILITY_FIELD,
             {
                 'objekttype': 'lederansvar',
-                'uuid': common.get_uuid(responsibility),
+                'uuid': util.get_uuid(responsibility),
             },
         ))
 
-    if keys.MANAGER_LEVEL in data:
+    if mapping.MANAGER_LEVEL in data:
         update_fields.append((
             mapping.MANAGER_LEVEL_FIELD,
             {
                 'objekttype': 'lederniveau',
-                'uuid': common.get_mapping_uuid(data, keys.MANAGER_LEVEL),
+                'uuid': util.get_mapping_uuid(data, mapping.MANAGER_LEVEL),
             },
         ))
 
-    if data.get(keys.ADDRESS):
-        address_obj = data.get(keys.ADDRESS) or original_data[keys.ADDRESS]
+    if data.get(mapping.ADDRESS):
+        address_obj = (
+            data.get(mapping.ADDRESS) or original_data[mapping.ADDRESS]
+        )
 
         update_fields.append((
             mapping.SINGLE_ADDRESS_FIELD,

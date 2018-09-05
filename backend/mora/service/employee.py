@@ -22,13 +22,13 @@ import uuid
 
 import flask
 
+from .. import mapping
 from .. import exceptions
 from . import address
 from . import association
-from . import common
+from .. import common
 from . import engagement
 from . import itsystem
-from . import keys
 from . import manager
 from . import leave
 from . import org
@@ -51,14 +51,14 @@ def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
 
-        if not user or not common.is_reg_valid(user):
+        if not user or not util.is_reg_valid(user):
             return None
 
     props = user['attributter']['brugeregenskaber'][0]
 
     r = {
-        keys.NAME: props['brugernavn'],
-        keys.UUID: userid,
+        mapping.NAME: props['brugernavn'],
+        mapping.UUID: userid,
     }
 
     if full:
@@ -66,12 +66,12 @@ def get_one_employee(c, userid, user=None, full=False):
         orgid = rels['tilhoerer'][0]['uuid']
 
         if rels.get('tilknyttedepersoner'):
-            r[keys.CPR_NO] = (
+            r[mapping.CPR_NO] = (
                 rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
             )
 
-        r[keys.ORG] = org.get_one_organisation(c, orgid)
-        r[keys.USER_KEY] = props['brugervendtnoegle']
+        r[mapping.ORG] = org.get_one_organisation(c, orgid)
+        r[mapping.USER_KEY] = props['brugervendtnoegle']
 
     return r
 
@@ -494,7 +494,7 @@ def create_employee_relation(employee_uuid):
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            "Opret {}".format(common.RELATION_TRANSLATIONS[role_type])
+            "Opret {}".format(mapping.RELATION_TRANSLATIONS[role_type])
         )
 
     # TODO:
@@ -957,7 +957,7 @@ def edit_employee(employee_uuid):
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            "Rediger {}".format(common.RELATION_TRANSLATIONS[role_type])
+            "Rediger {}".format(mapping.RELATION_TRANSLATIONS[role_type])
         )
 
     # TODO: Figure out the response -- probably just the edited object(s)?
@@ -987,15 +987,15 @@ def terminate_employee(employee_uuid):
         }
       }
     """
-    date = common.get_valid_from(flask.request.get_json())
+    date = util.get_valid_from(flask.request.get_json())
 
     # Org funks
     types = (
-        keys.ENGAGEMENT_KEY,
-        keys.ASSOCIATION_KEY,
-        keys.ROLE_KEY,
-        keys.LEAVE_KEY,
-        keys.MANAGER_KEY
+        mapping.ENGAGEMENT_KEY,
+        mapping.ASSOCIATION_KEY,
+        mapping.ROLE_KEY,
+        mapping.LEAVE_KEY,
+        mapping.MANAGER_KEY
     )
 
     c = lora.Connector(effective_date=date)
@@ -1114,10 +1114,10 @@ def create_employee():
 
     req = flask.request.get_json()
 
-    name = common.checked_get(req, keys.NAME, "", required=True)
-    org_uuid = common.get_mapping_uuid(req, keys.ORG, required=True)
-    cpr = common.checked_get(req, keys.CPR_NO, "", required=False)
-    userid = common.get_uuid(req, required=False)
+    name = util.checked_get(req, mapping.NAME, "", required=True)
+    org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+    cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
+    userid = util.get_uuid(req, required=False)
 
     try:
         valid_from = \
@@ -1143,7 +1143,7 @@ def create_employee():
     valid_to = util.POSITIVE_INFINITY
 
     # TODO: put something useful into the default user key
-    bvn = common.checked_get(req, keys.USER_KEY, str(uuid.uuid4()))
+    bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
     user = common.create_bruger_payload(
         valid_from=valid_from,
