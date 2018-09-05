@@ -516,4 +516,4 @@ def fixroots(**kwargs):
 
 
 if __name__ == '__main__':
-    group()
+    group(prog_name=os.environ.get('MORA_PROG_NAME'))

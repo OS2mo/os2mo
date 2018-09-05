@@ -135,61 +135,52 @@ Herefter installeres følgende afhængighed::
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
 skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
 men det nemmeste er blot at anvende scriptet
-**manage.py**. Første gang, skal front-enden bygges::
+``flask.sh``. Første gang, skal front-enden bygges::
 
   $ cd /path/to/folder/mora/backend
-  $ ./manage.py build
+  $ ./flask.sh build
 
 Hvorefter følgende kommando kan køres::
 
-  $ ./manage.py run
+  $ ./flask.sh run
 
 Dette vil automatisk oprette et vituelt Python-miljø, installere de
 nødvendige Python-afhængigheder og starte applikationen (lyttende på
 port 5000). Applikationen kan således tilgås på *http://localhost:5000*.
 Bemærk dog, at der først skal uploades data til LoRa - til dette formål
-kan man med fordel anvende **manage.py**.
+kan man med fordel anvende ``flask.sh``.
 
-Generel brug af manage.py
-~~~~~~~~~~~~~~~~~~~~~~~~~
-Scriptet manage.py kan bruges til en række forskellige operationer. De
+Generel brug af kommandolinieværktøjet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Scriptet ``flask.sh`` kan bruges til en række forskellige operationer. De
 mulige funktioner ses ved blot at køre scriptet fra kommandolinjen
 uden argumenter::
 
-  $ ./manage.py
+  $ /path/to/folder/mora/backend/flask.sh
 
 hvilket vil resultere i flg. output::
 
-  Usage: manage.py [OPTIONS] COMMAND [ARGS]...
+  Usage: /path/to/folder/mora/backend/flask.sh [OPTIONS] COMMAND [ARGS]...
 
-  This shell command acts as general utility script for Flask applications.
-
-  It loads the application configured (through the FLASK_APP environment
-  variable) and then provides commands either provided by the application or
-  Flask itself.
-
-  The most useful commands are the "run" and "shell" command.
-
-  Example usage:
-
-    $ export FLASK_APP=hello.py
-    $ export FLASK_DEBUG=1
-    $ flask run
+    Management utility for MORA.
 
   Options:
-  --version  Show the flask version
-  --help     Show this message and exit.
+    --version  Show the flask version
+    --help     Show this message and exit.
 
   Commands:
     auth
     build          Build the frontend application.
+    develop        Run for development.
+    fixroots       Import the sample fixtures into LoRA.
     get
     import         Import an Excel spreadsheet into LoRa
     load-fixtures  Import the sample fixtures into LoRA.
     python
     run            Runs a development server.
+    sheet-convert  Convert a spreadsheet to another format.
     shell          Runs a shell in the app context.
-    sphinx         Build documentation
     test
     update
 
@@ -197,19 +188,20 @@ En liste af mulige funktioner ses under *Commands*. Hvis man fx vil importere
 et regneark med data til en kørende LoRa-instans, kan dette gøre således
 (for passende værdier af sti til regneark)::
 
-  $ ./manage.py import spreadsheets /sti/til/regneark.xlsx
+  $ ./flask.sh import spreadsheets /sti/til/regneark.xlsx
 
 Ønsker man dokumentation for syntaksen af en given kommando, skriver man fx::
 
-  $ ./manage.py import
+  $ ./flask.sh import
 
 Som vil angive, hvad den korrekte syntaks er::
 
-  Usage: manage.py import [OPTIONS] SPREADSHEET [URL]
+  Usage: flask.sh import [OPTIONS] SPREADSHEET [URL]
 
   Error: Missing argument "spreadsheet".
 
-For yderligere detaljer om brugen af manage.py henvises til kildekoden.
+For yderligere detaljer om brugen af ``flask.sh`` henvises til
+kildekoden og den indbyggede hjælp.
 
 Konfiguration
 ~~~~~~~~~~~~~
@@ -217,7 +209,7 @@ Konfiguration
 Indstillinger gemmes i ``setup/mora.json``. Den vigtiste er
 ``LORA_URL``; denne kan også sættes som en miljøvariabel::
 
-  MORA_LORA_URL=http://localhost:5000 ./manage.py run
+  MORA_LORA_URL=http://localhost:5000 ./flask.sh run
 
 
 Testsuiten
@@ -238,7 +230,7 @@ feature kræver det følgende afhængigheder::
 
 Testsuiten kan køres med kommandoen::
 
-  $ ./manage.py test
+  $ ./flask.sh test
 
 End-to-end tests
 ----------------
