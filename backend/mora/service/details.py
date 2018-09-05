@@ -10,9 +10,18 @@
 '''Details
 -------
 
-This section describes how to interact with employee and
+This section describes how to read employee and
 organisational unit metadata, referred to as *details* within this
 API.
+
+For details on how to create and edit these metadata, refer to the sections on
+creating and editing relations for employees and organisational units:
+
+* :http:post:`/service/e/(uuid:employee_uuid)/create`
+* :http:post:`/service/e/(uuid:employee_uuid)/edit`
+* :http:post:`/service/ou/(uuid:unitid)/create`
+* :http:post:`/service/ou/(uuid:unitid)/edit`
+
 
 '''
 
@@ -126,7 +135,8 @@ def get_detail(type, id, function):
         "to": "2018-01-01T00:00:00+00:00",
       }
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show details valid at this point in time,
+        in ISO-8601 format.
     :queryparam string validity: Only show *past*, *present* or
         *future* values -- which the default being to show *present*
         values.
@@ -343,7 +353,7 @@ def get_detail(type, id, function):
 
     **Example manager response**:
 
-    .. sourcecode: json
+    .. sourcecode:: json
 
       [
         {
