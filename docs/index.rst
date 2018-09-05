@@ -11,9 +11,8 @@ Dette er den fuldstændige dokumentation til OS2MO 2.0 — MedarbejderOrganisati
    apidoc.rst
    news
 
-
-Indices and tables
-==================
+Indekser og tabeller
+====================
 
    * :ref:`genindex`
    * :ref:`modindex`
