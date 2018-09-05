@@ -82,7 +82,7 @@ følgende kommandoer::
 
   $ sudo apt install python3 python3-venv
 
-Derudover er følgende systemafhængigheder påkrævet af vores nuværende Python-afhængigheder: ::
+Derudover er følgende systemafhængigheder påkrævet af vores nuværende Python-afhængigheder::
 
   $ sudo apt install build-essential libssl-dev libffi-dev python3-dev xmlsec1
 
@@ -98,13 +98,13 @@ derfor bør NodeJS LTS-versionen installeres via et eksternt apt repository.
 
 Installationen af NodeJS kan udføres i følgende trin,
 
-Tilføj nodesource public nøgle: ::
+Tilføj nodesource public nøgle::
 
   $ cd setup/nodesource
   $ sudo apt-key add nodesource.gpg.key
 
 
-Nodesource apt repository skal tilføjes: ::
+Nodesource apt repository skal tilføjes::
 
   # Add list file
   $ cd setup/nodesource
@@ -113,39 +113,42 @@ Nodesource apt repository skal tilføjes: ::
   # Update apt cache
   $ sudo apt-get update
 
-Installer nodejs meta pakken: ::
+Installer nodejs meta pakken::
 
   $ sudo apt-get install nodejs
 
 
-Bekræft at version 8 er installeret: ::
+Bekræft at version 8 er installeret::
 
   $ node -v
   v8.11.1
 
 
-Herefter installeres følgende afhængighed: ::
+Herefter installeres følgende afhængighed::
 
-  $ sudo npm install yarn -g
+  $ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  $ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+  $ sudo apt-get update && sudo apt-get install yarn
+
 
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
 skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
 men det nemmeste er blot at anvende scriptet
-**manage.py**. Første gang, skal front-enden bygges: ::
+**manage.py**. Første gang, skal front-enden bygges::
 
   $ cd /path/to/folder/mora/backend
   $ ./manage.py build
 
-Hvorefter følgende kommando kan køres: ::
+Hvorefter følgende kommando kan køres::
 
   $ ./manage.py run
 
 Dette vil automatisk oprette et vituelt Python-miljø, installere de
 nødvendige Python-afhængigheder og starte applikationen (lyttende på
-port 5000). Applikationen kan således tilgås på *http://localhost:5000* med et
-brugernavn og password, som er hhv. *admin* og *secret*. Bemærk dog,
-at der først skal uploades data til LoRa - til dette formål kan man med
-fordel anvende **manage.py**.
+port 5000). Applikationen kan således tilgås på *http://localhost:5000*.
+Bemærk dog, at der først skal uploades data til LoRa - til dette formål
+kan man med fordel anvende **manage.py**.
 
 Generel brug af manage.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,7 +234,7 @@ køres derefter op imod LoRa-instansen, idet der ryddes op i LoRa mellem hver
 test case, så testene effektivt set køres isoleret. For at anvende denne test
 feature kræver det følgende afhængigheder::
 
-  $ sudo apt install libxmlsec1-dev
+  $ sudo apt install libxmlsec1-dev libxmlsec1-openssl postgresql-contrib
 
 Testsuiten kan køres med kommandoen::
 
@@ -243,6 +246,7 @@ End-to-end tests
 Vores end-to-end tests køres typisk som en del af testsuiten. For at
 køre den direkte mod en udviklingsmaskine anvendes eksempelvis::
 
+  cd frontend
   BASE_URL=http://localhost:5000/ yarn testcafe --speed 0.5 firefox e2e-tests
 
 Dokumentation

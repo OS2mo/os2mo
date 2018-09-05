@@ -469,6 +469,11 @@ def create_org_unit():
     :<json list addresses: A list of address objects.
     :<json object validity: The validity of the created object.
 
+    The parameter ``org_unit_type`` should contain
+    an UUID obtained from the respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``addresses`` parameter, see :ref:`Adresses <address>`.
+
     Validity objects are defined as such:
 
     :<jsonarr string from: The from date, in ISO 8601.
@@ -592,6 +597,10 @@ def edit_org_unit(unitid):
     :<json string parent: The parent org unit
     :<json string org_unit_type: The type of org unit
     :<json object validity: The validities of the changes.
+
+    The parameter ``org_unit_type`` should contain
+    an UUID obtained from the respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     Validity objects are defined as such:
 

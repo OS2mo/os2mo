@@ -232,7 +232,8 @@ def create_employee_relation(employee_uuid):
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``job_function`` and ``engagement_type`` should contain
-    UUIDs obtained from their respective facet endpoints
+    UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -266,6 +267,7 @@ def create_employee_relation(employee_uuid):
 
     The parameters ``job_function`` and ``association_type`` should contain
     UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
@@ -330,6 +332,7 @@ def create_employee_relation(employee_uuid):
 
     The parameter ``role_type`` should contain a UUID obtained from the
     respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -361,6 +364,7 @@ def create_employee_relation(employee_uuid):
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
     should contain UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
@@ -407,6 +411,7 @@ def create_employee_relation(employee_uuid):
 
     The parameter ``leave_type`` should contain a UUID obtained from the
     respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -542,7 +547,8 @@ def edit_employee(employee_uuid):
     :<jsonarr object validity: The validities of the changes.
 
     The parameters ``job_function`` and ``engagement_type`` should contain
-    UUIDs obtained from their respective facet endpoints
+    UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -602,6 +608,7 @@ def edit_employee(employee_uuid):
 
     The parameters ``job_function`` and ``association_type`` should contain
     UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
@@ -711,6 +718,7 @@ def edit_employee(employee_uuid):
 
     The parameter ``role_type`` should contain a UUID obtained from the
     respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -763,6 +771,7 @@ def edit_employee(employee_uuid):
 
     The parameter ``leave_type`` should contain a UUID obtained from the
     respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -817,6 +826,7 @@ def edit_employee(employee_uuid):
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
     should contain UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json

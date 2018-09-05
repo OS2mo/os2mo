@@ -137,7 +137,7 @@ An example of reading the main two different types of addresses:
   ]
 
 * ``name`` is a human-readable value for displaying the address
-* ``href`` should be used as a hyperlink target
+* ``href`` should be used as a hyperlink target, if applicable
 * ``urn`` and ``uuid`` are used for uniquely representing the address
   value for editing, which is detailed below.
 * ``validity`` is a validity object.

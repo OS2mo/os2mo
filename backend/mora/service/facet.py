@@ -73,7 +73,7 @@ def list_facets(orgid):
 
     :>jsonarr string name: The facet name.
     :>jsonarr string path: The location on the web server.
-    :>jsonarr string user_key: Human readable description.
+    :>jsonarr string user_key: Short, unique key identifying the facet
     :>jsonarr string uuid: The UUID of the facet.
 
     :status 200: Always.
