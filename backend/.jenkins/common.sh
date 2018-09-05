@@ -14,5 +14,5 @@ if test ${WANT_VENV:=1} != 0
 then
     python3 -m venv "$VENV"
 
-    . "$VENV"/bin/activate
+    export PATH="$VENV/bin:$PATH"
 fi
