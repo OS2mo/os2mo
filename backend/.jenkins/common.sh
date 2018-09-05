@@ -3,6 +3,7 @@
 set -ex
 
 TOPDIR=$(cd "$(dirname ${BASH_SOURCE[0]})"/../..; pwd)
+GIT_COMMIT=$(GIT_DIR="$TOPDIR/.git" git rev-parse --short HEAD)
 
 if test -z "$VENV"
 then
