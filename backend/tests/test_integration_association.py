@@ -9,7 +9,7 @@
 import freezegun
 
 from mora import lora
-from mora.service import keys
+from mora import mapping
 from tests import util
 
 
@@ -1009,7 +1009,7 @@ class Tests(util.LoRATestCase):
         associations = c.organisationfunktion.fetch(
             tilknyttedeenheder=unitid,
             tilknyttedebrugere=userid,
-            funktionsnavn=keys.ASSOCIATION_KEY)
+            funktionsnavn=mapping.ASSOCIATION_KEY)
         self.assertEqual(len(associations), 1)
         existing_uuid = associations[0]
 

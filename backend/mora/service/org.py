@@ -19,8 +19,8 @@ import operator
 import flask
 import werkzeug
 
-from . import common
-from . import keys
+from .. import common
+from .. import mapping
 from .. import util
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
@@ -31,7 +31,7 @@ def get_one_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
-        if not org or not common.is_reg_valid(org):
+        if not org or not util.is_reg_valid(org):
             return None
 
     attrs = org['attributter']['organisationegenskaber'][0]
@@ -148,15 +148,17 @@ def get_organisation(orgid):
     # https://redmine.magenta-aps.dk/issues/21273
     users = c.bruger(tilhoerer=orgid)
     engagements = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                         funktionsnavn=keys.ENGAGEMENT_KEY)
-    associations = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                          funktionsnavn=keys.ASSOCIATION_KEY)
+                                         funktionsnavn=mapping.ENGAGEMENT_KEY)
+    associations = c.organisationfunktion(
+        tilknyttedeorganisationer=orgid,
+        funktionsnavn=mapping.ASSOCIATION_KEY,
+    )
     leaves = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                    funktionsnavn=keys.LEAVE_KEY)
+                                    funktionsnavn=mapping.LEAVE_KEY)
     roles = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                   funktionsnavn=keys.ROLE_KEY)
+                                   funktionsnavn=mapping.ROLE_KEY)
     managers = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                      funktionsnavn=keys.MANAGER_KEY)
+                                      funktionsnavn=mapping.MANAGER_KEY)
 
     return flask.jsonify({
         'name': attrs['organisationsnavn'],

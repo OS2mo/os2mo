@@ -15,38 +15,17 @@ import abc
 import collections
 import copy
 import datetime
-import enum
 import functools
-import json
-import operator
 import typing
 import uuid
-
 
 import flask
 import werkzeug
 
-from . import keys
-from .. import exceptions
-from .. import lora
-from .. import util
-
-RELATION_TRANSLATIONS = {
-    'engagement': keys.ENGAGEMENT_KEY.lower(),
-    'association': keys.ASSOCIATION_KEY.lower(),
-    'it': keys.ITSYSTEM_KEY.lower(),
-    'role': keys.ROLE_KEY.lower(),
-    'address': keys.ADDRESS_KEY.lower(),
-    'manager': keys.MANAGER_KEY.lower(),
-    'leave': keys.LEAVE_KEY.lower(),
-}
-
-
-@enum.unique
-class FieldTypes(enum.IntEnum):
-    ZERO_TO_ONE = 0,
-    ZERO_TO_MANY = 1,
-    ADAPTED_ZERO_TO_MANY = 2,
+from . import exceptions
+from . import lora
+from . import mapping
+from . import util
 
 
 class AbstractRelationDetail(abc.ABC):
@@ -74,16 +53,6 @@ class AbstractRelationDetail(abc.ABC):
         pass
 
 
-FieldTuple = collections.namedtuple(
-    'PropTuple',
-    [
-        'path',
-        'type',
-        'filter_fn'
-    ]
-)
-
-
 def get_connector(**loraparams):
     args = flask.request.args
 
@@ -94,113 +63,6 @@ def get_connector(**loraparams):
         loraparams['validity'] = args['validity']
 
     return lora.Connector(**loraparams)
-
-
-K = typing.TypeVar('K', bound=typing.Hashable)
-V = typing.TypeVar('V')
-D = typing.Dict[K, V]
-
-
-def checked_get(
-    mapping: D,
-    key: K,
-    default: V,
-    fallback: D=None,
-    required: bool=False,
-) -> V:
-    sentinel = object()
-    v = mapping.get(key, sentinel)
-
-    if v is sentinel:
-        if fallback is not None:
-            return checked_get(fallback, key, default, None, required)
-        elif required:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
-                message='Missing {}'.format(key),
-                key=key,
-                obj=mapping
-            )
-        else:
-            return default
-
-    elif not isinstance(v, type(default)):
-        if not required and v is None:
-            return default
-
-        expected = type(default).__name__
-        actual = json.dumps(v)
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_TYPE,
-            message='Invalid {!r}, expected {}, got: {}'.format(
-                key, expected, actual,
-            ),
-            key=key,
-            expected=expected,
-            actual=actual,
-            obj=mapping
-        )
-
-    return v
-
-
-def get_uuid(
-    mapping: D,
-    fallback: D=None,
-    *,
-    required: bool=True,
-    key: typing.Hashable=keys.UUID
-) -> str:
-    v = checked_get(mapping, key, '', fallback=fallback, required=required)
-
-    if not v and not required:
-        return None
-    elif not util.is_uuid(v):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_UUID,
-            message='Invalid uuid for {!r}: {!r}'.format(key, v),
-            obj=mapping
-        )
-
-    return v
-
-
-def get_mapping_uuid(mapping, key, required=False):
-    """Extract a UUID from a mapping structure identified by 'key'.
-    Expects a structure along the lines of:
-
-    .. sourcecode:: python
-
-      {
-        "org": {
-          "uuid": "<UUID>"
-        }
-      }
-
-    """
-    obj = checked_get(mapping, key, {}, required=required)
-    if obj:
-        return get_uuid(obj)
-    else:
-        return None
-
-
-def get_urn(
-    mapping: D,
-    fallback: D=None,
-    *,
-    key: typing.Hashable=keys.URN
-) -> str:
-    v = checked_get(mapping, key, '', fallback=fallback, required=True)
-
-    if not util.is_urn(v):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_URN,
-            message='invalid urn for {!r}: {!r}'.format(key, v),
-            obj=mapping
-        )
-
-    return v
 
 
 class cache(collections.defaultdict):
@@ -232,122 +94,69 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
             'gyldighed': "Inaktiv",
             'virkning': _create_virkning(old_from, new_from)
         }
-        payload = set_obj_value(payload, path, [val])
+        payload = util.set_obj_value(payload, path, [val])
     if new_to < old_to:
         val = {
             'gyldighed': "Inaktiv",
             'virkning': _create_virkning(new_to, old_to)
         }
-        payload = set_obj_value(payload, path, [val])
+        payload = util.set_obj_value(payload, path, [val])
     return payload
-
-
-def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
-    path_list = list(path)
-    obj_copy = copy.deepcopy(obj)
-
-    current_value = obj_copy
-    while path_list:
-        key = path_list.pop(0)
-        if path_list:
-            current_value = current_value.setdefault(key, {})
-        else:
-            if not current_value.get(key):
-                current_value[key] = val
-            else:
-                current_value[key].extend(val)
-
-    return obj_copy
-
-
-def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
-    try:
-        props = functools.reduce(operator.getitem, path, obj)
-    except (LookupError, TypeError):
-        return None
-
-    if filter_fn:
-        return list(filter(filter_fn, props))
-    else:
-        return props
-
-
-def get_field_value(field: FieldTuple, obj):
-    return get_obj_value(obj, field.path, field.filter_fn)
-
-
-FieldTuple.get = get_field_value
-
-
-def get_effect_from(effect: dict) -> datetime.datetime:
-    return util.parsedatetime(effect['virkning']['from'])
-
-
-def get_effect_to(effect: dict) -> datetime.datetime:
-    return util.parsedatetime(effect['virkning']['to'])
-
-
-def get_effect_validity(effect):
-    return {
-        keys.FROM: util.to_iso_time(get_effect_from(effect)),
-        keys.TO: util.to_iso_time(get_effect_to(effect)),
-    }
 
 
 def ensure_bounds(valid_from: datetime.datetime,
                   valid_to: datetime.datetime,
-                  props: typing.List[FieldTuple],
+                  props: typing.List[mapping.FieldTuple],
                   obj: dict,
                   payload: dict):
-
     for field in props:
-        props = get_obj_value(obj, field.path, field.filter_fn)
+        props = util.get_obj_value(obj, field.path, field.filter_fn)
         if not props:
             continue
 
-        updated_props = []  # type: typing.List[FieldTuple]
-        if field.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
+        updated_props = []  # type: typing.List[mapping.FieldTuple]
+        if field.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
-            sorted_props = sorted(props, key=get_effect_from)
+            sorted_props = sorted(props, key=util.get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
             # Check bounds on first
-            if valid_from < get_effect_from(first):
+            if valid_from < util.get_effect_from(first):
                 first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props = sorted_props
-            if get_effect_to(last) < valid_to:
+            if util.get_effect_to(last) < valid_to:
                 last['virkning']['to'] = util.to_lora_time(valid_to)
                 updated_props = sorted_props
 
-        elif field.type == FieldTypes.ZERO_TO_MANY:
+        elif field.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Don't touch virkninger on zero-to-many
             updated_props = props
         else:
             # Zero-to-one. Move first and last. LoRa does the merging.
-            sorted_props = sorted(props, key=get_effect_from)
+            sorted_props = sorted(props, key=util.get_effect_from)
             first = sorted_props[0]
             last = sorted_props[-1]
 
-            if valid_from < get_effect_from(first):
+            if valid_from < util.get_effect_from(first):
                 first['virkning']['from'] = util.to_lora_time(valid_from)
                 updated_props.append(first)
-            if get_effect_to(last) < valid_to:
+            if util.get_effect_to(last) < valid_to:
                 last['virkning']['to'] = util.to_lora_time(valid_to)
                 if not updated_props or last is not first:
                     updated_props.append(last)
 
         if updated_props:
-            payload = set_obj_value(payload, field.path, updated_props)
+            payload = util.set_obj_value(payload, field.path, updated_props)
     return payload
 
 
 def update_payload(
-        valid_from: datetime.datetime,
-        valid_to: datetime.datetime,
-        relevant_fields: typing.List[typing.Tuple[FieldTuple, dict]],
-        obj: dict,
-        payload: dict,
+    valid_from: datetime.datetime,
+    valid_to: datetime.datetime,
+    relevant_fields: typing.List[typing.Tuple[mapping.FieldTuple, dict]],
+    obj: dict,
+    payload: dict,
 ):
     combined_fields = werkzeug.datastructures.OrderedMultiDict(relevant_fields)
 
@@ -356,12 +165,13 @@ def update_payload(
             val['virkning'] = _create_virkning(valid_from, valid_to)
 
         # Get original properties
-        props = get_obj_value(obj, field_tuple.path, field_tuple.filter_fn)
+        props = util.get_obj_value(obj, field_tuple.path,
+                                   field_tuple.filter_fn)
 
-        if field_tuple.type == FieldTypes.ADAPTED_ZERO_TO_MANY:
+        if field_tuple.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
             updated_props = _merge_obj_effects(props, vals)
-        elif field_tuple.type == FieldTypes.ZERO_TO_MANY:
+        elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
             updated_props = props + vals
         else:
@@ -370,14 +180,14 @@ def update_payload(
             assert 0 <= len(vals) <= 1
             updated_props = vals
 
-        payload = set_obj_value(payload, field_tuple.path, updated_props)
+        payload = util.set_obj_value(payload, field_tuple.path, updated_props)
 
     return payload
 
 
 def _merge_obj_effects(
-        orig_objs: typing.List[dict],
-        new_objs: typing.List[dict],
+    orig_objs: typing.List[dict],
+    new_objs: typing.List[dict],
 ) -> typing.List[dict]:
     """
     Performs LoRa-like merging of a relation object, with a current list of
@@ -399,18 +209,18 @@ def _merge_obj_effects(
     if orig_objs is None:
         return result
 
-    sorted_orig = sorted(orig_objs, key=get_effect_from)
+    sorted_orig = sorted(orig_objs, key=util.get_effect_from)
 
     # sanity checks
-    assert len({get_effect_to(obj) for obj in new_objs}) == 1
-    assert len({get_effect_from(obj) for obj in new_objs}) == 1
+    assert len({util.get_effect_to(obj) for obj in new_objs}) == 1
+    assert len({util.get_effect_from(obj) for obj in new_objs}) == 1
 
-    new_from = get_effect_from(new_objs[0])
-    new_to = get_effect_to(new_objs[0])
+    new_from = util.get_effect_from(new_objs[0])
+    new_to = util.get_effect_to(new_objs[0])
 
     for orig in sorted_orig:
-        orig_from = get_effect_from(orig)
-        orig_to = get_effect_to(orig)
+        orig_from = util.get_effect_from(orig)
+        orig_to = util.get_effect_to(orig)
 
         if new_to <= orig_from or orig_to <= new_from:
             # Not affected, add orig as-is
@@ -450,7 +260,7 @@ def _merge_obj_effects(
                 new_obj_after['virkning']['from'] = util.to_lora_time(new_to)
                 result.append(new_obj_after)
 
-    return sorted(result, key=get_effect_from)
+    return sorted(result, key=util.get_effect_from)
 
 
 def _create_virkning(valid_from: str, valid_to: str) -> dict:
@@ -493,7 +303,7 @@ def inactivate_org_funktion_payload(enddate, note):
         'virkning': _create_virkning(enddate, 'infinity')
     }
 
-    payload = set_obj_value({'note': note}, obj_path, [val_inactive])
+    payload = util.set_obj_value({'note': note}, obj_path, [val_inactive])
 
     return payload
 
@@ -574,7 +384,6 @@ def create_organisationsenhed_payload(
     overordnet: str,
     adresser: typing.List[dict] = None,
 ) -> dict:
-
     virkning = _create_virkning(valid_from, valid_to)
 
     org_unit = {
@@ -629,7 +438,6 @@ def create_bruger_payload(
     tilhoerer: str,
     cpr: str
 ):
-
     virkning = _create_virkning(valid_from, valid_to)
 
     user = {
@@ -670,76 +478,11 @@ def create_bruger_payload(
     return user
 
 
-def get_valid_from(obj, fallback=None) -> datetime.datetime:
-    sentinel = object()
-    validity = obj.get(keys.VALIDITY, sentinel)
-
-    if validity and validity is not sentinel:
-        valid_from = validity.get(keys.FROM, sentinel)
-        if valid_from is None:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_MISSING_START_DATE,
-                obj=obj
-            )
-        elif valid_from is not sentinel:
-            return util.from_iso_time(valid_from)
-
-    if fallback is not None:
-        return get_valid_from(fallback)
-    else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_MISSING_START_DATE,
-            obj=obj
-        )
-
-
-def get_valid_to(obj, fallback=None) -> datetime.datetime:
-    sentinel = object()
-    validity = obj.get(keys.VALIDITY, sentinel)
-
-    if validity and validity is not sentinel:
-        valid_to = validity.get(keys.TO, sentinel)
-
-        if valid_to is None:
-            return util.POSITIVE_INFINITY
-
-        elif valid_to is not sentinel:
-            return util.from_iso_time(valid_to)
-
-    if fallback is not None:
-        return get_valid_to(fallback)
-    else:
-        return util.POSITIVE_INFINITY
-
-
-def get_validities(obj, fallback=None):
-    valid_from = get_valid_from(obj, fallback)
-    valid_to = get_valid_to(obj, fallback)
-    if valid_to < valid_from:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_END_BEFORE_START,
-            obj=obj
-        )
-    return valid_from, valid_to
-
-
-def get_validity_effect(entry, fallback=None):
-    if keys.VALIDITY not in entry and fallback is None:
-        return None
-
-    valid_from, valid_to = get_validities(entry, fallback)
-
-    return {
-        keys.FROM: util.to_lora_time(valid_from),
-        keys.TO: util.to_lora_time(valid_to),
-    }
-
-
 def replace_relation_value(relations: typing.List[dict],
                            old_entry: dict,
-                           new_entry: dict=None) -> typing.List[dict]:
-    old_from = get_effect_from(old_entry)
-    old_to = get_effect_to(old_entry)
+                           new_entry: dict = None) -> typing.List[dict]:
+    old_from = util.get_effect_from(old_entry)
+    old_to = util.get_effect_to(old_entry)
 
     old_urn = old_entry.get('urn')
     old_uuid = old_entry.get('uuid')
@@ -747,8 +490,8 @@ def replace_relation_value(relations: typing.List[dict],
 
     for i, rel in enumerate(relations):
         if (
-            get_effect_from(rel) == old_from and
-            get_effect_to(rel) == old_to and
+            util.get_effect_from(rel) == old_from and
+            util.get_effect_to(rel) == old_to and
             rel.get('urn') == old_urn and
             rel.get('uuid') == old_uuid and
             rel.get('objekttype') == old_type
@@ -765,25 +508,6 @@ def replace_relation_value(relations: typing.List[dict],
     else:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
-
-
-def get_states(reg):
-    for tilstand in reg.get('tilstande', {}).values():
-        yield from tilstand
-
-
-def is_reg_valid(reg):
-    """
-    Check if a given registration is valid
-    i.e. that the registration contains a 'gyldighed' that is 'Aktiv'
-
-    :param reg: A registration object
-    """
-
-    return any(
-        state.get('gyldighed') == 'Aktiv'
-        for state in get_states(reg)
-    )
 
 
 def add_bruger_history_entry(employee_uuid, note: str):
@@ -810,14 +534,14 @@ def add_bruger_history_entry(employee_uuid, note: str):
         )
 
     path = ('tilstande', 'brugergyldighed')
-    gyldighed = get_obj_value(employee_obj, path)[-1]
+    gyldighed = util.get_obj_value(employee_obj, path)[-1]
     gyldighed['virkning']['notetekst'] = str(uuid.uuid4())
 
     payload = {
         'note': note
     }
 
-    payload = set_obj_value(payload, path, [gyldighed])
+    payload = util.set_obj_value(payload, path, [gyldighed])
     c.bruger.update(payload, employee_uuid)
 
 
@@ -833,19 +557,3 @@ def convert_reg_to_history(reg):
         'life_cycle_code': reg['livscykluskode'],
         'action': reg.get('note')
     }
-
-
-def get_args_flag(name: str):
-    '''Get an argument from the Flask request as a boolean flag.
-
-    A 'flag' argument is false either when not set or one of the
-    values '0', 'false' and 'False'. Anything else is true.
-
-    '''
-
-    v = flask.request.args.get(name, False)
-
-    if v in ('0', 'false', 'False'):
-        return False
-    else:
-        return bool(v)

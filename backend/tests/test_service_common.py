@@ -11,9 +11,10 @@ import datetime
 import dateutil
 import freezegun
 
+from mora import common
 from mora import exceptions
 from mora import util as mora_util
-from mora.service import common
+from mora import mapping
 
 from . import util
 
@@ -42,7 +43,7 @@ class TestClass(util.TestCase):
         expected_props = ['something']
 
         # Act
-        actual_props = common.get_obj_value(obj, path)
+        actual_props = mora_util.get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
@@ -59,7 +60,7 @@ class TestClass(util.TestCase):
         expected_props = None
 
         # Act
-        actual_props = common.get_obj_value(obj, path)
+        actual_props = mora_util.get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
@@ -75,7 +76,7 @@ class TestClass(util.TestCase):
         expected_props = None
 
         # Act
-        actual_props = common.get_obj_value(obj, path)
+        actual_props = mora_util.get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
@@ -92,7 +93,7 @@ class TestClass(util.TestCase):
         expected_props = None
 
         # Act
-        actual_props = common.get_obj_value(obj, path)
+        actual_props = mora_util.get_obj_value(obj, path)
 
         # Assert
         self.assertEqual(expected_props, actual_props)
@@ -101,9 +102,9 @@ class TestClass(util.TestCase):
         # Arrange
         fields = [
             (
-                common.FieldTuple(
+                mapping.FieldTuple(
                     ('test1', 'prop1'),
-                    common.FieldTypes.ADAPTED_ZERO_TO_MANY,
+                    mapping.FieldTypes.ADAPTED_ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -111,9 +112,9 @@ class TestClass(util.TestCase):
                 }
             ),
             (
-                common.FieldTuple(
+                mapping.FieldTuple(
                     ('test1', 'prop2'),
-                    common.FieldTypes.ZERO_TO_MANY,
+                    mapping.FieldTypes.ZERO_TO_MANY,
                     lambda x: True,
                 ),
                 {
@@ -121,9 +122,9 @@ class TestClass(util.TestCase):
                 }
             ),
             (
-                common.FieldTuple(
+                mapping.FieldTuple(
                     ('test2', 'prop3'),
-                    common.FieldTypes.ZERO_TO_ONE,
+                    mapping.FieldTypes.ZERO_TO_ONE,
                     lambda x: True,
                 ),
                 {
@@ -384,9 +385,9 @@ class TestClass(util.TestCase):
             'note': 'NOTE'
         }
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
+                mapping.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -456,9 +457,9 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
+                mapping.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -542,9 +543,9 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
+                mapping.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -616,9 +617,9 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
+                mapping.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -702,9 +703,9 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ADAPTED_ZERO_TO_MANY,
+                mapping.FieldTypes.ADAPTED_ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -776,9 +777,9 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ZERO_TO_MANY,
+                mapping.FieldTypes.ZERO_TO_MANY,
                 lambda x: x
             )
         ]
@@ -878,9 +879,9 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
-                common.FieldTypes.ZERO_TO_ONE,
+                mapping.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -962,10 +963,10 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
 
-                common.FieldTypes.ZERO_TO_ONE,
+                mapping.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1047,10 +1048,10 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
 
-                common.FieldTypes.ZERO_TO_ONE,
+                mapping.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1121,10 +1122,10 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
 
-                common.FieldTypes.ZERO_TO_ONE,
+                mapping.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1197,10 +1198,10 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
 
-                common.FieldTypes.ZERO_TO_ONE,
+                mapping.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1253,10 +1254,10 @@ class TestClass(util.TestCase):
         }
 
         paths = [
-            common.FieldTuple(
+            mapping.FieldTuple(
                 ('test1', 'test2'),
 
-                common.FieldTypes.ZERO_TO_ONE,
+                mapping.FieldTypes.ZERO_TO_ONE,
                 lambda x: x
             )
         ]
@@ -1898,7 +1899,7 @@ class TestClass(util.TestCase):
         }
 
         # Act
-        actual_result = common.set_obj_value(obj, path, val)
+        actual_result = mora_util.set_obj_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1919,7 +1920,7 @@ class TestClass(util.TestCase):
         }
 
         # Act
-        actual_result = common.set_obj_value(obj, path, val)
+        actual_result = mora_util.set_obj_value(obj, path, val)
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1929,7 +1930,7 @@ class TestClass(util.TestCase):
         dt = datetime.datetime(2018, 3, 21,
                                tzinfo=dateutil.tz.tzoffset(None, 3600))
 
-        self.assertEqual(dt, common.get_valid_from(
+        self.assertEqual(dt, mora_util.get_valid_from(
             {
                 'validity': {
                     'from': ts,
@@ -1937,7 +1938,7 @@ class TestClass(util.TestCase):
             },
         ))
 
-        self.assertEqual(dt, common.get_valid_from(
+        self.assertEqual(dt, mora_util.get_valid_from(
             {
                 'validity': {
                 },
@@ -1950,19 +1951,19 @@ class TestClass(util.TestCase):
         ))
 
         self.assertRaises(
-            exceptions.HTTPException, common.get_valid_from,
+            exceptions.HTTPException, mora_util.get_valid_from,
             {},
         )
 
         self.assertRaises(
-            exceptions.HTTPException, common.get_valid_from,
+            exceptions.HTTPException, mora_util.get_valid_from,
             {
                 'validity': {},
             },
         )
 
         self.assertRaises(
-            exceptions.HTTPException, common.get_valid_from,
+            exceptions.HTTPException, mora_util.get_valid_from,
             {},
             {
                 'validity': {
@@ -1971,7 +1972,7 @@ class TestClass(util.TestCase):
         )
 
         self.assertRaises(
-            exceptions.HTTPException, common.get_valid_from,
+            exceptions.HTTPException, mora_util.get_valid_from,
             {
 
             },
@@ -1982,7 +1983,7 @@ class TestClass(util.TestCase):
         )
 
         self.assertRaises(
-            exceptions.HTTPException, common.get_valid_from,
+            exceptions.HTTPException, mora_util.get_valid_from,
             {
 
             },
@@ -1998,7 +1999,7 @@ class TestClass(util.TestCase):
         dt = datetime.datetime(2018, 3, 21,
                                tzinfo=dateutil.tz.tzoffset(None, 3600))
 
-        self.assertEqual(dt, common.get_valid_to(
+        self.assertEqual(dt, mora_util.get_valid_to(
             {
                 'validity': {
                     'to': ts,
@@ -2006,7 +2007,7 @@ class TestClass(util.TestCase):
             },
         ))
 
-        self.assertEqual(dt, common.get_valid_to(
+        self.assertEqual(dt, mora_util.get_valid_to(
             {
                 'validity': {
                 },
@@ -2020,11 +2021,11 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             mora_util.POSITIVE_INFINITY,
-            common.get_valid_to({}),
+            mora_util.get_valid_to({}),
         )
 
         self.assertEqual(
-            common.get_valid_to({
+            mora_util.get_valid_to({
                 'validity': {},
             }),
             mora_util.POSITIVE_INFINITY,
@@ -2032,7 +2033,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             mora_util.POSITIVE_INFINITY,
-            common.get_valid_to(
+            mora_util.get_valid_to(
                 {},
                 {
                     'validity': {
@@ -2043,7 +2044,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             mora_util.POSITIVE_INFINITY,
-            common.get_valid_to(
+            mora_util.get_valid_to(
                 {
                     'validity': {
                         'to': None,
@@ -2054,7 +2055,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             mora_util.POSITIVE_INFINITY,
-            common.get_valid_to(
+            mora_util.get_valid_to(
                 {},
                 {
                     'validity': {
@@ -2068,19 +2069,19 @@ class TestClass(util.TestCase):
         # start time required
         self.assertRaises(
             exceptions.HTTPException,
-            common.get_valid_from, {}, {},
+            mora_util.get_valid_from, {}, {},
         )
 
         self.assertRaises(
             exceptions.HTTPException,
-            common.get_valid_from, {}, {
+            mora_util.get_valid_from, {}, {
                 'validity': None,
             },
         )
 
         self.assertRaises(
             exceptions.HTTPException,
-            common.get_valid_from, {}, {
+            mora_util.get_valid_from, {}, {
                 'validity': {
                     'from': None,
                 },
@@ -2089,12 +2090,12 @@ class TestClass(util.TestCase):
 
         # still nothing
         self.assertEqual(
-            common.get_valid_to({}, {}),
+            mora_util.get_valid_to({}, {}),
             mora_util.POSITIVE_INFINITY,
         )
 
         self.assertEqual(
-            common.get_valid_to({}, {
+            mora_util.get_valid_to({}, {
                 'validity': None,
             }),
             mora_util.POSITIVE_INFINITY,
@@ -2102,7 +2103,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             mora_util.POSITIVE_INFINITY,
-            common.get_valid_to({}, {
+            mora_util.get_valid_to({}, {
                 'validity': {
                     'to': None,
                 },
@@ -2112,7 +2113,7 @@ class TestClass(util.TestCase):
         # actually set
         self.assertEqual(
             datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
-            common.get_valid_from({
+            mora_util.get_valid_from({
                 'validity': {
                     'from': '2018-03-05',
                 },
@@ -2121,7 +2122,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
-            common.get_valid_to({
+            mora_util.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
                 },
@@ -2131,7 +2132,7 @@ class TestClass(util.TestCase):
         # actually set in the fallback
         self.assertEqual(
             datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
-            common.get_valid_from({}, {
+            mora_util.get_valid_from({}, {
                 'validity': {
                     'from': '2018-03-05',
                 },
@@ -2140,7 +2141,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
-            common.get_valid_to({}, {
+            mora_util.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
                 },
@@ -2150,7 +2151,7 @@ class TestClass(util.TestCase):
         self.assertEqual(
             (datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
              datetime.datetime(2018, 4, 5, tzinfo=mora_util.DEFAULT_TIMEZONE)),
-            common.get_validities({
+            mora_util.get_validities({
                 'validity': {
                     'from': '2018-03-05',
                     'to': '2018-04-05',
@@ -2161,7 +2162,7 @@ class TestClass(util.TestCase):
         self.assertEqual(
             (datetime.datetime(2018, 3, 5, tzinfo=mora_util.DEFAULT_TIMEZONE),
              mora_util.POSITIVE_INFINITY),
-            common.get_validities({
+            mora_util.get_validities({
                 'validity': {
                     'from': '2018-03-05'
                 },
@@ -2170,7 +2171,7 @@ class TestClass(util.TestCase):
 
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     "End date is before start date"):
-            common.get_validities({
+            mora_util.get_validities({
                 'validity': {
                     'from': '2019-03-05',
                     'to': '2018-03-05',
@@ -2182,14 +2183,14 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             testid,
-            common.get_uuid({
+            mora_util.get_uuid({
                 'uuid': testid,
             }),
         )
 
         self.assertEqual(
             testid,
-            common.get_uuid(
+            mora_util.get_uuid(
                 {},
                 {
                     'uuid': testid,
@@ -2199,7 +2200,7 @@ class TestClass(util.TestCase):
 
         self.assertRaises(
             exceptions.HTTPException,
-            common.get_uuid,
+            mora_util.get_uuid,
             {
                 'uuid': 42,
             },
@@ -2207,7 +2208,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             None,
-            common.get_uuid(
+            mora_util.get_uuid(
                 {},
                 required=False,
             ),
@@ -2215,7 +2216,7 @@ class TestClass(util.TestCase):
 
         self.assertEqual(
             testid,
-            common.get_uuid(
+            mora_util.get_uuid(
                 {
                     'kaflaflibob': testid,
                     'uuid': 42,
@@ -2235,61 +2236,61 @@ class TestClass(util.TestCase):
 
         # when it's there
         self.assertIs(
-            common.checked_get(mapping, 'list', []),
+            mora_util.checked_get(mapping, 'list', []),
             mapping['list'],
         )
 
         self.assertIs(
-            common.checked_get(mapping, 'dict', {}),
+            mora_util.checked_get(mapping, 'dict', {}),
             mapping['dict'],
         )
 
         self.assertIs(
-            common.checked_get(mapping, 'string', ''),
+            mora_util.checked_get(mapping, 'string', ''),
             mapping['string'],
         )
 
         self.assertIs(
-            common.checked_get(mapping, 'int', 1337),
+            mora_util.checked_get(mapping, 'int', 1337),
             mapping['int'],
         )
 
         # when it's not there
         self.assertEqual(
-            common.checked_get(mapping, 'nonexistent', []),
+            mora_util.checked_get(mapping, 'nonexistent', []),
             [],
         )
 
         self.assertEqual(
-            common.checked_get(mapping, 'nonexistent', {}),
+            mora_util.checked_get(mapping, 'nonexistent', {}),
             {},
         )
 
         self.assertEqual(
-            common.checked_get(mapping, 'null', {}),
+            mora_util.checked_get(mapping, 'null', {}),
             {},
         )
 
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     "Missing nonexistent"):
-            common.checked_get(mapping, 'nonexistent', [], required=True)
+            mora_util.checked_get(mapping, 'nonexistent', [], required=True)
 
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     "Missing nonexistent"):
-            common.checked_get(mapping, 'nonexistent', {}, required=True)
+            mora_util.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
         with self.assertRaisesRegex(
                 exceptions.HTTPException,
                 'Invalid \'dict\', expected list, got: {"1337": 1337}',
         ):
-            common.checked_get(mapping, 'dict', [])
+            mora_util.checked_get(mapping, 'dict', [])
 
         with self.assertRaisesRegex(
                 exceptions.HTTPException,
                 r"Invalid 'list', expected dict, got: \[1337\]",
         ):
-            common.checked_get(mapping, 'list', {})
+            mora_util.checked_get(mapping, 'list', {})
 
     def test_get_urn(self):
         with self.subTest('bad string'):
@@ -2297,7 +2298,7 @@ class TestClass(util.TestCase):
                 exceptions.HTTPException,
                 "invalid urn for 'urn': '42'",
             ) as ctxt:
-                common.get_urn({'urn': '42'})
+                mora_util.get_urn({'urn': '42'})
 
             self.assertEqual(
                 {
@@ -2319,7 +2320,7 @@ class TestClass(util.TestCase):
             exceptions.HTTPException,
             "Invalid 'urn', expected str, got: 42",
         ) as ctxt:
-            common.get_urn({'urn': 42})
+            mora_util.get_urn({'urn': 42})
 
         self.assertEqual(
             {

@@ -14,21 +14,20 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
+
+from .. import common
 from .. import exceptions
 from .. import validator
-from . import common
-from . import keys
-from . import mapping
-from .common import (create_organisationsfunktion_payload,
-                     ensure_bounds, inactivate_old_interval,
-                     update_payload)
+from .. import mapping
 from .. import lora
+from .. import util
 
 
 def create_engagement(employee_uuid, req):
     c = lora.Connector()
 
-    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=True)
     org_unit = c.organisationenhed.get(org_unit_uuid)
 
     if not org_unit:
@@ -38,20 +37,22 @@ def create_engagement(employee_uuid, req):
         )
 
     org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = common.get_mapping_uuid(req, keys.JOB_FUNCTION)
-    engagement_type_uuid = common.get_mapping_uuid(req, keys.ENGAGEMENT_TYPE,
-                                                   required=True)
-    valid_from, valid_to = common.get_validities(req)
+    job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
+    engagement_type_uuid = util.get_mapping_uuid(req,
+                                                 mapping.ENGAGEMENT_TYPE,
+                                                 required=True)
+    valid_from, valid_to = util.get_validities(req)
 
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, keys.ENGAGEMENT_KEY)
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
+                            mapping.ENGAGEMENT_KEY)
 
     # Validation
     validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                               valid_to)
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
-    engagement = create_organisationsfunktion_payload(
-        funktionsnavn=keys.ENGAGEMENT_KEY,
+    engagement = common.create_organisationsfunktion_payload(
+        funktionsnavn=mapping.ENGAGEMENT_KEY,
         valid_from=valid_from,
         valid_to=valid_to,
         brugervendtnoegle=bvn,
@@ -72,12 +73,12 @@ def edit_engagement(employee_uuid, req):
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     # Get org unit uuid for validation purposes
-    org_unit = common.get_obj_value(
+    org_unit = util.get_obj_value(
         original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-    org_unit_uuid = common.get_uuid(org_unit)
+    org_unit_uuid = util.get_uuid(org_unit)
 
     data = req.get('data')
-    new_from, new_to = common.get_validities(data)
+    new_from, new_to = util.get_validities(data)
 
     payload = dict()
     payload['note'] = 'Rediger engagement'
@@ -85,8 +86,8 @@ def edit_engagement(employee_uuid, req):
     original_data = req.get('original')
     if original_data:
         # We are performing an update
-        old_from, old_to = common.get_validities(original_data)
-        payload = inactivate_old_interval(
+        old_from, old_to = util.get_validities(original_data)
+        payload = common.inactivate_old_interval(
             old_from, old_to, new_from, new_to, payload,
             ('tilstande', 'organisationfunktiongyldighed')
         )
@@ -99,31 +100,32 @@ def edit_engagement(employee_uuid, req):
         {'gyldighed': "Aktiv"}
     ))
 
-    if keys.JOB_FUNCTION in data:
+    if mapping.JOB_FUNCTION in data:
         update_fields.append((
             mapping.JOB_FUNCTION_FIELD,
-            {'uuid': data.get(keys.JOB_FUNCTION).get('uuid')}
+            {'uuid': data.get(mapping.JOB_FUNCTION).get('uuid')}
         ))
 
-    if keys.ENGAGEMENT_TYPE in data:
+    if mapping.ENGAGEMENT_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
-            {'uuid': data.get(keys.ENGAGEMENT_TYPE).get('uuid')},
+            {'uuid': data.get(mapping.ENGAGEMENT_TYPE).get('uuid')},
         ))
 
-    if keys.ORG_UNIT in data:
-        org_unit_uuid = data.get(keys.ORG_UNIT).get('uuid')
+    if mapping.ORG_UNIT in data:
+        org_unit_uuid = data.get(mapping.ORG_UNIT).get('uuid')
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {'uuid': org_unit_uuid},
         ))
 
-    payload = update_payload(new_from, new_to, update_fields, original,
-                             payload)
+    payload = common.update_payload(new_from, new_to, update_fields, original,
+                                    payload)
 
     bounds_fields = list(
         mapping.ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
-    payload = ensure_bounds(new_from, new_to, bounds_fields, original, payload)
+    payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                   original, payload)
 
     validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
                                               new_to)

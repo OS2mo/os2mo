@@ -7,9 +7,12 @@
 #
 
 import collections
+import copy
 import datetime
 import functools
 import io
+import operator
+
 import itertools
 import json
 import marshal
@@ -26,6 +29,7 @@ import dateutil.parser
 import dateutil.tz
 
 from . import exceptions
+from . import mapping
 
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
@@ -417,3 +421,253 @@ def urnquote(s):
 
 # provide an alias for consistency
 urnunquote = urllib.parse.unquote
+K = typing.TypeVar('K', bound=typing.Hashable)
+V = typing.TypeVar('V')
+D = typing.Dict[K, V]
+
+
+def checked_get(
+    mapping: D,
+    key: K,
+    default: V,
+    fallback: D=None,
+    required: bool=False,
+) -> V:
+    sentinel = object()
+    v = mapping.get(key, sentinel)
+
+    if v is sentinel:
+        if fallback is not None:
+            return checked_get(fallback, key, default, None, required)
+        elif required:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
+                message='Missing {}'.format(key),
+                key=key,
+                obj=mapping
+            )
+        else:
+            return default
+
+    elif not isinstance(v, type(default)):
+        if not required and v is None:
+            return default
+
+        expected = type(default).__name__
+        actual = json.dumps(v)
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_TYPE,
+            message='Invalid {!r}, expected {}, got: {}'.format(
+                key, expected, actual,
+            ),
+            key=key,
+            expected=expected,
+            actual=actual,
+            obj=mapping
+        )
+
+    return v
+
+
+def get_uuid(
+    mapping: D,
+    fallback: D=None,
+    *,
+    required: bool=True,
+    key: typing.Hashable=mapping.UUID
+) -> str:
+    v = checked_get(mapping, key, '', fallback=fallback, required=required)
+
+    if not v and not required:
+        return None
+    elif not is_uuid(v):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_UUID,
+            message='Invalid uuid for {!r}: {!r}'.format(key, v),
+            obj=mapping
+        )
+
+    return v
+
+
+def get_mapping_uuid(mapping, key, required=False):
+    """Extract a UUID from a mapping structure identified by 'key'.
+    Expects a structure along the lines of:
+
+    .. sourcecode:: python
+
+      {
+        "org": {
+          "uuid": "<UUID>"
+        }
+      }
+
+    """
+    obj = checked_get(mapping, key, {}, required=required)
+    if obj:
+        return get_uuid(obj)
+    else:
+        return None
+
+
+def get_urn(
+    mapping: D,
+    fallback: D=None,
+    *,
+    key: typing.Hashable=mapping.URN
+) -> str:
+    v = checked_get(mapping, key, '', fallback=fallback, required=True)
+
+    if not is_urn(v):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_URN,
+            message='invalid urn for {!r}: {!r}'.format(key, v),
+            obj=mapping
+        )
+
+    return v
+
+
+def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
+    path_list = list(path)
+    obj_copy = copy.deepcopy(obj)
+
+    current_value = obj_copy
+    while path_list:
+        key = path_list.pop(0)
+        if path_list:
+            current_value = current_value.setdefault(key, {})
+        else:
+            if not current_value.get(key):
+                current_value[key] = val
+            else:
+                current_value[key].extend(val)
+
+    return obj_copy
+
+
+def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
+    try:
+        props = functools.reduce(operator.getitem, path, obj)
+    except (LookupError, TypeError):
+        return None
+
+    if filter_fn:
+        return list(filter(filter_fn, props))
+    else:
+        return props
+
+
+def get_effect_from(effect: dict) -> datetime.datetime:
+    return parsedatetime(effect['virkning']['from'])
+
+
+def get_effect_to(effect: dict) -> datetime.datetime:
+    return parsedatetime(effect['virkning']['to'])
+
+
+def get_effect_validity(effect):
+    return {
+        mapping.FROM: to_iso_time(get_effect_from(effect)),
+        mapping.TO: to_iso_time(get_effect_to(effect)),
+    }
+
+
+def get_valid_from(obj, fallback=None) -> datetime.datetime:
+    sentinel = object()
+    validity = obj.get(mapping.VALIDITY, sentinel)
+
+    if validity and validity is not sentinel:
+        valid_from = validity.get(mapping.FROM, sentinel)
+        if valid_from is None:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_MISSING_START_DATE,
+                obj=obj
+            )
+        elif valid_from is not sentinel:
+            return from_iso_time(valid_from)
+
+    if fallback is not None:
+        return get_valid_from(fallback)
+    else:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MISSING_START_DATE,
+            obj=obj
+        )
+
+
+def get_valid_to(obj, fallback=None) -> datetime.datetime:
+    sentinel = object()
+    validity = obj.get(mapping.VALIDITY, sentinel)
+
+    if validity and validity is not sentinel:
+        valid_to = validity.get(mapping.TO, sentinel)
+
+        if valid_to is None:
+            return POSITIVE_INFINITY
+
+        elif valid_to is not sentinel:
+            return from_iso_time(valid_to)
+
+    if fallback is not None:
+        return get_valid_to(fallback)
+    else:
+        return POSITIVE_INFINITY
+
+
+def get_validities(obj, fallback=None):
+    valid_from = get_valid_from(obj, fallback)
+    valid_to = get_valid_to(obj, fallback)
+    if valid_to < valid_from:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_END_BEFORE_START,
+            obj=obj
+        )
+    return valid_from, valid_to
+
+
+def get_validity_effect(entry, fallback=None):
+    if mapping.VALIDITY not in entry and fallback is None:
+        return None
+
+    valid_from, valid_to = get_validities(entry, fallback)
+
+    return {
+        mapping.FROM: to_lora_time(valid_from),
+        mapping.TO: to_lora_time(valid_to),
+    }
+
+
+def get_states(reg):
+    for tilstand in reg.get('tilstande', {}).values():
+        yield from tilstand
+
+
+def is_reg_valid(reg):
+    """
+    Check if a given registration is valid
+    i.e. that the registration contains a 'gyldighed' that is 'Aktiv'
+
+    :param reg: A registration object
+    """
+
+    return any(
+        state.get('gyldighed') == 'Aktiv'
+        for state in get_states(reg)
+    )
+
+
+def get_args_flag(name: str):
+    '''Get an argument from the Flask request as a boolean flag.
+
+    A 'flag' argument is false either when not set or one of the
+    values '0', 'false' and 'False'. Anything else is true.
+
+    '''
+
+    v = flask.request.args.get(name, False)
+
+    if v in ('0', 'false', 'False'):
+        return False
+    else:
+        return bool(v)
