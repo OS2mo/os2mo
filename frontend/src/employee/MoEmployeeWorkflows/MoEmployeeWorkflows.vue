@@ -1,11 +1,11 @@
 <template>
   <div 
-    v-shortkey="{employeeCreate: ['ctrl', 'alt', 'n'], 
-    employeeLeave: ['ctrl', 'alt', 'o'], 
-    employeeMove: ['ctrl', 'alt', 'm'], 
-    employeeMoveMany: ['ctrl', 'alt', 'y'],
-    employeeTerminate: ['ctrl', 'alt', 'd']}" 
-    @shortkey="shortcuts()"
+    v-shortkey="{employeeCreate: ['ctrl', 'shift', 'c'], 
+    employeeLeave: ['ctrl', 'shift', 'o'], 
+    employeeMove: ['ctrl', 'shift', 'm'], 
+    employeeMoveMany: ['ctrl', 'shift', 'y'],
+    employeeTerminate: ['ctrl', 'shift', 'd']}" 
+    @shortkey="shortcuts($event)"
   >
     <mo-workflow>
       <mo-workflow-button 
@@ -78,7 +78,7 @@
     },
 
     methods: {
-      shortcuts () {
+      shortcuts (event) {
         this.$root.$emit('bv::show::modal', event.srcKey)
       }
     }
