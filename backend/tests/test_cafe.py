@@ -24,9 +24,10 @@ class TestCafeTests(util.LiveLoRATestCase):
 
     XML_REPORT_FILE = os.path.join(util.REPORTS_DIR, "testcafe.xml")
     JSON_REPORT_FILE = os.path.join(util.REPORTS_DIR, "testcafe.json")
-    TEST_DIR = os.path.join(util.BASE_DIR, "e2e-tests")
+    FRONTEND_DIR = os.path.join(os.path.dirname(util.BASE_DIR), 'frontend')
+    TEST_DIR = os.path.join(FRONTEND_DIR, "e2e-tests")
 
-    TESTCAFE_COMMAND = os.path.join(util.BASE_DIR,
+    TESTCAFE_COMMAND = os.path.join(FRONTEND_DIR,
                                     "node_modules", ".bin", "testcafe")
 
     @unittest.skipUnless(
