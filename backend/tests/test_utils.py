@@ -9,6 +9,7 @@
 import unittest
 import datetime
 
+import dateutil.tz
 import flask
 import freezegun
 
@@ -212,6 +213,530 @@ class TestUtils(TestCase):
                 self.assertEqual(util.urnquote(s), expected)
 
                 self.assertEqual(util.urnunquote(util.urnquote(s)), s)
+
+    def test_get_obj_path(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+            'test1': {
+                'garbage': 'there is some stuff here already',
+                'test2': ['something']
+            }
+        }
+
+        path = ('test1', 'test2')
+
+        expected_props = ['something']
+
+        # Act
+        actual_props = util.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_get_obj_path_none(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+            'test1': None,
+        }
+
+        path = ('test1', 'test2')
+
+        expected_props = None
+
+        # Act
+        actual_props = util.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_get_obj_path_missing(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+        }
+
+        path = ('test1',)
+
+        expected_props = None
+
+        # Act
+        actual_props = util.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_get_obj_path_weird(self):
+        # Arrange
+        obj = {
+            'whatever': 'no',
+            'test1': 42,
+        }
+
+        path = ('test1', 'test2')
+
+        expected_props = None
+
+        # Act
+        actual_props = util.get_obj_value(obj, path)
+
+        # Assert
+        self.assertEqual(expected_props, actual_props)
+
+    def test_set_obj_value_existing_path(self):
+        # Arrange
+        obj = {'test1': {'test2': [{'key1': 'val1'}]}}
+        path = ('test1', 'test2')
+
+        val = [{'key2': 'val2'}]
+
+        expected_result = {
+            'test1': {
+                'test2': [
+                    {'key1': 'val1'},
+                    {'key2': 'val2'},
+                ]
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_obj_value_new_path(self):
+        # Arrange
+        obj = {}
+        path = ('test1', 'test2')
+
+        val = [{'key2': 'val2'}]
+
+        expected_result = {
+            'test1': {
+                'test2': [
+                    {'key2': 'val2'},
+                ]
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_get_valid_from(self):
+        ts = '2018-03-21T00:00:00+01:00'
+        dt = datetime.datetime(2018, 3, 21,
+                               tzinfo=dateutil.tz.tzoffset(None, 3600))
+
+        self.assertEqual(dt, util.get_valid_from(
+            {
+                'validity': {
+                    'from': ts,
+                }
+            },
+        ))
+
+        self.assertEqual(dt, util.get_valid_from(
+            {
+                'validity': {
+                },
+            },
+            {
+                'validity': {
+                    'from': ts,
+                }
+            }
+        ))
+
+        self.assertRaises(
+            exceptions.HTTPException, util.get_valid_from,
+            {},
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException, util.get_valid_from,
+            {
+                'validity': {},
+            },
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException, util.get_valid_from,
+            {},
+            {
+                'validity': {
+                }
+            },
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException, util.get_valid_from,
+            {
+
+            },
+            {
+                'validity': {
+                }
+            },
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException, util.get_valid_from,
+            {
+
+            },
+            {
+                'validity': {
+                    'from': None,
+                }
+            },
+        )
+
+    def test_get_valid_to(self):
+        ts = '2018-03-21T00:00:00+01:00'
+        dt = datetime.datetime(2018, 3, 21,
+                               tzinfo=dateutil.tz.tzoffset(None, 3600))
+
+        self.assertEqual(dt, util.get_valid_to(
+            {
+                'validity': {
+                    'to': ts,
+                }
+            },
+        ))
+
+        self.assertEqual(dt, util.get_valid_to(
+            {
+                'validity': {
+                },
+            },
+            {
+                'validity': {
+                    'to': ts,
+                }
+            }
+        ))
+
+        self.assertEqual(
+            util.POSITIVE_INFINITY,
+            util.get_valid_to({}),
+        )
+
+        self.assertEqual(
+            util.get_valid_to({
+                'validity': {},
+            }),
+            util.POSITIVE_INFINITY,
+        )
+
+        self.assertEqual(
+            util.POSITIVE_INFINITY,
+            util.get_valid_to(
+                {},
+                {
+                    'validity': {
+                    }
+                },
+            ),
+        )
+
+        self.assertEqual(
+            util.POSITIVE_INFINITY,
+            util.get_valid_to(
+                {
+                    'validity': {
+                        'to': None,
+                    }
+                },
+            ),
+        )
+
+        self.assertEqual(
+            util.POSITIVE_INFINITY,
+            util.get_valid_to(
+                {},
+                {
+                    'validity': {
+                        'to': None,
+                    }
+                },
+            ),
+        )
+
+    def test_get_validities(self):
+        # start time required
+        self.assertRaises(
+            exceptions.HTTPException,
+            util.get_valid_from, {}, {},
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException,
+            util.get_valid_from, {}, {
+                'validity': None,
+            },
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException,
+            util.get_valid_from, {}, {
+                'validity': {
+                    'from': None,
+                },
+            },
+        )
+
+        # still nothing
+        self.assertEqual(
+            util.get_valid_to({}, {}),
+            util.POSITIVE_INFINITY,
+        )
+
+        self.assertEqual(
+            util.get_valid_to({}, {
+                'validity': None,
+            }),
+            util.POSITIVE_INFINITY,
+        )
+
+        self.assertEqual(
+            util.POSITIVE_INFINITY,
+            util.get_valid_to({}, {
+                'validity': {
+                    'to': None,
+                },
+            }),
+        )
+
+        # actually set
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_from({
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_to({
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+        )
+
+        # actually set in the fallback
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_from({}, {
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_to({}, {
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+             datetime.datetime(2018, 4, 5, tzinfo=util.DEFAULT_TIMEZONE)),
+            util.get_validities({
+                'validity': {
+                    'from': '2018-03-05',
+                    'to': '2018-04-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            (datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+             util.POSITIVE_INFINITY),
+            util.get_validities({
+                'validity': {
+                    'from': '2018-03-05'
+                },
+            }),
+        )
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "End date is before start date"):
+            util.get_validities({
+                'validity': {
+                    'from': '2019-03-05',
+                    'to': '2018-03-05',
+                },
+            })
+
+    def test_get_uuid(self):
+        testid = '00000000-0000-0000-0000-000000000000'
+
+        self.assertEqual(
+            testid,
+            util.get_uuid({
+                'uuid': testid,
+            }),
+        )
+
+        self.assertEqual(
+            testid,
+            util.get_uuid(
+                {},
+                {
+                    'uuid': testid,
+                },
+            ),
+        )
+
+        self.assertRaises(
+            exceptions.HTTPException,
+            util.get_uuid,
+            {
+                'uuid': 42,
+            },
+        )
+
+        self.assertEqual(
+            None,
+            util.get_uuid(
+                {},
+                required=False,
+            ),
+        )
+
+        self.assertEqual(
+            testid,
+            util.get_uuid(
+                {
+                    'kaflaflibob': testid,
+                    'uuid': 42,
+                },
+                key='kaflaflibob',
+            ),
+        )
+
+    def test_checked_get(self):
+        mapping = {
+            'list': [1337],
+            'dict': {1337: 1337},
+            'string': '1337',
+            'int': 1337,
+            'null': None,
+        }
+
+        # when it's there
+        self.assertIs(
+            util.checked_get(mapping, 'list', []),
+            mapping['list'],
+        )
+
+        self.assertIs(
+            util.checked_get(mapping, 'dict', {}),
+            mapping['dict'],
+        )
+
+        self.assertIs(
+            util.checked_get(mapping, 'string', ''),
+            mapping['string'],
+        )
+
+        self.assertIs(
+            util.checked_get(mapping, 'int', 1337),
+            mapping['int'],
+        )
+
+        # when it's not there
+        self.assertEqual(
+            util.checked_get(mapping, 'nonexistent', []),
+            [],
+        )
+
+        self.assertEqual(
+            util.checked_get(mapping, 'nonexistent', {}),
+            {},
+        )
+
+        self.assertEqual(
+            util.checked_get(mapping, 'null', {}),
+            {},
+        )
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Missing nonexistent"):
+            util.checked_get(mapping, 'nonexistent', [], required=True)
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Missing nonexistent"):
+            util.checked_get(mapping, 'nonexistent', {}, required=True)
+
+        # bad value
+        with self.assertRaisesRegex(
+                exceptions.HTTPException,
+                'Invalid \'dict\', expected list, got: {"1337": 1337}',
+        ):
+            util.checked_get(mapping, 'dict', [])
+
+        with self.assertRaisesRegex(
+                exceptions.HTTPException,
+                r"Invalid 'list', expected dict, got: \[1337\]",
+        ):
+            util.checked_get(mapping, 'list', {})
+
+    def test_get_urn(self):
+        with self.subTest('bad string'):
+            with self.assertRaisesRegex(
+                exceptions.HTTPException,
+                "invalid urn for 'urn': '42'",
+            ) as ctxt:
+                util.get_urn({'urn': '42'})
+
+            self.assertEqual(
+                {
+                    'description': "invalid urn for 'urn': '42'",
+                    'error': True,
+                    'error_key': 'E_INVALID_URN',
+                    'obj': {'urn': '42'},
+                    'status': 400,
+                },
+                ctxt.exception.response.json,
+            )
+
+            self.assertEqual(
+                "400 Bad Request: invalid urn for 'urn': '42'",
+                str(ctxt.exception),
+            )
+
+        with self.assertRaisesRegex(
+            exceptions.HTTPException,
+            "Invalid 'urn', expected str, got: 42",
+        ) as ctxt:
+            util.get_urn({'urn': 42})
+
+        self.assertEqual(
+            {
+                'description': "Invalid 'urn', expected str, got: 42",
+                'error': True,
+                'error_key': 'E_INVALID_TYPE',
+                'expected': 'str',
+                'actual': '42',
+                'key': 'urn',
+                'obj': {'urn': 42},
+                'status': 400,
+            },
+            ctxt.exception.response.json,
+        )
 
 
 class TestAppUtils(unittest.TestCase):
