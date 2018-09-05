@@ -1,10 +1,10 @@
 <template>
   <div 
-    v-shortkey="{orgUnitCreate: ['ctrl', 'alt', 'n'], 
-    orgUnitRename: ['ctrl', 'alt', 'r'], 
-    orgUnitMove: ['ctrl', 'alt', 'm'], 
-    orgUnitTerminate: ['ctrl', 'alt', 'd']}" 
-    @shortkey="theAction()"
+    v-shortkey="{orgUnitCreate: ['ctrl', 'shift', 'c'], 
+    orgUnitRename: ['ctrl', 'shift', 'r'], 
+    orgUnitMove: ['ctrl', 'shift', 'm'], 
+    orgUnitTerminate: ['ctrl', 'shift', 'd']}" 
+    @shortkey="theAction($event)"
   >
     <mo-workflow>
       <mo-workflow-button 
@@ -66,7 +66,7 @@
     },
 
     methods: {
-      theAction () {
+      theAction (event) {
         this.$root.$emit('bv::show::modal', event.srcKey)
       }
     }

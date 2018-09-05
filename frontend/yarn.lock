@@ -7044,9 +7044,9 @@ vue-router@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.0.1.tgz#d9b05ad9c7420ba0f626d6500d693e60092cc1e9"
 
-vue-shortkey@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/vue-shortkey/-/vue-shortkey-3.1.0.tgz#0770dd407bc6e4def478ffd941899128d3405afe"
+vue-shortkey@^3.1.6:
+  version "3.1.6"
+  resolved "https://registry.yarnpkg.com/vue-shortkey/-/vue-shortkey-3.1.6.tgz#a8632d4ddab9a07f77deae372cad3a66da85e493"
   dependencies:
     vue "^2.1.0"
 
