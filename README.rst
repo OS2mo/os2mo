@@ -1,6 +1,6 @@
-=======
-Om MORa
-=======
+============
+Om OS2MO 2.0
+============
 
 .. contents:: `Indhold`
    :depth: 2
