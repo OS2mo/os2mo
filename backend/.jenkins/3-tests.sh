@@ -5,6 +5,9 @@
 
 BUILD_DIR="$TOPDIR"/backend/build
 
+# We'll want warnings during our test run!
+export PYTHONWARNINGS=default
+
 #
 # create the output directories
 #
