@@ -184,13 +184,15 @@ def python(args):
               'e.g. "Safari", "Firefox" or "Chrome".')
 @click.option('--list', '-l', 'do_list', is_flag=True,
               help='List all available tests',)
+@click.option('--xml-report', type=click.Path(),
+              help='Write XML report to the given location',)
 @click.option('--randomise', 'randomise', is_flag=True,
               help='Randomise execution order',)
 @click.option('--keyword', '-k', 'keywords', multiple=True,
               help='Only run or list tests matching the given keyword',)
 @click.argument('tests', nargs=-1)
 def test(tests, quiet, verbose, minimox_dir, browser, do_list,
-         keywords, **kwargs):
+         keywords, xml_report, **kwargs):
     verbosity = 0 if quiet else verbose + 1
 
     if minimox_dir:
@@ -240,8 +242,15 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
         return
 
-    try:
+    if xml_report:
+        import xmlrunner
+        runner = xmlrunner.XMLTestRunner(verbosity=verbosity,
+                                         output=xml_report, **kwargs)
+
+    else:
         runner = unittest.TextTestRunner(verbosity=verbosity, **kwargs)
+
+    try:
         result = runner.run(suite)
 
     except Exception:
