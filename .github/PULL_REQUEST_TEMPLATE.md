@@ -5,4 +5,7 @@
 - [ ] Have you written tests for your changes?
 - [ ] Have you updated the release notes?
 
-<!-- If you've left boxes unchecked, remember to explain why -->
+<!--
+  If you've left boxes unchecked, remember to explain why; use ~~ to
+  add a strike through to any that don't apply
+-->
