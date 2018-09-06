@@ -1,6 +1,6 @@
-=======
-Om MORa
-=======
+============
+Om OS2MO 2.0
+============
 
 .. contents:: `Indhold`
    :depth: 2
@@ -24,16 +24,16 @@ refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ og den
 `Lokale Rammearkitektur <https://digitaliser.dk/group/3101080/members>`_.
 Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
 
-.. image:: docs/graphics/mo.png
-   :width: 800
+.. image:: docs/graphics/os2mo-1280.png
+   :width: 100%
 
 Opbygning
 ---------
 
 Den modulære opbygning af MORa ses på nedenstående figur.
 
-.. image:: docs/graphics/MORaModuler6.svg
-   :width: 800
+.. image:: docs/graphics/MOmoduler.png
+   :width: 100%
 
 MORa består af frontend og en middleend og sidstnævnte kommunikerer med en LoRa
 backend. De enkelte moduler kan opfattes som elementer i
@@ -43,7 +43,7 @@ Model%E2%80%93view%E2%80%93controller>`_:
 MO (Frontend / View)
 ~~~~~~~~~~~~~~~~~~~~
 MOs frontend er skrevet i Javascript frameworket
-`AngularJS <https://angularjs.org/>`_. Frontenden kan opfattes som *View* i
+`Vue.js <http://vuejs.org>`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
 kommunikerer indirekte med Lora via MOs middleend.
 
