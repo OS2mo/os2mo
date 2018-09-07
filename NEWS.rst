@@ -1,3 +1,11 @@
+Version 0.10.0 (In development)
+===============================
+
+New features
+------------
+
+* #22849: Implemented support for signed SAML AuthN Requests.
+
 Version 0.9.0, 2018-09-07
 =========================
 
