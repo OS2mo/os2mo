@@ -710,7 +710,7 @@ def create_org_unit_relation(unitid):
 
     :statuscode 200: Creation succeeded.
 
-    :param employee_uuid: The UUID of the employee.
+    :param unitid: The UUID of the organisational unit.
 
     All requests contain validity objects on the following form:
 
