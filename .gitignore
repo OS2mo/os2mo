@@ -81,9 +81,9 @@ celerybeat-schedule
 .env
 
 # virtualenv
-/venv-*/
-venv/
-ENV/
+/venv/
+/backend/venv-*/
+/backend/venv/
 
 # Spyder project settings
 .spyderproject
@@ -92,15 +92,12 @@ ENV/
 .ropeproject
 
 # Bower/Grunt/Node stuff
-/node_modules
+/frontend/node_modules
 .DS_Store
-/dist/
+/frontend/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/test/unit/coverage/
-/test/e2e/reports/
-selenium-debug.log
 
 # IDE config files
 .idea/
@@ -111,4 +108,4 @@ selenium-debug.log
 *.sln
 
 # configuration
-config/mora.json
+setup/mora.json

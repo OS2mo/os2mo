@@ -1,5 +1,3 @@
-// -*- groovy -*-
-
 pipeline {
   agent any
 
@@ -10,26 +8,26 @@ pipeline {
     PYTEST_ADDOPTS = '--color=yes'
   }
 
-  stages {
-    stage('Fetch') {
-      steps {
-        dir("mox") {
-          git url: 'https://github.com/magenta-aps/mox', branch: 'development'
-        }
+  options {
+     skipDefaultCheckout(true)
+  }
 
-        timeout(5) {
-          ansiColor('xterm') {
-            sh './build/run-fetch.sh'
-          }
-        }
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
       }
     }
 
-    stage('Check') {
+    stage('Clean') {
       steps {
         timeout(1) {
-          ansiColor('xterm') {
-            sh './build/run-check.sh'
+          dir("backend") {
+            sh './.jenkins/0-clean.sh'
+          }
+
+          dir("frontend") {
+            sh './.jenkins/0-clean.sh'
           }
         }
       }
@@ -37,24 +35,49 @@ pipeline {
 
     stage('Build') {
       steps {
-        timeout(4) {
-          ansiColor('xterm') {
-            sh './build/run-build.sh'
-          }
-        }
+        parallel(
+          Backend: {
+            timeout(4) {
+              ansiColor('xterm') {
+                dir("backend") {
+                  sh './.jenkins/1-build.sh'
+                }
+              }
+            }
+          },
 
-        publishHTML target: [
-          allowMissing: true, reportDir: 'docs/out',
-          reportFiles: 'index.html', reportName: 'Documentation'
-        ]
+          Frontend: {
+            timeout(4) {
+              ansiColor('xterm') {
+                dir("frontend") {
+                  sh './.jenkins/1-build.sh'
+                }
+              }
+            }
+          }
+        )
       }
     }
 
-    stage('Test') {
+    stage('Checks') {
+      steps {
+        timeout(1) {
+          ansiColor('xterm') {
+            dir("backend") {
+              sh './.jenkins/2-checks.sh'
+            }
+          }
+        }
+      }
+    }
+
+    stage('Tests') {
       steps {
         timeout(12) {
           ansiColor('xterm') {
-            sh './build/run-tests.sh'
+            dir("backend") {
+              sh './.jenkins/3-tests.sh'
+            }
           }
         }
       }
@@ -64,7 +87,9 @@ pipeline {
       steps {
         timeout(5) {
           ansiColor('xterm') {
-            sh './build/run-deploy.sh'
+            dir("backend") {
+              sh './.jenkins/4-deploy.sh'
+            }
           }
         }
       }
@@ -73,20 +98,30 @@ pipeline {
 
   post {
     always {
-      junit healthScaleFactor: 200.0,           \
-        testResults: 'build/reports/*.xml'
-
       warnings canRunOnFailed: true, consoleParsers: [
         [parserName: 'Sphinx-build'],
         [parserName: 'Pep8']
       ]
 
-      cobertura coberturaReportFile: 'build/coverage/*.xml',    \
+      cobertura coberturaReportFile: '*/build/coverage/*.xml',  \
+        onlyStable: false,                                      \
         conditionalCoverageTargets: '90, 0, 0',                 \
         lineCoverageTargets: '95, 0, 0',                        \
         maxNumberOfBuilds: 0
 
-      cleanWs()
+      publishHTML target: [
+        allowMissing: false,
+        reportDir: 'docs/out/html',
+        reportFiles: 'index.html',
+        reportName: 'Documentation',
+        reportTitles: 'Documentation',
+      ]
+
+      junit healthScaleFactor: 200.0,           \
+        testResults: '*/build/reports/*.xml'
+
+      cleanWs deleteDirs: true
+
     }
   }
 }

@@ -1,0 +1,21 @@
+{
+  "address": "Adresse",
+  "address_type": "Adressetype",
+  "association_type": "Tilknytningstype",
+  "end_date": "Slutdato",
+  "engagement_type": "Engagementstype",
+  "it_system": "IT system",
+  "job_function": "Stillingsbetegnelse",
+  "leave_type": "Orlovstype",
+  "manager_level": "Lederniveau",
+  "manager_type": "Ledertype",
+  "org_unit": "Enhed",
+  "org_unit_type": "Enhedstype",
+  "parent": "Overenhed",
+  "person": "Navn",
+  "responsibility": "Lederansvar",
+  "role_type": "Rolletype",
+  "start_date": "Startdato",
+  "user_name": "Brugernavn",
+  "value": "Værdi"
+}
