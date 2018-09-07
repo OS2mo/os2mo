@@ -208,6 +208,7 @@ def get_one_orgunit(c, unitid, unit=None,
         if rels['overordnet'][0]['uuid'] is not None:
             r['parent'] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
                                           details=UnitDetails.FULL)
+
             if r['parent'] is not None:
                 slash = '' if not r['parent']['path'] else '/'
                 r['path'] = r['parent']['path'] + slash + r['parent']['name']
@@ -236,6 +237,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     r[keys.VALIDITY] = validity or common.get_effect_validity(validities[0])
+
     return r
 
 

@@ -7,7 +7,8 @@
 
       <div class="row">
         <div class="col">
-          <p class="card-text">Enhedsnr.: {{orgUnit.path}}</p>
+          <p class="card-text">Placering: {{orgUnit.path}}<br>
+          uuid: {{orgUnit.uuid}}</p>
         </div>
 
         <div class="mr-3">
