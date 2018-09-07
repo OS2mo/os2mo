@@ -60,6 +60,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation unit move component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
@@ -67,6 +71,9 @@
   import '@/filters/GetProperty'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -77,17 +84,12 @@
       ButtonSubmit
     },
 
-    computed: {
-      formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
-    },
-
     data () {
       return {
+        /**
+         * The move, currentUnit, uuid, original, isLoading, backendValidationError component value.
+         * Used to detect changes and restore the value.
+         */
         currentUnit: '',
         uuid: '',
         original: null,
@@ -101,7 +103,21 @@
       }
     },
 
+    computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
+      formValid () {
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
+      }
+    },
+
     watch: {
+      /**
+       * If original exist show its parent.
+       */
       original: {
         handler (newVal) {
           if (this.original) return this.getCurrentUnit(newVal.uuid)
@@ -111,10 +127,17 @@
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Move a organisation unit and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       moveOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {
@@ -135,6 +158,9 @@
         }
       },
 
+      /**
+       * Get current organisation unit.
+       */
       getCurrentUnit (unitUuid) {
         let vm = this
         if (!unitUuid) return
