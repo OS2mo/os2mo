@@ -648,7 +648,7 @@ def get_detail(type, id, function):
     def sort_key(obj):
         time_from = obj[mapping.VALIDITY][mapping.FROM]
         name = util.get_obj_value(obj, (mapping.PERSON, mapping.NAME))
-        if name is None: # This happens if the manager position is vacant
+        if name is None:  # This happens if the manager position is vacant
             name = ' '
         org_unit = util.get_obj_value(obj, (mapping.ORG_UNIT, mapping.NAME))
         return_tuple = (time_from, name, org_unit)
