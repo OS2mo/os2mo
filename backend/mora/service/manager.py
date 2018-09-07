@@ -27,15 +27,18 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def create_manager(employee_uuid, req):
+def create_manager(employee_uuid, req, org_uuid=None):
+    """ To create a vacant manager postition, set employee_uuid to None
+    and set a value org_uuid """
     c = lora.Connector()
 
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                           required=True)
-    org_uuid = (
-        c.organisationenhed.get(org_unit_uuid)
-        ['relationer']['tilhoerer'][0]['uuid']
-    )
+    if not org_uuid:
+        org_uuid = (
+            c.organisationenhed.get(org_unit_uuid)
+            ['relationer']['tilhoerer'][0]['uuid']
+        )
     address_obj = util.checked_get(req, mapping.ADDRESS, {})
     manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
     manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)

@@ -29,6 +29,7 @@ from . import address
 from .. import common
 from . import facet
 from . import itsystem
+from . import manager
 from .. import mapping
 from . import org
 from .. import exceptions
@@ -171,6 +172,7 @@ RELATION_TYPES = {
     'address': address.Addresses,
     'it': itsystem.ITSystems,
     'org_unit': OrgUnit,
+    'manager': None
 }
 
 
@@ -772,12 +774,15 @@ def create_org_unit_relation(unitid):
         return flask.jsonify('Invalid role types!'), 400
 
     for req in reqs:
-        RELATION_TYPES.get(req['type'])(
-            common.get_connector().organisationenhed,
-        ).create(
-            str(unitid),
-            req,
-        )
+        if req['type'] == 'manager':
+            manager_id = manager.create_manager(org_uuid=str(unitid), req=req)
+        else:
+            RELATION_TYPES.get(req['type'])(
+                common.get_connector().organisationenhed,
+            ).create(
+                str(unitid),
+                req,
+            )
 
     # TODO:
     return flask.jsonify(unitid), 200

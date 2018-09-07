@@ -345,11 +345,6 @@ def create_organisationsfunktion_payload(
             ],
         },
         'relationer': {
-            'tilknyttedebrugere': [
-                {
-                    'uuid': uuid
-                } for uuid in tilknyttedebrugere
-            ],
             'tilknyttedeorganisationer': [
                 {
                     'uuid': uuid
@@ -357,6 +352,11 @@ def create_organisationsfunktion_payload(
             ]
         }
     }
+
+    if tilknyttedebrugere:
+        org_funk['relationer']['tilknyttedebrugere'] = [{
+            'uuid': uuid
+        } for uuid in tilknyttedebrugere]
 
     if tilknyttedeenheder:
         org_funk['relationer']['tilknyttedeenheder'] = [{
