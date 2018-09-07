@@ -766,9 +766,9 @@ def create_org_unit_relation(unitid):
 
     **Manager**:
 
-    If managers are created through the ou/ endpoint, they will be be created as
-    vacant, ie without an associated employee. To create a manager role that is
-    connected to an employee, use the e/ endpoint.
+    If managers are created through the ou/ endpoint, they will be be created
+    as vacant, ie without an associated employee. To create a manager role that
+    is connected to an employee, use the e/ endpoint.
 
     :<jsonarr string type: **"manager"**
     :<jsonarr string manager_type: The manager type
