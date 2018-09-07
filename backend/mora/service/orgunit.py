@@ -167,6 +167,7 @@ class OrgUnit(common.AbstractRelationDetail):
     def create(self, id, req):
         raise werkzeug.exceptions.NotImplemented
 
+
 RELATION_TYPES = {
     'address': address.Addresses,
     'it': itsystem.ITSystems,
@@ -174,6 +175,7 @@ RELATION_TYPES = {
 }
 
 ORGFUNC_TYPES = ['manager']
+
 
 def get_one_orgunit(c, unitid, unit=None,
                     details=UnitDetails.NCHILDREN, validity=None) -> dict:
@@ -775,9 +777,9 @@ def create_org_unit_relation(unitid):
 
     for req in reqs:
         if req['type'] == 'manager':
-            manager_id = manager.create_manager(employee_uuid=None,
-                                                org_unit_uuid=str(unitid),
-                                                req=req)
+            manager.create_manager(employee_uuid=None,
+                                   org_unit_uuid=str(unitid),
+                                   req=req)
         else:
             RELATION_TYPES.get(req['type'])(
                 common.get_connector().organisationenhed,

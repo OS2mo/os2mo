@@ -26,6 +26,7 @@ from .. import validator
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
+
 def create_manager(employee_uuid, req, org_unit_uuid=None):
     """ To create a vacant manager postition, set employee_uuid to None
     and set a value org_unit_uuid """
@@ -88,7 +89,6 @@ def create_manager(employee_uuid, req, org_unit_uuid=None):
     )
 
     c.organisationfunktion.create(manager)
-
 
 
 def edit_manager(employee_uuid, req):
