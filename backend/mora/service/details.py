@@ -419,10 +419,7 @@ def get_detail(type, id, function):
     scope = getattr(c, info.scope)
 
     if function in info.relation_types:
-        if info.relation_types[function]:
-            # Some relation types (eg. manager) in org-unit do not have an
-            # associated function and thus is not callable
-            return info.relation_types[function](scope).get(id)
+        return info.relation_types[function](scope).get(id)
 
     # ensure that we report an error correctly
     if function not in mapping.FUNCTION_KEYS:

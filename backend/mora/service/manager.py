@@ -26,19 +26,19 @@ from .. import validator
 blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
-
-def create_manager(employee_uuid, req, org_uuid=None):
+def create_manager(employee_uuid, req, org_unit_uuid=None):
     """ To create a vacant manager postition, set employee_uuid to None
-    and set a value org_uuid """
+    and set a value org_unit_uuid """
     c = lora.Connector()
 
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                          required=True)
-    if not org_uuid:
-        org_uuid = (
-            c.organisationenhed.get(org_unit_uuid)
-            ['relationer']['tilhoerer'][0]['uuid']
-        )
+    if not org_unit_uuid:
+        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                              required=True)
+    org_uuid = (
+        c.organisationenhed.get(org_unit_uuid)
+        ['relationer']['tilhoerer'][0]['uuid']
+    )
+
     address_obj = util.checked_get(req, mapping.ADDRESS, {})
     manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
     manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
@@ -68,8 +68,9 @@ def create_manager(employee_uuid, req, org_uuid=None):
     # Validation
     validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                               valid_to)
-    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
-                                              valid_to)
+    if employee_uuid:
+        validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                                  valid_to)
 
     manager = common.create_organisationsfunktion_payload(
         funktionsnavn=mapping.MANAGER_KEY,
@@ -87,6 +88,7 @@ def create_manager(employee_uuid, req, org_uuid=None):
     )
 
     c.organisationfunktion.create(manager)
+
 
 
 def edit_manager(employee_uuid, req):
