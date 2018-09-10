@@ -53,14 +53,15 @@ def handle_invalid_usage(error):
     :return: JSON describing the problem and the apropriate status code.
     """
 
-    util.log_exception('unhandled exception')
+    if not isinstance(error, werkzeug.routing.RoutingException):
+        util.log_exception('unhandled exception')
 
     if not isinstance(error, werkzeug.exceptions.HTTPException):
         error = exceptions.HTTPException(
             description=str(error),
         )
 
-    return error.get_response()
+    return error.get_response(flask.request.environ)
 
 
 @app.route('/')
