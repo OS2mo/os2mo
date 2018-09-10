@@ -6,12 +6,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import contextlib
 import os
 
 import flask
 import flask_saml
-import requests
 
 from . import base
 from . import tokens
@@ -33,32 +31,12 @@ def init_app(app):
     """
     app.config.update({
         'SAML_METADATA_URL': settings.SSO_SAML_METADATA_URL,
+        'SAML_IDP_INSECURE': settings.SAML_IDP_INSECURE,
+        'SAML_KEY_FILE': settings.SAML_KEY_FILE,
+        'SAML_CERT_FILE': settings.SAML_CERT_FILE,
+        'SAML_AUTHN_REQUESTS_SIGNED': settings.SAML_AUTHN_REQUESTS_SIGNED,
     })
 
-    with _flask_saml_context_manager():
-        flask_saml.FlaskSAML(app)
+    flask_saml.FlaskSAML(app)
 
     flask_saml.saml_authenticated.connect(acs, app)
-
-
-@contextlib.contextmanager
-def _flask_saml_context_manager():
-    if settings.SAML_IDP_INSECURE:
-        orig_fn = flask_saml._get_metadata
-        flask_saml._get_metadata = _get_metadata_insecure
-        yield
-        flask_saml._get_metadata = orig_fn
-    else:
-        yield
-
-
-def _get_metadata_insecure(metadata_url):
-    """A optionally insecure version of _get_metadata from flask_saml.py"""
-    response = requests.get(
-        metadata_url, verify=not settings.SAML_IDP_INSECURE)
-    if response.status_code != 200:
-        exc = RuntimeError(
-            'Unexpected Status Code: {0}'.format(response.status_code))
-        exc.response = response
-        raise exc
-    return response.text
