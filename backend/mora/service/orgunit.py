@@ -212,10 +212,14 @@ def get_one_orgunit(c, unitid, unit=None,
                                           details=UnitDetails.FULL)
 
             if r[mapping.PARENT] is not None:
-                slash = '' if not r['parent']['path'] else '/'
-                r['path'] = r['parent']['path'] + slash + r['parent']['name']
+                if not r['parent']['family_line']:
+                    slash = ''
+                else:
+                    slash = '/'
+                r['family_line'] = (r['parent']['family_line'] + slash +
+                                    r['parent']['name'])
             else:
-                r['path'] = ''
+                r['family_line'] = ''
 
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None

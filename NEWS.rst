@@ -5,7 +5,8 @@ New features
 ------------
 
 * #22849: Implemented support for signed SAML AuthN Requests.
-
+* #22381: Replace 'Enhedsnummer' with the a desription the OUs position in the tree
+  
 Version 0.9.0, 2018-09-07
 =========================
 
@@ -13,7 +14,7 @@ New features
 ------------
 
 * #23778: Support for IT-systems on units
-
+  
 Internal changes
 ----------------
 
