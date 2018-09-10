@@ -109,7 +109,7 @@ class Tests(util.LoRATestCase):
                     "name": "Afdeling for Fortidshistorik",
                     "user_key": "frem",
                     "family_line": ("Overordnet Enhed/Humanistisk fakultet" +
-                             "/Historisk Institut"),
+                                    "/Historisk Institut"),
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
                         "name": "Aarhus Universitet",
