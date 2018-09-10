@@ -506,7 +506,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'parent': None,
-                'path': '',
+                'family_line': '',
 
             },
         )
@@ -531,7 +531,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'parent': None,
-                'path': '',
+                'family_line': '',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 }
@@ -565,7 +565,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'parent': None,
-                'path': '',
+                'family_line': '',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
                 },
@@ -595,7 +595,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'parent': None,
-                'path': '',
+                'family_line': '',
             },
         )
 

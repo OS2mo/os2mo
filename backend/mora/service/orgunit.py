@@ -209,7 +209,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
         if rels['overordnet'][0]['uuid'] is not None:
             r[mapping.PARENT] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
-                                          details=UnitDetails.FULL)
+                                                details=UnitDetails.FULL)
 
             if r[mapping.PARENT] is not None:
                 if not r['parent']['family_line']:
@@ -353,6 +353,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
+        "family_tree:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",

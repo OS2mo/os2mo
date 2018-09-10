@@ -7,7 +7,7 @@
 
       <div class="row">
         <div class="col">
-          <p class="card-text">Placering: {{orgUnit.path}}</p>
+          <p class="card-text">Placering: {{orgUnit.family_line}}</p>
         </div>
 
         <div class="mr-3">
