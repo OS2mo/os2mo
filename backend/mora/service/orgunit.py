@@ -208,7 +208,8 @@ def get_one_orgunit(c, unitid, unit=None,
         unittype = util.get_uuid(rels['enhedstype'][0], required=False)
 
         if rels['overordnet'][0]['uuid'] is not None:
-            r[mapping.PARENT] = get_one_orgunit(c, rels['overordnet'][0]['uuid'],
+            r[mapping.PARENT] = get_one_orgunit(c,
+                                                rels['overordnet'][0]['uuid'],
                                                 details=UnitDetails.FULL)
 
             if r[mapping.PARENT] is not None:
