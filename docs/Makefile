@@ -2,10 +2,11 @@
 #
 
 # You can set these variables from the command line.
+PYTHON = python3
 SPHINXOPTS    =
-SPHINXBUILD   = ../manage.py python -- -m sphinx
+SPHINXBUILD   = $(PYTHON) -msphinx
 SPHINXPROJ    = MORa
-SOURCEDIR     = ..
+SOURCEDIR     = .
 BUILDDIR      = out
 
 # Put it first so that "make" without argument is like "make help".
