@@ -47,12 +47,12 @@ class TestUtils(TestCase):
             '-infinity': '-infinity',
 
             '2017-07-31T22:00:00+00:00':
-            '2017-07-31T22:00:00+00:00',
+            '2017-08-01T00:00:00+02:00',
 
             # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
             # we get it as a space
             '2017-07-31T22:00:00 00:00':
-            '2017-07-31T22:00:00+00:00',
+            '2017-08-01T00:00:00+02:00',
 
             datetime.date(2015, 6, 1):
             '2015-06-01T00:00:00+02:00',

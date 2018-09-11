@@ -162,6 +162,8 @@ def from_iso_time(s):
 
     if not dt.tzinfo:
         dt = dt.replace(tzinfo=DEFAULT_TIMEZONE)
+    else:
+        dt = dt.astimezone(DEFAULT_TIMEZONE)
 
     return dt
 
