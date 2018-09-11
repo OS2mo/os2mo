@@ -213,14 +213,13 @@ def get_one_orgunit(c, unitid, unit=None,
                                                 details=UnitDetails.FULL)
 
             if r[mapping.PARENT] is not None:
-                if not r[mapping.PARENT]['family_line']:
-                    slash = ''
-                else:
-                    slash = '/'
-                r['family_line'] = (r[mapping.PARENT]['family_line'] + slash +
-                                    r[mapping.PARENT]['name'])
+                location = r[mapping.PARENT][mapping.NAME]
+                if r[mapping.PARENT][mapping.LOCATION]:
+                    location = (r[mapping.PARENT][mapping.LOCATION] + '/' +
+                                location)
+                r[mapping.LOCATION] = location
             else:
-                r['family_line'] = ''
+                r[mapping.LOCATION] = ''
 
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
@@ -354,7 +353,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
-        "family_tree:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
+        "location:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
