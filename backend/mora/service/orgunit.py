@@ -213,12 +213,12 @@ def get_one_orgunit(c, unitid, unit=None,
                                                 details=UnitDetails.FULL)
 
             if r[mapping.PARENT] is not None:
-                if not r['parent']['family_line']:
+                if not r[mapping.PARENT]['family_line']:
                     slash = ''
                 else:
                     slash = '/'
-                r['family_line'] = (r['parent']['family_line'] + slash +
-                                    r['parent']['name'])
+                r['family_line'] = (r[mapping.PARENT]['family_line'] + slash +
+                                    r[mapping.PARENT]['name'])
             else:
                 r['family_line'] = ''
 
