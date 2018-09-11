@@ -613,7 +613,7 @@ def edit_org_unit(unitid):
     to contain the fields that need to change along with the validity dates.
 
     :<json string name: The name of the org unit
-    :<json string parent: The parent org unit
+    :<json string parent: The parent org unit or organisation
     :<json string org_unit_type: The type of org unit
     :<json object validity: The validities of the changes.
 
