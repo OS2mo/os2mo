@@ -1374,20 +1374,19 @@ class Tests(util.LoRATestCase):
                         'to': 'infinity',
                         'to_included': False
                     }
-                },
-                    {
-                        'brugervendtnoegle': 'root',
-                        'enhedsnavn': 'Overordnet '
-                                      'Enhed',
-                        'virkning': {
-                            'from': '2016-01-01 '
-                                    '00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-01-01 '
-                                  '00:00:00+01',
-                            'to_included': False
-                        }
-                    }]
+                }, {
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Overordnet '
+                                  'Enhed',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2018-01-01 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }]
             },
             'livscykluskode': 'Rettet',
             'note': 'Rediger organisationsenhed',
@@ -1401,27 +1400,25 @@ class Tests(util.LoRATestCase):
                         'to': 'infinity',
                         'to_included': False
                     }
-                },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    },
-                    {
-                        'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-                        'urn': 'urn:magenta.dk:ean:5798000420229',
-                        'virkning': {
-                            'from': '2016-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }],
+                }, {
+                    'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                    'urn': 'urn:magenta.dk:ean:5798000420229',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
                 'enhedstype': [{
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     'virkning': {
@@ -1461,17 +1458,16 @@ class Tests(util.LoRATestCase):
                               '00:00:00+01',
                         'to_included': False
                     }
-                },
-                    {
-                        'gyldighed': 'Aktiv',
-                        'virkning': {
-                            'from': '2018-01-01 '
-                                    '00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }]
+                }, {
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2018-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
             }
         }
 
