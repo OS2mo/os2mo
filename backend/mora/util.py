@@ -60,7 +60,7 @@ NEGATIVE_INFINITY = datetime.datetime.min.replace(
     ),
 )
 MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
-
+ONE_DAY = datetime.timedelta(days=1)
 
 # TODO: the default timezone should be configurable, shouldn't it?
 DEFAULT_TIMEZONE = dateutil.tz.gettz('Europe/Copenhagen')
@@ -71,10 +71,6 @@ _tzinfos = {
     1 * 60**2: DEFAULT_TIMEZONE,
     2 * 60**2: DEFAULT_TIMEZONE,
 }
-
-
-def unparsedate(d: datetime.date) -> str:
-    return d.strftime('%d-%m-%Y')
 
 
 def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
@@ -155,6 +151,29 @@ def to_iso_time(s):
         if dt not in (POSITIVE_INFINITY, NEGATIVE_INFINITY)
         else None
     )
+
+
+def to_iso_date(s, is_end=False):
+    '''Return an ISO 8601 string representing date given by `s`.
+
+    Raises ValueError if the time of day is anything other than 00:00,
+    exactly.
+
+    '''
+    dt = parsedatetime(s)
+
+    if is_end and dt == POSITIVE_INFINITY:
+        return None
+    elif not is_end and dt == NEGATIVE_INFINITY:
+        return None
+
+    if dt.time() != datetime.time.min:
+        dt = datetime.datetime.combine(dt, datetime.time.min)
+
+    if is_end:
+        dt -= ONE_DAY
+
+    return dt.date().isoformat()
 
 
 def from_iso_time(s):
@@ -566,12 +585,12 @@ def get_effect_to(effect: dict) -> datetime.datetime:
 
 def get_effect_validity(effect):
     return {
-        mapping.FROM: to_iso_time(get_effect_from(effect)),
-        mapping.TO: to_iso_time(get_effect_to(effect)),
+        mapping.FROM: to_iso_date(get_effect_from(effect)),
+        mapping.TO: to_iso_date(get_effect_to(effect), is_end=True),
     }
 
 
-def get_valid_from(obj, fallback=None) -> datetime.datetime:
+def get_valid_from(obj, fallback=None, is_end=False) -> datetime.datetime:
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 
@@ -583,10 +602,21 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
                 obj=obj
             )
         elif valid_from is not sentinel:
-            return from_iso_time(valid_from)
+            dt = from_iso_time(valid_from)
+
+            if dt.time() != datetime.time.min:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    '{!r} is not at midnight!'.format(dt.isoformat()),
+                )
+
+            if is_end:
+                return dt + ONE_DAY
+
+            return dt
 
     if fallback is not None:
-        return get_valid_from(fallback)
+        return get_valid_from(fallback, is_end=is_end)
     else:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_MISSING_START_DATE,
@@ -605,7 +635,15 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
             return POSITIVE_INFINITY
 
         elif valid_to is not sentinel:
-            return from_iso_time(valid_to)
+            dt = from_iso_time(valid_to)
+
+            if dt.time() != datetime.time.min:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    '{!r} is not at midnight!'.format(dt.isoformat()),
+                )
+
+            return dt + ONE_DAY
 
     if fallback is not None:
         return get_valid_to(fallback)

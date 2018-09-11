@@ -296,7 +296,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
             )
 
     def test_should_return_false_when_candidate_parent_is_inactive(self):
-        move_date = '01-01-2018'
+        move_date = '01-01-2019'
         new_org_uuid = self.PARENT
 
         self.expire_org_unit(self.PARENT)

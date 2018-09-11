@@ -357,8 +357,8 @@ class TestUtils(TestCase):
         )
 
     def test_get_valid_to(self):
-        ts = '2018-03-21T00:00:00+01:00'
-        dt = datetime.datetime(2018, 3, 21,
+        ts = '2018-03-21'
+        dt = datetime.datetime(2018, 3, 22,
                                tzinfo=dateutil.tz.tzoffset(None, 3600))
 
         self.assertEqual(dt, util.get_valid_to(
@@ -378,7 +378,7 @@ class TestUtils(TestCase):
                 'validity': {
                     'to': ts,
                 }
-            }
+            },
         ))
 
         self.assertEqual(
@@ -484,6 +484,15 @@ class TestUtils(TestCase):
 
         self.assertEqual(
             datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_from({
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 6, tzinfo=util.DEFAULT_TIMEZONE),
             util.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
@@ -502,7 +511,16 @@ class TestUtils(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 6, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_to({}, {
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 6, tzinfo=util.DEFAULT_TIMEZONE),
             util.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
@@ -516,7 +534,7 @@ class TestUtils(TestCase):
             util.get_validities({
                 'validity': {
                     'from': '2018-03-05',
-                    'to': '2018-04-05',
+                    'to': '2018-04-04',
                 },
             }),
         )

@@ -29,7 +29,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "uuid": 'd000591f-8705-4324-897a-075e3623f37b',
                     "data": {
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -38,7 +38,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "uuid": 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
                     "data": {
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -47,7 +47,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "uuid": '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
                     "data": {
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -56,7 +56,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "uuid": 'b807628c-030c-4f5f-a438-de41c1f26ba5',
                     "data": {
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -65,7 +65,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "uuid": '05609702-977f-4869-9fb4-50ad74c6999a',
                     "data": {
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -84,8 +84,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "engagement_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     }
                 },
                 {
@@ -98,8 +98,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
                 {
@@ -109,8 +109,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "role_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
                 {
@@ -118,8 +118,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "leave_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
                 {
@@ -135,8 +135,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                         "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
             ])
@@ -146,7 +146,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
             userid,
             json={
                 "validity": {
-                    "from": "2017-12-01T00:00:00+01"
+                    "from": "2017-12-01"
                 }
             })
 
@@ -246,8 +246,8 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                 },
                 "validity": {
-                    "from": "2016-02-04T00:00:00+01",
-                    "to": "2017-10-22T00:00:00+02",
+                    "from": "2016-02-04",
+                    "to": "2017-10-21",
                 }
             }
         )
@@ -261,7 +261,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                 "data": {
                     "name": "History test II",
                     "validity": {
-                        "from": "2016-01-05T00:00:00+00:00",
+                        "from": "2016-01-05",
                     }
                 }
             }
@@ -274,7 +274,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                 "data": {
                     "name": "History test III",
                     "validity": {
-                        "from": "2016-01-12T00:00:00+00:00",
+                        "from": "2016-01-12",
                     }
                 }
             }
@@ -285,7 +285,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             unitid,
             json={
                 "validity": {
-                    "from": "2017-12-01T00:00:00+01"
+                    "from": "2017-12-01"
                 }
             })
 
