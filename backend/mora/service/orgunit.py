@@ -243,6 +243,7 @@ def get_one_orgunit(c, unitid, unit=None,
             'invalid details {!r}'.format(details),
         )
 
+    r[mapping.USER_SETTINGS] = settings.user_settings
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     return r

@@ -30,6 +30,7 @@ JOB_FUNCTION = 'job_function'
 ITSYSTEM = 'itsystem'
 ADDRESS = 'address'
 ITSYSTEM_KEY = 'IT-system'
+USER_SETTINGS = 'user_settings'
 
 # Address
 ADDRESS_KEY = 'Adresse'

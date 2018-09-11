@@ -7,7 +7,8 @@
 
       <div class="row">
         <div class="col">
-          <p class="card-text">Placering: {{orgUnit.family_line}}</p>
+	<p class="card-text" v-if="orgUnit.user_settings.orgunit.show_family_line">Placering: {{orgUnit.family_line}}</p>
+	<p class="card-text" v-if="orgUnit.user_settings.orgunit.show_bvn">Enhedsnr.: {{orgUnit.user_key}}</p>
         </div>
 
         <div class="mr-3">
