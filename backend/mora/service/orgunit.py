@@ -839,8 +839,7 @@ def terminate_org_unit(unitid):
     """
     date = util.get_valid_from(flask.request.get_json(), is_end=True)
 
-    c = lora.Connector(virkningfra=util.to_iso_date(date),
-                       virkningtil='infinity')
+    c = lora.Connector(effective_date=util.to_iso_date(date))
 
     validator.is_date_range_in_org_unit_range(
         unitid, date - util.ONE_DAY, date,

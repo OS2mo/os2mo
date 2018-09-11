@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import unittest
 from unittest.mock import patch
 
 import freezegun
@@ -1863,7 +1864,7 @@ class Tests(util.LoRATestCase):
                 'child_units': [
                     {
                         'child_count': 0,
-                        'name': 'Afdeling for Fortidshistorik',
+                        'name': 'Afdeling for Samtidshistorik',
                         'user_key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'validity': {
@@ -2071,4 +2072,209 @@ class Tests(util.LoRATestCase):
                 }
             },
             message='No terminating on creation date!'
+        )
+
+    @unittest.expectedFailure
+    @freezegun.freeze_time('2018-09-11', tz_offset=2)
+    def test_terminating_complex_org_unit(self):
+        self.load_sample_structures()
+
+        # alas, this import fails due to overzealous validation :(
+        unitid = util.load_fixture('organisation/organisationenhed',
+                                   'very-edited-unit.json')
+
+        with self.subTest('prerequisites'):
+            self.assertRequestResponse(
+                '/service/ou/{}'.format(unitid) +
+                '/details/org_unit?validity=past',
+                [
+                    {
+                        "name": "AlexTestah",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Afdeling",
+                            "scope": None,
+                            "user_key": "afd",
+                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                        },
+                        "parent": {
+                            "name": "Overordnet Enhed",
+                            "user_key": "root",
+                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None
+                            }
+                        },
+                        "user_key":
+                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "uuid": unitid,
+                        "validity": {
+                            "from": "2018-08-01",
+                            "to": "2018-08-22"
+                        }
+                    },
+                    {
+                        "name": "AlexTestikah",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Afdeling",
+                            "scope": None,
+                            "user_key": "afd",
+                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                        },
+                        "parent": {
+                            "name": "Overordnet Enhed",
+                            "user_key": "root",
+                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None
+                            }
+                        },
+                        "user_key": "AlexTestah "
+                        "95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "uuid": unitid,
+                        "validity": {
+                            "from": "2018-08-23",
+                            "to": "2018-08-23"
+                        }
+                    },
+                    {
+                        "name": "AlexTestikah",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Fakultet",
+                            "scope": None,
+                            "user_key": "fak",
+                            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                        },
+                        "parent": {
+                            "name": "Samfundsvidenskabelige fakultet",
+                            "user_key": "samf",
+                            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                            "validity": {
+                                "from": "2017-01-01",
+                                "to": None
+                            }
+                        },
+                        "user_key":
+                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "uuid": unitid,
+                        "validity": {
+                            "from": "2018-08-24",
+                            "to": "2018-08-31"
+                        }
+                    }
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}'.format(unitid) +
+                '/details/org_unit?validity=present',
+                [{
+                    "name": "AlexTest",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "org_unit_type": {
+                        "example": None,
+                        "name": "Fakultet",
+                        "scope": None,
+                        "user_key": "fak",
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                    },
+                    "parent": {
+                        "name": "Samfundsvidenskabelige fakultet",
+                        "user_key": "samf",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                        "validity": {
+                            "from": "2017-01-01",
+                            "to": None
+                        }
+                    },
+                    "user_key":
+                    "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                    "uuid": unitid,
+                    "validity": {
+                        "from": "2018-09-01",
+                        "to": None,
+                    }
+                }],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}'.format(unitid) +
+                '/details/org_unit?validity=future',
+                [],
+            )
+
+        payload = {
+            "validity": {
+                "from": "2018-09-30"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(unitid),
+            unitid,
+            json=payload)
+
+        self.assertRequestResponse(
+            '/service/ou/{}'.format(unitid) +
+            '/details/org_unit?validity=present',
+            [{
+                "name": "AlexTest",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Fakultet",
+                    "scope": None,
+                    "user_key": "fak",
+                    "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                },
+                "parent": {
+                    "name": "Samfundsvidenskabelige fakultet",
+                    "user_key": "samf",
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": None
+                    }
+                },
+                "user_key":
+                "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                "uuid": unitid,
+                "validity": {
+                    "from": "2018-09-01",
+                    "to": "2018-09-30",
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}'.format(unitid) +
+            '/details/org_unit?validity=future',
+            [],
         )

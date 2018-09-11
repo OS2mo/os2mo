@@ -53,7 +53,8 @@ def _is_date_range_valid(parent: typing.Union[dict, str],
         elif start != previous_end:
             # non-consecutive chunk - so not valid for that time
             return False
-        elif start >= enddate or end <= startdate:
+        elif start >= enddate or end < startdate:
+            previous_end = end
             continue
 
         vs = effect['tilstande'][gyldighed_key]
