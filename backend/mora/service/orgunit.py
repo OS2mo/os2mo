@@ -212,12 +212,12 @@ def get_one_orgunit(c, unitid, unit=None,
                                                 rels['overordnet'][0]['uuid'],
                                                 details=UnitDetails.FULL)
 
-            if r[mapping.PARENT] is not None:
-                location = r[mapping.PARENT][mapping.NAME]
-                if r[mapping.PARENT][mapping.LOCATION]:
-                    location = (r[mapping.PARENT][mapping.LOCATION] + '/' +
-                                location)
-                r[mapping.LOCATION] = location
+            parent = r[mapping.PARENT]
+            if parent and parent[mapping.LOCATION]:
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                                       parent[mapping.NAME])
+            elif parent:
+                r[mapping.LOCATION] = parent[mapping.NAME]
             else:
                 r[mapping.LOCATION] = ''
 
