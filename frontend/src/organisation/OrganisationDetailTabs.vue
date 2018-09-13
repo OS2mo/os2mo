@@ -1,5 +1,8 @@
 <template>
   <div>
+    <pre>
+      {{showSettings.show_bvn}}
+   </pre>
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-organisation-unit-detail 
@@ -35,7 +38,7 @@
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
-          detail="association"
+      d   detail="association"
           :columns="association"
         />
       </b-tab>
@@ -65,6 +68,7 @@
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import { mapGetters } from 'vuex'
 
   export default {
     components: {
@@ -75,6 +79,12 @@
       uuid: {type: String, required: true},
       atDate: [Date, String],
       timemachineFriendly: Boolean
+    },
+
+    computed: {
+      ...mapGetters({
+       showSettings: 'organisationUnit/getOrgUnitSettings'
+      })
     },
 
     data () {

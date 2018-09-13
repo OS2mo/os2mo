@@ -2,13 +2,13 @@
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">
-        <icon name="users" /> {{orgUnit.name}}
+        <icon name="users" /> {{orgUnitInfo.name}}
       </h4>
 
       <div class="row">
-        <div class="col">
-	<p class="card-text" v-if="orgUnit.user_settings.orgunit.show_family_line">Placering: {{orgUnit.family_line}}</p>
-	<p class="card-text" v-if="orgUnit.user_settings.orgunit.show_bvn">Enhedsnr.: {{orgUnit.user_key}}</p>
+        <div class="col" v-if="orgUnitInfo.user_settings">
+	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_family_line">Placering: {{orgUnitInfo.family_line}}</p>
+	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_bvn">Enhedsnr.: {{orgUnitInfo.user_key}}</p>
         </div>
 
         <div class="mr-3">
@@ -28,27 +28,26 @@
 
   export default {
     components: {
-      MoHistory,
+      MoHistory: MoHistory,
       OrganisationDetailTabs
     },
 
     data () {
       return {
-        orgUnit: {}
+        orgUnitInfo: {}
       }
     },
 
-    mounted () {
+    created () {
       this.updateDetails()
     },
 
     methods: {
       updateDetails () {
-        var vm = this
         OrganisationUnit.get(this.$route.params.uuid)
           .then(response => {
-            vm.orgUnit = response
-            vm.$store.commit('organisationUnit/change', response)
+            this.orgUnitInfo = response
+            this.$store.commit('organisationUnit/change', response)
           })
       }
     }

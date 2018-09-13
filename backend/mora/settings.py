@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
+import json
 from os import path as _path
 
 from . import util as _util
@@ -16,7 +16,7 @@ CONFIG_FILE = _path.join(BASE_DIR, '..', 'setup', 'mora.json')
 MAX_REQUEST_LENGTH = 4096
 DEFAULT_PAGE_SIZE = 2000
 
-LORA_URL = 'http://mox.lxc/'
+LORA_URL = 'http://localhost:8080/'
 CA_BUNDLE = None
 
 AUTH = 'token'  # 'sso' or 'token'
@@ -43,5 +43,12 @@ SP_SYSTEM_UUID = ""
 SP_CERTIFICATE_PATH = ""
 
 PROD_MODE = False
+
+try:
+    with open('user_settings.json') as f:
+        user_settings = json.load(f)
+except FileNotFoundError: # Defaults
+    user_settings = {'orgunit': {'show_family_line': False,
+                                 'show_bvn': True}}
 
 _util.update_config(globals(), CONFIG_FILE)
