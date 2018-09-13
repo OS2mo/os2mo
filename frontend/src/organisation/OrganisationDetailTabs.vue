@@ -1,8 +1,5 @@
 <template>
-  <div>
-    <pre>
-      {{showSettings.show_bvn}}
-   </pre>
+  <div v-if="settings">
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-organisation-unit-detail 
@@ -38,12 +35,12 @@
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
-      d   detail="association"
+          detail="association"
           :columns="association"
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.roles')">
+      <b-tab :title="$t('tabs.organisation.roles')" v-if="settings.show_roles">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
           :at-date="atDate"
@@ -83,7 +80,7 @@
 
     computed: {
       ...mapGetters({
-       showSettings: 'organisationUnit/getOrgUnitSettings'
+        settings: 'organisationUnit/getOrgUnitSettings'
       })
     },
 

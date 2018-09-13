@@ -48,7 +48,8 @@ try:
     with open('user_settings.json') as f:
         user_settings = json.load(f)
 except FileNotFoundError: # Defaults
-    user_settings = {'orgunit': {'show_family_line': False,
-                                 'show_bvn': True}}
+    user_settings = {'orgunit': {'show_location': True,
+                                 'show_bvn': False,
+                                 'show_roles': False}}
 
 _util.update_config(globals(), CONFIG_FILE)

@@ -5,7 +5,7 @@ New features
 ------------
 
 * #22849: Implemented support for signed SAML AuthN Requests.
-* #22381: Replace 'Enhedsnummer' with the a desription the OUs position in the tree
+* #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit
   
 Version 0.9.0, 2018-09-07
 =========================

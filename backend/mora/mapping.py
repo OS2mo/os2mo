@@ -68,6 +68,7 @@ ORG_UNIT_TYPE = 'org_unit_type'
 NAME = 'name'
 PARENT = 'parent'
 ADDRESSES = 'addresses'
+LOCATION = 'location'
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),

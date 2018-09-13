@@ -4,10 +4,8 @@
       <h4 class="card-title">
         <icon name="users" /> {{orgUnitInfo.name}}
       </h4>
-
-      <div class="row">
-        <div class="col" v-if="orgUnitInfo.user_settings">
-	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_family_line">Placering: {{orgUnitInfo.family_line}}</p>
+      <div class="row" v-if="orgUnitInfo.user_settings">
+	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_location">Placering: {{orgUnitInfo.location}}</p>
 	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_bvn">Enhedsnr.: {{orgUnitInfo.user_key}}</p>
         </div>
 
