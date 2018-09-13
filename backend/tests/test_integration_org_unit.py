@@ -30,6 +30,8 @@ class Tests(util.LoRATestCase):
             [
                 {
                     "name": "Afdeling for Fremtidshistorik",
+                    'location': ('Overordnet Enhed/Humanistisk fakultet/' +
+                                 'Historisk Institut'),
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     'org_unit_type': {
@@ -67,6 +69,8 @@ class Tests(util.LoRATestCase):
             [
                 {
                     "name": "Afdeling for Samtidshistorik",
+                    "location": ("Overordnet Enhed/Humanistisk fakultet" +
+                                 "/Historisk Institut"),
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
@@ -105,6 +109,8 @@ class Tests(util.LoRATestCase):
                 {
                     "name": "Afdeling for Fortidshistorik",
                     "user_key": "frem",
+                    "location": ("Overordnet Enhed/Humanistisk fakultet" +
+                                 "/Historisk Institut"),
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -142,6 +148,8 @@ class Tests(util.LoRATestCase):
                 {
                     'name': 'Afdeling for Fremtidshistorik',
                     'user_key': 'frem',
+                    "location": ("Overordnet Enhed/Humanistisk fakultet" +
+                                 "/Historisk Institut"),
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
                         'name': 'Aarhus Universitet',
@@ -172,6 +180,8 @@ class Tests(util.LoRATestCase):
                 {
                     'name': 'Afdeling for Samtidshistorik',
                     'user_key': 'frem',
+                    "location": ("Overordnet Enhed/Humanistisk fakultet" +
+                                 "/Historisk Institut"),
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
                         'name': 'Aarhus Universitet',
@@ -202,6 +212,8 @@ class Tests(util.LoRATestCase):
                 {
                     'name': 'Afdeling for Fortidshistorik',
                     'user_key': 'frem',
+                    "location": ("Overordnet Enhed/Humanistisk fakultet" +
+                                 "/Historisk Institut"),
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
                         'name': 'Aarhus Universitet',
@@ -408,6 +420,7 @@ class Tests(util.LoRATestCase):
                         'to': None,
                     },
                 },
+                'location': 'Overordnet Enhed',
                 'user_key': 'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
                 'uuid': unitid,
                 'validity': {
@@ -1316,6 +1329,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 'user_key': 'samf',
+                'location': 'Overordnet Enhed',
                 'uuid': org_unit_uuid,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
@@ -1814,6 +1828,7 @@ class Tests(util.LoRATestCase):
                             'validity': {'from': '2016-01-01',
                                          'to': None}},
                  'user_key': 'fil',
+                 'location': 'Overordnet Enhed/Humanistisk fakultet',
                  'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
                  'validity': {'from': '2016-01-01',
                               'to': '2016-10-21'}}]

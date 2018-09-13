@@ -207,6 +207,20 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.FULL:
         unittype = util.get_uuid(rels['enhedstype'][0], required=False)
 
+        if rels['overordnet'][0]['uuid'] is not None:
+            r[mapping.PARENT] = get_one_orgunit(c,
+                                                rels['overordnet'][0]['uuid'],
+                                                details=UnitDetails.FULL)
+
+            parent = r[mapping.PARENT]
+            if parent and parent[mapping.LOCATION]:
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                                       parent[mapping.NAME])
+            elif parent:
+                r[mapping.LOCATION] = parent[mapping.NAME]
+            else:
+                r[mapping.LOCATION] = ''
+
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
         )
@@ -339,6 +353,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
+        "location:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",

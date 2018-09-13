@@ -5,6 +5,7 @@ New features
 ------------
 
 * #22849: Implemented support for signed SAML AuthN Requests.
+* #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit
 
 Internal changes
 ----------------
@@ -26,7 +27,7 @@ New features
 ------------
 
 * #23778: Support for IT-systems on units
-
+  
 Internal changes
 ----------------
 
