@@ -1342,6 +1342,140 @@ class Tests(util.LoRATestCase):
             [],
         )
 
+    def test_rename_root_org_unit(self):
+        # Test renaming root units
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+
+        req = {
+            "data": {
+                "name": "Whatever",
+                "validity": {
+                    "from": "2018-01-01T00:00:00+01",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            org_unit_uuid, json=req)
+
+        expected = {
+            'attributter': {
+                'organisationenhedegenskaber': [{
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Whatever',
+                    'virkning': {
+                        'from': '2018-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Overordnet '
+                                  'Enhed',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2018-01-01 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger organisationsenhed',
+            'relationer': {
+                'adresser': [{
+                    'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    'urn': 'urn:magenta.dk:telefon:+4587150000',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                    'urn': 'urn:magenta.dk:ean:5798000420229',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'enhedstype': [{
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'overordnet': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilhoerer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationenhedgyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2018-01-01 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }, {
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2018-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            }
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.organisationenhed.get(org_unit_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
+
     def test_move_org_unit(self):
         'Test successfully moving organisational units'
 
@@ -1503,6 +1637,37 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
                 'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'status': 400
+            },
+            status_code=400,
+            json=req)
+
+    def test_move_org_unit_to_root_fails(self):
+        """Should fail validation when trying to move an org unit to the root
+        level"""
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "data": {
+                "parent": {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
+                "validity": {
+                    "from": "2017-07-01T00:00:00+02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            {
+                'description': 'Moving an org unit to the root '
+                               'level is not allowed',
+                'error': True,
+                'error_key': 'V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL',
                 'status': 400
             },
             status_code=400,
