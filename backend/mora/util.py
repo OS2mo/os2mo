@@ -153,11 +153,30 @@ def to_iso_time(s):
     )
 
 
-def to_iso_date(s, is_end=False):
+def to_iso_date(s, is_end: bool=False):
     '''Return an ISO 8601 string representing date given by `s`.
 
-    Raises ValueError if the time of day is anything other than 00:00,
-    exactly.
+    We round times up or down, depending on whether ``is_end`` is set.
+    Since the dates are *inclusive*, we round *down* for start
+    dates and *up* for end dates.
+
+    :param bool is_end: whether to round the time up or down.
+
+    .. doctest::
+
+        >>> to_iso_date('2001-01-01T00:00')
+        '2001-01-01'
+        >>> to_iso_date('2001-01-01T12:00')
+        '2001-01-01'
+        >>> to_iso_date('2001-01-01T00:00', is_end=True)
+        '2000-12-31'
+        >>> to_iso_date('2001-01-01T12:00', is_end=True)
+        '2000-12-31'
+        >>> to_iso_date('2000-20-20')
+        Traceback (most recent call last):
+        ...
+        mora.exceptions.HTTPException: 400 Bad Request: \
+cannot parse '2000-20-20'
 
     '''
     dt = parsedatetime(s)
@@ -591,6 +610,40 @@ def get_effect_validity(effect):
 
 
 def get_valid_from(obj, fallback=None, is_end=False) -> datetime.datetime:
+    '''Extract the start of the validity interval in ``obj``, or otherwise
+    ``fallback`` if not and return it as a timestamp delimiting the
+    corresponding interval.
+
+    :param bool is_end: see :func:`to_iso_date`
+
+    :raises mora.exceptions.HTTPException: if the given timestamp does
+      not correspond to midnight in Central Europe.
+    :raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
+      specifiy a validity start.
+
+    .. doctest::
+
+      >>> get_valid_from({'validity': {'from': '2000-01-01'}})
+      datetime.datetime(2000, 1, 1, 0, 0, \
+tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+      >>> get_valid_from({'validity': {'from': '2000-01-01'}}, is_end=True)
+      datetime.datetime(2000, 1, 2, 0, 0, \
+tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+      >>> get_valid_from({}, {'validity': {'from': '2000-01-01'}}, is_end=True)
+      datetime.datetime(2000, 1, 2, 0, 0, \
+tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+
+      >>> get_valid_from({})
+      Traceback (most recent call last):
+      ...
+      mora.exceptions.HTTPException: 400 Bad Request: Missing start date.
+      >>> get_valid_from({'validity': {'from': '2000-01-01T12:00Z'}})
+      Traceback (most recent call last):
+      ...
+      mora.exceptions.HTTPException: \
+400 Bad Request: '2000-01-01T13:00:00+01:00' is not at midnight!
+
+    '''
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 
@@ -610,6 +663,9 @@ def get_valid_from(obj, fallback=None, is_end=False) -> datetime.datetime:
                     '{!r} is not at midnight!'.format(dt.isoformat()),
                 )
 
+            # this is the reverse of to_iso_date, and an end date
+            # _includes_ the day in question, so the end of the
+            # interval corresponds to 24:00 on that day
             if is_end:
                 return dt + ONE_DAY
 
@@ -643,6 +699,9 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
                     '{!r} is not at midnight!'.format(dt.isoformat()),
                 )
 
+            # this is the reverse of to_iso_date, and an end date
+            # _includes_ the day in question, so the end of the
+            # interval corresponds to 24:00 on that day
             return dt + ONE_DAY
 
     if fallback is not None:

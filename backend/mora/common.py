@@ -86,6 +86,7 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
                             path: tuple) -> dict:
     """
     Create 'inactivation' updates based on two sets of from/to dates
+
     :param old_from: The old 'from' time, in ISO-8601
     :param old_to: The old 'to' time, in ISO-8601
     :param new_from: The new 'from' time, in ISO-8601
