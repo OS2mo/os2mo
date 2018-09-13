@@ -1642,6 +1642,37 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
+    def test_move_org_unit_to_root_fails(self):
+        """Should fail validation when trying to move an org unit to the root
+        level"""
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "data": {
+                "parent": {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
+                "validity": {
+                    "from": "2017-07-01T00:00:00+02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            {
+                'description': 'Moving an org unit to the root '
+                               'level is not allowed',
+                'error': True,
+                'error_key': 'V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL',
+                'status': 400
+            },
+            status_code=400,
+            json=req)
+
     def test_cannot_extend_beyond_parent(self):
         """Should fail validation since the new validity period extends beyond
         that of the parent. (#23155)"""

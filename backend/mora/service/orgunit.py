@@ -162,6 +162,7 @@ class OrgUnit(common.AbstractRelationDetail):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
+        # TODO: Check if we're inside the validity range of the organisation
         if org_uuid != parent_uuid:
             validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
                                                       new_to)
@@ -613,7 +614,7 @@ def edit_org_unit(unitid):
     to contain the fields that need to change along with the validity dates.
 
     :<json string name: The name of the org unit
-    :<json string parent: The parent org unit or organisation
+    :<json string parent: The parent org unit
     :<json string org_unit_type: The type of org unit
     :<json object validity: The validities of the changes.
 
