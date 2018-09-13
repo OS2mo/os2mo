@@ -27,18 +27,26 @@ distdir = os.path.join(basedir, '..', '..', 'frontend', 'dist')
 app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 app.cli = cli.group
 
-# Session setup
 app.config.update({
+    # Session setup
     'SESSION_TYPE': 'filesystem',
     'SESSION_PERMANENT': False,
-    'SESSION_FILE_DIR': settings.SESSION_FILE_DIR
+    'SESSION_FILE_DIR': settings.SESSION_FILE_DIR,
+
+    # SAML config
+    'SAML_IDP_METADATA_URL': settings.SSO_SAML_METADATA_URL,
+    'SAML_IDP_INSECURE': settings.SAML_IDP_INSECURE,
+    'SAML_KEY_FILE': settings.SAML_KEY_FILE,
+    'SAML_CERT_FILE': settings.SAML_CERT_FILE,
+    'SAML_AUTHN_REQUESTS_SIGNED': settings.SAML_AUTHN_REQUESTS_SIGNED,
+    'SAML_USERNAME_ATTR': settings.SSO_SAML_USERNAME_ATTR,
 })
 flask_session.Session(app)
 
 app.register_blueprint(base.blueprint)
 
 if settings.AUTH == 'sso':
-    sso.init_app(app)
+    app.register_blueprint(sso.blueprint)
 
 for blueprint in service.blueprints:
     app.register_blueprint(blueprint)
