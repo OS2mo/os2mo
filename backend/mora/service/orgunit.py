@@ -842,7 +842,7 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
     validator.is_date_range_in_org_unit_range(
-        unitid, date - util.ONE_DAY, date,
+        unitid, date - util.MINIMAL_INTERVAL, date,
     )
 
     children = c.organisationenhed.paged_get(
