@@ -192,6 +192,10 @@ def is_candidate_parent_valid(unitid: str, parent: str,
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
 
+    if parent == orgid:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL)
+
     # Use for checking that the candidate parent is not the units own subtree
     seen = {unitid}
 

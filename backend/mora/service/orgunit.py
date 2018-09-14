@@ -106,6 +106,10 @@ class OrgUnit(common.AbstractRelationDetail):
             original, mapping.PARENT_FIELD.path)[-1]
         parent_uuid = util.get_uuid(parent)
 
+        org = util.get_obj_value(
+            original, mapping.BELONGS_TO_FIELD.path)[-1]
+        org_uuid = util.get_uuid(org)
+
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
 
@@ -158,8 +162,10 @@ class OrgUnit(common.AbstractRelationDetail):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
-                                                  new_to)
+        # TODO: Check if we're inside the validity range of the organisation
+        if org_uuid != parent_uuid:
+            validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+                                                      new_to)
 
         c.organisationenhed.update(payload, unitid)
 

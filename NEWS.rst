@@ -17,6 +17,7 @@ Internal changes
 Bug fixes
 ---------
 
+* #24067: Fixed being able to edit root organisational units
 * #23559: Display end dates *inclusively*, so that the year ends 31
   December rather than 1 January.
 
