@@ -34,6 +34,10 @@ class TestCafeTests(util.LiveLoRATestCase):
         util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
         'frontend sources & TestCafé command required!',
     )
+    @unittest.skipIf(
+        'SKIP_TESTCAFE' in os.environ,
+        'TestCafé disabled by $SKIP_TESTCAFE!',
+    )
     def test_with_testcafe(self):
         # Start the testing process
         print("----------------------")

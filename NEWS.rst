@@ -6,12 +6,22 @@ New features
 
 * #22849: Implemented support for signed SAML AuthN Requests.
 * #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit
-  
+
+Internal changes
+----------------
+
+* #23559: REST API now uses and enforces ISO 8601 dates in all cases
+  except history display. All ``from`` or ``to`` dates must either
+  lack a timestamp or correspond to midnight, Central European time.
+* #23559: The ``terminate`` endpoints for employees as well as units
+  now read the date from the ``to`` field rather than ``from``.
 
 Bug fixes
 ---------
 
 * #24067: Fixed being able to edit root organisational units
+* #23559: Display end dates *inclusively*, so that the year ends 31
+  December rather than 1 January.
 
 Version 0.9.0, 2018-09-07
 =========================

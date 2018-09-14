@@ -116,8 +116,8 @@ class ITSystems(common.AbstractRelationDetail):
         .. sourcecode:: json
 
           {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00",
+            "from": "2016-01-01",
+            "to": "2017-12-31",
           }
 
         :<jsonarr string name:
@@ -147,8 +147,8 @@ class ITSystems(common.AbstractRelationDetail):
               "user_key": "LoRa",
               "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
               "validity": {
-                "from": "2016-01-01T00:00:00+01:00",
-                "to": "2018-01-01T00:00:00+01:00"
+                "from": "2016-01-01",
+                "to": "2017-12-31"
               },
             },
             {
@@ -158,7 +158,7 @@ class ITSystems(common.AbstractRelationDetail):
               "user_key": "AD",
               "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
               "validity": {
-                "from": "2002-02-14T00:00:00+01:00",
+                "from": "2002-02-14",
                 "to": null
               },
             }

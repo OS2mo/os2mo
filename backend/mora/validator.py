@@ -53,7 +53,8 @@ def _is_date_range_valid(parent: typing.Union[dict, str],
         elif start != previous_end:
             # non-consecutive chunk - so not valid for that time
             return False
-        elif start >= enddate or end <= startdate:
+        elif start >= enddate or end < startdate:
+            previous_end = end
             continue
 
         vs = effect['tilstande'][gyldighed_key]
@@ -78,7 +79,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
     '''
 
     return {
-        'valid_from': util.to_iso_time(
+        'valid_from': util.to_iso_date(
             min(
                 (
                     util.get_effect_from(state)
@@ -88,7 +89,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
                 default=util.NEGATIVE_INFINITY,
             ),
         ),
-        'valid_to': util.to_iso_time(
+        'valid_to': util.to_iso_date(
             max(
                 (
                     util.get_effect_to(state)
@@ -97,6 +98,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
                 ),
                 default=util.POSITIVE_INFINITY,
             ),
+            is_end=True,
         ),
     }
 
@@ -125,8 +127,8 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
-            wanted_valid_from=util.to_iso_time(valid_from),
-            wanted_valid_to=util.to_iso_time(valid_to),
+            wanted_valid_from=util.to_iso_date(valid_from),
+            wanted_valid_to=util.to_iso_date(valid_to, is_end=True),
             **_get_active_validity(org_unit),
         )
 
