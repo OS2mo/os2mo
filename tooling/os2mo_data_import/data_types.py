@@ -236,3 +236,66 @@ class Klasse(MemoryMap):
             "relationer": relationer,
             "tilstande": tilstande
         }
+
+
+class Organisation(MemoryMap):
+
+    __required_items__ = []
+
+    def add(self, identifier, org_name=None, municipality_code=999,
+            date_from=None, date_to=None):
+
+        if not org_name:
+            org_name = identifier
+
+        data = self.build_payload(
+            bvn=identifier,
+            name=org_name,
+            municipality_code=municipality_code,
+            date_from=date_from,
+            date_to=date_to
+        )
+
+        return self.save(identifier, data)
+
+    def build_payload(self, bvn, name, municipality_code=999, date_from=None, date_to=None):
+        # Inelegant conversion to string
+        municipality_code = str(municipality_code)
+
+        # Create urn value
+        urn_municipality_code = "urn:dk:kommune:{}".format(municipality_code)
+
+        attributter = {
+            "organisationegenskaber": [
+                {
+                    "brugervendtnoegle": str(bvn),
+                    "organisationsnavn": str(name),
+                    "virkning": create_period_of_action(date_from, date_to)
+                }
+            ]
+        }
+
+        relationer = {
+            "myndighed": [
+                {
+                    "urn": urn_municipality_code,
+                    "virkning": create_period_of_action(date_from, date_to)
+                }
+            ]
+        }
+
+        tilstande = {
+            "organisationgyldighed": [
+                {
+                    "gyldighed": "Aktiv",
+                    "virkning": create_period_of_action(date_from, date_to)
+                }
+            ]
+        }
+
+        return {
+            "note": "Automatisk indlæsning",
+            "attributter": attributter,
+            "relationer": relationer,
+            "tilstande": tilstande
+        }
