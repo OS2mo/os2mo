@@ -45,11 +45,12 @@ SP_CERTIFICATE_PATH = ""
 PROD_MODE = False
 
 try:
-    with open('user_settings.json') as f:
+    with open('backend/mora/user_settings.json') as f:
         user_settings = json.load(f)
-except FileNotFoundError: # Defaults
+except FileNotFoundError:  # Defaults
     user_settings = {'orgunit': {'show_location': True,
-                                 'show_bvn': False,
-                                 'show_roles': False}}
+                                 'show_bvn': True,
+                                 'show_roles': False}
+                     }
 
 _util.update_config(globals(), CONFIG_FILE)
