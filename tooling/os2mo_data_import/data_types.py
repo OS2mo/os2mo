@@ -169,3 +169,66 @@ class Facet(MemoryMap):
             "relationer": relationer,
             "tilstande": tilstande
         }
+
+
+class Klasse(MemoryMap):
+    def __init__(self, org_uuid):
+        self.org_uuid = org_uuid
+
+    def add(self, identifier, **kwargs):
+
+        data = self.build_payload(
+            user_key=identifier, 
+            **kwargs
+        )
+
+        return self.save(identifier, data)
+
+    def build_payload(self, user_key, facet_ref,
+                      from_date=None, to_date=None, **properties):
+
+        klasse_properties = {
+            "brugervendtnoegle": user_key,
+            "virkning": create_period_of_action(from_date, to_date)
+        }
+
+        if properties:
+            klasse_properties.update(properties)
+
+        attributter = {
+            "klasseegenskaber": [
+                klasse_properties
+            ]
+        }
+
+        relationer = {
+            "ansvarlig": [
+                {
+                    "objekttype": "organisation",
+                    "uuid": self.parent_org,
+                    "virkning": create_period_of_action(from_date, to_date)
+                }
+            ],
+            "facet": [
+                {
+                    "objekttype": "facet",
+                    "uuid": facet_ref,
+                    "virkning": create_period_of_action(from_date, to_date)
+                }
+            ]
+        }
+
+        tilstande = {
+            "klassepubliceret": [
+                {
+                    "publiceret": "Publiceret",
+                    "virkning": create_period_of_action(from_date, to_date)
+                }
+            ]
+        }
+
+        return {
+            "attributter": attributter,
+            "relationer": relationer,
+            "tilstande": tilstande
+        }
