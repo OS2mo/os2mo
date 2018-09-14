@@ -7,6 +7,7 @@
 #
 
 from __future__ import generator_stop
+import time
 
 import collections
 import functools
@@ -142,6 +143,8 @@ ALL_RELATION_NAMES = {
     'ydelsesklasse',
     'ydelsesmodtager',
 }
+
+lora_cache = {}
 
 
 def _check_response(r):
@@ -320,6 +323,9 @@ class Connector:
                                         util.parsedatetime(effect['to']))
 
 
+execution_times = []
+
+
 class Scope:
     def __init__(self, connector, path):
         self.connector = connector
@@ -330,17 +336,30 @@ class Scope:
         return settings.LORA_URL + self.path
 
     def fetch(self, **params):
-        r = session.get(self.base_path, params={
-            **self.connector.defaults,
-            **params,
-        })
+        t = time.time()
+        cache_id = (self.base_path + " " + str(self.connector.defaults) +
+                    " " + str(params))
+        if cache_id not in lora_cache:
+            r = session.get(self.base_path, params={
+                **self.connector.defaults,
+                **params,
+            })
+            _check_response(r)
+            try:
+                return_list = r.json()['results'][0]
+            except IndexError:
+                return_list = []
+            print(cache_id)
+            lora_cache[cache_id] = return_list
+        else:
+            return_list = lora_cache[cache_id]
 
-        _check_response(r)
-
-        try:
-            return r.json()['results'][0]
-        except IndexError:
-            return []
+        execution_times.append(time.time() - t)
+        print('----')
+        print(execution_times)
+        print(len(lora_cache))
+        print('----')
+        return return_list
 
     __call__ = fetch
 
