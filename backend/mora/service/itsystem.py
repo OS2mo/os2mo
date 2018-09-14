@@ -309,3 +309,11 @@ class ITSystems(common.AbstractRelationDetail):
         }
 
         self.scope.update(payload, id)
+
+
+def create_itsystem(employee_uuid, req):
+    raise NotImplementedError('go away')
+
+
+def edit_itsystem(employee_uuid, req):
+    raise NotImplementedError('go away')

@@ -545,7 +545,12 @@ def get_detail(type, id, function):
             mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
             mapping.ADDRESS: (class_cache, get_address, get_address_type,
                               False),
-        }
+        },
+        'it': {
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            # mapping.ITSYSTEM: (unit_cache, get_unit_id, None, False),
+        },
     }
 
     # first, extract all the effects

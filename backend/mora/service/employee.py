@@ -42,7 +42,6 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
 
 
 RELATION_TYPES = {
-    'it': itsystem.ITSystems,
     'address': address.Addresses,
 }
 
@@ -469,6 +468,7 @@ def create_employee_relation(employee_uuid):
         'role': role.create_role,
         'manager': manager.create_manager,
         'leave': leave.create_leave,
+        'it': itsystem.create_itsystem,
         **RELATION_TYPES,
     }
 
@@ -929,6 +929,7 @@ def edit_employee(employee_uuid):
         'role': role.edit_role,
         'leave': leave.edit_leave,
         'manager': manager.edit_manager,
+        'it': itsystem.edit_itsystem,
         **RELATION_TYPES,
     }
 

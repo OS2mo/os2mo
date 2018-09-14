@@ -118,6 +118,7 @@ FUNCTION_KEYS = {
     'role': ROLE_KEY,
     'leave': LEAVE_KEY,
     'manager': MANAGER_KEY,
+    'it': ITSYSTEM_KEY,
 }
 
 ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
@@ -229,8 +230,14 @@ MANAGER_LEVEL_FIELD = FieldTuple(
 )
 
 ITSYSTEMS_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeitsystemer'),
+    path=('relationer', 'opgaver'),
     type=FieldTypes.ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'itsystem'
+)
+
+FUNCTION_ITSYSTEMS_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedeitsystemer'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
     filter_fn=lambda x: True
 )
 
