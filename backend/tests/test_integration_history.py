@@ -146,7 +146,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
             userid,
             json={
                 "validity": {
-                    "from": "2017-12-01"
+                    "to": "2017-12-01"
                 }
             })
 
@@ -285,7 +285,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             unitid,
             json={
                 "validity": {
-                    "from": "2017-12-01"
+                    "to": "2017-12-01"
                 }
             })
 

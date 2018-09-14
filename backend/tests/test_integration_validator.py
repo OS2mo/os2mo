@@ -29,7 +29,7 @@ class TestHelper(util.LoRATestCase):
         # Expire the parent from 2018-01-01
         payload = {
             'validity': {
-                'from': "2018-01-01"
+                'to': "2018-01-01"
             }
         }
 

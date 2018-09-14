@@ -1964,7 +1964,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "validity": {
-                "from": "2016-10-21"
+                "to": "2016-10-21"
             }
         }
 
@@ -2023,7 +2023,7 @@ class Tests(util.LoRATestCase):
             status_code=404,
             json={
                 "validity": {
-                    "from": "2016-12-31"
+                    "to": "2016-12-31"
                 }
             },
         )
@@ -2057,7 +2057,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2017-01-01"
+                    "to": "2017-01-01"
                 }
             },
         )
@@ -2102,7 +2102,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2017-05-31"
+                    "to": "2017-05-31"
                 }
             },
         )
@@ -2137,7 +2137,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2018-12-31"
+                    "to": "2018-12-31"
                 }
             },
         )
@@ -2152,7 +2152,7 @@ class Tests(util.LoRATestCase):
                 unitid,
                 json={
                     "validity": {
-                        "from": "2018-12-31"
+                        "to": "2018-12-31"
                     }
                 },
             )
@@ -2176,7 +2176,7 @@ class Tests(util.LoRATestCase):
             json={
                 "validity": {
                     # inclusion of timestamp is deliberate
-                    "from": "2018-12-31T00:00:00+01"
+                    "to": "2018-12-31T00:00:00+01"
                 }
             },
         )
@@ -2200,7 +2200,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "1999-12-31"
+                    "to": "1999-12-31"
                 }
             },
         )
@@ -2224,7 +2224,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2099-12-31"
+                    "to": "2099-12-31"
                 }
             },
         )
@@ -2248,7 +2248,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2015-12-31"
+                    "to": "2015-12-31"
                 }
             },
             message='No terminating on creation date!'
@@ -2408,7 +2408,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "validity": {
-                "from": "2018-09-30"
+                "to": "2018-09-30"
             }
         }
 

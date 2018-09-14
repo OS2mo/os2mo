@@ -21,7 +21,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "validity": {
-                "from": "2000-12-01"
+                "to": "2000-12-01"
             }
         }
 

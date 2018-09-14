@@ -609,12 +609,10 @@ def get_effect_validity(effect):
     }
 
 
-def get_valid_from(obj, fallback=None, is_end=False) -> datetime.datetime:
+def get_valid_from(obj, fallback=None) -> datetime.datetime:
     '''Extract the start of the validity interval in ``obj``, or otherwise
-    ``fallback`` if not and return it as a timestamp delimiting the
+    ``fallback``, and return it as a timestamp delimiting the
     corresponding interval.
-
-    :param bool is_end: see :func:`to_iso_date`
 
     :raises mora.exceptions.HTTPException: if the given timestamp does
       not correspond to midnight in Central Europe.
@@ -625,12 +623,6 @@ def get_valid_from(obj, fallback=None, is_end=False) -> datetime.datetime:
 
       >>> get_valid_from({'validity': {'from': '2000-01-01'}})
       datetime.datetime(2000, 1, 1, 0, 0, \
-tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
-      >>> get_valid_from({'validity': {'from': '2000-01-01'}}, is_end=True)
-      datetime.datetime(2000, 1, 2, 0, 0, \
-tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
-      >>> get_valid_from({}, {'validity': {'from': '2000-01-01'}}, is_end=True)
-      datetime.datetime(2000, 1, 2, 0, 0, \
 tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
 
       >>> get_valid_from({})
@@ -663,16 +655,10 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
                     '{!r} is not at midnight!'.format(dt.isoformat()),
                 )
 
-            # this is the reverse of to_iso_date, and an end date
-            # _includes_ the day in question, so the end of the
-            # interval corresponds to 24:00 on that day
-            if is_end:
-                return dt + ONE_DAY
-
             return dt
 
     if fallback is not None:
-        return get_valid_from(fallback, is_end=is_end)
+        return get_valid_from(fallback)
     else:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_MISSING_START_DATE,
@@ -681,6 +667,36 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
+    '''Extract the end of the validity interval in ``obj``, or otherwise
+    ``fallback``, and return it as a timestamp delimiting the
+    corresponding interval. If neither specifies an end, assume a
+    timestamp far in the future — practically infinite, in fact.
+
+    Please note that as end intervals are *inclusive*, a date ends at
+    24:00, or 0:00 the following day.
+
+    :see also: :func:`to_iso_date`
+
+    :raises mora.exceptions.HTTPException: if the given timestamp does
+      not correspond to midnight in Central Europe.
+    :raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
+      specifiy a validity start.
+
+    .. doctest::
+
+      >>> get_valid_to({'validity': {'to': '1999-12-31'}})
+      datetime.datetime(2000, 1, 1, 0, 0, \
+tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+      >>> get_valid_to({}) == POSITIVE_INFINITY
+      True
+
+      >>> get_valid_to({'validity': {'to': '1999-12-31T12:00Z'}})
+      Traceback (most recent call last):
+      ...
+      mora.exceptions.HTTPException: \
+400 Bad Request: '1999-12-31T13:00:00+01:00' is not at midnight!
+
+    '''
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 

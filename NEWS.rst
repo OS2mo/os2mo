@@ -13,6 +13,8 @@ Internal changes
 * #23559: REST API now uses and enforces ISO 8601 dates in all cases
   except history display. All ``from`` or ``to`` dates must either
   lack a timestamp or correspond to midnight, Central European time.
+* #23559: The ``terminate`` endpoints for employees as well as units
+  now read the date from the ``to`` field rather than ``from``.
 
 Bug fixes
 ---------

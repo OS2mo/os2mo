@@ -825,7 +825,7 @@ def terminate_org_unit(unitid):
 
       {
         "validity": {
-          "from": "2015-12-31"
+          "to": "2015-12-31"
         }
       }
 
@@ -858,7 +858,7 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = util.get_valid_from(flask.request.get_json(), is_end=True)
+    date = util.get_valid_to(flask.request.get_json())
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
 

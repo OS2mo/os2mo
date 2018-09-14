@@ -966,7 +966,8 @@ def edit_employee(employee_uuid):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
-    """Terminates an employee and all of his roles from a specified date.
+    """Terminates an employee and all of his roles beginning at a
+    specified date.
 
     .. :quickref: Employee; Terminate
 
@@ -974,8 +975,7 @@ def terminate_employee(employee_uuid):
 
     :param employee_uuid: The UUID of the employee to be terminated.
 
-    :<json string from: The date on which the termination should happen,
-                              in ISO 8601.
+    :<json string to: When the termination should occur, as an ISO 8601 date.
 
     **Example Request**:
 
@@ -983,11 +983,12 @@ def terminate_employee(employee_uuid):
 
       {
         "validity": {
-          "from": "2015-12-31"
+          "to": "2015-12-31"
         }
       }
+
     """
-    date = util.get_valid_from(flask.request.get_json(), is_end=True)
+    date = util.get_valid_to(flask.request.get_json())
 
     # Org funks
     types = (
