@@ -520,9 +520,9 @@ class Tests(util.LoRATestCase):
             [{
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                 'user_settings': {'orgunit': {'show_bvn': False,
-                                               'show_location': True,
-                                               'show_roles': True}},
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'org': {
                     'name': 'Aarhus Universitet',
@@ -586,6 +586,9 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00',
