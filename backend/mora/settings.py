@@ -49,8 +49,8 @@ try:
         user_settings = json.load(f)
 except FileNotFoundError:  # Defaults
     user_settings = {'orgunit': {'show_location': True,
-                                 'show_bvn': True,
-                                 'show_roles': False}
+                                 'show_bvn': False,
+                                 'show_roles': True}
                      }
 
 _util.update_config(globals(), CONFIG_FILE)

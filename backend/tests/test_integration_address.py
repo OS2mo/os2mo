@@ -1421,6 +1421,9 @@ class Writing(util.LoRATestCase):
                 },
                 'location': 'Overordnet Enhed',
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': unitid,
                 'validity': {
                     'from': '2016-02-04T00:00:00+01:00',

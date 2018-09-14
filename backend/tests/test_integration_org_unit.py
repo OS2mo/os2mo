@@ -32,6 +32,9 @@ class Tests(util.LoRATestCase):
                     'location': ('Overordnet Enhed/Humanistisk fakultet/' +
                                  'Historisk Institut'),
                     "user_key": "frem",
+                    'user_settings': {'orgunit': {'show_bvn': False,
+                                                  'show_location': True,
+                                                  'show_roles': True}},
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     'org_unit_type': {
                         'example': None,
@@ -71,6 +74,9 @@ class Tests(util.LoRATestCase):
                     "location": ("Overordnet Enhed/Humanistisk fakultet" +
                                  "/Historisk Institut"),
                     "user_key": "frem",
+                    'user_settings': {'orgunit': {'show_bvn': False,
+                                                  'show_location': True,
+                                                  'show_roles': True}},
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -110,6 +116,9 @@ class Tests(util.LoRATestCase):
                     "user_key": "frem",
                     "location": ("Overordnet Enhed/Humanistisk fakultet" +
                                  "/Historisk Institut"),
+                    'user_settings': {'orgunit': {'show_bvn': False,
+                                                  'show_location': True,
+                                                  'show_roles': True}},
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -149,6 +158,9 @@ class Tests(util.LoRATestCase):
                     'user_key': 'frem',
                     "location": ("Overordnet Enhed/Humanistisk fakultet" +
                                  "/Historisk Institut"),
+                    'user_settings': {'orgunit': {'show_bvn': False,
+                                                  'show_location': True,
+                                                  'show_roles': True}},
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
                         'name': 'Aarhus Universitet',
@@ -421,6 +433,9 @@ class Tests(util.LoRATestCase):
                 },
                 'location': 'Overordnet Enhed',
                 'user_key': 'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': unitid,
                 'validity': {
                     'from': '2016-02-04T00:00:00+01:00',
@@ -1329,6 +1344,9 @@ class Tests(util.LoRATestCase):
                 },
                 'user_key': 'samf',
                 'location': 'Overordnet Enhed',
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': org_unit_uuid,
                 'validity': {
                     'from': '2016-01-01T00:00:00+01:00', 'to': None,
@@ -1828,6 +1846,9 @@ class Tests(util.LoRATestCase):
                                          'to': None}},
                  'user_key': 'fil',
                  'location': 'Overordnet Enhed/Humanistisk fakultet',
+                 'user_settings': {'orgunit': {'show_bvn': False,
+                                               'show_location': True,
+                                               'show_roles': True}},
                  'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
                  'validity': {'from': '2016-01-01T00:00:00+01:00',
                               'to': '2016-10-22T00:00:00+02:00'}}]
