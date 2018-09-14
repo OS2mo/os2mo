@@ -38,6 +38,10 @@
 </template>
 
 <script>
+  /**
+   * A tree view item component
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoLoader from '@/components/atoms/MoLoader'
 
@@ -49,15 +53,38 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * Defines a model name.
+       */
       model: Object,
+
+      /**
+       * This boolean property defines a open link.
+       */
       firstOpen: Boolean,
+
+      /**
+       * This boolean defines a able link.
+       */
       linkable: Boolean,
+
+      /**
+       * Defines a atDate.
+       */
       atDate: [Date, String]
     },
 
     data () {
       return {
+      /**
+       * The selected, open, loading component value.
+       * Used to detect changes and restore the value.
+       */
         selected: {},
         open: false,
         loading: true
@@ -65,26 +92,42 @@
     },
 
     computed: {
+      /**
+       * Show children if it has.
+       */
       hasChildren () {
         return this.model.child_count > 0
       }
     },
 
     watch: {
+      /**
+       * When model change, load children.
+       */
       model (val) {
         this.loadChildren()
       },
 
+      /**
+       * When selected change, update newVal.
+       */
       selected (newVal) {
         this.selectOrgUnit(newVal)
       },
 
+      /**
+       * When atDate change, load children.
+       */
       atDate () {
         this.loadChildren()
       }
     },
 
     mounted () {
+      /**
+       * Called after the instance has been mounted.
+       * Set open as firstOpen.
+       */
       if (this.firstOpen) {
         this.loadChildren()
       }
@@ -92,15 +135,24 @@
     },
 
     methods: {
+      /**
+       * On toggle open children.
+       */
       toggle () {
         this.open = !this.open
         if (this.open && this.model.children === undefined) this.loadChildren()
       },
 
+      /**
+       * When selectOrgUnit change, update org.
+       */
       selectOrgUnit (org) {
         this.$emit('input', org)
       },
 
+      /**
+       * Get organisation unit children.
+       */
       loadChildren () {
         let vm = this
         vm.loading = true

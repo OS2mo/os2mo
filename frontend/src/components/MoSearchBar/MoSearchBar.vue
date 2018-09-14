@@ -19,6 +19,10 @@
 </template>
 
 <script>
+  /**
+   * A searchbar component.
+   */
+
   import Search from '@/api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
@@ -33,29 +37,57 @@
 
     data () {
       return {
+      /**
+       * The item, items, routeName component value.
+       * Used to detect changes and restore the value.
+       */
         item: null,
         items: [],
         routeName: '',
+
+        /**
+         * The template component value.
+         * Used to add MoSearchBarTemplate to the v-autocomplete.
+         */
         template: MoSearchBarTemplate,
+
+        /**
+         * The noItem component value.
+         * Used to give a default name.
+         */
         noItem: [{name: 'Ingen resultater matcher din søgning'}]
       }
     },
 
     watch: {
+      /**
+       * Whenever route change update.
+       */
       '$route' (to) {
         this.getRouteName(to)
       }
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Get route name.
+       */
       this.getRouteName(this.$route)
     },
 
     methods: {
+      /**
+       * Get label name.
+       */
       getLabel (item) {
         return item ? item.name : null
       },
 
+      /**
+       * Get to the route name.
+       * So if we're viewing an employee, it goes to the employee detail.
+       */
       getRouteName (route) {
         if (route.name.indexOf('Organisation') > -1) {
           this.routeName = 'OrganisationDetail'
@@ -65,6 +97,9 @@
         }
       },
 
+      /**
+       * Update employee or organisation suggestions based on search query.
+       */
       updateItems (query) {
         let vm = this
         vm.items = []
@@ -83,6 +118,9 @@
         }
       },
 
+      /**
+       * Go to the selected route.
+       */
       selected (item) {
         if (item.uuid == null) return
         this.items = []

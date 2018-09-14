@@ -104,11 +104,11 @@
 
     data () {
       return {
-        /**
-         * The employee, engagement, address, association, role, itSystem, manager,
-         * isLoading, backendValidationError component value.
-         * Used to detect changes and restore the value.
-         */
+      /**
+        * The employee, engagement, address, association, role, itSystem, manager,
+        * isLoading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         employee: {},
         engagement: {},
         address: [],
@@ -119,11 +119,11 @@
         isLoading: false,
         backendValidationError: null,
 
-        /**
-         * The entry - address, association, role, it, manager component.
-         * Used to add MoAddressEntry, MoAssociationEntry, MoRoleEntry,
-         * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
-         */
+      /**
+        * The entry - address, association, role, it, manager component.
+        * Used to add MoAddressEntry, MoAssociationEntry, MoRoleEntry,
+        * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
+        */
         entry: {
           address: MoAddressEntry,
           association: MoAssociationEntry,

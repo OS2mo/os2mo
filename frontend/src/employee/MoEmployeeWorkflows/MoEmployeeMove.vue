@@ -112,10 +112,10 @@
 
     data () {
       return {
-        /**
-         * The move, employee, original, isLoading, backendValidationError component value.
-         * Used to detect changes and restore the value.
-         */
+      /**
+        * The move, employee, original, isLoading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         employee: {},
         isLoading: false,
         backendValidationError: null,

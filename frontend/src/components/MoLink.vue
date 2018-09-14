@@ -18,13 +18,28 @@
 </template>
 
 <script>
+  /**
+   * A link component.
+   */
+
   export default {
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * Defines a default field name.
+       */
       field: {
         type: String,
         default: 'name'
       },
+
+      /**
+       * Defines a default column.
+       */
       column: {
         type: String,
         default: null
@@ -33,6 +48,10 @@
 
     data () {
       return {
+      /**
+       * The column_handlers component value.
+       * Used to add OrganisationDetail, EmployeeDetail components.
+       */
         column_handlers: {
           'org_unit': 'OrganisationDetail',
           'parent': 'OrganisationDetail',
@@ -42,6 +61,9 @@
     },
 
     computed: {
+      /**
+       * Returns columns and fields.
+       */
       classes () {
         if (this.column && this.field) {
           return [this.column + '-' + this.field]
@@ -54,6 +76,9 @@
         }
       },
 
+      /**
+       * Defines contents, columns and value.
+       */
       parts () {
         let contents = this.column ? this.value[this.column] : this.value
 

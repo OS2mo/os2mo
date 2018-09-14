@@ -69,8 +69,11 @@
   </div>
 </template>
 
-
 <script>
+  /**
+   * A employee detail tabs component.
+   */
+
   import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
@@ -88,12 +91,23 @@
     },
 
     props: {
+      /**
+       * Defines a unique identifier which must be unique.
+       */
       uuid: String,
+
+      /**
+       * This Boolean property hides the actions.
+       */
       hideActions: Boolean
     },
 
     data () {
       return {
+      /**
+        * The isLoading, leave, it, address, engagement, association, role, manager component value.
+        * Used to detect changes and restore the value for columns.
+        */
         isLoading: false,
         engagement: [
           {label: 'org_unit', data: 'org_unit'},
@@ -130,6 +144,12 @@
           {label: 'address_type', data: 'address_type'},
           {label: 'value', data: null}
         ],
+
+        /**
+         * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
+         * MoAssociationEntry, MoLeaveEntry, MoManagerEntry component.
+         * Used to add the components in the tabs.
+         */
         components: {
           engagement: MoEngagementEntry,
           address: MoAddressEntry,

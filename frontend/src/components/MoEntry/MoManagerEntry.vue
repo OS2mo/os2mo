@@ -46,6 +46,10 @@
 </template>
 
 <script>
+  /**
+   * A manager entry component.
+   */
+
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -62,21 +66,38 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * This boolean property hides validity.
+       */
       validityHidden: Boolean
     },
 
     data () {
       return {
+      /**
+        * The entry component value.
+        * Used to detect changes and restore the value.
+        */
         entry: {}
       }
     },
 
     computed: {
+      /**
+       * Hides the validity.
+       */
       datePickerHidden () {
         return this.validity != null
       },
 
+      /**
+       * Adds the facetPicker to the add many component.
+       */
       facetPicker () {
         return {
           components: { MoFacetPicker },
@@ -90,6 +111,9 @@
     },
 
     watch: {
+      /**
+       * Whenever entry change, update newVal.
+       */
       entry: {
         handler (newVal) {
           newVal.type = 'manager'
@@ -100,6 +124,10 @@
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set entry to value.
+       */
       this.entry = this.value
     }
   }

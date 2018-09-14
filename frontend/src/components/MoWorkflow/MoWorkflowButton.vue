@@ -6,11 +6,22 @@
 </template>
 
 <script>
+  /**
+   * A workflow button component.
+   */
+
   export default {
     name: 'MoWorkflowButton',
 
     props: {
+      /**
+       * Defines a required label.
+       */
       label: {type: String, required: true},
+
+      /**
+       * Defines a required icon.
+       */
       icon: {type: String, required: true}
     }
   }

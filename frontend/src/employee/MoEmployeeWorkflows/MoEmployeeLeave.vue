@@ -51,10 +51,10 @@
 
     data () {
       return {
-        /**
-         * The leave, employee, isLoading, backendValidationError component value.
-         * Used to detect changes and restore the value.
-         */
+      /**
+        * The leave, employee, isLoading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         isLoading: false,
         backendValidationError: null,
         employee: {},

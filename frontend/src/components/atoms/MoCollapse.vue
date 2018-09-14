@@ -21,28 +21,50 @@
 </template>
 
 <script>
+  /**
+   * A collapse component.
+   */
+
   export default {
     props: {
+      /**
+       * Defines a title.
+       */
       title: {
         type: String,
         required: true
       },
+
+      /**
+       * This Boolean property defines the visible.
+       */
       initiallyOpen: Boolean
     },
 
     data () {
       return {
+      /**
+        * The open component value.
+        * Used to detect changes and restore the value.
+        */
         open: false
       }
     },
 
     computed: {
+      /**
+       * Get name `mo-collapse`.
+       */
       nameId () {
         return 'mo-collapse-' + this._uid
       }
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set open to initiallyOpen.
+       */
       this.open = this.initiallyOpen
     }
   }
