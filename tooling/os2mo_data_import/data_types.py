@@ -84,7 +84,11 @@ class MemoryMap:
         if not isinstance(data, dict):
             raise TypeError("Data must be of type dict")
 
-        import_uuid = create_uuid()
+        # Use existing uuid when overwriting
+        if identifier in self.storage_map:
+            import_uuid = self.get_uuid(identifier)
+        else:
+            import_uuid = create_uuid()
 
         self.storage_map[identifier] = {
             "uuid": import_uuid,
