@@ -10,7 +10,8 @@
     "testcafe": "testcafe",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
-    "build": "node build/build.js"
+    "build": "node build/build.js",
+    "vuedoc": "node node_modules/@vuedoc/md/bin/cli.js"
   },
   "dependencies": {
     "@vuedoc/md": "^1.5.0",
