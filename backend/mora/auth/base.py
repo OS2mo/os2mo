@@ -14,7 +14,7 @@ This section describes how to authenticate with MO. The API is work in
 progress.
 
 '''
-
+import base64
 import os
 import zlib
 
@@ -63,7 +63,10 @@ def get_user():
     '''
 
     username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
-    username = flask.session.get('samlUserdata').get(username_attr)[0]
+    try:
+        username = flask.session.get('samlUserdata').get(username_attr)[0]
+    except (AttributeError, IndexError):
+        username = None
 
     return flask.jsonify(username)
 

@@ -81,10 +81,6 @@
         let vm = this
         vm.isLoading = true
         this.$store.dispatch(AUTH_LOGOUT, vm.user)
-        .then(response => {
-          vm.isLoading = false
-          window.location.replace('/')
-        })
       }
     }
   }

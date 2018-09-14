@@ -14,6 +14,10 @@ module.exports = {
       "/service": {
         target: process.env.BASE_URL || "http://localhost:5000/",
         changeOrigin: true
+      },
+      "/saml": {
+        target: process.env.BASE_URL || "http://localhost:5000/",
+        changeOrigin: true
       }
     },
 

@@ -34,18 +34,18 @@ app.config.update({
     'SESSION_FILE_DIR': settings.SESSION_FILE_DIR,
 
     # SAML config
-    'SAML_IDP_METADATA_URL': settings.SSO_SAML_METADATA_URL,
+    'SAML_IDP_METADATA_URL': settings.SAML_IDP_METADATA_URL,
     'SAML_IDP_INSECURE': settings.SAML_IDP_INSECURE,
     'SAML_KEY_FILE': settings.SAML_KEY_FILE,
     'SAML_CERT_FILE': settings.SAML_CERT_FILE,
-    'SAML_AUTHN_REQUESTS_SIGNED': settings.SAML_AUTHN_REQUESTS_SIGNED,
-    'SAML_USERNAME_ATTR': settings.SSO_SAML_USERNAME_ATTR,
+    'SAML_REQUESTS_SIGNED': settings.SAML_REQUESTS_SIGNED,
+    'SAML_USERNAME_ATTR': settings.SAML_USERNAME_ATTR,
 })
 flask_session.Session(app)
 
 app.register_blueprint(base.blueprint)
 
-if settings.AUTH == 'sso':
+if settings.AUTH:
     app.register_blueprint(sso.blueprint)
 
 for blueprint in service.blueprints:

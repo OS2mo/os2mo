@@ -28,15 +28,8 @@ def get_saml_settings(app):
     insecure = config['SAML_IDP_INSECURE']
     cert_file = config['SAML_CERT_FILE']
     key_file = config['SAML_KEY_FILE']
-    authn_requests_signed = config['SAML_AUTHN_REQUESTS_SIGNED']
+    requests_signed = config['SAML_REQUESTS_SIGNED']
     saml_idp_metadata_url = config['SAML_IDP_METADATA_URL']
-
-    if authn_requests_signed:
-        cert = open(cert_file, 'r').read()
-        key = open(key_file, 'r').read()
-    else:
-        cert = None
-        key = None
 
     remote = OneLogin_Saml2_IdPMetadataParser.parse_remote(
         saml_idp_metadata_url,
@@ -56,16 +49,26 @@ def get_saml_settings(app):
                 "url": flask.url_for('sso.sls', _external=True),
                 "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
             },
-            "x509cert": cert,
-            "privateKey": key
         },
         "security": {
-            "authnRequestsSigned": authn_requests_signed
+            "authnRequestsSigned": requests_signed,
+            "logoutRequestSigned": requests_signed
         }
     }
 
     s.setdefault('sp', {}).update(remote.get('sp'))
     s.setdefault('idp', {}).update(remote.get('idp'))
+
+    if requests_signed:
+        with open(cert_file, 'r') as cf:
+            cert = cf.read()
+        with open(key_file, 'r') as kf:
+            key = kf.read()
+
+        s['sp'].update({
+            "x509cert": cert,
+            "privateKey": key
+        })
 
     return s
 
@@ -105,7 +108,7 @@ def metadata(auth):
     errors = settings.validate_metadata(sp_metadata)
 
     if len(errors) == 0:
-        resp = flask.make_response(metadata, 200)
+        resp = flask.make_response(sp_metadata, 200)
         resp.headers['Content-Type'] = 'text/xml'
         return resp
     else:
@@ -115,7 +118,8 @@ def metadata(auth):
 @blueprint.route('/sso/')
 @init_saml_auth
 def sso(auth):
-    return_to = flask.request.args.get('next', '')
+    return_to = flask.request.args.get(
+        'next', flask.url_for('root', _external=True))
     login = auth.login(return_to=return_to)
     return flask.redirect(login)
 
