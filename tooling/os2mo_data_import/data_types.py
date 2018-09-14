@@ -115,14 +115,14 @@ class Facet(MemoryMap):
     def __init__(self, org_uuid):
         self.org_uuid = org_uuid
 
-    def add(self, type_name, **kwargs):
+    def add(self, identifier):
 
         data = self.build_payload(
-            bvn=type_name,
+            bvn=identifier,
             parent_org=self.org_uuid
         )
 
-        return self.save(type_name, data)
+        return self.save(identifier, data)
 
     def build_payload(self, bvn, parent_org, from_date=None, to_date=None):
 
