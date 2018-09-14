@@ -193,6 +193,9 @@ class Tests(util.LoRATestCase):
                     'user_key': 'frem',
                     "location": ("Overordnet Enhed/Humanistisk fakultet" +
                                  "/Historisk Institut"),
+                    'user_settings': {'orgunit': {'show_bvn': False,
+                                                  'show_location': True,
+                                                  'show_roles': True}},
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
                         'name': 'Aarhus Universitet',
