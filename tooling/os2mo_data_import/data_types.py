@@ -116,14 +116,15 @@ class MemoryMap:
 
 class Facet(MemoryMap):
 
-    def __init__(self, org_uuid):
-        self.org_uuid = org_uuid
+    def __init__(self, parent_org):
+        self.parent_org = parent_org
+        self.storage_map = {}
 
     def add(self, identifier):
 
         data = self.build_payload(
             bvn=identifier,
-            parent_org=self.org_uuid
+            parent_org=self.parent_org
         )
 
         return self.save(identifier, data)
@@ -176,8 +177,10 @@ class Facet(MemoryMap):
 
 
 class Klasse(MemoryMap):
-    def __init__(self, org_uuid):
-        self.org_uuid = org_uuid
+
+    def __init__(self, parent_org):
+        self.parent_org = parent_org
+        self.storage_map = {}
 
     def add(self, identifier, **kwargs):
 
@@ -240,7 +243,9 @@ class Klasse(MemoryMap):
 
 class Organisation(MemoryMap):
 
-    __required_items__ = []
+    def __init__(self):
+        self.parent_org = parent_org
+        self.storage_map = {}
 
     def add(self, identifier, org_name=None, municipality_code=999,
             date_from=None, date_to=None):
