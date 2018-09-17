@@ -16,7 +16,7 @@ def create_uuid():
     return str(identifier)
 
 
-def create_period_of_action(from_date, to_date):
+def validity_range(from_date, to_date):
     if not from_date:
         from_date = "1900-01-01"
 
@@ -92,7 +92,8 @@ class MemoryMap:
 
         self.storage_map[identifier] = {
             "uuid": import_uuid,
-            "data": data
+            "data": data,
+            "metadata": []
         }
 
         return import_uuid
@@ -139,7 +140,7 @@ class Facet(MemoryMap):
             "facetegenskaber": [
                 {
                     "brugervendtnoegle": str(bvn),
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ]
         }
@@ -149,13 +150,13 @@ class Facet(MemoryMap):
                 {
                     "objekttype": default_type,
                     "uuid": parent_org,
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ],
             "facettilhoerer": [
                 {
                     "objekttype": default_tilhoerer,
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ]
         }
@@ -164,7 +165,7 @@ class Facet(MemoryMap):
             "facetpubliceret": [
                 {
                     "publiceret": "Publiceret",
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ]
         }
@@ -196,7 +197,7 @@ class Klasse(MemoryMap):
 
         klasse_properties = {
             "brugervendtnoegle": user_key,
-            "virkning": create_period_of_action(from_date, to_date)
+            "virkning": validity_range(from_date, to_date)
         }
 
         if properties:
@@ -213,14 +214,14 @@ class Klasse(MemoryMap):
                 {
                     "objekttype": "organisation",
                     "uuid": self.parent_org,
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ],
             "facet": [
                 {
                     "objekttype": "facet",
                     "uuid": facet_ref,
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ]
         }
@@ -229,7 +230,7 @@ class Klasse(MemoryMap):
             "klassepubliceret": [
                 {
                     "publiceret": "Publiceret",
-                    "virkning": create_period_of_action(from_date, to_date)
+                    "virkning": validity_range(from_date, to_date)
                 }
             ]
         }
@@ -244,7 +245,6 @@ class Klasse(MemoryMap):
 class Organisation(MemoryMap):
 
     def __init__(self):
-        self.parent_org = parent_org
         self.storage_map = {}
 
     def add(self, identifier, org_name=None, municipality_code=999,
@@ -275,7 +275,7 @@ class Organisation(MemoryMap):
                 {
                     "brugervendtnoegle": str(bvn),
                     "organisationsnavn": str(name),
-                    "virkning": create_period_of_action(date_from, date_to)
+                    "virkning": validity_range(date_from, date_to)
                 }
             ]
         }
@@ -284,7 +284,7 @@ class Organisation(MemoryMap):
             "myndighed": [
                 {
                     "urn": urn_municipality_code,
-                    "virkning": create_period_of_action(date_from, date_to)
+                    "virkning": validity_range(date_from, date_to)
                 }
             ]
         }
@@ -293,7 +293,7 @@ class Organisation(MemoryMap):
             "organisationgyldighed": [
                 {
                     "gyldighed": "Aktiv",
-                    "virkning": create_period_of_action(date_from, date_to)
+                    "virkning": validity_range(date_from, date_to)
                 }
             ]
         }
