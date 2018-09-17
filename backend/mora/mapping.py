@@ -229,13 +229,7 @@ MANAGER_LEVEL_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'lederniveau'
 )
 
-ITSYSTEMS_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
-    type=FieldTypes.ZERO_TO_MANY,
-    filter_fn=lambda x: x['objekttype'] == 'itsystem'
-)
-
-FUNCTION_ITSYSTEMS_FIELD = FieldTuple(
+SINGLE_ITSYSTEM_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeitsystemer'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
     filter_fn=lambda x: True
@@ -300,8 +294,11 @@ ORG_UNIT_FIELDS = {
     PARENT_FIELD
 }
 
-ITSYSTEMS_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeitsystemer'),
-    type=FieldTypes.ZERO_TO_MANY,
-    filter_fn=lambda x: True
-)
+ITSYSTEM_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
+    USER_FIELD,
+    SINGLE_ITSYSTEM_FIELD,
+}

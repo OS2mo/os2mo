@@ -497,7 +497,7 @@ def get_detail(type, id, function):
 
     def get_itsystem(effect):
         try:
-            yield from filter(mapping.FUNCTION_ITSYSTEMS_FIELD.filter_fn,
+            yield from filter(mapping.SINGLE_ITSYSTEM_FIELD.filter_fn,
                               effect['relationer']['tilknyttedeitsystemer'])
         except (KeyError, IndexError):
             pass
