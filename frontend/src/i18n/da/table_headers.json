@@ -1,0 +1,30 @@
+{
+  "address": "Adresse",
+  "address_type": "Adressetype",
+  "association_type": "Tilknytningstype",
+  "end_date": "Slutdato",
+  "engagement_type": "Engagementstype",
+  "it_system": "IT system",
+<<<<<<< HEAD:src/i18n/da/table_headers.json
+  "user_name": "Brugernavn",
+  "responsibility": "Lederansvar",
+  "manager_type": "Ledertype",
+  "manager_level": "Lederniveau",
+  "manager_address_type": "Lederadressetype",
+  "association_type": "Tilknytningstype",
+=======
+  "job_function": "Stillingsbetegnelse",
+>>>>>>> development:frontend/src/i18n/da/table_headers.json
+  "leave_type": "Orlovstype",
+  "manager_level": "Lederniveau",
+  "manager_type": "Ledertype",
+  "org_unit": "Enhed",
+  "org_unit_type": "Enhedstype",
+  "parent": "Overenhed",
+  "person": "Navn",
+  "responsibility": "Lederansvar",
+  "role_type": "Rolletype",
+  "start_date": "Startdato",
+  "user_name": "Brugernavn",
+  "value": "Værdi"
+}

@@ -1,0 +1,16 @@
+# -*- conf -*-
+[run]
+branch = True
+source =
+     mora/
+omit =
+     mora/cli.py
+     mora/importing/aak_engagements.py
+     mora/importing/preimport.py
+
+[report]
+exclude_lines =
+     raise NotImplementedError
+     if flask.current_app.debug:
+     if settings.PROD_MODE:
+     \bpass\b
