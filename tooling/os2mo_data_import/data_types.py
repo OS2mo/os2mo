@@ -359,34 +359,3 @@ class OrganisationUnit(MemoryMap):
 
 
         return self.set_metadata(identifier, address_data)
-
-
-if __name__ == "__main__":
-    unit = OrganisationUnit('f0760ba0-6de5-4cb0-bf44-489f463bca01')
-    store = unit.add(
-        name="Næstved root",
-        type_ref="f0760ba0-6de5-4cb0-bf44-489f463bca01",
-        date_from="1900-01-01"
-    )
-
-    print("store data: {}".format(store))
-    print(
-        unit.get_metadata("Næstved root")
-    )
-
-    data = {
-      "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-      "address_type": {
-        "example": "<UUID>",
-        "name": "Adresse",
-        "scope": "DAR",
-        "user_key": "Adresse",
-        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-      }
-    }
-
-    unit.add_address_type("Næstved root", data)
-    unit.add_address_type("Næstved root", data)
-    print(
-        unit.get_metadata("Næstved root")
-    )
