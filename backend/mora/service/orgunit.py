@@ -175,7 +175,6 @@ class OrgUnit(common.AbstractRelationDetail):
 
 RELATION_TYPES = {
     'address': address.Addresses,
-    'it': itsystem.ITSystems,
     'org_unit': OrgUnit,
 }
 

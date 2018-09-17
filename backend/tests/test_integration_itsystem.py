@@ -1274,84 +1274,69 @@ class Reading(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it',
-            [{'name': 'Active Directory',
-              'reference': None,
-              'system_type': None,
-              'user_key': 'AD',
-              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              "validity": {
-                  'from': '1932-05-12',
-                  'to': None},
-              },
-             {'name': 'Lokal Rammearkitektur',
-              'reference': None,
-              'system_type': None,
-              'user_key': 'LoRa',
-              'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              "validity": {
-                  'from': '2016-01-01',
-                  'to': '2017-12-31'
-              },
-              }],
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [
+                {
+                    'itsystem': {
+                        'name': 'Active Directory',
+                        'reference': None,
+                        'system_type': None,
+                        'user_key': 'AD',
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                        'validity': {'from': '2002-02-14', 'to': None},
+                    },
+                    'org_unit': None,
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
+                    'user_key': 'donald',
+                    'uuid': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
+                    'validity': {'from': '2017-01-01', 'to': None},
+                },
+            ],
         )
 
         self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
             '?validity=past',
             [],
         )
 
         self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
             '?validity=future',
             [],
         )
 
         self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
-            '?at=2018-06-01',
-            [{'name': 'Active Directory',
-              'reference': None,
-              'system_type': None,
-              'user_key': 'AD',
-              'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-              "validity": {
-                  'from': '1932-05-12',
-                  'to': None
-              },
-              }],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
-            '?at=2018-06-01&validity=past',
-            [{'name': 'Lokal Rammearkitektur',
-              'reference': None,
-              'system_type': None,
-              'user_key': 'LoRa',
-              'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-              "validity": {
-                  'from': '2016-01-01',
-                  'to': '2017-12-31'
-              },
-              }],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/it'
-            '?at=2018-06-01&validity=future',
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
+            '?at=2016-06-01',
             [],
         )
 
         self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
-            [],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/details/it',
-            [],
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
+            '?at=2016-06-01&validity=future',
+            [
+                {
+                    'itsystem': {
+                        'name': 'Active Directory',
+                        'reference': None,
+                        'system_type': None,
+                        'user_key': 'AD',
+                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
+                        'validity': {'from': '2002-02-14', 'to': None},
+                    },
+                    'org_unit': None,
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
+                    'user_key': 'donald',
+                    'uuid': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
+                    'validity': {'from': '2017-01-01', 'to': None},
+                },
+            ],
         )
 
     def test_reading_unit(self):
@@ -1363,7 +1348,6 @@ class Reading(util.LoRATestCase):
             'b688513d-11f7-4efc-b679-ab082a2055d0',
             '85715fc7-925d-401b-822d-467eb4b163b6',
             'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-            '04c78fc2-72d2-4d02-b55f-807af19eac48',
         ):
             for validity in ('past', 'present', 'future'):
                 with self.subTest('{} - {}'.format(unitid, validity)):
@@ -1373,3 +1357,119 @@ class Reading(util.LoRATestCase):
                         ),
                         [],
                     )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it',
+            [
+                {
+                    'itsystem': {
+                        'name': 'Lokal Rammearkitektur',
+                        'reference': None,
+                        'system_type': None,
+                        'user_key': 'LoRa',
+                        'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                        'validity': {'from': '2010-01-01', 'to': None},
+                    },
+                    'org_unit': {
+                        'name': 'Afdeling for Samtidshistorik',
+                        'user_key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+                    },
+                    'person': None,
+                    'user_key': 'fwaf',
+                    'uuid': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
+                    'validity': {'from': '2017-01-01', 'to': '2017-12-31'},
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?validity=past',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?validity=future',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?at=2016-06-01',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?at=2016-06-01&validity=future',
+            [
+                {
+                    'itsystem': {
+                        'name': 'Lokal Rammearkitektur',
+                        'reference': None,
+                        'system_type': None,
+                        'user_key': 'LoRa',
+                        'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                        'validity': {'from': '2010-01-01', 'to': None},
+                    },
+                    'org_unit': {
+                        'name': 'Afdeling for Fortidshistorik',
+                        'user_key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+                    },
+                    'person': None,
+                    'user_key': 'fwaf',
+                    'uuid': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
+                    'validity': {'from': '2017-01-01', 'to': '2017-12-31'},
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?at=2016-06-01&validity=past',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?at=2018-06-01&validity=present',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?at=2018-06-01&validity=past',
+            [
+                {
+                    'itsystem': {
+                        'name': 'Lokal Rammearkitektur',
+                        'reference': None,
+                        'system_type': None,
+                        'user_key': 'LoRa',
+                        'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                        'validity': {'from': '2010-01-01', 'to': None},
+                    },
+                    'org_unit': {
+                        'name': 'Afdeling for Fortidshistorik',
+                        'user_key': 'frem',
+                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+                    },
+                    'person': None,
+                    'user_key': 'fwaf',
+                    'uuid': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
+                    'validity': {'from': '2017-01-01', 'to': '2017-12-31'},
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
+            '?at=2018-06-01&validity=future',
+            [],
+        )

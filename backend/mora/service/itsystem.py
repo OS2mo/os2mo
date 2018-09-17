@@ -86,162 +86,7 @@ def list_it_systems(orgid: uuid.UUID):
     )
 
 
-class ITSystems(common.AbstractRelationDetail):
-    def has(self, reg):
-        return (
-            reg and reg.get('relationer') and
-            reg['relationer'].get('tilknyttedeitsystemer') and
-            any(util.is_uuid(rel.get('uuid'))
-                for rel in reg['relationer']['tilknyttedeitsystemer'])
-        )
-
-    def get(self, id):
-        '''Obtain the list of engagements corresponding to a user.
-
-        .. :quickref: IT system; Get by user
-
-        :queryparam date at: Current time in ISO-8601 format.
-        :queryparam string validity: Only show *past*, *present* or
-            *future* values -- which the default being to show *present*
-            values.
-
-        :param uuid id: The UUID to query, i.e. the ID of the employee or
-            unit.
-
-        All requests contain validity objects on the following form:
-
-        :<jsonarr string from: The from date, in ISO 8601.
-        :<jsonarr string to: The to date, in ISO 8601.
-
-        .. sourcecode:: json
-
-          {
-            "from": "2016-01-01",
-            "to": "2017-12-31",
-          }
-
-        :<jsonarr string name:
-            The name of the IT system in question.
-        :<jsonarr string user_key:
-            Short, unique key identifying the IT-system in question.
-        :<jsonarr string reference:
-            Optional string describing the elements of the IT system.
-        :<jsonarr string system_type:
-            Optional string describing the system_type of the IT system.
-        :<jsonarr string name:
-            The name of the IT system in question.
-        :<jsonarr string uuid: Machine-friendly UUID.
-        :<jsonarr string validity: The validity times of the object.
-
-        :status 200: Always.
-
-        **Example response**:
-
-        .. sourcecode:: json
-
-          [
-            {
-              "name": "Lokal Rammearkitektur",
-              "reference": null,
-              "system_type": null,
-              "user_key": "LoRa",
-              "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-              "validity": {
-                "from": "2016-01-01",
-                "to": "2017-12-31"
-              },
-            },
-            {
-              "name": "Active Directory",
-              "reference": null,
-              "system_type": null,
-              "user_key": "AD",
-              "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-              "validity": {
-                "from": "2002-02-14",
-                "to": null
-              },
-            }
-          ]
-
-        '''
-
-        c = self.scope.connector
-
-        system_cache = common.cache(c.itsystem.get)
-
-        def convert(start, end, effect):
-            if not util.is_reg_valid(effect):
-                return
-
-            rels = effect['relationer']
-
-            for systemrel in rels.get('tilknyttedeitsystemer', []):
-                if not c.is_effect_relevant(systemrel['virkning']):
-                    continue
-
-                try:
-                    systemid = systemrel['uuid']
-
-                    system_attrs = (
-                        system_cache[systemid]
-                        ['attributter']['itsystemegenskaber'][0]
-                    )
-                except (TypeError, LookupError):
-                    continue
-
-                yield {
-                    "uuid": systemid,
-
-                    "name": system_attrs.get('itsystemnavn'),
-                    "reference": system_attrs.get('konfigurationreference'),
-                    "system_type": system_attrs.get('itsystemtype'),
-                    "user_key": system_attrs.get('brugervendtnoegle'),
-
-                    mapping.VALIDITY: util.get_effect_validity(systemrel),
-                }
-
-        return flask.jsonify(
-            sorted(
-                itertools.chain.from_iterable(
-                    itertools.starmap(
-                        convert,
-                        self.scope.get_effects(
-                            id,
-                            {
-                                'relationer': (
-                                    'tilknyttedeitsystemer',
-                                ),
-                                'tilstande': (
-                                    'brugergyldighed',
-                                    'organisationenhedgyldighed',
-                                ),
-                            },
-                            {
-                                'attributter': (
-                                    'brugeregenskaber',
-                                    'organisationenhedegenskaber',
-                                ),
-                            },
-                        ),
-                    ),
-                ),
-                key=util.get_valid_from,
-            ),
-        )
-
-    @staticmethod
-    def get_relation_for(value, start, end):
-        return {
-            'uuid': value,
-            'objekttype': 'itsystem',
-            'virkning': {
-                'from': util.to_lora_time(start),
-                'to': util.to_lora_time(end),
-            },
-        }
-
-    def create(self, id, req):
+def create_itsystem(employee_uuid, req):
         systemobj = util.checked_get(req, mapping.ITSYSTEM, {},
                                      required=True)
         systemid = util.get_uuid(systemobj)
@@ -270,7 +115,8 @@ class ITSystems(common.AbstractRelationDetail):
 
         self.scope.update(payload, id)
 
-    def edit(self, id, req):
+
+def edit_itsystem(employee_uuid, req):
         original = self.scope.get(
             uuid=id,
             virkningfra='-infinity',
@@ -311,9 +157,90 @@ class ITSystems(common.AbstractRelationDetail):
         self.scope.update(payload, id)
 
 
-def create_itsystem(employee_uuid, req):
-    raise NotImplementedError('go away')
+def get_one_itsystem(c, systemid, system=None):
+    '''Obtain the list of engagements corresponding to a user.
 
+    .. :quickref: IT system; Get by user
 
-def edit_itsystem(employee_uuid, req):
-    raise NotImplementedError('go away')
+    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam string validity: Only show *past*, *present* or
+        *future* values -- which the default being to show *present*
+        values.
+
+    :param uuid id: The UUID to query, i.e. the ID of the employee or
+        unit.
+
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01",
+        "to": "2017-12-31",
+      }
+
+    :<jsonarr string name:
+        The name of the IT system in question.
+    :<jsonarr string user_key:
+        Short, unique key identifying the IT-system in question.
+    :<jsonarr string reference:
+        Optional string describing the elements of the IT system.
+    :<jsonarr string system_type:
+        Optional string describing the system_type of the IT system.
+    :<jsonarr string name:
+        The name of the IT system in question.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string validity: The validity times of the object.
+
+    :status 200: Always.
+
+    **Example response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "name": "Lokal Rammearkitektur",
+          "reference": null,
+          "system_type": null,
+          "user_key": "LoRa",
+          "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+          "validity": {
+            "from": "2016-01-01",
+            "to": "2017-12-31"
+          },
+        },
+        {
+          "name": "Active Directory",
+          "reference": null,
+          "system_type": null,
+          "user_key": "AD",
+          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "validity": {
+            "from": "2002-02-14",
+            "to": null
+          },
+        }
+      ]
+
+    '''
+    if not system:
+        system = c.itsystem.get(systemid)
+
+    system_attrs = system['attributter']['itsystemegenskaber'][0]
+
+    return {
+        "uuid": systemid,
+
+        "name": system_attrs.get('itsystemnavn'),
+        "reference": system_attrs.get('konfigurationreference'),
+        "system_type": system_attrs.get('itsystemtype'),
+        "user_key": system_attrs.get('brugervendtnoegle'),
+
+        mapping.VALIDITY: util.get_effect_validity(
+            system['tilstande']['itsystemgyldighed'][0],
+        ),
+    }

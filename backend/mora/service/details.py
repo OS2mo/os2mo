@@ -37,6 +37,7 @@ from . import address
 from .. import common
 from . import employee
 from . import facet
+from . import itsystem
 from . import orgunit
 from .. import util
 from .. import settings
@@ -494,6 +495,13 @@ def get_detail(type, id, function):
         except (KeyError, IndexError):
             pass
 
+    def get_itsystem(effect):
+        try:
+            yield from filter(mapping.FUNCTION_ITSYSTEMS_FIELD.filter_fn,
+                              effect['relationer']['tilknyttedeitsystemer'])
+        except (KeyError, IndexError):
+            pass
+
     #
     # all these caches might be overkill when just listing one
     # engagement, but they are frequently helpful when listing all
@@ -505,6 +513,7 @@ def get_detail(type, id, function):
     class_cache = {}
     user_cache = {}
     unit_cache = {}
+    itsystem_cache = {}
 
     # the values are cache, getter, cachegetter, aslist
     #
@@ -552,7 +561,7 @@ def get_detail(type, id, function):
         'it': {
             mapping.PERSON: (user_cache, get_employee_id, None, False),
             mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            # mapping.ITSYSTEM: (unit_cache, get_unit_id, None, False),
+            mapping.ITSYSTEM: (itsystem_cache, get_itsystem, None, False),
         },
     }
 
@@ -581,6 +590,7 @@ def get_detail(type, id, function):
                     'tilhoerer',
                     'tilknyttedebrugere',
                     'tilknyttedeorganisationer',
+                    'tilknyttedeitsystemer',
                 ),
             },
         )
@@ -623,6 +633,14 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
+    itsystem_cache.update({
+        systemid: itsystem.get_one_itsystem(
+            c, systemid, system,
+        )
+        for systemid, system in
+        c.itsystem.get_all(uuid=itsystem_cache)
+    })
+
     def get_one(effect, cache, getter, cachegetter, aslist):
         values = getter(effect)
 
@@ -647,6 +665,12 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
+
+        if function == 'it':
+            func[mapping.USER_KEY] = (
+                effect['attributter']['organisationfunktionegenskaber'][0]
+                ['brugervendtnoegle']
+            )
 
         return func
 
