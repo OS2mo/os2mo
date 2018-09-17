@@ -5,16 +5,7 @@
   "end_date": "Slutdato",
   "engagement_type": "Engagementstype",
   "it_system": "IT system",
-<<<<<<< HEAD:src/i18n/da/table_headers.json
-  "user_name": "Brugernavn",
-  "responsibility": "Lederansvar",
-  "manager_type": "Ledertype",
-  "manager_level": "Lederniveau",
-  "manager_address_type": "Lederadressetype",
-  "association_type": "Tilknytningstype",
-=======
   "job_function": "Stillingsbetegnelse",
->>>>>>> development:frontend/src/i18n/da/table_headers.json
   "leave_type": "Orlovstype",
   "manager_level": "Lederniveau",
   "manager_type": "Ledertype",
