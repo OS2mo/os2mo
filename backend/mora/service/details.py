@@ -455,7 +455,10 @@ def get_detail(type, id, function):
         yield from map(operator.itemgetter('objekttype'), rels)
 
     def get_employee_id(effect):
-        yield from effect['relationer']['tilknyttedebrugere']
+        try:
+            yield from effect['relationer']['tilknyttedebrugere']
+        except (KeyError, IndexError):
+            pass
 
     def get_unit_id(effect):
         # 'Leave' objects do not contains this relation, so we need to guard
