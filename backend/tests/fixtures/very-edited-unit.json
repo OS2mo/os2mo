@@ -1,0 +1,182 @@
+{
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+        "enhedsnavn": "AlexTest",
+        "virkning": {
+          "from": "2018-09-01 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      },
+      {
+        "brugervendtnoegle": "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+        "enhedsnavn": "AlexTestah",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-23 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "brugervendtnoegle": "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+        "enhedsnavn": "AlexTestikah",
+        "virkning": {
+          "from": "2018-08-23 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-24 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "brugervendtnoegle": "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+        "enhedsnavn": "AlexTestikah",
+        "virkning": {
+          "from": "2018-08-24 00:00:00+02",
+          "from_included": true,
+          "to": "2018-09-01 00:00:00+02",
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "note": "Rediger organisationsenhed",
+  "relationer": {
+    "adresser": [
+      {
+        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+        "uuid": "9da8eb2b-e6f8-4724-ab04-3fef21eca31c",
+        "virkning": {
+          "from": "2018-08-05 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      },
+      {
+        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+        "urn": "urn:magenta.dk:telefon:+4512946764",
+        "virkning": {
+          "from": "2018-08-03 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      },
+      {
+        "objekttype": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+        "urn": "urn:magenta.dk:ean:1234567890876",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-31 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+        "uuid": "9024c8c9-aec8-49c9-857f-f7dd13a38fbc",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-31 00:00:00+02",
+          "to_included": false
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-24 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "virkning": {
+          "from": "2018-08-24 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "virkning": {
+          "from": "2018-08-24 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      },
+      {
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-24 00:00:00+02",
+          "to_included": false
+        }
+      }
+    ],
+    "tilhoerer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2018-08-01 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-23 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2018-08-23 00:00:00+02",
+          "from_included": true,
+          "to": "2018-08-24 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2018-08-24 00:00:00+02",
+          "from_included": true,
+          "to": "2018-09-01 00:00:00+02",
+          "to_included": false
+        }
+      },
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2018-09-01 00:00:00+02",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ]
+  }
+}

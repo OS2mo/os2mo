@@ -22,7 +22,6 @@ UPSTREAM_FILES = {
 
 # TODO: re-enable style checks for these files as needed
 SKIP_LIST = {
-    'tests/test_selenium.py',
 }
 
 SKIP_DIRS = {

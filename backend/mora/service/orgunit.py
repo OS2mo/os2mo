@@ -68,8 +68,8 @@ class OrgUnit(common.AbstractRelationDetail):
             get_one_orgunit(
                 c, objid, effect, details=UnitDetails.FULL,
                 validity={
-                    mapping.FROM: util.to_iso_time(start),
-                    mapping.TO: util.to_iso_time(end),
+                    mapping.FROM: util.to_iso_date(start),
+                    mapping.TO: util.to_iso_date(end, is_end=True),
                 },
             )
             for start, end, effect in c.organisationenhed.get_effects(
@@ -106,6 +106,10 @@ class OrgUnit(common.AbstractRelationDetail):
         parent = util.get_obj_value(
             original, mapping.PARENT_FIELD.path)[-1]
         parent_uuid = util.get_uuid(parent)
+
+        org = util.get_obj_value(
+            original, mapping.BELONGS_TO_FIELD.path)[-1]
+        org_uuid = util.get_uuid(org)
 
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
@@ -159,8 +163,10 @@ class OrgUnit(common.AbstractRelationDetail):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
-                                                  new_to)
+        # TODO: Check if we're inside the validity range of the organisation
+        if org_uuid != parent_uuid:
+            validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+                                                      new_to)
 
         c.organisationenhed.update(payload, unitid)
 
@@ -209,6 +215,20 @@ def get_one_orgunit(c, unitid, unit=None,
 
     elif details is UnitDetails.FULL:
         unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+
+        if rels['overordnet'][0]['uuid'] is not None:
+            r[mapping.PARENT] = get_one_orgunit(c,
+                                                rels['overordnet'][0]['uuid'],
+                                                details=UnitDetails.FULL)
+
+            parent = r[mapping.PARENT]
+            if parent and parent[mapping.LOCATION]:
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                                       parent[mapping.NAME])
+            elif parent:
+                r[mapping.LOCATION] = parent[mapping.NAME]
+            else:
+                r[mapping.LOCATION] = ''
 
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
@@ -272,8 +292,8 @@ def get_children(type, parentid):
           "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
           "child_count": 2,
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2019-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2018-12-31"
           }
         },
         {
@@ -282,8 +302,8 @@ def get_children(type, parentid):
           "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
           "child_count": 0,
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2019-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2018-12-31"
           }
         }
       ]
@@ -342,6 +362,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
+        "location:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
@@ -362,13 +383,13 @@ def get_orgunit(unitid):
           "user_key": "hist",
           "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
           "validity": {
-            "from": "2016-01-01T00:00:00+01:00",
-            "to": "2019-01-01T00:00:00+01:00"
+            "from": "2016-01-01",
+            "to": "2018-12-31"
           }
         },
         "validity": {
-          "from": "2016-01-01T00:00:00+01:00",
-          "to": "2019-01-01T00:00:00+01:00"
+          "from": "2016-01-01",
+          "to": "2018-12-31"
         }
       }
 
@@ -423,7 +444,7 @@ def list_orgunits(orgid):
             "user_key": "samf",
             "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
             "validity": {
-              "from": "2017-01-01T00:00:00+01:00",
+              "from": "2017-01-01",
               "to": null
             }
           }
@@ -492,7 +513,7 @@ def create_org_unit():
           "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
         },
         "validity": {
-          "from": "2016-01-01T00:00:00+00:00",
+          "from": "2016-01-01",
           "to": null
         },
         "addresses": [{
@@ -505,8 +526,8 @@ def create_org_unit():
             "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
           },
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }]
       }
@@ -624,14 +645,14 @@ def edit_org_unit(unitid):
               "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
             },
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01",
               "to": null
             }
           },
           "data": {
             "name": "Vaffelhuset",
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01",
             }
           }
         }
@@ -676,8 +697,8 @@ def edit_org_unit(unitid):
           },
           "type": "address",
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -714,6 +735,7 @@ def create_org_unit_relation(unitid):
     :statuscode 200: Creation succeeded.
 
     :param unituuid: The UUID of the unit.
+    :param unitid: The UUID of the organisational unit.
 
     All requests contain validity objects on the following form:
 
@@ -723,8 +745,8 @@ def create_org_unit_relation(unitid):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "from": "2016-01-01",
+        "to": "2017-12-31",
       }
 
     Request payload contains a list of creation objects, each differentiated
@@ -758,8 +780,8 @@ def create_org_unit_relation(unitid):
           },
           "type": "address",
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -863,7 +885,7 @@ def terminate_org_unit(unitid):
 
       {
         "validity": {
-          "from": "2016-01-01T00:00:00+00:00"
+          "to": "2015-12-31"
         }
       }
 
@@ -896,10 +918,9 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = util.get_valid_from(flask.request.get_json())
+    date = util.get_valid_to(flask.request.get_json())
 
-    c = lora.Connector(virkningfra=util.to_iso_time(date),
-                       virkningtil='infinity')
+    c = lora.Connector(effective_date=util.to_iso_date(date))
 
     validator.is_date_range_in_org_unit_range(
         unitid, date - util.MINIMAL_INTERVAL, date,

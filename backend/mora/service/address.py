@@ -114,7 +114,7 @@ An example of reading the main two different types of addresses:
       "name": "8715 0000",
       "urn": "urn:magenta.dk:telefon:+4587150000",
       "validity": {
-        "from": "2016-01-01T00:00:00+01:00",
+        "from": "2016-01-01",
         "to": null
       }
     },
@@ -130,7 +130,7 @@ An example of reading the main two different types of addresses:
       "name": "Nordre Ringgade 1, 8000 Aarhus C",
       "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
       "validity": {
-        "from": "2016-01-01T00:00:00+01:00",
+        "from": "2016-01-01",
         "to": null
       }
     }

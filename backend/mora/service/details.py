@@ -130,8 +130,8 @@ def get_detail(type, id, function):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "from": "2016-01-01",
+        "to": "2017-12-31",
       }
 
     :queryparam date at: Show details valid at this point in time,
@@ -191,7 +191,7 @@ def get_detail(type, id, function):
                 },
                 "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
+                    "from": "2017-01-01",
                     "to": null
                 },
             }
@@ -241,8 +241,8 @@ def get_detail(type, id, function):
           },
           "uuid": "30cd25e1-b21d-46fe-b299-1c1265e9be66",
           "validity": {
-            "from": "2017-01-01T00:00:00+01:00",
-            "to": "2018-01-01T00:00:00+01:00"
+            "from": "2017-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -257,7 +257,7 @@ def get_detail(type, id, function):
           "user_name": "Fedtmule",
           "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           }
         }
@@ -277,7 +277,7 @@ def get_detail(type, id, function):
             "scope": "DAR"
           },
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           },
         },
@@ -293,7 +293,7 @@ def get_detail(type, id, function):
             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
           },
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           },
         },
@@ -309,7 +309,7 @@ def get_detail(type, id, function):
             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
           },
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           },
         }
@@ -344,8 +344,8 @@ def get_detail(type, id, function):
             "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
           },
           "validity": {
-            "from": "2018-01-01T00:00:00+01:00",
-            "to": "2019-01-01T00:00:00+01:00"
+            "from": "2018-01-01",
+            "to": "2018-12-31"
           }
         }
       ]
@@ -402,7 +402,7 @@ def get_detail(type, id, function):
           ],
           "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
           "validity": {
-            "from": "2017-01-01T00:00:00+01:00",
+            "from": "2017-01-01",
             "to": null
           }
         }
@@ -638,8 +638,8 @@ def get_detail(type, id, function):
         }
 
         func[mapping.VALIDITY] = {
-            mapping.FROM: util.to_iso_time(start),
-            mapping.TO: util.to_iso_time(end),
+            mapping.FROM: util.to_iso_date(start),
+            mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
 

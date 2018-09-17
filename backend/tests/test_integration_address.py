@@ -124,7 +124,7 @@ class Writing(util.LoRATestCase):
                 'name': 'bruger@example.com',
                 'urn': 'urn:mailto:bruger@example.com',
                 'validity': {
-                    'from': '1934-06-09T00:00:00+01:00',
+                    'from': '1934-06-09',
                     'to': None,
                 },
             }
@@ -171,7 +171,7 @@ class Writing(util.LoRATestCase):
                     "address_type": ean_class,
                     "value": '1234567890',
                     "validity": {
-                        "from": "2013-01-01T00:00:00+01:00",
+                        "from": "2013-01-01",
                         "to": None,
                     },
                 },
@@ -215,7 +215,7 @@ class Writing(util.LoRATestCase):
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
-                    'from': '2013-01-01T00:00:00+01:00',
+                    'from': '2013-01-01',
                     'to': None,
                 },
             },
@@ -248,7 +248,7 @@ class Writing(util.LoRATestCase):
                     "address_type": email_class,
                     "value": "hest@example.com",
                     "validity": {
-                        "from": "2014-01-01T00:00:00+01",
+                        "from": "2014-01-01",
                     },
                 },
                 {
@@ -256,7 +256,7 @@ class Writing(util.LoRATestCase):
                     "address_type": address_class,
                     "uuid": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
                     "validity": {
-                        "from": "2015-01-01T00:00:00+01",
+                        "from": "2015-01-01",
                     },
                 },
                 {
@@ -264,7 +264,7 @@ class Writing(util.LoRATestCase):
                     "address_type": phone_class,
                     "value": '3336 9696',
                     "validity": {
-                        "from": "2016-01-01T00:00:00+01",
+                        "from": "2016-01-01",
                     },
                 },
             ],
@@ -277,7 +277,7 @@ class Writing(util.LoRATestCase):
                 'name': 'hest@example.com',
                 'urn': 'urn:mailto:hest@example.com',
                 'validity': {
-                    'from': '2014-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2014-01-01', 'to': None,
                 },
             },
             {
@@ -287,7 +287,7 @@ class Writing(util.LoRATestCase):
                 'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
                 'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
                 'validity': {
-                    'from': '2015-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2015-01-01', 'to': None,
                 },
             },
             {
@@ -296,7 +296,7 @@ class Writing(util.LoRATestCase):
                 'name': '33369696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
             },
         ]
@@ -430,7 +430,7 @@ class Writing(util.LoRATestCase):
                     "address_type": address_class,
                     "uuid": '606cf42e-9dc2-4477-bf70-594830fcbdec',
                     "validity": {
-                        "from": "2013-01-01T00:00:00+01:00",
+                        "from": "2013-01-01",
                         "to": None,
                     },
                 },
@@ -452,7 +452,7 @@ class Writing(util.LoRATestCase):
                     },
                     'validity': {
                         'to': None,
-                        'from': '2013-01-01T00:00:00+01:00',
+                        'from': '2013-01-01',
                     },
                     'uuid': '606cf42e-9dc2-4477-bf70-594830fcbdec',
                 }
@@ -497,7 +497,7 @@ class Writing(util.LoRATestCase):
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
-                        'from': '1934-06-09T00:00:00+01:00',
+                        'from': '1934-06-09',
                         'to': None,
                     },
                 },
@@ -519,7 +519,7 @@ class Writing(util.LoRATestCase):
                     'obj': {
                         'data': {
                             'validity': {
-                                'to': '2010-01-01T00:00:00+01:00'
+                                'to': '2009-12-31'
                             }
                         },
                         'original': None,
@@ -533,7 +533,7 @@ class Writing(util.LoRATestCase):
                     "original": None,
                     "data": {
                         "validity": {
-                            'to': '2010-01-01T00:00:00+01:00',
+                            'to': '2009-12-31',
                         },
                     }
                 }],
@@ -563,13 +563,13 @@ class Writing(util.LoRATestCase):
                         'name': 'user@example.com',
                         'urn': 'urn:mailto:user@example.com',
                         'validity': {
-                            'from': '1934-06-09T00:00:00+01:00',
+                            'from': '1934-06-09',
                             'to': None,
                         },
                     },
                     "data": {
                         "validity": {
-                            'to': '2010-01-01T00:00:00+01:00',
+                            'to': '2009-12-31',
                         },
                     }
                 }],
@@ -593,14 +593,14 @@ class Writing(util.LoRATestCase):
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
                     'validity': {
-                        'from': '1934-06-09T00:00:00+01:00',
+                        'from': '1934-06-09',
                         'to': None,
                     },
                 },
                 "data": {
                     'value': 'user@example.com',
                     "validity": {
-                        'to': '2010-01-01T00:00:00+01:00',
+                        'to': '2009-12-31',
                     },
                 }
             }],
@@ -616,8 +616,8 @@ class Writing(util.LoRATestCase):
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
-                        'from': '1934-06-09T00:00:00+01:00',
-                        'to': '2010-01-01T00:00:00+01:00',
+                        'from': '1934-06-09',
+                        'to': '2009-12-31',
                     },
                 },
             ],
@@ -651,8 +651,8 @@ class Writing(util.LoRATestCase):
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
                     'validity': {
-                        'from': '1934-06-09T00:00:00+01:00',
-                        'to': '2010-01-01T00:00:00+01:00',
+                        'from': '1934-06-09',
+                        'to': '2009-12-31',
                     },
                 },
                 "data": {
@@ -687,7 +687,7 @@ class Writing(util.LoRATestCase):
                     'name': 'Pilestræde 43, 3., 1112 København K',
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                     'validity': {
-                        'from': '1934-06-09T00:00:00+01:00',
+                        'from': '1934-06-09',
                         'to': None,
                     },
                 },
@@ -738,7 +738,7 @@ class Writing(util.LoRATestCase):
                 "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
                 "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
                 "validity": {
-                    "from": "1932-05-12T00:00:00+01:00",
+                    "from": "1932-05-12",
                     "to": None
                 }
             },
@@ -748,7 +748,7 @@ class Writing(util.LoRATestCase):
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
                 "validity": {
-                    "from": "1932-05-12T00:00:00+01:00",
+                    "from": "1932-05-12",
                     "to": None
                 }
             },
@@ -758,7 +758,7 @@ class Writing(util.LoRATestCase):
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
                 "validity": {
-                    "from": "1932-05-12T00:00:00+01:00",
+                    "from": "1932-05-12",
                     "to": None
                 }
             }
@@ -855,7 +855,7 @@ class Writing(util.LoRATestCase):
             'name': 'bruger@example.com',
             'urn': 'urn:mailto:bruger@example.com',
             'validity': {
-                'from': '1934-06-09T00:00:00+01:00',
+                'from': '1934-06-09',
                 'to': None,
             },
         }
@@ -892,7 +892,7 @@ class Writing(util.LoRATestCase):
                     'name': 'hest@example.com',
                     'urn': 'urn:mailto:hest@example.com',
                     'validity': {
-                        'from': '1934-06-09T00:00:00+01:00',
+                        'from': '1934-06-09',
                         'to': None,
                     },
                 }
@@ -930,8 +930,8 @@ class Writing(util.LoRATestCase):
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "validity": {
-                "from": "2016-01-01T00:00:00+01:00",
-                "to": "2019-01-01T00:00:00+01:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             }
         }
 
@@ -964,8 +964,8 @@ class Writing(util.LoRATestCase):
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00',
-                    'to': '2019-01-01T00:00:00+01:00',
+                    'from': '2016-01-01',
+                    'to': '2018-12-31',
                 },
             }],
         )
@@ -978,8 +978,8 @@ class Writing(util.LoRATestCase):
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00',
-                    'to': '2019-01-01T00:00:00+01:00',
+                    'from': '2016-01-01',
+                    'to': '2018-12-31',
                 },
             }],
         )
@@ -1039,7 +1039,7 @@ class Writing(util.LoRATestCase):
                 'name': '5798000420229',
                 'urn': 'urn:magenta.dk:ean:5798000420229',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
             },
             {
@@ -1054,7 +1054,7 @@ class Writing(util.LoRATestCase):
                 'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
             },
             {
@@ -1070,7 +1070,7 @@ class Writing(util.LoRATestCase):
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
             },
         ]
@@ -1148,7 +1148,7 @@ class Writing(util.LoRATestCase):
                         },
                         'type': 'address',
                         'validity': {
-                            'from': '2013-01-01T00:00:00+01:00',
+                            'from': '2013-01-01',
                             'to': None
                         }
                     },
@@ -1160,7 +1160,7 @@ class Writing(util.LoRATestCase):
                         "address_type": email_class,
                         # NB: no value
                         "validity": {
-                            "from": "2013-01-01T00:00:00+01:00",
+                            "from": "2013-01-01",
                             "to": None,
                         },
                     },
@@ -1184,7 +1184,7 @@ class Writing(util.LoRATestCase):
                         'address_type': None,
                         'type': 'address',
                         'validity': {
-                            'from': '2013-01-01T00:00:00+01:00',
+                            'from': '2013-01-01',
                             'to': None},
                         'value': 'hallo@exmaple.com'
                     },
@@ -1197,7 +1197,7 @@ class Writing(util.LoRATestCase):
                         "address_type": None,
                         "value": "hallo@exmaple.com",
                         "validity": {
-                            "from": "2013-01-01T00:00:00+01:00",
+                            "from": "2013-01-01",
                             "to": None,
                         },
                     },
@@ -1223,7 +1223,7 @@ class Writing(util.LoRATestCase):
                         },
                         'type': 'address',
                         'validity': {
-                            'from': '2013-01-01T00:00:00+01:00',
+                            'from': '2013-01-01',
                             'to': None},
                         'value': 'hallo@exmaple.com'
                     },
@@ -1236,7 +1236,7 @@ class Writing(util.LoRATestCase):
                         # NB: wrong key!
                         "value": "hallo@exmaple.com",
                         "validity": {
-                            "from": "2013-01-01T00:00:00+01:00",
+                            "from": "2013-01-01",
                             "to": None,
                         },
                     },
@@ -1264,7 +1264,7 @@ class Writing(util.LoRATestCase):
                         'type': 'address',
                         'uuid': 'hallo@exmaple.com',
                         'validity': {
-                            'from': '2013-01-01T00:00:00+01:00',
+                            'from': '2013-01-01',
                             'to': None
                         }
                     },
@@ -1277,7 +1277,7 @@ class Writing(util.LoRATestCase):
                         # NB: not a UUID!
                         "uuid": "hallo@exmaple.com",
                         "validity": {
-                            "from": "2013-01-01T00:00:00+01:00",
+                            "from": "2013-01-01",
                             "to": None,
                         },
                     },
@@ -1295,7 +1295,7 @@ class Writing(util.LoRATestCase):
                     "address_type": email_class,
                     "value": "hallo@exmaple.com",
                     "validity": {
-                        "from": "2013-01-01T00:00:00+01:00",
+                        "from": "2013-01-01",
                         "to": None,
                     },
                 },
@@ -1342,8 +1342,8 @@ class Writing(util.LoRATestCase):
                     },
                     "value": "11 22 33 44",
                     "validity": {
-                        "from": "2015-02-04T00:00:00+01",
-                        "to": "2017-10-22T00:00:00+02",
+                        "from": "2015-02-04",
+                        "to": "2017-10-21",
                     }
                 },
                 {
@@ -1358,8 +1358,8 @@ class Writing(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2016-02-04T00:00:00+01",
-                "to": "2017-10-22T00:00:00+02",
+                "from": "2016-02-04",
+                "to": "2017-10-21",
             }
         }
 
@@ -1415,15 +1415,16 @@ class Writing(util.LoRATestCase):
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'validity': {
-                        'from': '2016-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
                         'to': None,
                     },
                 },
+                'location': 'Overordnet Enhed',
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
                 'uuid': unitid,
                 'validity': {
-                    'from': '2016-02-04T00:00:00+01:00',
-                    'to': '2017-10-22T00:00:00+02:00',
+                    'from': '2016-02-04',
+                    'to': '2017-10-21',
                 },
             },
         )
@@ -1461,8 +1462,8 @@ class Writing(util.LoRATestCase):
                     'href': 'tel:+4511223344',
                     'name': '11223344',
                     'validity': {
-                        'from': '2015-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
+                        'from': '2015-02-04',
+                        'to': '2017-10-21',
                     },
                     'urn': 'urn:magenta.dk:telefon:+4511223344',
                 },
@@ -1478,8 +1479,8 @@ class Writing(util.LoRATestCase):
                             '?mlon=10.18779751&mlat=56.17233057&zoom=16',
                     'name': 'Åbogade 15, 8200 Aarhus N',
                     'validity': {
-                        'from': '2016-02-04T00:00:00+01:00',
-                        'to': '2017-10-22T00:00:00+02:00',
+                        'from': '2016-02-04',
+                        'to': '2017-10-21',
                     },
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                 },
@@ -1514,8 +1515,8 @@ class Writing(util.LoRATestCase):
                 "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
             },
             "validity": {
-                "from": "2016-01-01T00:00:00+01:00",
-                "to": "2019-01-01T00:00:00+01:00",
+                "from": "2016-01-01",
+                "to": "2018-12-31",
             },
         }
 
@@ -1587,8 +1588,8 @@ class Writing(util.LoRATestCase):
                 'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00',
-                    'to': '2019-01-01T00:00:00+01:00',
+                    'from': '2016-01-01',
+                    'to': '2018-12-31',
                 },
             }],
         )
@@ -1645,7 +1646,7 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '5798000420229',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
                 'urn': 'urn:magenta.dk:ean:5798000420229',
             },
@@ -1660,7 +1661,7 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4587150000',
                 'name': '87150000',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
             },
@@ -1676,7 +1677,7 @@ class Writing(util.LoRATestCase):
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
             },
@@ -1720,8 +1721,7 @@ class Writing(util.LoRATestCase):
                     },
                     'value': 'root@example.com',
                     "validity": {
-                        # Note: The timestamp isn't midnight!
-                        "from": "2017-01-01T12:00:00+01",
+                        "from": "2017-01-02",
                     },
                 },
             ],
@@ -1731,7 +1731,7 @@ class Writing(util.LoRATestCase):
             'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
             'urn': 'urn:mailto:root@example.com',
             'virkning': {
-                'from': '2017-01-01 12:00:00+01',
+                'from': '2017-01-02 00:00:00+01',
                 'to': 'infinity',
                 'from_included': True,
                 'to_included': False,
@@ -1749,7 +1749,7 @@ class Writing(util.LoRATestCase):
             'href': 'mailto:root@example.com',
             'name': 'root@example.com',
             'validity': {
-                'from': '2017-01-01T12:00:00+01:00',
+                'from': '2017-01-02',
                 'to': None,
             },
             'urn': 'urn:mailto:root@example.com',
@@ -1789,7 +1789,7 @@ class Writing(util.LoRATestCase):
                 "href": "tel:+4587150000",
                 "name": "87150000",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None
                 },
                 "urn": "urn:magenta.dk:telefon:+4587150000"
@@ -1806,7 +1806,7 @@ class Writing(util.LoRATestCase):
                 "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                 "name": "Nordre Ringgade 1, 8000 Aarhus C",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None
                 },
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
@@ -1836,7 +1836,7 @@ class Writing(util.LoRATestCase):
             '/service/ou/{}/edit'.format(unitid),
             unitid, json=req)
 
-        addresses[1]['validity']['from'] = '2016-06-01T00:00:00+02:00'
+        addresses[1]['validity']['from'] = '2016-06-01'
         addresses[1].update(
             name='Nordre Ringgade 2, 8000 Aarhus C',
             uuid='d901ff7e-8ad9-4581-84c7-5759aaa82f7b',
@@ -1868,7 +1868,7 @@ class Writing(util.LoRATestCase):
                 "href": "tel:+4587150000",
                 "name": "87150000",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None
                 },
                 "urn": "urn:magenta.dk:telefon:+4587150000"
@@ -1885,7 +1885,7 @@ class Writing(util.LoRATestCase):
                 "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                 "name": "Nordre Ringgade 1, 8000 Aarhus C",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None
                 },
                 "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
@@ -1930,7 +1930,7 @@ class Writing(util.LoRATestCase):
             'href': 'https://www.openstreetmap.org/'
             '?mlon=10.20019416&mlat=56.17063452&zoom=16',
             'name': 'Nordre Ringgade 2, 8000 Aarhus C',
-            'validity': {'from': '2016-06-01T00:00:00+02:00', 'to': None},
+            'validity': {'from': '2016-06-01', 'to': None},
             'uuid': 'd901ff7e-8ad9-4581-84c7-5759aaa82f7b',
         })
 
@@ -1976,7 +1976,7 @@ class Reading(util.LoRATestCase):
                         'Christiansborg Slotsplads 1, 1218 København K',
                         'uuid': 'bae093df-3b06-4f23-90a8-92eabedb3622',
                         'validity': {
-                            'from': '1932-05-12T00:00:00+01:00',
+                            'from': '1932-05-12',
                             'to': None,
                         },
                     },
@@ -1992,7 +1992,7 @@ class Reading(util.LoRATestCase):
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
-                            'from': '1932-05-12T00:00:00+01:00',
+                            'from': '1932-05-12',
                             'to': None,
                         },
                     },
@@ -2008,7 +2008,7 @@ class Reading(util.LoRATestCase):
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
                         'validity': {
-                            'from': '1932-05-12T00:00:00+01:00',
+                            'from': '1932-05-12',
                             'to': None,
                         },
                     },
@@ -2032,7 +2032,7 @@ class Reading(util.LoRATestCase):
                         'name': 'bruger@example.com',
                         'urn': 'urn:mailto:bruger@example.com',
                         'validity': {
-                            'from': '1934-06-09T00:00:00+01:00',
+                            'from': '1934-06-09',
                             'to': None,
                         },
                     },
@@ -2056,7 +2056,7 @@ class Reading(util.LoRATestCase):
                         'name': '5798000420229',
                         'urn': 'urn:magenta.dk:ean:5798000420229',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -2072,7 +2072,7 @@ class Reading(util.LoRATestCase):
                         'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -2089,7 +2089,7 @@ class Reading(util.LoRATestCase):
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         }
                     },
@@ -2113,7 +2113,7 @@ class Reading(util.LoRATestCase):
                         'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -2130,7 +2130,7 @@ class Reading(util.LoRATestCase):
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -2154,7 +2154,7 @@ class Reading(util.LoRATestCase):
                         'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
-                            'from': '2017-01-01T00:00:00+01:00',
+                            'from': '2017-01-01',
                             'to': None,
                         },
                     },
@@ -2171,7 +2171,7 @@ class Reading(util.LoRATestCase):
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
-                            'from': '2017-01-01T00:00:00+01:00',
+                            'from': '2017-01-01',
                             'to': None,
                         },
                     },
@@ -2195,7 +2195,7 @@ class Reading(util.LoRATestCase):
                         'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -2212,7 +2212,7 @@ class Reading(util.LoRATestCase):
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -2237,8 +2237,8 @@ class Reading(util.LoRATestCase):
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                 ],
@@ -2362,8 +2362,8 @@ class Reading(util.LoRATestCase):
                             'uuid':
                             'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                             'validity': {
-                                'from': '2016-01-01T00:00:00+01:00',
-                                'to': '2019-01-01T00:00:00+01:00',
+                                'from': '2016-01-01',
+                                'to': '2018-12-31',
                             },
                         },
                     ],

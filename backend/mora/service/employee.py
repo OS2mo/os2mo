@@ -216,8 +216,8 @@ def create_employee_relation(employee_uuid):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "from": "2016-01-01",
+        "to": "2017-12-31",
       }
 
     Request payload contains a list of creation objects, each differentiated
@@ -250,8 +250,8 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
           }
         }
       ]
@@ -295,8 +295,8 @@ def create_employee_relation(employee_uuid):
             }
           },
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -317,7 +317,7 @@ def create_employee_relation(employee_uuid):
                   "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
               },
               "validity": {
-                  "from": "2017-12-01T00:00:00+01",
+                  "from": "2017-12-01",
                   "to": null
               }
           }
@@ -346,8 +346,8 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
           }
         }
       ]
@@ -400,8 +400,8 @@ def create_employee_relation(employee_uuid):
             }
           },
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -425,8 +425,8 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
           },
         }
       ]
@@ -458,8 +458,8 @@ def create_employee_relation(employee_uuid):
           },
           "type": "address",
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -520,8 +520,8 @@ def edit_employee(employee_uuid):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00"
+        "from": "2016-01-01",
+        "to": "2017-12-31"
       }
 
     Request payload contains a list of edit objects, each differentiated
@@ -561,8 +561,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -576,8 +576,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2019-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2018-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -622,8 +622,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2018-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2016-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -647,8 +647,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -686,14 +686,14 @@ def edit_employee(employee_uuid):
             "user_name": "Fedtmule",
             "uuid": "00000000-0000-0000-0000-000000000000",
             "validity": {
-              "from": "2002-02-14T00:00:00+01:00",
+              "from": "2002-02-14",
               "to": null
             }
           },
           "data": {
             "uuid": "11111111-1111-1111-1111-111111111111",
             "validity": {
-              "to": "2020-01-01T00:00:00+01:00"
+              "to": "2019-12-31"
             }
           }
         }
@@ -731,8 +731,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2018-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2017-12-31"
             },
             "role_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
@@ -743,8 +743,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "role_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
@@ -784,8 +784,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2018-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2017-12-31"
             },
             "leave_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
@@ -793,8 +793,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "leave_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
@@ -864,14 +864,14 @@ def edit_employee(employee_uuid):
                 }
               },
               "validity": {
-                  "from": "2016-01-01T00:00:00+00:00",
-                  "to": "2018-01-01T00:00:00+00:00"
+                  "from": "2016-01-01",
+                  "to": "2017-12-31"
               }
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "manager_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
@@ -919,8 +919,8 @@ def edit_employee(employee_uuid):
           },
           "type": "address",
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -969,7 +969,8 @@ def edit_employee(employee_uuid):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
-    """Terminates an employee and all of his roles from a specified date.
+    """Terminates an employee and all of his roles beginning at a
+    specified date.
 
     .. :quickref: Employee; Terminate
 
@@ -977,8 +978,7 @@ def terminate_employee(employee_uuid):
 
     :param employee_uuid: The UUID of the employee to be terminated.
 
-    :<json string from: The date on which the termination should happen,
-                              in ISO 8601.
+    :<json string to: When the termination should occur, as an ISO 8601 date.
 
     **Example Request**:
 
@@ -986,11 +986,12 @@ def terminate_employee(employee_uuid):
 
       {
         "validity": {
-          "from": "2016-01-01T00:00:00+00:00"
+          "to": "2015-12-31"
         }
       }
+
     """
-    date = util.get_valid_from(flask.request.get_json())
+    date = util.get_valid_to(flask.request.get_json())
 
     # Org funks
     types = (

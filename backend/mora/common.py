@@ -86,6 +86,7 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
                             path: tuple) -> dict:
     """
     Create 'inactivation' updates based on two sets of from/to dates
+
     :param old_from: The old 'from' time, in ISO-8601
     :param old_to: The old 'to' time, in ISO-8601
     :param new_from: The new 'from' time, in ISO-8601
@@ -555,10 +556,10 @@ def add_bruger_history_entry(employee_uuid, note: str):
 def convert_reg_to_history(reg):
     return {
         'user_ref': reg['brugerref'],
-        'from': util.to_frontend_time(
+        'from': util.to_iso_time(
             reg['fratidspunkt']['tidsstempeldatotid'],
         ),
-        'to': util.to_frontend_time(
+        'to': util.to_iso_time(
             reg['tiltidspunkt']['tidsstempeldatotid'],
         ),
         'life_cycle_code': reg['livscykluskode'],

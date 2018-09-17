@@ -577,7 +577,7 @@ class IntegrationTests(util.LoRATestCase):
                 'user_key': 'BALLERUP',
                 'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                 'validity': {
-                    'from': '1964-05-24T00:00:00+01:00',
+                    'from': '1964-05-24',
                     'to': None,
                 },
             }],
@@ -589,17 +589,17 @@ class IntegrationTests(util.LoRATestCase):
               'name': 'Ballerup Bibliotek',
               'user_key': 'BIBLIOTEK',
               'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc',
-              'validity': {'from': '1993-01-01T00:00:00+01:00', 'to': None}},
+              'validity': {'from': '1993-01-01', 'to': None}},
              {'child_count': 0,
               'name': 'Ballerup Familiehus',
               'user_key': 'FAMILIEHUS',
               'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
-              'validity': {'from': '2006-01-01T00:00:00+01:00', 'to': None}},
+              'validity': {'from': '2006-01-01', 'to': None}},
              {'child_count': 0,
               'name': 'Ballerup Idrætspark',
               'user_key': 'IDRÆTSPARK',
               'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc',
-              'validity': {'from': '1993-01-01T00:00:00+01:00', 'to': None}}],
+              'validity': {'from': '1993-01-01', 'to': None}}],
         )
 
         for childid in (
@@ -632,7 +632,7 @@ class IntegrationTests(util.LoRATestCase):
                 },
                 'parent': None,
                 'validity': {
-                    'from': '1964-05-24T00:00:00+01:00',
+                    'from': '1964-05-24',
                     'to': None,
                 },
             },
@@ -657,13 +657,13 @@ class IntegrationTests(util.LoRATestCase):
                     'user_key': 'BALLERUP',
                     'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                     'validity': {
-                        'from': '1964-05-24T00:00:00+01:00',
+                        'from': '1964-05-24',
                         'to': None,
                     },
                 },
                 'user_key': 'FAMILIEHUS',
                 'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
-                'validity': {'from': '2006-01-01T00:00:00+01:00', 'to': None},
+                'validity': {'from': '2006-01-01', 'to': None},
             },
         )
 
@@ -673,22 +673,22 @@ class IntegrationTests(util.LoRATestCase):
                 {'name': 'Ballerup Bibliotek',
                  'user_key': 'BIBLIOTEK',
                  'uuid': '921e44d3-2ec0-4c16-9935-2ec7976566dc',
-                 'validity': {'from': '1993-01-01T00:00:00+01:00',
+                 'validity': {'from': '1993-01-01',
                               'to': None}},
                 {'name': 'Ballerup Kommune',
                  'user_key': 'BALLERUP',
                  'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
-                 'validity': {'from': '1964-05-24T00:00:00+01:00',
+                 'validity': {'from': '1964-05-24',
                               'to': None}},
                 {'name': 'Ballerup Familiehus',
                  'user_key': 'FAMILIEHUS',
                  'uuid': 'c12393e9-ee1d-4b91-a6a9-a17508c055c9',
-                 'validity': {'from': '2006-01-01T00:00:00+01:00',
+                 'validity': {'from': '2006-01-01',
                               'to': None}},
                 {'name': 'Ballerup Idrætspark',
                  'user_key': 'IDRÆTSPARK',
                  'uuid': 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc',
-                 'validity': {'from': '1993-01-01T00:00:00+01:00',
+                 'validity': {'from': '1993-01-01',
                               'to': None}}],
              'offset': 0,
              'total': 4},
@@ -831,7 +831,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             }
                         },
@@ -848,7 +848,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -871,7 +871,7 @@ class IntegrationTests(util.LoRATestCase):
                         'user_key': 'BALLERUP',
                         'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                         'validity': {
-                            'from': '1964-05-24T00:00:00+01:00',
+                            'from': '1964-05-24',
                             'to': None,
                         },
                     },
@@ -885,7 +885,7 @@ class IntegrationTests(util.LoRATestCase):
                         'uuid': '351fdf06-102a-4159-a5b4-69922b0ccde9'},
                     'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
                     "validity": {
-                        'from': '2018-01-01T00:00:00+01:00',
+                        'from': '2018-01-01',
                         'to': None
                     },
                 }],
@@ -909,7 +909,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
@@ -926,7 +926,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': '7eadc1d9-19f5-46c7-a6db-f661c3a8fbb9',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -943,7 +943,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
@@ -960,7 +960,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': 'dd30c279-8bba-43a9-b4b7-6ac96e722f86',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -992,7 +992,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
@@ -1009,7 +1009,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': 'b4cd77e4-2ba0-47c7-93e9-22f7446abb57',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1034,7 +1034,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
@@ -1051,7 +1051,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': 'b4cd77e4-2ba0-47c7-93e9-22f7446abb57',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1070,7 +1070,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
@@ -1087,7 +1087,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': '3b204d9b-a0ba-48ad-9c20-778a49b6d3a9',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1104,7 +1104,7 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
@@ -1121,7 +1121,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': '3b204d9b-a0ba-48ad-9c20-778a49b6d3a9',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1148,7 +1148,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'uuid': 'd82de46c-e266-4810-9e8d-e99a0c9c18d5',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1199,13 +1199,13 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
                         'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1248,13 +1248,13 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
                         'uuid': '8fb49f61-db3f-4f61-92c3-8a1dddd8051f',
                         "validity": {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1278,7 +1278,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': '11221122',
                         'urn': 'urn:magenta.dk:telefon:+4511221122',
                         'validity': {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1295,7 +1295,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'Pilestræde 43, 3., 1112 København K',
                         'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                         'validity': {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1311,7 +1311,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'sanne@example.com',
                         'urn': 'urn:mailto:sanne@example.com',
                         'validity': {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1335,7 +1335,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': '11223344',
                         'urn': 'urn:magenta.dk:telefon:+4511223344',
                         'validity': {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1351,7 +1351,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'sune@example.com',
                         'urn': 'urn:mailto:sune@example.com',
                         'validity': {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1368,7 +1368,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'Åbogade 15, 8200 Aarhus N',
                         'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'validity': {
-                            'from': '2018-01-01T00:00:00+01:00',
+                            'from': '2018-01-01',
                             'to': None,
                         },
                     },
@@ -1392,7 +1392,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': '44772000',
                         'urn': 'urn:magenta.dk:telefon:+4544772000',
                         'validity': {
-                            'from': '1964-05-24T00:00:00+01:00',
+                            'from': '1964-05-24',
                             'to': None,
                         },
                     },
@@ -1409,7 +1409,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'Hold-An Vej 7, 2750 Ballerup',
                         'uuid': 'bd7e5317-4a9e-437b-8923-11156406b117',
                         'validity': {
-                            'from': '1964-05-24T00:00:00+01:00',
+                            'from': '1964-05-24',
                             'to': None,
                         },
                     },
@@ -1425,7 +1425,7 @@ class IntegrationTests(util.LoRATestCase):
                         'name': 'borger@balk.dk',
                         'urn': 'urn:mailto:borger@balk.dk',
                         'validity': {
-                            'from': '1964-05-24T00:00:00+01:00',
+                            'from': '1964-05-24',
                             'to': None,
                         },
                     },
@@ -1446,7 +1446,7 @@ class IntegrationTests(util.LoRATestCase):
                   'name': '44773333',
                   'urn': 'urn:magenta.dk:telefon:+4544773333',
                   'validity': {
-                      'from': '1993-01-01T00:00:00+01:00',
+                      'from': '1993-01-01',
                       'to': None}},
                  {'address_type': {
                      'example': '<UUID>',
@@ -1459,7 +1459,7 @@ class IntegrationTests(util.LoRATestCase):
                   'name': 'Banegårdspladsen 1, 2750 Ballerup',
                   'uuid': '99b29a62-01fd-40be-b5fe-8bfc4be35e83',
                   'validity': {
-                      'from': '1993-01-01T00:00:00+01:00',
+                      'from': '1993-01-01',
                       'to': None}},
                  {'address_type': {
                      'example': 'hpe@korsbaek.dk',
@@ -1471,7 +1471,7 @@ class IntegrationTests(util.LoRATestCase):
                   'name': 'ballerup-bibliotek@balk.dk',
                   'urn': 'urn:mailto:ballerup-bibliotek@balk.dk',
                   'validity': {
-                      'from': '1993-01-01T00:00:00+01:00',
+                      'from': '1993-01-01',
                       'to': None}}],
             )
 
@@ -1490,7 +1490,7 @@ class IntegrationTests(util.LoRATestCase):
                   'name': 'Torvevej 21, 2740 Skovlunde',
                   'uuid': '45b40fc3-bb75-412c-b122-d9df7b0ade94',
                   'validity': {
-                      'from': '2006-01-01T00:00:00+01:00',
+                      'from': '2006-01-01',
                       'to': None}}],
             )
 
@@ -1509,7 +1509,7 @@ class IntegrationTests(util.LoRATestCase):
                   'name': 'Ballerup Idrætsby 38, 2750 Ballerup',
                   'uuid': '9ab45e95-a42a-47c0-b284-e5d2377fc429',
                   'validity': {
-                      'from': '1993-01-01T00:00:00+01:00',
+                      'from': '1993-01-01',
                       'to': None}},
                  {'address_type': {
                      'example': 'hpe@korsbaek.dk',
@@ -1521,7 +1521,7 @@ class IntegrationTests(util.LoRATestCase):
                   'name': 'tbri@balk.dk',
                   'urn': 'urn:mailto:tbri@balk.dk',
                   'validity': {
-                      'from': '1993-01-01T00:00:00+01:00',
+                      'from': '1993-01-01',
                       'to': None}}],
             )
 
@@ -1562,7 +1562,7 @@ class IntegrationTests(util.LoRATestCase):
                         },
                         'parent': None,
                         'validity': {
-                            'from': '1964-05-24T00:00:00+01:00',
+                            'from': '1964-05-24',
                             'to': None,
                         },
                     },
@@ -1595,12 +1595,12 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
                         'validity': {
-                            'from': '1993-01-01T00:00:00+01:00',
+                            'from': '1993-01-01',
                             'to': None,
                         },
                     },
@@ -1633,12 +1633,12 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
                         'validity': {
-                            'from': '2006-01-01T00:00:00+01:00',
+                            'from': '2006-01-01',
                             'to': None,
                         },
                     },
@@ -1671,12 +1671,12 @@ class IntegrationTests(util.LoRATestCase):
                             'user_key': 'BALLERUP',
                             'uuid': '9f42976b-93be-4e0b-9a25-0dcb8af2f6b4',
                             'validity': {
-                                'from': '1964-05-24T00:00:00+01:00',
+                                'from': '1964-05-24',
                                 'to': None,
                             },
                         },
                         'validity': {
-                            'from': '1993-01-01T00:00:00+01:00',
+                            'from': '1993-01-01',
                             'to': None,
                         },
                     },
