@@ -8,6 +8,8 @@
 
 from __future__ import generator_stop
 import time
+import pickle
+import sqlite3
 
 import collections
 import functools
@@ -20,7 +22,6 @@ from .auth import base
 from . import exceptions
 from . import settings
 from . import util
-
 session = requests.Session()
 session.verify = settings.CA_BUNDLE or True
 session.auth = base.SAMLAuth()
@@ -143,9 +144,6 @@ ALL_RELATION_NAMES = {
     'ydelsesklasse',
     'ydelsesmodtager',
 }
-
-lora_cache = {}
-
 
 def _check_response(r):
     if not r.ok:
@@ -321,15 +319,16 @@ class Connector:
     def is_effect_relevant(self, effect):
         return self.__is_range_relevant(util.parsedatetime(effect['from']),
                                         util.parsedatetime(effect['to']))
-
-
-execution_times = []
-
-
+times = []
 class Scope:
     def __init__(self, connector, path):
         self.connector = connector
         self.path = path
+        sqlite_uri = 'file::memory:'
+        print(sqlite_uri)
+        self.db = sqlite3.connect(sqlite_uri, uri=True)
+        query = 'create table if not exists cache (key text, val blob)'
+        self.db.execute(query)
 
     @property
     def base_path(self):
@@ -339,7 +338,14 @@ class Scope:
         t = time.time()
         cache_id = (self.base_path + " " + str(self.connector.defaults) +
                     " " + str(params))
-        if cache_id not in lora_cache:
+        query = 'select val from cache where key="{}"'
+        cursor = self.db.cursor()
+        cursor.execute(query.format(cache_id))
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            return_list = pickle.loads(row[0])
+        else:
             r = session.get(self.base_path, params={
                 **self.connector.defaults,
                 **params,
@@ -347,18 +353,18 @@ class Scope:
             _check_response(r)
             try:
                 return_list = r.json()['results'][0]
+                print(cache_id)
+                query = """INSERT INTO cache (key, val) VALUES (?,?);"""
+                value = pickle.dumps(return_list, pickle.HIGHEST_PROTOCOL)
+                self.db.execute(query, (cache_id, value))
+                self.db.commit()
             except IndexError:
                 return_list = []
-            print(cache_id)
-            lora_cache[cache_id] = return_list
-        else:
-            return_list = lora_cache[cache_id]
 
-        execution_times.append(time.time() - t)
-        print('----')
-        print(execution_times)
-        print(len(lora_cache))
-        print('----')
+        times.append(time.time() - t)
+        if len(times) == 68:
+            print(sum(times))
+            times.clear()
         return return_list
 
     __call__ = fetch
