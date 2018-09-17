@@ -536,14 +536,6 @@ def get_detail(type, id, function):
             mapping.LEAVE_TYPE: (class_cache, get_type_id, None, False),
         },
         'manager': {
-<<<<<<< HEAD:mora/service/details.py
-            keys.PERSON: (user_cache, get_employee_id, None, False),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            keys.RESPONSIBILITY: (class_cache, get_responsibility, None, True),
-            keys.MANAGER_LEVEL: (class_cache, get_manager_level, None, False),
-            keys.MANAGER_TYPE: (class_cache, get_type_id, None, False),
-            keys.ADDRESS: (class_cache, get_address, get_address_type, True),
-=======
             mapping.PERSON: (user_cache, get_employee_id, None, False),
             mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
             mapping.RESPONSIBILITY: (class_cache, get_responsibility, None,
@@ -553,7 +545,6 @@ def get_detail(type, id, function):
             mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
             mapping.ADDRESS: (class_cache, get_address, get_address_type,
                               False),
->>>>>>> development:backend/mora/service/details.py
         }
     }
 

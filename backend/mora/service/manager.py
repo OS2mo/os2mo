@@ -30,14 +30,6 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
 def create_manager(employee_uuid, req):
     c = lora.Connector()
 
-<<<<<<< HEAD:mora/service/manager.py
-    org_unit_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT, required=True)
-    org_uuid = c.organisationenhed.get(
-        org_unit_uuid)['relationer']['tilhoerer'][0]['uuid']
-    address_objs = common.checked_get(req, keys.ADDRESS, [])
-    manager_type_uuid = common.get_mapping_uuid(req, keys.MANAGER_TYPE)
-    manager_level_uuid = common.get_mapping_uuid(req, keys.MANAGER_LEVEL)
-=======
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                           required=True)
     org_uuid = (
@@ -47,7 +39,6 @@ def create_manager(employee_uuid, req):
     address_obj = util.checked_get(req, mapping.ADDRESS, {})
     manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
     manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
->>>>>>> development:backend/mora/service/manager.py
 
     responsibilities = util.checked_get(req, mapping.RESPONSIBILITY, [])
 
@@ -157,15 +148,11 @@ def edit_manager(employee_uuid, req):
             },
         ))
 
-<<<<<<< HEAD:mora/service/manager.py
-    for address_obj in common.checked_get(data, keys.ADDRESS, []):
-=======
     if data.get(mapping.ADDRESS):
         address_obj = (
             data.get(mapping.ADDRESS) or original_data[mapping.ADDRESS]
         )
 
->>>>>>> development:backend/mora/service/manager.py
         update_fields.append((
             mapping.SINGLE_ADDRESS_FIELD,
             address.get_relation_for(address_obj),
