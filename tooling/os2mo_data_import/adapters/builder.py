@@ -33,10 +33,10 @@ class Organisation(MoxUtility):
         self.Employee = Employee(self.uuid)
 
         # Create defaults
-        facet_map = self.facet.create_defaults()
+        facet_map = self.Facet.create_defaults()
 
         # Default klasse requires a (dict) map of all facet types
-        self.klasse.create_defaults(facet_map)
+        self.Klasse.create_defaults(facet_map)
 
     def build_payload(self, bvn, name, municipality_code=999, date_from=None, date_to=None):
         # Inelegant conversion to string
