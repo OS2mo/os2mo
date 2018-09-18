@@ -1,7 +1,9 @@
 # -- coding: utf-8 --
 
 from uuid import uuid4
+
 from os2mo_data_import.data_types import Facet, Klasse, OrganisationUnit
+
 
 def create_uuid():
     """
@@ -31,10 +33,15 @@ def validity_range(from_date, to_date):
 
 class Organisation:
 
-    def __init__(self, org_name, bvn=None, municipality_code=999,
-            date_from=None, date_to=None):
+    storage = {}
 
-        self.uuid = create_uuid()
+    def __init__(self, org_name, bvn=None, municipality_code=999,
+                uuid=None, date_from=None, date_to=None):
+
+        if uuid:
+            self.uuid = uuid
+        else:
+            self.uuid = create_uuid()
 
         if not bvn:
             bvn = org_name
@@ -93,15 +100,6 @@ class Organisation:
             "tilstande": tilstande
         }
 
-    def __str__(self):
+    def __repr__(self):
         return self.uuid
-
-if __name__ == "__main__":
-    org = Organisation("Næstved", "Næstved Kommune")
-
-    enhedstype_f = org.facet.add("Enhedstype")
-    adressetype_f = org.facet.add("Adressetype")
-
-    for facet in org.facet.db_export():
-        print(facet)
 
