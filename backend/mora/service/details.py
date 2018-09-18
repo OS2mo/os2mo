@@ -544,7 +544,7 @@ def get_detail(type, id, function):
                                     False),
             mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
             mapping.ADDRESS: (class_cache, get_address, get_address_type,
-                              False),
+                              True),
         }
     }
 

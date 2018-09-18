@@ -36,7 +36,7 @@ def create_manager(employee_uuid, req):
         c.organisationenhed.get(org_unit_uuid)
         ['relationer']['tilhoerer'][0]['uuid']
     )
-    address_obj = util.checked_get(req, mapping.ADDRESS, {})
+    address_objs = util.checked_get(req, mapping.ADDRESS, [])
     manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
     manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
 
@@ -148,11 +148,7 @@ def edit_manager(employee_uuid, req):
             },
         ))
 
-    if data.get(mapping.ADDRESS):
-        address_obj = (
-            data.get(mapping.ADDRESS) or original_data[mapping.ADDRESS]
-        )
-
+    for address_obj in util.checked_get(data, mapping.ADDRESS, []):
         update_fields.append((
             mapping.SINGLE_ADDRESS_FIELD,
             address.get_relation_for(address_obj),
