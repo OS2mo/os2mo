@@ -3,28 +3,7 @@
 from os2mo_data_import.adapters.base import MemoryMap
 
 
-class OrganisationUnit(MemoryMap):
-
-    def __init__(self, parent_org):
-        self.parent_org = parent_org
-
-    def add(self, name, type_ref, date_from, date_to=None):
-
-        data = {
-            "name": name,
-            "parent": {
-                "uuid": self.parent_org
-            },
-            "org_unit_type": {
-                "uuid": type_ref
-            },
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
-        }
-
-        return self.save(name, data)
+class MoBase(MemoryMap):
 
     def get_metadata(self, identifier):
 
@@ -49,6 +28,30 @@ class OrganisationUnit(MemoryMap):
 
         self.storage_map[identifier]["metadata"].append(metadata)
 
+
+class OrganisationUnit(MoBase):
+
+    def __init__(self, parent_org):
+        self.parent_org = parent_org
+
+    def add(self, name, type_ref, date_from, date_to=None):
+
+        data = {
+            "name": name,
+            "parent": {
+                "uuid": self.parent_org
+            },
+            "org_unit_type": {
+                "uuid": type_ref
+            },
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
+        }
+
+        return self.save(name, data)
+
     def add_address_type(self, identifier, address_data):
 
         if not "address_type" in address_data:
@@ -58,7 +61,7 @@ class OrganisationUnit(MemoryMap):
         return self.set_metadata(identifier, address_data)
 
 
-class Employee(MemoryMap):
+class Employee(MoBase):
 
     def __init__(self, parent_org):
         self.parent_org = parent_org

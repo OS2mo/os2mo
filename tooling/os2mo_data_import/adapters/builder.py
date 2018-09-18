@@ -1,7 +1,7 @@
 # -- coding: utf-8 --
 
 from os2mo_data_import.adapters.base import MoxUtility, MemoryMap
-from os2mo_data_import.adapters.mo_types import OrganisationUnit
+from os2mo_data_import.adapters.mo_types import OrganisationUnit, Employee
 
 
 class Organisation(MoxUtility):
@@ -30,6 +30,7 @@ class Organisation(MoxUtility):
         self.facet = Facet(self.uuid)
         self.klasse = Klasse(self.uuid)
         self.org_unit = OrganisationUnit(self.uuid)
+        self.employee = Employee(self.uuid)
 
         # Create defaults
         facet_map = self.facet.create_defaults()
