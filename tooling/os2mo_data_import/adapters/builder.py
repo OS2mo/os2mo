@@ -3,6 +3,7 @@
 from os2mo_data_import.adapters.base import MoxUtility, MemoryMap
 from os2mo_data_import.adapters.mo_types import OrganisationUnit
 
+
 class Organisation(MoxUtility):
 
     storage = {}
@@ -29,6 +30,12 @@ class Organisation(MoxUtility):
         self.facet = Facet(self.uuid)
         self.klasse = Klasse(self.uuid)
         self.org_unit = OrganisationUnit(self.uuid)
+
+        # Create defaults
+        facet_map = self.facet.create_defaults()
+
+        # Default klasse requires a (dict) map of all facet types
+        self.klasse.create_defaults(facet_map)
 
     def build_payload(self, bvn, name, municipality_code=999, date_from=None, date_to=None):
         # Inelegant conversion to string
@@ -78,9 +85,39 @@ class Organisation(MoxUtility):
 
 class Facet(MemoryMap):
 
+    __default_types__ = [
+        "Tilknytningstype",
+        "Funktionstype",
+        "Lederansvar",
+        "Lederniveau",
+        "Brugertype",
+        "Engagementstype",
+        "Enhedstype",
+        "Ledertyper",
+        "Orlovstype",
+        "Myndighedstype",
+        "Rolletype",
+        "Stillingsbetegnelse",
+        "Adressetype"
+    ]
+
     def __init__(self, parent_org):
         self.parent_org = parent_org
         self.storage_map = {}
+
+    def create_defaults(self, default_types=[]):
+
+        if not isinstance(default_types, list):
+            raise TypeError("Default types must be declared as a list")
+
+        # Overwrite if available
+        if default_types:
+            self.__default_types__ = default_types
+
+        for default_value in self.__default_types__:
+            self.add(default_value)
+
+        return self.get_map()
 
     def add(self, identifier):
 
@@ -140,15 +177,114 @@ class Facet(MemoryMap):
 
 class Klasse(MemoryMap):
 
+    __default_types__ = [
+        {
+            "brugervendtnoegle": "Enhed",
+            "beskrivelse": "Dette er en organisationsenhed",
+            "titel": "Enhed",
+            "facet_type": "Enhedstype"
+        },
+        {
+            "brugervendtnoegle": "AdressePost",
+            "eksempel": "<UUID>",
+            "omfang": "DAR",
+            "titel": "Adresse",
+            "facet_type": "Adressetype"
+        },
+        {
+            "brugervendtnoegle": "Email",
+            "eksempel": "test@example.com",
+            "omfang": "EMAIL",
+            "titel": "Emailadresse",
+            "facet_type": "Adressetype",
+        },
+        {
+            "brugervendtnoegle": "Telefon",
+            "eksempel": "20304060",
+            "omfang": "PHONE",
+            "titel": "Telefonnummer",
+            "facet_type": "Adressetype",
+        },
+        {
+            "brugervendtnoegle": "Webadresse",
+            "eksempel": "http://www.magenta.dk",
+            "omfang": "WWW",
+            "titel": "Webadresse",
+            "facet_type": "Adressetype",
+        },
+        {
+            "brugervendtnoegle": "EAN",
+            "eksempel": "00112233",
+            "omfang": "EAN",
+            "titel": "EAN nr.",
+            "facet_type": "Adressetype",
+        },
+        {
+            "brugervendtnoegle": "PNUMBER",
+            "eksempel": "00112233",
+            "omfang": "PNUMBER",
+            "titel": "P-nr.",
+            "facet_type": "Adressetype",
+        },
+        {
+            "brugervendtnoegle": "TEXT",
+            "eksempel": "Fritekst",
+            "omfang": "TEXT",
+            "titel": "Fritekst",
+            "facet_type": "Adressetype",
+        },
+        {
+            "brugervendtnoegle": "Ansat",
+            "facet_type": "Engagementstype"
+        },
+        {
+            "brugervendtnoegle": "Leder",
+            "titel": "Leder",
+            "facet_type": "Ledertyper",
+        },
+        {
+            "brugervendtnoegle": "Lederansvar",
+            "titel": "Ansvar for organisationsenheden",
+            "facet_type": "Lederansvar",
+        },
+        {
+            "brugervendtnoegle": "Lederniveau",
+            "titel": "Niveau 90",
+            "facet_type": "Lederniveau",
+        },
+    ]
+
     def __init__(self, parent_org):
         self.parent_org = parent_org
         self.storage_map = {}
 
-    def add(self, identifier, **kwargs):
+    def create_defaults(self, facet_references):
+
+        # Create map for later use
+        self.map = facet_references
+
+        for default_type in self.__default_types__:
+            identifier = default_type["brugervendtnoegle"]
+
+            # Reference
+            facet_type = default_type["facet_type"]
+            del default_type["facet_type"]
+
+            facet_ref = self.map.get(facet_type)
+
+            self.add(identifier, facet_ref, default_type)
+
+        return self.get_map()
+
+    def add(self, identifier, facet_ref, properties):
+
+        if not isinstance(properties, dict):
+            raise TypeError("Added properties must be of type dict")
 
         data = self.build_payload(
             user_key=identifier,
-            **kwargs
+            facet_ref=facet_ref,
+            **properties
         )
 
         return self.save(identifier, data)
@@ -158,7 +294,7 @@ class Klasse(MemoryMap):
 
         klasse_properties = {
             "brugervendtnoegle": user_key,
-            "virkning": validity_range(from_date, to_date)
+            "virkning": self.validity_range(from_date, to_date)
         }
 
         if properties:
@@ -175,14 +311,14 @@ class Klasse(MemoryMap):
                 {
                     "objekttype": "organisation",
                     "uuid": self.parent_org,
-                    "virkning": validity_range(from_date, to_date)
+                    "virkning": self.validity_range(from_date, to_date)
                 }
             ],
             "facet": [
                 {
                     "objekttype": "facet",
                     "uuid": facet_ref,
-                    "virkning": validity_range(from_date, to_date)
+                    "virkning": self.validity_range(from_date, to_date)
                 }
             ]
         }
@@ -191,7 +327,7 @@ class Klasse(MemoryMap):
             "klassepubliceret": [
                 {
                     "publiceret": "Publiceret",
-                    "virkning": validity_range(from_date, to_date)
+                    "virkning": self.validity_range(from_date, to_date)
                 }
             ]
         }
@@ -201,5 +337,3 @@ class Klasse(MemoryMap):
             "relationer": relationer,
             "tilstande": tilstande
         }
-
-
