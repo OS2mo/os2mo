@@ -2,7 +2,7 @@
 
 from os2mo_data_import.adapters.base import MemoryMap
 
-
+# TODO: Fix the inelegant extension of the Memory map in order to gain metadata storage
 class MoBase(MemoryMap):
 
     def get_metadata(self, identifier):
