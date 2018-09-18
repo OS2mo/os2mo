@@ -12,6 +12,9 @@ Organisational units
 
 This section describes how to interact with organisational units.
 
+For more information regarding reading relations involving organisational
+units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
+
 '''
 
 import enum
@@ -23,11 +26,10 @@ import flask
 import werkzeug
 
 from . import address
-from . import common
+from .. import common
 from . import facet
 from . import itsystem
-from . import keys
-from . import mapping
+from .. import mapping
 from . import org
 from .. import exceptions
 from .. import lora
@@ -65,8 +67,8 @@ class OrgUnit(common.AbstractRelationDetail):
             get_one_orgunit(
                 c, objid, effect, details=UnitDetails.FULL,
                 validity={
-                    keys.FROM: util.to_iso_time(start),
-                    keys.TO: util.to_iso_time(end),
+                    mapping.FROM: util.to_iso_date(start),
+                    mapping.TO: util.to_iso_date(end, is_end=True),
                 },
             )
             for start, end, effect in c.organisationenhed.get_effects(
@@ -97,12 +99,16 @@ class OrgUnit(common.AbstractRelationDetail):
         original = c.organisationenhed.get(uuid=unitid)
 
         data = req.get('data')
-        new_from, new_to = common.get_validities(data)
+        new_from, new_to = util.get_validities(data)
 
         # Get org unit uuid for validation purposes
-        parent = common.get_obj_value(
+        parent = util.get_obj_value(
             original, mapping.PARENT_FIELD.path)[-1]
-        parent_uuid = common.get_uuid(parent)
+        parent_uuid = util.get_uuid(parent)
+
+        org = util.get_obj_value(
+            original, mapping.BELONGS_TO_FIELD.path)[-1]
+        org_uuid = util.get_uuid(org)
 
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
@@ -110,7 +116,7 @@ class OrgUnit(common.AbstractRelationDetail):
         original_data = req.get('original')
         if original_data:
             # We are performing an update
-            old_from, old_to = common.get_validities(original_data)
+            old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
                 old_from, old_to, new_from, new_to, payload,
                 ('tilstande', 'organisationenhedgyldighed')
@@ -124,23 +130,23 @@ class OrgUnit(common.AbstractRelationDetail):
             {'gyldighed': "Aktiv"}
         ))
 
-        if keys.NAME in data:
+        if mapping.NAME in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
-            attrs['enhedsnavn'] = data[keys.NAME]
+            attrs['enhedsnavn'] = data[mapping.NAME]
 
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
                 attrs,
             ))
 
-        if keys.ORG_UNIT_TYPE in data:
+        if mapping.ORG_UNIT_TYPE in data:
             update_fields.append((
                 mapping.ORG_UNIT_TYPE_FIELD,
-                {'uuid': data[keys.ORG_UNIT_TYPE]['uuid']}
+                {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if keys.PARENT in data:
-            parent_uuid = common.get_mapping_uuid(data, keys.PARENT)
+        if mapping.PARENT in data:
+            parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
             validator.is_candidate_parent_valid(unitid,
                                                 parent_uuid, new_from)
             update_fields.append((
@@ -156,8 +162,10 @@ class OrgUnit(common.AbstractRelationDetail):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
-                                                  new_to)
+        # TODO: Check if we're inside the validity range of the organisation
+        if org_uuid != parent_uuid:
+            validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+                                                      new_to)
 
         c.organisationenhed.update(payload, unitid)
 
@@ -181,7 +189,7 @@ def get_one_orgunit(c, unitid, unit=None,
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
-        if not unit or not common.is_reg_valid(unit):
+        if not unit or not util.is_reg_valid(unit):
             return None
 
     attrs = unit['attributter']['organisationenhedegenskaber'][0]
@@ -203,19 +211,33 @@ def get_one_orgunit(c, unitid, unit=None,
         r['child_count'] = len(children)
 
     elif details is UnitDetails.FULL:
-        unittype = common.get_uuid(rels['enhedstype'][0], required=False)
+        unittype = util.get_uuid(rels['enhedstype'][0], required=False)
 
-        r[keys.ORG_UNIT_TYPE] = (
+        if rels['overordnet'][0]['uuid'] is not None:
+            r[mapping.PARENT] = get_one_orgunit(c,
+                                                rels['overordnet'][0]['uuid'],
+                                                details=UnitDetails.FULL)
+
+            parent = r[mapping.PARENT]
+            if parent and parent[mapping.LOCATION]:
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                                       parent[mapping.NAME])
+            elif parent:
+                r[mapping.LOCATION] = parent[mapping.NAME]
+            else:
+                r[mapping.LOCATION] = ''
+
+        r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
         )
 
-        r[keys.PARENT] = get_one_orgunit(
+        r[mapping.PARENT] = get_one_orgunit(
             c,
             rels['overordnet'][0]['uuid'],
             details=UnitDetails.MINIMAL,
         )
 
-        r[keys.ORG] = org.get_one_organisation(
+        r[mapping.ORG] = org.get_one_organisation(
             c,
             rels['tilhoerer'][0]['uuid'],
         )
@@ -226,7 +248,7 @@ def get_one_orgunit(c, unitid, unit=None,
             'invalid details {!r}'.format(details),
         )
 
-    r[keys.VALIDITY] = validity or common.get_effect_validity(validities[0])
+    r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     return r
 
@@ -242,13 +264,14 @@ def get_children(type, parentid):
     :param type: 'o' if the parent is an organistion, and 'ou' if it's a unit.
     :param uuid parentid: The UUID of the parent.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the children valid at this point in time,
+        in ISO-8601 format.
 
-    :<jsonarr string name: Human-readable name of the unit.
-    :<jsonarr string user_key: Short, unique key identifying the unit.
-    :<jsonarr object validity: Validity range of the organisational unit.
-    :<jsonarr uuid uuid: Machine-friendly UUID of the unit.
-    :<jsonarr int child_count: Number of org. units nested immediately beneath
+    :>jsonarr string name: Human-readable name of the unit.
+    :>jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr object validity: Validity range of the organisational unit.
+    :>jsonarr uuid uuid: Machine-friendly UUID of the unit.
+    :>jsonarr int child_count: Number of org. units nested immediately beneath
                                the organisation.
 
     :status 200: Whenever the organisation or unit exists and is readable.
@@ -264,13 +287,21 @@ def get_children(type, parentid):
           "name": "Humanistisk fakultet",
           "user_key": "hum",
           "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-          "child_count": 2
+          "child_count": 2,
+          "validity": {
+              "from": "2016-01-01",
+              "to": "2018-12-31"
+          }
         },
         {
           "name": "Samfundsvidenskabelige fakultet",
           "user_key": "samf",
           "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-          "child_count": 0
+          "child_count": 0,
+          "validity": {
+              "from": "2016-01-01",
+              "to": "2018-12-31"
+          }
         }
       ]
 
@@ -303,13 +334,22 @@ def get_children(type, parentid):
 @blueprint.route('/ou/<uuid:unitid>/')
 @util.restrictargs('at')
 def get_orgunit(unitid):
-    '''Query organisational units in an organisation.
+    '''Get an organisational unit
 
     .. :quickref: Unit; Get
 
     :param uuid unitid: UUID of the unit to retrieve.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the unit at this point in time,
+        in ISO-8601 format.
+
+    :>json string name: The name of the org unit
+    :>json string user_key: A unique key for the org unit.
+    :>json uuid uuid: The UUId of the org unit
+    :>json uuid parent: The parent org unit or organisation
+    :>json uuid org: The organisation the unit belongs to
+    :>json uuid org_unit_type: The type of org unit
+    :>json object validity: The validity of the created object.
 
     :status 200: Whenever the object exists.
     :status 404: Otherwise.
@@ -319,6 +359,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
+        "location:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
@@ -339,13 +380,13 @@ def get_orgunit(unitid):
           "user_key": "hist",
           "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
           "validity": {
-            "from": "2016-01-01T00:00:00+01:00",
-            "to": "2019-01-01T00:00:00+01:00"
+            "from": "2016-01-01",
+            "to": "2018-12-31"
           }
         },
         "validity": {
-          "from": "2016-01-01T00:00:00+01:00",
-          "to": "2019-01-01T00:00:00+01:00"
+          "from": "2016-01-01",
+          "to": "2018-12-31"
         }
       }
 
@@ -372,18 +413,20 @@ def list_orgunits(orgid):
 
     :param uuid orgid: UUID of the organisation to search.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the units valid at this point in time,
+        in ISO-8601 format.
     :queryparam int start: Index of first unit for paging.
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
-    :<json string items: The returned items.
-    :<json string offset: Pagination offset.
-    :<json string total: Total number of items available on this query.
+    :>json string items: The returned items.
+    :>json string offset: Pagination offset.
+    :>json string total: Total number of items available on this query.
 
-    :<jsonarr string name: Human-readable name.
-    :<jsonarr string uuid: Machine-friendly UUID.
-    :<jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr string name: Human-readable name.
+    :>jsonarr string uuid: Machine-friendly UUID.
+    :>jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr object validity: Validity range of the organisational unit.
 
     :status 200: Always.
 
@@ -398,7 +441,7 @@ def list_orgunits(orgid):
             "user_key": "samf",
             "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
             "validity": {
-              "from": "2017-01-01T00:00:00+01:00",
+              "from": "2017-01-01",
               "to": null
             }
           }
@@ -446,6 +489,11 @@ def create_org_unit():
     :<json list addresses: A list of address objects.
     :<json object validity: The validity of the created object.
 
+    The parameter ``org_unit_type`` should contain
+    an UUID obtained from the respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``addresses`` parameter, see :ref:`Adresses <address>`.
+
     Validity objects are defined as such:
 
     :<jsonarr string from: The from date, in ISO 8601.
@@ -461,8 +509,24 @@ def create_org_unit():
         "org_unit_type": {
           "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
         },
-        "valid_from": "2016-01-01T00:00:00+00:00",
-        "valid_to": "2018-01-01T00:00:00+00:00"
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        },
+        "addresses": [{
+          "value": "0101501234",
+          "address_type": {
+            "example": "5712345000014",
+            "name": "EAN",
+            "scope": "EAN",
+            "user_key": "EAN",
+            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+          },
+          "validity": {
+            "from": "2016-01-01",
+            "to": "2017-12-31"
+          }
+        }]
       }
 
     :returns: UUID of created org unit
@@ -473,13 +537,13 @@ def create_org_unit():
 
     req = flask.request.get_json()
 
-    name = common.checked_get(req, keys.NAME, "", required=True)
+    name = util.checked_get(req, mapping.NAME, "", required=True)
 
-    unitid = common.get_uuid(req, required=False)
-    bvn = common.checked_get(req, keys.USER_KEY,
-                             "{} {}".format(name, uuid.uuid4()))
+    unitid = util.get_uuid(req, required=False)
+    bvn = util.checked_get(req, mapping.USER_KEY,
+                           "{} {}".format(name, uuid.uuid4()))
 
-    parent_uuid = common.get_mapping_uuid(req, keys.PARENT, required=True)
+    parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
     organisationenhed_get = c.organisationenhed.get(parent_uuid)
 
     if organisationenhed_get:
@@ -496,15 +560,15 @@ def create_org_unit():
                 org_unit_uuid=unitid,
             )
 
-    org_unit_type_uuid = common.get_mapping_uuid(req, keys.ORG_UNIT_TYPE,
-                                                 required=False)
+    org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
+                                               required=False)
 
     addresses = [
         address.get_relation_for(addr)
-        for addr in common.checked_get(req, keys.ADDRESSES, [])
+        for addr in util.checked_get(req, mapping.ADDRESSES, [])
     ]
-    valid_from = common.get_valid_from(req)
-    valid_to = common.get_valid_to(req)
+    valid_from = util.get_valid_from(req)
+    valid_to = util.get_valid_to(req)
 
     org_unit = common.create_organisationsenhed_payload(
         valid_from=valid_from,
@@ -554,6 +618,10 @@ def edit_org_unit(unitid):
     :<json string org_unit_type: The type of org unit
     :<json object validity: The validities of the changes.
 
+    The parameter ``org_unit_type`` should contain
+    an UUID obtained from the respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+
     Validity objects are defined as such:
 
     :<json string from: The from date, in ISO 8601.
@@ -574,21 +642,63 @@ def edit_org_unit(unitid):
               "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
             },
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01",
               "to": null
             }
           },
           "data": {
             "name": "Vaffelhuset",
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
+              "from": "2016-01-01",
             }
           }
         }
       ]
 
-    See also :http:post:`/service/e/(uuid:employee_uuid)/edit` for
-    further examples for the individual types.
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string value: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+    :<jsonarr object validity: A validity object
+
+    See :ref:`Adresses <address>` for more information.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "original": {
+            "value": "0101501234",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "data": {
+            "value": "123456789",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01",
+            "to": "2017-12-31"
+          }
+        }
+      ]
 
     """
 
@@ -621,7 +731,7 @@ def create_org_unit_relation(unitid):
 
     :statuscode 200: Creation succeeded.
 
-    :param employee_uuid: The UUID of the employee.
+    :param unitid: The UUID of the organisational unit.
 
     All requests contain validity objects on the following form:
 
@@ -631,12 +741,12 @@ def create_org_unit_relation(unitid):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "from": "2016-01-01",
+        "to": "2017-12-31",
       }
 
     Request payload contains a list of creation objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
+    by the attribute ``type``. Each of these object types are detailed below:
 
 
     **Address**:
@@ -648,6 +758,9 @@ def create_org_unit_relation(unitid):
     :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object validity: A validity object
+
+    See :ref:`Adresses <address>` for more information.
 
     .. sourcecode:: json
 
@@ -663,8 +776,8 @@ def create_org_unit_relation(unitid):
           },
           "type": "address",
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -712,15 +825,11 @@ def terminate_org_unit(unitid):
 
       {
         "validity": {
-          "from": "2016-01-01T00:00:00+00:00"
+          "to": "2015-12-31"
         }
       }
 
-    **Example response**:
-
-    .. sourcecode:: json
-
-      "85715fc7-925d-401b-822d-467eb4b163b6"
+    :returns: UUID of the terminated org unit
 
     **Validation**:
 
@@ -749,10 +858,9 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = common.get_valid_from(flask.request.get_json())
+    date = util.get_valid_to(flask.request.get_json())
 
-    c = lora.Connector(virkningfra=util.to_iso_time(date),
-                       virkningtil='infinity')
+    c = lora.Connector(effective_date=util.to_iso_date(date))
 
     validator.is_date_range_in_org_unit_range(
         unitid, date - util.MINIMAL_INTERVAL, date,
@@ -784,7 +892,7 @@ def terminate_org_unit(unitid):
         'virkning': common._create_virkning(date, 'infinity')
     }
 
-    payload = common.set_obj_value(dict(), obj_path, [val_inactive])
+    payload = util.set_obj_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
     c.organisationenhed.update(payload, unitid)
@@ -798,15 +906,18 @@ def terminate_org_unit(unitid):
 def get_org_unit_history(unitid):
     """
     Get the history of an org unit
+
+    .. :quickref: Unit; Get history
+
     :param unitid: The UUID of the org unit
 
     **Example response**:
 
-    :<jsonarr string from: When the change is active from
-    :<jsonarr string to: When the change is active to
-    :<jsonarr string action: The action performed
-    :<jsonarr string life_cycle_code: The type of action performed
-    :<jsonarr string user_ref: A reference to the user who made the change
+    :>jsonarr string from: When the change is active from
+    :>jsonarr string to: When the change is active to
+    :>jsonarr string action: The action performed
+    :>jsonarr string life_cycle_code: The type of action performed
+    :>jsonarr string user_ref: A reference to the user who made the change
 
     .. sourcecode:: json
 

@@ -13,19 +13,22 @@ Employees
 
 This section describes how to interact with employees.
 
+For more information regarding reading relations involving employees, refer to
+:http:get:`/service/(any:type)/(uuid:id)/details/`
+
 '''
 
 import uuid
 
 import flask
 
+from .. import mapping
 from .. import exceptions
 from . import address
 from . import association
-from . import common
+from .. import common
 from . import engagement
 from . import itsystem
-from . import keys
 from . import manager
 from . import leave
 from . import org
@@ -48,14 +51,14 @@ def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)
 
-        if not user or not common.is_reg_valid(user):
+        if not user or not util.is_reg_valid(user):
             return None
 
     props = user['attributter']['brugeregenskaber'][0]
 
     r = {
-        keys.NAME: props['brugernavn'],
-        keys.UUID: userid,
+        mapping.NAME: props['brugernavn'],
+        mapping.UUID: userid,
     }
 
     if full:
@@ -63,12 +66,12 @@ def get_one_employee(c, userid, user=None, full=False):
         orgid = rels['tilhoerer'][0]['uuid']
 
         if rels.get('tilknyttedepersoner'):
-            r[keys.CPR_NO] = (
+            r[mapping.CPR_NO] = (
                 rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
             )
 
-        r[keys.ORG] = org.get_one_organisation(c, orgid)
-        r[keys.USER_KEY] = props['brugervendtnoegle']
+        r[mapping.ORG] = org.get_one_organisation(c, orgid)
+        r[mapping.USER_KEY] = props['brugervendtnoegle']
 
     return r
 
@@ -82,19 +85,20 @@ def list_employees(orgid):
 
     :param uuid orgid: UUID of the organisation to search.
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show employees at this point in time,
+        in ISO-8601 format.
     :queryparam int start: Index of first unit for paging.
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by employees matching this string.
         Please note that this only applies to attributes of the user, not the
         relations or engagements they have.
 
-    :<json string items: The returned items.
-    :<json string offset: Pagination offset.
-    :<json string total: Total number of items available on this query.
+    :>json string items: The returned items.
+    :>json string offset: Pagination offset.
+    :>json string total: Total number of items available on this query.
 
-    :<jsonarr string name: Human-readable name.
-    :<jsonarr string uuid: Machine-friendly UUID.
+    :>jsonarr string name: Human-readable name.
+    :>jsonarr string uuid: Machine-friendly UUID.
 
     :status 200: Always.
 
@@ -152,13 +156,14 @@ def get_employee(id):
 
     .. :quickref: Employee; Get
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the employee at this point in time,
+        in ISO-8601 format.
 
-    :<json string name: Human-readable name.
-    :<json string uuid: Machine-friendly UUID.
-    :<json object org: The organisation that this employee belongs to, as
+    :>json string name: Human-readable name.
+    :>json string uuid: Machine-friendly UUID.
+    :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
-    :<json string cpr_no: CPR number of for the corresponding person.
+    :>json string cpr_no: CPR number of for the corresponding person.
         Please note that this is the only means for obtaining the CPR
         number; due to confidentiality requirements, all other end
         points omit it.
@@ -211,12 +216,12 @@ def create_employee_relation(employee_uuid):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "from": "2016-01-01",
+        "to": "2017-12-31",
       }
 
     Request payload contains a list of creation objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
+    by the attribute ``type``. Each of these object types are detailed below:
 
     **Engagement**:
 
@@ -225,6 +230,10 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``job_function`` and ``engagement_type`` should contain
+    UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -241,8 +250,8 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
           }
         }
       ]
@@ -254,8 +263,12 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
     :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``job_function`` and ``association_type`` should contain
+    UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -272,19 +285,19 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "address": {
-            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-          },
-          "address_type": {
-            "example": "<UUID>",
-            "name": "Adresse",
-            "scope": "DAR",
-            "user_key": "Adresse",
-            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": {
+              "example": "<UUID>",
+              "name": "Adresse",
+              "scope": "DAR",
+              "user_key": "Adresse",
+              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            }
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
-          },
+            "from": "2016-01-01",
+            "to": "2017-12-31"
+          }
         }
       ]
 
@@ -304,7 +317,7 @@ def create_employee_relation(employee_uuid):
                   "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
               },
               "validity": {
-                  "from": "2017-12-01T00:00:00+01",
+                  "from": "2017-12-01",
                   "to": null
               }
           }
@@ -316,6 +329,10 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string role_type: The role type
     :<jsonarr object validity: The validities of the created object.
+
+    The parameter ``role_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -329,8 +346,8 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
           }
         }
       ]
@@ -343,8 +360,12 @@ def create_employee_relation(employee_uuid):
     :<jsonarr array responsibility: The manager responsibilities
     :<jsonarr string manager_level: The manager level
     :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
     :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``manager_type``, ``responsibility`` and ``manager_level``
+    should contain UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -366,18 +387,18 @@ def create_employee_relation(employee_uuid):
             "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
           },
           "address": {
-            "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-          },
-          "address_type": {
-            "example": "<UUID>",
-            "name": "Adresse",
-            "scope": "DAR",
-            "user_key": "Adresse",
-            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": {
+              "example": "<UUID>",
+              "name": "Adresse",
+              "scope": "DAR",
+              "user_key": "Adresse",
+              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            }
           },
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -388,6 +409,10 @@ def create_employee_relation(employee_uuid):
     :<jsonarr string leave_type: The leave type
     :<jsonarr object validity: The validities of the created object.
 
+    The parameter ``leave_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+
     .. sourcecode:: json
 
       [
@@ -397,8 +422,8 @@ def create_employee_relation(employee_uuid):
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
           },
         }
       ]
@@ -409,9 +434,12 @@ def create_employee_relation(employee_uuid):
     :<jsonarr object address_type: The type of the address, exactly as
         returned by returned by
         :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr string address: The value of the address field. Please
+    :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object validity: The validities of the created object.
+
+    See :ref:`Adresses <address>` for more information.
 
     .. sourcecode:: json
 
@@ -427,8 +455,8 @@ def create_employee_relation(employee_uuid):
           },
           "type": "address",
           "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -466,7 +494,7 @@ def create_employee_relation(employee_uuid):
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            "Opret {}".format(common.RELATION_TRANSLATIONS[role_type])
+            "Opret {}".format(mapping.RELATION_TRANSLATIONS[role_type])
         )
 
     # TODO:
@@ -489,12 +517,12 @@ def edit_employee(employee_uuid):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00"
+        "from": "2016-01-01",
+        "to": "2017-12-31"
       }
 
     Request payload contains a list of edit objects, each differentiated
-    by the attribute 'type'. Each of these object types are detailed below:
+    by the attribute ``type``. Each of these object types are detailed below:
 
     **Engagement**:
 
@@ -518,6 +546,10 @@ def edit_employee(employee_uuid):
     :<jsonarr string engagement_type: The engagement type
     :<jsonarr object validity: The validities of the changes.
 
+    The parameters ``job_function`` and ``engagement_type`` should contain
+    UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+
     .. sourcecode:: json
 
       [
@@ -526,8 +558,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2018-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2017-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -541,8 +573,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-              "from": "2016-01-01T00:00:00+00:00",
-              "to": "2019-01-01T00:00:00+00:00"
+              "from": "2016-01-01",
+              "to": "2018-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -571,9 +603,13 @@ def edit_employee(employee_uuid):
     :<jsonarr string org_unit: The associated org unit
     :<jsonarr string job_function: The job function of the association
     :<jsonarr string association_type: The association type
-    :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
+    :<jsonarr string address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
+
+    The parameters ``job_function`` and ``association_type`` should contain
+    UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -583,8 +619,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2018-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2016-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -596,20 +632,20 @@ def edit_employee(employee_uuid):
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
             "address": {
-              "uuid": "89faa44c-f37a-4e4a-9cd8-b25f67cfd7bc"
-            },
-            "address_type": {
-              "example": "<UUID>",
-              "name": "Adresse",
-              "scope": "DAR",
-              "user_key": "Adresse",
-              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+              "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+              "address_type": {
+                "example": "<UUID>",
+                "name": "Adresse",
+                "scope": "DAR",
+                "user_key": "Adresse",
+                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+              }
             }
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -647,14 +683,14 @@ def edit_employee(employee_uuid):
             "user_name": "Fedtmule",
             "uuid": "00000000-0000-0000-0000-000000000000",
             "validity": {
-              "from": "2002-02-14T00:00:00+01:00",
+              "from": "2002-02-14",
               "to": null
             }
           },
           "data": {
             "uuid": "11111111-1111-1111-1111-111111111111",
             "validity": {
-              "to": "2020-01-01T00:00:00+01:00"
+              "to": "2019-12-31"
             }
           }
         }
@@ -680,6 +716,10 @@ def edit_employee(employee_uuid):
     :<jsonarr string role_type: The role type
     :<jsonarr object validity: The validities of the changes.
 
+    The parameter ``role_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+
     .. sourcecode:: json
 
       [
@@ -688,8 +728,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2018-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2017-12-31"
             },
             "role_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
@@ -700,8 +740,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "role_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
@@ -729,6 +769,10 @@ def edit_employee(employee_uuid):
     :<jsonarr string leave_type: The leave type
     :<jsonarr object validity: The validities of the changes.
 
+    The parameter ``leave_type`` should contain a UUID obtained from the
+    respective facet endpoint.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+
     .. sourcecode:: json
 
       [
@@ -737,8 +781,8 @@ def edit_employee(employee_uuid):
           "uuid": "de9e7513-1934-481f-b8c8-45336387e9cb",
           "original": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2018-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2017-12-31"
             },
             "leave_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
@@ -746,8 +790,8 @@ def edit_employee(employee_uuid):
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "leave_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
@@ -777,9 +821,13 @@ def edit_employee(employee_uuid):
     :<jsonarr string manager_type: The manager type
     :<jsonarr array responsibilities: The manager responsibilities
     :<jsonarr string manager_level: The manager level
-    :<jsonarr string address: The associated address.
-    :<jsonarr string address_type: The type of the associated address.
+    :<jsonarr string address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
+
+    The parameters ``manager_type``, ``responsibility`` and ``manager_level``
+    should contain UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -802,19 +850,74 @@ def edit_employee(employee_uuid):
               "manager_level": {
                 "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
               },
+              "address": {
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "address_type": {
+                  "example": "<UUID>",
+                  "name": "Adresse",
+                  "scope": "DAR",
+                  "user_key": "Adresse",
+                  "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                }
+              },
               "validity": {
-                  "from": "2016-01-01T00:00:00+00:00",
-                  "to": "2018-01-01T00:00:00+00:00"
+                  "from": "2016-01-01",
+                  "to": "2017-12-31"
               }
           },
           "data": {
             "validity": {
-                "from": "2016-01-01T00:00:00+00:00",
-                "to": "2019-01-01T00:00:00+00:00"
+                "from": "2016-01-01",
+                "to": "2018-12-31"
             },
             "manager_type": {
               "uuid": "eee27f47-8355-4ae2-b223-0ee0fdad81be"
             }
+          }
+        }
+      ]
+
+    **Address**:
+
+    :<jsonarr string type: ``"address"``
+    :<jsonarr object address_type: The type of the address, exactly as
+        returned by returned by
+        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr string value: The value of the address field. Please
+        note that as a special case, this should be a UUID for *DAR*
+        addresses.
+    :<jsonarr object validity: A validity object
+
+    See :ref:`Adresses <address>` for more information.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "original": {
+            "value": "0101501234",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "data": {
+            "value": "123456789",
+            "address_type": {
+              "example": "5712345000014",
+              "name": "EAN",
+              "scope": "EAN",
+              "user_key": "EAN",
+              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+            },
+          },
+          "type": "address",
+          "validity": {
+            "from": "2016-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -854,7 +957,7 @@ def edit_employee(employee_uuid):
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
             employee_uuid,
-            "Rediger {}".format(common.RELATION_TRANSLATIONS[role_type])
+            "Rediger {}".format(mapping.RELATION_TRANSLATIONS[role_type])
         )
 
     # TODO: Figure out the response -- probably just the edited object(s)?
@@ -863,7 +966,8 @@ def edit_employee(employee_uuid):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
-    """Terminates an employee and all of his roles from a specified date.
+    """Terminates an employee and all of his roles beginning at a
+    specified date.
 
     .. :quickref: Employee; Terminate
 
@@ -871,8 +975,7 @@ def terminate_employee(employee_uuid):
 
     :param employee_uuid: The UUID of the employee to be terminated.
 
-    :<json string valid_from: The date on which the termination should happen,
-                              in ISO 8601.
+    :<json string to: When the termination should occur, as an ISO 8601 date.
 
     **Example Request**:
 
@@ -880,19 +983,20 @@ def terminate_employee(employee_uuid):
 
       {
         "validity": {
-          "from": "2016-01-01T00:00:00+00:00"
+          "to": "2015-12-31"
         }
       }
+
     """
-    date = common.get_valid_from(flask.request.get_json())
+    date = util.get_valid_to(flask.request.get_json())
 
     # Org funks
     types = (
-        keys.ENGAGEMENT_KEY,
-        keys.ASSOCIATION_KEY,
-        keys.ROLE_KEY,
-        keys.LEAVE_KEY,
-        keys.MANAGER_KEY
+        mapping.ENGAGEMENT_KEY,
+        mapping.ASSOCIATION_KEY,
+        mapping.ROLE_KEY,
+        mapping.LEAVE_KEY,
+        mapping.MANAGER_KEY
     )
 
     c = lora.Connector(effective_date=date)
@@ -919,6 +1023,9 @@ def terminate_employee(employee_uuid):
 def get_employee_history(employee_uuid):
     """
     Get the history of an employee
+
+    .. :quickref: Employee; Get history
+
     :param employee_uuid: The UUID of the employee
 
     **Example response**:
@@ -985,15 +1092,19 @@ def create_employee():
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
+    :<json string uuid: An **optional** parameter, that will be used as the
+      UUID for the employee.
 
     .. sourcecode:: json
 
       {
         "name": "Name Name",
         "cpr_no": "0101501234",
+        "user_key": "1234",
         "org": {
           "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-        }
+        },
+        "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f"
       }
 
     :returns: UUID of created employee
@@ -1004,10 +1115,10 @@ def create_employee():
 
     req = flask.request.get_json()
 
-    name = common.checked_get(req, keys.NAME, "", required=True)
-    org_uuid = common.get_mapping_uuid(req, keys.ORG, required=True)
-    cpr = common.checked_get(req, keys.CPR_NO, "", required=False)
-    userid = common.get_uuid(req, required=False)
+    name = util.checked_get(req, mapping.NAME, "", required=True)
+    org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+    cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
+    userid = util.get_uuid(req, required=False)
 
     try:
         valid_from = \
@@ -1033,7 +1144,7 @@ def create_employee():
     valid_to = util.POSITIVE_INFINITY
 
     # TODO: put something useful into the default user key
-    bvn = common.checked_get(req, keys.USER_KEY, str(uuid.uuid4()))
+    bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
     user = common.create_bruger_payload(
         valid_from=valid_from,

@@ -19,8 +19,8 @@ import operator
 import flask
 import werkzeug
 
-from . import common
-from . import keys
+from .. import common
+from .. import mapping
 from .. import util
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
@@ -31,7 +31,7 @@ def get_one_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
-        if not org or not common.is_reg_valid(org):
+        if not org or not util.is_reg_valid(org):
             return None
 
     attrs = org['attributter']['organisationegenskaber'][0]
@@ -51,7 +51,8 @@ def list_organisations():
 
     .. :quickref: Organisation; List
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show organisations at this point in time,
+        in ISO-8601 format.
 
     :<jsonarr string name: Human-readable name of the organisation.
     :<jsonarr string user_key: Short, unique key identifying the unit.
@@ -96,7 +97,8 @@ def get_organisation(orgid):
 
     .. :quickref: Organisation; Getter
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show the organisation at this point in time,
+        in ISO-8601 format.
 
     :<json string name: Human-readable name of the organisation.
     :<json string user_key: Short, unique key identifying the unit.
@@ -105,7 +107,11 @@ def get_organisation(orgid):
                             the organisation.
     :<json int person_count: Amount of people belonging to this organisation.
     :<json int unit_count: Amount of units belonging to this organisation.
-    :<json int employment_count: Amount of employments in this organisation?
+    :<json int employment_count: Amount of employments in this organisation.
+    :<json int association_count: Amount of associations in this organisation.
+    :<json int leave_count: Amount of leaves in this organisation.
+    :<json int role_count: Amount of roles in this organisation.
+    :<json int manager_count: Amount of managers in this organisation.
 
     :status 200: Whenever the organisation exists and is readable.
     :status 404: When no such organisation exists.
@@ -148,15 +154,17 @@ def get_organisation(orgid):
     # https://redmine.magenta-aps.dk/issues/21273
     users = c.bruger(tilhoerer=orgid)
     engagements = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                         funktionsnavn=keys.ENGAGEMENT_KEY)
-    associations = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                          funktionsnavn=keys.ASSOCIATION_KEY)
+                                         funktionsnavn=mapping.ENGAGEMENT_KEY)
+    associations = c.organisationfunktion(
+        tilknyttedeorganisationer=orgid,
+        funktionsnavn=mapping.ASSOCIATION_KEY,
+    )
     leaves = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                    funktionsnavn=keys.LEAVE_KEY)
+                                    funktionsnavn=mapping.LEAVE_KEY)
     roles = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                   funktionsnavn=keys.ROLE_KEY)
+                                   funktionsnavn=mapping.ROLE_KEY)
     managers = c.organisationfunktion(tilknyttedeorganisationer=orgid,
-                                      funktionsnavn=keys.MANAGER_KEY)
+                                      funktionsnavn=mapping.MANAGER_KEY)
 
     return flask.jsonify({
         'name': attrs['organisationsnavn'],

@@ -10,9 +10,18 @@
 '''Details
 -------
 
-This section describes how to interact with employee and
+This section describes how to read employee and
 organisational unit metadata, referred to as *details* within this
 API.
+
+For details on how to create and edit these metadata, refer to the sections on
+creating and editing relations for employees and organisational units:
+
+* :http:post:`/service/e/(uuid:employee_uuid)/create`
+* :http:post:`/service/e/(uuid:employee_uuid)/edit`
+* :http:post:`/service/ou/(uuid:unitid)/create`
+* :http:post:`/service/ou/(uuid:unitid)/edit`
+
 
 '''
 
@@ -23,12 +32,11 @@ import operator
 
 import flask
 
+from .. import mapping
 from . import address
-from . import common
+from .. import common
 from . import employee
 from . import facet
-from . import keys
-from . import mapping
 from . import orgunit
 from .. import util
 from .. import settings
@@ -88,7 +96,7 @@ def list_details(type, id):
         functype: bool(
             c.organisationfunktion(funktionsnavn=funcname, **search),
         )
-        for functype, funcname in keys.FUNCTION_KEYS.items()
+        for functype, funcname in mapping.FUNCTION_KEYS.items()
     }
 
     reg = scope.get(id)
@@ -122,11 +130,12 @@ def get_detail(type, id, function):
     .. sourcecode:: json
 
       {
-        "from": "2016-01-01T00:00:00+00:00",
-        "to": "2018-01-01T00:00:00+00:00",
+        "from": "2016-01-01",
+        "to": "2017-12-31",
       }
 
-    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam date at: Show details valid at this point in time,
+        in ISO-8601 format.
     :queryparam string validity: Only show *past*, *present* or
         *future* values -- which the default being to show *present*
         values.
@@ -182,7 +191,7 @@ def get_detail(type, id, function):
                 },
                 "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
+                    "from": "2017-01-01",
                     "to": null
                 },
             }
@@ -232,8 +241,8 @@ def get_detail(type, id, function):
           },
           "uuid": "30cd25e1-b21d-46fe-b299-1c1265e9be66",
           "validity": {
-            "from": "2017-01-01T00:00:00+01:00",
-            "to": "2018-01-01T00:00:00+01:00"
+            "from": "2017-01-01",
+            "to": "2017-12-31"
           }
         }
       ]
@@ -248,7 +257,7 @@ def get_detail(type, id, function):
           "user_name": "Fedtmule",
           "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           }
         }
@@ -268,7 +277,7 @@ def get_detail(type, id, function):
             "scope": "DAR"
           },
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           },
         },
@@ -284,7 +293,7 @@ def get_detail(type, id, function):
             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
           },
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           },
         },
@@ -300,7 +309,7 @@ def get_detail(type, id, function):
             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
           },
           "validity": {
-            "from": "2002-02-14T00:00:00+01:00",
+            "from": "2002-02-14",
             "to": null
           },
         }
@@ -335,15 +344,15 @@ def get_detail(type, id, function):
             "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
           },
           "validity": {
-            "from": "2018-01-01T00:00:00+01:00",
-            "to": "2019-01-01T00:00:00+01:00"
+            "from": "2018-01-01",
+            "to": "2018-12-31"
           }
         }
       ]
 
     **Example manager response**:
 
-    .. sourcecode: json
+    .. sourcecode:: json
 
       [
         {
@@ -393,7 +402,7 @@ def get_detail(type, id, function):
           ],
           "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
           "validity": {
-            "from": "2017-01-01T00:00:00+01:00",
+            "from": "2017-01-01",
             "to": null
           }
         }
@@ -413,7 +422,7 @@ def get_detail(type, id, function):
         return info.relation_types[function](scope).get(id)
 
     # ensure that we report an error correctly
-    if function not in keys.FUNCTION_KEYS:
+    if function not in mapping.FUNCTION_KEYS:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_FUNCTION_TYPE)
 
@@ -421,7 +430,7 @@ def get_detail(type, id, function):
         limit=int(flask.request.args.get('limit', 0)) or
         settings.DEFAULT_PAGE_SIZE,
         start=int(flask.request.args.get('start', 0)),
-        funktionsnavn=keys.FUNCTION_KEYS[function],
+        funktionsnavn=mapping.FUNCTION_KEYS[function],
     )
 
     # TODO: the logic encoded in the functions below belong in the
@@ -504,34 +513,38 @@ def get_detail(type, id, function):
     # just return the first hit
     converters = {
         'engagement': {
-            keys.PERSON: (user_cache, get_employee_id, None, False),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            keys.JOB_FUNCTION: (class_cache, get_title_id, None, False),
-            keys.ENGAGEMENT_TYPE: (class_cache, get_type_id, None, False),
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            mapping.JOB_FUNCTION: (class_cache, get_title_id, None, False),
+            mapping.ENGAGEMENT_TYPE: (class_cache, get_type_id, None, False),
         },
         'association': {
-            keys.PERSON: (user_cache, get_employee_id, None, False),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            keys.JOB_FUNCTION: (class_cache, get_title_id, None, False),
-            keys.ASSOCIATION_TYPE: (class_cache, get_type_id, None, False),
-            keys.ADDRESS: (class_cache, get_address, get_address_type, False),
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            mapping.JOB_FUNCTION: (class_cache, get_title_id, None, False),
+            mapping.ASSOCIATION_TYPE: (class_cache, get_type_id, None, False),
+            mapping.ADDRESS: (class_cache, get_address, get_address_type,
+                              False),
         },
         'role': {
-            keys.PERSON: (user_cache, get_employee_id, None, False),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            keys.ROLE_TYPE: (class_cache, get_type_id, None, False),
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            mapping.ROLE_TYPE: (class_cache, get_type_id, None, False),
         },
         'leave': {
-            keys.PERSON: (user_cache, get_employee_id, None, False),
-            keys.LEAVE_TYPE: (class_cache, get_type_id, None, False),
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.LEAVE_TYPE: (class_cache, get_type_id, None, False),
         },
         'manager': {
-            keys.PERSON: (user_cache, get_employee_id, None, False),
-            keys.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            keys.RESPONSIBILITY: (class_cache, get_responsibility, None, True),
-            keys.MANAGER_LEVEL: (class_cache, get_manager_level, None, False),
-            keys.MANAGER_TYPE: (class_cache, get_type_id, None, False),
-            keys.ADDRESS: (class_cache, get_address, get_address_type, False),
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            mapping.RESPONSIBILITY: (class_cache, get_responsibility, None,
+                                     True),
+            mapping.MANAGER_LEVEL: (class_cache, get_manager_level, None,
+                                    False),
+            mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
+            mapping.ADDRESS: (class_cache, get_address, get_address_type,
+                              False),
         }
     }
 
@@ -563,7 +576,7 @@ def get_detail(type, id, function):
                 ),
             },
         )
-        if common.is_reg_valid(effect)
+        if util.is_reg_valid(effect)
     ]
 
     def as_values(vs):
@@ -574,7 +587,7 @@ def get_detail(type, id, function):
             if isinstance(v, str):
                 yield v
             else:
-                yield common.get_uuid(v)
+                yield util.get_uuid(v)
 
     # extract all object IDs
     for cache, getter, cachegetter, aslist in converters[function].values():
@@ -606,7 +619,7 @@ def get_detail(type, id, function):
         values = getter(effect)
 
         if cache and not cachegetter:
-            values = (cache[common.get_uuid(v)] for v in values)
+            values = (cache[util.get_uuid(v)] for v in values)
 
         if aslist:
             return list(values)
@@ -621,19 +634,19 @@ def get_detail(type, id, function):
             for key, args in converters[function].items()
         }
 
-        func[keys.VALIDITY] = {
-            keys.FROM: util.to_iso_time(start),
-            keys.TO: util.to_iso_time(end),
+        func[mapping.VALIDITY] = {
+            mapping.FROM: util.to_iso_date(start),
+            mapping.TO: util.to_iso_date(end, is_end=True),
         }
-        func[keys.UUID] = funcid
+        func[mapping.UUID] = funcid
 
         return func
 
     def sort_key(obj):
         return (
-            obj[keys.VALIDITY][keys.FROM],
-            common.get_obj_value(obj, (keys.PERSON, keys.NAME)),
-            common.get_obj_value(obj, (keys.ORG_UNIT, keys.NAME)),
+            obj[mapping.VALIDITY][mapping.FROM],
+            util.get_obj_value(obj, (mapping.PERSON, mapping.NAME)),
+            util.get_obj_value(obj, (mapping.ORG_UNIT, mapping.NAME)),
         )
 
     return flask.jsonify(sorted(

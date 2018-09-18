@@ -5,13 +5,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 '''Addresses
 ---------
+.. _address:
 
-Within the context of MO, we have to forms of address, `DAR`_ and
+
+Within the context of MO, we have two forms of addresses, `DAR`_ and
 everything else. **DAR** is short for *Danmarks Adresseregister* or
-the *Address Register of Denmark*, and constitutes a UUID reprenting a
+the *Address Register of Denmark*, and constitutes a UUID representing a
 DAWA address or access address. We represent other addresses merely
 through their textual value.
 
@@ -92,12 +93,13 @@ EAN
 PNUMBER
       A production unit number, as registered with the Danish CVR.
 
-Example data
-~~~~~~~~~~~~
+
+Reading
+^^^^^^^
 
 An example of reading the main two different types of addresses:
 
-.. sourcecode: json
+.. sourcecode:: json
 
   [
     {
@@ -112,7 +114,7 @@ An example of reading the main two different types of addresses:
       "name": "8715 0000",
       "urn": "urn:magenta.dk:telefon:+4587150000",
       "validity": {
-        "from": "2016-01-01T00:00:00+01:00",
+        "from": "2016-01-01",
         "to": null
       }
     },
@@ -128,16 +130,60 @@ An example of reading the main two different types of addresses:
       "name": "Nordre Ringgade 1, 8000 Aarhus C",
       "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
       "validity": {
-        "from": "2016-01-01T00:00:00+01:00",
+        "from": "2016-01-01",
         "to": null
       }
     }
   ]
 
-Of these, ``name`` should be used for displaying the address and
-``href`` for a hyperlink target. The ``uuid`` and ``urn`` keys
-uniquely represent the address value for editing, although any such
-operation should specify the entire object.
+* ``name`` is a human-readable value for displaying the address
+* ``href`` should be used as a hyperlink target, if applicable
+* ``urn`` and ``uuid`` are used for uniquely representing the address
+  value for editing, which is detailed below.
+* ``validity`` is a validity object.
+* ``address_type`` is an address type object, equal to one of the types from
+  the facet endpoint detailed above.
+
+Writing
+^^^^^^^
+
+An example of objects for writing the two main types of addresses:
+
+.. sourcecode:: json
+
+  [
+    {
+      "value": "0101501234",
+      "address_type": {
+        "example": "5712345000014",
+        "name": "EAN",
+        "scope": "EAN",
+        "user_key": "EAN",
+        "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+      }
+    },
+    {
+      "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+      "address_type": {
+        "example": "<UUID>",
+        "name": "Adresse",
+        "scope": "DAR",
+        "user_key": "Adresse",
+        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+      }
+    }
+  ]
+
+* ``value`` the value of the address, if **not** a DAR address. This should be
+  provided in human-readable format, as the backend takes care of correctly
+  formatting the value into a URN
+* ``uuid``: the uuid of the address, if the type **is** a DAR address.
+* ``address_type`` is an address type object, equal to one of the types from
+  the facet endpoint detailed above.
+
+More information regarding creating and editing addresses can be found in the
+sections on creating and editing relations for employees and organisational
+units.
 
 .. _DAR: http://dawa.aws.dk/dok/api/adresse
 
@@ -155,11 +201,11 @@ import requests
 
 from .. import exceptions
 from .. import lora
+from .. import mapping
 from .. import util
 
-from . import common
+from .. import common
 from . import facet
-from . import keys
 
 session = requests.Session()
 session.headers = {
@@ -188,10 +234,10 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
 
 
 def get_relation_for(addrobj, fallback=None):
-    typeobj = common.checked_get(addrobj, keys.ADDRESS_TYPE, {},
-                                 fallback=fallback, required=True)
-    scope = common.checked_get(typeobj, 'scope', '', required=True)
-    validity = common.get_validity_effect(addrobj, fallback=fallback)
+    typeobj = util.checked_get(addrobj, mapping.ADDRESS_TYPE, {},
+                               fallback=fallback, required=True)
+    scope = util.checked_get(typeobj, 'scope', '', required=True)
+    validity = util.get_validity_effect(addrobj, fallback=fallback)
 
     r = {}
 
@@ -199,8 +245,8 @@ def get_relation_for(addrobj, fallback=None):
         r['virkning'] = validity
 
     if scope == 'DAR':
-        r['uuid'] = common.get_uuid(addrobj, fallback)
-        r['objekttype'] = common.checked_get(typeobj, keys.UUID, 'DAR')
+        r['uuid'] = util.get_uuid(addrobj, fallback)
+        r['objekttype'] = util.checked_get(typeobj, mapping.UUID, 'DAR')
 
     elif scope in URN_PREFIXES:
         # this is the fallback: we want to use the 'urn' key if set
@@ -209,14 +255,15 @@ def get_relation_for(addrobj, fallback=None):
         # want to report that the *value* is missing in the
         # exception/error message.
         if (
-            keys.VALUE not in addrobj and (
+            mapping.VALUE not in addrobj and (
                 'urn' in addrobj or fallback and 'urn' in fallback
             )
         ):
-            value = common.get_urn(addrobj, fallback)
+            value = util.get_urn(addrobj, fallback)
 
         else:
-            value = common.checked_get(addrobj, keys.VALUE, '', required=True)
+            value = util.checked_get(addrobj, mapping.VALUE, '',
+                                     required=True)
             prefix = URN_PREFIXES[scope]
 
             if scope == 'PHONE':
@@ -232,7 +279,7 @@ def get_relation_for(addrobj, fallback=None):
                 value = prefix + value
 
         r['urn'] = value
-        r['objekttype'] = common.get_uuid(typeobj)
+        r['objekttype'] = util.get_uuid(typeobj)
 
     else:
         raise exceptions.HTTPException(
@@ -258,7 +305,7 @@ def get_address_class(c, addrrel, class_cache):
 
 def get_one_address(c, addrrel, class_cache=None):
     addrclass = get_address_class(c, addrrel, class_cache)
-    scope = common.checked_get(addrclass, 'scope', 'DAR')
+    scope = util.checked_get(addrclass, 'scope', 'DAR')
 
     if scope == 'DAR':
         # unfortunately, we cannot live with struktur=mini, as it omits
@@ -275,8 +322,8 @@ def get_one_address(c, addrrel, class_cache=None):
         addrobj = r.json()
 
         return {
-            keys.ADDRESS_TYPE: addrclass,
-            keys.HREF: (
+            mapping.ADDRESS_TYPE: addrclass,
+            mapping.HREF: (
                 'https://www.openstreetmap.org/'
                 '?mlon={}&mlat={}&zoom=16'.format(
                     *addrobj['adgangsadresse']
@@ -284,8 +331,8 @@ def get_one_address(c, addrrel, class_cache=None):
                 )
             ),
 
-            keys.NAME: addrobj['adressebetegnelse'],
-            keys.UUID: addrrel['uuid'],
+            mapping.NAME: addrobj['adressebetegnelse'],
+            mapping.UUID: addrrel['uuid'],
         }
 
     elif scope in URN_PREFIXES:
@@ -312,12 +359,12 @@ def get_one_address(c, addrrel, class_cache=None):
             name = util.urnunquote(name)
 
         return {
-            keys.ADDRESS_TYPE: addrclass,
+            mapping.ADDRESS_TYPE: addrclass,
 
-            keys.HREF: href,
+            mapping.HREF: href,
 
-            keys.NAME: name,
-            keys.URN: urn,
+            mapping.NAME: name,
+            mapping.URN: urn,
         }
 
     else:
@@ -364,7 +411,7 @@ class Addresses(common.AbstractRelationDetail):
 
                     continue
 
-                addr[keys.VALIDITY] = common.get_effect_validity(addrrel)
+                addr[mapping.VALIDITY] = util.get_effect_validity(addrrel)
 
                 yield addr
 
@@ -373,9 +420,9 @@ class Addresses(common.AbstractRelationDetail):
                 convert(self.scope.get(id)),
                 key=(
                     lambda v: (
-                        common.get_valid_from(v) or util.NEGATIVE_INFINITY,
-                        common.get_valid_to(v) or util.POSITIVE_INFINITY,
-                        str(v[keys.NAME]),
+                        util.get_valid_from(v) or util.NEGATIVE_INFINITY,
+                        util.get_valid_to(v) or util.POSITIVE_INFINITY,
+                        str(v[mapping.NAME]),
                     )
                 ),
             ),
@@ -410,8 +457,8 @@ class Addresses(common.AbstractRelationDetail):
             virkningtil='infinity',
         )
 
-        old_entry = common.checked_get(req, 'original', {}, required=True)
-        new_entry = common.checked_get(req, 'data', {}, required=True)
+        old_entry = util.checked_get(req, 'original', {}, required=True)
+        new_entry = util.checked_get(req, 'data', {}, required=True)
 
         if not old_entry:
             raise exceptions.HTTPException(
@@ -478,7 +525,7 @@ def address_autocomplete(orgid):
 
     """
     q = flask.request.args['q']
-    global_lookup = common.get_args_flag('global')
+    global_lookup = util.get_args_flag('global')
 
     if not global_lookup:
         org = lora.Connector().organisation.get(orgid)

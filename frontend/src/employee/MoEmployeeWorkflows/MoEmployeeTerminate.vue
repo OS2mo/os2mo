@@ -20,7 +20,7 @@
         <mo-date-picker 
           class="from-date" 
           :label="$t('input_fields.end_date')" 
-          v-model="terminate.validity.from" 
+          v-model="terminate.validity.to" 
           required
         />
       </div>
@@ -78,6 +78,10 @@
     },
 
     computed: {
+      isDisabled () {
+        return !this.employee.uuid || !this.terminate.validity.to
+      },
+
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */

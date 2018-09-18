@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# MORa documentation build configuration file, created by
+# OS2MO 2.0 documentation build configuration file, created by
 # sphinx-quickstart on Wed Aug 23 09:52:25 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -68,6 +68,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.autohttp.flask',
     'sphinxcontrib.autohttp.flaskqref',
@@ -95,8 +96,8 @@ source_parsers = {
 master_doc = 'index'
 
 # General information about the project.
-project = 'MORa'
-copyright = '2017 Magenta ApS'
+project = 'OS2MO 2.0'
+copyright = 'OS2 — Offentligt digitaliseringsfællesskab'
 author = 'Magenta ApS'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -114,7 +115,7 @@ with open(os.path.join(FRONTEND_DIR, 'package.json')) as fp:
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'da_DK'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -141,7 +142,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-# html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -149,6 +150,7 @@ todo_include_todos = False
 #
 html_theme_options = {
     # 'headerbg': "#002f5d",
+    'logo_only': True,
 }
 
 html_show_sphinx = False
@@ -178,7 +180,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'MORadoc'
+htmlhelp_basename = 'Os2modoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -205,7 +207,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'MORa.tex', 'MORa Documentation',
+    (master_doc, 'mora.tex', 'OS2MO 2.0 Documentation',
      'Magenta ApS', 'manual'),
 ]
 
@@ -215,7 +217,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mora', 'MORa Documentation',
+    (master_doc, 'mora', 'OS2MO 2.0 Documentation',
      [author], 1)
 ]
 
@@ -226,7 +228,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'MORa', 'MORa Documentation',
-     author, 'MORa', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc, 'MORa', 'OS2MO 2.0 Documentation',
+        author, 'OS2MO 2.0',
+        'OS2MO 2.0 — MedarbejderOrganisation + LoRa, fuldstænding dokumentation',
+        'Miscellaneous',
+    ),
 ]

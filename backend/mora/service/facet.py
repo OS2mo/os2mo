@@ -28,9 +28,9 @@ import uuid
 import flask
 import werkzeug
 
-from . import common
-from . import keys
+from .. import common
 from .. import exceptions
+from .. import mapping
 from .. import settings
 from .. import util
 
@@ -41,20 +41,20 @@ blueprint = flask.Blueprint('facet', __name__, static_url_path='',
 # actualilty, the translation services little purpose other than to
 # make the application less flexible
 FACETS = {
-    keys.ADDRESS_TYPE: 'Adressetype',
-    keys.ASSOCIATION_TYPE: 'Tilknytningstype',
-    # keys.AUTHORITY_TYPE: 'Myndighedstype',
-    keys.ENGAGEMENT_TYPE: 'Engagementstype',
-    # keys.FUNCTION_TYPE: 'Funktionstype',
-    keys.JOB_FUNCTION: 'Stillingsbetegnelse',
-    keys.MANAGER_TYPE: 'Ledertyper',
-    keys.ORG_UNIT_TYPE: 'Enhedstype',
-    keys.RESPONSIBILITY: 'Lederansvar',
-    keys.MANAGER_LEVEL: 'Lederniveau',
-    keys.ROLE_TYPE: 'Rolletype',
-    # keys.USER_TYPE: 'Brugertype',
-    keys.LEAVE_TYPE: 'Orlovstype',
-    keys.MANAGER_ADDRESS_TYPE: 'Lederadressetype',
+    mapping.ADDRESS_TYPE: 'Adressetype',
+    mapping.ASSOCIATION_TYPE: 'Tilknytningstype',
+    # mapping.AUTHORITY_TYPE: 'Myndighedstype',
+    mapping.ENGAGEMENT_TYPE: 'Engagementstype',
+    # mapping.FUNCTION_TYPE: 'Funktionstype',
+    mapping.JOB_FUNCTION: 'Stillingsbetegnelse',
+    mapping.MANAGER_TYPE: 'Ledertyper',
+    mapping.ORG_UNIT_TYPE: 'Enhedstype',
+    mapping.RESPONSIBILITY: 'Lederansvar',
+    mapping.MANAGER_LEVEL: 'Lederniveau',
+    mapping.ROLE_TYPE: 'Rolletype',
+    # mapping.USER_TYPE: 'Brugertype',
+    mapping.LEAVE_TYPE: 'Orlovstype',
+    mapping.MANAGER_ADDRESS_TYPE: 'Lederadressetype',
 }
 
 FACET_NAMES = {
@@ -73,7 +73,8 @@ def list_facets(orgid):
 
     :>jsonarr string name: The facet name.
     :>jsonarr string path: The location on the web server.
-    :>jsonarr string desc: Human readable description.
+    :>jsonarr string user_key: Short, unique key identifying the facet
+    :>jsonarr string uuid: The UUID of the facet.
 
     :status 200: Always.
 

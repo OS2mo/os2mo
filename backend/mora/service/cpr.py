@@ -15,10 +15,11 @@ based on their CPR number.
 
 import flask
 
-from mora import exceptions
-from mora import util
-from mora.integrations.serviceplatformen import get_citizen
-from mora.service import keys
+from .. import exceptions
+from .. import mapping
+from .. import util
+from ..integrations.serviceplatformen import get_citizen
+
 
 blueprint = flask.Blueprint('cpr', __name__, static_url_path='',
                             url_prefix='/service')
@@ -73,6 +74,6 @@ def format_cpr_response(sp_data: dict, cpr: str):
     name = ' '.join(filter(None, [first_name, middle_name, last_name]))
 
     return {
-        keys.NAME: name,
-        keys.CPR_NO: cpr
+        mapping.NAME: name,
+        mapping.CPR_NO: cpr
     }

@@ -24,7 +24,7 @@ class Tests(util.TestCase):
             status_code=404,
         )
 
-    @mock.patch('mora.service.common.get_connector')
+    @mock.patch('mora.common.get_connector')
     def test_exception_handling(self, p):
         p.side_effect = ValueError('go away')
 

@@ -8,7 +8,7 @@
 
 import unittest
 
-from mora.service.common import create_organisationsfunktion_payload
+from mora.common import create_organisationsfunktion_payload
 
 
 class TestCreateOrgFunk(unittest.TestCase):
@@ -21,8 +21,8 @@ class TestCreateOrgFunk(unittest.TestCase):
                     'funktionsnavn': 'funktionsnavn',
                     'brugervendtnoegle': 'brugervendtnoegle',
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 }]
             },
@@ -32,15 +32,15 @@ class TestCreateOrgFunk(unittest.TestCase):
                     {
                         'uuid': 'a30f5f68-9c0d-44e9-afc9-04e58f52dfec',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+00:00',
-                            'to': '2018-01-01T00:00:00+00:00'
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2018-01-01T00:00:00+01:00'
                         }
                     },
                     {
                         'uuid': '3f2e320e-d265-4480-a4f6-b92e40cf91b3',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+00:00',
-                            'to': '2018-01-01T00:00:00+00:00'
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2018-01-01T00:00:00+01:00'
                         }
                     }
                 ],
@@ -48,45 +48,45 @@ class TestCreateOrgFunk(unittest.TestCase):
                     {
                         'uuid': '0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+00:00',
-                            'to': '2018-01-01T00:00:00+00:00'
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2018-01-01T00:00:00+01:00'
                         }
                     },
                     {
                         'uuid': 'c20a1d60-33df-4dd3-9509-125e66b124eb',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+00:00',
-                            'to': '2018-01-01T00:00:00+00:00'
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2018-01-01T00:00:00+01:00'
                         }
                     }
                 ],
                 'organisatoriskfunktionstype': [{
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 }],
                 'tilknyttedeorganisationer': [{
                     'uuid': 'f494ad89-039d-478e-91f2-a63566554bd6',
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 }],
                 'opgaver': [
                     {
                         'uuid': '3ef81e52-0deb-487d-9d0e-a69bbe0277d8',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+00:00',
-                            'to': '2018-01-01T00:00:00+00:00'
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2018-01-01T00:00:00+01:00'
                         }
                     },
                     {
                         'uuid': '8017363b-e836-41c1-8511-2287d8fbc8a2',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+00:00',
-                            'to': '2018-01-01T00:00:00+00:00'
+                            'from': '2016-01-01T00:00:00+01:00',
+                            'to': '2018-01-01T00:00:00+01:00'
                         }
                     }
                 ]
@@ -94,8 +94,8 @@ class TestCreateOrgFunk(unittest.TestCase):
             'tilstande': {
                 'organisationfunktiongyldighed': [{
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     },
                     'gyldighed': 'Aktiv'
                 }]
@@ -103,8 +103,8 @@ class TestCreateOrgFunk(unittest.TestCase):
         }
 
         funktionsnavn = "funktionsnavn"
-        valid_from = "2016-01-01T00:00:00+00:00"
-        valid_to = "2018-01-01T00:00:00+00:00"
+        valid_from = "2016-01-01T00:00:00+01:00"
+        valid_to = "2018-01-01T00:00:00+01:00"
         brugervendtnoegle = "brugervendtnoegle"
         tilknyttedebrugere = ['0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6',
                               'c20a1d60-33df-4dd3-9509-125e66b124eb']
@@ -143,8 +143,8 @@ class TestCreateOrgFunk(unittest.TestCase):
                     'funktionsnavn': 'funktionsnavn',
                     'brugervendtnoegle': 'brugervendtnoegle',
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 }]
             },
@@ -153,23 +153,23 @@ class TestCreateOrgFunk(unittest.TestCase):
                 'tilknyttedebrugere': [{
                     'uuid': '0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6',
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 }],
                 'tilknyttedeorganisationer': [{
                     'uuid': 'f494ad89-039d-478e-91f2-a63566554bd6',
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     }
                 }],
             },
             'tilstande': {
                 'organisationfunktiongyldighed': [{
                     'virkning': {
-                        'from': '2016-01-01T00:00:00+00:00',
-                        'to': '2018-01-01T00:00:00+00:00'
+                        'from': '2016-01-01T00:00:00+01:00',
+                        'to': '2018-01-01T00:00:00+01:00'
                     },
                     'gyldighed': 'Aktiv'
                 }]
@@ -177,8 +177,8 @@ class TestCreateOrgFunk(unittest.TestCase):
         }
 
         funktionsnavn = "funktionsnavn"
-        valid_from = "2016-01-01T00:00:00+00:00"
-        valid_to = "2018-01-01T00:00:00+00:00"
+        valid_from = "2016-01-01T00:00:00+01:00"
+        valid_to = "2018-01-01T00:00:00+01:00"
         brugervendtnoegle = "brugervendtnoegle"
         tilknyttedebrugere = ['0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6']
         tilknyttedeorganisationer = ["f494ad89-039d-478e-91f2-a63566554bd6"]

@@ -31,8 +31,8 @@ class Tests(util.LoRATestCase):
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
-                    "from": "2017-12-01T00:00:00+01",
-                    "to": "2017-12-02T00:00:00+01",
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
                 },
             }
         ]
@@ -149,7 +149,7 @@ class Tests(util.LoRATestCase):
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
-                    "from": "2017-12-01T00:00:00+01",
+                    "from": "2017-12-01",
                 },
             }
         ]
@@ -282,7 +282,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
-                    "from": "2018-04-01T00:00:00+02",
+                    "from": "2018-04-01",
                 },
             },
         }]
@@ -413,7 +413,7 @@ class Tests(util.LoRATestCase):
             "uuid": role_uuid,
             "data": {
                 "validity": {
-                    "from": "2018-04-01T00:00:00+02",
+                    "from": "2018-04-01",
                 },
             },
         }]
@@ -531,7 +531,7 @@ class Tests(util.LoRATestCase):
             "uuid": role_uuid,
             "original": {
                 "validity": {
-                    "from": "2017-01-01 00:00:00+01",
+                    "from": "2017-01-01",
                     "to": None
                 },
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
@@ -546,7 +546,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
-                    "from": "2018-04-01T00:00:00+02",
+                    "from": "2018-04-01",
                 },
             },
         }]
@@ -675,7 +675,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "validity": {
-                "from": "2017-12-01T00:00:00+01"
+                "to": "2017-11-30"
             }
         }
 
