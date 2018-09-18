@@ -27,10 +27,10 @@ class Organisation(MoxUtility):
             date_to=date_to
         )
 
-        self.facet = Facet(self.uuid)
-        self.klasse = Klasse(self.uuid)
-        self.org_unit = OrganisationUnit(self.uuid)
-        self.employee = Employee(self.uuid)
+        self.Facet = Facet(self.uuid)
+        self.Klasse = Klasse(self.uuid)
+        self.OrganisationUnit = OrganisationUnit(self.uuid)
+        self.Employee = Employee(self.uuid)
 
         # Create defaults
         facet_map = self.facet.create_defaults()
