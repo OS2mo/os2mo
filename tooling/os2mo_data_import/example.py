@@ -107,5 +107,42 @@ def example_import():
     employees_map = org.Employee.get_map()
     print(employees_map)
 
+    william_riker = org.Employee.get_data("William Riker")
+    print(william_riker)
+
+    # Get job function uuid
+    job_title_uuid = org.Facet.get_uuid("Stillingsbetegnelse")
+
+
+    # Add job type "Bridge Officer
+    bridge_officer_job = dict(
+        brugervendtnoegle="Bridge Officer",
+        titel="Bridge Officer",
+    )
+
+
+    bridge_officer = org.Klasse.add(
+        identifier="Bridge Officer",
+        facet_ref=job_title_uuid,
+        properties=bridge_officer_job
+    )
+
+    # Get job function type uuid
+    bridge_officer_employee = org.Klasse.get_uuid("Ansat")
+
+    new_job = org.Employee.append_job(
+        identifier="William Riker",
+        org_unit_ref=officers_unit,
+        job_function_type=bridge_officer,
+        engagement_type=bridge_officer_employee,
+        date_from="1986-01-01"
+    )
+
+    print(new_job)
+
+    meta_job = org.Employee.get_metadata("William Riker")
+    print("Meta job: ")
+    print(meta_job)
+
 if __name__ == "__main__":
     example_import()

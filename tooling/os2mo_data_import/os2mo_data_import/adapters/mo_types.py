@@ -26,7 +26,12 @@ class MoBase(MemoryMap):
                 "metadata": []
             }
 
+        if metadata in  self.storage_map[identifier]["metadata"]:
+            return False
+
         self.storage_map[identifier]["metadata"].append(metadata)
+
+        return True
 
 
 class OrganisationUnit(MoBase):
@@ -82,3 +87,21 @@ class Employee(MoBase):
             })
 
         return self.save(identifier=name, data=data)
+
+    def append_job(self, identifier, org_unit_ref, job_function_type, engagement_type, date_from, date_to=None):
+
+        job_data = {
+            "type": "engagement",
+            "org_unit": {
+                "uuid": org_unit_ref
+            },
+            "job_function": {
+                "uuid": job_function_type
+            },
+            "engagement_type": {
+                "uuid": engagement_type
+            },
+            "validity": self.validity_range(date_from, date_to)
+        }
+
+        return self.set_metadata(identifier, job_data)
