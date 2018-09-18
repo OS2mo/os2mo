@@ -1,9 +1,24 @@
 # -- coding: utf-8 --
 
 from os2mo_data_import.adapters import Organisation
-import os2mo_data_import.http_utils as importutil
+
+
 
 def example_import():
+    """
+    This example requires that the os2mo_data_import library is installed!
+
+    Install into venv or python path:
+
+        pip install -e /path/to/os2mo_data_import
+
+    Run the example:
+
+        python /path/to/os2mo_data_import/example.py
+
+    !! Unittest is missing !!
+
+    """
 
     # Init org
     org = Organisation("Enterprise", "Starship Enterprise")
