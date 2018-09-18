@@ -58,7 +58,7 @@ class OrganisationUnit(MemoryMap):
         return self.set_metadata(identifier, address_data)
 
 
-class Employee(MoBaseType):
+class Employee(MemoryMap):
 
     def __init__(self, parent_org):
         self.parent_org = parent_org
