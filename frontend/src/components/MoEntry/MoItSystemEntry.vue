@@ -16,7 +16,7 @@
     </div>
 
     <mo-date-picker-range 
-      v-model="entry.validity" 
+      v-model="entry.validity"
       :initially-hidden="validityHidden"
     />
   </div>
@@ -25,9 +25,11 @@
 <script>
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
+  import MoInput from '@/components/atoms/MoInput'
 
   export default {
     components: {
+      MoInput,
       MoDatePickerRange,
       MoItSystemPicker
     },
