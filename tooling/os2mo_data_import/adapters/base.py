@@ -74,6 +74,18 @@ class MemoryMap(MoxUtility):
             for key, val in self.storage_map.items()
         }
 
+    def get_map(self):
+        """
+        Show available identifiers/uuids
+
+        :return:
+        """
+
+        return {
+            key: val["uuid"]
+            for key, val in self.storage_map.items()
+        }
+
     def save(self, identifier, data):
         """
         Save data type in memory only
