@@ -50,7 +50,7 @@ class OrganisationUnit(MoBase):
             }
         }
 
-        return self.save(name, data)
+        return self.save(identifier=name, data=data)
 
     def add_address_type(self, identifier, address_data):
 
@@ -66,20 +66,21 @@ class Employee(MoBase):
     def __init__(self, parent_org):
         self.parent_org = parent_org
 
-    def add(self, name, type_ref, date_from, date_to=None):
+    def add(self, name, cpr_no, date_from, date_to=None, user_key=None):
 
         data = {
             "name": name,
-            "parent": {
+            "cpr_no": cpr_no,
+            "org": {
                 "uuid": self.parent_org
             },
-            "org_unit_type": {
-                "uuid": type_ref
-            },
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
         }
 
-        return data
+        # Add user key to the data payload if passed
+        # Default is auto generated UUID
+        if user_key:
+            data.update({
+                "user_key": user_key
+            })
+
+        return self.save(identifier=name, data=data)
