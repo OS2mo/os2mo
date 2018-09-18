@@ -1,6 +1,6 @@
 # -- coding: utf-8 --
 
-from os2mo_data_import.adapters import Organisation
+from os2mo_data_import import Organisation
 
 
 

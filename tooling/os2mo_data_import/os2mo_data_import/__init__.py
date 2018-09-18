@@ -1,0 +1,1 @@
+from os2mo_data_import.adapters.builder import Organisation
