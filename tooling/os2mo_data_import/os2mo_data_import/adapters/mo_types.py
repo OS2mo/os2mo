@@ -44,10 +44,7 @@ class OrganisationUnit(MoBase):
             "org_unit_type": {
                 "uuid": type_ref
             },
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
+            "validity": self.validity_range(date_from, date_to)
         }
 
         return self.save(identifier=name, data=data)
@@ -74,6 +71,7 @@ class Employee(MoBase):
             "org": {
                 "uuid": self.parent_org
             },
+            "validity": self.validity_range(date_from, date_to)
         }
 
         # Add user key to the data payload if passed
