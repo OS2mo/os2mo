@@ -180,7 +180,7 @@ RELATION_TYPES = {
     'org_unit': OrgUnit,
 }
 
-ORGFUNC_TYPES = ['manager']
+ORGFUNC_TYPES = {'manager': manager.create_manager}
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -734,7 +734,6 @@ def create_org_unit_relation(unitid):
 
     :statuscode 200: Creation succeeded.
 
-    :param unituuid: The UUID of the unit.
     :param unitid: The UUID of the organisational unit.
 
     All requests contain validity objects on the following form:
@@ -844,14 +843,16 @@ def create_org_unit_relation(unitid):
         return flask.jsonify('Root object must be a list!'), 400
 
     if not all('type' in r and r['type'] in
-               (list(RELATION_TYPES.keys()) + ORGFUNC_TYPES) for r in reqs):
+               (list(RELATION_TYPES.keys()) + list(ORGFUNC_TYPES.keys()))
+               for r in reqs):
         return flask.jsonify('Invalid role types!'), 400
 
     for req in reqs:
-        if req['type'] == 'manager':
-            manager.create_manager(employee_uuid=None,
-                                   org_unit_uuid=str(unitid),
-                                   req=req)
+        if req['type'] in ORGFUNC_TYPES:
+            ORGFUNC_TYPES.get(req['type'])(
+                employee_uuid=None,
+                org_unit_uuid=str(unitid),
+                req=req)
         else:
             RELATION_TYPES.get(req['type'])(
                 common.get_connector().organisationenhed,

@@ -646,13 +646,12 @@ def get_detail(type, id, function):
         return func
 
     def sort_key(obj):
-        time_from = obj[mapping.VALIDITY][mapping.FROM]
-        name = util.get_obj_value(obj, (mapping.PERSON, mapping.NAME))
-        if name is None:  # This happens if the manager position is vacant
-            name = ' '
-        org_unit = util.get_obj_value(obj, (mapping.ORG_UNIT, mapping.NAME))
-        return_tuple = (time_from, name, org_unit)
-        return return_tuple
+        return (obj[mapping.VALIDITY][mapping.FROM],
+                # Set default value for person name if no person
+                # is accociated with this position
+                util.get_obj_value(obj, (mapping.PERSON, mapping.NAME),
+                                   default=' '),
+                util.get_obj_value(obj, (mapping.ORG_UNIT, mapping.NAME)))
 
     return flask.jsonify(sorted(
         itertools.starmap(convert, function_effects),

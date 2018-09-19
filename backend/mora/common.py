@@ -355,11 +355,13 @@ def create_organisationsfunktion_payload(
     }
 
     if tilknyttedebrugere:
-        brugere = []
-        for bruger in tilknyttedebrugere:
-            if bruger:
-                brugere.append({'uuid': bruger})
-        org_funk['relationer']['tilknyttedebrugere'] = brugere
+        org_funk['relationer']['tilknyttedebrugere'] = [
+            {
+                'uuid': brugerid,
+            }
+            for brugerid in tilknyttedebrugere
+            if brugerid
+        ]
 
     if tilknyttedeenheder:
         org_funk['relationer']['tilknyttedeenheder'] = [{

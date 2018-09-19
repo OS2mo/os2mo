@@ -254,6 +254,34 @@ class Tests(util.LoRATestCase):
             }],
         )
 
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_create_vacant_manager(self, m):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = [
+            {
+                "type": "manager",
+                "responsibility": [{
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                }],
+                "manager_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "manager_level": {
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                },
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-02",
+                },
+            }
+        ]
+        org_unit = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        self.assertRequestResponse('/service/ou/{}/create'.format(org_unit),
+                                   org_unit, json=payload)
+
     def test_create_manager_no_valid_to(self):
         self.load_sample_structures()
 
