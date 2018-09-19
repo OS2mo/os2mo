@@ -28,7 +28,6 @@ import werkzeug
 from . import address
 from .. import common
 from . import facet
-from . import itsystem
 from . import manager
 from .. import mapping
 from . import org

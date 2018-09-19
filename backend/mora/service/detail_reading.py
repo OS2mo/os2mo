@@ -7,8 +7,8 @@
 #
 
 
-'''Details
--------
+'''Reading details
+---------------
 
 This section describes how to read employee and
 organisational unit metadata, referred to as *details* within this
