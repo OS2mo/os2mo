@@ -569,15 +569,16 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     obj_copy = copy.deepcopy(obj)
 
     current_value = obj_copy
-    while path_list:
-        key = path_list.pop(0)
-        if path_list:
-            current_value = current_value.setdefault(key, {})
-        else:
-            if not current_value.get(key):
-                current_value[key] = val
-            else:
-                current_value[key].extend(val)
+
+    for key in path_list[:-1]:
+        current_value = current_value.setdefault(key, {})
+
+    key = path_list[-1]
+
+    if isinstance(current_value.get(key), list):
+        current_value[key].extend(val)
+    else:
+        current_value[key] = val
 
     return obj_copy
 
