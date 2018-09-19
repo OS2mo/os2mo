@@ -1,7 +1,7 @@
 # -- coding: utf-8 --
 
 from os2mo_data_import import Organisation
-
+from os2mo_data_import.http_utils import temp_import_all
 
 
 def example_import():
@@ -22,6 +22,7 @@ def example_import():
 
     # Init org
     org = Organisation("Enterprise", "Starship Enterprise")
+    print(org)
 
     # Show all default facet and klasse values
     all_facet = org.Facet.get_map()
@@ -86,10 +87,22 @@ def example_import():
     officers_unit = org.OrganisationUnit.get_uuid("Officers")
     print("Officers unit has uuid: %s" % officers_unit)
 
+    # Create "Science Officers"
+    # Use parent_ref to make it a sub group of "Officers"
+    science_unit = org.OrganisationUnit.add(
+        name="Science Officers",
+        type_ref=bridge_section_uuid,  # This unit is of type: Bridge section
+        parent_ref=officers_unit,  # Sub unit of/Belongs to Officers unit
+        date_from="1986-01-01",
+        date_to=None
+    )
+
+    print("Science Officers created: {}".format(science_unit))
+
     # Employee
     new_employee = org.Employee.add(
         name="Jean-Luc Picard",
-        cpr_no="1122331133",
+        cpr_no="1112114455",
         date_from="1986-01-01"
     )
 
@@ -99,7 +112,7 @@ def example_import():
     # Another employee
     org.Employee.add(
         name="William Riker",
-        cpr_no="1122331133",
+        cpr_no="1212114455",
         date_from="1986-01-01"
     )
 
@@ -143,6 +156,11 @@ def example_import():
     meta_job = org.Employee.get_metadata("William Riker")
     print("Meta job: ")
     print(meta_job)
+
+
+    # Import everything
+    omni = temp_import_all(org)
+    print(omni)
 
 if __name__ == "__main__":
     example_import()
