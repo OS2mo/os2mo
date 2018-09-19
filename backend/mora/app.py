@@ -35,18 +35,18 @@ app.config.update({
 
     # SAML config
     'SAML_IDP_METADATA_URL': settings.SAML_IDP_METADATA_URL,
+    'SAML_IDP_METADATA_FILE': settings.SAML_IDP_METADATA_FILE,
     'SAML_IDP_INSECURE': settings.SAML_IDP_INSECURE,
     'SAML_KEY_FILE': settings.SAML_KEY_FILE,
     'SAML_CERT_FILE': settings.SAML_CERT_FILE,
     'SAML_REQUESTS_SIGNED': settings.SAML_REQUESTS_SIGNED,
     'SAML_USERNAME_ATTR': settings.SAML_USERNAME_ATTR,
+    'SAML_DUPLICATE_ATTRIBUTES': settings.SAML_DUPLICATE_ATTRIBUTES,
 })
 flask_session.Session(app)
 
 app.register_blueprint(base.blueprint)
-
-if settings.AUTH:
-    app.register_blueprint(sso.blueprint)
+app.register_blueprint(sso.blueprint)
 
 for blueprint in service.blueprints:
     app.register_blueprint(blueprint)

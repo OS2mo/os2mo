@@ -25,9 +25,9 @@ Configuration
 
 The following configuration entries are relevant for SAML SSO:
 
-* ``"AUTH"``: Whether the auth module should be loaded. Should be ``true``
-  in this case.
 * ``"SAML_IDP_METADATA_URL"``: The URL to the IdPs metadata
+* ``"SAML_IDP_METADATA_FILE"``: The path to a file containing IdP metadata.
+  This parameter will override the URL parameter.
 * ``"SAML_USERNAME_ATTR"``: The name of the attribute in the SAML assertion
   containing the username.
 * ``"SAML_IDP_INSECURE"``: Whether or not the IdP metadata endpoint should be
@@ -43,7 +43,6 @@ Example configuration entries::
 
   {
     ...
-    "AUTH": true,
     "SAML_IDP_METADATA_URL": "https://192.168.1.212/simplesaml/saml2/idp/metadata.php",
     "SAML_USERNAME_ATTR": "urn:oid:2.5.4.41",
     "SAML_IDP_INSECURE": true,
@@ -51,4 +50,4 @@ Example configuration entries::
     "SAML_KEY_FILE": "/etc/ssl/server.key",
     "SAML_CERT_FILE": "/etc/ssl/server.crt"
     ...
-
+  }

@@ -5,14 +5,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import base64
+import contextlib
 import functools
 import os
 from urllib import parse
 
 import flask
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from onelogin.saml2.constants import OneLogin_Saml2_Constants
 from onelogin.saml2.idp_metadata_parser import OneLogin_Saml2_IdPMetadataParser
-from onelogin.saml2.utils import OneLogin_Saml2_Utils
+from onelogin.saml2.response import OneLogin_Saml2_Response
+from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
 
 from . import base
 
@@ -22,7 +26,12 @@ blueprint = flask.Blueprint('sso', __name__, static_url_path='',
                             url_prefix='/saml')
 
 
-def get_saml_settings(app):
+class AuthException(Exception):
+    pass
+
+
+def _get_saml_settings(app):
+    """Generate the internal config file for OneLogin"""
     config = app.config
 
     insecure = config['SAML_IDP_INSECURE']
@@ -30,14 +39,18 @@ def get_saml_settings(app):
     key_file = config['SAML_KEY_FILE']
     requests_signed = config['SAML_REQUESTS_SIGNED']
     saml_idp_metadata_url = config['SAML_IDP_METADATA_URL']
+    saml_idp_metadata_file = config['SAML_IDP_METADATA_FILE']
 
-    remote = OneLogin_Saml2_IdPMetadataParser.parse_remote(
-        saml_idp_metadata_url,
-        validate_cert=not insecure
-    )
+    if saml_idp_metadata_file:
+        with open(saml_idp_metadata_file, 'r') as idp:
+            remote = OneLogin_Saml2_IdPMetadataParser.parse(idp.read())
+    else:
+        remote = OneLogin_Saml2_IdPMetadataParser.parse_remote(
+            saml_idp_metadata_url,
+            validate_cert=not insecure
+        )
 
     s = {
-        "strict": True,
         "debug": True,
         "sp": {
             "entityId": flask.url_for('sso.metadata', _external=True),
@@ -73,7 +86,8 @@ def get_saml_settings(app):
     return s
 
 
-def prepare_flask_request():
+def _prepare_flask_request():
+    """Construct OneLogin-friendly request object from Flask request"""
     # If server is behind proxys or balancers use the HTTP_X_FORWARDED fields
     url_data = parse.urlparse(flask.request.url)
     return {
@@ -86,38 +100,48 @@ def prepare_flask_request():
     }
 
 
-def init_saml_auth(func):
+def _prepare_saml_auth(func):
+    """Decorator to create and initialize OneLogin SAML2 Auth client"""
     @functools.wraps(func)
     def wrapper():
         app = flask.current_app
         config = app.extensions.get('saml')
         if not config:
-            config = get_saml_settings(app)
+            config = _get_saml_settings(app)
             app.extensions['saml'] = config
-        req = prepare_flask_request()
+        req = _prepare_flask_request()
         auth = OneLogin_Saml2_Auth(req, config)
         return func(auth)
     return wrapper
 
 
 @blueprint.route('/metadata/')
-@init_saml_auth
+@_prepare_saml_auth
 def metadata(auth):
+    """
+    SAML metadata endpoint
+
+    Exposes XML configuration of the Service Provider
+    """
     settings = auth.get_settings()
     sp_metadata = settings.get_sp_metadata()
     errors = settings.validate_metadata(sp_metadata)
 
-    if len(errors) == 0:
-        resp = flask.make_response(sp_metadata, 200)
-        resp.headers['Content-Type'] = 'text/xml'
-        return resp
-    else:
-        return flask.jsonify(errors)
+    if errors:
+        raise AuthException(errors)
+    resp = flask.make_response(sp_metadata, 200)
+    resp.headers['Content-Type'] = 'text/xml'
+    return resp
 
 
 @blueprint.route('/sso/')
-@init_saml_auth
+@_prepare_saml_auth
 def sso(auth):
+    """
+    Initiate SAML single sign-on
+
+    Redirects user to IdP login page specified in metadata
+    """
     return_to = flask.request.args.get(
         'next', flask.url_for('root', _external=True))
     login = auth.login(return_to=return_to)
@@ -125,56 +149,128 @@ def sso(auth):
 
 
 @blueprint.route('/acs/', methods=['POST'])
-@init_saml_auth
+@_prepare_saml_auth
 def acs(auth):
-    auth.process_response()
+    """
+    Assertion Consumer Service endpoint
+
+    Called by IdP with SAML assertion when authentication has been performed
+    """
+    with _onelogin_response_patcher():
+        auth.process_response()
     errors = auth.get_errors()
 
-    if len(errors) == 0:
-        # TODO: Kill this when LoRa has better auth
-        res = OneLogin_Saml2_Utils.b64decode(
-            flask.request.form['SAMLResponse'])
-        flask.session[base.TOKEN_KEY] = base.pack(res)
+    if errors:
+        raise AuthException(errors)
+    # TODO: Kill this when LoRa has better auth
+    res = base64.b64decode(flask.request.form['SAMLResponse'])
+    flask.session[base.TOKEN_KEY] = base.pack(res)
 
-        flask.session['samlUserdata'] = auth.get_attributes()
-        flask.session['samlNameId'] = auth.get_nameid()
-        flask.session['samlSessionIndex'] = auth.get_session_index()
+    flask.session['samlUserdata'] = auth.get_attributes()
+    flask.session['samlNameId'] = auth.get_nameid()
+    flask.session['samlSessionIndex'] = auth.get_session_index()
 
-        if 'RelayState' in flask.request.form:
-            return flask.redirect(auth.redirect_to(
-                flask.request.form['RelayState'])
-            )
-        else:
-            return flask.redirect('/')
+    if 'RelayState' in flask.request.form:
+        return flask.redirect(auth.redirect_to(
+            flask.request.form['RelayState'])
+        )
     else:
-        return flask.jsonify(errors)
+        return flask.redirect('/')
 
 
 @blueprint.route('/slo/')
-@init_saml_auth
+@_prepare_saml_auth
 def slo(auth):
-    name_id = None
-    session_index = None
-    if 'samlNameId' in flask.session:
-        name_id = flask.session['samlNameId']
-    if 'samlSessionIndex' in flask.session:
-        session_index = flask.session['samlSessionIndex']
-    return flask.redirect(auth.logout(
-        name_id=name_id, session_index=session_index))
+    """
+    Initiate SAML single logout
+
+    Redirects user to IdP SLO specified in metadata
+    """
+    name_id = flask.session.get('samlNameId')
+    session_index = flask.session.get('samlSessionIndex')
+    logout = auth.logout(name_id=name_id, session_index=session_index)
+    return flask.redirect(logout)
 
 
 @blueprint.route('/sls/')
-@init_saml_auth
+@_prepare_saml_auth
 def sls(auth):
-    url = auth.process_slo(delete_session_cb=delete_session_callback)
+    """
+    Single Logout Service
+
+    Consumes LogoutResponse from IdP when logout has been performed, and
+    sends user back to landing page
+    """
+    url = auth.process_slo(delete_session_cb=_delete_session_callback)
     errors = auth.get_errors()
-    if len(errors) == 0:
-        if url is not None:
-            return flask.redirect(url)
-        return flask.redirect('/')
-    else:
-        return flask.jsonify(errors)
+    if errors:
+        raise AuthException(errors)
+    if url is not None:
+        return flask.redirect(url)
+    return flask.redirect('/')
 
 
-def delete_session_callback():
+def _delete_session_callback():
     flask.session.clear()
+
+
+@contextlib.contextmanager
+def _onelogin_response_patcher():
+    """
+    Patches get_attributes on OneLogin Response object to handle duplicate
+    attribute names
+    see: https://github.com/onelogin/python3-saml/issues/39
+    """
+    app = flask.current_app
+    if app.config['SAML_DUPLICATE_ATTRIBUTES']:
+        orig_fn = OneLogin_Saml2_Response.get_attributes
+        OneLogin_Saml2_Response.get_attributes = _get_attributes_patched
+        yield
+        OneLogin_Saml2_Response.get_attributes = orig_fn
+    else:
+        yield
+
+
+def _get_attributes_patched(self):
+    """
+    Gets the Attributes from the AttributeStatement element.
+    EncryptedAttributes are not supported
+
+    XXX: Fix for duplicate attribute keys
+    see: https://github.com/onelogin/python3-saml/issues/39
+    """
+    attributes = {}
+    attribute_nodes = self._OneLogin_Saml2_Response__query_assertion(
+        '/saml:AttributeStatement/saml:Attribute')
+    for attribute_node in attribute_nodes:
+        attr_name = attribute_node.get('Name')
+        # XXX: Fix for duplicate attribute keys
+        # if attr_name in attributes.keys():
+        #     raise OneLogin_Saml2_ValidationError(
+        #         'Found an Attribute element with duplicated Name',
+        #         OneLogin_Saml2_ValidationError.DUPLICATED_ATTRIBUTE_NAME_FOUND
+        #     )
+
+        values = []
+        for attr in attribute_node.iterchildren(
+                '{%s}AttributeValue' % OneLogin_Saml2_Constants.NSMAP['saml']):
+            attr_text = OneLogin_Saml2_XML.element_text(attr)
+            if attr_text:
+                attr_text = attr_text.strip()
+                if attr_text:
+                    values.append(attr_text)
+
+            # Parse any nested NameID children
+            for nameid in attr.iterchildren(
+                    '{%s}NameID' % OneLogin_Saml2_Constants.NSMAP['saml']):
+                values.append({
+                    'NameID': {
+                        'Format': nameid.get('Format'),
+                        'NameQualifier': nameid.get('NameQualifier'),
+                        'value': nameid.text
+                    }
+                })
+        # XXX: Fix for duplicate attribute keys
+        attributes[attr_name] = attributes.setdefault(
+            attr_name, []) + values
+    return attributes
