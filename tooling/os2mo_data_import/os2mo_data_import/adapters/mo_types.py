@@ -35,6 +35,42 @@ class MoBase(MemoryMap):
 
         return True
 
+    def ordered_export(self):
+
+        all_items = {
+            item["uuid"] : item["data"]
+            for item in self.storage_map.values()
+        }
+
+
+
+        ordered_list_for_insertion = []
+        waiting_for_import = []
+
+        for item in all_items:
+
+            uuid, data = item
+
+            if data["parent"]["uuid"] == self.parent_org:
+                ordered_list_for_insertion.append(uuid)
+                export_data.append(item)
+            else:
+                waiting_for_import.append(uuid)
+
+        while waiting_for_import:
+
+            for item in all_items:
+
+                uuid, data = item
+
+                if data["parent"]["uuid"] in ordered_list_for_insertion:
+                    ordered_list_for_insertion.append(uuid)
+                    export_data.append(item)
+                    waiting_for_import.remove(uuid)
+
+        return export_data
+
+
 
 class OrganisationUnit(MoBase):
 
