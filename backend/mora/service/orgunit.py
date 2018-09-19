@@ -358,7 +358,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
-        "location:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
+        "location": "Overordnet Enhed/Humanistisk fakultet/Historisk Institut",
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",

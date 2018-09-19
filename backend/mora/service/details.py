@@ -121,7 +121,7 @@ def get_detail(type, id, function):
     .. :quickref: Detail; Get
 
     Most of these endpoints are broadly similar to engagements, with
-    the notable exception being IT systems.
+    the notable exception being addresses.
 
     All requests contain validity objects on the following form:
 
@@ -250,16 +250,41 @@ def get_detail(type, id, function):
 
     **Example IT response**:
 
+    :<jsonarr object itsystem:
+        See :http:get:`/service/o/(uuid:orgid)/it/`.
+    :<jsonarr object org_unit:
+        See :http:get:`/service/ou/(uuid:unitid)/`.
+    :<jsonarr object person:
+        See :http:get:`/service/e/(uuid:id)/`.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string user_key: Typically the account name.
+    :<jsonarr string validity: The validity times of the object.
+
     .. sourcecode:: json
 
       [
         {
-          "name": "Active Directory",
-          "user_name": "Fedtmule",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "itsystem": {
+            "name": "Active Directory",
+            "reference": null,
+            "system_type": null,
+            "user_key": "AD",
+            "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            "validity": {
+              "from": "2002-02-14",
+              "to": null
+            }
+          },
+          "org_unit": null,
+          "person": {
+            "name": "Anders And",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+          },
+          "user_key": "donald",
+          "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
           "validity": {
-            "from": "2002-02-14",
-            "to": null
+            "from": "2017-01-01",
+            "to": "2018-09-30"
           }
         }
       ]
