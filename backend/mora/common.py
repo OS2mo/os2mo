@@ -322,6 +322,7 @@ def create_organisationsfunktion_payload(
     tilknyttedebrugere: typing.List[str],
     tilknyttedeorganisationer: typing.List[str],
     tilknyttedeenheder: typing.List[str] = None,
+    tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
     opgaver: typing.List[dict] = None,
     adresser: typing.List[str] = None
@@ -367,6 +368,11 @@ def create_organisationsfunktion_payload(
         org_funk['relationer']['tilknyttedeenheder'] = [{
             'uuid': uuid
         } for uuid in tilknyttedeenheder]
+
+    if tilknyttedeitsystemer:
+        org_funk['relationer']['tilknyttedeitsystemer'] = [{
+            'uuid': uuid
+        } for uuid in tilknyttedeitsystemer]
 
     if funktionstype:
         org_funk['relationer']['organisatoriskfunktionstype'] = [{

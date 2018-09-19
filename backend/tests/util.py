@@ -141,6 +141,8 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
         'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
         'orlov': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
         'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
+        'itsystem_user': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
+        'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
     }
 
     users = {

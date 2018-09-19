@@ -37,6 +37,7 @@ from . import address
 from .. import common
 from . import employee
 from . import facet
+from . import itsystem
 from . import orgunit
 from .. import util
 from .. import settings
@@ -120,7 +121,7 @@ def get_detail(type, id, function):
     .. :quickref: Detail; Get
 
     Most of these endpoints are broadly similar to engagements, with
-    the notable exception being IT systems.
+    the notable exception being addresses.
 
     All requests contain validity objects on the following form:
 
@@ -249,16 +250,41 @@ def get_detail(type, id, function):
 
     **Example IT response**:
 
+    :<jsonarr object itsystem:
+        See :http:get:`/service/o/(uuid:orgid)/it/`.
+    :<jsonarr object org_unit:
+        See :http:get:`/service/ou/(uuid:unitid)/`.
+    :<jsonarr object person:
+        See :http:get:`/service/e/(uuid:id)/`.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string user_key: Typically the account name.
+    :<jsonarr string validity: The validity times of the object.
+
     .. sourcecode:: json
 
       [
         {
-          "name": "Active Directory",
-          "user_name": "Fedtmule",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "itsystem": {
+            "name": "Active Directory",
+            "reference": null,
+            "system_type": null,
+            "user_key": "AD",
+            "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            "validity": {
+              "from": "2002-02-14",
+              "to": null
+            }
+          },
+          "org_unit": null,
+          "person": {
+            "name": "Anders And",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+          },
+          "user_key": "donald",
+          "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
           "validity": {
-            "from": "2002-02-14",
-            "to": null
+            "from": "2017-01-01",
+            "to": "2018-09-30"
           }
         }
       ]
@@ -494,6 +520,13 @@ def get_detail(type, id, function):
         except (KeyError, IndexError):
             pass
 
+    def get_itsystem(effect):
+        try:
+            yield from filter(mapping.SINGLE_ITSYSTEM_FIELD.filter_fn,
+                              effect['relationer']['tilknyttedeitsystemer'])
+        except (KeyError, IndexError):
+            pass
+
     #
     # all these caches might be overkill when just listing one
     # engagement, but they are frequently helpful when listing all
@@ -505,6 +538,7 @@ def get_detail(type, id, function):
     class_cache = {}
     user_cache = {}
     unit_cache = {}
+    itsystem_cache = {}
 
     # the values are cache, getter, cachegetter, aslist
     #
@@ -548,7 +582,12 @@ def get_detail(type, id, function):
             mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
             mapping.ADDRESS: (class_cache, get_address, get_address_type,
                               False),
-        }
+        },
+        'it': {
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            mapping.ITSYSTEM: (itsystem_cache, get_itsystem, None, False),
+        },
     }
 
     # first, extract all the effects
@@ -576,6 +615,7 @@ def get_detail(type, id, function):
                     'tilhoerer',
                     'tilknyttedebrugere',
                     'tilknyttedeorganisationer',
+                    'tilknyttedeitsystemer',
                 ),
             },
         )
@@ -618,6 +658,14 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
+    itsystem_cache.update({
+        systemid: itsystem.get_one_itsystem(
+            c, systemid, system,
+        )
+        for systemid, system in
+        c.itsystem.get_all(uuid=itsystem_cache)
+    })
+
     def get_one(effect, cache, getter, cachegetter, aslist):
         values = getter(effect)
 
@@ -642,6 +690,12 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
+
+        if function == 'it':
+            func[mapping.USER_KEY] = (
+                effect['attributter']['organisationfunktionegenskaber'][0]
+                ['brugervendtnoegle']
+            )
 
         return func
 
