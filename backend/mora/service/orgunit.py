@@ -848,9 +848,9 @@ def create_org_unit_relation(unitid):
     for req in reqs:
         if req['type'] in ORGFUNC_TYPES:
             ORGFUNC_TYPES.get(req['type'])(
-                employee_uuid=None,
+                req=req,
                 org_unit_uuid=str(unitid),
-                req=req)
+            )
         else:
             RELATION_TYPES.get(req['type'])(
                 common.get_connector().organisationenhed,

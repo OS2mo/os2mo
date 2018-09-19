@@ -23,7 +23,7 @@ from .. import lora
 from .. import util
 
 
-def create_engagement(employee_uuid, req):
+def create_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
     c = lora.Connector()
 
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
@@ -66,7 +66,7 @@ def create_engagement(employee_uuid, req):
     c.organisationfunktion.create(engagement)
 
 
-def edit_engagement(employee_uuid, req):
+def edit_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
     engagement_uuid = req.get('uuid')
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

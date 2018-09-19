@@ -336,7 +336,7 @@ def create_employee_relation(employee_uuid):
             )
 
         else:
-            handler(str(employee_uuid), req)
+            handler(req, employee_uuid=str(employee_uuid))
 
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(
@@ -819,7 +819,7 @@ def edit_employee(employee_uuid):
             )
 
         else:
-            handler(str(employee_uuid), req)
+            handler(req, employee_uuid=str(employee_uuid))
 
         # Write a noop entry to the user, to be used for the history
         common.add_bruger_history_entry(

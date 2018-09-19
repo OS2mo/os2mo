@@ -86,7 +86,7 @@ def list_it_systems(orgid: uuid.UUID):
     )
 
 
-def create_itsystem(employee_uuid, req):
+def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     c = lora.Connector()
 
     systemobj = util.checked_get(req, mapping.ITSYSTEM, {},
@@ -126,7 +126,7 @@ def create_itsystem(employee_uuid, req):
     c.organisationfunktion.create(func)
 
 
-def edit_itsystem(employee_uuid, req):
+def edit_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     function_uuid = util.get_uuid(req)
 
     # Get the current org-funktion which the user wants to change
