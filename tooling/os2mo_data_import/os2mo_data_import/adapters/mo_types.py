@@ -5,6 +5,8 @@ from os2mo_data_import.adapters.base import MemoryMap
 # TODO: Fix the inelegant extension of the Memory map in order to gain metadata storage
 class MoBase(MemoryMap):
 
+    storage_map = {}
+
     def get_metadata(self, identifier):
 
         if not identifier in self.storage_map:
@@ -38,18 +40,25 @@ class OrganisationUnit(MoBase):
 
     def __init__(self, parent_org):
         self.parent_org = parent_org
+        self.storage_map = {}
 
-    def add(self, name, type_ref, date_from, date_to=None):
+    def add(self, name, type_ref, date_from, parent_ref=None, date_to=None):
+
+        if not parent_ref:
+            parent_ref = self.parent_org
 
         data = {
             "name": name,
             "parent": {
-                "uuid": self.parent_org
+                "uuid": parent_ref
             },
             "org_unit_type": {
                 "uuid": type_ref
             },
-            "validity": self.validity_range(date_from, date_to)
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
         }
 
         return self.save(identifier=name, data=data)
@@ -67,6 +76,7 @@ class Employee(MoBase):
 
     def __init__(self, parent_org):
         self.parent_org = parent_org
+        self.storage_map = {}
 
     def add(self, name, cpr_no, date_from, date_to=None, user_key=None):
 
@@ -76,7 +86,10 @@ class Employee(MoBase):
             "org": {
                 "uuid": self.parent_org
             },
-            "validity": self.validity_range(date_from, date_to)
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
         }
 
         # Add user key to the data payload if passed
