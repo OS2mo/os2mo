@@ -17,10 +17,8 @@ API.
 For details on how to create and edit these metadata, refer to the sections on
 creating and editing relations for employees and organisational units:
 
-* :http:post:`/service/e/(uuid:employee_uuid)/create`
-* :http:post:`/service/e/(uuid:employee_uuid)/edit`
-* :http:post:`/service/ou/(uuid:unitid)/create`
-* :http:post:`/service/ou/(uuid:unitid)/edit`
+* :http:post:`/service/(any:type)/(uuid:uuid)/create`
+* :http:post:`/service/(any:type)/(uuid:uuid)/edit`
 
 
 '''

@@ -526,9 +526,9 @@ def replace_relation_value(relations: typing.List[dict],
             exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
-def add_bruger_history_entry(employee_uuid, note: str):
+def add_history_entry(scope: lora.Scope, id: str, note: str):
     """
-    Add a history entry to a given employee.
+    Add a history entry to a given object.
     The idea is to write an update to the employee whenever an object
     associated to him is created or changed, as to easily be able to get an
     overview of the history of the modifications to both the employee
@@ -538,27 +538,36 @@ def add_bruger_history_entry(employee_uuid, note: str):
     able to update the 'note' field - which for now amounts to just
     updating the virkning notetekst of gyldighed with a garbage value
 
-    :param employee_uuid: The UUID of the employee
+    :param id: The UUID of the employee
     :param note: A note to be associated with the entry
     """
-    c = lora.Connector()
-    employee_obj = c.bruger.get(employee_uuid)
-    if not employee_obj:
+
+    obj = scope.get(id)
+    if not obj:
         raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_USER_NOT_FOUND,
-            employee=employee_uuid
+            exceptions.ErrorCodes.E_NOT_FOUND,
+            path=scope.path,
+            uuid=id,
         )
 
-    path = ('tilstande', 'brugergyldighed')
-    gyldighed = util.get_obj_value(employee_obj, path)[-1]
-    gyldighed['virkning']['notetekst'] = str(uuid.uuid4())
+    unique_string = str(uuid.uuid4())
 
     payload = {
-        'note': note
+        'note': note,
+        'tilstande': {
+            validity_name: [
+                util.set_obj_value(validity, ('virkning', 'notetekst'),
+                                   unique_string)
+                for validity in validities
+            ]
+            for validity_name, validities in obj['tilstande'].items()
+        }
     }
 
-    payload = util.set_obj_value(payload, path, [gyldighed])
-    c.bruger.update(payload, employee_uuid)
+    from pprint import pprint
+    pprint(payload)
+
+    scope.update(payload, id)
 
 
 def convert_reg_to_history(reg):

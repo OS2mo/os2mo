@@ -240,7 +240,7 @@ def terminate_employee(employee_uuid):
                 obj[0])
 
     # Write a noop entry to the user, to be used for the history
-    common.add_bruger_history_entry(employee_uuid, "Afslut medarbejder")
+    common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
 
     # TODO:
     return flask.jsonify(employee_uuid), 200

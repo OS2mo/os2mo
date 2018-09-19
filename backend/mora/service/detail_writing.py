@@ -13,8 +13,9 @@ Writing details
 
 This section describes how to write details to employees.
 
-For more information regarding reading relations, refer to
-:http:get:`/service/(any:type)/(uuid:id)/details/`
+For more information regarding reading relations, refer to:
+
+* :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
@@ -28,6 +29,7 @@ from .. import common
 from . import engagement
 from . import itsystem
 from . import manager
+from . import orgunit
 from . import leave
 from . import role
 
@@ -37,18 +39,32 @@ blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
 
 RELATION_TYPES = {
     'address': address.Addresses,
+    'org_unit': orgunit.OrgUnit,
 }
 
 
-@blueprint.route('/e/<uuid:employee_uuid>/create', methods=['POST'])
-def create_employee_relation(employee_uuid):
+def _get_scope(t: str):
+    if t == 'ou':
+        return common.get_connector().organisationenhed
+    elif t == 'e':
+        return common.get_connector().bruger
+    else:
+        raise ValueError('bad scope: {!r}'.format(t))
+
+
+@blueprint.route('/<any("e", "ou"):type>/<uuid:uuid>/create',
+                 methods=['POST'])
+def create(type, uuid):
     """Creates new employee relations
 
     .. :quickref: Employee; Create relation
 
     :statuscode 200: Creation succeeded.
 
-    :param employee_uuid: The UUID of the employee.
+    :param type: 'ou' for writing to a unit; 'e' for writing an
+        employee.
+    :param uuid uuid: The UUID to of the target of the operation, i.e. the ID
+        of the employee or unit.
 
     All requests contain validity objects on the following form:
 
@@ -320,6 +336,8 @@ def create_employee_relation(employee_uuid):
     }
 
     reqs = flask.request.get_json()
+    scope = _get_scope(type)
+
     for req in reqs:
         role_type = req.get('type')
         handler = handlers.get(role_type)
@@ -330,29 +348,35 @@ def create_employee_relation(employee_uuid):
                 message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
-            handler(common.get_connector().bruger).create(
-                str(employee_uuid),
-                req,
-            )
+            handler(scope).create(str(uuid), req)
 
+        elif type == 'ou':
+            handler(req, org_unit_uuid=str(uuid))
         else:
-            handler(req, employee_uuid=str(employee_uuid))
+            assert type == 'e'
+            handler(req, employee_uuid=str(uuid))
 
         # Write a noop entry to the user, to be used for the history
-        common.add_bruger_history_entry(
-            employee_uuid,
+        common.add_history_entry(
+            scope, uuid,
             "Opret {}".format(mapping.RELATION_TRANSLATIONS[role_type])
         )
 
     # TODO:
-    return flask.jsonify(employee_uuid), 200
+    return flask.jsonify(uuid), 200
 
 
-@blueprint.route('/e/<uuid:employee_uuid>/edit', methods=['POST'])
-def edit_employee(employee_uuid):
+@blueprint.route('/<any("e", "ou"):type>/<uuid:uuid>/edit',
+                 methods=['POST'])
+def edit(type, uuid):
     """Edits an employee
 
     .. :quickref: Employee; Edit employee
+
+    :param type: 'ou' for writing to a unit; 'e' for writing an
+        employee.
+    :param uuid uuid: The UUID to of the target of the operation, i.e. the ID
+        of the employee or unit.
 
     :statuscode 200: The edit succeeded.
 
@@ -372,8 +396,6 @@ def edit_employee(employee_uuid):
     by the attribute ``type``. Each of these object types are detailed below:
 
     **Engagement**:
-
-    :param employee_uuid: The UUID of the employee.
 
     :<json string type: **"engagement"**
     :<json string uuid: The UUID of the engagement,
@@ -431,8 +453,6 @@ def edit_employee(employee_uuid):
       ]
 
     **Association**:
-
-    :param employee_uuid: The UUID of the employee.
 
     :<json string type: **"association"**
     :<json string uuid: The UUID of the association,
@@ -503,8 +523,6 @@ def edit_employee(employee_uuid):
 
     **IT system**:
 
-    :param employee_uuid: The UUID of the employee.
-
     :<json string type: ``"it"``
     :<json string uuid: The UUID of the IT system responsibility"
     :<json object original: An **optional** object containing the original
@@ -564,8 +582,6 @@ def edit_employee(employee_uuid):
 
     **Role**:
 
-    :param employee_uuid: The UUID of the employee.
-
     :<json string type: **"role"**
     :<json string uuid: The UUID of the role,
     :<json object original: An **optional** object containing the original
@@ -618,8 +634,6 @@ def edit_employee(employee_uuid):
 
     **Leave**:
 
-    :param employee_uuid: The UUID of the employee.
-
     :<json string type: **"leave"**
     :<json string uuid: The UUID of the leave,
     :<json object original: An **optional** object containing the original
@@ -667,8 +681,6 @@ def edit_employee(employee_uuid):
       ]
 
     **Manager**:
-
-    :param employee_uuid: The UUID of the employee.
 
     :<json string type: **"manager"**
     :<json string uuid: The UUID of the manager,
@@ -800,6 +812,10 @@ def edit_employee(employee_uuid):
     }
 
     reqs = flask.request.get_json()
+    scope = _get_scope(type)
+
+    if isinstance(reqs, dict):
+        reqs = [reqs]
 
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them
@@ -813,19 +829,24 @@ def edit_employee(employee_uuid):
                 message=role_type)
 
         elif issubclass(handler, common.AbstractRelationDetail):
-            handler(common.get_connector().bruger).edit(
-                str(employee_uuid),
+            handler(scope).edit(
+                str(uuid),
                 req,
             )
 
-        else:
-            handler(req, employee_uuid=str(employee_uuid))
+            continue
 
-        # Write a noop entry to the user, to be used for the history
-        common.add_bruger_history_entry(
-            employee_uuid,
+        elif type == 'ou':
+            handler(req, org_unit_uuid=str(uuid))
+        else:
+            assert type == 'e'
+            handler(req, employee_uuid=str(uuid))
+
+        # Write a noop entry, to be used for the history
+        common.add_history_entry(
+            scope, uuid,
             "Rediger {}".format(mapping.RELATION_TRANSLATIONS[role_type])
         )
 
     # TODO: Figure out the response -- probably just the edited object(s)?
-    return flask.jsonify(employee_uuid), 200
+    return flask.jsonify(uuid), 200
