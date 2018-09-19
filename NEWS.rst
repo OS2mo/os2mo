@@ -6,6 +6,8 @@ New features
 
 * #22849: Implemented support for signed SAML AuthN Requests.
 * #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit
+* #24014: Since we now model IT systems using an
+  ``organisationfunktion``, we can now represent the account name.
 
 Internal changes
 ----------------
@@ -15,6 +17,8 @@ Internal changes
   lack a timestamp or correspond to midnight, Central European time.
 * #23559: The ``terminate`` endpoints for employees as well as units
   now read the date from the ``to`` field rather than ``from``.
+* #24198: We now model IT systems using ``organisationfunktion``
+  rather than a direct relation.
 
 Bug fixes
 ---------

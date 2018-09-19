@@ -48,8 +48,7 @@ def _make_relation(obj, k):
     valtype = obj.get(k + '_type')
 
     if not val or val == 'NULL':
-        key = 'uuid'
-        val = None
+        return []
     elif val.startswith('urn:'):
         key = 'urn'
     elif util.is_uuid(val):

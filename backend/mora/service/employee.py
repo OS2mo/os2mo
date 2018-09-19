@@ -42,7 +42,6 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
 
 
 RELATION_TYPES = {
-    'it': itsystem.ITSystems,
     'address': address.Addresses,
 }
 
@@ -304,23 +303,24 @@ def create_employee_relation(employee_uuid):
     **IT system**:
 
     :<json string type: ``"it"``
+    :<json string user_key: The account name on the IT system.
     :<json object itsystem: The IT system to create a relation to, as
-        returned by :http:get:`/service/o/(uuid:orgid)/it/`. The only
-        mandatory field is ``uuid``.
+        returned by :http:get:`/service/o/(uuid:orgid)/it/`.
 
     .. sourcecode:: json
 
       [
-          {
-              "type": "it",
-              "itsystem": {
-                  "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
-              },
-              "validity": {
-                  "from": "2017-12-01",
-                  "to": null
-              }
+        {
+          "type": "it",
+          "user_key": "goofy-moofy",
+          "itsystem": {
+             "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+          },
+          "validity": {
+            "from": "2018-09-01",
+             "to": null
           }
+        }
       ]
 
     **Role**:
@@ -469,6 +469,7 @@ def create_employee_relation(employee_uuid):
         'role': role.create_role,
         'manager': manager.create_manager,
         'leave': leave.create_leave,
+        'it': itsystem.create_itsystem,
         **RELATION_TYPES,
     }
 
@@ -659,7 +660,7 @@ def edit_employee(employee_uuid):
     :param employee_uuid: The UUID of the employee.
 
     :<json string type: ``"it"``
-    :<json string uuid: The UUID of the IT system,
+    :<json string uuid: The UUID of the IT system responsibility"
     :<json object original: An **optional** object containing the original
         state of the role to be overwritten. If supplied, the change will
         modify the existing registration on the role object. Detailed below.
@@ -675,26 +676,45 @@ def edit_employee(employee_uuid):
     .. sourcecode:: json
 
       [
-        {
-          "type": "it",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-          "original": {
-            "name": "Active Directory",
-            "user_name": "Fedtmule",
-            "uuid": "00000000-0000-0000-0000-000000000000",
-            "validity": {
-              "from": "2002-02-14",
-              "to": null
+            {
+                "type": "it",
+                "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                "original": {
+                    "itsystem": {
+                        "name": "Active Directory",
+                        "reference": null,
+                        "system_type": null,
+                        "user_key": "AD",
+                        "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                        "validity": {
+                            "from": "2002-02-14",
+                            "to": null,
+                        }
+                    },
+                    "org_unit": null,
+                    "person": {
+                        "name": "Anders And",
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                    "user_key": "donald",
+                    "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": null,
+                    }
+                },
+                "data": {
+                    "itsystem": {
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    },
+                    "user_key": "donald_duck"
+                    "validity": {
+                        "from": "2017-06-01",
+                        "to": "2018-06-01"
+                    }
+                }
             }
-          },
-          "data": {
-            "uuid": "11111111-1111-1111-1111-111111111111",
-            "validity": {
-              "to": "2019-12-31"
-            }
-          }
-        }
-      ]
+        ]
 
     **Role**:
 
@@ -929,6 +949,7 @@ def edit_employee(employee_uuid):
         'role': role.edit_role,
         'leave': leave.edit_leave,
         'manager': manager.edit_manager,
+        'it': itsystem.edit_itsystem,
         **RELATION_TYPES,
     }
 

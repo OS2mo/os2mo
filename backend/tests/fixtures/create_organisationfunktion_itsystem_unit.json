@@ -1,0 +1,55 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "fwaf",
+        "funktionsnavn": "IT-system",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "tilknyttedeenheder": [
+      {
+        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      }
+    ],
+    "tilknyttedeitsystemer": [
+      {
+        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      }
+    ]
+  }
+}

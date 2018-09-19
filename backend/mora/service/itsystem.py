@@ -20,12 +20,12 @@ import uuid
 
 import flask
 
-from ..exceptions import ErrorCodes
+from .. import common
 from .. import exceptions
+from .. import lora
 from .. import mapping
 from .. import util
-
-from .. import common
+from .. import validator
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
@@ -86,226 +86,199 @@ def list_it_systems(orgid: uuid.UUID):
     )
 
 
-class ITSystems(common.AbstractRelationDetail):
-    def has(self, reg):
-        return (
-            reg and reg.get('relationer') and
-            reg['relationer'].get('tilknyttedeitsystemer') and
-            any(util.is_uuid(rel.get('uuid'))
-                for rel in reg['relationer']['tilknyttedeitsystemer'])
+def create_itsystem(employee_uuid, req):
+    c = lora.Connector()
+
+    systemobj = util.checked_get(req, mapping.ITSYSTEM, {},
+                                 required=True)
+    systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
+    system = c.itsystem.get(systemid)
+
+    if not system:
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
+
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=False)
+    org_uuid = system['relationer']['tilhoerer'][0]['uuid']
+
+    valid_from, valid_to = util.get_validities(req)
+
+    bvn = util.checked_get(req, mapping.USER_KEY, '', required=True)
+
+    # Validation
+    if org_unit_uuid:
+        validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+                                                  valid_to)
+    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                              valid_to)
+
+    func = common.create_organisationsfunktion_payload(
+        funktionsnavn=mapping.ITSYSTEM_KEY,
+        valid_from=valid_from,
+        valid_to=valid_to,
+        brugervendtnoegle=bvn,
+        tilknyttedebrugere=[employee_uuid],
+        tilknyttedeorganisationer=[org_uuid],
+        tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
+        tilknyttedeitsystemer=[systemid],
+    )
+
+    c.organisationfunktion.create(func)
+
+
+def edit_itsystem(employee_uuid, req):
+    function_uuid = util.get_uuid(req)
+
+    # Get the current org-funktion which the user wants to change
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    original = c.organisationfunktion.get(uuid=function_uuid)
+
+    if not original:
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
+
+    data = req.get('data')
+    new_from, new_to = util.get_validities(data)
+
+    payload = {
+        'note': 'Rediger IT-system',
+    }
+
+    original_data = req.get('original')
+    if original_data:
+        # We are performing an update
+        old_from, old_to = util.get_validities(original_data)
+        payload = common.inactivate_old_interval(
+            old_from, old_to, new_from, new_to, payload,
+            ('tilstande', 'organisationfunktiongyldighed')
         )
 
-    def get(self, id):
-        '''Obtain the list of engagements corresponding to a user.
+    update_fields = [
+        # Always update gyldighed
+        (
+            mapping.ORG_FUNK_GYLDIGHED_FIELD,
+            {'gyldighed': "Aktiv"}
+        ),
+    ]
 
-        .. :quickref: IT system; Get by user
+    # TODO: mapping.ORG_UNIT
 
-        :queryparam date at: Current time in ISO-8601 format.
-        :queryparam string validity: Only show *past*, *present* or
-            *future* values -- which the default being to show *present*
-            values.
+    if mapping.ITSYSTEM in data:
+        update_fields.append((
+            mapping.SINGLE_ITSYSTEM_FIELD,
+            {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
+        ))
 
-        :param uuid id: The UUID to query, i.e. the ID of the employee or
-            unit.
+    if mapping.PERSON in data:
+        update_fields.append((
+            mapping.USER_FIELD,
+            {'uuid': util.get_mapping_uuid(data, mapping.PERSON)},
+        ))
 
-        All requests contain validity objects on the following form:
+    if mapping.USER_KEY in data:
+        update_fields.append((
+            mapping.ORG_FUNK_EGENSKABER_FIELD,
+            {
+                'brugervendtnoegle':
+                util.checked_get(data, mapping.USER_KEY, ''),
+            },
+        ))
 
-        :<jsonarr string from: The from date, in ISO 8601.
-        :<jsonarr string to: The to date, in ISO 8601.
+    payload = common.update_payload(new_from, new_to, update_fields, original,
+                                    payload)
 
-        .. sourcecode:: json
+    bounds_fields = list(mapping.ITSYSTEM_FIELDS.difference(
+        {x[0] for x in update_fields},
+    ))
+    payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
+                                   payload)
 
-          {
+    c.organisationfunktion.update(payload, function_uuid)
+
+
+def get_one_itsystem(c, systemid, system=None):
+    '''Obtain the list of engagements corresponding to a user.
+
+    .. :quickref: IT system; Get by user
+
+    :queryparam date at: Current time in ISO-8601 format.
+    :queryparam string validity: Only show *past*, *present* or
+        *future* values -- which the default being to show *present*
+        values.
+
+    :param uuid id: The UUID to query, i.e. the ID of the employee or
+        unit.
+
+    All requests contain validity objects on the following form:
+
+    :<jsonarr string from: The from date, in ISO 8601.
+    :<jsonarr string to: The to date, in ISO 8601.
+
+    .. sourcecode:: json
+
+      {
+        "from": "2016-01-01",
+        "to": "2017-12-31",
+      }
+
+    :<jsonarr string name:
+        The name of the IT system in question.
+    :<jsonarr string user_key:
+        Short, unique key identifying the IT-system in question.
+    :<jsonarr string reference:
+        Optional string describing the elements of the IT system.
+    :<jsonarr string system_type:
+        Optional string describing the system_type of the IT system.
+    :<jsonarr string name:
+        The name of the IT system in question.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string validity: The validity times of the object.
+
+    :status 200: Always.
+
+    **Example response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "name": "Lokal Rammearkitektur",
+          "reference": null,
+          "system_type": null,
+          "user_key": "LoRa",
+          "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+          "validity": {
             "from": "2016-01-01",
-            "to": "2017-12-31",
-          }
-
-        :<jsonarr string name:
-            The name of the IT system in question.
-        :<jsonarr string user_key:
-            Short, unique key identifying the IT-system in question.
-        :<jsonarr string reference:
-            Optional string describing the elements of the IT system.
-        :<jsonarr string system_type:
-            Optional string describing the system_type of the IT system.
-        :<jsonarr string name:
-            The name of the IT system in question.
-        :<jsonarr string uuid: Machine-friendly UUID.
-        :<jsonarr string validity: The validity times of the object.
-
-        :status 200: Always.
-
-        **Example response**:
-
-        .. sourcecode:: json
-
-          [
-            {
-              "name": "Lokal Rammearkitektur",
-              "reference": null,
-              "system_type": null,
-              "user_key": "LoRa",
-              "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-              "validity": {
-                "from": "2016-01-01",
-                "to": "2017-12-31"
-              },
-            },
-            {
-              "name": "Active Directory",
-              "reference": null,
-              "system_type": null,
-              "user_key": "AD",
-              "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-              "validity": {
-                "from": "2002-02-14",
-                "to": null
-              },
-            }
-          ]
-
-        '''
-
-        c = self.scope.connector
-
-        system_cache = common.cache(c.itsystem.get)
-
-        def convert(start, end, effect):
-            if not util.is_reg_valid(effect):
-                return
-
-            rels = effect['relationer']
-
-            for systemrel in rels.get('tilknyttedeitsystemer', []):
-                if not c.is_effect_relevant(systemrel['virkning']):
-                    continue
-
-                try:
-                    systemid = systemrel['uuid']
-
-                    system_attrs = (
-                        system_cache[systemid]
-                        ['attributter']['itsystemegenskaber'][0]
-                    )
-                except (TypeError, LookupError):
-                    continue
-
-                yield {
-                    "uuid": systemid,
-
-                    "name": system_attrs.get('itsystemnavn'),
-                    "reference": system_attrs.get('konfigurationreference'),
-                    "system_type": system_attrs.get('itsystemtype'),
-                    "user_key": system_attrs.get('brugervendtnoegle'),
-
-                    mapping.VALIDITY: util.get_effect_validity(systemrel),
-                }
-
-        return flask.jsonify(
-            sorted(
-                itertools.chain.from_iterable(
-                    itertools.starmap(
-                        convert,
-                        self.scope.get_effects(
-                            id,
-                            {
-                                'relationer': (
-                                    'tilknyttedeitsystemer',
-                                ),
-                                'tilstande': (
-                                    'brugergyldighed',
-                                    'organisationenhedgyldighed',
-                                ),
-                            },
-                            {
-                                'attributter': (
-                                    'brugeregenskaber',
-                                    'organisationenhedegenskaber',
-                                ),
-                            },
-                        ),
-                    ),
-                ),
-                key=util.get_valid_from,
-            ),
-        )
-
-    @staticmethod
-    def get_relation_for(value, start, end):
-        return {
-            'uuid': value,
-            'objekttype': 'itsystem',
-            'virkning': {
-                'from': util.to_lora_time(start),
-                'to': util.to_lora_time(end),
-            },
+            "to": "2017-12-31"
+          },
+        },
+        {
+          "name": "Active Directory",
+          "reference": null,
+          "system_type": null,
+          "user_key": "AD",
+          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "validity": {
+            "from": "2002-02-14",
+            "to": null
+          },
         }
+      ]
 
-    def create(self, id, req):
-        systemobj = util.checked_get(req, mapping.ITSYSTEM, {},
-                                     required=True)
-        systemid = util.get_uuid(systemobj)
+    '''
+    if not system:
+        system = c.itsystem.get(systemid)
 
-        original = self.scope.get(
-            uuid=id,
-            virkningfra='-infinity',
-            virkningtil='infinity',
-        )
+    system_attrs = system['attributter']['itsystemegenskaber'][0]
 
-        if not original:
-            raise exceptions.HTTPException(ErrorCodes.E_NOT_FOUND)
+    return {
+        "uuid": systemid,
 
-        rels = original['relationer'].get('tilknyttedeitsystemer', [])
+        "name": system_attrs.get('itsystemnavn'),
+        "reference": system_attrs.get('konfigurationreference'),
+        "system_type": system_attrs.get('itsystemtype'),
+        "user_key": system_attrs.get('brugervendtnoegle'),
 
-        start, end = util.get_validities(req)
-
-        rels.append(self.get_relation_for(systemid, start, end))
-
-        payload = {
-            'relationer': {
-                'tilknyttedeitsystemer': rels,
-            },
-            'note': 'Tilføj IT-system',
-        }
-
-        self.scope.update(payload, id)
-
-    def edit(self, id, req):
-        original = self.scope.get(
-            uuid=id,
-            virkningfra='-infinity',
-            virkningtil='infinity',
-        )
-
-        old_entry = req.get('original')
-        old_rel = original['relationer'].get('tilknyttedeitsystemer', [])
-
-        if not old_entry:
-            raise exceptions.HTTPException(ErrorCodes.V_ORIGINAL_REQUIRED)
-
-        # We are performing an update of a pre-existing effect
-        old_rel = self.get_relation_for(
-            util.get_uuid(old_entry),
-            util.get_valid_from(old_entry),
-            util.get_valid_to(old_entry),
-        )
-
-        new_entry = req['data']
-
-        new_rel = self.get_relation_for(
-            util.get_uuid(new_entry, old_entry),
-            util.get_valid_from(new_entry, old_entry),
-            util.get_valid_to(new_entry, old_entry),
-        )
-
-        payload = {
-            'relationer': {
-                'tilknyttedeitsystemer': common.replace_relation_value(
-                    original['relationer'].get('tilknyttedeitsystemer') or [],
-                    old_rel, new_rel,
-                ),
-            },
-            'note': 'Rediger IT-system',
-        }
-
-        self.scope.update(payload, id)
+        mapping.VALIDITY: util.get_effect_validity(
+            system['tilstande']['itsystemgyldighed'][0],
+        ),
+    }
