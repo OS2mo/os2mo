@@ -92,6 +92,7 @@
         uuid: '',
         original: null,
         move: {
+          type: 'org_unit',
           data: {
             validity: {}
           }

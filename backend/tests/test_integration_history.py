@@ -291,6 +291,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             '/service/ou/{}/edit'.format(unitid),
             unitid,
             json={
+                "type": "org_unit",
                 "data": {
                     "name": "History test II",
                     "validity": {
@@ -304,6 +305,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             '/service/ou/{}/edit'.format(unitid),
             unitid,
             json={
+                "type": "org_unit",
                 "data": {
                     "name": "History test III",
                     "validity": {
