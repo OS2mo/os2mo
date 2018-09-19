@@ -465,7 +465,7 @@ def get_detail(type, id, function):
     def get_address(effect):
         try:
             rels = effect['relationer']['adresser']
-        except KeyError:
+        except LookupError:
             return
 
         yield from map(functools.partial(address.get_one_address,
@@ -475,7 +475,7 @@ def get_detail(type, id, function):
     def get_address_type(effect):
         try:
             rels = effect['relationer']['adresser']
-        except KeyError:
+        except LookupError:
             return
 
         yield from map(operator.itemgetter('objekttype'), rels)
@@ -483,7 +483,7 @@ def get_detail(type, id, function):
     def get_employee_id(effect):
         try:
             yield from effect['relationer']['tilknyttedebrugere']
-        except KeyError:
+        except LookupError:
             pass
 
     def get_unit_id(effect):
@@ -491,40 +491,40 @@ def get_detail(type, id, function):
         #  ourselves here
         try:
             yield from effect['relationer']['tilknyttedeenheder']
-        except (KeyError, IndexError):
+        except LookupError:
             pass
 
     def get_type_id(effect):
         try:
             yield from effect['relationer']['organisatoriskfunktionstype']
-        except (KeyError, IndexError):
+        except LookupError:
             pass
 
     def get_title_id(effect):
         try:
             yield from effect['relationer']['opgaver']
-        except (KeyError, IndexError):
+        except LookupError:
             pass
 
     def get_responsibility(effect):
         try:
             yield from filter(mapping.RESPONSIBILITY_FIELD.filter_fn,
                               effect['relationer']['opgaver'])
-        except (KeyError, IndexError):
+        except LookupError:
             pass
 
     def get_manager_level(effect):
         try:
             yield from filter(mapping.MANAGER_LEVEL_FIELD.filter_fn,
                               effect['relationer']['opgaver'])
-        except (KeyError, IndexError):
+        except LookupError:
             pass
 
     def get_itsystem(effect):
         try:
             yield from filter(mapping.SINGLE_ITSYSTEM_FIELD.filter_fn,
                               effect['relationer']['tilknyttedeitsystemer'])
-        except (KeyError, IndexError):
+        except LookupError:
             pass
 
     #
