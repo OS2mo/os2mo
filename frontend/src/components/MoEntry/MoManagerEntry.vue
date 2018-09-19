@@ -8,6 +8,7 @@
         required
       />
     </div>
+
       <mo-add-many
         class="address-manager"
         v-model="entry.address" 
@@ -23,6 +24,7 @@
         v-model="entry.manager_type" 
         required
       />
+
       <mo-facet-picker 
         facet="manager_level" 
         v-model="entry.manager_level"
@@ -44,69 +46,74 @@
 </template>
 
 <script>
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+  import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
+  import MoAddMany from '@/components/MoAddMany/MoAddMany'
+  import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
-export default {
-  components: {
-    MoDatePickerRange,
-    MoOrganisationUnitPicker,
-    MoFacetPicker,
-    MoAddressPicker,
-    MoAddMany,
-    MoManagerAddressPicker,
-    MoAddressEntry
-  },
-  props: {
-    value: Object,
-    validityHidden: Boolean
-  },
-  data () {
-    return {
-      entry: {}
-    }
-  },
-  computed: {
-    datePickerHidden () {
-      return this.validity != null
+  export default {
+    components: {
+      MoDatePickerRange,
+      MoOrganisationUnitPicker,
+      MoFacetPicker,
+      MoAddressPicker,
+      MoAddMany,
+      MoManagerAddressPicker,
+      MoAddressEntry
     },
 
-    facetPicker () {
+    props: {
+      value: Object,
+      validityHidden: Boolean
+    },
+
+    data () {
       return {
-        components: { MoFacetPicker },
-        props: { value: Object },
-        data () { return { val: null } },
-        watch: { val (newVal) { this.$emit('input', newVal) } },
-        created () { this.val = this.value },
-        template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
+        entry: {}
       }
     },
 
-    managerAddressPicker () {
-      return {
-        components: { MoManagerAddressPicker },
-        props: { value: Array },
-        data () { return { val: this.value } },
-        template: `<mo-manager-address-picker v-model="val" required/>`
-      }
-    }
-  },
-  watch: {
-    entry: {
-      handler (newVal) {
-        newVal.type = 'manager'
-        this.$emit('input', newVal)
+    computed: {
+      datePickerHidden () {
+        return this.validity != null
       },
-      deep: true
+
+      facetPicker () {
+        return {
+          components: { MoFacetPicker },
+          props: { value: Object },
+          data () { return { val: null } },
+          watch: { val (newVal) { this.$emit('input', newVal) } },
+          created () { this.val = this.value },
+          template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
+        }
+      },
+
+      managerAddressPicker () {
+        return {
+          components: { MoManagerAddressPicker },
+          props: { value: Object },
+          data () { return { val: this.value } },
+          template: `<mo-manager-address-picker v-model="val" required/>`
+        }
+      }
+    },
+
+    watch: {
+      entry: {
+        handler (newVal) {
+          newVal.type = 'manager'
+          this.$emit('input', newVal)
+        },
+        deep: true
+      }
+    },
+
+    created () {
+      this.entry = this.value
     }
-  },
-  created () {
-    this.entry = this.value
   }
-}
 </script>
