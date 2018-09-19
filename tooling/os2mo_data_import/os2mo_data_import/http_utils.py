@@ -164,7 +164,9 @@ def temp_import_all(Organisation):
         store = import_mox_data("klassifikation/klasse", uuid, data)
         print("Storing: %s" % store)
 
-    for uuid, data in Organisation.OrganisationUnit.db_export():
+    imported_org_units = []
+
+    for uuid, data in Organisation.OrganisationUnit.export_tree():
 
         org_unit_uuid = {
             "uuid": uuid

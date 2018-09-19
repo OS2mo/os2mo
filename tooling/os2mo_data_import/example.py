@@ -54,6 +54,7 @@ def example_import():
     # Every key/value pair will be added as properties ("klasseegenskaber")
     new_klasse_data = {
         "brugervendtnoegle": "Command bridge",
+        "omfang": "TNG",
         "titel": "This is the place where cool officers hang out"
     }
 
@@ -156,7 +157,6 @@ def example_import():
     meta_job = org.Employee.get_metadata("William Riker")
     print("Meta job: ")
     print(meta_job)
-
 
     # Import everything
     omni = temp_import_all(org)
