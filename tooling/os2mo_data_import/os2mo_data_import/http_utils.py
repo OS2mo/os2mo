@@ -142,3 +142,51 @@ def import_all_employees():
         },
         "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f"
     }
+
+
+def temp_import_all(Organisation):
+
+    print("Running TEMP Import all")
+
+    org_uuid = Organisation.uuid
+    org_data = Organisation.data
+
+    store_org = import_mox_data("organisation/organisation", org_uuid, org_data)
+    print("Insert org: {}".format(store_org))
+
+    for uuid, data in Organisation.Facet.db_export():
+
+        store = import_mox_data("klassifikation/facet", uuid, data)
+        print("Storing: %s" % store)
+
+    for uuid, data in Organisation.Klasse.db_export():
+
+        store = import_mox_data("klassifikation/klasse", uuid, data)
+        print("Storing: %s" % store)
+
+    for uuid, data in Organisation.OrganisationUnit.db_export():
+
+        org_unit_uuid = {
+            "uuid": uuid
+        }
+
+        data.update(org_unit_uuid)
+
+        store = import_mora_data("service/ou/create", data)
+        print(store)
+
+    for uuid, data in Organisation.Employee.db_export():
+
+        org_unit_uuid = {
+            "uuid": uuid
+        }
+
+        data.update(org_unit_uuid)
+
+        store = import_mora_data("service/e/create", data)
+        print(store)
+
+
+
+
+    return "TEMP Import all"
