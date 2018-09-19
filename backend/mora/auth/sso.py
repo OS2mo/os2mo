@@ -51,6 +51,7 @@ def _get_saml_settings(app):
         )
 
     s = {
+        "strict": True,
         "debug": True,
         "sp": {
             "entityId": flask.url_for('sso.metadata', _external=True),
