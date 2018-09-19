@@ -26,8 +26,14 @@ from .. import util
 def create_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
     c = lora.Connector()
 
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                          required=True)
+    if org_unit_uuid is None:
+        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                              required=True)
+
+    if employee_uuid is None:
+        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                              required=True)
+
     org_unit = c.organisationenhed.get(org_unit_uuid)
 
     if not org_unit:
@@ -73,9 +79,16 @@ def edit_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     # Get org unit uuid for validation purposes
-    org_unit = util.get_obj_value(
-        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-    org_unit_uuid = util.get_uuid(org_unit)
+    if org_unit_uuid is None:
+        org_unit = util.get_obj_value(
+            original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
+        org_unit_uuid = util.get_uuid(org_unit)
+
+    # Get employee uuid for validation purposes
+    if employee_uuid is None:
+        employee = util.get_obj_value(
+            original, mapping.USER_FIELD.path)[-1]
+        employee_uuid = util.get_uuid(employee)
 
     data = req.get('data')
     new_from, new_to = util.get_validities(data)

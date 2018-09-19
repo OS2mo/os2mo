@@ -42,6 +42,19 @@ class Tests(util.LoRATestCase):
             }
         ]
 
+        with self.subTest('on unit'):
+            self.assertRequestResponse(
+                '/service/ou/{}/create'.format(userid),
+                {
+                    'description': 'Invalid role type for target operation.',
+                    'error': True,
+                    'error_key': 'E_INVALID_ROLE_TYPE',
+                    'status': 400,
+                },
+                json=payload,
+                status_code=400,
+            )
+
         self.assertRequestResponse('/service/e/{}/create'.format(userid),
                                    userid, json=payload)
 
@@ -419,6 +432,19 @@ class Tests(util.LoRATestCase):
                 },
             },
         }]
+
+        with self.subTest('on unit'):
+            self.assertRequestResponse(
+                '/service/ou/{}/edit'.format(userid),
+                {
+                    'description': 'Invalid role type for target operation.',
+                    'error': True,
+                    'error_key': 'E_INVALID_ROLE_TYPE',
+                    'status': 400,
+                },
+                json=req,
+                status_code=400,
+            )
 
         self.assertRequestResponse(
             '/service/e/{}/edit'.format(userid),

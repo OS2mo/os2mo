@@ -101,9 +101,16 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
     new_from, new_to = util.get_validities(data)
 
     # Get org unit uuid for validation purposes
-    org_unit = util.get_obj_value(
-        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-    org_unit_uuid = util.get_uuid(org_unit)
+    if org_unit_uuid is None:
+        org_unit = util.get_obj_value(
+            original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
+        org_unit_uuid = util.get_uuid(org_unit)
+
+    # Get employee uuid for validation purposes
+    if employee_uuid is None:
+        employee = util.get_obj_value(
+            original, mapping.USER_FIELD.path)[-1]
+        employee_uuid = util.get_uuid(employee)
 
     payload = dict()
     payload['note'] = 'Rediger leder'

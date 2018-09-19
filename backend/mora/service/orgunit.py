@@ -59,7 +59,9 @@ class OrgUnit(common.AbstractRelationDetail):
 
     def get(self, objid):
         if self.scope.path != 'organisation/organisationenhed':
-            raise werkzeug.exceptions.NotFound('not an organisation unit!')
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
+            )
 
         c = common.get_connector()
 
@@ -94,6 +96,11 @@ class OrgUnit(common.AbstractRelationDetail):
         ])
 
     def edit(self, unitid, req):
+        if self.scope.path != 'organisation/organisationenhed':
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
+            )
+
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         original = c.organisationenhed.get(uuid=unitid)
@@ -170,7 +177,9 @@ class OrgUnit(common.AbstractRelationDetail):
         c.organisationenhed.update(payload, unitid)
 
     def create(self, id, req):
-        raise werkzeug.exceptions.NotImplemented
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
+        )
 
 
 RELATION_TYPES = {

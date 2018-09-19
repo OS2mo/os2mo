@@ -17,6 +17,7 @@ import uuid
 
 import flask
 
+from .. import exceptions
 from .. import lora
 from .. import validator
 from .. import mapping
@@ -29,6 +30,11 @@ blueprint = flask.Blueprint('leave', __name__, static_url_path='',
 
 def create_leave(req, *, employee_uuid=None, org_unit_uuid=None):
     c = lora.Connector()
+
+    if org_unit_uuid is not None:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
+        )
 
     org_uuid = c.bruger.get(
         employee_uuid)['relationer']['tilhoerer'][0]['uuid']
@@ -57,6 +63,11 @@ def create_leave(req, *, employee_uuid=None, org_unit_uuid=None):
 
 
 def edit_leave(req, *, employee_uuid=None, org_unit_uuid=None):
+    if org_unit_uuid is not None:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
+        )
+
     leave_uuid = req.get('uuid')
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

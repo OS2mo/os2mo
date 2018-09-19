@@ -97,8 +97,14 @@ def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     if not system:
         raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
 
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                          required=False)
+    if org_unit_uuid is None:
+        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                              required=False)
+
+    if employee_uuid is None:
+        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                              required=False)
+
     org_uuid = system['relationer']['tilhoerer'][0]['uuid']
 
     valid_from, valid_to = util.get_validities(req)
@@ -109,8 +115,12 @@ def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     if org_unit_uuid:
         validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                                   valid_to)
-    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
-                                              valid_to)
+
+    if employee_uuid:
+        validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+                                                  valid_to)
+
+    # TODO: validate that the date range is in the validity of the IT system!
 
     func = common.create_organisationsfunktion_payload(
         funktionsnavn=mapping.ITSYSTEM_KEY,
@@ -160,18 +170,28 @@ def edit_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
         ),
     ]
 
-    # TODO: mapping.ORG_UNIT
-
     if mapping.ITSYSTEM in data:
         update_fields.append((
             mapping.SINGLE_ITSYSTEM_FIELD,
             {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
         ))
 
-    if mapping.PERSON in data:
+    if mapping.PERSON in data or employee_uuid is not None:
         update_fields.append((
             mapping.USER_FIELD,
-            {'uuid': util.get_mapping_uuid(data, mapping.PERSON)},
+            {
+                'uuid':
+                util.get_mapping_uuid(data, mapping.PERSON) or employee_uuid,
+            },
+        ))
+
+    if mapping.ORG_UNIT in data or org_unit_uuid is not None:
+        update_fields.append((
+            mapping.ASSOCIATED_ORG_UNIT_FIELD,
+            {
+                'uuid':
+                util.get_mapping_uuid(data, mapping.ORG_UNIT) or org_unit_uuid,
+            },
         ))
 
     if mapping.USER_KEY in data:
