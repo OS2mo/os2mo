@@ -258,8 +258,6 @@ class Tests(util.LoRATestCase):
     def test_create_vacant_manager(self, m):
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = [
             {
                 "type": "manager",
@@ -273,7 +271,7 @@ class Tests(util.LoRATestCase):
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
                 "validity": {
-                    "from": "2017-12-01",
+                    "from": "2016-12-01",
                     "to": "2017-12-02",
                 },
             }
@@ -281,6 +279,14 @@ class Tests(util.LoRATestCase):
         org_unit = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         self.assertRequestResponse('/service/ou/{}/create'.format(org_unit),
                                    org_unit, json=payload)
+
+        r = self.request('/service/ou/{}/details/manager'.format(org_unit))
+        vacant_manager = r.json
+        vacant_success = False
+        for manager in vacant_manager:
+            if manager['person'] is None:
+                vacant_success = True
+        assert(vacant_success)
 
     def test_create_manager_no_valid_to(self):
         self.load_sample_structures()
