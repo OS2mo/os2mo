@@ -649,6 +649,105 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    def test_read_root(self):
+        self.load_sample_structures(minimal=True)
+
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
+            {
+                "location": "",
+                "name": "Overordnet Enhed",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Afdeling",
+                    "scope": None,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "parent": None,
+                "user_key": "root",
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+            },
+        )
+
+    def test_read_tree(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/',
+            {
+                "location":
+                "Overordnet Enhed/Humanistisk fakultet/Historisk Institut",
+                "parent": {
+                    "user_key": "hist",
+                    "name": "Historisk Institut",
+                    "validity": {
+                        "to": "2018-12-31",
+                        "from": "2016-01-01",
+                    },
+                    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+                },
+                "org": {
+                    "user_key": "AU",
+                    "name": "Aarhus Universitet",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "user_key": "frem",
+                "org_unit_type": {
+                    "user_key": "afd",
+                    "example": None,
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    "name": "Afdeling",
+                    "scope": None,
+                },
+                "name": "Afdeling for Samtidshistorik",
+                "validity": {
+                    "to": "2018-12-31",
+                    "from": "2016-01-01",
+                },
+                "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            },
+        )
+
+    def test_read_root(self):
+        self.load_sample_structures(minimal=True)
+
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
+            {
+                "location": "",
+                "name": "Overordnet Enhed",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Afdeling",
+                    "scope": None,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "parent": None,
+                "user_key": "root",
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+            },
+        )
+
     def test_edit_org_unit(self):
         # A generic example of editing an org unit
 
@@ -1143,6 +1242,80 @@ class Tests(util.LoRATestCase):
             json=payload,
             status_code=404,
         )
+
+    def test_create_root_unit(self):
+        self.load_sample_structures(minimal=True)
+
+        unitid = "00000000-0000-0000-0000-000000000000"
+        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+        roots = [
+            {
+                'child_count': 0,
+                'name': 'Overordnet Enhed',
+                'user_key': 'root',
+                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'validity': {'from': '2016-01-01', 'to': None},
+            },
+        ]
+
+        with self.subTest('prerequisites'):
+            self.assertRequestResponse('/service/o/{}/children'.format(orgid),
+                                       roots)
+
+        self.assertRequestResponse('/service/ou/create', unitid, json={
+            "name": "Fake Corp",
+            "uuid": unitid,
+            "user_key": "fakefakefake",
+            "parent": {
+                'uuid': orgid,
+            },
+            "org_unit_type": {
+                'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
+            },
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2018-01-01",
+            }
+        })
+
+        self.assertRequestResponse('/service/ou/{}/'.format(unitid), {
+            "location": "",
+            "name": "Fake Corp",
+            "user_key": "fakefakefake",
+            "uuid": unitid,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": orgid
+            },
+            "org_unit_type": {
+                "example": None,
+                "name": "Afdeling",
+                "scope": None,
+                "user_key": "afd",
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+            },
+            "parent": None,
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2018-01-01"
+            }
+        })
+
+        roots.insert(0, {
+            "child_count": 0,
+            "name": "Fake Corp",
+            "user_key": "fakefakefake",
+            "uuid": unitid,
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2018-01-01"
+            }
+        })
+
+        self.assertRequestResponse('/service/o/{}/children'.format(orgid),
+                                   roots)
 
     def test_rename_org_unit(self):
         # A generic example of editing an org unit

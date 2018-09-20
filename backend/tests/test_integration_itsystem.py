@@ -454,6 +454,298 @@ class Writing(util.LoRATestCase):
             [updated],
         )
 
+        self.assertRequestResponse(
+            '/service/e/{}/details/it?validity=future'.format(user_id),
+            [],
+        )
+
+    def test_create_unit_itsystem(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/it?validity=past'.format(unitid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/it'.format(unitid),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/it?validity=future'.format(unitid),
+                [],
+            )
+
+        self.assertEqual(
+            list(c.organisationfunktion.get_all(
+                funktionsnavn='IT-system',
+                tilknyttedebrugere=unitid,
+            )),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "it",
+                    "user_key": "root",
+                    "itsystem": {
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+                    },
+                    "validity": {
+                        "from": "2018-09-01",
+                        "to": None
+                    }
+                },
+            ],
+        )
+
+        (funcid, func), = c.organisationfunktion.get_all(
+            funktionsnavn='IT-system',
+            tilknyttedeenheder=unitid,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=future'.format(unitid),
+            [
+                {
+                    "itsystem": {
+                        "name": "Lokal Rammearkitektur",
+                        "reference": None,
+                        "system_type": None,
+                        "user_key": "LoRa",
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                        "validity": {
+                            "from": "2010-01-01",
+                            "to": None
+                        }
+                    },
+                    "org_unit": {
+                        'name': 'Samfundsvidenskabelige fakultet',
+                        'user_key': 'samf',
+                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                        'validity': {'from': '2017-01-01', 'to': None},
+                    },
+                    "person": None,
+                    "user_key": "root",
+                    "uuid": funcid,
+                    "validity": {
+                        "from": "2018-09-01",
+                        "to": None
+                    }
+                }
+            ],
+        )
+
+    @freezegun.freeze_time('2017-06-22', tz_offset=2)
+    def test_edit_unit_itsystem(self):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        function_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
+
+        original = {
+            "itsystem": {
+                'name': 'Lokal Rammearkitektur',
+                'reference': None,
+                'system_type': None,
+                'user_key': 'LoRa',
+                'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                'validity': {'from': '2010-01-01', 'to': None},
+            },
+            "org_unit": {
+                'name': 'Afdeling for Samtidshistorik',
+                'user_key': 'frem',
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+            },
+            "person": None,
+            "user_key": "fwaf",
+            "uuid": function_id,
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2017-12-31",
+            }
+        }
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/it'.format(unitid),
+                [original],
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "it",
+                    "uuid": function_id,
+                    "data": {
+                        "itsystem": {
+                            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                        },
+                        "validity": {
+                            "from": "2017-06-01",
+                            "to": "2018-06-01",
+                        }
+                    }
+                }
+            ],
+        )
+
+        updated = copy.deepcopy(original)
+        updated.update(
+            itsystem={
+                'name': 'Lokal Rammearkitektur',
+                'reference': None,
+                'system_type': None,
+                'user_key': 'LoRa',
+                'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                'validity': {'from': '2010-01-01', 'to': None},
+            },
+            validity={
+                "from": "2017-06-01",
+                "to": "2018-06-01",
+            },
+        )
+
+        original['validity']['to'] = '2017-05-31'
+        original['org_unit']['name'] = 'Afdeling for Fremtidshistorik'
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [original],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it'.format(unitid),
+            [updated],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=future'.format(unitid),
+            [],
+        )
+
+    @freezegun.freeze_time('2017-06-22', tz_offset=2)
+    def test_edit_move_itsystem(self):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        function_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
+
+        new_userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        new_unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+
+        original = {
+            "itsystem": {
+                'name': 'Lokal Rammearkitektur',
+                'reference': None,
+                'system_type': None,
+                'user_key': 'LoRa',
+                'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+                'validity': {'from': '2010-01-01', 'to': None},
+            },
+            "org_unit": {
+                'name': 'Afdeling for Samtidshistorik',
+                'user_key': 'frem',
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+            },
+            "person": None,
+            "user_key": "fwaf",
+            "uuid": function_id,
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2017-12-31",
+            }
+        }
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/it'.format(unitid),
+                [original],
+            )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(unitid),
+            unitid,
+            json=[
+                {
+                    "type": "it",
+                    "uuid": function_id,
+                    "original": original,
+                    "data": {
+                        "org_unit": {
+                            'uuid': new_unitid,
+                        },
+                        "person": {
+                            "uuid": new_userid,
+                        },
+                        "user_key": "wooble",
+                        "validity": {
+                            "from": "2017-06-01",
+                            "to": "2018-06-01",
+                        },
+                    },
+                },
+            ],
+        )
+
+        updated = copy.deepcopy(original)
+        updated.update(
+            user_key="wooble",
+            org_unit={
+                'name': 'Afdeling for Samtidshistorik',
+                'user_key': 'frem',
+                'uuid': new_unitid,
+                'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+            },
+            person={
+                'name': 'Fedtmule',
+                'uuid': new_userid,
+            },
+            validity={
+                "from": "2017-06-01",
+                "to": "2018-06-01",
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it?validity=past'.format(unitid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it'.format(unitid),
+            [updated],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/it'.format(new_unitid),
+            [updated],
+        )
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Reading(util.LoRATestCase):
