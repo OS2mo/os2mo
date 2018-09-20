@@ -3,13 +3,13 @@
 from setuptools import setup
 
 setup(
-    name='os2mo-importer',
-    version='0.0.1',
-    description='Data import utility for os2mo',
-    author='Steffen Park',
-    author_email='steffen@magenta.dk',
+    name="os2mo-importer",
+    version="0.0.1",
+    description="Data import utility for os2mo",
+    author="Steffen Park",
+    author_email="steffen@magenta.dk",
     license="MPL 2.0",
-    packages=['os2mo_data_import', 'os2mo_data_import.adapters'],
+    packages=["os2mo_data_import", "os2mo_data_import.adapters"],
     zip_safe=False,
     install_requires=[
         "certifi==2018.8.24",
