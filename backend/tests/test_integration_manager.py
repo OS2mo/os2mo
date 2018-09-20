@@ -281,9 +281,11 @@ class Tests(util.LoRATestCase):
                                    org_unit, json=payload)
 
         r = self.request('/service/ou/{}/details/manager'.format(org_unit))
-        vacant_manager = r.json
-        vacant_success = False
-        for manager in vacant_manager:
+        self.assert200(r)
+        vacant_managers = r.json
+        vacant_successs = False
+        # Iterate through all managers, if we find a vacant one, we are happy
+        for manager in vacant_managers:
             if manager['person'] is None:
                 vacant_success = True
         assert(vacant_success)
