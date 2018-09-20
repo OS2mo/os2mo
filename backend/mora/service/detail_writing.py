@@ -42,6 +42,24 @@ RELATION_TYPES = {
     'org_unit': orgunit.OrgUnit,
 }
 
+CREATION_HANDLERS = {
+    'engagement': engagement.create_engagement,
+    'association': association.create_association,
+    'role': role.create_role,
+    'manager': manager.create_manager,
+    'leave': leave.create_leave,
+    'it': itsystem.create_itsystem,
+}
+
+EDIT_HANDLERS = {
+    'engagement': engagement.edit_engagement,
+    'association': association.edit_association,
+    'role': role.edit_role,
+    'leave': leave.edit_leave,
+    'manager': manager.edit_manager,
+    'it': itsystem.edit_itsystem,
+}
+
 
 def _get_scope(t: str):
     if t == 'ou':
@@ -325,42 +343,39 @@ def create(type, uuid):
 
     """
 
-    handlers = {
-        'engagement': engagement.create_engagement,
-        'association': association.create_association,
-        'role': role.create_role,
-        'manager': manager.create_manager,
-        'leave': leave.create_leave,
-        'it': itsystem.create_itsystem,
-        **RELATION_TYPES,
-    }
-
     reqs = flask.request.get_json()
     scope = _get_scope(type)
 
     for req in reqs:
         role_type = req.get('type')
-        handler = handlers.get(role_type)
 
-        if not handler:
+        if role_type in CREATION_HANDLERS:
+            handler = CREATION_HANDLERS[role_type]
+
+            if type == 'ou':
+                handler(req, org_unit_uuid=str(uuid))
+            else:
+                assert type == 'e'
+                handler(req, employee_uuid=str(uuid))
+
+                # Write a noop entry to the user, to be used for the history
+                common.add_history_entry(
+                    scope, uuid,
+                    "Opret {}".format(
+                        mapping.RELATION_TRANSLATIONS[role_type],
+                    ),
+                )
+
+        elif role_type in RELATION_TYPES:
+            RELATION_TYPES[role_type](scope).create(
+                str(uuid),
+                req,
+            )
+
+        else:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
                 message=role_type)
-
-        elif issubclass(handler, common.AbstractRelationDetail):
-            handler(scope).create(str(uuid), req)
-
-        elif type == 'ou':
-            handler(req, org_unit_uuid=str(uuid))
-        else:
-            assert type == 'e'
-            handler(req, employee_uuid=str(uuid))
-
-        # Write a noop entry to the user, to be used for the history
-        common.add_history_entry(
-            scope, uuid,
-            "Opret {}".format(mapping.RELATION_TRANSLATIONS[role_type])
-        )
 
     # TODO:
     return flask.jsonify(uuid), 200
@@ -801,16 +816,6 @@ def edit(type, uuid):
       ]
     """
 
-    handlers = {
-        'engagement': engagement.edit_engagement,
-        'association': association.edit_association,
-        'role': role.edit_role,
-        'leave': leave.edit_leave,
-        'manager': manager.edit_manager,
-        'it': itsystem.edit_itsystem,
-        **RELATION_TYPES,
-    }
-
     reqs = flask.request.get_json()
     scope = _get_scope(type)
 
@@ -821,32 +826,35 @@ def edit(type, uuid):
     # all or none of them
     for req in reqs:
         role_type = req.get('type')
-        handler = handlers.get(role_type)
 
-        if not handler:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                message=role_type)
+        if role_type in EDIT_HANDLERS:
+            handler = EDIT_HANDLERS[role_type]
 
-        elif issubclass(handler, common.AbstractRelationDetail):
-            handler(scope).edit(
+            if type == 'ou':
+                handler(req, org_unit_uuid=str(uuid))
+            else:
+                assert type == 'e'
+                handler(req, employee_uuid=str(uuid))
+
+                # Write a noop entry, to be used for the history
+                common.add_history_entry(
+                    scope, uuid,
+                    "Rediger {}".format(
+                        mapping.RELATION_TRANSLATIONS[role_type],
+                    )
+                )
+
+        elif role_type in RELATION_TYPES:
+            RELATION_TYPES[role_type](scope).edit(
                 str(uuid),
                 req,
             )
 
-            continue
-
-        elif type == 'ou':
-            handler(req, org_unit_uuid=str(uuid))
         else:
-            assert type == 'e'
-            handler(req, employee_uuid=str(uuid))
-
-        # Write a noop entry, to be used for the history
-        common.add_history_entry(
-            scope, uuid,
-            "Rediger {}".format(mapping.RELATION_TRANSLATIONS[role_type])
-        )
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+                type=role_type,
+            )
 
     # TODO: Figure out the response -- probably just the edited object(s)?
     return flask.jsonify(uuid), 200
