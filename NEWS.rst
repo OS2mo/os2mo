@@ -5,8 +5,9 @@ New features
 ------------
 
 * #22849: Implemented support for signed SAML AuthN Requests.
-* #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit
-
+* #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit.
+* #23558: Added the possibility to create managers without employees through the ou endpoint, thus allowing for vacant manager positions.
+  
 Internal changes
 ----------------
 

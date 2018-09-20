@@ -29,6 +29,7 @@ from . import address
 from .. import common
 from . import facet
 from . import itsystem
+from . import manager
 from .. import mapping
 from . import org
 from .. import exceptions
@@ -178,6 +179,8 @@ RELATION_TYPES = {
     'it': itsystem.ITSystems,
     'org_unit': OrgUnit,
 }
+
+ORGFUNC_TYPES = {'manager': manager.create_manager}
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -782,6 +785,56 @@ def create_org_unit_relation(unitid):
         }
       ]
 
+    **Manager**:
+
+    If managers are created through the ou/ endpoint, they will be be created
+    as vacant, ie without an associated employee. To create a manager role that
+    is connected to an employee, use the e/ endpoint.
+
+    :<jsonarr string type: **"manager"**
+    :<jsonarr string manager_type: The manager type
+    :<jsonarr array responsibility: The manager responsibilities
+    :<jsonarr string manager_level: The manager level
+    :<jsonarr string address: The associated address.
+    :<jsonarr object validity: The validities of the created object.
+
+    The parameters ``manager_type``, ``responsibility`` and ``manager_level``
+    should contain UUIDs obtained from their respective facet endpoints.
+    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    For the ``address`` parameter, see :ref:`Adresses <address>`.
+
+    .. sourcecode:: json
+
+      [
+        {
+          "type": "manager",
+          "manager_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "responsibility": [
+            {
+              "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
+            }
+          ],
+          "manager_level": {
+            "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
+          },
+          "address": {
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": {
+              "example": "<UUID>",
+              "name": "Adresse",
+              "scope": "DAR",
+              "user_key": "Adresse",
+              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+            }
+          },
+          "validity": {
+            "from": "2016-01-01T00:00:00+00:00",
+            "to": "2018-01-01T00:00:00+00:00"
+          }
+        }
+      ]
     """
 
     reqs = flask.request.get_json()
@@ -789,16 +842,24 @@ def create_org_unit_relation(unitid):
     if not isinstance(reqs, list):
         return flask.jsonify('Root object must be a list!'), 400
 
-    if not all('type' in r and r['type'] in RELATION_TYPES for r in reqs):
+    if not all('type' in r and r['type'] in
+               (list(RELATION_TYPES.keys()) + list(ORGFUNC_TYPES.keys()))
+               for r in reqs):
         return flask.jsonify('Invalid role types!'), 400
 
     for req in reqs:
-        RELATION_TYPES.get(req['type'])(
-            common.get_connector().organisationenhed,
-        ).create(
-            str(unitid),
-            req,
-        )
+        if req['type'] in ORGFUNC_TYPES:
+            ORGFUNC_TYPES.get(req['type'])(
+                employee_uuid=None,
+                org_unit_uuid=str(unitid),
+                req=req)
+        else:
+            RELATION_TYPES.get(req['type'])(
+                common.get_connector().organisationenhed,
+            ).create(
+                str(unitid),
+                req,
+            )
 
     # TODO:
     return flask.jsonify(unitid), 200
