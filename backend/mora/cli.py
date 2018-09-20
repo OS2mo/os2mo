@@ -214,7 +214,9 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
         )
 
         for module in sys.modules.values():
-            if getattr(module, '__file__', '').startswith(basedir):
+            module_file = getattr(module, '__file__', None)
+
+            if module_file and module_file.startswith(basedir):
                 suite.addTests(doctest.DocTestSuite(module))
 
     def expand_suite(suite):
