@@ -1094,7 +1094,8 @@ def get_employee_history(employee_uuid):
                                       registrerettil='infinity')
 
     if not user_registrations:
-        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND,
+                                       employee_uuid=employee_uuid)
 
     history_entries = list(map(common.convert_reg_to_history,
                                user_registrations))

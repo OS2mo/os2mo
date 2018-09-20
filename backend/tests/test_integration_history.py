@@ -12,6 +12,23 @@ from . import util
 
 
 class EmployeeHistoryTest(util.LoRATestCase):
+
+    def test_invalid_employee_history(self):
+        userid = "00000000-0000-0000-0000-000000000000"
+
+        # Assert
+        self.assertRequestResponse(
+            '/service/e/{}/history/'.format(userid),
+            {
+                'description': 'User not found.',
+                'error': True,
+                'error_key': 'E_USER_NOT_FOUND',
+                'status': 404,
+                'employee_uuid': userid,
+            },
+            status_code=404,
+        )
+
     def test_employee_history(self):
         # Create and edit a bunch of stuff, followed by a terminate
         # Arrange
@@ -229,6 +246,22 @@ class EmployeeHistoryTest(util.LoRATestCase):
 
 
 class OrgUnitHistoryTest(util.LoRATestCase):
+    def test_invalid_org_unit_history(self):
+        unitid = "00000000-0000-0000-0000-000000000000"
+
+        # Assert
+        self.assertRequestResponse(
+            '/service/ou/{}/history/'.format(unitid),
+            {
+                'description': 'Org unit not found.',
+                'error': True,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': unitid,
+                'status': 404,
+            },
+            status_code=404,
+        )
+
     def test_org_unit_history(self):
         # A create, some edits, followed by a termination
         # Arrange
