@@ -213,9 +213,9 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
             top_level_dir=os.path.join(backenddir),
         )
 
-    for module in sys.modules.values():
-        if getattr(module, '__file__', '').startswith(basedir):
-            suite.addTests(doctest.DocTestSuite(module))
+        for module in sys.modules.values():
+            if getattr(module, '__file__', '').startswith(basedir):
+                suite.addTests(doctest.DocTestSuite(module))
 
     def expand_suite(suite):
         for member in suite:
