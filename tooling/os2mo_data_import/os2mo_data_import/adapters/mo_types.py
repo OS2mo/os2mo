@@ -42,30 +42,33 @@ class MoBase(MemoryMap):
             for item in self.storage_map.values()
         }
 
-
-
+        export_data = []
         ordered_list_for_insertion = []
         waiting_for_import = []
 
-        for item in all_items:
+        for item in all_items.items():
 
             uuid, data = item
 
             if data["parent"]["uuid"] == self.parent_org:
                 ordered_list_for_insertion.append(uuid)
-                export_data.append(item)
+                export_data.append(
+                    (uuid, data)
+                )
             else:
                 waiting_for_import.append(uuid)
 
         while waiting_for_import:
 
-            for item in all_items:
+            for item in all_items.items():
 
                 uuid, data = item
 
                 if data["parent"]["uuid"] in ordered_list_for_insertion:
                     ordered_list_for_insertion.append(uuid)
-                    export_data.append(item)
+                    export_data.append(
+                        (uuid, data)
+                    )
                     waiting_for_import.remove(uuid)
 
         return export_data
@@ -78,7 +81,7 @@ class OrganisationUnit(MoBase):
         self.parent_org = parent_org
         self.storage_map = {}
 
-    def add(self, name, type_ref, date_from, parent_ref=None, date_to=None):
+    def add(self, name, type_ref, date_from, parent_ref=None, user_key=None, date_to=None):
 
         if not parent_ref:
             parent_ref = self.parent_org
@@ -96,6 +99,13 @@ class OrganisationUnit(MoBase):
                 "to": date_to
             }
         }
+
+        # Add user key to the data payload if passed
+        # Default is auto generated UUID
+        if user_key:
+            data.update({
+                "user_key": user_key
+            })
 
         return self.save(identifier=name, data=data)
 
