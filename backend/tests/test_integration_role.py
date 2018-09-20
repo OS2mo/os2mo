@@ -121,18 +121,11 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        roles = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(roles), 1)
-        roleid = roles[0]
+        (roleid, actual_role), = c.organisationfunktion.get_all(
+            tilknyttedebrugere=userid,
+        )
 
-        actual_role = c.organisationfunktion.get(roleid)
-
-        # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
-            'brugerref']
-
-        self.assertEqual(actual_role, expected)
+        self.assertRegistrationsEqual(actual_role, expected)
 
     def test_create_role_no_valid_to(self):
         self.load_sample_structures()
@@ -238,18 +231,11 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        roles = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(roles), 1)
-        roleid = roles[0]
+        (roleid, actual_role), = c.organisationfunktion.get_all(
+            tilknyttedebrugere=userid,
+        )
 
-        actual_role = c.organisationfunktion.get(roleid)
-
-        # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
-            'brugerref']
-
-        self.assertEqual(actual_role, expected)
+        self.assertRegistrationsEqual(actual_role, expected)
 
     def test_create_role_fails_on_empty_payload(self):
         self.load_sample_structures()
@@ -512,12 +498,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_role = c.organisationfunktion.get(role_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
-            'brugerref']
-
-        self.assertEqual(expected_role, actual_role)
+        self.assertRegistrationsEqual(expected_role, actual_role)
 
     def test_edit_role_overwrite(self):
         self.load_sample_structures()
@@ -773,9 +754,4 @@ class Tests(util.LoRATestCase):
 
         actual_role = c.organisationfunktion.get(role_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_role['fratidspunkt'], actual_role[
-            'tiltidspunkt'], actual_role[
-            'brugerref']
-
-        self.assertEqual(actual_role, expected_role)
+        self.assertRegistrationsEqual(actual_role, expected_role)

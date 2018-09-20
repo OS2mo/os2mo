@@ -165,12 +165,7 @@ class Tests(util.LoRATestCase):
 
         actual_association = c.organisationfunktion.get(associationid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(actual_association, expected)
+        self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
             'address': {
@@ -408,12 +403,7 @@ class Tests(util.LoRATestCase):
 
         actual_association = c.organisationfunktion.get(associationid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(actual_association, expected)
+        self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
             'address': {
@@ -616,12 +606,7 @@ class Tests(util.LoRATestCase):
 
         actual_association = c.organisationfunktion.get(associationid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(actual_association, expected)
+        self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
             'address': {
@@ -858,12 +843,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_association = c.organisationfunktion.get(association_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(expected_association, actual_association)
+        self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
             'address': None,
@@ -1210,12 +1190,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_association = c.organisationfunktion.get(association_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(expected_association, actual_association)
+        self.assertRegistrationsEqual(expected_association, actual_association)
 
         self.assertRequestResponse(
             '/service/e/{}/details/association'.format(userid),
@@ -1426,12 +1401,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_association = c.organisationfunktion.get(association_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(expected_association, actual_association)
+        self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
             'address': None,
@@ -1669,12 +1639,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_association = c.organisationfunktion.get(association_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(expected_association, actual_association)
+        self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
             'address': None,
@@ -2126,12 +2091,7 @@ class AddressTests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_association = c.organisationfunktion.get(association_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_association['fratidspunkt'], actual_association[
-            'tiltidspunkt'], actual_association[
-            'brugerref']
-
-        self.assertEqual(expected_association, actual_association)
+        self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected[0].update(
             address={

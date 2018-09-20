@@ -140,12 +140,7 @@ class Tests(util.LoRATestCase):
 
         actual_engagement = c.organisationfunktion.get(engagementid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(actual_engagement, expected)
+        self.assertRegistrationsEqual(actual_engagement, expected)
 
     def test_create_engagement_no_valid_to(self):
         self.load_sample_structures()
@@ -271,12 +266,7 @@ class Tests(util.LoRATestCase):
 
         actual_engagement = c.organisationfunktion.get(engagementid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(actual_engagement, expected)
+        self.assertRegistrationsEqual(actual_engagement, expected)
 
     def test_create_engagement_no_job_function(self):
         self.load_sample_structures()
@@ -551,12 +541,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertRegistrationsEqual(actual_engagement, expected_engagement)
 
     def test_edit_engagement_overwrite(self):
         self.load_sample_structures()
@@ -715,12 +700,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(expected_engagement, actual_engagement)
+        self.assertRegistrationsEqual(actual_engagement, expected_engagement)
 
     def test_edit_engagement_move(self):
         self.load_sample_structures()
@@ -1130,9 +1110,4 @@ class Tests(util.LoRATestCase):
 
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        # drop lora-generated timestamps & users
-        del actual_engagement['fratidspunkt'], actual_engagement[
-            'tiltidspunkt'], actual_engagement[
-            'brugerref']
-
-        self.assertEqual(actual_engagement, expected)
+        self.assertRegistrationsEqual(actual_engagement, expected)
