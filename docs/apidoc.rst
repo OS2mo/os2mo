@@ -11,4 +11,5 @@ det sprog anvendes i al koden.
 
    blueprints/*
    backend
+   frontend
    errorcodes.rst
