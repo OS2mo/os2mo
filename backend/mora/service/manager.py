@@ -35,6 +35,11 @@ def create_manager(req, *, employee_uuid=None, org_unit_uuid=None):
     if not org_unit_uuid:
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                               required=True)
+
+    if not employee_uuid:
+        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                              required=False)
+
     org_uuid = (
         c.organisationenhed.get(org_unit_uuid)
         ['relationer']['tilhoerer'][0]['uuid']
@@ -69,6 +74,7 @@ def create_manager(req, *, employee_uuid=None, org_unit_uuid=None):
     # Validation
     validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                               valid_to)
+
     if employee_uuid:
         validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                                   valid_to)
@@ -106,12 +112,6 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
             original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
         org_unit_uuid = util.get_uuid(org_unit)
 
-    # Get employee uuid for validation purposes
-    if employee_uuid is None:
-        employee = util.get_obj_value(
-            original, mapping.USER_FIELD.path)[-1]
-        employee_uuid = util.get_uuid(employee)
-
     payload = dict()
     payload['note'] = 'Rediger leder'
 
@@ -142,6 +142,14 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {'uuid': util.get_mapping_uuid(data, mapping.ORG_UNIT)},
+        ))
+
+    if mapping.PERSON in data:
+        employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
+
+        update_fields.append((
+            mapping.USER_FIELD,
+            {'uuid': employee_uuid} if employee_uuid else {},
         ))
 
     for responsibility in util.checked_get(data, mapping.RESPONSIBILITY, []):
@@ -182,8 +190,10 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
 
     validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
                                               new_to)
-    validator.is_date_range_in_employee_range(employee_uuid, new_from,
-                                              new_to)
+
+    if employee_uuid:
+        validator.is_date_range_in_employee_range(employee_uuid, new_from,
+                                                  new_to)
 
     validator.is_distinct_responsibility(update_fields)
 
