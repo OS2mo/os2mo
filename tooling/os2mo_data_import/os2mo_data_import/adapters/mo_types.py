@@ -97,10 +97,13 @@ class OrganisationUnit(MoBase):
         self.parent_org = parent_org
         self.storage_map = {}
 
-    def add(self, name, type_ref, date_from, parent_ref=None, user_key=None, date_to=None):
+    def add(self, identifier, type_ref, date_from, date_to=None, name=None, parent_ref=None, user_key=None):
 
         if not parent_ref:
             parent_ref = self.parent_org
+
+        if not name:
+            name = identifier
 
         data = {
             "name": name,
@@ -123,7 +126,7 @@ class OrganisationUnit(MoBase):
                 "user_key": user_key
             })
 
-        return self.save(identifier=name, data=data)
+        return self.save(identifier=identifier, data=data)
 
 
 class Employee(MoBase):
@@ -135,7 +138,10 @@ class Employee(MoBase):
         self.parent_org = parent_org
         self.storage_map = {}
 
-    def add(self, name, cpr_no, date_from, date_to=None, user_key=None):
+    def add(self, identifier, cpr_no, date_from, date_to=None, name=None, user_key=None):
+
+        if not name:
+            name = identifier
 
         data = {
             "name": name,
@@ -156,7 +162,7 @@ class Employee(MoBase):
                 "user_key": user_key
             })
 
-        return self.save(identifier=name, data=data)
+        return self.save(identifier=identifier, data=data)
 
     def add_type_engagement(self, identifier, org_unit_ref, job_function_type,
                             engagement_type, date_from, date_to=None):
