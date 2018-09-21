@@ -35,11 +35,6 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-RELATION_TYPES = {
-    'address': address.Addresses,
-}
-
-
 def get_one_employee(c, userid, user=None, full=False):
     if not user:
         user = c.bruger.get(userid)

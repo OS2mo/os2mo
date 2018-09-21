@@ -47,14 +47,16 @@ blueprint = flask.Blueprint('details', __name__, static_url_path='',
 DetailType = collections.namedtuple('DetailType', [
     'search',
     'scope',
-    'relation_types',
 ])
 
 DETAIL_TYPES = {
-    'e': DetailType('tilknyttedebrugere', 'bruger',
-                    employee.RELATION_TYPES),
-    'ou': DetailType('tilknyttedeenheder', 'organisationenhed',
-                     orgunit.RELATION_TYPES),
+    'e': DetailType('tilknyttedebrugere', 'bruger'),
+    'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
+}
+
+RELATION_TYPES = {
+    'address': address.Addresses,
+    'org_unit': orgunit.OrgUnit,
 }
 
 
@@ -100,7 +102,7 @@ def list_details(type, id):
 
     reg = scope.get(id)
 
-    for relname, cls in info.relation_types.items():
+    for relname, cls in RELATION_TYPES.items():
         r[relname] = bool(cls(scope).has(reg))
 
     return flask.jsonify(r)
@@ -442,8 +444,10 @@ def get_detail(type, id, function):
     }
     scope = getattr(c, info.scope)
 
-    if function in info.relation_types:
-        return info.relation_types[function](scope).get(id)
+    cls = RELATION_TYPES.get(function)
+
+    if cls:
+        return cls(scope).get(id)
 
     # ensure that we report an error correctly
     if function not in mapping.FUNCTION_KEYS:

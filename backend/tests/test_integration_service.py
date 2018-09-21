@@ -1330,6 +1330,7 @@ class Tests(util.LoRATestCase):
                     'it': False,
                     'leave': False,
                     'manager': False,
+                    'org_unit': False,
                     'role': False,
                 },
             )
@@ -1345,6 +1346,7 @@ class Tests(util.LoRATestCase):
                     'it': True,
                     'leave': True,
                     'manager': True,
+                    'org_unit': False,
                     'role': True,
                 },
             )

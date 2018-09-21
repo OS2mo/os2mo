@@ -28,7 +28,6 @@ import werkzeug
 from . import address
 from .. import common
 from . import facet
-from . import manager
 from .. import mapping
 from . import org
 from .. import exceptions
@@ -182,14 +181,6 @@ class OrgUnit(common.AbstractRelationDetail):
         )
 
 
-RELATION_TYPES = {
-    'address': address.Addresses,
-    'org_unit': OrgUnit,
-}
-
-ORGFUNC_TYPES = {'manager': manager.create_manager}
-
-
 def get_one_orgunit(c, unitid, unit=None,
                     details=UnitDetails.NCHILDREN, validity=None) -> dict:
     '''Internal API for returning one organisation unit.
@@ -212,10 +203,7 @@ def get_one_orgunit(c, unitid, unit=None,
         'uuid': unitid,
     }
 
-    if details is UnitDetails.MINIMAL:
-        pass
-
-    elif details is UnitDetails.NCHILDREN:
+    if details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
 
         r['child_count'] = len(children)
@@ -253,10 +241,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'invalid details {!r}'.format(details),
-        )
+        assert details is UnitDetails.MINIMAL, 'enum is {}!?'.format(details)
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
