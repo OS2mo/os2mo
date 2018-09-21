@@ -480,52 +480,32 @@ def get_detail(type, id, function):
 
         yield from map(operator.itemgetter('objekttype'), rels)
 
-    def get_employee_id(effect):
-        try:
-            yield from effect['relationer']['tilknyttedebrugere']
-        except LookupError:
-            pass
+    def getter(rel, field=None):
+        def get(effect):
+            try:
+                vals = effect['relationer'][rel]
+            except LookupError:
+                return
 
-    def get_unit_id(effect):
-        # 'Leave' objects do not contains this relation, so we need to guard
-        #  ourselves here
-        try:
-            yield from effect['relationer']['tilknyttedeenheder']
-        except LookupError:
-            pass
+            for val in vals:
+                if val.keys() == {'virkning'}:
+                    continue
 
-    def get_type_id(effect):
-        try:
-            yield from effect['relationer']['organisatoriskfunktionstype']
-        except LookupError:
-            pass
+                if not field or field.filter_fn(val):
+                    yield val
 
-    def get_title_id(effect):
-        try:
-            yield from effect['relationer']['opgaver']
-        except LookupError:
-            pass
+        get.__name__ = 'get_' + rel
 
-    def get_responsibility(effect):
-        try:
-            yield from filter(mapping.RESPONSIBILITY_FIELD.filter_fn,
-                              effect['relationer']['opgaver'])
-        except LookupError:
-            pass
+        return get
 
-    def get_manager_level(effect):
-        try:
-            yield from filter(mapping.MANAGER_LEVEL_FIELD.filter_fn,
-                              effect['relationer']['opgaver'])
-        except LookupError:
-            pass
-
-    def get_itsystem(effect):
-        try:
-            yield from filter(mapping.SINGLE_ITSYSTEM_FIELD.filter_fn,
-                              effect['relationer']['tilknyttedeitsystemer'])
-        except LookupError:
-            pass
+    get_employee_id = getter('tilknyttedebrugere')
+    get_unit_id = getter('tilknyttedeenheder')
+    get_type_id = getter('organisatoriskfunktionstype')
+    get_title_id = getter('opgaver')
+    get_responsibility = getter('opgaver', mapping.RESPONSIBILITY_FIELD)
+    get_manager_level = getter('opgaver', mapping.MANAGER_LEVEL_FIELD)
+    get_itsystem = getter('tilknyttedeitsystemer',
+                          mapping.SINGLE_ITSYSTEM_FIELD)
 
     #
     # all these caches might be overkill when just listing one
