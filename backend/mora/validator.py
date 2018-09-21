@@ -157,6 +157,12 @@ def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
     ).bruger
     employee = scope.get(employee_uuid)
 
+    if not employee:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_USER_NOT_FOUND,
+            employee_uuid=employee_uuid,
+        )
+
     gyldighed_key = "brugergyldighed"
 
     if not _is_date_range_valid(employee, valid_from, valid_to, scope,
