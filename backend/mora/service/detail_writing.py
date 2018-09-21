@@ -375,7 +375,8 @@ def create(type, uuid):
         else:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                message=role_type)
+                type=role_type,
+            )
 
     # TODO:
     return flask.jsonify(uuid), 200

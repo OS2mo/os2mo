@@ -82,7 +82,6 @@ class ErrorCodes(Enum):
     E_INVALID_UUID = 400, "Invalid UUID."
     E_INVALID_URN = 400, "Invalid URN."
     E_ORIGINAL_ENTRY_NOT_FOUND = 400, "Original entry not found."
-    E_INVALID_FUNCTION_TYPE = 400, "Invalid function type."
     E_NO_LOCAL_MUNICIPALITY = 400, "No local municipality found."
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
 
