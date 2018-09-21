@@ -74,7 +74,6 @@ class MoBase(MemoryMap):
         return export_data
 
 
-
 class OrganisationUnit(MoBase):
 
     def __init__(self, parent_org):
@@ -147,9 +146,9 @@ class Employee(MoBase):
 
         return self.save(identifier=name, data=data)
 
-    def append_job(self, identifier, org_unit_ref, job_function_type, engagement_type, date_from, date_to=None):
+    def add_type_engagement(self, identifier, org_unit_ref, job_function_type, engagement_type, date_from, date_to=None):
 
-        job_data = {
+        payload = {
             "type": "engagement",
             "org_unit": {
                 "uuid": org_unit_ref
@@ -160,7 +159,11 @@ class Employee(MoBase):
             "engagement_type": {
                 "uuid": engagement_type
             },
-            "validity": self.validity_range(date_from, date_to)
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
         }
 
-        return self.set_metadata(identifier, job_data)
+        return self.set_metadata(identifier, payload)
+
