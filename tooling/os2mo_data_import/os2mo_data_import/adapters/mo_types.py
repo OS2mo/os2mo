@@ -73,6 +73,23 @@ class MoBase(MemoryMap):
 
         return export_data
 
+    def add_type_address(self, identifier, value, type_ref, date_from, date_to=None, value_as_uuid=False):
+
+        payload = {
+            "value": value,
+            "address_type": type_ref,
+            "type": "address",
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
+        }
+
+        if value_as_uuid:
+            payload["uuid"] = payload.pop("value")
+
+        return self.set_metadata(identifier, payload)
+
 
 class OrganisationUnit(MoBase):
 
@@ -108,16 +125,11 @@ class OrganisationUnit(MoBase):
 
         return self.save(identifier=name, data=data)
 
-    def add_address_type(self, identifier, address_data):
-
-        if not "address_type" in address_data:
-            raise RuntimeError("No address type present")
-
-
-        return self.set_metadata(identifier, address_data)
-
 
 class Employee(MoBase):
+
+    # TODO: add association type
+    # TODO: unify meta types
 
     def __init__(self, parent_org):
         self.parent_org = parent_org
@@ -146,7 +158,8 @@ class Employee(MoBase):
 
         return self.save(identifier=name, data=data)
 
-    def add_type_engagement(self, identifier, org_unit_ref, job_function_type, engagement_type, date_from, date_to=None):
+    def add_type_engagement(self, identifier, org_unit_ref, job_function_type,
+                            engagement_type, date_from, date_to=None):
 
         payload = {
             "type": "engagement",
@@ -167,3 +180,82 @@ class Employee(MoBase):
 
         return self.set_metadata(identifier, payload)
 
+    def add_type_role(self, identifier, org_unit_ref, type_ref, date_from, date_to=None):
+
+        payload = {
+            "type": "role",
+            "org_unit": {
+                "uuid": org_unit_ref
+            },
+            "role_type": {
+                "uuid": type_ref
+            },
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
+        }
+
+        return self.set_metadata(identifier, payload)
+
+    def add_type_manager(self, identifier, org_unit_ref, manager_type,
+                         manager_level, responsabilities, date_from, date_to=None):
+
+        if isinstance(responsabilities, str):
+            responsabilities = list(responsabilities)
+
+        responsibility = [
+            dict(uuid=reference)
+            for reference in responsabilities
+        ]
+
+        # TODO: add address type to manager payload
+        payload = {
+            "type": "manager",
+            "org_unit": {
+                "uuid": org_unit_ref
+            },
+            "manager_type": {
+                "uuid": manager_type
+            },
+            "responsibility": responsibility,
+            "manager_level": {
+                "uuid": manager_level
+            },
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
+        }
+
+        return self.set_metadata(identifier, payload)
+
+    def add_type_leave(self, identifier, leave_type_ref, date_from, date_to=None):
+
+        payload = {
+            "type": "leave",
+            "leave_type": {
+                "uuid": leave_type_ref
+            },
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
+        }
+
+        return self.set_metadata(identifier, payload)
+
+    def add_type_itsystem(self, identifier, itsystem_ref, date_from, date_to=None):
+
+        payload = {
+            "type": "it",
+            "itsystem": {
+                "uuid": itsystem_ref
+            },
+            "validity": {
+                "from": date_from,
+                "to": date_to
+            }
+        }
+
+        return self.set_metadata(identifier, payload)
