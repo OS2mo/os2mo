@@ -83,20 +83,56 @@
 
       facetPicker () {
         return {
-          components: { MoFacetPicker },
-          props: { value: Object },
-          data () { return { val: null } },
-          watch: { val (newVal) { this.$emit('input', newVal) } },
-          created () { this.val = this.value },
+          components: {
+            MoFacetPicker
+          },
+
+          props: {
+            value: Object
+          },
+
+          data () {
+            return {
+              val: null
+            }
+          },
+
+          watch: {
+            val (newVal) {
+              this.$emit('input', newVal)
+            }
+          },
+
+          created () {
+            this.val = this.value
+          },
+
           template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
         }
       },
 
       managerAddressPicker () {
         return {
-          components: { MoManagerAddressPicker },
-          props: { value: Object },
-          data () { return { val: this.value } },
+          components: {
+            MoManagerAddressPicker
+          },
+
+          data () {
+            return {
+              val: this.value
+            }
+          },
+
+          watch: {
+            val (newVal) {
+              this.$emit('input', newVal)
+            }
+          },
+
+          created () {
+            this.val = this.value
+          },
+
           template: `<mo-manager-address-picker v-model="val" required/>`
         }
       }

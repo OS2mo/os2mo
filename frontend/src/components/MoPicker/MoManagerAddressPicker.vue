@@ -8,7 +8,7 @@
         :preselected-user-key="preselectedType" 
         required
       />
-      
+
       <div class="form-group col">
         <div v-if="entry.address_type">
           <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
@@ -56,7 +56,7 @@
 
     data () {
       return {
-        contactInfo: '',
+        contactInfo: null,
         entry: {
           address_type: {},
           uuid: null,
@@ -97,11 +97,12 @@
 
     watch: {
       contactInfo: {
-        handler (newValue) {
+        handler (newVal) {
           this.entry.type = 'address'
-          this.entry.value = newValue
+          this.entry.value = newVal
           this.$emit('input', this.entry)
-        }
+        },
+        deep: true
       },
 
       entry: {
@@ -126,18 +127,16 @@
     },
 
     created () {
-      if (this.value) {
-        if (this.value.uuid) {
-          this.address = {
-            location: {
-              name: this.value.name,
-              uuid: this.value.uuid
-            }
+      if (this.value.uuid) {
+        this.address = {
+          location: {
+            name: this.value.name,
+            uuid: this.value.uuid
           }
         }
-        this.entry = this.value
-        this.contactInfo = this.value.name
       }
+      this.contactInfo = this.value.name
+      this.entry = this.value
     }
   }
 </script>
