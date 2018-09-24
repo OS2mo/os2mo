@@ -8,13 +8,13 @@
 
 import filecmp
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 
 from . import util
-
 
 
 class Tests(unittest.TestCase):
@@ -48,12 +48,12 @@ class Tests(unittest.TestCase):
 
         proc = subprocess.run(
             ['diff', '-Naur', docdir, tempdir],
-            capture_output=True,
-            encoding='utf-8',
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
 
-        sys.stdout.write(proc.stdout)
-        sys.stderr.write(proc.stderr)
+        sys.stdout.write(proc.stdout.decode())
+        sys.stderr.write(proc.stderr.decode())
 
         msg = '''
         To fix this, run:
