@@ -205,8 +205,24 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
     loader = unittest.TestLoader()
 
+    # ensure that we can load the tests, whatever the $PWD
+    sys.path.insert(0, backenddir)
+
     if tests:
-        suite = loader.loadTestsFromNames(tests)
+        def as_module(tn):
+            if os.path.isfile(tn) and tn.endswith('.py'):
+                return '.'.join(
+                    os.path.split(
+                        os.path.splitext(
+                            os.path.relpath(tn, backenddir)
+                        )[0]
+                    )
+                )
+            else:
+                return tn
+
+        suite = loader.loadTestsFromNames(map(as_module, tests))
+
     else:
         suite = loader.discover(
             start_dir=os.path.join(backenddir, 'tests'),
