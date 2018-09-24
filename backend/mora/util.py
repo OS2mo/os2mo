@@ -582,11 +582,12 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     return obj_copy
 
 
-def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
+def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None,
+                  default=None):
     try:
         props = functools.reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
-        return None
+        return default
 
     if filter_fn:
         return list(filter(filter_fn, props))
