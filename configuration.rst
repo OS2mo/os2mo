@@ -1,0 +1,42 @@
+Configuration module
+=====================
+
+Front-end configuration
+------------
+
+It is possible to perform simple configuration of the MO frontend using the
+configuation file found in ``backend/mora/user_settings.json``
+
+This file could look something like this:
+
+    .. sourcecode:: json
+
+    {
+	"orgunit": {
+	    "show_location": true,
+	    "show_roles": true,
+	    "show_bvn": true,
+	    "927dc4d5-fdca-4062-a0d8-a44e8a9e8685": {
+		"show_location": true,
+		"show_roles": false,
+		"show_bvn": false
+	    }
+	}
+    }
+
+    '''
+
+The general key orgunit indcates that the settings appply to organisational
+units (currently no settings are possible for employees). Three different
+settings can be applied:
+ * ``show_location`` Indicates whether the location of units should be visible
+   in the top of the page.
+ * ``show_bvn`` Indicates whether the user key of units should be visible in
+   the top of the page.
+ * ``show_roles`` Indicates whether the column ``Roller`` should be shown in
+   the OU overview
+
+It is possible to perform configuration on sub-trees by indicating the same
+keys as sub-keys in the json structure. In the above examplel, all units in
+the sub-tree rooted in ``927dc4d5-fdca-4062-a0d8-a44e8a9e8685`` will have
+a configuration separate from the rest of the units.
