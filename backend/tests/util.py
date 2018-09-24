@@ -32,6 +32,9 @@ FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
 IMPORTING_DIR = os.path.join(FIXTURE_DIR, 'importing')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
+TOP_DIR = os.path.dirname(BASE_DIR)
+FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
+
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
 
