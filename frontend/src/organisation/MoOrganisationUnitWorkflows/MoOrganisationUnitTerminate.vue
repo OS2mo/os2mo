@@ -21,7 +21,7 @@
         <mo-date-picker
           :label="$t('input_fields.end_date')"
           :valid-dates="validDates"
-          v-model="terminate.validity.from"
+          v-model="terminate.validity.to"
           required/>
       </div>
 

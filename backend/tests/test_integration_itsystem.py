@@ -47,7 +47,7 @@ class Writing(util.LoRATestCase):
                     'itsystem': None,
                     'type': 'it',
                     'validity': {
-                        'from': '2017-12-01T00:00:00+01', 'to': None
+                        'from': '2017-12-01', 'to': None
                     }
                 },
             },
@@ -56,7 +56,7 @@ class Writing(util.LoRATestCase):
                     "type": "it",
                     "itsystem": None,
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
+                        "from": "2017-12-01",
                         "to": None,
                     },
                 },
@@ -79,7 +79,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '00000000-0000-0000-0000-000000000000',
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
+                        "from": "2017-12-01",
                         "to": None,
                     },
                 },
@@ -103,7 +103,7 @@ class Writing(util.LoRATestCase):
                     'itsystem': None,
                     'type': 'it',
                     'validity': {
-                        'from': '2017-12-01T00:00:00+01',
+                        'from': '2017-12-01',
                         'to': None
                     }
                 },
@@ -113,7 +113,7 @@ class Writing(util.LoRATestCase):
                     "type": "it",
                     "itsystem": None,
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
+                        "from": "2017-12-01",
                         "to": None,
                     },
                 },
@@ -191,7 +191,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '42',
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
+                        "from": "2017-12-01",
                         "to": None,
                     },
                 },
@@ -219,13 +219,13 @@ class Writing(util.LoRATestCase):
                         # WRONG:
                         'uuid': '00000000-0000-0000-0000-000000000000',
                         "validity": {
-                            'from': '1932-05-12T00:00:00+01:00',
+                            'from': '1932-05-12',
                             'to': None,
                         },
                     },
                     "data": {
                         "validity": {
-                            "to": '2020-01-01T00:00:00+01:00',
+                            "to": '2019-12-31',
                         },
                     },
                 },
@@ -253,13 +253,13 @@ class Writing(util.LoRATestCase):
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
                             # WRONG:
-                            'from': '2010-02-14T00:00:00+01:00',
+                            'from': '2010-02-14',
                             'to': None,
                         },
                     },
                     "data": {
                         "validity": {
-                            "from": '2020-01-01T00:00:00+01:00',
+                            "from": '2020-01-01',
                         },
                     },
                 },
@@ -286,14 +286,14 @@ class Writing(util.LoRATestCase):
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
-                            'from': '2001-02-14T00:00:00+01:00',
+                            'from': '2001-02-14',
                             # WRONG:
-                            'to': '3001-02-14T00:00:00+01:00',
+                            'to': '3001-02-13',
                         },
                     },
                     "data": {
                         "validity": {
-                            "to": '2020-01-01T00:00:00+01:00',
+                            "to": '2019-12-31',
                         },
                     },
                 },
@@ -323,7 +323,7 @@ class Writing(util.LoRATestCase):
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
-                            'from': '1932-05-12T00:00:00+01:00',
+                            'from': '1932-05-12',
                             'to': None,
                         },
                     },
@@ -436,7 +436,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
+                        "from": "2017-12-01",
                         "to": None,
                     },
                 },
@@ -487,7 +487,7 @@ class Writing(util.LoRATestCase):
                         'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                         "validity": {
-                            'from': '2017-12-01T00:00:00+01:00',
+                            'from': '2017-12-01',
                             'to': None,
                         },
                     },
@@ -504,8 +504,8 @@ class Writing(util.LoRATestCase):
                         'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     },
                     "validity": {
-                        "from": "2016-01-01T00:00:00+01",
-                        "to": "2020-01-01T00:00:00+01",
+                        "from": "2016-01-01",
+                        "to": "2019-12-31",
                     },
                 },
             ],
@@ -585,7 +585,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     },
                     "validity": {
-                        "from": "2016-01-01T00:00:00+01",
+                        "from": "2016-01-01",
                         "to": None,
                     },
                 },
@@ -634,7 +634,7 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     'validity': {
-                        'from': '2016-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
                         'to': None,
                     },
                 },
@@ -690,7 +690,7 @@ class Writing(util.LoRATestCase):
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '1932-05-12T00:00:00+01:00',
+                  'from': '1932-05-12',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -699,8 +699,8 @@ class Writing(util.LoRATestCase):
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
-                  'to': '2018-01-01T00:00:00+01:00'
+                  'from': '2016-01-01',
+                  'to': '2017-12-31'
               },
               }],
         )
@@ -717,13 +717,13 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '1932-05-12T00:00:00+01:00',
+                        'from': '1932-05-12',
                         'to': None,
                     },
                 },
                 "data": {
                     "validity": {
-                        "to": '2020-01-01T00:00:00+01:00',
+                        "to": '2019-12-31',
                     },
                 },
             }],
@@ -737,8 +737,8 @@ class Writing(util.LoRATestCase):
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '1932-05-12T00:00:00+01:00',
-                  'to': '2020-01-01T00:00:00+01:00'},
+                  'from': '1932-05-12',
+                  'to': '2019-12-31'},
               },
              {'name': 'Lokal Rammearkitektur',
               'reference': None,
@@ -746,8 +746,8 @@ class Writing(util.LoRATestCase):
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
-                  'to': '2018-01-01T00:00:00+01:00'
+                  'from': '2016-01-01',
+                  'to': '2017-12-31'
               },
               }],
         )
@@ -764,8 +764,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     "validity": {
-                        'from': '2016-01-01T00:00:00+01:00',
-                        'to': '2018-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
+                        'to': '2017-12-31',
                     },
                 },
                 "data": {
@@ -784,8 +784,8 @@ class Writing(util.LoRATestCase):
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '1932-05-12T00:00:00+01:00',
-                  'to': '2020-01-01T00:00:00+01:00'},
+                  'from': '1932-05-12',
+                  'to': '2019-12-31'},
               },
              {'name': 'Lokal Rammearkitektur',
               'reference': None,
@@ -793,7 +793,7 @@ class Writing(util.LoRATestCase):
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
+                  'from': '2016-01-01',
                   'to': None
               },
               }],
@@ -811,14 +811,14 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
                     "validity": {
-                        'from': '2016-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
                         'to': None,
                     },
                 },
                 "data": {
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'to': '2016-06-01T00:00:00+02:00',
+                        'to': '2016-05-31',
                     },
                 }
             }],
@@ -834,8 +834,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2016-01-01T00:00:00+01:00',
-                        'to': '2016-06-01T00:00:00+02:00'
+                        'from': '2016-01-01',
+                        'to': '2016-05-31'
                     },
                 },
             ],
@@ -849,8 +849,8 @@ class Writing(util.LoRATestCase):
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '1932-05-12T00:00:00+01:00',
-                  'to': '2020-01-01T00:00:00+01:00'},
+                  'from': '1932-05-12',
+                  'to': '2019-12-31'},
               }],
         )
 
@@ -871,8 +871,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2016-01-01T00:00:00+01:00',
-                        'to': '2016-06-01T00:00:00+02:00'
+                        'from': '2016-01-01',
+                        'to': '2016-05-31'
                     },
                 },
                 "data": {
@@ -893,8 +893,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '1932-05-12T00:00:00+01:00',
-                        'to': '2020-01-01T00:00:00+01:00',
+                        'from': '1932-05-12',
+                        'to': '2019-12-31',
                     },
                 },
                 {
@@ -904,11 +904,47 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     "validity": {
-                        'from': '2016-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
                         'to': None,
                     },
                 },
             ],
+        )
+
+    @freezegun.freeze_time('2018-03-22', tz_offset=1)
+    def test_but_not_midnight(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/create',
+            {
+                'description':
+                "'2018-03-01T01:00:00+01:00' is not at midnight!",
+                'error': True,
+                'error_key': 'E_INVALID_INPUT',
+                'status': 400,
+            },
+            status_code=400,
+            json=[{
+                "type": "it",
+                "itsystem": {
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+                },
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "validity": {
+                    "from": "2018-03-01T00:00:00Z"
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            [],
         )
 
     @freezegun.freeze_time('2018-03-22', tz_offset=1)
@@ -930,7 +966,7 @@ class Writing(util.LoRATestCase):
                 },
                 "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                 "validity": {
-                    "from": "2018-03-01T00:00:00.000Z"
+                    "from": "2018-03-01"
                 }
             }],
         )
@@ -945,7 +981,7 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
-                        "from": "2018-03-01T01:00:00+01:00",
+                        "from": "2018-03-01",
                         "to": None,
                     }
                 }
@@ -965,7 +1001,7 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
-                        "from": "2018-03-01T01:00:00+01:00",
+                        "from": "2018-03-01",
                         "to": None
                     }
                 },
@@ -975,8 +1011,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
-                        "from": "2018-03-01T00:00:00.000Z",
-                        "to": "2018-04-01T00:00:00.000Z"
+                        "from": "2018-03-01",
+                        "to": "2018-03-31"
                     },
                     "type": "it",
                     "itsystem": {
@@ -996,8 +1032,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
-                        "from": "2018-03-01T01:00:00+01:00",
-                        "to": "2018-04-01T02:00:00+02:00",
+                        "from": "2018-03-01",
+                        "to": "2018-03-31",
                     }
                 }
             ],
@@ -1016,8 +1052,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                     "validity": {
-                        "from": "2018-03-01T01:00:00+01:00",
-                        "to": "2018-04-01T02:00:00+02:00"
+                        "from": "2018-03-01",
+                        "to": "2018-03-31"
                     }
                 },
                 "data": {
@@ -1027,8 +1063,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'LoRa',
                     "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                     "validity": {
-                        "from": "2018-03-01T00:00:00.000Z",
-                        "to": "2018-04-01T00:00:00.000Z"
+                        "from": "2018-03-01",
+                        "to": "2018-03-31"
                     },
                     "type": "it",
                     "itsystem": {
@@ -1048,8 +1084,8 @@ class Writing(util.LoRATestCase):
                     'user_key': 'AD',
                     "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
                     "validity": {
-                        "from": "2018-03-01T01:00:00+01:00",
-                        "to": "2018-04-01T02:00:00+02:00",
+                        "from": "2018-03-01",
+                        "to": "2018-03-31",
                     }
                 }
             ],
@@ -1074,120 +1110,120 @@ class Writing(util.LoRATestCase):
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2017-12-15T01:00:00+01:00',
-                               'to': '2018-03-06T01:00:00+01:00'}},
+                  'validity': {'from': '2017-12-15',
+                               'to': '2018-03-05'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2017-12-15T01:00:00+01:00',
-                               'to': '2018-03-06T01:00:00+01:00'}},
+                  'validity': {'from': '2017-12-15',
+                               'to': '2018-03-05'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2017-12-15T01:00:00+01:00',
-                               'to': '2018-03-06T01:00:00+01:00'}},
+                  'validity': {'from': '2017-12-15',
+                               'to': '2018-03-05'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2017-12-15T01:00:00+01:00',
-                               'to': '2018-03-06T01:00:00+01:00'}},
+                  'validity': {'from': '2017-12-15',
+                               'to': '2018-03-05'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2017-12-15T01:00:00+01:00',
-                               'to': '2018-03-06T01:00:00+01:00'}},
+                  'validity': {'from': '2017-12-15',
+                               'to': '2018-03-05'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2017-12-15T01:00:00+01:00',
-                               'to': '2018-03-06T01:00:00+01:00'}},
+                  'validity': {'from': '2017-12-15',
+                               'to': '2018-03-05'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-02T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-02',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-07T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-07',
+                               'to': '2018-03-07'}},
                  {'name': 'Active Directory',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-07T00:00:00+01:00',
-                               'to': '2018-03-08T00:00:00+01:00'}},
+                  'validity': {'from': '2018-03-07',
+                               'to': '2018-03-07'}},
                  {'name': 'Lokal Rammearkitektur',
                   'reference': None,
                   'system_type': None,
                   'user_key': 'LoRa',
                   'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-                  'validity': {'from': '2018-03-08T00:00:00+01:00',
-                               'to': '2018-03-09T00:00:00+01:00'}}],
+                  'validity': {'from': '2018-03-08',
+                               'to': '2018-03-08'}}],
 
             )
 
@@ -1199,7 +1235,7 @@ class Writing(util.LoRATestCase):
                   'system_type': None,
                   'user_key': 'AD',
                   'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                  'validity': {'from': '2018-03-05T01:00:00+01:00',
+                  'validity': {'from': '2018-03-05',
                                'to': None}}],
             )
 
@@ -1245,7 +1281,7 @@ class Reading(util.LoRATestCase):
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '1932-05-12T00:00:00+01:00',
+                  'from': '1932-05-12',
                   'to': None},
               },
              {'name': 'Lokal Rammearkitektur',
@@ -1254,8 +1290,8 @@ class Reading(util.LoRATestCase):
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
-                  'to': '2018-01-01T00:00:00+01:00'
+                  'from': '2016-01-01',
+                  'to': '2017-12-31'
               },
               }],
         )
@@ -1281,7 +1317,7 @@ class Reading(util.LoRATestCase):
               'user_key': 'AD',
               'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
               "validity": {
-                  'from': '1932-05-12T00:00:00+01:00',
+                  'from': '1932-05-12',
                   'to': None
               },
               }],
@@ -1296,8 +1332,8 @@ class Reading(util.LoRATestCase):
               'user_key': 'LoRa',
               'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
               "validity": {
-                  'from': '2016-01-01T00:00:00+01:00',
-                  'to': '2018-01-01T00:00:00+01:00'
+                  'from': '2016-01-01',
+                  'to': '2017-12-31'
               },
               }],
         )

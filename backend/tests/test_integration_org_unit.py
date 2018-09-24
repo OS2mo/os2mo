@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import unittest
 from unittest.mock import patch
 
 import freezegun
@@ -48,8 +49,8 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                     "org": {
@@ -58,8 +59,8 @@ class Tests(util.LoRATestCase):
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
                     "validity": {
-                        "from": "2016-01-01T00:00:00+01:00",
-                        "to": "2017-01-01T00:00:00+01:00"
+                        "from": "2016-01-01",
+                        "to": "2016-12-31"
                     }
                 }
             ],
@@ -95,13 +96,13 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                     "validity": {
-                        "from": "2017-01-01T00:00:00+01:00",
-                        "to": "2018-01-01T00:00:00+01:00"
+                        "from": "2017-01-01",
+                        "to": "2017-12-31"
                     }
                 }
             ],
@@ -137,13 +138,13 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                     "validity": {
-                        "from": "2018-01-01T00:00:00+01:00",
-                        "to": "2019-01-01T00:00:00+01:00"
+                        "from": "2018-01-01",
+                        "to": "2018-12-31"
                     }
                 }
             ],
@@ -179,13 +180,13 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                     'validity': {
-                        'from': '2016-01-01T00:00:00+01:00',
-                        'to': '2017-01-01T00:00:00+01:00'
+                        'from': '2016-01-01',
+                        'to': '2016-12-31'
                     }
                 },
                 {
@@ -214,13 +215,13 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                     'validity': {
-                        'from': '2017-01-01T00:00:00+01:00',
-                        'to': '2018-01-01T00:00:00+01:00'
+                        'from': '2017-01-01',
+                        'to': '2017-12-31'
                     }
                 },
                 {
@@ -249,13 +250,13 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                     'validity': {
-                        'from': '2018-01-01T00:00:00+01:00',
-                        'to': '2019-01-01T00:00:00+01:00'
+                        'from': '2018-01-01',
+                        'to': '2018-12-31'
                     }
                 }
             ],
@@ -310,8 +311,8 @@ class Tests(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2016-02-04T00:00:00+01",
-                "to": "2017-10-22T00:00:00+02",
+                "from": "2016-02-04",
+                "to": "2017-10-21",
             }
         }
 
@@ -433,7 +434,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'validity': {
-                        'from': '2016-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
                         'to': None,
                     },
                 },
@@ -444,8 +445,8 @@ class Tests(util.LoRATestCase):
                                               'show_roles': True}},
                 'uuid': unitid,
                 'validity': {
-                    'from': '2016-02-04T00:00:00+01:00',
-                    'to': '2017-10-22T00:00:00+02:00',
+                    'from': '2016-02-04',
+                    'to': '2017-10-21',
                 }
             },
         )
@@ -500,8 +501,8 @@ class Tests(util.LoRATestCase):
                 },
             ],
             "validity": {
-                "from": "2010-02-04T00:00:00+01",
-                "to": "2017-10-22T00:00:00+02",
+                "from": "2010-02-04",
+                "to": "2017-10-21",
             }
         }
 
@@ -512,10 +513,10 @@ class Tests(util.LoRATestCase):
             'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
             'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
             'status': 400,
-            'valid_from': '2016-01-01T00:00:00+01:00',
+            'valid_from': '2016-01-01',
             'valid_to': None,
-            'wanted_valid_from': '2010-02-04T00:00:00+01:00',
-            'wanted_valid_to': '2017-10-22T00:00:00+02:00'
+            'wanted_valid_from': '2010-02-04',
+            'wanted_valid_to': '2017-10-21'
         }
 
         self.assertRequestResponse('/service/ou/create', expected,
@@ -547,7 +548,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
                 },
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01",
+                    "from": "2017-01-01",
                 },
             },
         }
@@ -681,7 +682,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
                 },
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01",
+                    "from": "2017-01-01",
                 },
             },
         }
@@ -819,9 +820,9 @@ class Tests(util.LoRATestCase):
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'status': 400,
-                    'valid_from': '2016-01-01T00:00:00+01:00',
+                    'valid_from': '2016-01-01',
                     'valid_to': None,
-                    'wanted_valid_from': '2010-01-01T00:00:00+01:00',
+                    'wanted_valid_from': '2010-01-01',
                     'wanted_valid_to': None,
                 },
                 status_code=400,
@@ -853,7 +854,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'root',
                             'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                             'validity': {
-                                'from': '2016-01-01T00:00:00+01:00',
+                                'from': '2016-01-01',
                                 'to': None,
                             },
                         },
@@ -1007,7 +1008,7 @@ class Tests(util.LoRATestCase):
             ],
             "validity": {
                 "from": "2017-01-01",
-                "to": "2018-01-01",
+                "to": "2017-12-31",
             }
         }
 
@@ -1168,7 +1169,7 @@ class Tests(util.LoRATestCase):
             "data": {
                 "name": "Filosofisk Institut II",
                 "validity": {
-                    "from": "2018-01-01T00:00:00+01",
+                    "from": "2018-01-01",
                 },
             },
         }
@@ -1311,7 +1312,7 @@ class Tests(util.LoRATestCase):
                 "data": {
                     "name": "Whatever",
                     "validity": {
-                        "from": "2016-01-01T00:00:00+01",
+                        "from": "2016-01-01",
                     },
                 },
             },
@@ -1344,7 +1345,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'validity': {
-                        'from': '2016-01-01T00:00:00+01:00',
+                        'from': '2016-01-01',
                         'to': None,
                     },
                 },
@@ -1355,7 +1356,7 @@ class Tests(util.LoRATestCase):
                                               'show_roles': True}},
                 'uuid': org_unit_uuid,
                 'validity': {
-                    'from': '2016-01-01T00:00:00+01:00', 'to': None,
+                    'from': '2016-01-01', 'to': None,
                 },
             }],
         )
@@ -1365,6 +1366,140 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(org_unit_uuid),
             [],
         )
+
+    def test_rename_root_org_unit(self):
+        # Test renaming root units
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+
+        req = {
+            "data": {
+                "name": "Whatever",
+                "validity": {
+                    "from": "2018-01-01T00:00:00+01",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            org_unit_uuid, json=req)
+
+        expected = {
+            'attributter': {
+                'organisationenhedegenskaber': [{
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Whatever',
+                    'virkning': {
+                        'from': '2018-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Overordnet '
+                                  'Enhed',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2018-01-01 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger organisationsenhed',
+            'relationer': {
+                'adresser': [{
+                    'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    'urn': 'urn:magenta.dk:telefon:+4587150000',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+                    'urn': 'urn:magenta.dk:ean:5798000420229',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'enhedstype': [{
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'overordnet': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilhoerer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationenhedgyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2018-01-01 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }, {
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2018-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            }
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.organisationenhed.get(org_unit_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
 
     def test_move_org_unit(self):
         'Test successfully moving organisational units'
@@ -1379,7 +1514,7 @@ class Tests(util.LoRATestCase):
                     "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
                 "validity": {
-                    "from": "2017-07-01T00:00:00+02",
+                    "from": "2017-07-01",
                 },
             },
         }
@@ -1514,7 +1649,7 @@ class Tests(util.LoRATestCase):
                     "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "validity": {
-                    "from": "2017-07-01T00:00:00+02",
+                    "from": "2017-07-01",
                 },
             },
         }
@@ -1527,6 +1662,37 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
                 'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'status': 400
+            },
+            status_code=400,
+            json=req)
+
+    def test_move_org_unit_to_root_fails(self):
+        """Should fail validation when trying to move an org unit to the root
+        level"""
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "data": {
+                "parent": {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
+                "validity": {
+                    "from": "2017-07-01T00:00:00+02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/edit'.format(org_unit_uuid),
+            {
+                'description': 'Moving an org unit to the root '
+                               'level is not allowed',
+                'error': True,
+                'error_key': 'V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL',
                 'status': 400
             },
             status_code=400,
@@ -1550,16 +1716,16 @@ class Tests(util.LoRATestCase):
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'status': 400,
-                    'valid_from': '2016-01-01T00:00:00+01:00',
-                    'valid_to': '2019-01-01T00:00:00+01:00',
-                    'wanted_valid_from': '2016-01-01T00:00:00+01:00',
+                    'valid_from': '2016-01-01',
+                    'valid_to': '2018-12-31',
+                    'wanted_valid_from': '2016-01-01',
                     'wanted_valid_to': None
                 },
                 status_code=400,
                 json={
                     "data": {
                         "validity": {
-                            "from": "2016-01-01T00:00:00+01:00",
+                            "from": "2016-01-01",
                             "to": None,
                         },
                     },
@@ -1575,17 +1741,17 @@ class Tests(util.LoRATestCase):
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                     'status': 400,
-                    'valid_from': '2016-01-01T00:00:00+01:00',
-                    'valid_to': '2019-01-01T00:00:00+01:00',
-                    'wanted_valid_from': '2010-01-01T00:00:00+01:00',
-                    'wanted_valid_to': '2019-01-01T00:00:00+01:00',
+                    'valid_from': '2016-01-01',
+                    'valid_to': '2018-12-31',
+                    'wanted_valid_from': '2010-01-01',
+                    'wanted_valid_to': '2018-12-31',
                 },
                 status_code=400,
                 json={
                     "data": {
                         "validity": {
-                            "from": "2010-01-01T00:00:00+01:00",
-                            "to": "2019-01-01T00:00:00+01:00",
+                            "from": "2010-01-01",
+                            "to": "2018-12-31",
                         },
                     },
                 })
@@ -1603,7 +1769,7 @@ class Tests(util.LoRATestCase):
                     "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "validity": {
-                    "from": "2017-07-01T00:00:00+02",
+                    "from": "2017-07-01",
                 },
             },
         }
@@ -1657,7 +1823,7 @@ class Tests(util.LoRATestCase):
                         'uuid': other_unit_uuid,
                     },
                     "validity": {
-                        "from": "2018-01-01T00:00:00+02",
+                        "from": "2018-01-01",
                     },
                 },
             },
@@ -1678,7 +1844,7 @@ class Tests(util.LoRATestCase):
                     'overordnet': [{
                         'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                         'virkning': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': 'infinity',
                         },
                     }],
@@ -1717,7 +1883,7 @@ class Tests(util.LoRATestCase):
                         'uuid': root_uuid,
                     },
                     "validity": {
-                        "from": "2018-01-01T00:00:00+02",
+                        "from": "2018-01-01",
                     },
                 },
             },
@@ -1740,7 +1906,7 @@ class Tests(util.LoRATestCase):
                         'uuid': root_uuid,
                     },
                     "validity": {
-                        "from": "2018-01-01T00:00:00+02",
+                        "from": "2018-01-01",
                     },
                 },
             },
@@ -1789,8 +1955,8 @@ class Tests(util.LoRATestCase):
                     "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
                 "validity": {
-                    "from": "2017-07-01T00:00:00+02",
-                    "to": "2015-07-01T00:0000+02",
+                    "from": "2017-07-01",
+                    "to": "2015-07-01",
                 },
             },
         }
@@ -1807,8 +1973,8 @@ class Tests(util.LoRATestCase):
                         'uuid': '85715fc7-925d-401b-822d-467eb4b163b6'
                     },
                     'validity': {
-                        'from': '2017-07-01T00:00:00+02',
-                        'to': '2015-07-01T00:0000+02'
+                        'from': '2017-07-01',
+                        'to': '2015-07-01'
                     }
                 },
             },
@@ -1822,7 +1988,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "validity": {
-                "from": "2016-10-22T00:00:00+02"
+                "to": "2016-10-21"
             }
         }
 
@@ -1848,7 +2014,7 @@ class Tests(util.LoRATestCase):
                  'parent': {'name': 'Humanistisk fakultet',
                             'user_key': 'hum',
                             'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'validity': {'from': '2016-01-01T00:00:00+01:00',
+                            'validity': {'from': '2016-01-01',
                                          'to': None}},
                  'user_key': 'fil',
                  'location': 'Overordnet Enhed/Humanistisk fakultet',
@@ -1856,8 +2022,8 @@ class Tests(util.LoRATestCase):
                                                'show_location': True,
                                                'show_roles': True}},
                  'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                 'validity': {'from': '2016-01-01T00:00:00+01:00',
-                              'to': '2016-10-22T00:00:00+02:00'}}]
+                 'validity': {'from': '2016-01-01',
+                              'to': '2016-10-21'}}]
         )
 
         # Verify that we are no longer able to see org unit
@@ -1884,7 +2050,7 @@ class Tests(util.LoRATestCase):
             status_code=404,
             json={
                 "validity": {
-                    "from": "2017-01-01T00:00:00+02"
+                    "to": "2016-12-31"
                 }
             },
         )
@@ -1905,12 +2071,12 @@ class Tests(util.LoRATestCase):
                 'child_units': [
                     {
                         'child_count': 0,
-                        'name': 'Afdeling for Fortidshistorik',
+                        'name': 'Afdeling for Samtidshistorik',
                         'user_key': 'frem',
                         'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                 ],
@@ -1918,7 +2084,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2017-01-01T00:00:00+02"
+                    "to": "2017-01-01"
                 }
             },
         )
@@ -1944,7 +2110,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'fil',
                         'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -1954,8 +2120,8 @@ class Tests(util.LoRATestCase):
                         'user_key': 'hist',
                         'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2019-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
+                            'to': '2018-12-31',
                         },
                     },
                 ],
@@ -1963,7 +2129,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2017-06-01T00:00:00+02"
+                    "to": "2017-05-31"
                 }
             },
         )
@@ -1989,7 +2155,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'fil',
                         'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
                         'validity': {
-                            'from': '2016-01-01T00:00:00+01:00',
+                            'from': '2016-01-01',
                             'to': None,
                         },
                     },
@@ -1998,7 +2164,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2019-01-01T00:00:00+01"
+                    "to": "2018-12-31"
                 }
             },
         )
@@ -2013,7 +2179,7 @@ class Tests(util.LoRATestCase):
                 unitid,
                 json={
                     "validity": {
-                        "from": "2019-01-01T00:00:00+01"
+                        "to": "2018-12-31"
                     }
                 },
             )
@@ -2036,7 +2202,8 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json={
                 "validity": {
-                    "from": "2019-01-01T00:00:00+01"
+                    # inclusion of timestamp is deliberate
+                    "to": "2018-12-31T00:00:00+01"
                 }
             },
         )
@@ -2052,15 +2219,15 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
                 'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                'valid_from': '2016-01-01T00:00:00+01:00',
+                'valid_from': '2016-01-01',
                 'valid_to': None,
-                'wanted_valid_from': '1999-12-31T23:59:59.999999+01:00',
-                'wanted_valid_to': '2000-01-01T00:00:00+01:00',
+                'wanted_valid_from': '1999-12-31',
+                'wanted_valid_to': '1999-12-31',
             },
             status_code=400,
             json={
                 "validity": {
-                    "from": "2000-01-01T00:00:00+01"
+                    "to": "1999-12-31"
                 }
             },
         )
@@ -2076,15 +2243,15 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
                 'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                'valid_from': '2016-01-01T00:00:00+01:00',
-                'valid_to': '2019-01-01T00:00:00+01:00',
-                'wanted_valid_from': '2099-12-31T23:59:59.999999+01:00',
-                'wanted_valid_to': '2100-01-01T00:00:00+01:00',
+                'valid_from': '2016-01-01',
+                'valid_to': '2018-12-31',
+                'wanted_valid_from': '2099-12-31',
+                'wanted_valid_to': '2099-12-31',
             },
             status_code=400,
             json={
                 "validity": {
-                    "from": "2100-01-01T00:00:00+01"
+                    "to": "2099-12-31"
                 }
             },
         )
@@ -2100,16 +2267,221 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
                 'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                'valid_from': '2016-01-01T00:00:00+01:00',
-                'valid_to': '2019-01-01T00:00:00+01:00',
-                'wanted_valid_from': '2015-12-31T23:59:59.999999+01:00',
-                'wanted_valid_to': '2016-01-01T00:00:00+01:00',
+                'valid_from': '2016-01-01',
+                'valid_to': '2018-12-31',
+                'wanted_valid_from': '2015-12-31',
+                'wanted_valid_to': '2015-12-31',
             },
             status_code=400,
             json={
                 "validity": {
-                    "from": "2016-01-01 00:00:00+01"
+                    "to": "2015-12-31"
                 }
             },
             message='No terminating on creation date!'
+        )
+
+    @unittest.expectedFailure
+    @freezegun.freeze_time('2018-09-11', tz_offset=2)
+    def test_terminating_complex_org_unit(self):
+        self.load_sample_structures()
+
+        # alas, this import fails due to overzealous validation :(
+        unitid = util.load_fixture('organisation/organisationenhed',
+                                   'very-edited-unit.json')
+
+        with self.subTest('prerequisites'):
+            self.assertRequestResponse(
+                '/service/ou/{}'.format(unitid) +
+                '/details/org_unit?validity=past',
+                [
+                    {
+                        "name": "AlexTestah",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Afdeling",
+                            "scope": None,
+                            "user_key": "afd",
+                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                        },
+                        "parent": {
+                            "name": "Overordnet Enhed",
+                            "user_key": "root",
+                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None
+                            }
+                        },
+                        "user_key":
+                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "uuid": unitid,
+                        "validity": {
+                            "from": "2018-08-01",
+                            "to": "2018-08-22"
+                        }
+                    },
+                    {
+                        "name": "AlexTestikah",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Afdeling",
+                            "scope": None,
+                            "user_key": "afd",
+                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                        },
+                        "parent": {
+                            "name": "Overordnet Enhed",
+                            "user_key": "root",
+                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None
+                            }
+                        },
+                        "user_key": "AlexTestah "
+                        "95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "uuid": unitid,
+                        "validity": {
+                            "from": "2018-08-23",
+                            "to": "2018-08-23"
+                        }
+                    },
+                    {
+                        "name": "AlexTestikah",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Fakultet",
+                            "scope": None,
+                            "user_key": "fak",
+                            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                        },
+                        "parent": {
+                            "name": "Samfundsvidenskabelige fakultet",
+                            "user_key": "samf",
+                            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                            "validity": {
+                                "from": "2017-01-01",
+                                "to": None
+                            }
+                        },
+                        "user_key":
+                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "uuid": unitid,
+                        "validity": {
+                            "from": "2018-08-24",
+                            "to": "2018-08-31"
+                        }
+                    }
+                ],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}'.format(unitid) +
+                '/details/org_unit?validity=present',
+                [{
+                    "name": "AlexTest",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "org_unit_type": {
+                        "example": None,
+                        "name": "Fakultet",
+                        "scope": None,
+                        "user_key": "fak",
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                    },
+                    "parent": {
+                        "name": "Samfundsvidenskabelige fakultet",
+                        "user_key": "samf",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                        "validity": {
+                            "from": "2017-01-01",
+                            "to": None
+                        }
+                    },
+                    "user_key":
+                    "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                    "uuid": unitid,
+                    "validity": {
+                        "from": "2018-09-01",
+                        "to": None,
+                    }
+                }],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}'.format(unitid) +
+                '/details/org_unit?validity=future',
+                [],
+            )
+
+        payload = {
+            "validity": {
+                "to": "2018-09-30"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(unitid),
+            unitid,
+            json=payload)
+
+        self.assertRequestResponse(
+            '/service/ou/{}'.format(unitid) +
+            '/details/org_unit?validity=present',
+            [{
+                "name": "AlexTest",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Fakultet",
+                    "scope": None,
+                    "user_key": "fak",
+                    "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+                },
+                "parent": {
+                    "name": "Samfundsvidenskabelige fakultet",
+                    "user_key": "samf",
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": None
+                    }
+                },
+                "user_key":
+                "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                "uuid": unitid,
+                "validity": {
+                    "from": "2018-09-01",
+                    "to": "2018-09-30",
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}'.format(unitid) +
+            '/details/org_unit?validity=future',
+            [],
         )

@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-    <div class="logo col-1"/>
+    <router-link class="logo col-1" :to="{ name: 'Landing'}"></router-link>
 
     <button 
       class="navbar-toggler" 

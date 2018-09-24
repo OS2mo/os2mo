@@ -12,6 +12,7 @@
 
 
 import base64
+import doctest
 import functools
 import importlib
 import json
@@ -191,6 +192,7 @@ def python(args):
 @click.option('--keyword', '-k', 'keywords', multiple=True,
               help='Only run or list tests matching the given keyword',)
 @click.argument('tests', nargs=-1)
+@flask.cli.with_appcontext
 def test(tests, quiet, verbose, minimox_dir, browser, do_list,
          keywords, xml_report, **kwargs):
     verbosity = 0 if quiet else verbose + 1
@@ -210,6 +212,10 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
             start_dir=os.path.join(backenddir, 'tests'),
             top_level_dir=os.path.join(backenddir),
         )
+
+    for module in sys.modules.values():
+        if getattr(module, '__file__', '').startswith(basedir):
+            suite.addTests(doctest.DocTestSuite(module))
 
     def expand_suite(suite):
         for member in suite:
