@@ -69,6 +69,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.autohttp.flask',
     'sphinxcontrib.autohttp.flaskqref',
@@ -91,6 +92,17 @@ source_suffix = ['.rst', '.md']
 source_parsers = {
     '.md': 'recommonmark.parser.CommonMarkParser',
 }
+
+#
+# References to other Sphinx documentation sites.
+#
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+#    'LoRa': ('https://mox.readthedocs.org/', None),
+}
+
+primary_domain = 'http'
+
 
 # The master toctree document.
 master_doc = 'index'

@@ -73,9 +73,9 @@ def _get_scope(t: str):
 @blueprint.route('/<any("e", "ou"):type>/<uuid:uuid>/create',
                  methods=['POST'])
 def create(type, uuid):
-    """Creates new employee relations
+    """Creates new relations on employees and units
 
-    .. :quickref: Employee; Create relation
+    .. :quickref: Writing; Create relation
 
     :statuscode 200: Creation succeeded.
 
@@ -385,9 +385,9 @@ def create(type, uuid):
 @blueprint.route('/<any("e", "ou"):type>/<uuid:uuid>/edit',
                  methods=['POST'])
 def edit(type, uuid):
-    """Edits an employee
+    """Edits a relation or attribute on an employee or unit
 
-    .. :quickref: Employee; Edit employee
+    .. :quickref: Writing; Edit employee
 
     :param type: 'ou' for writing to a unit; 'e' for writing an
         employee.

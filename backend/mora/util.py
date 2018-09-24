@@ -677,7 +677,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
     Please note that as end intervals are *inclusive*, a date ends at
     24:00, or 0:00 the following day.
 
-    :see also: :func:`to_iso_date`
+    :see also: :py:func:`to_iso_date`
 
     :raises mora.exceptions.HTTPException: if the given timestamp does
       not correspond to midnight in Central Europe.

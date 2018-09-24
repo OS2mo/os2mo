@@ -46,16 +46,19 @@ frontenddir = os.path.join(topdir, 'frontend')
 
 
 class AppGroup(flask.cli.FlaskGroup):
+    '''Subclass of default app Flask group that adds -h to all commands.'''
     __context_settings = {
         'help_option_names': ['-h', '--help']
     }
 
     def command(self, *args, **kwargs):
+        ''
         kwargs.setdefault('context_settings', self.__context_settings)
 
         return super().command(*args, **kwargs)
 
     def group(self, *args, **kwargs):
+        ''
         kwargs.setdefault('context_settings', self.__context_settings)
 
         return super().group(*args, **kwargs)

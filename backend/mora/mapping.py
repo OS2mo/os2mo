@@ -86,26 +86,22 @@ RELATION_TRANSLATIONS = {
 
 @enum.unique
 class FieldTypes(enum.IntEnum):
+    '''The different kinds of fields we support'''
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
 
 
-FieldTuple = collections.namedtuple(
-    'PropTuple',
+class FieldTuple(collections.namedtuple(
+    'FieldTuple',
     [
         'path',
         'type',
         'filter_fn'
     ]
-)
-
-
-def get_field_value(field: FieldTuple, obj):
-    return util.get_obj_value(obj, field.path, field.filter_fn)
-
-
-FieldTuple.get = get_field_value
+)):
+    def get(self, obj):
+        return util.get_obj_value(obj, self.path, self.filter_fn)
 
 
 #
