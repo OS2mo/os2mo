@@ -21,6 +21,10 @@ A employee terminate component.
 
 ## computed properties 
 
+- `isDisabled` 
+
+   **dependencies:** `employee`, `terminate` 
+
 - `formValid` 
 
   Loop over all contents of the fields object and check if they exist and valid. 
