@@ -278,7 +278,7 @@ class Tests(util.TestCase):
         for status_in, status_out, error_key in (
             (400, 400, 'E_INVALID_INPUT'),
             (401, 401, 'E_UNAUTHORIZED'),
-            (403, 401, 'E_UNAUTHORIZED'),
+            (403, 403, 'E_FORBIDDEN'),
             (426, 500, 'E_UNKNOWN'),
             (500, 500, 'E_UNKNOWN'),
         ):

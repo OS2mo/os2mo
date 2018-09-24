@@ -88,6 +88,7 @@ class ErrorCodes(Enum):
     # Misc
     E_INVALID_INPUT = 400, "Invalid input."
     E_UNAUTHORIZED = 401, "Unauthorized."
+    E_FORBIDDEN = 403, "Forbidden."
     E_CONNECTION_FAILED = 500, "Connection failed."
     E_SAML_AUTH_ERROR = 500, "Internal auth error."
     E_NOT_FOUND = 404, "Not found."
