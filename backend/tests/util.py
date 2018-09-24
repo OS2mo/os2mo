@@ -34,6 +34,7 @@ MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
 TOP_DIR = os.path.dirname(BASE_DIR)
 FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
+DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
