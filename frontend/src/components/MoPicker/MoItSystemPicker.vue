@@ -12,7 +12,7 @@
       v-validate="{ required: true }">
       <option disabled>{{$tc('shared.it_system', 2)}}</option>
       <option 
-        v-for="it in itSystems" 
+        v-for="it in orderedListOptions"
         v-bind:key="it.uuid"
         :value="it.uuid">
           {{it.name}}
@@ -51,6 +51,18 @@
     computed: {
       nameId () {
         return 'it-system-picker-' + this._uid
+      },
+
+      orderedListOptions () {
+        return this.itSystems.slice().sort((a, b) => {
+          if (a.name < b.name) {
+            return -1
+          }
+          if (a.name > b.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 

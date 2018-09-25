@@ -2,7 +2,7 @@
   <mo-select 
     v-model="selected" 
     :label="label" 
-    :options="facets" 
+    :options="orderedListOptions" 
     :required="required" 
     :disabled="isDisabled"
   />
@@ -37,6 +37,18 @@
     computed: {
       isDisabled () {
         return this.preselectedUserKey !== undefined
+      },
+
+      orderedListOptions () {
+        return this.facets.slice().sort((a, b) => {
+          if (a.name < b.name) {
+            return -1
+          }
+          if (a.name > b.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 

@@ -4,7 +4,7 @@
     <v-autocomplete
       name="employee-picker"
       :data-vv-as="$tc('input_fields.employee')"
-      :items="items" 
+      :items="orderedListOptions" 
       v-model="item" 
       :get-label="getLabel" 
       :component-item="template" 
@@ -49,6 +49,20 @@
         item: null,
         items: [],
         template: MoSearchBarTemplate
+      }
+    },
+
+    computed: {
+      orderedListOptions () {
+        return this.items.slice().sort((a, b) => {
+          if (a.name < b.name) {
+            return -1
+          }
+          if (a.name > b.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 

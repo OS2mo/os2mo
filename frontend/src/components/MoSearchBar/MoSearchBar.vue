@@ -5,7 +5,7 @@
     </span>
 
     <v-autocomplete 
-      :items="items" 
+      :items="orderedListOptions"
       v-model="item" 
       :get-label="getLabel" 
       :component-item='template' 
@@ -38,6 +38,20 @@
         routeName: '',
         template: MoSearchBarTemplate,
         noItem: [{name: 'Ingen resultater matcher din søgning'}]
+      }
+    },
+
+    computed: {
+      orderedListOptions () {
+        return this.items.slice().sort((a, b) => {
+          if (a.name < b.name) {
+            return -1
+          }
+          if (a.name > b.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 

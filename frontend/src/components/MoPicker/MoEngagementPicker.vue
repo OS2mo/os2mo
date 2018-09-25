@@ -16,7 +16,7 @@
       v-validate="{required: true}"
     >
       <option disabled>{{label}}</option>
-      <option v-for="e in engagements" :key="e.uuid" :value="e">
+      <option v-for="e in orderedListOptions" :key="e.uuid" :value="e">
           {{e.engagement_type.name}}, {{e.org_unit.name}}
       </option>
     </select>
@@ -77,6 +77,18 @@
           }
         }
         return false
+      },
+
+      orderedListOptions () {
+        return this.engagements.slice().sort((a, b) => {
+          if (a.engagement_type.name && a.org_unit.name < b.engagement_type.name && b.org_unit.name) {
+            return -1
+          }
+          if (a.engagement_type.name && a.org_unit.name > b.engagement_type.name && b.org_unit.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 
