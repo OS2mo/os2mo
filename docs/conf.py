@@ -20,8 +20,9 @@
 import json
 import os
 import sys
+from unittest.mock import MagicMock
 
-import flask
+from jinja2 import Template
 
 TOP_DIR = os.path.dirname(os.path.dirname(__file__))
 BACKEND_DIR = os.path.join(TOP_DIR, 'backend')
@@ -34,23 +35,6 @@ BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
 # -- Generated files ------------------------------------------------------
 #
 sys.path.insert(0, BACKEND_DIR)
-
-from mora.app import app
-
-os.makedirs(BLUEPRINTS_DIR, exist_ok=True)
-
-with app.app_context():
-    for blueprint in app.iter_blueprints():
-        with open(os.path.join(BLUEPRINTS_DIR,
-                               blueprint.name + '.rst'), 'w') as fp:
-            fp.write(flask.render_template('blueprint.rst',
-                                           blueprint=blueprint))
-
-    with open(os.path.join(DOCS_DIR, 'backend.rst'), 'w') as fp:
-        modules = sorted(m for m in sys.modules
-                         if m.split('.', 1)[0] == 'mora')
-        fp.write(flask.render_template('backend.rst',
-                                       modules=modules))
 
 
 # -- General configuration ------------------------------------------------
@@ -72,12 +56,34 @@ extensions = [
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.autohttp.flask',
     'sphinxcontrib.autohttp.flaskqref',
+    'sphinxcontrib.apidoc',
 ]
 
 autodoc_default_flags = [
     # 'members',
     # 'undoc-members',
 ]
+
+MOCK_MODULES = [
+    'flask_session',
+    'lxml',
+    'lxml.etree',
+    'service_person_stamdata_udvidet',
+    'pyexcel',
+
+    'onelogin',
+    'onelogin.saml2',
+    'onelogin.saml2.auth',
+    'onelogin.saml2.response',
+    'onelogin.saml2.xml_utils',
+    'onelogin.saml2.constants',
+    'onelogin.saml2.idp_metadata_parser',
+]
+sys.modules.update((mod_name, MagicMock()) for mod_name in MOCK_MODULES)
+
+
+apidoc_module_dir = '../backend/mora'
+apidoc_output_dir = 'backend'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates', 'mora/templates']
