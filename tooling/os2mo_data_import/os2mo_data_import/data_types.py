@@ -26,8 +26,7 @@ class MoxUtility:
 
 class MemoryMap(object):
 
-    def __init__(self):
-        self.storage_map = {}
+    storage_map = {}
 
     def get(self, identifier):
 
