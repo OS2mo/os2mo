@@ -89,8 +89,6 @@ def list_it_systems(orgid: uuid.UUID):
 def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     c = lora.Connector()
 
-    systemobj = util.checked_get(req, mapping.ITSYSTEM, {},
-                                 required=True)
     systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
     system = c.itsystem.get(systemid)
 
