@@ -356,7 +356,6 @@ class Employee(MoMemoryMap):
         return self.add_optional_data(identifier, payload)
 
 
-
 class Organisation(object):
 
     def __init__(self, name, user_key=None, municipality_code=999,
@@ -383,38 +382,3 @@ class Organisation(object):
 
     def export(self):
         return (self.uuid, self.name, self.user_key, self.municipality_code, self.validity)
-
-
-
-
-
-
-# class Organisation(object):
-#
-#     def create_defaults(self, facet_references):
-#
-#         # Create map for later use
-#         self.map = facet_references
-#
-#         for default_type in self.__default_types__:
-#             identifier = default_type["brugervendtnoegle"]
-#
-#             # Reference
-#             facet_type = default_type["facet_type"]
-#             del default_type["facet_type"]
-#
-#             facet_ref = self.map.get(facet_type)
-#
-#             self.add(identifier, facet_ref, default_type)
-#
-#         return self.get_map()
-
-
-if __name__ == "__main__":
-    klasse = Klasse()
-    list_of_all = klasse.create_defaults()
-
-
-    exporting = klasse.export()
-
-    print(exporting)
