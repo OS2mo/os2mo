@@ -718,36 +718,6 @@ class Tests(util.LoRATestCase):
             },
         )
 
-    def test_read_root(self):
-        self.load_sample_structures(minimal=True)
-
-        self.assertRequestResponse(
-            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/',
-            {
-                "location": "",
-                "name": "Overordnet Enhed",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "org_unit_type": {
-                    "example": None,
-                    "name": "Afdeling",
-                    "scope": None,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "parent": None,
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-            },
-        )
-
     def test_edit_org_unit(self):
         # A generic example of editing an org unit
 
