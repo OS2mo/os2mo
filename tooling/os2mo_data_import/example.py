@@ -1,7 +1,7 @@
 # -- coding: utf-8 --
 
 from os2mo_data_import import Organisation
-from os2mo_data_import.http_utils import temp_import_all
+# from os2mo_data_import.http_utils import temp_import_all
 
 
 def example_import():
@@ -25,30 +25,17 @@ def example_import():
     print(org)
 
     # Show all default facet and klasse values
-    all_facet = org.Facet.get_map()
+    all_facet = org.Facet.export()
     print(all_facet)
 
-    all_klasse = org.Klasse.get_map()
+    all_klasse = org.Klasse.export()
     print(all_klasse)
 
-    # Example: show uuid for address_type "Telefon" (phone number)
-    phone_no = org.Klasse.get_uuid("Telefon")
-    print(phone_no)
-
-    # Example: show data for address_type "Telefon" (phone number)
-    # This is the post data payload for the web api import
-    phone_data = org.Klasse.get_data("Telefon")
-    print(phone_data)
-
     # Example: add additional facet type
-    new_facet = org.Facet.add("Shipsection")
+    new_facet = org.Facet.add(identifier="Shipsection", user_key="shipsec")
 
-    # UUID is returned
+    # What is returned
     print(new_facet)
-
-    # It is now possible to reference the new type
-    section_type = org.Facet.get_uuid("Shipsection")
-    print("Shipsection has uuid: %s" % section_type)
 
     # Example: add klasse with reference to new random type facet
     # Every key/value pair will be added as properties ("klasseegenskaber")
@@ -60,73 +47,63 @@ def example_import():
 
     supersection = org.Klasse.add(
         identifier="Bridge",  # Identifier to recall the item
-        facet_ref=section_type,  # Belongs to facet: Shipsection
+        facet_type="Shipsection",  # Belongs to facet: Shipsection
         properties=new_klasse_data
     )
 
     # Creation uuid is returned
-    print("Bridge type has uuid: %s" % supersection)
+    print(supersection)
 
-    # or uuid can be retrieved
-    bridge_section_uuid = org.Klasse.get_uuid("Bridge")
-    print("Bridge type has uuid: %s" % bridge_section_uuid)
 
 
     # Example: Organisation Unit
     # Required: name, type_ref, date_from, date_to
     org_unit = org.OrganisationUnit.add(
-        name="Officers",
-        type_ref=bridge_section_uuid,  # This unit is of type: Bridge section
+        identifier="Officers",
+        type_ref="Bridge",  # This unit is of type: Bridge section
         date_from="1986-01-01",
         date_to=None
     )
 
-    # UUID is returned
+    # Tuple containing identifier and data is returned
     print(org_unit)
 
-    # The UUID of the new unit can be retrieved:
-    officers_unit = org.OrganisationUnit.get_uuid("Officers")
-    print("Officers unit has uuid: %s" % officers_unit)
 
     # Create "Science Officers"
     # Use parent_ref to make it a sub group of "Officers"
     science_unit = org.OrganisationUnit.add(
-        name="Science Officers",
-        type_ref=bridge_section_uuid,  # This unit is of type: Bridge section
-        parent_ref=officers_unit,  # Sub unit of/Belongs to Officers unit
+        identifier="Science Officers",
+        type_ref="Bridge",  # This unit is of type: Bridge section
+        parent_ref="Officers",  # Sub unit of/Belongs to Officers unit
         date_from="1986-01-01",
         date_to=None
     )
 
-    print("Science Officers created: {}".format(science_unit))
+    print(science_unit)
+
 
     # Employee
     new_employee = org.Employee.add(
-        name="Jean-Luc Picard",
+        identifier="Jean-Luc Picard",
         cpr_no="1112114455",
         date_from="1986-01-01"
     )
 
-    print("New employee: %s" % new_employee)
+    print(new_employee)
 
 
     # Another employee
     org.Employee.add(
-        name="William Riker",
+        identifier="William Riker",
         cpr_no="1212114455",
         date_from="1986-01-01"
     )
 
     # Show map of employees
-    employees_map = org.Employee.get_map()
-    print(employees_map)
+    employees_map = org.Employee.export()
+    for employee in employees_map:
 
-    william_riker = org.Employee.get_data("William Riker")
-    print(william_riker)
-
-    # Get job function uuid
-    job_title_uuid = org.Facet.get_uuid("Stillingsbetegnelse")
-
+        print(employee)
 
     # Add job type "Bridge Officer
     bridge_officer_job = dict(
@@ -134,33 +111,39 @@ def example_import():
         titel="Bridge Officer",
     )
 
-
-    bridge_officer = org.Klasse.add(
+    org.Klasse.add(
         identifier="Bridge Officer",
-        facet_ref=job_title_uuid,
+        facet_type="Stillingsbetegnelse",
         properties=bridge_officer_job
     )
 
     # Get job function type uuid
-    bridge_officer_employee = org.Klasse.get_uuid("Ansat")
 
-    new_job = org.Employee.append_job(
+    new_job = org.Employee.add_type_engagement(
         identifier="William Riker",
-        org_unit_ref=officers_unit,
-        job_function_type=bridge_officer,
-        engagement_type=bridge_officer_employee,
+        org_unit_ref="Officers",
+        job_function_ref="Bridge Officer",
+        engagement_type_ref="Ansat",
         date_from="1986-01-01"
     )
 
     print(new_job)
 
-    meta_job = org.Employee.get_metadata("William Riker")
-    print("Meta job: ")
-    print(meta_job)
 
-    # Import everything
-    omni = temp_import_all(org)
-    print(omni)
+    address = org.Employee.add_type_address(
+        identifier="William Riker",
+        value="213234234",
+        type_ref="AdressePost",
+        value_as_uuid=True,
+        date_from="1986-01-01",
+    )
+
+    print(address)
+
+    all_meta_data = org.Employee.get_optional_data("William Riker")
+    for data in all_meta_data:
+        print(data)
+
 
 if __name__ == "__main__":
     example_import()
