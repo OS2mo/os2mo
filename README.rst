@@ -84,7 +84,7 @@ følgende kommandoer::
 
 Derudover er følgende systemafhængigheder påkrævet af vores nuværende Python-afhængigheder::
 
-  $ sudo apt install build-essential libssl-dev libffi-dev python3-dev xmlsec1
+  $ sudo apt install build-essential libssl-dev libffi-dev python3-dev xmlsec1 libxmlsec1-dev
 
 Efterfølgende klones MORa-projektet fra GitHub::
 

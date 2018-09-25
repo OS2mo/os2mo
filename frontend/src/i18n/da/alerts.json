@@ -19,6 +19,7 @@
     "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}",
     "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
 
+    "E_FORBIDDEN": "Du har ikke rettigheder til at foretage denne operation",
     "V_CANNOT_MOVE_ROOT_ORG_UNIT": "Flytning af overenhed er ikke tilladt",
     "V_CPR_NOT_VALID": "Ikke gyldigt CPR nummer",
     "V_DATE_OUTSIDE_EMPL_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende medarbejder",

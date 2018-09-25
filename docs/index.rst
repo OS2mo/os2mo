@@ -8,8 +8,7 @@ Dette er den fuldstændige dokumentation til OS2MO 2.0 — MedarbejderOrganisati
    :maxdepth: 2
 
    README
-   auth
-   apidoc.rst
+   dev
    news
 
 Indekser og tabeller
