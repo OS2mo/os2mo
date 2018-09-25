@@ -32,6 +32,7 @@ from . import manager
 from . import orgunit
 from . import leave
 from . import role
+from .. import util
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
@@ -343,10 +344,9 @@ def create(type, uuid):
 
     """
 
-    reqs = flask.request.get_json()
     scope = _get_scope(type)
 
-    for req in reqs:
+    for req in util.get_dicts(flask.request.get_json()):
         role_type = req.get('type')
 
         if role_type in CREATION_HANDLERS:
@@ -817,15 +817,11 @@ def edit(type, uuid):
       ]
     """
 
-    reqs = flask.request.get_json()
     scope = _get_scope(type)
-
-    if isinstance(reqs, dict):
-        reqs = [reqs]
 
     # TODO: pre-validate all requests, since we should either handle
     # all or none of them
-    for req in reqs:
+    for req in util.get_dicts(flask.request.get_json()):
         role_type = req.get('type')
 
         if role_type in EDIT_HANDLERS:

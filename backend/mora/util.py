@@ -784,3 +784,19 @@ def get_args_flag(name: str):
         return False
     else:
         return bool(v)
+
+
+def get_dicts(v: typing.Union[dict, typing.Iterable[dict]]):
+    '''Handle a value that might either be a mapping, or a list of mappings.
+
+    We explicitly check whether we've been given a single dict as
+    arguments, and if so yield that. Otherwise we just yield the
+    values contained in whatever sequence or iterable we were given —
+    which ought to be instances of :py:class:`dict`.
+
+    '''
+
+    if isinstance(v, dict):
+        yield v
+    else:
+        yield from v
