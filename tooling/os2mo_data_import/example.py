@@ -105,6 +105,9 @@ def example_import():
 
         print(employee)
 
+
+    # JOB AND ENGAGEMENT
+
     # Add job type "Bridge Officer
     bridge_officer_job = dict(
         brugervendtnoegle="Bridge Officer",
@@ -130,6 +133,7 @@ def example_import():
     print(new_job)
 
 
+    # Addresses
     address = org.Employee.add_type_address(
         identifier="William Riker",
         value="213234234",
@@ -140,6 +144,134 @@ def example_import():
 
     print(address)
 
+
+
+    # ROLES
+    command_role = {
+        "brugervendtnoegle": "Command function",
+        "titel": "In command of designated unit"
+    }
+
+    org.Klasse.add(
+        identifier="Command",
+        facet_type="Stillingsbetegnelse",
+        properties=command_role
+    )
+
+
+
+    create_role = org.Employee.add_type_role(
+        identifier="William Riker",
+        org_unit_ref="Officers",
+        role_type_ref="Command",
+        date_from="1986-01-01"
+    )
+
+    print(create_role)
+
+
+    # LEADERSHIP
+
+    # Manager type
+    manager_type_data = {
+        "brugervendtnoegle": "Teamleader",
+        "titel": "In charge of various teams"
+    }
+
+    manager_type = org.Klasse.add(
+        identifier="Fee",
+        facet_type="Ledertyper",
+        properties=manager_type_data
+    )
+
+    # Manager level
+    priority_level = {
+        "brugervendtnoegle": "Priority",
+        "titel": "Command Alpha-Gamma-Six"
+    }
+
+    # Add responsability levels
+    org.Klasse.add(
+        identifier="Priority",
+        facet_type="Lederniveau",
+        properties=priority_level
+    )
+
+    # Add responsabilities
+    distribute_tasks = {
+        "brugervendtnoegle": "Distribute tasks",
+        "titel": "Must distribute tasks amongst crewmen"
+    }
+
+    comm_officer = {
+        "brugervendtnoegle": "Comm Officer",
+        "titel": "Must establish and maintain comms"
+    }
+
+    # Add responsabilities
+    org.Klasse.add(
+        identifier="Distribute tasks",
+        facet_type="Lederansvar",
+        properties=priority_level
+    )
+
+    org.Klasse.add(
+        identifier="Comm Officer",
+        facet_type="Lederansvar",
+        properties=priority_level
+    )
+
+    management = org.Employee.add_type_manager(
+        identifier="William Riker",
+        org_unit_ref="Officers",
+        manager_type_ref="Priority",
+        manager_level_ref="Teamleader",
+        address_uuid="F28B0B96-8D1A-4FFF-AB47-FA7E105B1CA8",  # Fake address uuid
+        responsabilities=["Distribute tasks", "Comm Officer"],
+        date_from="1986-01-01",
+    )
+
+    print(management)
+
+
+    # Leave of absence
+    leave_type = {
+        "brugervendtnoegle": "RNR",
+        "titel": "Rest and Recreation"
+    }
+
+    org.Klasse.add(
+        identifier="RNR",
+        facet_type="Lederansvar",
+        properties=leave_type
+    )
+
+    period_of_leave = org.Employee.add_type_leave(
+        identifier="William Riker",
+        leave_type_ref="RNR",
+        date_from="1986-10-22",
+        date_to="1986-10-29"
+    )
+
+    print(period_of_leave)
+
+
+    # Itsystem
+    org.Itsystem.add(
+        identifier="Main Computer",
+        system_name="Main Computer"
+    )
+
+    it_system = org.Employee.add_type_itsystem(
+        identifier="William Riker",
+        itsystem_ref="Main Computer",
+        date_from="1986-01-01"
+    )
+
+    print(it_system)
+
+
+    # Show all employee metadata
     all_meta_data = org.Employee.get_optional_data("William Riker")
     for data in all_meta_data:
         print(data)
