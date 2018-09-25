@@ -44,7 +44,8 @@ class MemoryMap(object):
 
     def export(self):
         return [
-            data for data in self.storage_map.values()
+            (identifier, data)
+            for identifier, data in self.storage_map.items()
         ]
 
 
@@ -376,10 +377,8 @@ class Organisation(object):
         self.user_key = user_key
         self.municipality_code = municipality_code
 
-        self.validity = {
-            "from": (date_from or "1900-01-01"),
-            "to": (date_to or "infinity")
-        }
+        self.date_from = (date_from or "1900-01-01")
+        self.date_to = (date_to or "infinity")
 
         self.Facet = Facet()
         self.Klasse = Klasse()
@@ -392,4 +391,11 @@ class Organisation(object):
             self.Klasse.create_defaults()
 
     def export(self):
-        return (self.uuid, self.name, self.user_key, self.municipality_code, self.validity)
+        return {
+            "uuid": self.uuid,
+            "name": self.name,
+            "user_key": self.user_key,
+            "municipality_code": self.municipality_code,
+            "date_from": self.date_from,
+            "date_to": self.date_to
+        }
