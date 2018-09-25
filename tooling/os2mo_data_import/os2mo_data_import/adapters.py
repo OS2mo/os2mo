@@ -105,8 +105,7 @@ def build_klasse_payload(brugervendtnoegle, facet_ref, parent_org,
             "virkning": validity_range(date_from, date_to)
         }
 
-        if properties:
-            klasse_properties.update(properties)
+        klasse_properties.update(properties)
 
         attributter = {
             "klasseegenskaber": [

@@ -51,15 +51,12 @@ def import_handler(org):
         facet_type = data.pop("facet_type")
         facet_ref = facet_map.get(facet_type)
 
-        properties = {
-            "facet_ref": facet_ref,
-            "parent_org": org_uuid,
-            "date_from": "1900-01-01"
-        }
-
-        data.update(properties)
-
-        payload = adapters.build_klasse_payload(**data)
+        payload = adapters.build_klasse_payload(
+            facet_ref=facet_ref,
+            parent_org=org_uuid,
+            date_from="1900-01-01",
+            **data
+        )
 
         uuid = uuid4()
         store = http_utils.import_mox_data(
@@ -69,8 +66,6 @@ def import_handler(org):
         )
 
         klasse_map[identifier] = store["uuid"]
-
-
 
 
     all_units = org.OrganisationUnit.export()
