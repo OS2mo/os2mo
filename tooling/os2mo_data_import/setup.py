@@ -9,7 +9,7 @@ setup(
     author="Steffen Park",
     author_email="steffen@magenta.dk",
     license="MPL 2.0",
-    packages=["os2mo_data_import", "os2mo_data_import.adapters"],
+    packages=["os2mo_data_import"],
     zip_safe=False,
     install_requires=[
         "certifi==2018.8.24",
