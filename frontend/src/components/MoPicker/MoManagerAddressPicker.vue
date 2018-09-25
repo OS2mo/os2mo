@@ -11,7 +11,12 @@
 
       <div class="form-group col">
         <div v-if="entry.address_type">
-          <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
+          <mo-address-search 
+            v-if="entry.address_type.scope=='DAR'" 
+            :label="entry.address_type.name" 
+            v-model="address"
+          />
+
           <label :for="nameId" v-if="entry.address_type.scope!='DAR'">{{entry.address_type.name}}</label>
           <input
             :name="nameId" 
@@ -23,6 +28,7 @@
             v-validate="validityRules" 
           >
         </div>
+
         <span v-show="errors.has(nameId)" class="text-danger">
           {{ errors.first(nameId) }}
         </span>
@@ -48,7 +54,7 @@
     },
 
     props: {
-      value: Object,
+      value: [Object, Array],
       required: Boolean,
       label: String,
       preselectedType: String
@@ -100,7 +106,7 @@
         handler (newVal) {
           this.entry.type = 'address'
           this.entry.value = newVal
-          this.$emit('input', this.entry)
+          this.$emit('input', [this.entry])
         },
         deep: true
       },

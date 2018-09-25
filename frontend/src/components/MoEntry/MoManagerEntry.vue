@@ -11,7 +11,7 @@
 
       <mo-add-many
         class="address-manager"
-        v-model="entry.address" 
+        v-model="entry.address"
         :entry-component="managerAddressPicker"
         label="Lederadressetype"
         has-initial-entry 
@@ -117,6 +117,10 @@
             MoManagerAddressPicker
           },
 
+          props: {
+            value: [Object, Array]
+          },
+
           data () {
             return {
               val: this.value
@@ -125,6 +129,7 @@
 
           watch: {
             val (newVal) {
+              this.val = this.value instanceof Array ? this.value[0] : this.value
               this.$emit('input', newVal)
             }
           },
