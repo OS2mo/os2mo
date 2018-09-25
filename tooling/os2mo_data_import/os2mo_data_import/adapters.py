@@ -162,3 +162,21 @@ def build_org_unit_payload(name, parent_uuid, type_uuid, date_from, date_to=None
             "to": date_to
         }
     }
+
+
+def build_employee_payload(name, cpr_no, org_ref, user_key, date_from, date_to=None):
+
+    return {
+        "name": name,
+        "user_key": user_key,
+        "cpr_no": cpr_no,
+        "org": {
+            "uuid": org_ref
+        },
+        "validity": {
+            "from": date_from,
+            "to": date_to
+        }
+    }
+
+
