@@ -19,6 +19,9 @@ DEFAULT_PAGE_SIZE = 2000
 LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
 
+# Session config
+SESSION_TYPE = 'filesystem'
+SESSION_PERMANENT = False
 SESSION_FILE_DIR = '/tmp'
 
 # Token auth config

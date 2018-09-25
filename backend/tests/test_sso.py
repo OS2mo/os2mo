@@ -113,9 +113,9 @@ class TestSSO(TestCase):
         }
 
         expected = {
-            'description': "['invalid_response']",
+            'description': "invalid_response",
             'error': True,
-            'error_key': 'E_UNKNOWN',
+            'error_key': 'E_SAML_AUTH_ERROR',
             'status': 500
         }
 
@@ -165,9 +165,9 @@ class TestSSO(TestCase):
         r = self.client.get('/saml/sls/', query_string=urlencode(data))
 
         expected = {
-            'description': "['ERROR 2']",
+            'description': "ERROR 2",
             'error': True,
-            'error_key': 'E_UNKNOWN',
+            'error_key': 'E_SAML_AUTH_ERROR',
             'status': 500
         }
 
@@ -189,15 +189,15 @@ class TestSSO(TestCase):
 
     @patch(
         'onelogin.saml2.settings.OneLogin_Saml2_Settings.validate_metadata',
-        lambda *x, **y: ['ERROR 3']
+        lambda *x, **y: ['ERROR 3', 'ERROR 4']
     )
     def test_metadata_returns_errors(self):
         r = self.client.get('/saml/metadata/')
 
         expected = {
-            'description': "['ERROR 3']",
+            'description': "ERROR 3, ERROR 4",
             'error': True,
-            'error_key': 'E_UNKNOWN',
+            'error_key': 'E_SAML_AUTH_ERROR',
             'status': 500
         }
 
