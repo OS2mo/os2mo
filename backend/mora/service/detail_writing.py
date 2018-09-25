@@ -358,13 +358,13 @@ def create(type, uuid):
                 assert type == 'e'
                 handler(req, employee_uuid=str(uuid))
 
-                # Write a noop entry to the user, to be used for the history
-                common.add_history_entry(
-                    scope, uuid,
-                    "Opret {}".format(
-                        mapping.RELATION_TRANSLATIONS[role_type],
-                    ),
-                )
+            # Write a noop entry, to be used for the history
+            common.add_history_entry(
+                scope, uuid,
+                "Opret {}".format(
+                    mapping.RELATION_TRANSLATIONS[role_type],
+                ),
+            )
 
         elif role_type in RELATION_TYPES:
             RELATION_TYPES[role_type](scope).create(
@@ -833,13 +833,13 @@ def edit(type, uuid):
                 assert type == 'e'
                 handler(req, employee_uuid=str(uuid))
 
-                # Write a noop entry, to be used for the history
-                common.add_history_entry(
-                    scope, uuid,
-                    "Rediger {}".format(
-                        mapping.RELATION_TRANSLATIONS[role_type],
-                    )
-                )
+            # Write a noop entry, to be used for the history
+            common.add_history_entry(
+                scope, uuid,
+                "Rediger {}".format(
+                    mapping.RELATION_TRANSLATIONS[role_type],
+                ),
+            )
 
         elif role_type in RELATION_TYPES:
             RELATION_TYPES[role_type](scope).edit(

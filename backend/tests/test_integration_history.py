@@ -316,6 +316,22 @@ class OrgUnitHistoryTest(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[{
+                "type": "manager",
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                }
+            }],
+        )
+
+        self.assertRequestResponse(
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
             json={
@@ -326,6 +342,9 @@ class OrgUnitHistoryTest(util.LoRATestCase):
 
         expected_result = [
             {'action': 'Afslut enhed',
+             'life_cycle_code': 'Rettet',
+             'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'},
+            {'action': 'Opret leder',
              'life_cycle_code': 'Rettet',
              'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'},
             {'action': 'Rediger organisationsenhed',
