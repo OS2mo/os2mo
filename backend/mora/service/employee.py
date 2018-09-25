@@ -367,6 +367,9 @@ def create_employee_relation(employee_uuid):
     See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
+    It is also possible to create a vacant manager position. To do this, use
+    the ou/ endpoint to create the manager.
+
     .. sourcecode:: json
 
       [

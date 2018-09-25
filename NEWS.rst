@@ -4,8 +4,11 @@ Version 0.10.0 (In development)
 New features
 ------------
 
-* #22849: Implemented support for signed SAML AuthN Requests.
-* #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit
+* #22849: Updated SAML implementation, with support for signed requests,
+  single sign-on and single logout.
+* #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit.
+* #23558: Added the possibility to create managers without employees through the ou endpoint, thus allowing for vacant manager positions.
+* #22849: Added handling for user permissions, giving a fitting error if a user attempts an action without the correct permissions.
 
 Internal changes
 ----------------

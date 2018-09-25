@@ -9,6 +9,5 @@ det sprog anvendes i al koden.
    :caption: Indhold:
    :glob:
 
-   blueprints/*
-   backend
+   api/*
    errorcodes.rst

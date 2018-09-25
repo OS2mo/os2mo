@@ -455,7 +455,10 @@ def get_detail(type, id, function):
         yield from map(operator.itemgetter('objekttype'), rels)
 
     def get_employee_id(effect):
-        yield from effect['relationer']['tilknyttedebrugere']
+        try:
+            yield from effect['relationer']['tilknyttedebrugere']
+        except KeyError:
+            pass
 
     def get_unit_id(effect):
         # 'Leave' objects do not contains this relation, so we need to guard
@@ -643,11 +646,12 @@ def get_detail(type, id, function):
         return func
 
     def sort_key(obj):
-        return (
-            obj[mapping.VALIDITY][mapping.FROM],
-            util.get_obj_value(obj, (mapping.PERSON, mapping.NAME)),
-            util.get_obj_value(obj, (mapping.ORG_UNIT, mapping.NAME)),
-        )
+        return (obj[mapping.VALIDITY][mapping.FROM],
+                # Set default value for person name if no person
+                # is accociated with this position
+                util.get_obj_value(obj, (mapping.PERSON, mapping.NAME),
+                                   default=' '),
+                util.get_obj_value(obj, (mapping.ORG_UNIT, mapping.NAME)))
 
     return flask.jsonify(sorted(
         itertools.starmap(convert, function_effects),

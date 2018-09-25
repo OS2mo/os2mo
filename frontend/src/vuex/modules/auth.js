@@ -1,6 +1,5 @@
 
 import { AUTH_LOGOUT, AUTH_REQUEST, AUTH_SUCCESS, AUTH_ERROR } from '../actions/auth'
-import Service from '@/api/HttpCommon'
 
 const state = {
   accessToken: sessionStorage.getItem('access_token') || '',
@@ -27,16 +26,11 @@ const mutations = {
 
 const actions = {
   [AUTH_REQUEST]: ({commit}, user) => {
-    window.location.href = '/service/login?redirect=' + window.location
+    window.location.href = '/saml/sso/?next=' + window.location
   },
 
-  [AUTH_LOGOUT]: ({commit, dispatch}, user) => {
-    return new Promise((resolve, reject) => {
-      Service.post('/logout', user)
-        .then(response => {
-          resolve()
-        })
-    })
+  [AUTH_LOGOUT]: ({commit}, user) => {
+    window.location.href = '/saml/slo/'
   }
 }
 

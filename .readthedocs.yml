@@ -3,7 +3,7 @@ build:
 
 formats: []
 
-requirements_file: backend/requirements.txt
+requirements_file: backend/requirements-docs.txt
 
 python:
   version: 3.5
