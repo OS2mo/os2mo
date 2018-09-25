@@ -8,9 +8,7 @@ It is possible to perform simple configuration of the MO frontend using the
 configuation file found in ``backend/mora/user_settings.json`` or in the file
 indicated in the env-variable USER_SETTINGS.
 
-This file could look something like this:
-
-    .. sourcecode:: json
+This file could look something like this::
 
     {
 	"orgunit": {
@@ -25,7 +23,6 @@ This file could look something like this:
 	}
     }
 
-    '''
 
 The general key orgunit indicates that the settings apply to organisational
 units (currently no settings are possible for employees). Three different
