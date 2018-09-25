@@ -50,10 +50,7 @@ const itSystemOption = itSystemSelect.find('option')
 // Manager
 const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Enhed"]')
 
-const addressManagerSelect = dialog.find('.address-manager select[data-vv-as="Adresser"]')
-const addressManagerOption = addressManagerSelect.find('option')
-
-const addressManagerTypeSelect = dialog.find('select[data-vv-as="Lederadressetype"]')
+const addressManagerTypeSelect = dialog.find('.address-manager select[data-vv-as="Lederadressetype"]')
 const addressManagerTypeOption = addressManagerTypeSelect.find('option')
 
 const addressManagerInput = dialog.find('.v-autocomplete[data-vv-as="Fysisk adresse"]')
@@ -151,10 +148,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-manager .btn-outline-success'))
 
     .click(parentManagerInput)
-    .click(dialog.find('.unit-manager li .item'))
-
-    .click(addressManagerSelect)
-    .click(addressManagerOption.withText('(Postadresse) Banegårdspladsen 1, 2750'))
+    .click(dialog.find('.unit-manager .link-color'))
 
     .click(addressManagerTypeSelect)
     .click(addressManagerTypeOption.withText('Fysisk adresse'))
