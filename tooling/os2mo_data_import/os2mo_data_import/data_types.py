@@ -190,6 +190,22 @@ class Klasse(MemoryMap):
         return self.export()
 
 
+class Itsystem(MemoryMap):
+
+    def __init__(self):
+        self.storage_map = {}
+
+    def add(self, identifier, system_name=None):
+
+        data = {
+            "brugervendtnoegle": identifier,
+            "itsystemnavn": (system_name or identifier),
+        }
+
+        return self.save(identifier, data)
+
+
+
 class MoMemoryMap(MemoryMap):
 
     def add(self, identifier, date_from, date_to=None,
@@ -368,6 +384,7 @@ class Organisation(object):
 
         self.Facet = Facet()
         self.Klasse = Klasse()
+        self.Itsystem = Itsystem()
         self.OrganisationUnit = OrganisationUnit()
         self.Employee = Employee()
 
