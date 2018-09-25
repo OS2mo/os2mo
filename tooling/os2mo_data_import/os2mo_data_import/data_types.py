@@ -308,17 +308,12 @@ class Employee(MoMemoryMap):
         if isinstance(responsabilities, str):
             responsabilities = list(responsabilities)
 
-        responsibility = [
-            dict(uuid=reference)
-            for reference in responsabilities
-        ]
-
         # TODO: add address type to manager payload
         payload = {
             "type": "manager",
             "org_unit_ref": org_unit_ref,
             "manager_type_ref": manager_type_ref,
-            "responsibility": responsibility,
+            "responsibility": responsabilities,
             "manager_level_ref": manager_level_ref,
             "address_uuid": address_uuid,
             "validity": {
