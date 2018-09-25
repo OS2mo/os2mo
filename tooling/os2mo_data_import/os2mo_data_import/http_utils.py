@@ -67,6 +67,16 @@ def put_request(url, payload):
     return response.json()
 
 
+def insert_mox_data(resource, payload):
+
+    # TODO: add resolve functionality
+    service_endpoint = str.join("/", [MOX_BASE_URI, resource])
+
+    response = post_request(service_endpoint, payload)
+
+    return response["uuid"]
+
+
 def import_mox_data(resource, identifier, payload):
 
     # TODO: add resolve functionality
@@ -166,7 +176,7 @@ def temp_import_all(Organisation):
 
     imported_org_units = []
 
-    for uuid, data in Organisation.OrganisationUnit.export_tree():
+    for uuid, data in Organisation.OrganisationUnit.ordered_export():
 
         org_unit_uuid = {
             "uuid": uuid
