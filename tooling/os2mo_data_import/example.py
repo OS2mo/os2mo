@@ -1,7 +1,7 @@
 # -- coding: utf-8 --
 
 from os2mo_data_import import Organisation
-# from os2mo_data_import.http_utils import temp_import_all
+from os2mo_data_import.data_import import import_handler
 
 
 def example_import():
@@ -22,20 +22,20 @@ def example_import():
 
     # Init org
     org = Organisation("Enterprise", "Starship Enterprise")
-    print(org)
+    #print(org)
 
     # Show all default facet and klasse values
     all_facet = org.Facet.export()
-    print(all_facet)
+    #print(all_facet)
 
     all_klasse = org.Klasse.export()
-    print(all_klasse)
+    #print(all_klasse)
 
     # Example: add additional facet type
     new_facet = org.Facet.add(identifier="Shipsection", user_key="shipsec")
 
     # What is returned
-    print(new_facet)
+    #print(new_facet)
 
     # Example: add klasse with reference to new random type facet
     # Every key/value pair will be added as properties ("klasseegenskaber")
@@ -47,12 +47,12 @@ def example_import():
 
     supersection = org.Klasse.add(
         identifier="Bridge",  # Identifier to recall the item
-        facet_type="Shipsection",  # Belongs to facet: Shipsection
+        facet_type="Enhedstype",  # Belongs to facet: Shipsection
         properties=new_klasse_data
     )
 
     # Creation uuid is returned
-    print(supersection)
+    #print(supersection)
 
 
 
@@ -66,7 +66,7 @@ def example_import():
     )
 
     # Tuple containing identifier and data is returned
-    print(org_unit)
+    #print(org_unit)
 
 
     # Create "Science Officers"
@@ -79,7 +79,7 @@ def example_import():
         date_to=None
     )
 
-    print(science_unit)
+    #print(science_unit)
 
 
     # Employee
@@ -89,7 +89,7 @@ def example_import():
         date_from="1986-01-01"
     )
 
-    print(new_employee)
+    #print(new_employee)
 
 
     # Another employee
@@ -99,11 +99,11 @@ def example_import():
         date_from="1986-01-01"
     )
 
-    # Show map of employees
-    employees_map = org.Employee.export()
-    for employee in employees_map:
-
-        print(employee)
+    # # Show map of employees
+    # employees_map = org.Employee.export()
+    # for employee in employees_map:
+    #
+    #     #print(employee)
 
 
     # JOB AND ENGAGEMENT
@@ -130,7 +130,7 @@ def example_import():
         date_from="1986-01-01"
     )
 
-    print(new_job)
+    #print(new_job)
 
 
     # Addresses
@@ -142,7 +142,7 @@ def example_import():
         date_from="1986-01-01",
     )
 
-    print(address)
+    #print(address)
 
 
 
@@ -167,7 +167,7 @@ def example_import():
         date_from="1986-01-01"
     )
 
-    print(create_role)
+    #print(create_role)
 
 
     # LEADERSHIP
@@ -231,7 +231,7 @@ def example_import():
         date_from="1986-01-01",
     )
 
-    print(management)
+    #print(management)
 
 
     # Leave of absence
@@ -253,7 +253,7 @@ def example_import():
         date_to="1986-10-29"
     )
 
-    print(period_of_leave)
+    #print(period_of_leave)
 
 
     # Itsystem
@@ -268,13 +268,19 @@ def example_import():
         date_from="1986-01-01"
     )
 
-    print(it_system)
+    #print(it_system)
 
 
-    # Show all employee metadata
-    all_meta_data = org.Employee.get_optional_data("William Riker")
-    for data in all_meta_data:
-        print(data)
+    # # Show all employee metadata
+    # all_meta_data = org.Employee.get_optional_data("William Riker")
+    # for data in all_meta_data:
+    #     #print(data)
+
+
+    # Import all
+    store = import_handler(org)
+
+    #print(store)
 
 
 if __name__ == "__main__":
