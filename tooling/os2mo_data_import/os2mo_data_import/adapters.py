@@ -9,7 +9,7 @@ def validity_range(date_from, date_to):
     }
 
 
-def build_payload(name, user_key, municipality_code=999,
+def build_organisation_payload(name, user_key, uuid=None, municipality_code=999,
                   date_from="1900-01-01", date_to="infinity"):
 
         # Inelegant conversion to string
@@ -54,13 +54,13 @@ def build_payload(name, user_key, municipality_code=999,
     }
 
 
-def build_facet_payload(user_key, parent_org, from_date, to_date="infinity"):
+def build_facet_payload(brugervendtnoegle, parent_org, date_from, date_to="infinity"):
 
     attributter = {
         "facetegenskaber": [
             {
-                "brugervendtnoegle": str(user_key),
-                "virkning": validity_range(from_date, to_date)
+                "brugervendtnoegle": str(brugervendtnoegle),
+                "virkning": validity_range(date_from, date_to)
             }
         ]
     }
@@ -70,13 +70,13 @@ def build_facet_payload(user_key, parent_org, from_date, to_date="infinity"):
             {
                 "objekttype": "organisation",
                 "uuid": parent_org,
-                "virkning": validity_range(from_date, to_date)
+                "virkning": validity_range(date_from, date_to)
             }
         ],
         "facettilhoerer": [
             {
                 "objekttype": "klassifikation",
-                "virkning": validity_range(from_date, to_date)
+                "virkning": validity_range(date_from, date_to)
             }
         ]
     }
@@ -85,7 +85,7 @@ def build_facet_payload(user_key, parent_org, from_date, to_date="infinity"):
         "facetpubliceret": [
             {
                 "publiceret": "Publiceret",
-                "virkning": validity_range(from_date, to_date)
+                "virkning": validity_range(date_from, date_to)
             }
         ]
     }
@@ -97,11 +97,11 @@ def build_facet_payload(user_key, parent_org, from_date, to_date="infinity"):
     }
 
 
-def build_klasse_payload(user_key, facet_ref, parent_org,
+def build_klasse_payload(brugervendtnoegle, facet_ref, parent_org,
                   date_from, date_to="infinity", **properties):
 
         klasse_properties = {
-            "brugervendtnoegle": user_key,
+            "brugervendtnoegle": brugervendtnoegle,
             "virkning": validity_range(date_from, date_to)
         }
 
@@ -125,7 +125,7 @@ def build_klasse_payload(user_key, facet_ref, parent_org,
             "facet": [
                 {
                     "objekttype": "facet",
-                    "uuid": facet_ref,
+                    "uuid": str(facet_ref),
                     "virkning": validity_range(date_from, date_to)
                 }
             ]
@@ -147,23 +147,18 @@ def build_klasse_payload(user_key, facet_ref, parent_org,
 }
 
 
-if __name__ == "__main__":
+def build_org_unit_payload(name, parent_uuid, type_uuid, date_from, date_to=None):
 
-    facet = build_facet_payload(
-        user_key="asdfasdf",
-        parent_org="asdfasdfasdf",
-        from_date="1900-01-01",
-        to_date="infinity"
-    )
-
-    print(facet)
-
-
-    klasse = build_klasse_payload(
-                user_key="sdfasdfasdf",
-                facet_ref="sadfasdfasdfasdf",
-                parent_org="asdfasdfasdf",
-                date_from="1900-01-01",
-                date_to="infinity",
-            )
-    print(klasse)
+    return {
+        "name": str(name),
+        "parent": {
+            "uuid": str(parent_uuid)
+        },
+        "org_unit_type": {
+            "uuid": str(type_uuid)
+        },
+        "validity": {
+            "from": date_from,
+            "to": date_to
+        }
+    }
