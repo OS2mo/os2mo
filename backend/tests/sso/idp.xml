@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" entityID="https://192.168.1.212/simplesaml/saml2/idp/metadata.php">
+  <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIICWDCCAcGgAwIBAgIBADANBgkqhkiG9w0BAQ0FADBJMQswCQYDVQQGEwJkazERMA8GA1UECAwIV2hhdGV2ZXIxETAPBgNVBAoMCFdoYXRldmVyMRQwEgYDVQQDDAt3aGF0ZXZlci5kazAeFw0xODA5MjAwODIwMzFaFw0xOTA5MjAwODIwMzFaMEkxCzAJBgNVBAYTAmRrMREwDwYDVQQIDAhXaGF0ZXZlcjERMA8GA1UECgwIV2hhdGV2ZXIxFDASBgNVBAMMC3doYXRldmVyLmRrMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDawBetKFq6IgbJ+c3MonaBuYgqPb25WFsZF2J3fkZivM4dxI1IgEux74IYiy7+aB9zabug6rhpNcdS7cKzL4DTplqbiBETfbv78+aikhk+Def2P7bgx7YhAC37q58I7wLWIyw88rpGi4EGgq7z9BBtBoaABP0AT9HeL3bkX3g2qQIDAQABo1AwTjAdBgNVHQ4EFgQU5Ai3jP9iCn8Vr1bMA/Ho36AsfrQwHwYDVR0jBBgwFoAU5Ai3jP9iCn8Vr1bMA/Ho36AsfrQwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQ0FAAOBgQAGhx78pj876ougZIjowQ2QD/GW32sXbzHA/TCuadHwQN79usCSqEjUQLtyOGxvrUfL5f13ocxQPcjoe+pFYI8eiQ0BireJDz+BbYoKvgEfaW5EZwphXiw1+KfJdodwa6C8RGZ4tORBew5LjU2SpXai4Zy5gGfvv3b7w1+A6AarUw==</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:KeyDescriptor use="encryption">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIICWDCCAcGgAwIBAgIBADANBgkqhkiG9w0BAQ0FADBJMQswCQYDVQQGEwJkazERMA8GA1UECAwIV2hhdGV2ZXIxETAPBgNVBAoMCFdoYXRldmVyMRQwEgYDVQQDDAt3aGF0ZXZlci5kazAeFw0xODA5MjAwODIwMzFaFw0xOTA5MjAwODIwMzFaMEkxCzAJBgNVBAYTAmRrMREwDwYDVQQIDAhXaGF0ZXZlcjERMA8GA1UECgwIV2hhdGV2ZXIxFDASBgNVBAMMC3doYXRldmVyLmRrMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDawBetKFq6IgbJ+c3MonaBuYgqPb25WFsZF2J3fkZivM4dxI1IgEux74IYiy7+aB9zabug6rhpNcdS7cKzL4DTplqbiBETfbv78+aikhk+Def2P7bgx7YhAC37q58I7wLWIyw88rpGi4EGgq7z9BBtBoaABP0AT9HeL3bkX3g2qQIDAQABo1AwTjAdBgNVHQ4EFgQU5Ai3jP9iCn8Vr1bMA/Ho36AsfrQwHwYDVR0jBBgwFoAU5Ai3jP9iCn8Vr1bMA/Ho36AsfrQwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQ0FAAOBgQAGhx78pj876ougZIjowQ2QD/GW32sXbzHA/TCuadHwQN79usCSqEjUQLtyOGxvrUfL5f13ocxQPcjoe+pFYI8eiQ0BireJDz+BbYoKvgEfaW5EZwphXiw1+KfJdodwa6C8RGZ4tORBew5LjU2SpXai4Zy5gGfvv3b7w1+A6AarUw==</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://192.168.1.212/simplesaml/saml2/idp/SingleLogoutService.php"/>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://192.168.1.212/simplesaml/saml2/idp/SSOService.php"/>
+  </md:IDPSSODescriptor>
+  <md:ContactPerson contactType="technical">
+    <md:GivenName>Administrator</md:GivenName>
+    <md:EmailAddress>admin@example.org</md:EmailAddress>
+  </md:ContactPerson>
+</md:EntityDescriptor>

@@ -20,8 +20,9 @@ DEFAULT_PAGE_SIZE = 2000
 LORA_URL = 'http://localhost:8080/'
 CA_BUNDLE = None
 
-AUTH = 'token'  # 'sso' or 'token'
-
+# Session config
+SESSION_TYPE = 'filesystem'
+SESSION_PERMANENT = False
 SESSION_FILE_DIR = '/tmp'
 
 # Token auth config
@@ -31,11 +32,13 @@ SAML_ENTITY_ID = 'localhost'
 SAML_IDP_INSECURE = False
 
 # SSO config
-SSO_SAML_METADATA_URL = '/url/to/sso/metadata'
-SSO_SAML_USERNAME_ATTR = ''
+SAML_IDP_METADATA_URL = '/url/to/sso/metadata'
+SAML_IDP_METADATA_FILE = None
+SAML_USERNAME_ATTR = ''
 SAML_KEY_FILE = None
 SAML_CERT_FILE = None
-SAML_AUTHN_REQUESTS_SIGNED = False
+SAML_REQUESTS_SIGNED = False
+SAML_DUPLICATE_ATTRIBUTES = True
 
 SP_SERVICE_UUID = ""
 SP_SERVICE_AGREEMENT_UUID = ""

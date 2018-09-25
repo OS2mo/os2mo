@@ -157,9 +157,13 @@ def _check_response(r):
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_INVALID_INPUT,
                 message=msg, cause=cause)
-        elif r.status_code in (401, 403):
+        elif r.status_code == 401:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_UNAUTHORIZED,
+                message=msg, cause=cause)
+        elif r.status_code == 403:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_FORBIDDEN,
                 message=msg, cause=cause)
         else:
             raise exceptions.HTTPException(
