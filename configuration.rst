@@ -26,7 +26,7 @@ This file could look something like this:
 
     '''
 
-The general key orgunit indcates that the settings appply to organisational
+The general key orgunit indicates that the settings apply to organisational
 units (currently no settings are possible for employees). Three different
 settings can be applied:
  * ``show_location`` Indicates whether the location of units should be visible
@@ -37,6 +37,6 @@ settings can be applied:
    the OU overview
 
 It is possible to perform configuration on sub-trees by indicating the same
-keys as sub-keys in the json structure. In the above examplel, all units in
+keys as sub-keys in the json structure. In the above example, all units in
 the sub-tree rooted in ``927dc4d5-fdca-4062-a0d8-a44e8a9e8685`` will have
 a configuration separate from the rest of the units.
