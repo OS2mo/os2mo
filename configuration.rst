@@ -5,7 +5,8 @@ Front-end configuration
 ------------
 
 It is possible to perform simple configuration of the MO frontend using the
-configuation file found in ``backend/mora/user_settings.json``
+configuation file found in ``backend/mora/user_settings.json`` or in the file
+indicated in the env-variable USER_SETTINGS.
 
 This file could look something like this:
 
