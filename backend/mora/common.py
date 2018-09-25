@@ -564,9 +564,6 @@ def add_history_entry(scope: lora.Scope, id: str, note: str):
         }
     }
 
-    from pprint import pprint
-    pprint(payload)
-
     scope.update(payload, id)
 
 
