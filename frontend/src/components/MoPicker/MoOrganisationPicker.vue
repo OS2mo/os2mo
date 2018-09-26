@@ -8,7 +8,7 @@
     >
       <option disabled>Vælg organisation</option>
       <option 
-        v-for="org in orgs" 
+        v-for="org in orderedListOptions" 
         :key="org.uuid"
         :value="org"
       >
@@ -40,6 +40,20 @@
       return {
         selectedOrganisation: null,
         orgs: []
+      }
+    },
+
+    computed: {
+      orderedListOptions () {
+        return this.orgs.slice().sort((a, b) => {
+          if (a.name < b.name) {
+            return -1
+          }
+          if (a.name > b.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 

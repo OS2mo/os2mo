@@ -23,7 +23,7 @@
       >
         <option disabled>{{label}}</option>
         <option 
-          v-for="a in addresses" 
+          v-for="a in orderedListOptions" 
           :key="a.uuid"
           :value="a"
         >
@@ -76,6 +76,18 @@
 
       noAddresses () {
         return this.addresses.length === 0
+      },
+
+      orderedListOptions () {
+        return this.addresses.slice().sort((a, b) => {
+          if (a.address_type.name < b.address_type.name) {
+            return -1
+          }
+          if (a.address_type.name > b.address_type.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 
