@@ -561,19 +561,16 @@ def get_urn(
 
 
 def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
-    path_list = list(path)
     obj_copy = copy.deepcopy(obj)
-
     current_value = obj_copy
-    while path_list:
-        key = path_list.pop(0)
-        if path_list:
+
+    if path:
+        for key in path[:-1]:
             current_value = current_value.setdefault(key, {})
-        else:
-            if not current_value.get(key):
-                current_value[key] = val
-            else:
-                current_value[key].extend(val)
+        try:
+            current_value[path[-1]].extend(val)
+        except KeyError:
+            current_value[path[-1]] = val
 
     return obj_copy
 
