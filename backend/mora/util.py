@@ -337,9 +337,8 @@ def is_cpr_number(v):
 
 
 def uniqueify(xs):
-    '''return the contents of xs as a list, but stable'''
-    # TODO: is this fast?
-    return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())
+    '''Return *xs* as a list without duplicates, but in the same order.'''
+    return list(collections.OrderedDict.fromkeys(xs))
 
 
 def log_exception(msg=''):
