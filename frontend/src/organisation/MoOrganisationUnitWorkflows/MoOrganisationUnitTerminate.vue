@@ -19,10 +19,12 @@
         />
 
         <mo-date-picker
+          class="from-date"
           :label="$t('input_fields.end_date')"
           :valid-dates="validDates"
           v-model="terminate.validity.to"
-          required/>
+          required
+        />
       </div>
 
       <div class="mb-3" v-if="org_unit">
