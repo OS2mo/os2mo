@@ -19,25 +19,40 @@ class Utility:
 
 
 class MemoryMap(Utility):
+    """
+    MemoryMap
+    """
 
     def __init__(self):
         self.storage_map = {}
 
     def get(self, identifier):
+        """
 
-        data = self.storage_map[identifier]
+        :param identifier:
+        :return:
+        """
 
-        if not data:
-            raise RuntimeError("No data found")
-
-        return (identifier, data)
+        return self.storage_map[identifier]
 
     def save(self, identifier, data):
+        """
+
+        :param identifier:
+        :param data:
+        :return:
+        """
+
         self.storage_map[identifier] = data
 
-        return self.get(identifier)
+        return identifier
 
     def export(self):
+        """
+
+        :return:
+        """
+
         return [
             (identifier, data)
             for identifier, data in self.storage_map.items()
@@ -45,6 +60,9 @@ class MemoryMap(Utility):
 
 
 class Facet(MemoryMap):
+    """
+    Facet
+    """
 
     defaul_types = [
         "Tilknytningstype",
@@ -66,6 +84,12 @@ class Facet(MemoryMap):
         super().__init__()
 
     def add(self, identifier, user_key=None):
+        """
+
+        :param identifier:
+        :param user_key:
+        :return:
+        """
 
         data = {
             "brugervendtnoegle": (user_key or identifier)
@@ -74,6 +98,10 @@ class Facet(MemoryMap):
         return self.save(identifier, data)
 
     def create_defaults(self):
+        """
+
+        :return:
+        """
 
         for facet_type in self.defaul_types:
             self.add(facet_type)
@@ -82,129 +110,308 @@ class Facet(MemoryMap):
 
 
 class Klasse(MemoryMap):
+    """
+    Klasse
+    """
 
-    default_types = [
-        {
-            "brugervendtnoegle": "Enhed",
-            "beskrivelse": "Dette er en organisationsenhed",
-            "titel": "Enhed",
-            "facet_type": "Enhedstype"
+    default_types = {
+        "Enhed": {
+            "facet_type": "Enhedstype",
+            "data": {
+                "brugervendtnoegle": "Enhed",
+                "beskrivelse": "Dette er en organisationsenhed",
+                "titel": "Enhed"
+            }
         },
-        {
-            "brugervendtnoegle": "AdressePost",
-            "eksempel": "<UUID>",
-            "omfang": "DAR",
-            "titel": "Adresse",
-            "facet_type": "Adressetype"
-        },
-        {
-            "brugervendtnoegle": "Email",
-            "eksempel": "test@example.com",
-            "omfang": "EMAIL",
-            "titel": "Emailadresse",
+        "AdressePost": {
             "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "AdressePost",
+                "eksempel": "<UUID>",
+                "omfang": "DAR",
+                "titel": "Adresse"
+            }
         },
-        {
-            "brugervendtnoegle": "Telefon",
-            "eksempel": "20304060",
-            "omfang": "PHONE",
-            "titel": "Telefonnummer",
+        "Email": {
             "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "Email",
+                "eksempel": "test@example.com",
+                "omfang": "EMAIL",
+                "titel": "Emailadresse"
+            }
         },
-        {
-            "brugervendtnoegle": "Webadresse",
-            "eksempel": "http://www.magenta.dk",
-            "omfang": "WWW",
-            "titel": "Webadresse",
+        "Telefon": {
             "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "Telefon",
+                "eksempel": "20304060",
+                "omfang": "PHONE",
+                "titel": "Telefonnummer"
+            }
         },
-        {
-            "brugervendtnoegle": "EAN",
-            "eksempel": "00112233",
-            "omfang": "EAN",
-            "titel": "EAN nr.",
+        "Webadresse": {
             "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "Webadresse",
+                "eksempel": "http://www.magenta.dk",
+                "omfang": "WWW",
+                "titel": "Webadresse"
+            }
         },
-        {
-            "brugervendtnoegle": "PNUMBER",
-            "eksempel": "00112233",
-            "omfang": "PNUMBER",
-            "titel": "P-nr.",
+        "EAN": {
             "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "EAN",
+                "eksempel": "00112233",
+                "omfang": "EAN",
+                "titel": "EAN nr."
+            }
         },
-        {
-            "brugervendtnoegle": "TEXT",
-            "eksempel": "Fritekst",
-            "omfang": "TEXT",
-            "titel": "Fritekst",
+        "PNUMBER": {
             "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "PNUMBER",
+                "eksempel": "00112233",
+                "omfang": "PNUMBER",
+                "titel": "P-nr."
+            }
         },
-        {
-            "brugervendtnoegle": "Ansat",
-            "facet_type": "Engagementstype"
+        "TEXT": {
+            "facet_type": "Adressetype",
+            "data": {
+                "brugervendtnoegle": "TEXT",
+                "eksempel": "Fritekst",
+                "omfang": "TEXT",
+                "titel": "Fritekst"
+            }
         },
-        {
-            "brugervendtnoegle": "Leder",
-            "titel": "Leder",
+        "Ansat": {
+            "facet_type": "Engagementstype",
+            "data": {
+                "brugervendtnoegle": "Ansat"
+            }
+        },
+        "Leder": {
             "facet_type": "Ledertyper",
+            "data": {
+                "brugervendtnoegle": "Leder",
+                "titel": "Leder",
+                "facet_type": "Ledertyper",
+            }
         },
-        {
-            "brugervendtnoegle": "Lederansvar",
-            "titel": "Ansvar for organisationsenheden",
+        "Lederansvar": {
             "facet_type": "Lederansvar",
+            "data": {
+                "brugervendtnoegle": "Lederansvar",
+                "titel": "Ansvar for organisationsenheden"
+            }
         },
-        {
-            "brugervendtnoegle": "Lederniveau",
-            "titel": "Niveau 90",
+        "Lederniveau": {
             "facet_type": "Lederniveau",
-        },
-    ]
+            "data": {
+                "brugervendtnoegle": "Lederniveau",
+                "titel": "Niveau 90",
+            }
+        }
+    }
 
     def __init__(self):
         super().__init__()
 
-    def add(self, identifier, facet_type, **properties):
+    def add(self, identifier, facet_type_ref, **properties):
+        """
+
+        :param identifier:
+        :param facet_type:
+        :param properties:
+        :return:
+        """
 
         data = {
-            "brugervendtnoegle": identifier,
-            "facet_type": facet_type
+            "facet_type_ref": facet_type_ref,
+            "data": properties
         }
-
-        # Merge data with passed properties
-        data.update(properties)
 
         return self.save(identifier, data)
 
     def create_defaults(self):
+        """
 
-        for klasse in self.default_types:
-            identifier = klasse.get("brugervendtnoegle")
-            facet_type = klasse.pop("facet_type")
-            self.add(identifier, facet_type, **klasse)
+        :return:
+        """
+
+        for identifier, data in self.default_types.items():
+            self.save(identifier, data)
 
         return self.export()
 
 
 class Itsystem(MemoryMap):
+    """
+    Itsystem
+    """
 
     def __init__(self):
         super().__init__()
 
-    def add(self, identifier, system_name=None):
+    def add(self, identifier, user_key=None, system_name=None):
+        """
+
+        :param identifier:
+        :param user_key:
+        :param system_name:
+        :return:
+        """
 
         data = {
-            "brugervendtnoegle": identifier,
+            "brugervendtnoegle": (user_key or identifier),
             "itsystemnavn": (system_name or identifier),
         }
 
         return self.save(identifier, data)
 
 
-
 class MoMemoryMap(MemoryMap):
+    """
+    MoMemoryMap
+    """
 
-    def add(self, identifier, date_from, date_to=None,
-            name=None, type_ref=None, parent_ref=None, user_key=None, **kwargs):
+    def add_type_address(self, owner_ref, address_type_ref,
+                         date_from, date_to=None, value=None, uuid=None):
+        """
+
+        :param owner_ref:
+        :param address_type_ref:
+        :param date_from:
+        :param date_to:
+        :param value:
+        :param uuid:
+        :return:
+        """
+
+        if not value and not uuid:
+            raise ValueError("Missing parameter (either value or uuid")
+
+        validity = {
+            "from": date_from,
+            "to": date_to
+        }
+
+        address_data = [
+            ("type", "address"),
+            ("address_type", address_type_ref),
+            ("validity", validity)
+        ]
+
+        # Do NOT append uuid if value is passed
+        if value:
+            item = ("value", value)
+        else:
+            item = ("uuid", uuid)
+
+        address_data.append(item)
+
+        return self.add_optional_data(owner_ref, address_data)
+
+    def get_optional_data(self, owner_ref):
+        """
+
+        :param owner_ref:
+        :return:
+        """
+        return self.storage_map[owner_ref]["optional_data"]
+
+    def add_optional_data(self, owner_ref, data):
+        """
+
+        :param owner_ref:
+        :param data:
+        :return:
+        """
+
+        optional_data = self.storage_map[owner_ref]["optional_data"]
+
+        if data in optional_data:
+            raise AssertionError("Optional data exists")
+
+        optional_data.append(data)
+
+        return (owner_ref, data)
+
+
+class OrganisationUnit(MoMemoryMap):
+    """
+    OrganisationUnit
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def add(self, identifier, date_from, date_to=None, name=None,
+            user_key=None, org_unit_type_ref=None, parent_ref=None, uuid=None):
+        """
+
+        :param identifier:
+        :param name:
+        :param date_from:
+        :param date_to:
+        :param user_key:
+        :param org_unit_type_ref:
+        :param parent_ref:
+        :param uuid:
+        :return:
+        """
+
+        if identifier in self.storage_map:
+            raise AssertionError("Organisation unit already exists")
+
+        name = (name or identifier)
+
+        validity = {
+            "from": date_from,
+            "to": date_to
+        }
+
+        organisation_unit_data = [
+            ("name", name),
+            ("parent", parent_ref),
+            ("org_unit_type", org_unit_type_ref),
+            ("validity", validity)
+        ]
+
+        # Import user_key if passed
+        if user_key:
+            item = ("user_key", user_key)
+            organisation_unit_data.append(item)
+
+        # Import uuid if passed
+        if uuid:
+            uuid = str(uuid)
+            item = ("uuid", uuid)
+            organisation_unit_data.append(item)
+
+        data = {
+            "data": organisation_unit_data,
+            "optional_data": []
+        }
+
+        return self.save(identifier, data)
+
+
+class Employee(MoMemoryMap):
+    """
+    Employee
+    """
+
+    # TODO: add association type
+    # TODO: unify meta types
+
+    def __init__(self):
+        super().__init__()
+
+    def add(self, identifier, cpr_no, date_from, date_to=None,
+            name=None, user_key=None, uuid=None):
         """
 
         :param identifier:
@@ -218,151 +425,217 @@ class MoMemoryMap(MemoryMap):
         :return:
         """
 
+        if identifier in self.storage_map:
+            raise AssertionError("Employee already exists")
+
+        name = (name or identifier)
+
+        validity = {
+            "from": date_from,
+            "to": date_to
+        }
+
+        employee_data = [
+            ("name", name),
+            ("cpr_no", cpr_no),
+            ("validity", validity)
+        ]
+
+        if user_key:
+            item = ("user_key", user_key)
+            employee_data.append(item)
+
+        if uuid:
+            uuid = str(uuid)
+            item = ("uuid", uuid)
+            employee_data.append(item)
+
         data = {
-            "name": (name or identifier),
-            "user_key": user_key,
-            "type_ref": type_ref,
-            "parent_ref": parent_ref,
-            "validity": (date_from, date_to),
+            "data": employee_data,
             "optional_data": []
         }
 
-        # Merge additional kwargs
-        data.update(kwargs)
-
         return self.save(identifier, data)
 
-    def create_address(self, value, type_ref,
-                       date_from, date_to=None, value_as_uuid=False):
-
-        address = {
-            "type": "address",
-            "value": value,
-            "address_ref": type_ref,
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
-        }
-
-        return address
-
-    def add_type_address(self, identifier, **kwargs):
-
-        address = self.create_address(**kwargs)
-
-        return self.add_optional_data(identifier, address)
-
-    def get_optional_data(self, identifier):
-        return self.storage_map[identifier]["optional_data"]
-
-    def add_optional_data(self, identifier, data):
-
-        optional_data = self.storage_map[identifier]["optional_data"]
-
-        if data in optional_data:
-            print("ALLREADY EXISTS")
-            return None
-
-        optional_data.append(data)
-
-        return (identifier, data)
-
-
-class OrganisationUnit(Utility):
-
-    def __init__(self):
-        super().__init__()
-
-
-class Employee(MoMemoryMap):
-
-    # TODO: add association type
-    # TODO: unify meta types
-
-    def __init__(self):
-        self.storage_map = {}
-
-    def add_type_engagement(self, identifier, org_unit_ref, job_function_ref,
+    def add_type_engagement(self, owner_ref, org_unit_ref, job_function_ref,
                             engagement_type_ref, date_from, date_to=None):
+        """
 
-        data = {
-            "type": "engagement",
-            "org_unit_ref": org_unit_ref,
-            "job_function_ref": job_function_ref,
-            "engagement_type_ref": engagement_type_ref,
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
+        :param owner_ref:
+        :param org_unit_ref:
+        :param job_function_ref:
+        :param engagement_type_ref:
+        :param date_from:
+        :param date_to:
+        :return:
+        """
+
+        validity = {
+            "from": date_from,
+            "to": date_to
         }
 
-        return self.add_optional_data(identifier, data)
+        engagement_data = [
+            ("type", "engagement"),
+            ("org_unit", org_unit_ref),
+            ("job_function", job_function_ref),
+            ("job_function", job_function_ref),
+            ("engagement_type", engagement_type_ref),
+            ("validity", validity)
+        ]
 
-    def add_type_role(self, identifier, org_unit_ref, role_type_ref, date_from, date_to=None):
+        return self.add_optional_data(owner_ref, engagement_data)
 
-        payload = {
-            "type": "role",
-            "org_unit_ref": org_unit_ref,
-            "role_type_ref": role_type_ref,
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
+    def add_type_association(self, owner_ref, org_unit_ref,
+                             job_function_ref, association_type_ref,
+                             date_from, date_to=None, address_uuid=None):
+        """
+
+        :param owner_ref:
+        :param org_unit_ref:
+        :param job_function_ref:
+        :param association_type_ref:
+        :param date_from:
+        :param date_to:
+        :param address_uuid:
+        :return:
+        """
+
+        validity = {
+            "from": date_from,
+            "to": date_to
         }
 
-        return self.add_optional_data(identifier, payload)
+        association_data = [
+            ("type", "association"),
+            ("org_unit", org_unit_ref),
+            ("job_function", job_function_ref),
+            ("association_type", association_type_ref),
+            ("validity", validity)
+        ]
 
-    def add_type_manager(self, identifier, org_unit_ref, manager_type_ref, manager_level_ref,
-                         address_uuid, responsabilities, date_from, date_to=None):
+        if address_uuid:
+            item = ("address_uuid", address_uuid)
+            association_data.append(item)
 
-        if isinstance(responsabilities, str):
-            responsabilities = list(responsabilities)
+        return self.add_optional_data(owner_ref, association_data)
 
-        # TODO: add address type to manager payload
-        payload = {
-            "type": "manager",
-            "org_unit_ref": org_unit_ref,
-            "manager_type_ref": manager_type_ref,
-            "responsibility": responsabilities,
-            "manager_level_ref": manager_level_ref,
-            "address_uuid": address_uuid,
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
+    def add_type_role(self, owner_ref, org_unit_ref, role_type_ref,
+                      date_from, date_to=None):
+        """
+
+        :param owner_ref:
+        :param org_unit_ref:
+        :param role_type_ref:
+        :param date_from:
+        :param date_to:
+        :return:
+        """
+
+        validity = {
+            "from": date_from,
+            "to": date_to
         }
 
-        return self.add_optional_data(identifier, payload)
+        role_data = [
+            ("type", "role"),
+            ("org_unit", org_unit_ref),
+            ("role_type", role_type_ref),
+            ("validity", validity)
+        ]
 
-    def add_type_leave(self, identifier, leave_type_ref, date_from, date_to=None):
+        return self.add_optional_data(owner_ref, role_data)
 
-        payload = {
-            "type": "leave",
-            "leave_type_ref": leave_type_ref,
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
+    def add_type_manager(self, owner_ref, org_unit_ref, manager_type_ref, manager_level_ref,
+                         address_uuid, responsibility_list, date_from, date_to=None):
+        """
+
+        :param owner_ref:
+        :param org_unit_ref:
+        :param manager_type_ref:
+        :param manager_level_ref:
+        :param address_uuid:
+        :param responsibility_list:
+        :param date_from:
+        :param date_to:
+        :return:
+        """
+
+        if isinstance(responsibility_list, str):
+            responsibility_list = list(responsibility_list)
+
+        validity = {
+            "from": date_from,
+            "to": date_to
         }
 
-        return self.add_optional_data(identifier, payload)
+        manager_data = [
+            ("type", "manager"),
+            ("org_unit", org_unit_ref),
+            ("manager_type", manager_type_ref),
+            ("manager_level", manager_level_ref),
+            ("responsibility", responsibility_list),
+            ("validity", validity)
+        ]
 
-    def add_type_itsystem(self, identifier, itsystem_ref, date_from, date_to=None):
+        if address_uuid:
+            item = ("address_uuid", address_uuid)
+            manager_data.append(item)
 
-        payload = {
-            "type": "it",
-            "itsystem_ref": itsystem_ref,
-            "validity": {
-                "from": date_from,
-                "to": date_to
-            }
+        return self.add_optional_data(owner_ref, manager_data)
+
+    def add_type_leave(self, owner_ref, leave_type_ref, date_from, date_to=None):
+        """
+
+        :param owner_ref:
+        :param leave_type_ref:
+        :param date_from:
+        :param date_to:
+        :return:
+        """
+
+        validity = {
+            "from": date_from,
+            "to": date_to
         }
 
-        return self.add_optional_data(identifier, payload)
+        leave_data = [
+            ("type", "leave"),
+            ("leave_type", leave_type_ref),
+            ("validity", validity)
+        ]
+
+        return self.add_optional_data(owner_ref, leave_data)
+
+    def add_type_itsystem(self, owner_ref, itsystem_ref,
+                          date_from, date_to=None):
+        """
+
+        :param owner_ref:
+        :param itsystem_ref:
+        :param date_from:
+        :param date_to:
+        :return:
+        """
+
+        validity = {
+            "from": date_from,
+            "to": date_to
+        }
+
+        it_data = [
+            ("type", "it"),
+            ("itsystem", itsystem_ref),
+            ("validity", validity)
+        ]
+
+        return self.add_optional_data(owner_ref, it_data)
 
 
 class Organisation(Utility):
+    """
+    Organisation
+    """
 
     def __init__(self, name, user_key=None, municipality_code=999,
                 uuid=None, date_from=None, date_to=None, create_defaults=True):
@@ -391,6 +664,10 @@ class Organisation(Utility):
             self.Klasse.create_defaults()
 
     def export(self):
+        """
+
+        :return:
+        """
         return {
             "uuid": self.uuid,
             "name": self.name,
