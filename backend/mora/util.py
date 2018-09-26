@@ -467,10 +467,9 @@ def checked_get(
     fallback: D=None,
     required: bool=False,
 ) -> V:
-    sentinel = object()
-    v = mapping.get(key, sentinel)
-
-    if v is sentinel:
+    try:
+        v = mapping[key]
+    except KeyError:
         if fallback is not None:
             return checked_get(fallback, key, default, None, required)
         elif required:
@@ -480,27 +479,26 @@ def checked_get(
                 key=key,
                 obj=mapping
             )
-        else:
-            return default
+        return default
 
-    elif not isinstance(v, type(default)):
-        if not required and v is None:
-            return default
+    if isinstance(v, type(default)):
+        return v
 
-        expected = type(default).__name__
-        actual = json.dumps(v)
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_TYPE,
-            message='Invalid {!r}, expected {}, got: {}'.format(
-                key, expected, actual,
-            ),
-            key=key,
-            expected=expected,
-            actual=actual,
-            obj=mapping
-        )
+    if not required and v is None:
+        return default
 
-    return v
+    expected = type(default).__name__
+    actual = json.dumps(v)
+    raise exceptions.HTTPException(
+        exceptions.ErrorCodes.E_INVALID_TYPE,
+        message='Invalid {!r}, expected {}, got: {}'.format(
+            key, expected, actual,
+        ),
+        key=key,
+        expected=expected,
+        actual=actual,
+        obj=mapping
+    )
 
 
 def get_uuid(
