@@ -7,6 +7,7 @@
 #
 import collections
 import enum
+import typing
 
 from . import util
 
@@ -92,17 +93,33 @@ class FieldTypes(enum.IntEnum):
     ADAPTED_ZERO_TO_MANY = 2,
 
 
-class FieldTuple(collections.namedtuple(
-    'FieldTuple',
-    [
-        'path',
-        'type',
-        'filter_fn'
-    ]
-)):
-    def get(self, obj):
+class FieldTuple(object):
+    __slots__ = (
+        '__path',
+        '__type',
+        '__filter_fn',
+    )
+
+    def __init__(self, path: typing.Tuple[str, str], type: FieldTypes,
+                 filter_fn: typing.Callable[[dict], bool]):
+        self.__path = path
+        self.__type = type
+        self.__filter_fn = filter_fn
+
+    def get(self, obj: typing.Tuple[str]):
         return util.get_obj_value(obj, self.path, self.filter_fn)
 
+    @property
+    def path(self) -> typing.Tuple[str, str]:
+        return self.__path
+
+    @property
+    def type(self) -> FieldTypes:
+        return self.__type
+
+    @property
+    def filter_fn(self) -> typing.Callable[[dict], bool]:
+        return self.__filter_fn
 
 #
 # MAPPINGS
