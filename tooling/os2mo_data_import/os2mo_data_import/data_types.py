@@ -116,7 +116,7 @@ class Klasse(MemoryMap):
 
     default_types = {
         "Enhed": {
-            "facet_type": "Enhedstype",
+            "facet_type_ref": "Enhedstype",
             "data": {
                 "brugervendtnoegle": "Enhed",
                 "beskrivelse": "Dette er en organisationsenhed",
@@ -124,7 +124,7 @@ class Klasse(MemoryMap):
             }
         },
         "AdressePost": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "AdressePost",
                 "eksempel": "<UUID>",
@@ -133,7 +133,7 @@ class Klasse(MemoryMap):
             }
         },
         "Email": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "Email",
                 "eksempel": "test@example.com",
@@ -142,7 +142,7 @@ class Klasse(MemoryMap):
             }
         },
         "Telefon": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "Telefon",
                 "eksempel": "20304060",
@@ -151,7 +151,7 @@ class Klasse(MemoryMap):
             }
         },
         "Webadresse": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "Webadresse",
                 "eksempel": "http://www.magenta.dk",
@@ -160,7 +160,7 @@ class Klasse(MemoryMap):
             }
         },
         "EAN": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "EAN",
                 "eksempel": "00112233",
@@ -169,7 +169,7 @@ class Klasse(MemoryMap):
             }
         },
         "PNUMBER": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "PNUMBER",
                 "eksempel": "00112233",
@@ -178,7 +178,7 @@ class Klasse(MemoryMap):
             }
         },
         "TEXT": {
-            "facet_type": "Adressetype",
+            "facet_type_ref": "Adressetype",
             "data": {
                 "brugervendtnoegle": "TEXT",
                 "eksempel": "Fritekst",
@@ -187,28 +187,27 @@ class Klasse(MemoryMap):
             }
         },
         "Ansat": {
-            "facet_type": "Engagementstype",
+            "facet_type_ref": "Engagementstype",
             "data": {
                 "brugervendtnoegle": "Ansat"
             }
         },
         "Leder": {
-            "facet_type": "Ledertyper",
+            "facet_type_ref": "Ledertyper",
             "data": {
                 "brugervendtnoegle": "Leder",
                 "titel": "Leder",
-                "facet_type": "Ledertyper",
             }
         },
         "Lederansvar": {
-            "facet_type": "Lederansvar",
+            "facet_type_ref": "Lederansvar",
             "data": {
                 "brugervendtnoegle": "Lederansvar",
                 "titel": "Ansvar for organisationsenheden"
             }
         },
         "Lederniveau": {
-            "facet_type": "Lederniveau",
+            "facet_type_ref": "Lederniveau",
             "data": {
                 "brugervendtnoegle": "Lederniveau",
                 "titel": "Niveau 90",
