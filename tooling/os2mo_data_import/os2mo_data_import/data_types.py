@@ -1,6 +1,9 @@
 # -- coding: utf-8 --
 
-class MoxUtility:
+from uuid import uuid4
+
+
+class Utility:
 
     def create_uuid(self):
         """
@@ -14,19 +17,11 @@ class MoxUtility:
         identifier = uuid4()
         return str(identifier)
 
-    def validity_range(self, from_date, to_date):
 
-        if not to_date:
-            to_date = "infinity"
+class MemoryMap(Utility):
 
-        return {
-            "from": from_date,
-            "to": to_date
-        }
-
-class MemoryMap(object):
-
-    storage_map = {}
+    def __init__(self):
+        self.storage_map = {}
 
     def get(self, identifier):
 
@@ -68,7 +63,7 @@ class Facet(MemoryMap):
     ]
 
     def __init__(self):
-        self.storage_map = {}
+        super().__init__()
 
     def add(self, identifier, user_key=None):
 
@@ -166,7 +161,7 @@ class Klasse(MemoryMap):
     ]
 
     def __init__(self):
-        self.storage_map = {}
+        super().__init__()
 
     def add(self, identifier, facet_type, **properties):
 
@@ -193,7 +188,7 @@ class Klasse(MemoryMap):
 class Itsystem(MemoryMap):
 
     def __init__(self):
-        self.storage_map = {}
+        super().__init__()
 
     def add(self, identifier, system_name=None):
 
@@ -274,10 +269,10 @@ class MoMemoryMap(MemoryMap):
         return (identifier, data)
 
 
-class OrganisationUnit(MoMemoryMap):
+class OrganisationUnit(Utility):
 
     def __init__(self):
-        self.storage_map = {}
+        super().__init__()
 
 
 class Employee(MoMemoryMap):
@@ -367,19 +362,24 @@ class Employee(MoMemoryMap):
         return self.add_optional_data(identifier, payload)
 
 
-class Organisation(object):
+class Organisation(Utility):
 
     def __init__(self, name, user_key=None, municipality_code=999,
                 uuid=None, date_from=None, date_to=None, create_defaults=True):
 
-        self.uuid = uuid
+        # Generate UUID if not passed
+        self.uuid = uuid or self.create_uuid()
+
         self.name = name
         self.user_key = user_key
         self.municipality_code = municipality_code
 
-        self.date_from = (date_from or "1900-01-01")
-        self.date_to = (date_to or "infinity")
+        self.validity = {
+            "from": (date_from or "1900-01-01"),
+            "to": (date_to or "infinity")
+        }
 
+        # Exposed classes
         self.Facet = Facet()
         self.Klasse = Klasse()
         self.Itsystem = Itsystem()
@@ -396,6 +396,8 @@ class Organisation(object):
             "name": self.name,
             "user_key": self.user_key,
             "municipality_code": self.municipality_code,
-            "date_from": self.date_from,
-            "date_to": self.date_to
+            "validity": self.validity
         }
+
+    def __repr__(self):
+        return self.uuid
