@@ -269,40 +269,39 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
 
 
 def update_config(mapping, config_path, allow_environment=True):
-    '''load the JSON configuration at the given path
+    '''Update *mapping* with the JSON configuration at *config_path*.
 
-    We disregard all entries in the configuration that lack a default
-    within the mapping.
+    If *allow_environment* is True, also update *mapping* with
+    environment variables.
 
+    We disregard all configuration entries that are not present in
+    *mapping*.
+
+    The configurations have the following precedence:
+        environment variables > JSON from *config_path* > *mapping*.
     '''
-
-    keys = {
-        k
-        for k, v in mapping.items()
-        if not k.startswith('_')
-    }
 
     try:
         with open(config_path) as fp:
             overrides = json.load(fp)
-
-        for key in keys & overrides.keys():
-            mapping[key] = overrides[key]
-
     except IOError:
-        pass
+        print(' * Could not read {}'.format(config_path))
+        overrides = {}
 
     if allow_environment:
-        overrides = {
-            k[5:]: v
-            for k, v in os.environ.items()
-            if k.startswith('MORA_')
-        }
+        for key, value in os.environ.items():
+            if key.startswith('MORA_'):
+                key = key[5:]  # cut out MORA_ prefix
+            else:
+                continue
+            if key in mapping:
+                print(' * Using override MORA_{}={!r}'.format(key, value),
+                      file=sys.stderr)
+                overrides[key] = value
 
-        for key in keys & overrides.keys():
-            print(' * Using override MORA_{}={!r}'.format(key, overrides[key]),
-                  file=sys.stderr)
-            mapping[key] = overrides[key]
+    for key, value in overrides:
+        if key in mapping and not key.startswith('_'):
+              mapping[key] = value
 
 
 def splitlist(xs, size):
