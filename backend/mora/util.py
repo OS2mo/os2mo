@@ -325,7 +325,7 @@ def is_uuid(v):
     try:
         uuid.UUID(v)
         return True
-    except Exception:
+    except (ValueError, TypeError):
         return False
 
 
