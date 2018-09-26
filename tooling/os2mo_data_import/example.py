@@ -32,14 +32,11 @@ def example_import():
     all_klasse = org.Klasse.export()
     print(all_klasse)
 
-    # Example: add additional facet type
-    org.Facet.add(identifier="Shipsection", user_key="shipsec")
-
     # Example: add klasse with reference to new random type facet
     # Every key/value pair will be added as properties ("klasseegenskaber")
     org.Klasse.add(
-        identifier="Bridge",  # Identifier to recall the item
-        facet_type_ref="Shipsection",  # Belongs to facet: Shipsection
+        identifier="Command bridge",  # Identifier to recall the item
+        facet_type_ref="Enhedstype",  # Belongs to facet: Enhedstype
         brugervendtnoegle="Command bridge",
         omfang="TNG",
         titel="This is the place where cool officers hang out"
@@ -49,7 +46,7 @@ def example_import():
     # Required: name, org_unit_type_ref, date_from, date_to
     org.OrganisationUnit.add(
         identifier="Officers",
-        org_unit_type_ref="Bridge",  # This unit is of type: Bridge section
+        org_unit_type_ref="Command bridge",  # This unit is of type: Bridge section
         date_from="1986-01-01",
         date_to=None
     )
@@ -58,7 +55,7 @@ def example_import():
     # Use parent_ref to make it a sub group of "Officers"
     org.OrganisationUnit.add(
         identifier="Science Officers",
-        org_unit_type_ref="Bridge",  # This unit is of type: Bridge section
+        org_unit_type_ref="Command bridge",  # This unit is of type: Bridge section
         parent_ref="Officers",  # Sub unit of/Belongs to Officers unit
         date_from="1986-01-01",
         date_to=None
@@ -217,8 +214,10 @@ def example_import():
 
 
     # TODO: MAKE THIS WORK!
-    # Import all
-    # store = import_handler(org)
+    from os2mo_data_import.utility import ImportUtility
+
+    os2mo = ImportUtility(org, dry_run=True)
+    os2mo.import_all()
 
 
 if __name__ == "__main__":
