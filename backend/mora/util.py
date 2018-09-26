@@ -269,16 +269,16 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
 
 
 def update_config(mapping, config_path, allow_environment=True):
-    '''Update *mapping* with the JSON configuration at *config_path*.
+    '''Update ``mapping`` with the JSON configuration at ``config_path``.
 
-    If *allow_environment* is True, also update *mapping* with
+    If ``allow_environment`` is True, also update ``mapping`` with
     environment variables.
 
     We disregard all configuration entries that are not present in
-    *mapping*.
+    ``mapping``.
 
     The configurations have the following precedence:
-        environment variables > JSON from *config_path* > *mapping*.
+        environment variables > JSON from ``config_path`` > ``mapping``.
     '''
 
     try:
@@ -337,7 +337,7 @@ def is_cpr_number(v):
 
 
 def uniqueify(xs):
-    '''Return *xs* as a list without duplicates, but in the same order.'''
+    '''Return ``xs`` as a list without duplicates, but in the same order.'''
     return list(collections.OrderedDict.fromkeys(xs))
 
 
