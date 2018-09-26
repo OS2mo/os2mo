@@ -1,7 +1,6 @@
 # -- coding: utf-8 --
 
-from os2mo_data_import import Organisation
-from os2mo_data_import.data_import import import_handler
+from os2mo_data_import import Organisation, ImportUtility
 
 
 def example_import():
@@ -214,8 +213,6 @@ def example_import():
 
 
     # TODO: MAKE THIS WORK!
-    from os2mo_data_import.utility import ImportUtility
-
     os2mo = ImportUtility(org, dry_run=True)
     os2mo.import_all()
 

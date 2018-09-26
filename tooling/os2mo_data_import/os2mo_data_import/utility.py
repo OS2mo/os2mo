@@ -3,9 +3,8 @@
 import json
 from uuid import uuid4
 from requests import Session
-from os2mo_data_import import Organisation
+from os2mo_data_import.data_types import Organisation
 from os2mo_data_import import adapters
-from os2mo_data_import import http_utils
 
 
 class ImportUtility(Session):
