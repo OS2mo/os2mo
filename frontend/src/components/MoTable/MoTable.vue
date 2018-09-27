@@ -22,10 +22,23 @@
             v-for="(col, index) in columns" 
             :key="index"
           >
-            {{$t('table_headers.'+col.label)}}
+            <span class="link" @click="sort">
+              {{$t('table_headers.'+col.label)}}
+              <icon :name="open ? 'sort-up' : 'sort-down'"/>
+            </span>
           </th>
-          <th>{{$t('table_headers.start_date')}}</th>
-          <th>{{$t('table_headers.end_date')}}</th>
+          <th>
+            <span class="link" @click="sort">
+              {{$t('table_headers.start_date')}}
+              <icon :name="open ? 'sort-up' : 'sort-down'"/>
+            </span>
+          </th>
+          <th>
+            <span class="link" @click="sort">
+              {{$t('table_headers.end_date')}}
+              <icon :name="open ? 'sort-up' : 'sort-down'"/>
+            </span>
+          </th>
           <th></th>
         </tr>
       </thead>
@@ -96,7 +109,8 @@
     data () {
       return {
         selectAll: false,
-        selected: []
+        selected: [],
+        open: false
       }
     },
 
@@ -109,6 +123,12 @@
     watch: {
       selected (newVal) {
         this.$emit('selected-changed', newVal)
+      }
+    },
+
+    methods: {
+      sort () {
+        this.open = !this.open
       }
     }
   }
@@ -123,5 +143,9 @@
     max-height: 55vh;
     overflow-x: hidden;
     overflow-y: auto;
+  }
+
+  .link{
+    cursor: pointer;
   }
 </style>
