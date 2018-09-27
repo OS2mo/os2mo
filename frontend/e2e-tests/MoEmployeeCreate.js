@@ -59,6 +59,10 @@ const addressManagerItem = addressManagerInput.find('.v-autocomplete-list-item l
 const managerTypeSelect = dialog.find('.select-manager select[data-vv-as="Ledertyper"]')
 const managerTypeOption = managerTypeSelect.find('option')
 
+const addressManagerMany = dialog.find('.address-manager button')
+
+const addressManagerInputContact = dialog.find('input[data-vv-as="Kontakttelefon"]')
+
 const levelManagerSelect = dialog.find('.select-manager select[data-vv-as="Lederniveau"]')
 const levelManagerOption = levelManagerSelect.find('option')
 
@@ -158,6 +162,12 @@ test('Workflow: create employee', async t => {
     .expect(addressManagerItem.withText('Ved Bålpladsen 1').visible).ok()
     .pressKey('down enter')
     .expect(addressManagerInput.find('input').value).contains('Ved Bålpladsen 1')
+
+    .click(addressManagerMany)
+    .pressKey('tab tab tab tab tab down enter')
+
+    .click(addressManagerInputContact)
+    .typeText(dialog.find('input[data-vv-as="Kontakttelefon"]'), '55905510')
 
     .click(managerTypeSelect)
     .click(managerTypeOption.withText('Direktør'))
