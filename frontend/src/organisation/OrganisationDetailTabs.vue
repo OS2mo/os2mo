@@ -40,6 +40,15 @@
         />
       </b-tab>
 
+      <b-tab :title="$t('tabs.organisation.it')">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          :at-date="atDate"
+          detail="it"
+          :columns="it"
+        />
+      </b-tab>
+
       <b-tab :title="$t('tabs.organisation.roles')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -124,6 +133,10 @@
         role: [
           {label: 'person', data: 'person'},
           {label: 'role_type', data: 'role_type'}
+        ],
+        it: [
+          {label: 'it_system', data: 'itsystem'},
+          {label: 'user_name', data: null, field: 'user_key'}
         ],
         manager: [
           {label: 'person', data: 'person'},

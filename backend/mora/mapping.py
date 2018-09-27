@@ -7,6 +7,7 @@
 #
 import collections
 import enum
+import typing
 
 from . import util
 
@@ -86,27 +87,39 @@ RELATION_TRANSLATIONS = {
 
 @enum.unique
 class FieldTypes(enum.IntEnum):
+    '''The different kinds of fields we support'''
     ZERO_TO_ONE = 0,
     ZERO_TO_MANY = 1,
     ADAPTED_ZERO_TO_MANY = 2,
 
 
-FieldTuple = collections.namedtuple(
-    'PropTuple',
-    [
-        'path',
-        'type',
-        'filter_fn'
-    ]
-)
+class FieldTuple(object):
+    __slots__ = (
+        '__path',
+        '__type',
+        '__filter_fn',
+    )
 
+    def __init__(self, path: typing.Tuple[str, str], type: FieldTypes,
+                 filter_fn: typing.Callable[[dict], bool]):
+        self.__path = path
+        self.__type = type
+        self.__filter_fn = filter_fn
 
-def get_field_value(field: FieldTuple, obj):
-    return util.get_obj_value(obj, field.path, field.filter_fn)
+    def get(self, obj: typing.Tuple[str]):
+        return util.get_obj_value(obj, self.path, self.filter_fn)
 
+    @property
+    def path(self) -> typing.Tuple[str, str]:
+        return self.__path
 
-FieldTuple.get = get_field_value
+    @property
+    def type(self) -> FieldTypes:
+        return self.__type
 
+    @property
+    def filter_fn(self) -> typing.Callable[[dict], bool]:
+        return self.__filter_fn
 
 #
 # MAPPINGS
@@ -118,6 +131,7 @@ FUNCTION_KEYS = {
     'role': ROLE_KEY,
     'leave': LEAVE_KEY,
     'manager': MANAGER_KEY,
+    'it': ITSYSTEM_KEY,
 }
 
 ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
@@ -228,9 +242,9 @@ MANAGER_LEVEL_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'lederniveau'
 )
 
-ITSYSTEMS_FIELD = FieldTuple(
+SINGLE_ITSYSTEM_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeitsystemer'),
-    type=FieldTypes.ZERO_TO_MANY,
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
     filter_fn=lambda x: True
 )
 
@@ -293,8 +307,11 @@ ORG_UNIT_FIELDS = {
     PARENT_FIELD
 }
 
-ITSYSTEMS_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeitsystemer'),
-    type=FieldTypes.ZERO_TO_MANY,
-    filter_fn=lambda x: True
-)
+ITSYSTEM_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
+    USER_FIELD,
+    SINGLE_ITSYSTEM_FIELD,
+}

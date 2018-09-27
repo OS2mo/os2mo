@@ -287,6 +287,44 @@ class TestUtils(TestCase):
         # Assert
         self.assertEqual(expected_result, actual_result)
 
+    def test_set_obj_value_existing_path_string(self):
+        # Arrange
+        obj = {'test1': {'test2': '1337'}}
+        path = ('test1', 'test2')
+
+        val = '42'
+
+        expected_result = {
+            'test1': {
+                'test2': '42'
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_obj_value_new_path_string(self):
+        # Arrange
+        obj = {}
+        path = ('test1', 'test2')
+
+        val = '42'
+
+        expected_result = {
+            'test1': {
+                'test2': '42'
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
     def test_get_valid_from(self):
         ts = '2018-03-21T00:00:00+01:00'
         dt = datetime.datetime(2018, 3, 21,

@@ -12,6 +12,23 @@ from . import util
 
 
 class EmployeeHistoryTest(util.LoRATestCase):
+
+    def test_invalid_employee_history(self):
+        userid = "00000000-0000-0000-0000-000000000000"
+
+        # Assert
+        self.assertRequestResponse(
+            '/service/e/{}/history/'.format(userid),
+            {
+                'description': 'User not found.',
+                'error': True,
+                'error_key': 'E_USER_NOT_FOUND',
+                'status': 404,
+                'employee_uuid': userid,
+            },
+            status_code=404,
+        )
+
     def test_employee_history(self):
         # Create and edit a bunch of stuff, followed by a terminate
         # Arrange
@@ -229,6 +246,22 @@ class EmployeeHistoryTest(util.LoRATestCase):
 
 
 class OrgUnitHistoryTest(util.LoRATestCase):
+    def test_invalid_org_unit_history(self):
+        unitid = "00000000-0000-0000-0000-000000000000"
+
+        # Assert
+        self.assertRequestResponse(
+            '/service/ou/{}/history/'.format(unitid),
+            {
+                'description': 'Org unit not found.',
+                'error': True,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': unitid,
+                'status': 404,
+            },
+            status_code=404,
+        )
+
     def test_org_unit_history(self):
         # A create, some edits, followed by a termination
         # Arrange
@@ -258,6 +291,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             '/service/ou/{}/edit'.format(unitid),
             unitid,
             json={
+                "type": "org_unit",
                 "data": {
                     "name": "History test II",
                     "validity": {
@@ -271,6 +305,7 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             '/service/ou/{}/edit'.format(unitid),
             unitid,
             json={
+                "type": "org_unit",
                 "data": {
                     "name": "History test III",
                     "validity": {
@@ -278,6 +313,22 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                     }
                 }
             }
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unitid),
+            unitid,
+            json=[{
+                "type": "manager",
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                }
+            }],
         )
 
         self.assertRequestResponse(
@@ -291,6 +342,9 @@ class OrgUnitHistoryTest(util.LoRATestCase):
 
         expected_result = [
             {'action': 'Afslut enhed',
+             'life_cycle_code': 'Rettet',
+             'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'},
+            {'action': 'Opret leder',
              'life_cycle_code': 'Rettet',
              'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'},
             {'action': 'Rediger organisationsenhed',

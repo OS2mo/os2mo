@@ -77,11 +77,11 @@ class ErrorCodes(Enum):
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
     E_USER_NOT_FOUND = 404, "User not found."
     E_UNKNOWN_ROLE_TYPE = 400, "Unknown role type."
+    E_INVALID_ROLE_TYPE = 400, "Invalid role type for target operation."
     E_INVALID_TYPE = 400, "Invalid type."
     E_INVALID_UUID = 400, "Invalid UUID."
     E_INVALID_URN = 400, "Invalid URN."
     E_ORIGINAL_ENTRY_NOT_FOUND = 400, "Original entry not found."
-    E_INVALID_FUNCTION_TYPE = 400, "Invalid function type."
     E_NO_LOCAL_MUNICIPALITY = 400, "No local municipality found."
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
 

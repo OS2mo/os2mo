@@ -11,6 +11,7 @@ import freezegun
 from mora import common
 from mora import exceptions
 from mora import util as mora_util
+from mora import lora
 from mora import mapping
 
 from . import util
@@ -1824,11 +1825,21 @@ class TestClass(util.TestCase):
             },
         )
 
-        with self.assertRaisesRegex(
-            exceptions.HTTPException,
-            '404 Not Found: User not found.',
-        ):
-            common.add_bruger_history_entry(
+        with self.assertRaises(exceptions.HTTPException) as cm:
+            common.add_history_entry(
+                lora.Connector().bruger,
                 userid,
                 'kaflaflibob',
             )
+
+        self.assertEqual(
+            cm.exception.body,
+            {
+                'description': 'Not found.',
+                'error': True,
+                'error_key': 'E_NOT_FOUND',
+                'path': 'organisation/bruger',
+                'status': 404,
+                'uuid': userid,
+            }
+        )

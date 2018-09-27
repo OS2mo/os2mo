@@ -569,15 +569,16 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     obj_copy = copy.deepcopy(obj)
 
     current_value = obj_copy
-    while path_list:
-        key = path_list.pop(0)
-        if path_list:
-            current_value = current_value.setdefault(key, {})
-        else:
-            if not current_value.get(key):
-                current_value[key] = val
-            else:
-                current_value[key].extend(val)
+
+    for key in path_list[:-1]:
+        current_value = current_value.setdefault(key, {})
+
+    key = path_list[-1]
+
+    if isinstance(current_value.get(key), list):
+        current_value[key].extend(val)
+    else:
+        current_value[key] = val
 
     return obj_copy
 
@@ -676,7 +677,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
     Please note that as end intervals are *inclusive*, a date ends at
     24:00, or 0:00 the following day.
 
-    :see also: :func:`to_iso_date`
+    :see also: :py:func:`to_iso_date`
 
     :raises mora.exceptions.HTTPException: if the given timestamp does
       not correspond to midnight in Central Europe.
@@ -783,3 +784,19 @@ def get_args_flag(name: str):
         return False
     else:
         return bool(v)
+
+
+def get_dicts(v: typing.Union[dict, typing.Iterable[dict]]):
+    '''Handle a value that might either be a mapping, or a list of mappings.
+
+    We explicitly check whether we've been given a single dict as
+    arguments, and if so yield that. Otherwise we just yield the
+    values contained in whatever sequence or iterable we were given —
+    which ought to be instances of :py:class:`dict`.
+
+    '''
+
+    if isinstance(v, dict):
+        yield v
+    else:
+        yield from v

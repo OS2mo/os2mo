@@ -254,9 +254,16 @@ class Tests(util.LoRATestCase):
             }],
         )
 
-    @util.mock('aabogade.json', allow_mox=True)
-    def test_create_vacant_manager(self, m):
+    def test_create_vacant_manager(self):
         self.load_sample_structures()
+
+        unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'.format(unit_id),
+                [],
+            )
 
         payload = [
             {
@@ -276,19 +283,223 @@ class Tests(util.LoRATestCase):
                 },
             }
         ]
-        org_unit = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        self.assertRequestResponse('/service/ou/{}/create'.format(org_unit),
-                                   org_unit, json=payload)
 
-        r = self.request('/service/ou/{}/details/manager'.format(org_unit))
-        self.assert200(r)
-        vacant_managers = r.json
-        vacant_successs = False
-        # Iterate through all managers, if we find a vacant one, we are happy
-        for manager in vacant_managers:
-            if manager['person'] is None:
-                vacant_success = True
-        assert(vacant_success)
+        self.assertRequestResponse('/service/ou/{}/create'.format(unit_id),
+                                   unit_id, json=payload)
+
+        function_id, = lora.Connector().organisationfunktion(
+            tilknyttedeenheder=unit_id,
+            funktionsnavn='Leder',
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/manager'.format(unit_id),
+            [{
+                'address': None,
+                'manager_level': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
+                'org_unit': {
+                    'name': 'Historisk Institut',
+                    'user_key': 'hist',
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+                },
+                'person': None,
+                'responsibility': [{
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                }],
+                'uuid': function_id,
+                'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
+            }],
+        )
+
+    def test_edit_manager_on_unit(self):
+        self.load_sample_structures()
+
+        unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+        user_id = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'.format(unit_id),
+                [],
+            )
+
+        # first create a manager on the unit
+        expected = {
+            'address': None,
+            'manager_level': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            },
+            'manager_type': {
+                'example': None,
+                'name': 'Medlem',
+                'scope': None,
+                'user_key': 'medl',
+                'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+            },
+            'org_unit': {
+                'name': 'Historisk Institut',
+                'user_key': 'hist',
+                'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+            },
+            'person': {
+                'name': 'Fedtmule',
+                'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+            },
+            'responsibility': [{
+                'example': None,
+                'name': 'Medlem',
+                'scope': None,
+                'user_key': 'medl',
+                'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+            }],
+            'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
+        }
+
+        self.assertRequestResponse(
+            '/service/ou/{}/create'.format(unit_id),
+            unit_id,
+            json=[{
+                "type": "manager",
+                "responsibility": [{
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                }],
+                "manager_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "manager_level": {
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                },
+                "person": {
+                    "uuid": user_id,
+                },
+                "validity": {
+                    "from": "2016-12-01",
+                    "to": "2017-12-02",
+                },
+            }],
+        )
+
+        with self.subTest('results'):
+            function_id, = lora.Connector().organisationfunktion(
+                tilknyttedeenheder=unit_id,
+                funktionsnavn='Leder',
+            )
+
+            expected['uuid'] = function_id
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager?validity=past'.format(unit_id),
+                [],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'.format(unit_id),
+                [expected],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'
+                '?validity=future'.format(unit_id),
+                [],
+            )
+
+        with self.subTest('change to vacant'):
+            self.assertRequestResponse(
+                '/service/ou/{}/edit'.format(unit_id),
+                unit_id,
+                json=[{
+                    "type": "manager",
+                    "uuid": function_id,
+                    "data": {
+                        "person": None,
+                        "validity": {
+                            "from": "2017-12-03",
+                            "to": "2017-12-20",
+                        },
+                    },
+                }],
+            )
+
+            future = expected.copy()
+            future['person'] = None
+            future['validity'] = {
+                "from": "2017-12-03",
+                "to": "2017-12-20",
+            }
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'.format(unit_id),
+                [expected],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'
+                '?validity=future'.format(unit_id),
+                [future],
+            )
+
+        with self.subTest('change back'):
+            self.assertRequestResponse(
+                '/service/ou/{}/edit'.format(unit_id),
+                unit_id,
+                json=[{
+                    "type": "manager",
+                    "uuid": function_id,
+                    "data": {
+                        "person": {
+                            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        },
+                        "validity": {
+                            "from": "2017-12-21",
+                            "to": "2017-12-31",
+                        },
+                    },
+                }],
+            )
+
+            far_future = future.copy()
+            far_future['person'] = {
+                'name': 'Anders And',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+            }
+            far_future['validity'] = {
+                "from": "2017-12-21",
+                "to": "2017-12-31",
+            }
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'.format(unit_id),
+                [expected],
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/manager'
+                '?validity=future'.format(unit_id),
+                [future, far_future],
+            )
 
     def test_create_manager_no_valid_to(self):
         self.load_sample_structures()
