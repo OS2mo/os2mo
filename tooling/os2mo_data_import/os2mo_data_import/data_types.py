@@ -47,6 +47,20 @@ class MemoryMap(Utility):
 
         return identifier
 
+    def check_if_exists(self, identifier):
+        """
+        Check for the existance of an identifier
+        (For debugging purposes)
+
+        :param identifier:  User defined identifier (Type: str)
+        :return:            bool
+        """
+
+        if identifier not in self.storage_map:
+            return None
+
+        return True
+
     def export(self):
         """
 
