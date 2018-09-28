@@ -33,6 +33,13 @@ A organisation picker component.
 
 **initial value:** `[object Object]` 
 
+## computed properties 
+
+- `orderedListOptions` 
+
+   **dependencies:** `orgs` 
+
+
 ## methods 
 
 - `getAll()` 

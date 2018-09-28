@@ -33,6 +33,13 @@ A searchbar component.
 
 **initial value:** `[object Object]` 
 
+## computed properties 
+
+- `orderedListOptions` 
+
+   **dependencies:** `items` 
+
+
 ## methods 
 
 - `getLabel(item)` 

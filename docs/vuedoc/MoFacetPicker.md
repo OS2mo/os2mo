@@ -45,6 +45,10 @@ A facet picker component.
 
    **dependencies:** `preselectedUserKey` 
 
+- `orderedListOptions` 
+
+   **dependencies:** `facets` 
+
 
 ## methods 
 
