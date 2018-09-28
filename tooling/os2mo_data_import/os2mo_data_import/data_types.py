@@ -203,14 +203,15 @@ class Klasse(MemoryMap):
         "Ansat": {
             "facet_type_ref": "Engagementstype",
             "data": {
-                "brugervendtnoegle": "Ansat"
+                "brugervendtnoegle": "Ansat",
+                "titel": "Ansat"
             }
         },
         "Leder": {
             "facet_type_ref": "Ledertyper",
             "data": {
                 "brugervendtnoegle": "Leder",
-                "titel": "Leder",
+                "titel": "Leder"
             }
         },
         "Lederansvar": {
@@ -405,6 +406,7 @@ class OrganisationUnit(MoMemoryMap):
             organisation_unit_data.append(item)
 
         data = {
+            "parent_ref": parent_ref,
             "data": organisation_unit_data,
             "optional_data": []
         }
@@ -423,8 +425,7 @@ class Employee(MoMemoryMap):
     def __init__(self):
         super().__init__()
 
-    def add(self, identifier, cpr_no, date_from, date_to=None,
-            name=None, user_key=None, uuid=None):
+    def add(self, identifier, cpr_no, name=None, user_key=None, uuid=None):
         """
 
         :param identifier:
@@ -443,15 +444,10 @@ class Employee(MoMemoryMap):
 
         name = (name or identifier)
 
-        validity = {
-            "from": date_from,
-            "to": date_to
-        }
-
         employee_data = [
             ("name", name),
             ("cpr_no", cpr_no),
-            ("validity", validity)
+            ("org", None),
         ]
 
         if user_key:
@@ -491,7 +487,6 @@ class Employee(MoMemoryMap):
         engagement_data = [
             ("type", "engagement"),
             ("org_unit", org_unit_ref),
-            ("job_function", job_function_ref),
             ("job_function", job_function_ref),
             ("engagement_type", engagement_type_ref),
             ("validity", validity)
@@ -653,9 +648,7 @@ class Organisation(Utility):
     def __init__(self, name, user_key=None, municipality_code=999,
                 uuid=None, date_from=None, date_to=None, create_defaults=True):
 
-        # Generate UUID if not passed
-        self.uuid = uuid or self.create_uuid()
-
+        self.uuid = uuid
         self.name = name
         self.user_key = user_key
         self.municipality_code = municipality_code
@@ -689,5 +682,3 @@ class Organisation(Utility):
             "validity": self.validity
         }
 
-    def __repr__(self):
-        return self.uuid
