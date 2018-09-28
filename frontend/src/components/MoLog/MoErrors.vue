@@ -13,18 +13,28 @@
 </template>
 
 <script>
+  /**
+   * A error component.
+   */
+
   import { mapGetters } from 'vuex'
 
   export default {
     name: 'MoError',
 
     computed: {
+      /**
+       * Get error message.
+       */
       ...mapGetters({
         errors: 'log/getErrors'
       })
     },
 
     methods: {
+      /**
+       * Reverse message.
+       */
       reverse (array) {
         return array.length ? array.slice().reverse() : array
       }

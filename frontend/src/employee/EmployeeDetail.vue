@@ -22,6 +22,10 @@
 </template>
 
 <script>
+  /**
+   * A employee detail component.
+   */
+
   import Employee from '@/api/Employee'
   import '@/filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
@@ -36,6 +40,10 @@
     },
 
     data () {
+      /**
+        * The employee, isLoading component value.
+        * Used to detect changes and restore the value for columns.
+        */
       return {
         employee: Object,
         isLoading: false
@@ -43,10 +51,17 @@
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Show the employee.
+       */
       this.getEmployee(this.$route.params.uuid)
     },
 
     methods: {
+      /**
+       * Get a employee.
+       */
       getEmployee () {
         let vm = this
         vm.isLoading = true

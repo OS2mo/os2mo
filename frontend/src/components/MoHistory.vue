@@ -36,16 +36,27 @@
 </template>
 
 <script>
+  /**
+   * A history component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import Employee from '@/api/Employee'
   import '@/filters/Date'
 
   export default {
     props: {
+      /**
+       * Defines a required uuid.
+       */
       uuid: {
         type: String,
         required: true
       },
+
+      /**
+       * Defines a required type - employee or organisation unit.
+       */
       type: {
         type: String,
         required: true,
@@ -59,15 +70,25 @@
 
     data () {
       return {
+      /**
+       * The history component value.
+       * Used to detect changes and restore the value.
+       */
         history: []
       }
     },
 
     methods: {
+      /**
+       * Reload history.
+       */
       reloadHistory (val) {
         if (val) this.getHistory()
       },
 
+      /**
+       * Switch between organisation and employee getHistory.
+       */
       getHistory () {
         switch (this.type) {
           case 'ORG_UNIT':
@@ -79,6 +100,9 @@
         }
       },
 
+      /**
+       * Get organisation unit history.
+       */
       getOrgUnitHistory (uuid) {
         let vm = this
         OrganisationUnit.history(uuid)
@@ -87,6 +111,9 @@
           })
       },
 
+      /**
+       * Get employee history.
+       */
       getEmployeeHistory (uuid) {
         let vm = this
         Employee.history(uuid)

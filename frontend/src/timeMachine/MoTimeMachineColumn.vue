@@ -31,6 +31,10 @@
 </template>
 
 <script>
+  /**
+   * A timemachine column component.
+   */
+
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import MoTreeView from '@/components/MoTreeView/MoTreeView'
@@ -46,6 +50,10 @@
 
     data () {
       return {
+      /**
+       * The date, org, orgUnit component value.
+       * Used to detect changes and restore the value.
+       */
         date: new Date(),
         org: {},
         orgUnit: null
@@ -53,6 +61,9 @@
     },
 
     watch: {
+      /**
+       * Whenever org change, update.
+       */
       org () {
         this.orgUnit = null
       }

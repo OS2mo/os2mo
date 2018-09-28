@@ -8,6 +8,10 @@
 </template>
 
 <script>
+  /**
+   * A log component.
+   */
+
   import MoWorklog from './MoWorklog'
   import MoErrors from './MoErrors'
 
@@ -21,6 +25,10 @@
 
     data () {
       return {
+      /**
+        * The label component value.
+        * Used to set a default value.
+        */
         label: 'Arbejdslog'
       }
     }
