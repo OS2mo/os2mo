@@ -63,17 +63,15 @@ def example_import():
 
     # Employee
 
-    new_employee = org.Employee.add(
+    org.Employee.add(
         identifier="Jean-Luc Picard",
-        cpr_no="1112114455",
-        date_from="1986-01-01"
+        cpr_no="0101862233"
     )
 
     # Another employee
     org.Employee.add(
         identifier="William Riker",
-        cpr_no="1212114455",
-        date_from="1986-01-01"
+        cpr_no="0101862234"
     )
 
 
@@ -101,7 +99,7 @@ def example_import():
 
     org.Employee.add_type_address(
         owner_ref="William Riker",
-        uuid="213234234",
+        uuid="0a3f50b6-efb4-32b8-e044-0003ba298018",
         address_type_ref="AdressePost",
         date_from="1986-01-01",
     )
@@ -111,7 +109,7 @@ def example_import():
 
     org.Klasse.add(
         identifier="Command",
-        facet_type_ref="Stillingsbetegnelse",
+        facet_type_ref="Rolletype",
         brugervendtnoegle="Command function",
         titel="In command of designated unit"
     )
@@ -186,16 +184,16 @@ def example_import():
 
     # Itsystem
 
-    org.Itsystem.add(
-        identifier="Main Computer",
-        system_name="Main Computer"
-    )
-
-    org.Employee.add_type_itsystem(
-        owner_ref="William Riker",
-        itsystem_ref="Main Computer",
-        date_from="1986-01-01"
-    )
+    # org.Itsystem.add(
+    #     identifier="Main Computer",
+    #     system_name="Main Computer"
+    # )
+    #
+    # org.Employee.add_type_itsystem(
+    #     owner_ref="William Riker",
+    #     itsystem_ref="Main Computer",
+    #     date_from="1986-01-01"
+    # )
 
     # # Show all employee metadata
     employee = org.Employee.get("William Riker")
