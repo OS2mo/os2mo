@@ -56,6 +56,10 @@ A address picker component.
 
    **dependencies:** `addresses` 
 
+- `orderedListOptions` 
+
+   **dependencies:** `addresses` 
+
 
 ## events 
 

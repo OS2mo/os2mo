@@ -32,6 +32,13 @@ A employee picker component.
 
 **initial value:** `'MoSearchBarTemplate'` 
 
+## computed properties 
+
+- `orderedListOptions` 
+
+   **dependencies:** `items` 
+
+
 ## events 
 
 - `input` 

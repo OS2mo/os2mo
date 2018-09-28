@@ -1,5 +1,6 @@
 import { Selector } from 'testcafe'
 import { baseURL } from './support'
+import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
@@ -163,5 +164,11 @@ test('Workflow: create employee', async t => {
     // Submit button
     .click(dialog.find('.btn-primary'))
 
-    .expect(Selector('#employeeCreate').exists).notOk()
+    .expect(dialog.exists).notOk()
+
+    .expect(VueSelector('MoLog MoWorklog')
+            .find('.alert').nth(-1).innerText)
+    .match(
+      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+    )
 })

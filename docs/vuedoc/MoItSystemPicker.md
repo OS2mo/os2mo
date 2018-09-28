@@ -33,6 +33,10 @@ A it system component.
 
    **dependencies:** `_uid` 
 
+- `orderedListOptions` 
+
+   **dependencies:** `itSystems` 
+
 
 ## events 
 
