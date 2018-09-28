@@ -8,6 +8,7 @@
 
 """Run all end-to-end tests, and report the status."""
 
+import functools
 import json
 import os
 import platform
@@ -17,6 +18,10 @@ import unittest
 from mora import util as mora_util
 
 from . import util
+
+SKIP_FILES = {
+    'support.js',
+}
 
 
 class TestCafeTests(util.LiveLoRATestCase):
@@ -45,9 +50,6 @@ class TestCafeTests(util.LiveLoRATestCase):
         print("Against url:", self.get_server_url())
         print("----------------------")
 
-        with util.mock('dawa-ballerup.json', allow_mox=True):
-            util.import_fixture('BALLERUP.csv')
-
         os.makedirs(util.REPORTS_DIR, exist_ok=True)
 
         env = {
@@ -59,45 +61,67 @@ class TestCafeTests(util.LiveLoRATestCase):
                                  'safari' if platform.system() == 'Darwin'
                                  else 'chromium:headless --no-sandbox')
 
-        process = subprocess.run(
-            [
-                self.TESTCAFE_COMMAND,
-                "'{} --no-sandbox'".format(browser),
-                self.TEST_DIR,
-                "-r", ','.join(["spec",
-                                "xunit:" + self.XML_REPORT_FILE,
-                                "json:" + self.JSON_REPORT_FILE]),
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
-            cwd=util.BASE_DIR,
-            env=env,
+        test_files = sorted(
+            os.path.join(dirpath, file_name)
+            for dirpath, dirs, file_names in os.walk(self.TEST_DIR)
+            for file_name in file_names
+            if file_name.endswith('.js') and file_name not in SKIP_FILES
         )
 
-        print(process.stdout.decode(), end='')
+        for test_file in test_files:
+            test_name = os.path.splitext(os.path.basename(test_file))[0]
 
-        try:
-            with open(self.JSON_REPORT_FILE, 'rt') as fp:
-                res = json.load(fp)
-        except IOError:
-            res = None
+            with self.subTest(test_name):
+                # TODO: reset_db shouldn't be private
+                self._TestCaseMixin__reset_db()
 
-        print("")
-        print("Status:")
+                with util.mock('dawa-ballerup.json', allow_mox=True):
+                    util.import_fixture('BALLERUP.csv')
 
-        if res is None:
-            print('FAILED')
-        else:
-            duration = (
-                mora_util.from_iso_time(res['endTime']) -
-                mora_util.from_iso_time(res['startTime'])
-            )
+                xml_report_file = os.path.join(util.REPORTS_DIR,
+                                               test_name + ".xml")
+                json_report_file = os.path.join(util.REPORTS_DIR,
+                                                test_name + ".json")
 
-            print("ran {} tests in {}".format(res['total'], duration))
-            print("{} tests passed".format(res['passed']))
-            print("{} tests skipped".format(res['skipped']))
+                process = subprocess.run(
+                    [
+                        self.TESTCAFE_COMMAND,
+                        "'{} --no-sandbox'".format(browser),
+                        test_file,
+                        "-r", ','.join(["spec",
+                                        "xunit:" + xml_report_file,
+                                        "json:" + json_report_file]),
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
+                    cwd=util.BASE_DIR,
+                    env=env,
+                )
 
-        print("")
+                print(process.stdout.decode(), end='')
 
-        self.assertFalse(process.returncode, "Test run failed!")
+                try:
+                    with open(self.JSON_REPORT_FILE, 'rt') as fp:
+                        res = json.load(fp)
+                except IOError:
+                    res = None
+
+                print("")
+                print("Status:")
+
+                if res is None:
+                    print('FAILED')
+                else:
+                    duration = (
+                        mora_util.from_iso_time(res['endTime']) -
+                        mora_util.from_iso_time(res['startTime'])
+                    )
+
+                    print("ran {} tests in {}".format(res['total'], duration))
+                    print("{} tests passed".format(res['passed']))
+                    print("{} tests skipped".format(res['skipped']))
+
+                print("")
+
+                self.assertFalse(process.returncode, "Test run failed!")
