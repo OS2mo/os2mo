@@ -11,7 +11,9 @@ import json
 import os
 import pprint
 import re
+import shutil
 import sys
+import tempfile
 import threading
 from unittest.mock import patch
 
@@ -312,11 +314,17 @@ class TestCaseMixin(object):
     maxDiff = None
 
     def create_app(self, overrides=None):
+        session_dir = tempfile.mkdtemp(prefix='session', dir=BUILD_DIR)
+
+        self.addCleanup(shutil.rmtree, session_dir)
+
         return app.create_app({
             'DEBUG': False,
             'TESTING': True,
             'LIVESERVER_PORT': 0,
             'PRESERVE_CONTEXT_ON_EXCEPTION': False,
+            'SESSION_TYPE': 'filesystem',
+            'SESSION_FILE_DIR': session_dir,
             **(overrides or {})
         })
 
