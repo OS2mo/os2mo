@@ -67,11 +67,63 @@ def build_organisation_payload(organisation):
     }
 
 
-def build_facet_payload(facet, parent_org):
+def build_klassifikation_payload(klassifikation, organisation_uuid):
+
+    # Map
+    brugervendtnoegle = klassifikation["brugervendtnoegle"]
+    beskrivelse = klassifikation["beskrivelse"]
+    kaldenavn = klassifikation["kaldenavn"]
+    validity = klassifikation["validity"]
+
+    attributter = {
+        "klassifikationegenskaber": [
+            {
+                "brugervendtnoegle": str(brugervendtnoegle),
+                "beskrivelse": str(beskrivelse),
+                "kaldenavn": str(kaldenavn),
+                "virkning": validity
+            }
+        ]
+    }
+
+    relationer = {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": str(organisation_uuid),
+                "virkning": validity
+            }
+        ],
+        "ejer": [
+            {
+                "objekttype": "organisation",
+                "uuid": str(organisation_uuid),
+                "virkning": validity
+            }
+        ]
+    }
+
+    tilstande = {
+        "klassifikationpubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": validity
+            }
+        ]
+    }
+
+    return {
+        "attributter": attributter,
+        "relationer": relationer,
+        "tilstande": tilstande
+    }
+
+
+def build_facet_payload(facet, klassifikation_uuid, organisation_uuid):
     """
 
     :param facet:
-    :param parent_org:
+    :param organisation_uuid:
     :return:
     """
 
@@ -92,13 +144,14 @@ def build_facet_payload(facet, parent_org):
         "ansvarlig": [
             {
                 "objekttype": "organisation",
-                "uuid": parent_org,
+                "uuid": str(organisation_uuid),
                 "virkning": validity
             }
         ],
         "facettilhoerer": [
             {
                 "objekttype": "klassifikation",
+                "uuid": str(klassifikation_uuid),
                 "virkning": validity
             }
         ]
@@ -120,21 +173,24 @@ def build_facet_payload(facet, parent_org):
     }
 
 
-def build_klasse_payload(klasse, facet_ref, parent_org):
+def build_klasse_payload(klasse, facet_uuid, organisation_uuid):
     """
 
     :param klasse:
-    :param parent_org:
+    :param organisation_uuid:
     :return:
     """
 
+    validity = klasse.pop("validity")
     brugervendtnoegle = klasse["brugervendtnoegle"]
-    validity = klasse["validity"]
+    title = klasse.get("titel")
 
     klasse_properties = {
-        "brugervendtnoegle": str(brugervendtnoegle),
+        "titel": (title or brugervendtnoegle),
         "virkning": validity
     }
+
+    klasse_properties.update(klasse)
 
     attributter = {
         "klasseegenskaber": [
@@ -146,14 +202,14 @@ def build_klasse_payload(klasse, facet_ref, parent_org):
         "ansvarlig": [
             {
                 "objekttype": "organisation",
-                "uuid": parent_org,
+                "uuid": str(organisation_uuid),
                 "virkning": validity
             }
         ],
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": str(facet_ref),
+                "uuid": str(facet_uuid),
                 "virkning": validity
             }
         ]
