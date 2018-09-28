@@ -22,29 +22,23 @@
             v-for="(col, index) in columns" 
             :key="index"
           >
-            <span class="link" @click="sort">
+            <span class="link" @click="sortData(col.label, open)">
               {{$t('table_headers.'+col.label)}}
-              <icon :name="open ? 'sort-up' : 'sort-down'"/>
+              <icon :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
             </span>
           </th>
           <th>
-            <span class="link" @click="sort">
               {{$t('table_headers.start_date')}}
-              <icon :name="open ? 'sort-up' : 'sort-down'"/>
-            </span>
           </th>
           <th>
-            <span class="link" @click="sort">
               {{$t('table_headers.end_date')}}
-              <icon :name="open ? 'sort-up' : 'sort-down'"/>
-            </span>
           </th>
           <th></th>
         </tr>
       </thead>
 
       <tbody>
-        <tr v-for="(c, index) in content" :key="index">
+        <tr v-for="(c, index) in sortableContent" :key="index">
           <td v-if="multiSelect">
             <b-form-checkbox 
               class="checkbox-employee" 
@@ -110,7 +104,8 @@
       return {
         selectAll: false,
         selected: [],
-        open: false
+        open: {},
+        sortableContent: null
       }
     },
 
@@ -123,12 +118,31 @@
     watch: {
       selected (newVal) {
         this.$emit('selected-changed', newVal)
+      },
+
+      contentAvailable: function () {
+        if (!this.sortableContent) {
+          this.sortableContent = this.content
+        }
       }
     },
 
     methods: {
-      sort () {
-        this.open = !this.open
+      sortData (colName, toggleIcon) {
+        if (toggleIcon[colName] === undefined) {
+          toggleIcon[colName] = true
+        }
+        this.sortableContent.sort(function (a, b) {
+          let strA = a[colName].name
+          let strB = b[colName].name
+
+          if (toggleIcon[colName]) {
+            return (strA < strB) ? -1 : (strA > strB) ? 1 : 0
+          } else {
+            return (strA < strB) ? 1 : (strA > strB) ? -1 : 0
+          }
+        })
+        this.open[colName] = !this.open[colName]
       }
     }
   }
