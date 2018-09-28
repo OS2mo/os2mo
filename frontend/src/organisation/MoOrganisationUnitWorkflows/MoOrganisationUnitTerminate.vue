@@ -47,6 +47,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation unit terminate component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -54,6 +58,9 @@
   import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -67,6 +74,10 @@
 
     data () {
       return {
+        /**
+         * The terminate, org_unit, isLoading, backendValidationError component value.
+         * Used to detect changes and restore the value.
+         */
         org_unit: null,
         terminate: {
           validity: {}
@@ -77,12 +88,17 @@
     },
 
     computed: {
+      /**
+       * Check if the organisation date are valid.
+       */
       validDates () {
         return this.org_unit ? this.org_unit.validity : {}
       },
 
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
@@ -90,10 +106,17 @@
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Terminate a organisation unit and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       endOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {

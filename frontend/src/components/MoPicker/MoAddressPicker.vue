@@ -35,12 +35,19 @@
 </template>
 
 <script>
+  /**
+   * A address picker component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     name: 'AddressPicker',
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
@@ -50,7 +57,14 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * Defines a orgUnit.
+       */
       orgUnit: {
         type: Object
       }
@@ -58,7 +72,16 @@
 
     data () {
       return {
+        /**
+         * The label component value.
+         * Used to set a default value.
+         */
         label: 'Adresser',
+
+        /**
+         * The selected, addresses, isLoading component value.
+         * Used to detect changes and restore the value.
+         */
         selected: {},
         addresses: [],
         isLoading: false
@@ -66,14 +89,23 @@
     },
 
     computed: {
+      /**
+       * Get name `mo-address-picker`.
+       */
       nameId () {
         return 'mo-address-picker-' + this._uid
       },
 
+      /**
+       * Disable orgUnit.
+       */
       isDisabled () {
         return this.orgUnit == null
       },
 
+      /**
+       * Return blank address.
+       */
       noAddresses () {
         return this.addresses.length === 0
       },
@@ -92,17 +124,27 @@
     },
 
     watch: {
+      /**
+       * Whenever orgUnit change, get addresses.
+       */
       orgUnit () {
         this.getAddresses()
       }
     },
 
+    /**
+     * Called after the instance has been mounted.
+     * Get addresses and set selected as value.
+     */
     mounted () {
       this.getAddresses()
       this.selected = this.value
     },
 
     methods: {
+      /**
+       * Get organisation unit address details.
+       */
       getAddresses () {
         if (this.orgUnit == null) return
         let vm = this
@@ -114,6 +156,9 @@
           })
       },
 
+      /**
+       * Update selected address.
+       */
       updateSelectedAddress () {
         this.$emit('input', this.selected)
       }

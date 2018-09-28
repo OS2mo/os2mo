@@ -67,6 +67,10 @@
 </template>
 
 <script>
+  /**
+   * A employee create component.
+   */
+
   import Employee from '@/api/Employee'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoCpr from '@/components/MoCpr/MoCpr'
@@ -79,6 +83,9 @@
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -97,6 +104,11 @@
 
     data () {
       return {
+      /**
+        * The employee, engagement, address, association, role, itSystem, manager,
+        * isLoading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         employee: {},
         engagement: {},
         address: [],
@@ -106,6 +118,12 @@
         manager: [],
         isLoading: false,
         backendValidationError: null,
+
+      /**
+        * The entry - address, association, role, it, manager component.
+        * Used to add MoAddressEntry, MoAssociationEntry, MoRoleEntry,
+        * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
+        */
         entry: {
           address: MoAddressEntry,
           association: MoAssociationEntry,
@@ -117,8 +135,10 @@
     },
 
     computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
@@ -126,10 +146,17 @@
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Create a employee and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       createEmployee (evt) {
         evt.preventDefault()
         if (this.formValid) {

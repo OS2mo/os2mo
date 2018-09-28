@@ -16,6 +16,10 @@
 </template>
 
 <script>
+  /**
+   * A it system entry component.
+   */
+
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
 
@@ -26,12 +30,23 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * This boolean property hides validity.
+       */
       validityHidden: Boolean
     },
 
     data () {
       return {
+        /**
+         * The entry component value.
+         * Used to detect changes and restore the value.
+         */
         entry: {
           validity: {}
         }
@@ -39,6 +54,9 @@
     },
 
     watch: {
+      /**
+       * Whenever entry change, update newVal.
+       */
       entry: {
         handler (newVal) {
           newVal.type = 'it'
@@ -50,6 +68,10 @@
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set entry to value.
+       */
       this.entry = this.value
     }
   }

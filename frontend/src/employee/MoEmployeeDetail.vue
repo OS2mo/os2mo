@@ -20,8 +20,11 @@
   </div>
 </template>
 
-
 <script>
+  /**
+   * A employeedetail component.
+   */
+
   import Employee from '@/api/Employee'
   import { EventBus } from '@/EventBus'
   import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
@@ -34,15 +37,33 @@
     },
 
     props: {
+      /**
+       * Defines a unique identifier which must be unique.
+       */
       uuid: {type: String, required: true},
+
+      /**
+       * Defines the detail content type.
+       */
       detail: {type: String, required: true},
+
+      /**
+       * Defines columns.
+       */
       columns: Array,
-      entryComponent: Object,
-      createLabel: String
+
+      /**
+       * Defines a entry component for create.
+       */
+      entryComponent: Object
     },
 
     data () {
       return {
+      /**
+        * The details, loading component value.
+        * Used to detect changes and restore the value.
+        */
         details: {
           present: [],
           past: [],
@@ -57,19 +78,32 @@
     },
 
     watch: {
+      /**
+       * Listener for the time machine.
+       */
       uuid () {
         this.getAllDetails()
       }
     },
 
     mounted () {
+      /**
+       * When details change update present.
+       */
       this.getDetails('present')
+
+      /**
+       * Whenever employee details change update.
+       */
       EventBus.$on('employee-changed', () => {
         this.getAllDetails()
       })
     },
 
     methods: {
+      /**
+       * Let past, present, future be array for getDetails.
+       */
       getAllDetails () {
         let tense = ['present', 'future', 'past']
 
@@ -78,6 +112,9 @@
         })
       },
 
+      /**
+       * Get all employee details.
+       */
       getDetails (tense) {
         let vm = this
         vm.loading[tense] = true

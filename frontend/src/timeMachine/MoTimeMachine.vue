@@ -15,6 +15,10 @@
 </template>
 
 <script>
+  /**
+   * A timemachine component.
+   */
+
   import MoTimeMachineColumn from './MoTimeMachineColumn'
 
   export default {

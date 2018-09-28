@@ -44,6 +44,10 @@
 </template>
 
 <script>
+  /**
+   * A login page component.
+   */
+
   import {mapGetters} from 'vuex'
   import Service from '@/api/HttpCommon'
 
@@ -51,11 +55,18 @@
     name: 'login-page',
 
     props: {
+      /**
+       * Defines a required destination.
+       */
       destination: {type: String, required: true}
     },
 
     data () {
       return {
+      /**
+       * The user component value.
+       * Used to detect changes and restore the value.
+       */
         user: {
           username: null,
           password: null
@@ -64,12 +75,18 @@
     },
 
     computed: {
+      /**
+       * Get status.
+       */
       ...mapGetters({
         status: 'status'
       })
     },
 
     methods: {
+      /**
+       * Go to MO after post user request.
+       */
       gotoMo () {
         Service.post('/user/login', this.user)
           .then(response => {

@@ -55,6 +55,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation landing page component.
+   */
+
   import Organisation from '@/api/Organisation'
   import InfoBox from '@/components/InfoBox'
   import MoLoader from '@/components/atoms/MoLoader'
@@ -68,18 +72,28 @@
 
     data () {
       return {
+      /**
+        * The info, isLoading component value.
+        * Used to detect changes and restore the value.
+        */
         info: {},
         isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get organisation.
+       */
       ...mapGetters({
         org: 'organisation/get'
       })
     },
 
     watch: {
+      /**
+       * Whenever organisation details change, this function will run.
+       */
       org: {
         handler () {
           this.getOrganisationDetails()
@@ -89,11 +103,21 @@
     },
 
     mounted () {
+      /**
+       * When organisation unit change reset.
+       */
       this.$store.commit('organisationUnit/reset')
+
+      /**
+       * Whenever organisation details change update.
+       */
       this.getOrganisationDetails()
     },
 
     methods: {
+      /**
+       * Get organisation details.
+       */
       getOrganisationDetails () {
         if (this.org.uuid == null) return
         let vm = this

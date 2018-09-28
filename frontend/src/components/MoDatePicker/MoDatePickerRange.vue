@@ -29,6 +29,10 @@
 </template>
 
 <script>
+  /**
+   * A date picker range component.
+   */
+
   import MoDatePicker from '@/components/atoms/MoDatePicker'
 
   export default {
@@ -37,14 +41,33 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * This boolean property hides the date.
+       */
       initiallyHidden: Boolean,
+
+      /**
+       * This boolean property disable the to date.
+       */
       disableToDate: Boolean,
+
+      /**
+       * Defines disable dates.
+       */
       disabledDates: Object
     },
 
     data () {
       return {
+      /**
+        * The validFrom, validTo, hidden component value.
+        * Used to detect changes and restore the value.
+        */
         validFrom: null,
         validTo: null,
         hidden: false
@@ -52,6 +75,9 @@
     },
 
     computed: {
+      /**
+       * Disable the dates before the choosen start date.
+       */
       validStartDateRange () {
         let range = {
           from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
@@ -63,6 +89,9 @@
         return range
       },
 
+      /**
+       * Disable the dates after the choosen end date.
+       */
       validEndDateRange () {
         let range = {
           from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
@@ -76,6 +105,9 @@
     },
 
     watch: {
+      /**
+       * Whenever value change, update the from and to date.
+       */
       value: {
         handler (newVal) {
           if (this.hidden) {
@@ -88,6 +120,10 @@
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set the from and to date to value.
+       */
       this.hidden = this.initiallyHidden
       if (this.value !== undefined) {
         this.validFrom = this.value.from
@@ -96,6 +132,9 @@
     },
 
     methods: {
+      /**
+       * Update the from and to date.
+       */
       updateDate () {
         let obj = {
           from: null,

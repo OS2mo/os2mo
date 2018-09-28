@@ -13,6 +13,10 @@
 </template>
 
 <script>
+  /**
+   * A employee list component.
+   */
+
   import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'

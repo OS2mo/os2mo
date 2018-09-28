@@ -10,6 +10,9 @@
 </template>
 
 <script>
+  /**
+   * A loader component.
+   */
   export default {
     name: 'MoLoader'
   }

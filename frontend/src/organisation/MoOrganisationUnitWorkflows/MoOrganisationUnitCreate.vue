@@ -51,6 +51,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation unit create component
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
@@ -58,6 +62,9 @@
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -73,21 +80,32 @@
 
     data () {
       return {
+        /**
+         * The entry, postAddress, phone, addresses, isLoading, backendValidationError component value.
+         * Used to detect changes and restore the value.
+         */
         entry: {
           validity: {}
         },
         addresses: [],
         postAddress: {},
         phone: {},
-        addressEntry: MoAddressEntry,
         isLoading: false,
-        backendValidationError: null
+        backendValidationError: null,
+
+        /**
+         * The addressEntry component.
+         * Used to add MoAddressEntry component in `<mo-add-many/>`.
+         */
+        addressEntry: MoAddressEntry
       }
     },
 
     computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
@@ -95,10 +113,17 @@
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Create a organisation unit and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       createOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {
