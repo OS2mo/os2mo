@@ -746,7 +746,7 @@ class TestUtils(TestCase):
                 'error': True,
                 'error_key': 'E_INVALID_TYPE',
                 'expected': 'str',
-                'actual': '42',
+                'actual': 42,
                 'key': 'urn',
                 'obj': {'urn': 42},
                 'status': 400,

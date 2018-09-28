@@ -33,6 +33,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "leave",
+                "person": {
+                    "uuid": userid,
+                },
                 "leave_type": {
                     'uuid': leave_type},
                 "validity": {
@@ -42,21 +45,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        with self.subTest('on unit'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(userid),
-                {
-                    'description': 'Invalid role type for target operation.',
-                    'error': True,
-                    'error_key': 'E_INVALID_ROLE_TYPE',
-                    'status': 400,
-                },
-                json=payload,
-                status_code=400,
-            )
-
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        leaveid, = self.assertRequest('/service/details/create',
+                                      json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -125,22 +115,9 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        leaves = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid,
-            funktionsnavn=mapping.LEAVE_KEY,
-            organisatoriskfunktionstype=leave_type
-        )
-        self.assertEqual(len(leaves), 1)
-        leaveid = leaves[0]
-
         actual_leave = c.organisationfunktion.get(leaveid)
 
-        # drop lora-generated timestamps & users
-        del actual_leave['fratidspunkt'], actual_leave[
-            'tiltidspunkt'], actual_leave[
-            'brugerref']
-
-        self.assertEqual(actual_leave, expected)
+        self.assertRegistrationsEqual(actual_leave, expected)
 
     def test_create_leave_no_valid_to(self):
         self.load_sample_structures()
@@ -154,6 +131,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "leave",
+                "person": {
+                    "uuid": userid,
+                },
                 "leave_type": {
                     'uuid': leave_type
                 },
@@ -163,8 +143,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        leaveid, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -232,14 +211,6 @@ class Tests(util.LoRATestCase):
                 ]
             }
         }
-
-        leaves = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid,
-            funktionsnavn=mapping.LEAVE_KEY,
-            organisatoriskfunktionstype=leave_type
-        )
-        self.assertEqual(len(leaves), 1)
-        leaveid = leaves[0]
 
         actual_leave = c.organisationfunktion.get(leaveid)
 
@@ -259,9 +230,19 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestFails(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
-            json=payload)
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Missing person',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'person',
+                'obj': payload[0],
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
 
     def test_create_leave_fails_when_no_active_engagement(self):
         """Should fail on validation when the employee has no
@@ -275,6 +256,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "leave",
+                "person": {
+                    "uuid": userid,
+                },
                 "leave_type": {
                     'uuid': leave_type},
                 "validity": {
@@ -285,7 +269,7 @@ class Tests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
+            '/service/details/create',
             {
                 'description': 'Employee must have an active engagement.',
                 'employee': '6ee24785-ee9a-4502-81c2-7697009c9053',
@@ -318,8 +302,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [leave_uuid],
+            json=req,
+        )
 
         expected_leave = {
             "note": "Rediger orlov",
@@ -433,22 +419,11 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        with self.subTest('on unit'):
-            self.assertRequestResponse(
-                '/service/ou/{}/edit'.format(userid),
-                {
-                    'description': 'Invalid role type for target operation.',
-                    'error': True,
-                    'error_key': 'E_INVALID_ROLE_TYPE',
-                    'status': 400,
-                },
-                json=req,
-                status_code=400,
-            )
-
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [leave_uuid],
+            json=req,
+        )
 
         expected_leave = {
             "note": "Rediger orlov",
@@ -568,9 +543,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit', [leave_uuid],
+                                   json=req)
 
         expected_leave = {
             "note": "Rediger orlov",
@@ -689,7 +663,7 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
+            '/service/details/edit',
             {
                 'description': 'Employee must have an active engagement.',
                 'employee': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
@@ -804,3 +778,39 @@ class Tests(util.LoRATestCase):
             'brugerref']
 
         self.assertEqual(expected, actual_leave)
+
+    def test_create_leave_missing_user(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+        userid = "00000000-0000-0000-0000-000000000000"
+
+        payload = [
+            {
+                "type": "leave",
+                "person": {'uuid': userid},
+                "org_unit": {'uuid': unitid},
+                "leave_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'User not found.',
+                'employee_uuid': '00000000-0000-0000-0000-000000000000',
+                'error': True,
+                'error_key': 'E_USER_NOT_FOUND',
+                'status': 404,
+            },
+            json=payload,
+            status_code=404,
+        )

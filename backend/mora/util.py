@@ -469,37 +469,44 @@ def checked_get(
     fallback: D=None,
     required: bool=False,
 ) -> V:
-    sentinel = object()
-    v = mapping.get(key, sentinel)
+    try:
+        v = mapping[key]
+    except LookupError:
+        exc = exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
+            message='Missing {}'.format(key),
+            key=key,
+            obj=mapping,
+        )
 
-    if v is sentinel:
         if fallback is not None:
-            return checked_get(fallback, key, default, None, required)
+            try:
+                return checked_get(fallback, key, default, None, required)
+            except exceptions.HTTPException:
+                # ensure that we raise an exception describing the
+                # current object, even if a fallback was specified
+                raise exc
+
         elif required:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
-                message='Missing {}'.format(key),
-                key=key,
-                obj=mapping
-            )
+            raise exc
         else:
             return default
 
-    elif not isinstance(v, type(default)):
+    if not isinstance(v, type(default)):
         if not required and v is None:
             return default
 
         expected = type(default).__name__
-        actual = json.dumps(v)
+        actual = v
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_TYPE,
             message='Invalid {!r}, expected {}, got: {}'.format(
-                key, expected, actual,
+                key, expected, json.dumps(actual),
             ),
             key=key,
             expected=expected,
             actual=actual,
-            obj=mapping
+            obj=mapping,
         )
 
     return v
@@ -511,7 +518,7 @@ def get_uuid(
     *,
     required: bool=True,
     key: typing.Hashable=mapping.UUID
-) -> str:
+) -> typing.Optional[str]:
     v = checked_get(mapping, key, '', fallback=fallback, required=required)
 
     if not v and not required:
@@ -526,7 +533,7 @@ def get_uuid(
     return v
 
 
-def get_mapping_uuid(mapping, key, required=False):
+def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
     """Extract a UUID from a mapping structure identified by 'key'.
     Expects a structure along the lines of:
 
@@ -539,7 +546,8 @@ def get_mapping_uuid(mapping, key, required=False):
       }
 
     """
-    obj = checked_get(mapping, key, {}, required=required)
+    obj = checked_get(mapping, key, {}, fallback=fallback, required=required)
+
     if obj:
         return get_uuid(obj)
     else:
@@ -583,8 +591,13 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     return obj_copy
 
 
-def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None,
-                  default=None):
+T = typing.TypeVar('T')
+
+
+def get_obj_value(obj,
+                  path: typing.Tuple[str, str],
+                  filter_fn: typing.Callable[[dict], bool] = None,
+                  default: T=None) -> typing.Optional[T]:
     try:
         props = functools.reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
@@ -594,6 +607,11 @@ def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None,
         return list(filter(filter_fn, props))
     else:
         return props
+
+
+def get_obj_uuid(obj, path: tuple):
+    (obj,) = get_obj_value(obj, path, default={})
+    return get_uuid(obj)
 
 
 def get_effect_from(effect: dict) -> datetime.datetime:
@@ -784,19 +802,3 @@ def get_args_flag(name: str):
         return False
     else:
         return bool(v)
-
-
-def get_dicts(v: typing.Union[dict, typing.Iterable[dict]]):
-    '''Handle a value that might either be a mapping, or a list of mappings.
-
-    We explicitly check whether we've been given a single dict as
-    arguments, and if so yield that. Otherwise we just yield the
-    values contained in whatever sequence or iterable we were given —
-    which ought to be instances of :py:class:`dict`.
-
-    '''
-
-    if isinstance(v, dict):
-        yield v
-    else:
-        yield from v

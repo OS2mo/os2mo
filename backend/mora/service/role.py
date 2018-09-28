@@ -16,46 +16,41 @@ This section describes how to interact with employee roles.
 
 import flask
 
-from .. import lora
-from .. import validator
-from .. import mapping
 from .. import common
+from .. import exceptions
+from .. import lora
+from .. import mapping
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('roles', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def create_role(req, *, employee_uuid=None, org_unit_uuid=None):
+def create_role(req):
     c = lora.Connector()
 
-    if org_unit_uuid is None:
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
-    else:
-        org_uuid = c.organisationenhed.get(
-            org_unit_uuid,
-        )['relationer']['tilhoerer'][0]['uuid']
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=True)
 
-    if employee_uuid is None:
-        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
-                                              required=True)
-    else:
-        org_uuid = c.bruger.get(
-            employee_uuid,
-        )['relationer']['tilhoerer'][0]['uuid']
+    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                          required=True)
 
-    role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
-                                           required=True)
     valid_from, valid_to = util.get_validities(req)
-
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, mapping.ROLE_KEY)
 
     # Validation
     validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                               valid_to)
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
+
+    org_unit = c.organisationenhed.get(org_unit_uuid)
+    org_uuid = util.get_obj_uuid(org_unit, mapping.BELONGS_TO_FIELD.path)
+
+    role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
+                                           required=True)
+
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, mapping.ROLE_KEY)
 
     role = common.create_organisationsfunktion_payload(
         funktionsnavn=mapping.ROLE_KEY,
@@ -68,22 +63,21 @@ def create_role(req, *, employee_uuid=None, org_unit_uuid=None):
         funktionstype=role_type_uuid,
     )
 
-    c.organisationfunktion.create(role)
+    return c.organisationfunktion.create(role)
 
 
-def edit_role(req, *, employee_uuid=None, org_unit_uuid=None):
+def edit_role(req):
     role_uuid = req.get('uuid')
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.organisationfunktion.get(uuid=role_uuid)
 
+    if not original:
+        raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND,
+                                       uuid=role_uuid)
+
     data = req.get('data')
     new_from, new_to = util.get_validities(data)
-
-    # Get org unit uuid for validation purposes
-    org_unit = util.get_obj_value(
-        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-    org_unit_uuid = util.get_uuid(org_unit)
 
     payload = dict()
     payload['note'] = 'Rediger rolle'
@@ -112,11 +106,26 @@ def edit_role(req, *, employee_uuid=None, org_unit_uuid=None):
         ))
 
     if mapping.ORG_UNIT in data:
-        org_unit_uuid = data.get(mapping.ORG_UNIT).get('uuid')
+        org_unit_uuid = util.get_mapping_uuid(data, mapping.ORG_UNIT)
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {'uuid': org_unit_uuid},
         ))
+    else:
+        org_unit_uuid = util.get_obj_uuid(
+            original,
+            mapping.ASSOCIATED_ORG_UNIT_FIELD.path,
+        )
+
+    if mapping.PERSON in data:
+        employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
+
+        update_fields.append((
+            mapping.USER_FIELD,
+            {'uuid': employee_uuid},
+        ))
+    else:
+        employee_uuid = util.get_obj_uuid(original, mapping.USER_FIELD.path)
 
     payload = common.update_payload(new_from, new_to, update_fields, original,
                                     payload)
@@ -131,4 +140,4 @@ def edit_role(req, *, employee_uuid=None, org_unit_uuid=None):
     validator.is_date_range_in_employee_range(employee_uuid, new_from,
                                               new_to)
 
-    c.organisationfunktion.update(payload, role_uuid)
+    return c.organisationfunktion.update(payload, role_uuid)

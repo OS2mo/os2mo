@@ -18,8 +18,8 @@ import flask
 
 from . import address
 from .. import common
-from .. import mapping
 from .. import lora
+from .. import mapping
 from .. import util
 from .. import validator
 
@@ -27,18 +27,16 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def create_manager(req, *, employee_uuid=None, org_unit_uuid=None):
+def create_manager(req):
     """ To create a vacant manager postition, set employee_uuid to None
     and set a value org_unit_uuid """
     c = lora.Connector()
 
-    if not org_unit_uuid:
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=True)
 
-    if not employee_uuid:
-        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
-                                              required=False)
+    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                          required=False)
 
     org_uuid = (
         c.organisationenhed.get(org_unit_uuid)
@@ -94,10 +92,10 @@ def create_manager(req, *, employee_uuid=None, org_unit_uuid=None):
         ] if address_obj else None,
     )
 
-    c.organisationfunktion.create(manager)
+    return c.organisationfunktion.create(manager)
 
 
-def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
+def edit_manager(req):
     manager_uuid = req.get('uuid')
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -107,10 +105,8 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
     new_from, new_to = util.get_validities(data)
 
     # Get org unit uuid for validation purposes
-    if org_unit_uuid is None:
-        org_unit = util.get_obj_value(
-            original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-        org_unit_uuid = util.get_uuid(org_unit)
+    org_unit_uuid = util.get_obj_uuid(
+        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)
 
     payload = dict()
     payload['note'] = 'Rediger leder'
@@ -151,6 +147,8 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
             mapping.USER_FIELD,
             {'uuid': employee_uuid} if employee_uuid else {},
         ))
+    else:
+        employee_uuid = util.get_obj_uuid(original, mapping.USER_FIELD.path)
 
     for responsibility in util.checked_get(data, mapping.RESPONSIBILITY, []):
         update_fields.append((
@@ -197,4 +195,4 @@ def edit_manager(req, *, employee_uuid=None, org_unit_uuid=None):
 
     validator.is_distinct_responsibility(update_fields)
 
-    c.organisationfunktion.update(payload, manager_uuid)
+    return c.organisationfunktion.update(payload, manager_uuid)

@@ -29,6 +29,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
+                "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -41,8 +42,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -136,10 +137,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
-
         actual_engagement = c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
@@ -157,6 +154,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "engagement",
                 "person": {'uuid': userid},
+                "org_unit": {'uuid': unitid},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
@@ -168,8 +166,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/ou/{}/create'.format(unitid),
-                                   unitid, json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -261,10 +259,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
-
         actual_engagement = c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
@@ -280,6 +274,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
+                "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -292,8 +287,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -387,10 +382,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
-
         actual_engagement = c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
@@ -406,6 +397,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
+                "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
@@ -416,8 +408,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -500,10 +492,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        engagements = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(engagements), 1)
-        engagementid = engagements[0]
-
         actual_engagement = c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
@@ -517,35 +505,19 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        with self.subTest('on employee'):
-            self.assertRequestResponse(
-                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create',
-                {
-                    'description': 'Missing org_unit',
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'key': 'org_unit',
-                    'obj': {'type': 'engagement'},
-                    'status': 400,
-                },
-                json=payload,
-                status_code=400,
-            )
-
-        with self.subTest('on unit'):
-            self.assertRequestResponse(
-                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0/create',
-                {
-                    'description': 'Missing person',
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'key': 'person',
-                    'obj': {'type': 'engagement'},
-                    'status': 400,
-                },
-                json=payload,
-                status_code=400,
-            )
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Missing org_unit',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'org_unit',
+                'obj': payload[0],
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
 
     def test_edit_engagement_fails_on_invalid_payloads(self):
         self.load_sample_structures()
@@ -555,33 +527,18 @@ class Tests(util.LoRATestCase):
             "uuid": "00000000-0000-0000-0000-000000000000",
         }
 
-        with self.subTest('on employee'):
-            self.assertRequestResponse(
-                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/edit',
-                # NB: not a helpful error :(
-                {
-                    'description': "'NoneType' object is not subscriptable",
-                    'error': True,
-                    'error_key': 'E_UNKNOWN',
-                    'status': 500,
-                },
-                json=payload,
-                status_code=500,
-            )
-
-        with self.subTest('on unit'):
-            self.assertRequestResponse(
-                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0/edit',
-                # NB: not a helpful error :(
-                {
-                    'description': "'NoneType' object is not subscriptable",
-                    'error': True,
-                    'error_key': 'E_UNKNOWN',
-                    'status': 500,
-                },
-                json=payload,
-                status_code=500,
-            )
+        self.assertRequestResponse(
+            '/service/details/edit',
+            # NB: not a helpful error :(
+            {
+                'description': "'NoneType' object is not subscriptable",
+                'error': True,
+                'error_key': 'E_UNKNOWN',
+                'status': 500,
+            },
+            json=payload,
+            status_code=500,
+        )
 
     def test_create_engagement_fails_on_missing_unit(self):
         self.load_sample_structures()
@@ -589,11 +546,10 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
         payload = [
             {
                 "type": "engagement",
+                "person": {'uuid': "6ee24785-ee9a-4502-81c2-7697009c9053"},
                 "org_unit": {'uuid': "00000000-0000-0000-0000-000000000000"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -607,7 +563,7 @@ class Tests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/create',
+            '/service/details/create',
             {
                 'description': 'Org unit not found.',
                 'error': True,
@@ -630,6 +586,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "engagement",
+                "person": {'uuid': '00000000-0000-0000-0000-000000000000'},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -643,7 +600,7 @@ class Tests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/create',
+            '/service/details/create',
             {
                 'description': 'User not found.',
                 'error': True,
@@ -679,8 +636,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [engagement_uuid],
+            json=req,
+        )
 
         expected_engagement = {
             "note": "Rediger engagement",
@@ -820,6 +779,7 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                     "to": None,
                 },
+                "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "job_function": {
                     'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
@@ -838,8 +798,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [engagement_uuid],
+            json=req,
+        )
 
         expected_engagement = {
             "note": "Rediger engagement",
@@ -984,8 +946,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [engagement_uuid],
+            json=req,
+        )
 
         expected_engagement = {
             "note": "Rediger engagement",
@@ -1139,8 +1103,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid, json=req)
+            '/service/details/edit',
+            [engagement_uuid],
+            json=req,
+        )
 
         expected_engagement = {
             "note": "Rediger engagement",
@@ -1292,8 +1258,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [engagement_uuid],
+            json=req,
+        )
 
         expected_engagement = {
             "note": "Rediger engagement",

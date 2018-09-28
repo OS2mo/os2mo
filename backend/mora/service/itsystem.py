@@ -86,7 +86,7 @@ def list_it_systems(orgid: uuid.UUID):
     )
 
 
-def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
+def create_itsystem(req):
     c = lora.Connector()
 
     systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
@@ -95,13 +95,11 @@ def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     if not system:
         raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
 
-    if org_unit_uuid is None:
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=False)
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=False)
 
-    if employee_uuid is None:
-        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
-                                              required=False)
+    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                          required=False)
 
     org_uuid = system['relationer']['tilhoerer'][0]['uuid']
 
@@ -125,16 +123,16 @@ def create_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
         valid_from=valid_from,
         valid_to=valid_to,
         brugervendtnoegle=bvn,
-        tilknyttedebrugere=[employee_uuid],
+        tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
         tilknyttedeorganisationer=[org_uuid],
         tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
         tilknyttedeitsystemer=[systemid],
     )
 
-    c.organisationfunktion.create(func)
+    return c.organisationfunktion.create(func)
 
 
-def edit_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
+def edit_itsystem(req):
     function_uuid = util.get_uuid(req)
 
     # Get the current org-funktion which the user wants to change
@@ -174,21 +172,21 @@ def edit_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
             {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
         ))
 
-    if mapping.PERSON in data or employee_uuid is not None:
+    if mapping.PERSON in data:
         update_fields.append((
             mapping.USER_FIELD,
             {
                 'uuid':
-                util.get_mapping_uuid(data, mapping.PERSON) or employee_uuid,
+                util.get_mapping_uuid(data, mapping.PERSON),
             },
         ))
 
-    if mapping.ORG_UNIT in data or org_unit_uuid is not None:
+    if mapping.ORG_UNIT in data:
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {
                 'uuid':
-                util.get_mapping_uuid(data, mapping.ORG_UNIT) or org_unit_uuid,
+                util.get_mapping_uuid(data, mapping.ORG_UNIT),
             },
         ))
 
@@ -210,10 +208,10 @@ def edit_itsystem(req, *, employee_uuid=None, org_unit_uuid=None):
     payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
                                    payload)
 
-    c.organisationfunktion.update(payload, function_uuid)
+    return c.organisationfunktion.update(payload, function_uuid)
 
 
-def get_one_itsystem(c, systemid, system=None):
+def get_one_itsystem(c, systemid, system):
     '''Obtain the list of engagements corresponding to a user.
 
     .. :quickref: IT system; Get by user
@@ -283,9 +281,6 @@ def get_one_itsystem(c, systemid, system=None):
       ]
 
     '''
-    if not system:
-        system = c.itsystem.get(systemid)
-
     system_attrs = system['attributter']['itsystemegenskaber'][0]
 
     return {

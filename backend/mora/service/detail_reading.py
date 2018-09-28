@@ -30,16 +30,16 @@ import operator
 
 import flask
 
-from .. import mapping
 from . import address
-from .. import common
 from . import employee
 from . import facet
 from . import itsystem
 from . import orgunit
-from .. import util
-from .. import settings
+from .. import common
 from .. import exceptions
+from .. import mapping
+from .. import settings
+from .. import util
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
                             url_prefix='/service')

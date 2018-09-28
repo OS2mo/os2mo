@@ -32,7 +32,7 @@ class Writing(util.LoRATestCase):
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
+            '/service/details/create',
             {
                 'error': True,
                 'error_key': 'E_INVALID_TYPE',
@@ -41,7 +41,7 @@ class Writing(util.LoRATestCase):
                 ),
                 'key': 'itsystem',
                 'expected': 'dict',
-                'actual': 'null',
+                'actual': None,
                 'status': 400,
                 'obj': {
                     'itsystem': None,
@@ -65,7 +65,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/create',
+            '/service/details/create',
             {
                 'error': True,
                 'error_key': 'E_NOT_FOUND',
@@ -88,7 +88,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/create',
+            '/service/details/create',
             {
                 'error': True,
                 'error_key': 'E_INVALID_TYPE',
@@ -97,7 +97,7 @@ class Writing(util.LoRATestCase):
                 ),
                 'key': 'itsystem',
                 'expected': 'dict',
-                'actual': 'null',
+                'actual': None,
                 'status': 400,
                 'obj': {
                     'itsystem': None,
@@ -122,7 +122,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
+            '/service/details/create',
             {
                 'error': True,
                 'error_key': 'V_MISSING_START_DATE',
@@ -153,7 +153,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
+            '/service/details/create',
             {
                 'description': 'invalid input syntax for uuid: "None"',
                 'error': True,
@@ -174,7 +174,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
+            '/service/details/create',
             {
                 'error': True,
                 'error_key': 'E_INVALID_UUID',
@@ -198,7 +198,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
+            '/service/details/edit',
             {
                 'description': 'Not found.',
                 'error': True,
@@ -232,7 +232,7 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
+            '/service/details/edit',
             {
                 'description': 'Missing uuid',
                 'error': True,
@@ -306,13 +306,15 @@ class Writing(util.LoRATestCase):
             [],
         )
 
-        self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+        funcid, = self.assertRequest(
+            '/service/details/create',
             json=[
                 {
                     "type": "it",
                     "user_key": "goofy-moofy",
+                    "person": {
+                        "uuid": userid,
+                    },
                     "itsystem": {
                         "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
                     },
@@ -322,11 +324,6 @@ class Writing(util.LoRATestCase):
                     }
                 },
             ],
-        )
-
-        (funcid, func), = c.organisationfunktion.get_all(
-            funktionsnavn='IT-system',
-            tilknyttedebrugere=userid,
         )
 
         self.assertRequestResponse(
@@ -408,8 +405,8 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(user_id),
-            user_id,
+            '/service/details/edit',
+            [function_id],
             json=[
                 {
                     "type": "it",
@@ -491,13 +488,15 @@ class Writing(util.LoRATestCase):
             [],
         )
 
-        self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid,
+        funcid, = self.assertRequest(
+            '/service/details/create',
             json=[
                 {
                     "type": "it",
                     "user_key": "root",
+                    "org_unit": {
+                        "uuid": unitid,
+                    },
                     "itsystem": {
                         "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
                     },
@@ -507,11 +506,6 @@ class Writing(util.LoRATestCase):
                     }
                 },
             ],
-        )
-
-        (funcid, func), = c.organisationfunktion.get_all(
-            funktionsnavn='IT-system',
-            tilknyttedeenheder=unitid,
         )
 
         self.assertRequestResponse(
@@ -594,8 +588,8 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit',
+            [function_id],
             json=[
                 {
                     "type": "it",
@@ -688,8 +682,8 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit',
+            [function_id],
             json=[
                 {
                     "type": "it",

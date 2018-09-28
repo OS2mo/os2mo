@@ -23,13 +23,16 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
+        association_uuid = '00000000-0000-0000-0000-000000000000'
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
         payload = [
             {
                 "type": "association",
+                "uuid": association_uuid,
                 "org_unit": {'uuid': unitid},
+                'person': {'uuid': userid},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
@@ -52,11 +55,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse('/service/details/create',
+                                   [association_uuid], json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -226,12 +229,15 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
+        association_uuid = '00000000-0000-0000-0000-000000000000'
         unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
         payload = [
             {
                 "type": "association",
+                "uuid": association_uuid,
+                "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -255,11 +261,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/ou/{}/create'.format(unitid),
-                                   unitid, json=payload)
+        self.assertRequestResponse(
+            '/service/details/create',
+            [association_uuid],
+            json=payload,
+        )
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -427,6 +436,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "association",
+                "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -451,7 +461,7 @@ class Tests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
+            '/service/details/create'.format(unitid),
             {
                 'description': 'Org unit not found.',
                 'error': True,
@@ -476,6 +486,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "person": {'uuid': userid},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
@@ -499,7 +510,7 @@ class Tests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
+            '/service/details/create',
             {
                 'description': 'The employee already has an active '
                                'association with the given org unit.',
@@ -524,6 +535,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -544,8 +556,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -702,6 +713,98 @@ class Tests(util.LoRATestCase):
             expected,
         )
 
+    def test_create_association_no_person(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+
+        payload = [
+            {
+                "type": "association",
+                "org_unit": {'uuid': unitid},
+                "association_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "address": {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                },
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Missing person',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'person',
+                'obj': payload[0],
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
+
+    def test_create_association_no_unit(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "association",
+                "person": {'uuid': userid},
+                "association_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "address": {
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                },
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Missing org_unit',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'org_unit',
+                'obj': payload[0],
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
+
     def test_create_association_no_valid_to(self):
         self.load_sample_structures()
 
@@ -715,6 +818,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "person": {'uuid': userid},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
@@ -736,8 +840,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -914,9 +1017,19 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestFails(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
-            json=payload)
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Missing org_unit',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'org_unit',
+                'obj': {'type': 'association'},
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
 
     def test_edit_association_no_overwrite(self):
         self.load_sample_structures()
@@ -942,8 +1055,10 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [association_uuid],
+            json=req,
+        )
 
         expected_association = {
             "note": "Rediger tilknytning",
@@ -1215,12 +1330,12 @@ class Tests(util.LoRATestCase):
                     'org_unit': {
                         'name': 'Humanistisk fakultet',
                         'user_key': 'hum',
-                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'uuid': unitid,
                         'validity': {'from': '2016-01-01', 'to': None},
                     },
                     'person': {
                         'name': 'Anders And',
-                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                        'uuid': userid,
                     },
                     'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
                     'validity': {'from': '2017-01-01', 'to': None},
@@ -1243,8 +1358,8 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit'.format(unitid),
+            [association_uuid],
             json=req,
         )
 
@@ -1297,37 +1412,32 @@ class Tests(util.LoRATestCase):
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        payload = [
-            {
-                "type": "association",
-                "org_unit": {'uuid': unitid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
-                "association_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+        payload = {
+            "type": "association",
+            "org_unit": {'uuid': unitid},
+            "person": {'uuid': userid},
+            "job_function": {
+                'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+            "association_type": {
+                'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+            },
+            "address": {
+                'address_type': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
-                "address": {
-                    'address_type': {
-                        'example': '20304060',
-                        'name': 'Telefonnummer',
-                        'scope': 'PHONE',
-                        'user_key': 'Telefon',
-                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    },
-                    'value': '33369696',
-                },
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
+                'value': '33369696',
+            },
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            },
+        }
 
-        self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
-            json=payload
-        )
+        self.assertRequest('/service/details/create', json=payload)
 
         c = lora.Connector(virkningfra='-infinity',
                            virkningtil='infinity')
@@ -1353,7 +1463,7 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
+            '/service/details/edit',
             {
                 'description': 'The employee already has an active '
                                'association with the given org unit.',
@@ -1363,7 +1473,7 @@ class Tests(util.LoRATestCase):
                 'status': 400
             },
             json=req,
-            status_code=400
+            status_code=400,
         )
 
     def test_edit_association_overwrite(self):
@@ -1402,8 +1512,8 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [association_uuid], json=req)
 
         expected_association = {
             "note": "Rediger tilknytning",
@@ -1604,8 +1714,8 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [association_uuid], json=req)
 
         expected_association = {
             "note": "Rediger tilknytning",
@@ -1860,8 +1970,8 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [association_uuid], json=req)
 
         expected_association = {
             "note": "Rediger tilknytning",
@@ -2220,8 +2330,10 @@ class AddressTests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [association_uuid],
+            json=req,
+        )
 
         expected = [{
             'address': {
@@ -2303,8 +2415,10 @@ class AddressTests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+            '/service/details/edit',
+            [association_uuid],
+            json=req,
+        )
 
         expected[0]['validity']['to'] = "2017-05-31"
 

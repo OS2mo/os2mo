@@ -19,29 +19,23 @@ For more information regarding reading relations, refer to:
 
 '''
 
+import typing
+
 import flask
 
-from .. import mapping
-from .. import exceptions
 from . import address
 from . import association
-from .. import common
 from . import engagement
 from . import itsystem
+from . import leave
 from . import manager
 from . import orgunit
-from . import leave
 from . import role
-from .. import util
+from .. import exceptions
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
 
-
-RELATION_TYPES = {
-    'address': address.Addresses,
-    'org_unit': orgunit.OrgUnit,
-}
 
 CREATION_HANDLERS = {
     'engagement': engagement.create_engagement,
@@ -50,6 +44,7 @@ CREATION_HANDLERS = {
     'manager': manager.create_manager,
     'leave': leave.create_leave,
     'it': itsystem.create_itsystem,
+    'address': address.create_address
 }
 
 EDIT_HANDLERS = {
@@ -59,31 +54,43 @@ EDIT_HANDLERS = {
     'leave': leave.edit_leave,
     'manager': manager.edit_manager,
     'it': itsystem.edit_itsystem,
+    'address': address.edit_address,
+    'org_unit': orgunit.edit_orgunit,
 }
 
 
-def _get_scope(t: str):
-    if t == 'ou':
-        return common.get_connector().organisationenhed
-    elif t == 'e':
-        return common.get_connector().bruger
+def process_requests(handlers, reqs) -> typing.List[str]:
+    just_one = isinstance(reqs, dict)
+
+    if just_one:
+        reqs = [reqs]
+
+    operations = {req.get('type') for req in reqs}
+
+    if not operations.issubset(handlers):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+            types=sorted(operations - handlers.keys()),
+        )
+
+    r = [
+        handlers[req.get('type')](req)
+        for req in reqs
+    ]
+
+    if just_one:
+        return r[0]
     else:
-        raise ValueError('bad scope: {!r}'.format(t))
+        return r
 
 
-@blueprint.route('/<any("e", "ou"):type>/<uuid:uuid>/create',
-                 methods=['POST'])
-def create(type, uuid):
+@blueprint.route('/details/create', methods=['POST'])
+def create():
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
 
     :statuscode 200: Creation succeeded.
-
-    :param type: 'ou' for writing to a unit; 'e' for writing an
-        employee.
-    :param uuid uuid: The UUID to of the target of the operation, i.e. the ID
-        of the employee or unit.
 
     All requests contain validity objects on the following form:
 
@@ -103,9 +110,10 @@ def create(type, uuid):
     **Engagement**:
 
     :<jsonarr string type: **"engagement"**
-    :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string job_function: The job function of the association
-    :<jsonarr string engagement_type: The engagement type
+    :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object person: The associated employee
+    :<jsonarr object job_function: The job function of the association
+    :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``job_function`` and ``engagement_type`` should contain
@@ -136,10 +144,11 @@ def create(type, uuid):
     **Association**:
 
     :<jsonarr string type: **"association"**
-    :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string job_function: The job function of the association
-    :<jsonarr string association_type: The association type
-    :<jsonarr string address: The associated address.
+    :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object person: The associated employee
+    :<jsonarr object job_function: The job function of the association
+    :<jsonarr object association_type: The association type
+    :<jsonarr object address: The associated address.
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``job_function`` and ``association_type`` should contain
@@ -184,6 +193,8 @@ def create(type, uuid):
     :<json string user_key: The account name on the IT system.
     :<json object itsystem: The IT system to create a relation to, as
         returned by :http:get:`/service/o/(uuid:orgid)/it/`.
+    :<json object org_unit: the UUID of the associated unit, if any
+    :<json object person: the UUID of the associated employee, if any
 
     .. sourcecode:: json
 
@@ -204,8 +215,9 @@ def create(type, uuid):
     **Role**:
 
     :<jsonarr string type: **"role"**
-    :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string role_type: The role type
+    :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object person: The associated employee
+    :<jsonarr object role_type: The role type
     :<jsonarr object validity: The validities of the created object.
 
     The parameter ``role_type`` should contain a UUID obtained from the
@@ -233,11 +245,12 @@ def create(type, uuid):
     **Manager**:
 
     :<jsonarr string type: **"manager"**
-    :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string manager_type: The manager type
+    :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object person: The associated employee, if applicable
+    :<jsonarr object manager_type: The manager type
     :<jsonarr array responsibility: The manager responsibilities
-    :<jsonarr string manager_level: The manager level
-    :<jsonarr string address: The associated address.
+    :<jsonarr object manager_level: The manager level
+    :<jsonarr array address: The associated address.
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
@@ -287,7 +300,7 @@ def create(type, uuid):
     **Leave**:
 
     :<jsonarr string type: **"leave"**
-    :<jsonarr string leave_type: The leave type
+    :<jsonarr object leave_type: The leave type
     :<jsonarr object validity: The validities of the created object.
 
     The parameter ``leave_type`` should contain a UUID obtained from the
@@ -344,47 +357,17 @@ def create(type, uuid):
 
     """
 
-    scope = _get_scope(type)
-
-    for req in util.get_dicts(flask.request.get_json()):
-        role_type = req.get('type')
-
-        if role_type in CREATION_HANDLERS:
-            handler = CREATION_HANDLERS[role_type]
-
-            if type == 'ou':
-                handler(req, org_unit_uuid=str(uuid))
-            else:
-                assert type == 'e'
-                handler(req, employee_uuid=str(uuid))
-
-            # Write a noop entry, to be used for the history
-            common.add_history_entry(
-                scope, uuid,
-                "Opret {}".format(
-                    mapping.RELATION_TRANSLATIONS[role_type],
-                ),
-            )
-
-        elif role_type in RELATION_TYPES:
-            RELATION_TYPES[role_type](scope).create(
-                str(uuid),
-                req,
-            )
-
-        else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                type=role_type,
-            )
-
-    # TODO:
-    return flask.jsonify(uuid), 200
+    return (
+        flask.jsonify(
+            process_requests(CREATION_HANDLERS,
+                             flask.request.get_json()),
+        ),
+        201,
+    )
 
 
-@blueprint.route('/<any("e", "ou"):type>/<uuid:uuid>/edit',
-                 methods=['POST'])
-def edit(type, uuid):
+@blueprint.route('/details/edit', methods=['POST'])
+def edit():
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit employee
@@ -427,8 +410,8 @@ def edit(type, uuid):
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string job_function: The job function of the association
-    :<jsonarr string engagement_type: The engagement type
+    :<jsonarr object job_function: The job function of the association
+    :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the changes.
 
     The parameters ``job_function`` and ``engagement_type`` should contain
@@ -484,9 +467,9 @@ def edit(type, uuid):
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string job_function: The job function of the association
-    :<jsonarr string association_type: The association type
-    :<jsonarr string address: The associated address object.
+    :<jsonarr object job_function: The job function of the association
+    :<jsonarr object association_type: The association type
+    :<jsonarr object address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
 
     The parameters ``job_function`` and ``association_type`` should contain
@@ -540,7 +523,7 @@ def edit(type, uuid):
     **IT system**:
 
     :<json string type: ``"it"``
-    :<json string uuid: The UUID of the IT system responsibility"
+    :<json string uuid: The UUID of the role or relation
     :<json object original: An **optional** object containing the original
         state of the role to be overwritten. If supplied, the change will
         modify the existing registration on the role object. Detailed below.
@@ -551,7 +534,10 @@ def edit(type, uuid):
     Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
-    :<jsonarr string uuid: Change the IT system to another.
+    :<json string user_key: The account name on the IT system.
+    :<json object itsystem: the UUID of the associated IT system
+    :<json object org_unit: the UUID of the associated unit, if any
+    :<json object person: the UUID of the associated employee, if any
 
     .. sourcecode:: json
 
@@ -610,7 +596,8 @@ def edit(type, uuid):
     Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
-    :<jsonarr string org_unit: The associated org unit
+    :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object person: The associated employee
     :<jsonarr string role_type: The role type
     :<jsonarr object validity: The validities of the changes.
 
@@ -662,7 +649,7 @@ def edit(type, uuid):
     Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
-    :<jsonarr string leave_type: The leave type
+    :<jsonarr object leave_type: The leave type
     :<jsonarr object validity: The validities of the changes.
 
     The parameter ``leave_type`` should contain a UUID obtained from the
@@ -710,12 +697,13 @@ def edit(type, uuid):
     Every field in **original** is required, whereas **data** only needs
     to contain the fields that need to change along with the validity dates.
 
-    :<jsonarr string manager_type: The manager type
-    :<jsonarr string org_unit: The associated org unit
-    :<jsonarr string manager_type: The manager type
+    :<jsonarr object manager_type: The manager type
+    :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object person: The associated employee, if applicable
+    :<jsonarr object manager_type: The manager type
     :<jsonarr array responsibilities: The manager responsibilities
-    :<jsonarr string manager_level: The manager level
-    :<jsonarr string address: The associated address object.
+    :<jsonarr object manager_level: The manager level
+    :<jsonarr object address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
@@ -777,7 +765,7 @@ def edit(type, uuid):
     :<jsonarr object address_type: The type of the address, exactly as
         returned by returned by
         :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr string value: The value of the address field. Please
+    :<jsonarr object value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
     :<jsonarr object validity: A validity object
@@ -817,41 +805,10 @@ def edit(type, uuid):
       ]
     """
 
-    scope = _get_scope(type)
-
-    # TODO: pre-validate all requests, since we should either handle
-    # all or none of them
-    for req in util.get_dicts(flask.request.get_json()):
-        role_type = req.get('type')
-
-        if role_type in EDIT_HANDLERS:
-            handler = EDIT_HANDLERS[role_type]
-
-            if type == 'ou':
-                handler(req, org_unit_uuid=str(uuid))
-            else:
-                assert type == 'e'
-                handler(req, employee_uuid=str(uuid))
-
-            # Write a noop entry, to be used for the history
-            common.add_history_entry(
-                scope, uuid,
-                "Rediger {}".format(
-                    mapping.RELATION_TRANSLATIONS[role_type],
-                ),
-            )
-
-        elif role_type in RELATION_TYPES:
-            RELATION_TYPES[role_type](scope).edit(
-                str(uuid),
-                req,
-            )
-
-        else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-                type=role_type,
-            )
-
-    # TODO: Figure out the response -- probably just the edited object(s)?
-    return flask.jsonify(uuid), 200
+    return (
+        flask.jsonify(
+            process_requests(EDIT_HANDLERS,
+                             flask.request.get_json()),
+        ),
+        200,
+    )

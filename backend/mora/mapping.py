@@ -121,9 +121,11 @@ class FieldTuple(object):
     def filter_fn(self) -> typing.Callable[[dict], bool]:
         return self.__filter_fn
 
+
 #
 # MAPPINGS
 #
+
 
 FUNCTION_KEYS = {
     'engagement': ENGAGEMENT_KEY,

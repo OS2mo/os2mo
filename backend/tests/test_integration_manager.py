@@ -25,6 +25,34 @@ mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 class Tests(util.LoRATestCase):
     maxDiff = None
 
+    def test_create_manager_missing_unit(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = {
+            "type": "manager",
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Missing org_unit',
+                'error': True,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'key': 'org_unit',
+                'obj': payload,
+                'status': 400,
+            },
+            json=payload,
+            status_code=400,
+        )
+
     @util.mock('aabogade.json', allow_mox=True)
     def test_create_manager(self, m):
         self.load_sample_structures()
@@ -38,6 +66,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
                 'address': {
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
@@ -67,8 +96,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        managerid, = self.assertRequest('/service/details/create',
+                                        json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -182,10 +211,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        managers = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(managers), 1)
-        managerid = managers[0]
-
         actual_manager = c.organisationfunktion.get(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
@@ -268,6 +293,9 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "manager",
+                "org_unit": {
+                    "uuid": unit_id,
+                },
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 }],
@@ -284,12 +312,9 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/ou/{}/create'.format(unit_id),
-                                   unit_id, json=payload)
-
-        function_id, = lora.Connector().organisationfunktion(
-            tilknyttedeenheder=unit_id,
-            funktionsnavn='Leder',
+        function_id, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
         )
 
         self.assertRequestResponse(
@@ -378,11 +403,13 @@ class Tests(util.LoRATestCase):
             'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
         }
 
-        self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unit_id),
-            unit_id,
+        function_id, = self.assertRequest(
+            '/service/details/create',
             json=[{
                 "type": "manager",
+                "org_unit": {
+                    "uuid": unit_id,
+                },
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 }],
@@ -403,11 +430,6 @@ class Tests(util.LoRATestCase):
         )
 
         with self.subTest('results'):
-            function_id, = lora.Connector().organisationfunktion(
-                tilknyttedeenheder=unit_id,
-                funktionsnavn='Leder',
-            )
-
             expected['uuid'] = function_id
 
             self.assertRequestResponse(
@@ -428,8 +450,8 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('change to vacant'):
             self.assertRequestResponse(
-                '/service/ou/{}/edit'.format(unit_id),
-                unit_id,
+                '/service/details/edit',
+                [function_id],
                 json=[{
                     "type": "manager",
                     "uuid": function_id,
@@ -463,8 +485,8 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('change back'):
             self.assertRequestResponse(
-                '/service/ou/{}/edit'.format(unit_id),
-                unit_id,
+                '/service/details/edit',
+                [function_id],
                 json=[{
                     "type": "manager",
                     "uuid": function_id,
@@ -513,6 +535,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 }],
@@ -528,8 +551,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        managerid, = self.assertRequest('/service/details/create',
+                                        json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -631,10 +654,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        managers = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(managers), 1)
-        managerid = managers[0]
-
         actual_manager = c.organisationfunktion.get(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
@@ -702,6 +721,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -709,8 +729,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        managerid, = self.assertRequest('/service/details/create',
+                                        json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -779,10 +799,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        managers = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(managers), 1)
-        managerid = managers[0]
-
         actual_manager = c.organisationfunktion.get(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
@@ -827,19 +843,6 @@ class Tests(util.LoRATestCase):
             }],
         )
 
-    def test_create_manager_fails_on_empty_payload(self):
-        self.load_sample_structures()
-
-        payload = [
-            {
-                "type": "manager",
-            }
-        ]
-
-        self.assertRequestFails(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
-            json=payload)
-
     @util.mock('aabogade.json', allow_mox=True)
     def test_create_manager_multiple_responsibilities(self, m):
         '''Can we create a manager with more than one responsibility?'''
@@ -854,6 +857,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
                 'address': {
                     'href': 'https://www.openstreetmap.org/'
                     '?mlon=10.18779751&mlat=56.17233057&zoom=16',
@@ -884,8 +888,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        managerid, = self.assertRequest('/service/details/create',
+                                        json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -1009,10 +1013,6 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        managers = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
-        self.assertEqual(len(managers), 1)
-        managerid = managers[0]
-
         actual_manager = c.organisationfunktion.get(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
@@ -1104,6 +1104,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
+                "person": {
+                    'uuid': userid,
+                },
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 }],
@@ -1119,9 +1122,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [manager_uuid], json=req)
 
         expected_manager = {
             "note": "Rediger leder",
@@ -1238,9 +1240,18 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02",
                         }
-                    }
+                    },
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity",
+                        }
+                    },
                 ],
             },
             "livscykluskode": "Rettet",
@@ -1416,6 +1427,9 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
+                "person": {
+                    "uuid": userid,
+                },
                 "responsibility": [{
                     'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                 }],
@@ -1459,9 +1473,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [manager_uuid], json=req)
 
         expected_manager = {
             "note": "Rediger leder",
@@ -1726,9 +1739,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [manager_uuid], json=req)
 
         expected_manager = {
             "note": "Rediger leder",
@@ -2262,8 +2274,9 @@ class Tests(util.LoRATestCase):
 
         # perform the operation
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=[{
+            '/service/details/edit',
+            manager_uuid,
+            json={
                 "type": "manager",
                 "uuid": manager_uuid,
                 "data": {
@@ -2274,7 +2287,8 @@ class Tests(util.LoRATestCase):
                         "from": "2016-04-01",
                     },
                 },
-            }])
+            },
+        )
 
         # adjust the data as expected
         expected_changed_lora = copy.deepcopy(expected_lora)

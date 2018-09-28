@@ -15,11 +15,513 @@ import freezegun
 from mora import lora
 from tests import util
 
+address_class = {
+    'example': '<UUID>',
+    'name': 'Adresse',
+    'scope': 'DAR',
+    'user_key': 'AdressePost',
+    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+}
+
+ean_class = {
+    'example': '5712345000014',
+    'name': 'EAN',
+    'scope': 'EAN',
+    'user_key': 'EAN',
+    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+}
+
+email_class = {
+    'example': 'test@example.com',
+    'name': 'Emailadresse',
+    'scope': 'EMAIL',
+    'user_key': 'Email',
+    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+}
+
+phone_class = {
+    'example': '20304060',
+    'name': 'Telefonnummer',
+    'scope': 'PHONE',
+    'user_key': 'Telefon',
+    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+}
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True)
 class Writing(util.LoRATestCase):
     maxDiff = None
+
+    def test_create_errors(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+        nothingid = "00000000-0000-0000-0000-000000000000"
+
+        with self.subTest('neither failing'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": ean_class,
+                    "value": '1234567890',
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': None,
+                    'org_unit_uuid': None,
+                    'obj': req[0],
+                    'status': 400,
+                },
+                json=req,
+                status_code=400,
+            )
+
+        with self.subTest('both failing'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": ean_class,
+                    "value": '1234567890',
+                    "person": {
+                        'uuid': userid,
+                    },
+                    "org_unit": {
+                        'uuid': unitid,
+                    },
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': userid,
+                    'org_unit_uuid': unitid,
+                    'obj': req[0],
+                    'status': 400,
+                },
+                json=req,
+                status_code=400,
+            )
+
+        with self.subTest('no value'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": email_class,
+                    "org_unit": {"uuid": unitid},
+                    # NB: no value
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing value",
+                    'key': 'value',
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('no type'):
+            req = [
+                {
+                    "type": "address",
+                    # NB: no type!
+                    "address_type": None,
+                    "value": "hallo@exmaple.com",
+                    "org_unit": {"uuid": unitid},
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'E_INVALID_TYPE',
+                    'description': (
+                        "Invalid 'address_type', expected dict, got: null"
+                    ),
+                    'key': 'address_type',
+                    'expected': 'dict',
+                    'actual': None,
+                    'status': 400,
+                    "obj": req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('wrong key'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": address_class,
+                    # NB: wrong key!
+                    "value": "hallo@exmaple.com",
+                    "org_unit": {"uuid": unitid},
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing uuid",
+                    'key': 'uuid',
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('not a UUID'):
+            req = [{
+                "type": "address",
+                "address_type": address_class,
+                # NB: not a UUID!
+                        "uuid": "hallo@exmaple.com",
+                "org_unit": {"uuid": unitid},
+                "validity": {
+                    "from": "2013-01-01",
+                    "to": None,
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'E_INVALID_UUID',
+                    'description': (
+                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
+                    ),
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('unit not found'):
+            req = [{
+                "type": "address",
+                "address_type": address_class,
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "org_unit": {"uuid": nothingid},
+                "validity": {
+                    "from": "2013-01-01",
+                    "to": None,
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description': 'Org unit not found.',
+                    'error': True,
+                    'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                    'status': 404,
+                    'uuid': nothingid,
+                },
+                status_code=404,
+                json=req,
+            )
+
+        with self.subTest('employee not found'):
+            req = [{
+                "type": "address",
+                "address_type": address_class,
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "person": {"uuid": nothingid},
+                "validity": {
+                    "from": "2013-01-01",
+                    "to": None,
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description': 'User not found.',
+                    'error': True,
+                    'error_key': 'E_USER_NOT_FOUND',
+                    'status': 404,
+                    'uuid': nothingid,
+                },
+                status_code=404,
+                json=req,
+            )
+
+    def test_edit_errors(self, mock):
+        self.load_sample_structures()
+
+        other_userid = util.load_fixture('organisation/bruger',
+                                         'create_bruger_fætterguf.json')
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+        nothingid = "00000000-0000-0000-0000-000000000000"
+
+        orig_address = {
+            "href": "https://www.openstreetmap.org/"
+            "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+            "name": "Nordre Ringgade 1, 8000 Aarhus C",
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": address_class,
+            "validity": {
+                "from": "2016-01-01",
+                "to": "2018-12-31",
+            },
+        }
+
+        with self.subTest('neither failing'):
+            req = [
+                {
+                    "type": "address",
+                    "original": orig_address,
+                    "data": {
+                        "address_type": phone_class,
+                        "value": "11223344",
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': None,
+                    'org_unit_uuid': None,
+                    'obj': req[0],
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('both failing'):
+            req = [
+                {
+                    "type": "address",
+                    "original": orig_address,
+                    "person": {"uuid": userid},
+                    "org_unit": {"uuid": unitid},
+                    "data": {
+                        "address_type": phone_class,
+                        "value": "11223344",
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': userid,
+                    'org_unit_uuid': unitid,
+                    'obj': req[0],
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('missing edit value'):
+            req = [
+                {
+                    "type": "address",
+                    "original": orig_address,
+                    "person": {"uuid": userid},
+                    "data": {
+                        "address_type": phone_class,
+                        # NB: no value
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': 'Missing value',
+                    'key': 'value',
+                    'status': 400,
+                    'obj': req[0]['data'],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('missing original'):
+            req = [{
+                "type": "address",
+                # NB: no original!
+                "person": {"uuid": userid},
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description': 'Missing original',
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'key': 'original',
+                    'obj': req[0],
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('invalid original'):
+            req = [{
+                "type": "address",
+                # NB: no original!
+                "original": None,
+                "person": {"uuid": userid},
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'error': True,
+                    'error_key': 'E_INVALID_TYPE',
+                    'description':
+                    "Invalid 'original', expected dict, got: null",
+                    'actual': None,
+                    'key': 'original',
+                    'expected': 'dict',
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('wrong original'):
+            req = [{
+                "type": "address",
+                "person": {"uuid": userid},
+                "original": {
+                    'address_type': email_class,
+                    # wrong!
+                    'href': 'mailto:user@example.com',
+                    'name': 'user@example.com',
+                    'urn': 'urn:mailto:user@example.com',
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                },
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'error': True,
+                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                    'description': 'Original entry not found.',
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('wrong original'):
+            req = [{
+                "type": "address",
+                "person": {"uuid": other_userid},
+                "original": {
+                    'address_type': email_class,
+                    'href': 'mailto:user@example.com',
+                    'name': 'user@example.com',
+                    'urn': 'urn:mailto:user@example.com',
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                },
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description': 'no addresses to edit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
 
     def test_employee_address(self, mock):
         self.load_sample_structures()
@@ -79,38 +581,6 @@ class Writing(util.LoRATestCase):
 
         original = c.bruger.get(userid)
 
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
-        ean_class = {
-            'example': '5712345000014',
-            'name': 'EAN',
-            'scope': 'EAN',
-            'user_key': 'EAN',
-            'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-        }
-
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        phone_class = {
-            'example': '20304060',
-            'name': 'Telefonnummer',
-            'scope': 'PHONE',
-            'user_key': 'Telefon',
-            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-        }
-
         addresses = [
             {
                 'address_type': {
@@ -163,13 +633,14 @@ class Writing(util.LoRATestCase):
             self.assertEqual(original['relationer'], relations)
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+            '/service/details/create',
+            [userid],
             json=[
                 {
                     "type": "address",
                     "address_type": ean_class,
                     "value": '1234567890',
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -237,13 +708,14 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+            '/service/details/create',
+            [userid, userid, userid],
             json=[
                 {
                     "type": "address",
                     "address_type": email_class,
                     "value": "hest@example.com",
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2014-01-01",
                     },
@@ -252,6 +724,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": address_class,
                     "uuid": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2015-01-01",
                     },
@@ -260,6 +733,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": phone_class,
                     "value": '3336 9696',
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2016-01-01",
                     },
@@ -387,14 +861,6 @@ class Writing(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
         userid = util.load_fixture('organisation/bruger',
                                    'create_bruger_fætterguf.json')
 
@@ -419,13 +885,14 @@ class Writing(util.LoRATestCase):
             self.assertNotIn('adresser', original['relationer'])
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+            '/service/details/create',
+            [userid],
             json=[
                 {
                     "type": "address",
                     "address_type": address_class,
                     "uuid": '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -461,22 +928,6 @@ class Writing(util.LoRATestCase):
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
         address_classes = self.client.get(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/f/address_type/',
@@ -501,83 +952,13 @@ class Writing(util.LoRATestCase):
             ],
         )
 
-        with self.subTest('bad edits'):
-            self.assertRequestResponse(
-                '/service/e/{}/edit'.format(userid),
-                {
-                    'error': True,
-                    'error_key': 'E_INVALID_TYPE',
-                    'description':
-                    "Invalid 'original', expected dict, got: null",
-                    'actual': 'null',
-                    'key': 'original',
-                    'expected': 'dict',
-                    'status': 400,
-                    'obj': {
-                        'data': {
-                            'validity': {
-                                'to': '2009-12-31'
-                            }
-                        },
-                        'original': None,
-                        'type': 'address'
-                    },
-                },
-                status_code=400,
-                json=[{
-                    "type": "address",
-                    # NB: no original!
-                    "original": None,
-                    "data": {
-                        "validity": {
-                            'to': '2009-12-31',
-                        },
-                    }
-                }],
-            )
-
-            self.assertRequestResponse(
-                '/service/e/{}/edit'.format(userid),
-                {
-                    'error': True,
-                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
-                    'description': 'Original entry not found.',
-                    'status': 400,
-                },
-                status_code=400,
-                json=[{
-                    "type": "address",
-                    "original": {
-                        'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Emailadresse',
-                            'scope': 'EMAIL',
-                            'user_key': 'Email',
-                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        },
-                        # wrong!
-                        'href': 'mailto:user@example.com',
-                        'name': 'user@example.com',
-                        'urn': 'urn:mailto:user@example.com',
-                        'validity': {
-                            'from': '1934-06-09',
-                            'to': None,
-                        },
-                    },
-                    "data": {
-                        "validity": {
-                            'to': '2009-12-31',
-                        },
-                    }
-                }],
-            )
-
         # first, test editing the value & the end time
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
+                "person": {"uuid": userid},
                 "original": {
                     'address_type': {
                         'example': 'test@example.com',
@@ -632,10 +1013,11 @@ class Writing(util.LoRATestCase):
 
         # second, test editing type, value, and removing the end date
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
+                "person": {"uuid": userid},
                 "original": {
                     'address_type': {
                         'example': 'test@example.com',
@@ -701,22 +1083,6 @@ class Writing(util.LoRATestCase):
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
         address_classes = self.client.get(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/f/address_type/',
@@ -768,10 +1134,11 @@ class Writing(util.LoRATestCase):
 
         # first, test editing the value only
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
+                "person": {"uuid": userid},
                 "original": addresses[0],
                 "data": {
                     'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
@@ -804,10 +1171,11 @@ class Writing(util.LoRATestCase):
 
         # second, test editing type
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
+                "person": {"uuid": userid},
                 "original": addresses[0],
                 "data": {
                     'address_type': address_class,
@@ -863,11 +1231,12 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[
                 {
                     'type': 'address',
+                    'person': {'uuid': userid},
                     'original': old_addr,
                     'data': dict(**old_addr, value='hest@example.com'),
                 },
@@ -901,14 +1270,6 @@ class Writing(util.LoRATestCase):
 
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
-        ean_class = {
-            'example': '5712345000014',
-            'name': 'EAN',
-            'scope': 'EAN',
-            'user_key': 'EAN',
-            'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-        }
-
         self.assertIn(ean_class, self.client.get(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
             '/f/address_type/',
@@ -938,11 +1299,12 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit',
+            [unitid],
             json=[
                 {
                     'type': 'address',
+                    'org_unit': {'uuid': unitid},
                     'original': old_addr,
                     'data': {
                         **old_addr,
@@ -1072,22 +1434,6 @@ class Writing(util.LoRATestCase):
             },
         ]
 
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
         original = c.organisationenhed.get(unitid)
 
         # PRECONDITIONS
@@ -1124,173 +1470,17 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(address_rels, original['relationer']['adresser'])
 
-        # ERROR CHECKING
-
-        with self.subTest('errors'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing value",
-                    'key': 'value',
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Emailadresse',
-                            'scope': 'EMAIL',
-                            'user_key': 'Email',
-                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
-                        },
-                        'type': 'address',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None
-                        }
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "address_type": email_class,
-                        # NB: no value
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('errors II'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'E_INVALID_TYPE',
-                    'description': (
-                        "Invalid 'address_type', expected dict, got: null"
-                    ),
-                    'key': 'address_type',
-                    'expected': 'dict',
-                    'actual': 'null',
-                    'status': 400,
-                    "obj": {
-                        'address_type': None,
-                        'type': 'address',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None},
-                        'value': 'hallo@exmaple.com'
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        # NB: no type!
-                        "address_type": None,
-                        "value": "hallo@exmaple.com",
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('errors III'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing uuid",
-                    'key': 'uuid',
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                        },
-                        'type': 'address',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None},
-                        'value': 'hallo@exmaple.com'
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "address_type": address_class,
-                        # NB: wrong key!
-                        "value": "hallo@exmaple.com",
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('errors IV'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'E_INVALID_UUID',
-                    'description': (
-                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
-                    ),
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                        },
-                        'type': 'address',
-                        'uuid': 'hallo@exmaple.com',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None
-                        }
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "address_type": address_class,
-                        # NB: not a UUID!
-                        "uuid": "hallo@exmaple.com",
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
         # NOW CREATE IT
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid,
+            '/service/details/create',
+            [unitid],
             json=[
                 {
                     "type": "address",
                     "address_type": email_class,
                     "value": "hallo@exmaple.com",
+                    "org_unit": {"uuid": unitid},
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -1504,70 +1694,27 @@ class Writing(util.LoRATestCase):
             "?mlon=10.19938084&mlat=56.17102843&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": {
-                "example": "<UUID>",
-                "name": "Adresse",
-                "scope": "DAR",
-                "user_key": "AdressePost",
-                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-            },
+            "address_type": address_class,
             "validity": {
                 "from": "2016-01-01",
                 "to": "2018-12-31",
             },
         }
 
-        new_address_type = {
-            'example': '20304060',
-            'name': 'Telefonnummer',
-            'scope': 'PHONE',
-            'user_key': 'Telefon',
-            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-        }
+        new_address_type = phone_class
 
         self.assertRequestResponse(
             '/service/ou/{}/details/address'.format(unitid),
             [orig_address],
         )
 
-        with self.subTest('errors'):
-            self.assertRequestResponse(
-                '/service/ou/{}/edit'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': 'Missing value',
-                    'key': 'value',
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': '20304060',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
-                        }
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "original": orig_address,
-                        "data": {
-                            "address_type": new_address_type,
-                            # NB: no value
-                        },
-                    },
-                ],
-            )
-
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit',
+            [unitid],
             json=[
                 {
                     "type": "address",
+                    "org_unit": {"uuid": unitid},
                     "original": orig_address,
                     "data": {
                         "address_type": new_address_type,
@@ -1704,8 +1851,8 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid,
+            '/service/details/create',
+            [unitid],
             json=[
                 {
                     "type": "address",
@@ -1717,6 +1864,7 @@ class Writing(util.LoRATestCase):
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'value': 'root@example.com',
+                    "org_unit": {"uuid": unitid},
                     "validity": {
                         "from": "2017-01-02",
                     },
@@ -1819,6 +1967,7 @@ class Writing(util.LoRATestCase):
         req = [
             {
                 "type": "address",
+                "org_unit": {"uuid": unitid},
                 "original": addresses[1],
                 "data": {
                     "uuid": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
@@ -1830,8 +1979,8 @@ class Writing(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid, json=req)
+            '/service/details/edit',
+            [unitid], json=req)
 
         addresses[1]['validity']['from'] = '2016-06-01'
         addresses[1].update(
@@ -1898,6 +2047,7 @@ class Writing(util.LoRATestCase):
         req = [
             {
                 "type": "address",
+                "org_unit": {"uuid": unitid},
                 "address_type": {
                     "example": "<UUID>",
                     "name": "Adresse",
@@ -1913,8 +2063,8 @@ class Writing(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid, json=req)
+            '/service/details/create',
+            [unitid], json=req)
 
         addresses.append({
             'address_type': {

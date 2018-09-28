@@ -17,46 +17,40 @@ employees and organisational units.
 
 from .. import common
 from .. import exceptions
-from .. import validator
-from .. import mapping
 from .. import lora
+from .. import mapping
 from .. import util
+from .. import validator
 
 
-def create_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
+def create_engagement(req):
     c = lora.Connector()
 
-    if org_unit_uuid is None:
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                          required=True)
 
-    if employee_uuid is None:
-        employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
-                                              required=True)
+    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                          required=True)
 
-    org_unit = c.organisationenhed.get(org_unit_uuid)
-
-    if not org_unit:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=org_unit_uuid,
-        )
-
-    org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
-    job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
-    engagement_type_uuid = util.get_mapping_uuid(req,
-                                                 mapping.ENGAGEMENT_TYPE,
-                                                 required=True)
     valid_from, valid_to = util.get_validities(req)
-
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
-                            mapping.ENGAGEMENT_KEY)
 
     # Validation
     validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                               valid_to)
     validator.is_date_range_in_employee_range(employee_uuid, valid_from,
                                               valid_to)
+
+    org_unit = c.organisationenhed.get(org_unit_uuid)
+
+    org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
+    job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
+    engagement_type_uuid = util.get_mapping_uuid(req,
+                                                 mapping.ENGAGEMENT_TYPE,
+                                                 required=True)
+
+    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
+                            mapping.ENGAGEMENT_KEY)
+
     engagement = common.create_organisationsfunktion_payload(
         funktionsnavn=mapping.ENGAGEMENT_KEY,
         valid_from=valid_from,
@@ -69,26 +63,25 @@ def create_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
         opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
     )
 
-    c.organisationfunktion.create(engagement)
+    return c.organisationfunktion.create(engagement)
 
 
-def edit_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
-    engagement_uuid = req.get('uuid')
+def edit_engagement(req):
+    engagement_uuid = util.get_uuid(req)
+
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     original = c.organisationfunktion.get(uuid=engagement_uuid)
 
     # Get org unit uuid for validation purposes
-    if org_unit_uuid is None:
-        org_unit = util.get_obj_value(
-            original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-        org_unit_uuid = util.get_uuid(org_unit)
+    org_unit = util.get_obj_value(
+        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
+    org_unit_uuid = util.get_uuid(org_unit)
 
     # Get employee uuid for validation purposes
-    if employee_uuid is None:
-        employee = util.get_obj_value(
-            original, mapping.USER_FIELD.path)[-1]
-        employee_uuid = util.get_uuid(employee)
+    employee = util.get_obj_value(
+        original, mapping.USER_FIELD.path)[-1]
+    employee_uuid = util.get_uuid(employee)
 
     data = req.get('data')
     new_from, new_to = util.get_validities(data)
@@ -145,4 +138,4 @@ def edit_engagement(req, *, employee_uuid=None, org_unit_uuid=None):
     validator.is_date_range_in_employee_range(employee_uuid, new_from,
                                               new_to)
 
-    c.organisationfunktion.update(payload, engagement_uuid)
+    return c.organisationfunktion.update(payload, engagement_uuid)

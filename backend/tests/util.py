@@ -334,8 +334,8 @@ class TestCaseMixin(object):
     def lora_url(self):
         return settings.LORA_URL
 
-    def assertRequestResponse(self, path, expected, message=None, *,
-                              status_code=None, drop_keys=(), **kwargs):
+    def assertRequest(self, path, status_code=None, message=None, *,
+                      drop_keys=(), **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -345,9 +345,10 @@ class TestCaseMixin(object):
         One addition is that we support a 'json' argument that
         automatically posts the given JSON data.
 
-        '''
-        message = message or 'request {!r} failed'.format(path)
+        :return: The result of the request, as a string or object, if
+                 JSON.
 
+        '''
         r = self.request(path, **kwargs)
 
         actual = (
@@ -356,24 +357,40 @@ class TestCaseMixin(object):
             else r.get_data(True)
         )
 
+        if status_code is None:
+            if message is None:
+                message = 'status of {!r} was {}, not 2xx'.format(
+                    path,
+                    r.status_code,
+                )
+
+            if not 200 <= r.status_code < 300:
+                pprint.pprint(actual)
+
+                self.fail(message)
+
+        else:
+            if message is None:
+                message = 'status of {!r} was {}, not {}'.format(
+                    path,
+                    r.status_code,
+                    status_code,
+                )
+
+            if r.status_code != status_code:
+                pprint.pprint(actual)
+
+                self.fail(message)
+
         for k in drop_keys:
             try:
                 actual.pop(k)
             except (IndexError, KeyError, TypeError):
                 pass
 
-        if actual != expected:
-            pprint.pprint(actual)
+        return actual
 
-        if status_code is None:
-            self.assertLess(r.status_code, 300, message)
-            self.assertGreaterEqual(r.status_code, 200, message)
-        else:
-            self.assertEqual(r.status_code, status_code, message)
-
-        self.assertEqual(expected, actual, message)
-
-    def assertRequestFails(self, path, code, message=None, **kwargs):
+    def assertRequestResponse(self, path, expected, message=None, **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -382,12 +399,29 @@ class TestCaseMixin(object):
 
         One addition is that we support a 'json' argument that
         automatically posts the given JSON data.
+
         '''
-        message = message or "request {!r} didn't fail properly".format(path)
 
-        r = self.request(path, **kwargs)
+        actual = self.assertRequest(path, message=message, **kwargs)
 
-        self.assertEqual(r.status_code, code, message)
+        if actual != expected:
+            pprint.pprint(actual)
+
+        self.assertEqual(expected, actual, message)
+
+    def assertRequestFails(self, path, code, message=None, **kwargs):
+        '''Issue a request and assert that it fails with the given status.
+
+        **kwargs is passed directly to the test client -- see the
+        documentation for werkzeug.test.EnvironBuilder for details.
+
+        One addition is that we support a 'json' argument that
+        automatically posts the given JSON data.
+
+        '''
+
+        self.assertRequest(path, message=message, status_code=code,
+                           **kwargs)
 
     def request(self, path, **kwargs):
         if 'json' in kwargs:

@@ -49,14 +49,6 @@ class AbstractRelationDetail(abc.ABC):
     def get(self, objid):
         pass
 
-    @abc.abstractmethod
-    def create(self, id: str, req: dict):
-        pass
-
-    @abc.abstractmethod
-    def edit(self, id: str, req: dict):
-        pass
-
 
 def get_connector(**loraparams):
     args = flask.request.args

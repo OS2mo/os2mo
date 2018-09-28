@@ -14,25 +14,15 @@ from . import util
 class Tests(util.TestCase):
     maxDiff = None
 
-    def test_get_scope(self):
-        self.assertEquals(detail_writing._get_scope('e').path,
-                          'organisation/bruger')
-
-        self.assertEquals(detail_writing._get_scope('ou').path,
-                          'organisation/organisationenhed')
-
-        self.assertRaises(ValueError,
-                          detail_writing._get_scope, 'kaflaflibob')
-
     def test_invalid_type(self):
         self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/create',
+            '/service/details/create',
             {
                 'description': 'Unknown role type.',
                 'error': True,
                 'error_key': 'E_UNKNOWN_ROLE_TYPE',
                 'status': 400,
-                'type': 'kaflaflibob',
+                'types': ['kaflaflibob'],
             },
             json=[{
                 'type': 'kaflaflibob',
@@ -41,13 +31,13 @@ class Tests(util.TestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000/edit',
+            '/service/details/edit',
             {
                 'description': 'Unknown role type.',
                 'error': True,
                 'error_key': 'E_UNKNOWN_ROLE_TYPE',
                 'status': 400,
-                'type': 'kaflaflibob',
+                'types': ['kaflaflibob'],
             },
             json=[{
                 'type': 'kaflaflibob',

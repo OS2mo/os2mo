@@ -9,7 +9,8 @@
 import freezegun
 
 from mora import lora
-from tests import util
+
+from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -27,6 +28,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "role",
+                "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
@@ -37,8 +39,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -140,6 +141,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "role",
                 "person": {'uuid': userid},
+                "org_unit": {'uuid': unitid},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
@@ -149,8 +151,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/ou/{}/create'.format(unitid),
-                                   unitid, json=payload)
+        self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -250,6 +251,7 @@ class Tests(util.LoRATestCase):
         payload = [
             {
                 "type": "role",
+                "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
@@ -259,8 +261,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse('/service/e/{}/create'.format(userid),
-                                   userid, json=payload)
+        self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -349,19 +350,6 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_role, expected)
 
-    def test_create_role_fails_on_empty_payload(self):
-        self.load_sample_structures()
-
-        payload = [
-            {
-                "type": "role",
-            }
-        ]
-
-        self.assertRequestFails(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/create', 400,
-            json=payload)
-
     def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
@@ -385,9 +373,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [role_uuid], json=req)
 
         expected_role = {
             "note": "Rediger rolle",
@@ -516,9 +503,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [role_uuid], json=req)
 
         expected_role = {
             "note": "Rediger rolle",
@@ -629,9 +615,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [role_uuid], json=req)
 
         expected_role = {
             "note": "Rediger rolle",
@@ -757,9 +742,8 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid, json=req)
+        self.assertRequestResponse('/service/details/edit',
+                                   [role_uuid], json=req)
 
         expected_role = {
             "note": "Rediger rolle",
@@ -980,3 +964,133 @@ class Tests(util.LoRATestCase):
         actual_role = c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(actual_role, expected_role)
+
+    def test_reading(self):
+        self.load_sample_structures()
+
+        self.assertRequestResponse(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/role',
+            [{
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'role_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                'validity': {'from': '2017-01-01', 'to': None},
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/details/role',
+            [{
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'role_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                },
+                'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                'validity': {'from': '2017-01-01', 'to': None},
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/role',
+            [],
+        )
+
+    def test_create_role_missing_unit(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = "00000000-0000-0000-0000-000000000000"
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "role",
+                "person": {'uuid': userid},
+                "org_unit": {'uuid': unitid},
+                "role_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'Org unit not found.',
+                'error': True,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': '00000000-0000-0000-0000-000000000000',
+                'status': 404,
+            },
+            json=payload,
+            status_code=404,
+        )
+
+    def test_create_role_missing_user(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+        userid = "00000000-0000-0000-0000-000000000000"
+
+        payload = [
+            {
+                "type": "role",
+                "person": {'uuid': userid},
+                "org_unit": {'uuid': unitid},
+                "role_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            {
+                'description': 'User not found.',
+                'employee_uuid': '00000000-0000-0000-0000-000000000000',
+                'error': True,
+                'error_key': 'E_USER_NOT_FOUND',
+                'status': 404,
+            },
+            json=payload,
+            status_code=404,
+        )
