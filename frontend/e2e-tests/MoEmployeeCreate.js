@@ -165,10 +165,10 @@ test('Workflow: create employee', async t => {
     .expect(addressManagerInput.find('input').value).contains('Ved Bålpladsen 1')
 
     .click(addressManagerMany)
-    .pressKey('tab tab tab tab tab down enter')
+    .pressKey('tab tab tab tab tab down down enter')
 
     .click(addressManagerInputContact)
-    .typeText(addressManagerInputContact.find('input[data-vv-as="Kontakttelefon"]'), '55905512')
+    .typeText(dialog.find('input[data-vv-as="Kontakttelefon"]'), '55905512')
 
     .click(managerTypeSelect)
     .click(managerTypeOption.withText('Direktør'))
