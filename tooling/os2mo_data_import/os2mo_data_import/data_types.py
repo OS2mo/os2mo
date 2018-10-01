@@ -279,8 +279,8 @@ class Itsystem(MemoryMap):
         """
 
         data = {
-            "brugervendtnoegle": (user_key or identifier),
-            "itsystemnavn": (system_name or identifier),
+            "user_key": (user_key or identifier),
+            "system_name": (system_name or identifier),
         }
 
         return self.save(identifier, data)
