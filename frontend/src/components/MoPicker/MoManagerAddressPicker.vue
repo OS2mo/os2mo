@@ -39,7 +39,7 @@
 
 <script>
   /**
-   * A address entry component.
+   * A manager address picker component.
    */
 
   import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
