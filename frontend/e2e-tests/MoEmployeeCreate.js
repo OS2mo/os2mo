@@ -168,7 +168,7 @@ test('Workflow: create employee', async t => {
     .pressKey('tab tab tab tab tab down enter')
 
     .click(addressManagerInputContact)
-    .typeText(dialog.find('input[data-vv-as="Kontakttelefon"]'), '55905510')
+    .typeText(addressManagerInputContact.find('input[data-vv-as="Kontakttelefon"]'), '55905512')
 
     .click(managerTypeSelect)
     .click(managerTypeOption.withText('Direktør'))
