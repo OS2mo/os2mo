@@ -523,7 +523,7 @@ class Employee(MoMemoryMap):
         ]
 
         if address_uuid:
-            item = ("address_uuid", address_uuid)
+            item = ("address", address_uuid)
             association_data.append(item)
 
         return self.add_optional_data(owner_ref, association_data)
@@ -555,7 +555,7 @@ class Employee(MoMemoryMap):
         return self.add_optional_data(owner_ref, role_data)
 
     def add_type_manager(self, owner_ref, org_unit_ref, manager_type_ref, manager_level_ref,
-                         address_uuid, responsibility_list, date_from, date_to=None):
+                         responsibility_list, date_from, date_to=None, address_uuid=None):
         """
 
         :param owner_ref:
@@ -587,7 +587,7 @@ class Employee(MoMemoryMap):
         ]
 
         if address_uuid:
-            item = ("address_uuid", address_uuid)
+            item = ("address", address_uuid)
             manager_data.append(item)
 
         return self.add_optional_data(owner_ref, manager_data)
