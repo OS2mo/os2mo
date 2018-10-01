@@ -17,21 +17,32 @@ import uuid
 
 import flask
 
-from .. import lora
-from .. import validator
-from .. import mapping
 from .. import common
+from .. import exceptions
+from .. import lora
+from .. import mapping
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('leave', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def create_leave(employee_uuid, req):
+def create_leave(req):
     c = lora.Connector()
 
-    org_uuid = c.bruger.get(
-        employee_uuid)['relationer']['tilhoerer'][0]['uuid']
+    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                          required=True)
+
+    userobj = c.bruger.get(employee_uuid)
+
+    if not userobj:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_USER_NOT_FOUND,
+            employee_uuid=employee_uuid,
+        )
+
+    org_uuid = userobj['relationer']['tilhoerer'][0]['uuid']
     leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                             required=True)
     valid_from, valid_to = util.get_validities(req)
@@ -53,10 +64,10 @@ def create_leave(employee_uuid, req):
         funktionstype=leave_type_uuid,
     )
 
-    c.organisationfunktion.create(leave)
+    return c.organisationfunktion.create(leave)
 
 
-def edit_leave(employee_uuid, req):
+def edit_leave(req):
     leave_uuid = req.get('uuid')
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -88,8 +99,18 @@ def edit_leave(employee_uuid, req):
     if mapping.LEAVE_TYPE in data:
         update_fields.append((
             mapping.ORG_FUNK_TYPE_FIELD,
-            {'uuid': data.get(mapping.LEAVE_TYPE).get('uuid')},
+            {'uuid': util.get_mapping_uuid(data, mapping.LEAVE_TYPE)},
         ))
+
+    if mapping.PERSON in data:
+        employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
+
+        update_fields.append((
+            mapping.USER_FIELD,
+            {'uuid': employee_uuid},
+        ))
+    else:
+        employee_uuid = util.get_obj_uuid(original, mapping.USER_FIELD.path)
 
     payload = common.update_payload(new_from, new_to, update_fields, original,
                                     payload)
@@ -104,4 +125,4 @@ def edit_leave(employee_uuid, req):
     validator.does_employee_have_active_engagement(employee_uuid, new_from,
                                                    new_to)
 
-    c.organisationfunktion.update(payload, leave_uuid)
+    return c.organisationfunktion.update(payload, leave_uuid)

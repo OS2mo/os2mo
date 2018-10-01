@@ -46,16 +46,19 @@ frontenddir = os.path.join(topdir, 'frontend')
 
 
 class AppGroup(flask.cli.FlaskGroup):
+    '''Subclass of default app Flask group that adds -h to all commands.'''
     __context_settings = {
         'help_option_names': ['-h', '--help']
     }
 
     def command(self, *args, **kwargs):
+        ''
         kwargs.setdefault('context_settings', self.__context_settings)
 
         return super().command(*args, **kwargs)
 
     def group(self, *args, **kwargs):
+        ''
         kwargs.setdefault('context_settings', self.__context_settings)
 
         return super().group(*args, **kwargs)
@@ -205,17 +208,35 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
     loader = unittest.TestLoader()
 
+    # ensure that we can load the tests, whatever the $PWD
+    sys.path.insert(0, backenddir)
+
     if tests:
-        suite = loader.loadTestsFromNames(tests)
+        def as_module(tn):
+            if os.path.isfile(tn) and tn.endswith('.py'):
+                return '.'.join(
+                    os.path.split(
+                        os.path.splitext(
+                            os.path.relpath(tn, backenddir)
+                        )[0]
+                    )
+                )
+            else:
+                return tn
+
+        suite = loader.loadTestsFromNames(map(as_module, tests))
+
     else:
         suite = loader.discover(
             start_dir=os.path.join(backenddir, 'tests'),
             top_level_dir=os.path.join(backenddir),
         )
 
-    for module in sys.modules.values():
-        if getattr(module, '__file__', '').startswith(basedir):
-            suite.addTests(doctest.DocTestSuite(module))
+        for module in sys.modules.values():
+            module_file = getattr(module, '__file__', None)
+
+            if module_file and module_file.startswith(basedir):
+                suite.addTests(doctest.DocTestSuite(module))
 
     def expand_suite(suite):
         for member in suite:

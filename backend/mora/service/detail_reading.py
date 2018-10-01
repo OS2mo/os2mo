@@ -7,8 +7,8 @@
 #
 
 
-'''Details
--------
+'''Reading details
+---------------
 
 This section describes how to read employee and
 organisational unit metadata, referred to as *details* within this
@@ -17,10 +17,8 @@ API.
 For details on how to create and edit these metadata, refer to the sections on
 creating and editing relations for employees and organisational units:
 
-* :http:post:`/service/e/(uuid:employee_uuid)/create`
-* :http:post:`/service/e/(uuid:employee_uuid)/edit`
-* :http:post:`/service/ou/(uuid:unitid)/create`
-* :http:post:`/service/ou/(uuid:unitid)/edit`
+* :http:post:`/service/(any:type)/(uuid:uuid)/create`
+* :http:post:`/service/(any:type)/(uuid:uuid)/edit`
 
 
 '''
@@ -32,15 +30,16 @@ import operator
 
 import flask
 
-from .. import mapping
 from . import address
-from .. import common
 from . import employee
 from . import facet
+from . import itsystem
 from . import orgunit
-from .. import util
-from .. import settings
+from .. import common
 from .. import exceptions
+from .. import mapping
+from .. import settings
+from .. import util
 
 blueprint = flask.Blueprint('details', __name__, static_url_path='',
                             url_prefix='/service')
@@ -48,14 +47,16 @@ blueprint = flask.Blueprint('details', __name__, static_url_path='',
 DetailType = collections.namedtuple('DetailType', [
     'search',
     'scope',
-    'relation_types',
 ])
 
 DETAIL_TYPES = {
-    'e': DetailType('tilknyttedebrugere', 'bruger',
-                    employee.RELATION_TYPES),
-    'ou': DetailType('tilknyttedeenheder', 'organisationenhed',
-                     orgunit.RELATION_TYPES),
+    'e': DetailType('tilknyttedebrugere', 'bruger'),
+    'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
+}
+
+RELATION_TYPES = {
+    'address': address.Addresses,
+    'org_unit': orgunit.OrgUnit,
 }
 
 
@@ -101,7 +102,7 @@ def list_details(type, id):
 
     reg = scope.get(id)
 
-    for relname, cls in info.relation_types.items():
+    for relname, cls in RELATION_TYPES.items():
         r[relname] = bool(cls(scope).has(reg))
 
     return flask.jsonify(r)
@@ -120,7 +121,7 @@ def get_detail(type, id, function):
     .. :quickref: Detail; Get
 
     Most of these endpoints are broadly similar to engagements, with
-    the notable exception being IT systems.
+    the notable exception being addresses.
 
     All requests contain validity objects on the following form:
 
@@ -249,16 +250,41 @@ def get_detail(type, id, function):
 
     **Example IT response**:
 
+    :<jsonarr object itsystem:
+        See :http:get:`/service/o/(uuid:orgid)/it/`.
+    :<jsonarr object org_unit:
+        See :http:get:`/service/ou/(uuid:unitid)/`.
+    :<jsonarr object person:
+        See :http:get:`/service/e/(uuid:id)/`.
+    :<jsonarr string uuid: Machine-friendly UUID.
+    :<jsonarr string user_key: Typically the account name.
+    :<jsonarr string validity: The validity times of the object.
+
     .. sourcecode:: json
 
       [
         {
-          "name": "Active Directory",
-          "user_name": "Fedtmule",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+          "itsystem": {
+            "name": "Active Directory",
+            "reference": null,
+            "system_type": null,
+            "user_key": "AD",
+            "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            "validity": {
+              "from": "2002-02-14",
+              "to": null
+            }
+          },
+          "org_unit": null,
+          "person": {
+            "name": "Anders And",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+          },
+          "user_key": "donald",
+          "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
           "validity": {
-            "from": "2002-02-14",
-            "to": null
+            "from": "2017-01-01",
+            "to": "2018-09-30"
           }
         }
       ]
@@ -418,13 +444,17 @@ def get_detail(type, id, function):
     }
     scope = getattr(c, info.scope)
 
-    if function in info.relation_types:
-        return info.relation_types[function](scope).get(id)
+    cls = RELATION_TYPES.get(function)
+
+    if cls:
+        return cls(scope).get(id)
 
     # ensure that we report an error correctly
     if function not in mapping.FUNCTION_KEYS:
         raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_FUNCTION_TYPE)
+            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+            type=function,
+        )
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or
@@ -439,7 +469,7 @@ def get_detail(type, id, function):
     def get_address(effect):
         try:
             rels = effect['relationer']['adresser']
-        except KeyError:
+        except LookupError:
             return
 
         yield from map(functools.partial(address.get_one_address,
@@ -449,50 +479,37 @@ def get_detail(type, id, function):
     def get_address_type(effect):
         try:
             rels = effect['relationer']['adresser']
-        except KeyError:
+        except LookupError:
             return
 
         yield from map(operator.itemgetter('objekttype'), rels)
 
-    def get_employee_id(effect):
-        try:
-            yield from effect['relationer']['tilknyttedebrugere']
-        except KeyError:
-            pass
+    def getter(rel, field=None):
+        def get(effect):
+            try:
+                vals = effect['relationer'][rel]
+            except LookupError:
+                return
 
-    def get_unit_id(effect):
-        # 'Leave' objects do not contains this relation, so we need to guard
-        #  ourselves here
-        try:
-            yield from effect['relationer']['tilknyttedeenheder']
-        except (KeyError, IndexError):
-            pass
+            for val in vals:
+                if val.keys() == {'virkning'}:
+                    continue
 
-    def get_type_id(effect):
-        try:
-            yield from effect['relationer']['organisatoriskfunktionstype']
-        except (KeyError, IndexError):
-            pass
+                if not field or field.filter_fn(val):
+                    yield val
 
-    def get_title_id(effect):
-        try:
-            yield from effect['relationer']['opgaver']
-        except (KeyError, IndexError):
-            pass
+        get.__name__ = 'get_' + rel
 
-    def get_responsibility(effect):
-        try:
-            yield from filter(mapping.RESPONSIBILITY_FIELD.filter_fn,
-                              effect['relationer']['opgaver'])
-        except (KeyError, IndexError):
-            pass
+        return get
 
-    def get_manager_level(effect):
-        try:
-            yield from filter(mapping.MANAGER_LEVEL_FIELD.filter_fn,
-                              effect['relationer']['opgaver'])
-        except (KeyError, IndexError):
-            pass
+    get_employee_id = getter('tilknyttedebrugere')
+    get_unit_id = getter('tilknyttedeenheder')
+    get_type_id = getter('organisatoriskfunktionstype')
+    get_title_id = getter('opgaver')
+    get_responsibility = getter('opgaver', mapping.RESPONSIBILITY_FIELD)
+    get_manager_level = getter('opgaver', mapping.MANAGER_LEVEL_FIELD)
+    get_itsystem = getter('tilknyttedeitsystemer',
+                          mapping.SINGLE_ITSYSTEM_FIELD)
 
     #
     # all these caches might be overkill when just listing one
@@ -505,6 +522,7 @@ def get_detail(type, id, function):
     class_cache = {}
     user_cache = {}
     unit_cache = {}
+    itsystem_cache = {}
 
     # the values are cache, getter, cachegetter, aslist
     #
@@ -548,7 +566,12 @@ def get_detail(type, id, function):
             mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
             mapping.ADDRESS: (class_cache, get_address, get_address_type,
                               False),
-        }
+        },
+        'it': {
+            mapping.PERSON: (user_cache, get_employee_id, None, False),
+            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
+            mapping.ITSYSTEM: (itsystem_cache, get_itsystem, None, False),
+        },
     }
 
     # first, extract all the effects
@@ -576,6 +599,7 @@ def get_detail(type, id, function):
                     'tilhoerer',
                     'tilknyttedebrugere',
                     'tilknyttedeorganisationer',
+                    'tilknyttedeitsystemer',
                 ),
             },
         )
@@ -618,6 +642,14 @@ def get_detail(type, id, function):
         c.organisationenhed.get_all(uuid=unit_cache)
     })
 
+    itsystem_cache.update({
+        systemid: itsystem.get_one_itsystem(
+            c, systemid, system,
+        )
+        for systemid, system in
+        c.itsystem.get_all(uuid=itsystem_cache)
+    })
+
     def get_one(effect, cache, getter, cachegetter, aslist):
         values = getter(effect)
 
@@ -642,6 +674,12 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
+
+        if function == 'it':
+            func[mapping.USER_KEY] = (
+                effect['attributter']['organisationfunktionegenskaber'][0]
+                ['brugervendtnoegle']
+            )
 
         return func
 

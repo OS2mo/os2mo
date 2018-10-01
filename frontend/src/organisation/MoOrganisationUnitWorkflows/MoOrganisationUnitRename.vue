@@ -80,6 +80,7 @@
          */
         original: this.orgUnit,
         rename: {
+          type: 'org_unit',
           data: {
             name: '',
             validity: {}
