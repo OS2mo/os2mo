@@ -229,3 +229,43 @@ def build_klasse_payload(klasse, facet_uuid, organisation_uuid):
         "relationer": relationer,
         "tilstande": tilstande
 }
+
+
+def build_itsystem_payload(itsystem, organisation_uuid):
+    system_name = itsystem["system_name"]
+    user_key = itsystem["user_key"]
+    validity = itsystem["validity"]
+
+    attributter = {
+        "itsystemegenskaber": [
+            {
+                "brugervendtnoegle": str(system_name),
+                "itsystemnavn": str(user_key),
+                "virkning": validity
+            }
+        ]
+    }
+
+    relationer = {
+        "tilhoerer": [
+            {
+                "uuid": str(organisation_uuid),
+                "virkning": validity
+            }
+        ]
+    }
+
+    tilstande = {
+        "itsystemgyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": validity
+            }
+        ]
+    }
+
+    return {
+        "attributter": attributter,
+        "relationer": relationer,
+        "tilstande": tilstande
+    }
