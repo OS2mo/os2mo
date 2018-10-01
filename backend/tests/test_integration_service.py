@@ -1103,7 +1103,7 @@ class Tests(util.LoRATestCase):
 
         func = [
             {
-                'address': {
+                'address': [{
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
                     'urn': 'urn:mailto:ceo@example.com',
@@ -1114,7 +1114,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Email',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',

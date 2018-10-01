@@ -37,6 +37,6 @@ A link component.
 
   Defines contents, columns and value. 
 
-   **dependencies:** `column`, `value`, `column`, `value`, `column`, `value`, `value`, `value`, `column`, `value`, `column_handlers`, `column`, `field`, `field` 
+   **dependencies:** `column`, `value`, `column`, `value`, `column`, `value`, `value`, `column`, `column`, `value`, `column_handlers`, `column`, `field`, `field` 
 
 
