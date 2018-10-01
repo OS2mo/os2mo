@@ -3,15 +3,20 @@
     <div class="form-row">
       <mo-facet-picker 
         v-show="noPreselectedType"
-        facet="address_type" 
+        facet="manager_address_type" 
         v-model="entry.address_type" 
         :preselected-user-key="preselectedType" 
         required
       />
-      
+
       <div class="form-group col">
         <div v-if="entry.address_type">
-          <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
+          <mo-address-search 
+            v-if="entry.address_type.scope=='DAR'" 
+            :label="entry.address_type.name" 
+            v-model="address"
+          />
+
           <label :for="nameId" v-if="entry.address_type.scope!='DAR'">{{entry.address_type.name}}</label>
           <input
             :name="nameId" 
@@ -23,30 +28,25 @@
             v-validate="validityRules" 
           >
         </div>
+
         <span v-show="errors.has(nameId)" class="text-danger">
           {{ errors.first(nameId) }}
         </span>
       </div>
     </div>
-    <mo-date-picker-range
-      class="address-date"
-      v-model="entry.validity" 
-      :initially-hidden="validityHidden"
-    />
   </div>
 </template>
 
 <script>
   /**
-   * A address entry component.
+   * A manager address picker component.
    */
 
   import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
   import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 
   export default {
-    name: 'MoAddressEntry',
+    name: 'MoManagerAddressPicker',
 
       /**
        * Validator scope, sharing all errors and validation state.
@@ -57,20 +57,14 @@
 
     components: {
       MoAddressSearch,
-      MoFacetPicker,
-      MoDatePickerRange
+      MoFacetPicker
     },
 
     props: {
       /**
        * Create two-way data bindings with the component.
        */
-      value: Object,
-
-      /**
-       * This boolean property hides the validity dates.
-       */
-      validityHidden: Boolean,
+      value: [Object, Array],
 
       /**
        * This boolean property requires a selected address type.
@@ -94,15 +88,13 @@
         * The contactInfo, entry, address, addressScope component value.
         * Used to detect changes and restore the value.
         */
-        contactInfo: '',
+        contactInfo: null,
         entry: {
-          validity: {},
           address_type: {},
           uuid: null,
           value: null
         },
-        address: null,
-        addressScope: null
+        address: null
       }
     },
 
@@ -155,11 +147,12 @@
        * Whenever contactInfo change, update entry with a Array.
        */
       contactInfo: {
-        handler (newValue) {
+        handler (newVal) {
           this.entry.type = 'address'
-          this.entry.value = newValue
-          this.$emit('input', this.entry)
-        }
+          this.entry.value = newVal
+          this.$emit('input', [this.entry])
+        },
+        deep: true
       },
 
       /**
@@ -198,12 +191,12 @@
         this.address = {
           location: {
             name: this.value.name,
-            uuid: this.value.value
+            uuid: this.value.uuid
           }
         }
       }
-      this.entry = this.value
       this.contactInfo = this.value.name
+      this.entry = this.value
     }
   }
 </script>
