@@ -36,12 +36,19 @@
 </template>
 
 <script>
+  /**
+   * cpr search component.
+   */
+
   import Search from '@/api/Search'
   import MoLoader from '@/components/atoms/MoLoader'
 
   export default {
     name: 'MoCprSearch',
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
@@ -51,13 +58,28 @@
     },
 
     props: {
+      /**
+       * This boolean property defines a label if it does not have one.
+       */
       noLabel: Boolean,
+
+      /**
+       * Defines a default label name.
+       */
       label: {type: String, default: 'CPR nummer'},
+
+      /**
+       * This boolean property requires a valid cpr number.
+       */
       required: Boolean
     },
 
     data () {
       return {
+      /**
+        * The nameId, cprNo, isloading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         nameId: 'cpr-search',
         cprNo: '',
         isLoading: false,
@@ -66,12 +88,19 @@
     },
 
     watch: {
+      /**
+       * Whenever cprNo change update.
+       */
       cprNo () {
         this.$emit('input', {})
       }
     },
 
     methods: {
+      /**
+       * Lookup cpr number and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       cprLookup () {
         let vm = this
         vm.isLoading = true

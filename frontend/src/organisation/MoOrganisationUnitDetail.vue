@@ -23,6 +23,10 @@
 
 
 <script>
+  /**
+   * A organisation unit detail component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import { EventBus } from '@/EventBus'
   import MoTableCollapsibleTense from '@/components/MoTable/MoTableCollapsibleTense'
@@ -35,23 +39,49 @@
     },
 
     props: {
+      /**
+       * Defines a unique identifier which must be unique.
+       */
       uuid: {
         type: String,
         required: true
       },
+
+      /**
+       * Defines a at date.
+       */
       atDate: [Date, String],
+
+      /**
+       * Defines the detail content type.
+       */
       detail: {
         type: String,
         required: true
       },
+
+      /**
+       * Defines columns.
+       */
       columns: Array,
+
+      /**
+       * Defines a entryComponent for create.
+       */
       entryComponent: Object,
-      createLabel: String,
+
+      /**
+       * This Boolean property hides the create button.
+       */
       hideCreate: Boolean
     },
 
     data () {
       return {
+      /**
+        * The details, loading component value.
+        * Used to detect changes and restore the value.
+        */
         details: {
           present: [],
           past: [],
@@ -66,27 +96,42 @@
     },
 
     mounted () {
+      /**
+       * Whenever details change update.
+       */
       EventBus.$on('organisation-unit-changed', () => {
         this.getAllDetails()
       })
     },
 
     watch: {
+      /**
+       * Listener for the time machine.
+       */
       uuid () {
-        // listener for the time machine
         this.getAllDetails()
       }
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Show the present detail as default.
+       */
       this.getDetails('present')
     },
 
     beforeDestroy () {
+      /**
+       * Called right before a instance is destroyed.
+       */
       EventBus.$off(['organisation-unit-changed'])
     },
 
     methods: {
+      /**
+       * Let past, present, future be array for getDetails.
+       */
       getAllDetails () {
         let tense = ['past', 'present', 'future']
         tense.forEach(t => {
@@ -94,6 +139,9 @@
         })
       },
 
+      /**
+       * Get all organisation details.
+       */
       getDetails (tense) {
         let vm = this
         vm.loading[tense] = true

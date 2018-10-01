@@ -7,6 +7,10 @@
 </template>
 
 <script>
+  /**
+   * A cpr component.
+   */
+
   import MoCprSearch from './MoCprSearch'
   import MoCprResult from './MoCprResult'
 
@@ -20,11 +24,18 @@
 
     data () {
       return {
+      /**
+        * The result component value.
+        * Used to detect changes and restore the value.
+        */
         result: {}
       }
     },
 
     watch: {
+      /**
+       * Whenever result change update val.
+       */
       result (val) {
         this.$emit('input', val)
       }

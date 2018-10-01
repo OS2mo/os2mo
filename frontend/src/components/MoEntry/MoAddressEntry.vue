@@ -48,6 +48,10 @@
 
 
 <script>
+  /**
+   * A address entry component.
+   */
+
   import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
   import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
@@ -55,6 +59,9 @@
   export default {
     name: 'MoAddressEntry',
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
@@ -66,15 +73,38 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * This boolean property hides the validity.
+       */
       validityHidden: Boolean,
+
+      /**
+       * This boolean property requires a selected address type.
+       */
       required: Boolean,
+
+      /**
+       * Defines a label.
+       */
       label: String,
+
+      /**
+       * Defines a preselectedType.
+       */
       preselectedType: String
     },
 
     data () {
       return {
+      /**
+        * The contactInfo, entry, address, addressScope component value.
+        * Used to detect changes and restore the value.
+        */
         contactInfo: '',
         entry: {
           validity: {},
@@ -88,23 +118,38 @@
     },
 
     computed: {
+      /**
+       * If the address is a DAR.
+       */
       isDarAddress () {
         if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
         return false
       },
 
+      /**
+       * Disable address type.
+       */
       isDisabled () {
         return this.entry.address_type == null
       },
 
+      /**
+       * If it has not a preselectedType.
+       */
       noPreselectedType () {
         return this.preselectedType == null
       },
 
+      /**
+       * Get name `scope-type`.
+       */
       nameId () {
         return 'scope-type-' + this._uid
       },
 
+      /**
+       * Every scopes validity rules.
+       */
       validityRules () {
         if (this.entry.address_type.scope === 'PHONE') return {required: true, digits: 8}
         if (this.entry.address_type.scope === 'EMAIL') return {required: true, email: true}
@@ -117,6 +162,9 @@
     },
 
     watch: {
+      /**
+       * Whenever contactInfo change, update entry.
+       */
       contactInfo: {
         handler (newValue) {
           this.entry.type = 'address'
@@ -125,6 +173,9 @@
         }
       },
 
+      /**
+       * When entry change, update the newVal.
+       */
       entry: {
         handler (newVal) {
           newVal.type = 'address'
@@ -133,6 +184,9 @@
         deep: true
       },
 
+      /**
+       * Whenever address change, update.
+       */
       address: {
         handler (val) {
           if (val == null) return
@@ -147,6 +201,10 @@
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set entry and contactInfo to value.
+       */
       if (this.value.uuid) {
         this.address = {
           location: {

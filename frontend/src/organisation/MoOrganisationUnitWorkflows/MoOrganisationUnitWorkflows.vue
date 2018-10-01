@@ -48,6 +48,10 @@
 </template>
 
 <script>
+  /**
+   * A Organisation workflow component.
+   */
+
   import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
   import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
   import MoOrganisationUnitCreate from './MoOrganisationUnitCreate'
@@ -66,6 +70,9 @@
     },
 
     methods: {
+      /**
+       * Trigger the popup workflows with the key shortcuts.
+       */
       theAction (event) {
         this.$root.$emit('bv::show::modal', event.srcKey)
       }

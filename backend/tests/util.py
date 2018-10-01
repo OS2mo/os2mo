@@ -11,10 +11,13 @@ import json
 import os
 import pprint
 import re
+import shutil
 import sys
+import tempfile
 import threading
 from unittest.mock import patch
 
+import flask
 import flask_testing
 import requests
 import requests_mock
@@ -31,6 +34,10 @@ BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
 IMPORTING_DIR = os.path.join(FIXTURE_DIR, 'importing')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
+
+TOP_DIR = os.path.dirname(BASE_DIR)
+FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
+DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
@@ -241,12 +248,12 @@ def override_config(**overrides):
     originals = {}
 
     for k, v in overrides.items():
-        originals[k] = app.app.config[k]
-        app.app.config[k] = v
+        originals[k] = flask.current_app.config[k]
+        flask.current_app.config[k] = v
 
     yield
 
-    app.app.config.update(overrides)
+    flask.current_app.config.update(overrides)
 
 
 class mock(requests_mock.Mocker):
@@ -306,13 +313,20 @@ class TestCaseMixin(object):
 
     maxDiff = None
 
-    def create_app(self):
-        app.app.config['DEBUG'] = False
-        app.app.config['TESTING'] = True
-        app.app.config['LIVESERVER_PORT'] = 0
-        app.app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
+    def create_app(self, overrides=None):
+        session_dir = tempfile.mkdtemp(prefix='session', dir=BUILD_DIR)
 
-        return app.app
+        self.addCleanup(shutil.rmtree, session_dir)
+
+        return app.create_app({
+            'DEBUG': False,
+            'TESTING': True,
+            'LIVESERVER_PORT': 0,
+            'PRESERVE_CONTEXT_ON_EXCEPTION': False,
+            'SESSION_TYPE': 'filesystem',
+            'SESSION_FILE_DIR': session_dir,
+            **(overrides or {})
+        })
 
     @property
     def lora_url(self):

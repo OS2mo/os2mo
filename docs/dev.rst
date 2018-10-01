@@ -9,3 +9,4 @@ Technical Documentation
    dev/*
    api
    backend
+   frontend

@@ -73,6 +73,10 @@
 </template>
 
 <script>
+  /**
+   * A table component.
+   */
+
   import '@/filters/GetProperty'
   import '@/filters/Date'
   import MoLoader from '@/components/atoms/MoLoader'
@@ -87,13 +91,44 @@
     },
 
     props: {
+      /**
+       * Defines a content.
+       */
       content: Array,
+
+      /**
+       * Defines a contentType.
+       */
       contentType: String,
+
+      /**
+       * Defines columns.
+       */
       columns: Array,
+
+      /**
+       * This boolean property defines the loading.
+       */
       isLoading: Boolean,
+
+      /**
+       * Defines the editComponent.
+       */
       editComponent: Object,
+
+      /**
+       * Defines the editUuid.
+       */
       editUuid: String,
+
+      /**
+       * This boolean property defines the multiSelect
+       */
       multiSelect: Boolean,
+
+      /**
+       * Defines a required type.
+       */
       type: {
         type: String,
         required: true
@@ -102,6 +137,10 @@
 
     data () {
       return {
+      /**
+       * The selectAll, selected component value.
+       * Used to detect changes and restore the value.
+       */
         selectAll: false,
         selected: [],
         open: {},
@@ -110,12 +149,18 @@
     },
 
     computed: {
+      /**
+       * If content is available, get content.
+       */
       contentAvailable () {
         return this.content ? this.content.length > 0 : false
       }
     },
 
     watch: {
+      /**
+       * Whenever selected change, update newVal.
+       */
       selected (newVal) {
         this.$emit('selected-changed', newVal)
       },

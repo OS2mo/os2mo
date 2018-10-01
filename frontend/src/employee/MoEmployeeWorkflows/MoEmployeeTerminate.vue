@@ -38,6 +38,10 @@
 </template>
 
 <script>
+  /**
+   * A employee terminate component.
+   */
+
   import Employee from '@/api/Employee'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
@@ -45,6 +49,9 @@
   import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -58,6 +65,10 @@
 
     data () {
       return {
+        /**
+         * The terminate, employee, isLoading component value.
+         * Used to detect changes and restore the value.
+         */
         isLoading: false,
         employee: null,
         terminate: {
@@ -71,8 +82,10 @@
         return !this.employee.uuid || !this.terminate.validity.to
       },
 
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
@@ -80,10 +93,17 @@
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Terminate employee and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       endEmployee (evt) {
         evt.preventDefault()
         if (this.formValid) {

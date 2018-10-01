@@ -1,5 +1,6 @@
 import { Selector } from 'testcafe'
 import { baseURL } from './support'
+import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
@@ -26,10 +27,12 @@ test('Workflow: move unit', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(unitInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li .item .link-color')
+           .withText('Ballerup Familiehus'))
 
     .click(parentInput)
-    .click(dialog.find('.parentUnit li .item .link-color'))
+    .click(dialog.find('.parentUnit li .item .link-color')
+           .withText('Ballerup Bibliotek'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -40,5 +43,11 @@ test('Workflow: move unit', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(Selector('#orgUnitCreate').exists).notOk()
+    .expect(dialog.exists).notOk()
+
+    .expect(VueSelector('MoLog MoWorklog')
+            .find('.alert').nth(-1).innerText)
+    .match(
+      /Organisationsenheden med UUID [-0-9a-f]* er blevet flyttet/
+    )
 })

@@ -68,6 +68,10 @@
 </template>
 
 <script>
+  /**
+   * A employee move many component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
@@ -76,6 +80,9 @@
   import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -89,6 +96,11 @@
 
     data () {
       return {
+        /**
+         * The employees, selected, moveDate, orgUnitSource, orgUnitDestination,
+         * isLoading, backendValidationError, columns component value.
+         * Used to detect changes and restore the value.
+         */
         employees: [],
         selected: [],
         moveDate: null,
@@ -105,27 +117,41 @@
     },
 
     computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       },
 
+      /**
+       * Set dateSelected to disable if moveDate is selected.
+       */
       dateSelected () {
         return !this.moveDate
       },
 
+      /**
+       * When sourceSelected is selected, return orgUnitSource.
+       */
       sourceSelected () {
         if (this.orgUnitSource) return this.orgUnitSource.uuid
       },
 
+      /**
+       * Get name `engagement-picker`.
+       */
       nameId () {
         return 'engagement-picker-' + this._uid
       }
     },
 
     watch: {
+      /**
+       * Whenever orgUnitSource changes, get employees.
+       */
       orgUnitSource: {
         handler (newVal) {
           if (newVal) this.getEmployees(newVal.uuid)
@@ -135,14 +161,23 @@
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
   
+      /**
+       * Selected employees.
+       */
       selectedEmployees (val) {
         this.selected = val
       },
 
+      /**
+       * Get employees detail.
+       */
       getEmployees (orgUnitUuid) {
         let vm = this
         OrganisationUnit.getDetail(orgUnitUuid, 'engagement')
@@ -151,6 +186,10 @@
           })
       },
 
+      /**
+       * Move many employees and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       moveMany (evt) {
         evt.preventDefault()
         if (this.formValid) {
