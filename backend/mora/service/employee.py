@@ -320,8 +320,8 @@ def create_employee():
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.
-    Note, that the ``person`` parameter is implicit in these payload, and should
-    not be given.
+    Note, that the ``person`` parameter is implicit in these payload, and
+    should not be given.
 
     .. sourcecode:: json
 
