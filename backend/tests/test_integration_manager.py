@@ -320,7 +320,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/manager'.format(unit_id),
             [{
-                'address': None,
+                'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -368,7 +368,7 @@ class Tests(util.LoRATestCase):
 
         # first create a manager on the unit
         expected = {
-            'address': None,
+            'address': [],
             'manager_level': {
                 'example': 'test@example.com',
                 'name': 'Emailadresse',
