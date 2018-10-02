@@ -29,6 +29,8 @@
 
       <mo-search-bar class="ml-auto mr-auto"/>
 
+      <mo-query-button/>
+
       <mo-time-machine-button/>
 
       <help-button/>
@@ -54,6 +56,7 @@
   import {AUTH_LOGOUT} from '@/store/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
   import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
+  import MoQueryButton from '@/query/MoQueryButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import Service from '@/api/HttpCommon'
@@ -62,6 +65,7 @@
     components: {
       HelpButton,
       MoTimeMachineButton,
+      MoQueryButton,
       MoSearchBar,
       MoOrganisationPicker
     },
