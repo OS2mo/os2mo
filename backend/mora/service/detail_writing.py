@@ -47,6 +47,17 @@ CREATION_HANDLERS = {
     'address': address.create_address
 }
 
+CREATE_VALIDATION_HANDLERS = {
+    'engagement': engagement.validate_create_engagement,
+    # 'association': association.edit_association,
+    # 'role': role.edit_role,
+    # 'leave': leave.edit_leave,
+    # 'manager': manager.edit_manager,
+    # 'it': itsystem.edit_itsystem,
+    # 'address': address.edit_address,
+    # 'org_unit': orgunit.edit_orgunit,
+}
+
 EDIT_HANDLERS = {
     'engagement': engagement.edit_engagement,
     'association': association.edit_association,
@@ -56,6 +67,17 @@ EDIT_HANDLERS = {
     'it': itsystem.edit_itsystem,
     'address': address.edit_address,
     'org_unit': orgunit.edit_orgunit,
+}
+
+EDIT_VALIDATION_HANDLERS = {
+    'engagement': engagement.validate_edit_engagement,
+    # 'association': association.edit_association,
+    # 'role': role.edit_role,
+    # 'leave': leave.edit_leave,
+    # 'manager': manager.edit_manager,
+    # 'it': itsystem.edit_itsystem,
+    # 'address': address.edit_address,
+    # 'org_unit': orgunit.edit_orgunit,
 }
 
 
@@ -357,10 +379,14 @@ def create():
 
     """
 
+    reqs = flask.request.get_json()
+
+    validated = process_requests(CREATE_VALIDATION_HANDLERS, reqs)
+
     return (
         flask.jsonify(
             process_requests(CREATION_HANDLERS,
-                             flask.request.get_json()),
+                             validated),
         ),
         201,
     )
@@ -805,10 +831,13 @@ def edit():
       ]
     """
 
+    reqs = flask.request.get_json()
+
+    validated = process_requests(EDIT_VALIDATION_HANDLERS, reqs)
+
     return (
         flask.jsonify(
-            process_requests(EDIT_HANDLERS,
-                             flask.request.get_json()),
+            process_requests(EDIT_HANDLERS, validated),
         ),
         200,
     )
