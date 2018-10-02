@@ -14,30 +14,29 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
+import uuid
 
 from .. import common
-from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
 from .. import validator
 
 
-def create_engagement(req):
+def validate_create_engagement(req: dict):
     c = lora.Connector()
 
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                           required=True)
 
-    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
-                                          required=True)
-
     valid_from, valid_to = util.get_validities(req)
 
-    # Validation
-    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+    employee = util.checked_get(req, mapping.PERSON, {}, required=True)
+    employee_uuid = util.get_uuid(employee, required=True)
+    validator.is_date_range_in_employee_range(employee, valid_from,
                                               valid_to)
-    validator.is_date_range_in_employee_range(employee_uuid, valid_from,
+
+    validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
                                               valid_to)
 
     org_unit = c.organisationenhed.get(org_unit_uuid)
@@ -48,8 +47,7 @@ def create_engagement(req):
                                                  mapping.ENGAGEMENT_TYPE,
                                                  required=True)
 
-    bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
-                            mapping.ENGAGEMENT_KEY)
+    bvn = str(uuid.uuid4())
 
     engagement = common.create_organisationsfunktion_payload(
         funktionsnavn=mapping.ENGAGEMENT_KEY,
@@ -63,10 +61,21 @@ def create_engagement(req):
         opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
     )
 
-    return c.organisationfunktion.create(engagement)
+    return {
+        'type': 'engagement',
+        'payload': engagement
+    }
 
 
-def edit_engagement(req):
+def create_engagement(req: dict):
+    c = lora.Connector()
+
+    payload = req['payload']
+
+    return c.organisationfunktion.create(payload)
+
+
+def validate_edit_engagement(req: dict):
     engagement_uuid = util.get_uuid(req)
 
     # Get the current org-funktion which the user wants to change
@@ -135,7 +144,20 @@ def edit_engagement(req):
 
     validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
                                               new_to)
-    validator.is_date_range_in_employee_range(employee_uuid, new_from,
+    validator.is_date_range_in_employee_range(employee, new_from,
                                               new_to)
+
+    return {
+        'type': 'engagement',
+        'uuid': engagement_uuid,
+        'payload': payload
+    }
+
+
+def edit_engagement(req: dict):
+    c = lora.Connector()
+
+    payload = req['payload']
+    engagement_uuid = req['uuid']
 
     return c.organisationfunktion.update(payload, engagement_uuid)
