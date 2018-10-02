@@ -28,10 +28,16 @@
             </span>
           </th>
           <th>
+            <span class="link" @click="sortDate(open.from, 'from')">
               {{$t('table_headers.start_date')}}
+              <icon :name="open.from ? 'sort-up' : 'sort-down'"/>
+            </span>
           </th>
           <th>
+            <span class="link" @click="sortDate(open.to, 'to')">
               {{$t('table_headers.end_date')}}
+              <icon :name="open.to ? 'sort-up' : 'sort-down'"/>
+            </span>
           </th>
           <th></th>
         </tr>
@@ -138,7 +144,7 @@
     data () {
       return {
       /**
-       * The selectAll, selected component value.
+       * The selectAll, selected, open, sortableContent component value.
        * Used to detect changes and restore the value.
        */
         selectAll: false,
@@ -173,6 +179,9 @@
     },
 
     methods: {
+      /**
+       * Sort data in columns.
+       */
       sortData (colName, toggleIcon) {
         if (toggleIcon[colName] === undefined) {
           toggleIcon[colName] = true
@@ -188,6 +197,23 @@
           }
         })
         this.open[colName] = !this.open[colName]
+      },
+
+      /**
+       * Sort dates in columns.
+       */
+      sortDate (toggleIcon, date) {
+        this.sortableContent.sort(function (a, b) {
+          let dateA = new Date(a.validity[date])
+          let dateB = new Date(b.validity[date])
+
+          if (toggleIcon) {
+            return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0
+          } else {
+            return (dateA < dateB) ? 1 : (dateA > dateB) ? -1 : 0
+          }
+        })
+        this.open[date] = !this.open[date]
       }
     }
   }
