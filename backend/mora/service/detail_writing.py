@@ -60,10 +60,16 @@ EDIT_HANDLERS = {
 
 
 def process_requests(handlers, reqs) -> typing.List[str]:
-    just_one = isinstance(reqs, dict)
-
-    if just_one:
+    if isinstance(reqs, dict):
+        just_one = True
         reqs = [reqs]
+    elif isinstance(reqs, list):
+        just_one = False
+    else:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
+            request=reqs,
+        )
 
     operations = {req.get('type') for req in reqs}
 

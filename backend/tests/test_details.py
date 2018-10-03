@@ -46,6 +46,19 @@ class Tests(util.TestCase):
         )
 
         self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Invalid input.',
+                'error': True,
+                'error_key': 'E_INVALID_INPUT',
+                'request': 'kaflaflibob',
+                'status': 400,
+            },
+            json='kaflaflibob',
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/details/blyf',
             {
                 'description': 'Unknown role type.',
