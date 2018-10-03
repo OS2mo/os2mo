@@ -22,16 +22,29 @@
             v-for="(col, index) in columns" 
             :key="index"
           >
-            {{$t('table_headers.'+col.label)}}
+            <span class="link" @click="sortData(col.label, open)">
+              {{$t('table_headers.'+col.label)}}
+              <icon :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
+            </span>
           </th>
-          <th>{{$t('table_headers.start_date')}}</th>
-          <th>{{$t('table_headers.end_date')}}</th>
+          <th>
+            <span class="link" @click="sortDate(open.from, 'from')">
+              {{$t('table_headers.start_date')}}
+              <icon :name="open.from ? 'sort-up' : 'sort-down'"/>
+            </span>
+          </th>
+          <th>
+            <span class="link" @click="sortDate(open.to, 'to')">
+              {{$t('table_headers.end_date')}}
+              <icon :name="open.to ? 'sort-up' : 'sort-down'"/>
+            </span>
+          </th>
           <th></th>
         </tr>
       </thead>
 
       <tbody>
-        <tr v-for="(c, index) in content" :key="index">
+        <tr v-for="(c, index) in sortableContent" :key="index">
           <td v-if="multiSelect">
             <b-form-checkbox 
               class="checkbox-employee" 
@@ -131,11 +144,13 @@
     data () {
       return {
       /**
-       * The selectAll, selected component value.
+       * The selectAll, selected, open, sortableContent component value.
        * Used to detect changes and restore the value.
        */
         selectAll: false,
-        selected: []
+        selected: [],
+        open: {},
+        sortableContent: null
       }
     },
 
@@ -154,6 +169,51 @@
        */
       selected (newVal) {
         this.$emit('selected-changed', newVal)
+      },
+
+      contentAvailable: function () {
+        if (!this.sortableContent) {
+          this.sortableContent = this.content
+        }
+      }
+    },
+
+    methods: {
+      /**
+       * Sort data in columns.
+       */
+      sortData (colName, toggleIcon) {
+        if (toggleIcon[colName] === undefined) {
+          toggleIcon[colName] = true
+        }
+        this.sortableContent.sort(function (a, b) {
+          let strA = a[colName].name
+          let strB = b[colName].name
+
+          if (toggleIcon[colName]) {
+            return (strA < strB) ? -1 : (strA > strB) ? 1 : 0
+          } else {
+            return (strA < strB) ? 1 : (strA > strB) ? -1 : 0
+          }
+        })
+        this.open[colName] = !this.open[colName]
+      },
+
+      /**
+       * Sort dates in columns.
+       */
+      sortDate (toggleIcon, date) {
+        this.sortableContent.sort(function (a, b) {
+          let dateA = new Date(a.validity[date])
+          let dateB = new Date(b.validity[date])
+
+          if (toggleIcon) {
+            return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0
+          } else {
+            return (dateA < dateB) ? 1 : (dateA > dateB) ? -1 : 0
+          }
+        })
+        this.open[date] = !this.open[date]
       }
     }
   }
@@ -168,5 +228,9 @@
     max-height: 55vh;
     overflow-x: hidden;
     overflow-y: auto;
+  }
+
+  .link{
+    cursor: pointer;
   }
 </style>
