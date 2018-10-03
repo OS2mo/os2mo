@@ -94,97 +94,163 @@ class OrgUnit(common.AbstractRelationDetail):
         ])
 
 
-def edit_orgunit(req):
-    original_data = util.checked_get(req, 'original', {}, required=False)
-    data = util.checked_get(req, 'data', {}, required=True)
+class OrgUnitRequest(common.Request):
+    def create(self, req):
+        c = lora.Connector()
 
-    unitid = util.get_mapping_uuid(data, mapping.ORG_UNIT,
-                                   fallback=original_data, required=True)
+        req = flask.request.get_json()
 
-    # Get the current org-unit which the user wants to change
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.organisationenhed.get(uuid=unitid)
+        name = util.checked_get(req, mapping.NAME, "", required=True)
 
-    if not original:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=unitid,
+        unitid = util.get_uuid(req, required=False)
+        bvn = util.checked_get(req, mapping.USER_KEY,
+                               "{} {}".format(name, uuid.uuid4()))
+
+        parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
+        organisationenhed_get = c.organisationenhed.get(parent_uuid)
+
+        if organisationenhed_get:
+            org_uuid = organisationenhed_get['relationer']['tilhoerer'][0][
+                'uuid']
+        else:
+            organisation_get = c.organisation(uuid=parent_uuid)
+
+            if organisation_get:
+                org_uuid = parent_uuid
+            else:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
+                    parent_uuid=parent_uuid,
+                    org_unit_uuid=unitid,
+                )
+
+        org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
+                                                   required=False)
+
+        addresses = [
+            address.get_relation_for(addr)
+            for addr in util.checked_get(req, mapping.ADDRESSES, [])
+        ]
+        valid_from = util.get_valid_from(req)
+        valid_to = util.get_valid_to(req)
+
+        org_unit = common.create_organisationsenhed_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            enhedsnavn=name,
+            brugervendtnoegle=bvn,
+            tilhoerer=org_uuid,
+            enhedstype=org_unit_type_uuid,
+            overordnet=parent_uuid,
+            adresser=addresses,
         )
 
-    new_from, new_to = util.get_validities(data)
+        if org_uuid != parent_uuid:
+            validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+                                                      valid_to)
 
-    # Get org unit uuid for validation purposes
-    parent = util.get_obj_value(
-        original, mapping.PARENT_FIELD.path)[-1]
-    parent_uuid = util.get_uuid(parent)
+        self.payload = org_unit
+        self.uuid = unitid
 
-    org_uuid = util.get_obj_uuid(original, mapping.BELONGS_TO_FIELD.path)
+    def edit(self, req: dict):
+        original_data = util.checked_get(req, 'original', {}, required=False)
+        data = util.checked_get(req, 'data', {}, required=True)
 
-    payload = dict()
-    payload['note'] = 'Rediger organisationsenhed'
+        unitid = util.get_mapping_uuid(data, mapping.ORG_UNIT,
+                                       fallback=original_data, required=True)
 
-    if original_data:
-        # We are performing an update
-        old_from, old_to = util.get_validities(original_data)
-        payload = common.inactivate_old_interval(
-            old_from, old_to, new_from, new_to, payload,
-            ('tilstande', 'organisationenhedgyldighed')
-        )
+        # Get the current org-unit which the user wants to change
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        original = c.organisationenhed.get(uuid=unitid)
 
-        original_uuid = util.get_mapping_uuid(original_data, mapping.ORG_UNIT)
-
-        if original_uuid and original_uuid != unitid:
+        if not original:
             raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
-                'cannot change unit uuid!',
+                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+                org_unit_uuid=unitid,
             )
 
-    update_fields = list()
+        new_from, new_to = util.get_validities(data)
 
-    # Always update gyldighed
-    update_fields.append((
-        mapping.ORG_UNIT_GYLDIGHED_FIELD,
-        {'gyldighed': "Aktiv"}
-    ))
+        # Get org unit uuid for validation purposes
+        parent = util.get_obj_value(
+            original, mapping.PARENT_FIELD.path)[-1]
+        parent_uuid = util.get_uuid(parent)
 
-    if mapping.NAME in data:
-        attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
-        attrs['enhedsnavn'] = data[mapping.NAME]
+        org_uuid = util.get_obj_uuid(original, mapping.BELONGS_TO_FIELD.path)
 
+        payload = dict()
+        payload['note'] = 'Rediger organisationsenhed'
+
+        if original_data:
+            # We are performing an update
+            old_from, old_to = util.get_validities(original_data)
+            payload = common.inactivate_old_interval(
+                old_from, old_to, new_from, new_to, payload,
+                ('tilstande', 'organisationenhedgyldighed')
+            )
+
+            original_uuid = util.get_mapping_uuid(original_data, mapping.ORG_UNIT)
+
+            if original_uuid and original_uuid != unitid:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    'cannot change unit uuid!',
+                )
+
+        update_fields = list()
+
+        # Always update gyldighed
         update_fields.append((
-            mapping.ORG_UNIT_EGENSKABER_FIELD,
-            attrs,
+            mapping.ORG_UNIT_GYLDIGHED_FIELD,
+            {'gyldighed': "Aktiv"}
         ))
 
-    if mapping.ORG_UNIT_TYPE in data:
-        update_fields.append((
-            mapping.ORG_UNIT_TYPE_FIELD,
-            {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
-        ))
+        if mapping.NAME in data:
+            attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
+            attrs['enhedsnavn'] = data[mapping.NAME]
 
-    if mapping.PARENT in data:
-        parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
-        validator.is_candidate_parent_valid(unitid,
-                                            parent_uuid, new_from)
-        update_fields.append((
-            mapping.PARENT_FIELD,
-            {'uuid': parent_uuid}
-        ))
+            update_fields.append((
+                mapping.ORG_UNIT_EGENSKABER_FIELD,
+                attrs,
+            ))
 
-    payload = common.update_payload(new_from, new_to, update_fields,
-                                    original, payload)
+        if mapping.ORG_UNIT_TYPE in data:
+            update_fields.append((
+                mapping.ORG_UNIT_TYPE_FIELD,
+                {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
+            ))
 
-    bounds_fields = list(
-        mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
-    payload = common.ensure_bounds(new_from, new_to, bounds_fields,
-                                   original, payload)
+        if mapping.PARENT in data:
+            parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
+            validator.is_candidate_parent_valid(unitid,
+                                                parent_uuid, new_from)
+            update_fields.append((
+                mapping.PARENT_FIELD,
+                {'uuid': parent_uuid}
+            ))
 
-    # TODO: Check if we're inside the validity range of the organisation
-    if org_uuid != parent_uuid:
-        validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
-                                                  new_to)
+        payload = common.update_payload(new_from, new_to, update_fields,
+                                        original, payload)
 
-    return c.organisationenhed.update(payload, unitid)
+        bounds_fields = list(
+            mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                       original, payload)
+
+        # TODO: Check if we're inside the validity range of the organisation
+        if org_uuid != parent_uuid:
+            validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+                                                      new_to)
+        self.payload = payload
+        self.uuid = unitid
+
+    def submit_request(self):
+        c = lora.Connector()
+
+        if self.request_type == common.RequestType.CREATE:
+            return c.organisationenhed.create(self.payload, self.uuid)
+        else:
+            return c.organisationenhed.update(self.payload, self.uuid)
 
 
 def get_one_orgunit(c, unitid, unit=None,

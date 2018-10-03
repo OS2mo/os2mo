@@ -17,17 +17,17 @@ For more information regarding reading relations involving employees, refer to
 :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
-
+import copy
 import uuid
 
 import flask
 
-from .. import mapping
-from .. import exceptions
-from . import address
-from .. import common
+from mora.service import detail_writing as writing
 from . import org
+from .. import common
+from .. import exceptions
 from .. import lora
+from .. import mapping
 from .. import settings
 from .. import util
 
@@ -342,6 +342,8 @@ def create_employee():
     org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
     cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
     userid = util.get_uuid(req, required=False)
+    if not userid:
+        userid = uuid.uuid4()
 
     try:
         valid_from = \
@@ -378,6 +380,31 @@ def create_employee():
         cpr=cpr,
     )
 
+    details = util.checked_get(req, 'details', [])
+
+    details_with_persons = _inject_persons(details, userid, valid_from,
+                                           valid_to)
+
+    # Validate the creation requests
+    details_requests = writing.generate_requests(details_with_persons,
+                                                 common.RequestType.CREATE)
+
     userid = c.bruger.create(user, uuid=userid)
 
-    return flask.jsonify(userid)
+    creation_uuids = writing.submit_requests(details_requests)
+
+    return flask.jsonify(
+        [userid] + creation_uuids if creation_uuids else userid)
+
+
+def _inject_persons(details, employee_uuid, valid_from, valid_to):
+    decorated = copy.deepcopy(details)
+    for detail in decorated:
+        detail['person'] = {
+            mapping.UUID: employee_uuid,
+            mapping.VALID_FROM: valid_from,
+            mapping.VALID_TO: valid_to,
+            'allow_nonexistent': True
+        }
+
+    return decorated

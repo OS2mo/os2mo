@@ -373,6 +373,84 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
+class AddressRequest(common.Request):
+    def create(self, req: dict):
+        scope, id, original = get_scope_id_and_original(req)
+
+        # we're editing a many-to-many relation, so inline the
+        # create_organisationsenhed_payload logic for simplicity
+        rel = get_relation_for(req)
+
+    def edit(self, req: dict):
+        scope, id, original = get_scope_id_and_original(req)
+
+        old_entry = util.checked_get(req, 'original', {}, required=True)
+        new_entry = util.checked_get(req, 'data', {}, required=True)
+
+        old_rel = get_relation_for(old_entry)
+        new_rel = get_relation_for(new_entry, old_entry)
+
+        try:
+            addresses = original['relationer']['adresser']
+        except KeyError:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'no addresses to edit!',
+            )
+
+    def submit_request(self) -> str:
+
+        if self.request_type == common.RequestType.CREATE:
+            return self._submit_create()
+        else:
+            return self._submit_edit()
+
+    def _submit_create(self):
+        scope, id, original = get_scope_id_and_original(self.request)
+
+        # we're editing a many-to-many relation, so inline the
+        # create_organisationsenhed_payload logic for simplicity
+        rel = get_relation_for(self.request)
+
+        addrs = original['relationer'].get('adresser', [])
+
+        payload = {
+            'relationer': {
+                'adresser': addrs + [rel],
+            },
+            'note': 'Tilføj adresse',
+        }
+
+        return scope.update(payload, id)
+
+    def _submit_edit(self):
+        scope, id, original = get_scope_id_and_original(self.request)
+
+        old_entry = util.checked_get(self.request, 'original', {}, required=True)
+        new_entry = util.checked_get(self.request, 'data', {}, required=True)
+
+        old_rel = get_relation_for(old_entry)
+        new_rel = get_relation_for(new_entry, old_entry)
+
+        try:
+            addresses = original['relationer']['adresser']
+        except KeyError:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'no addresses to edit!',
+            )
+
+        addresses = common.replace_relation_value(addresses, old_rel, new_rel)
+
+        payload = {
+            'relationer': {
+                'adresser': addresses,
+            }
+        }
+
+        return scope.update(payload, id)
+
+
 class Addresses(common.AbstractRelationDetail):
     @staticmethod
     def has(reg):
@@ -472,57 +550,6 @@ def get_scope_id_and_original(req: dict):
             )
 
     return scope, id, obj
-
-
-def create_address(req):
-    scope, id, original = get_scope_id_and_original(req)
-
-    # we're editing a many-to-many relation, so inline the
-    # create_organisationsenhed_payload logic for simplicity
-    rel = get_relation_for(req)
-
-    addrs = original['relationer'].get('adresser', [])
-
-    payload = {
-        'relationer': {
-            'adresser': addrs + [rel],
-        },
-        'note': 'Tilføj adresse',
-    }
-
-    scope.update(payload, id)
-
-    return id
-
-
-def edit_address(req):
-    scope, id, original = get_scope_id_and_original(req)
-
-    old_entry = util.checked_get(req, 'original', {}, required=True)
-    new_entry = util.checked_get(req, 'data', {}, required=True)
-
-    old_rel = get_relation_for(old_entry)
-    new_rel = get_relation_for(new_entry, old_entry)
-
-    try:
-        addresses = original['relationer']['adresser']
-    except KeyError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'no addresses to edit!',
-        )
-
-    addresses = common.replace_relation_value(addresses, old_rel, new_rel)
-
-    payload = {
-        'relationer': {
-            'adresser': addresses,
-        }
-    }
-
-    scope.update(payload, id)
-
-    return id
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')

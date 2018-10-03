@@ -20,6 +20,7 @@ import abc
 import collections
 import copy
 import datetime
+import enum
 import functools
 import typing
 import uuid
@@ -48,6 +49,86 @@ class AbstractRelationDetail(abc.ABC):
     @abc.abstractmethod
     def get(self, objid):
         pass
+
+
+class Payload:
+    __slots__ = 'payload', 'obj_uuid', 'scope'
+
+    def __init__(self, payload, obj_uuid, scope):
+        self.payload = payload
+        self.obj_uuid = obj_uuid
+        self.scope = scope
+
+
+class RequestType(enum.Enum):
+    CREATE = 0
+    EDIT = 1
+
+
+class Request(abc.ABC):
+
+    __slots__ = 'request', 'request_type', 'payload', 'uuid'
+
+    def __init__(self, request, request_type: RequestType):
+        """
+        Initialize a request, and perform all required validation.
+        :param request: A dict containing a request
+        :param request_type: A RequestType, either CREATE or EDIT
+        """
+        self.request_type = request_type
+        self.request = request
+        self.payload = None
+        self.uuid = None
+
+        if request_type == RequestType.CREATE:
+            self.create(request)
+        if request_type == RequestType.EDIT:
+            self.edit(request)
+
+    @abc.abstractmethod
+    def create(self, request: dict):
+        """
+        Initialize a 'create' request. Performs validation and all
+        necessary processing
+        :param request: A dict containing a request
+        """
+        pass
+
+    @abc.abstractmethod
+    def edit(self, request: dict):
+        """
+        Initialize an 'edit' request. Performs validation and all
+        necessary processing
+        :param request: A dict containing a request
+        """
+        pass
+
+    @abc.abstractmethod
+    def submit_request(self) -> str:
+        """
+        Submit the request to LoRa.
+        :return: A string containing the result from submitting the request
+        to LoRa, typically a UUID.
+        """
+        pass
+
+
+class OrgFunkRequest(Request):
+    @abc.abstractmethod
+    def create(self, request: dict):
+        pass
+
+    @abc.abstractmethod
+    def edit(self, request: dict):
+        pass
+
+    def submit_request(self) -> str:
+        c = lora.Connector()
+
+        if self.request_type == RequestType.CREATE:
+            return c.organisationfunktion.create(self.payload, self.uuid)
+        else:
+            return c.organisationfunktion.update(self.payload, self.uuid)
 
 
 def get_connector(**loraparams):

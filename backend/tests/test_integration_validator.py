@@ -149,10 +149,13 @@ class TestValidator(TestHelper):
         employee_uuid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'  # Anders And
         valid_from = mora_util.parsedatetime("1910-01-01")
         valid_to = mora_util.parsedatetime("2040-01-01")
+        employee = {
+            'uuid': employee_uuid
+        }
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_date_range_in_employee_range(employee_uuid,
+            validator.is_date_range_in_employee_range(employee,
                                                       valid_from, valid_to)
 
     def test_is_date_range_in_employee_valid_inside_range(self):
@@ -164,10 +167,13 @@ class TestValidator(TestHelper):
         employee_uuid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'  # Anders And
         valid_from = mora_util.parsedatetime("2020-01-01")
         valid_to = mora_util.parsedatetime("2040-01-01")
+        employee = {
+            'uuid': employee_uuid
+        }
 
         # Act & Assert
         # Should be callable without raising exception
-        validator.is_date_range_in_employee_range(employee_uuid,
+        validator.is_date_range_in_employee_range(employee,
                                                   valid_from, valid_to)
 
     def test_is_distinct_responsibility_with_duplicate(self):
