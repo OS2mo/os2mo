@@ -603,61 +603,10 @@ def create_org_unit():
 
     """
 
-    c = lora.Connector()
-
     req = flask.request.get_json()
+    request = OrgUnitRequest(req, common.RequestType.CREATE)
 
-    name = util.checked_get(req, mapping.NAME, "", required=True)
-
-    unitid = util.get_uuid(req, required=False)
-    bvn = util.checked_get(req, mapping.USER_KEY,
-                           "{} {}".format(name, uuid.uuid4()))
-
-    parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
-    organisationenhed_get = c.organisationenhed.get(parent_uuid)
-
-    if organisationenhed_get:
-        org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
-    else:
-        organisation_get = c.organisation(uuid=parent_uuid)
-
-        if organisation_get:
-            org_uuid = parent_uuid
-        else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
-                parent_uuid=parent_uuid,
-                org_unit_uuid=unitid,
-            )
-
-    org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
-                                               required=False)
-
-    addresses = [
-        address.get_relation_for(addr)
-        for addr in util.checked_get(req, mapping.ADDRESSES, [])
-    ]
-    valid_from = util.get_valid_from(req)
-    valid_to = util.get_valid_to(req)
-
-    org_unit = common.create_organisationsenhed_payload(
-        valid_from=valid_from,
-        valid_to=valid_to,
-        enhedsnavn=name,
-        brugervendtnoegle=bvn,
-        tilhoerer=org_uuid,
-        enhedstype=org_unit_type_uuid,
-        overordnet=parent_uuid,
-        adresser=addresses,
-    )
-
-    if org_uuid != parent_uuid:
-        validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                                  valid_to)
-
-    unitid = c.organisationenhed.create(org_unit, unitid)
-
-    return flask.jsonify(unitid)
+    return flask.jsonify(request.submit_request()), 201
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
