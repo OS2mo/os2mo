@@ -199,7 +199,9 @@ import re
 import flask
 import requests
 
+from . import employee
 from . import facet
+from . import orgunit
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -412,6 +414,18 @@ class Addresses(common.AbstractRelationDetail):
 
                 addr[mapping.VALIDITY] = util.get_effect_validity(addrrel)
 
+                if self.scope.path == 'organisation/bruger':
+                    addr[mapping.PERSON] = employee.get_one_employee(
+                        c, id, effect,
+                    )
+
+                else:
+                    assert self.scope.path == 'organisation/organisationenhed'
+                    addr[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
+                        c, id, effect,
+                        details=orgunit.UnitDetails.MINIMAL,
+                    )
+
                 yield addr
 
         return flask.jsonify(
@@ -496,10 +510,10 @@ def create_address(req):
 
 
 def edit_address(req):
-    scope, id, original = get_scope_id_and_original(req)
-
     old_entry = util.checked_get(req, 'original', {}, required=True)
     new_entry = util.checked_get(req, 'data', {}, required=True)
+
+    scope, id, original = get_scope_id_and_original(old_entry)
 
     old_rel = get_relation_for(old_entry)
     new_rel = get_relation_for(new_entry, old_entry)
