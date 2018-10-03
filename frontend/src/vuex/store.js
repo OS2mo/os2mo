@@ -5,6 +5,7 @@ import employee from './modules/employee'
 import log from './modules/log'
 import organisation from './modules/organisation'
 import organisationUnit from './modules/organisationUnit'
+import facet from './modules/facet'
 
 Vue.use(Vuex)
 
@@ -14,6 +15,7 @@ export default new Vuex.Store({
     employee: employee,
     log: log,
     organisation: organisation,
-    organisationUnit: organisationUnit
+    organisationUnit: organisationUnit,
+    facet: facet
   }
 })
