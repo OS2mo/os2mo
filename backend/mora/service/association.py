@@ -16,7 +16,6 @@ This section describes how to interact with employee associations.
 
 import flask
 
-from mora.common import Payload
 from . import address
 from .. import common
 from .. import exceptions

@@ -51,15 +51,6 @@ class AbstractRelationDetail(abc.ABC):
         pass
 
 
-class Payload:
-    __slots__ = 'payload', 'obj_uuid', 'scope'
-
-    def __init__(self, payload, obj_uuid, scope):
-        self.payload = payload
-        self.obj_uuid = obj_uuid
-        self.scope = scope
-
-
 class RequestType(enum.Enum):
     CREATE = 0
     EDIT = 1
