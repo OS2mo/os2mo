@@ -343,7 +343,7 @@ def create_employee():
     cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
     userid = util.get_uuid(req, required=False)
     if not userid:
-        userid = uuid.uuid4()
+        userid = str(uuid.uuid4())
 
     try:
         valid_from = \

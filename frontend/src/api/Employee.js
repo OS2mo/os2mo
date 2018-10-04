@@ -70,11 +70,15 @@ export default {
   new (employee) {
     return Service.post(`/e/create`, employee)
       .then(response => {
+        let EmployeeUuid = response.data
+        if (Array.isArray(response.data)) {
+          EmployeeUuid = response.data[0]
+        }
         if (response.data.error) {
           return response.data
         }
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response.data})
-        return response.data
+        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: EmployeeUuid})
+        return EmployeeUuid
       })
       .catch(error => {
         store.commit('log/newError', {type: 'ERROR', value: error.response.data})

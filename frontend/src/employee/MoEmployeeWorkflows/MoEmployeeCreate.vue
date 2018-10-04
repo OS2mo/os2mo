@@ -174,7 +174,8 @@
           let newEmployee = {
             name: this.employee.name,
             cpr_no: this.employee.cpr_no,
-            org: this.$store.state.organisation
+            org: this.$store.state.organisation,
+            details: create
           }
 
           Employee.new(newEmployee)
@@ -182,19 +183,10 @@
               vm.isLoading = false
               if (employeeUuid.error) {
                 vm.backendValidationError = employeeUuid.error_key
-                return
+              } else {
+                vm.$refs.employeeCreate.hide()
+                vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
               }
-
-              Employee.create(employeeUuid, create)
-                .then(response => {
-                  vm.isLoading = false
-                  if (response.error) {
-                    vm.backendValidationError = response.error_key
-                  } else {
-                    vm.$refs.employeeCreate.hide()
-                    vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
-                  }
-                })
             })
         } else {
           this.$validator.validateAll()
