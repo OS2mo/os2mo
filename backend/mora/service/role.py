@@ -147,4 +147,3 @@ class RoleRequest(common.OrgFunkRequest):
 
         self.payload = payload
         self.uuid = role_uuid
-

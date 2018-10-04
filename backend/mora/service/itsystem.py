@@ -64,7 +64,8 @@ class ItsystemRequest(common.OrgFunkRequest):
             validator.is_date_range_in_employee_range(employee, valid_from,
                                                       valid_to)
 
-        # TODO: validate that the date range is in the validity of the IT system!
+        # TODO: validate that the date range is in
+        # the validity of the IT system!
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ITSYSTEM_KEY,

@@ -198,4 +198,3 @@ class ManagerRequest(common.OrgFunkRequest):
 
         self.payload = payload
         self.uuid = manager_uuid
-

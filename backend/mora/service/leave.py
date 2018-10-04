@@ -135,4 +135,3 @@ class LeaveRequest(common.OrgFunkRequest):
 
         self.payload = payload
         self.uuid = leave_uuid
-

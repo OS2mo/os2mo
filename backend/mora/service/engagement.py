@@ -141,4 +141,3 @@ class EngagementRequest(common.OrgFunkRequest):
 
         self.payload = payload
         self.uuid = engagement_uuid
-

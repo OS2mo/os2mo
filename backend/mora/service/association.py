@@ -181,4 +181,3 @@ class AssociationRequest(common.OrgFunkRequest):
 
         self.payload = payload
         self.uuid = association_uuid
-

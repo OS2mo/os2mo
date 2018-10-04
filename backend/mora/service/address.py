@@ -382,10 +382,11 @@ class AddressRequest(common.Request):
         rel = get_relation_for(req)
 
     def edit(self, req: dict):
-        scope, id, original = get_scope_id_and_original(req)
+        old_entry = util.checked_get(self.request, 'original', {},
+                                     required=True)
+        new_entry = util.checked_get(self.request, 'data', {}, required=True)
 
-        old_entry = util.checked_get(req, 'original', {}, required=True)
-        new_entry = util.checked_get(req, 'data', {}, required=True)
+        scope, id, original = get_scope_id_and_original(old_entry)
 
         old_rel = get_relation_for(old_entry)
         new_rel = get_relation_for(new_entry, old_entry)
@@ -426,10 +427,11 @@ class AddressRequest(common.Request):
         return id
 
     def _submit_edit(self):
-        scope, id, original = get_scope_id_and_original(self.request)
-
-        old_entry = util.checked_get(self.request, 'original', {}, required=True)
+        old_entry = util.checked_get(self.request, 'original', {},
+                                     required=True)
         new_entry = util.checked_get(self.request, 'data', {}, required=True)
+
+        scope, id, original = get_scope_id_and_original(old_entry)
 
         old_rel = get_relation_for(old_entry)
         new_rel = get_relation_for(new_entry, old_entry)

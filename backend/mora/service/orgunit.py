@@ -189,7 +189,8 @@ class OrgUnitRequest(common.Request):
                 ('tilstande', 'organisationenhedgyldighed')
             )
 
-            original_uuid = util.get_mapping_uuid(original_data, mapping.ORG_UNIT)
+            original_uuid = util.get_mapping_uuid(original_data,
+                                                  mapping.ORG_UNIT)
 
             if original_uuid and original_uuid != unitid:
                 raise exceptions.HTTPException(

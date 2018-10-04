@@ -70,9 +70,16 @@ def handle_requests(
     reqs: List[dict],
     request_type: common.RequestType
 ):
-    is_single_request = isinstance(reqs, dict)
-    if is_single_request:
+    if isinstance(reqs, dict):
+        is_single_request = True
         reqs = [reqs]
+    elif isinstance(reqs, list):
+        is_single_request = False
+    else:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_INVALID_INPUT,
+            request=reqs,
+        )
 
     requests = generate_requests(reqs, request_type)
 
