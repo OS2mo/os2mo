@@ -484,6 +484,14 @@ def get_detail(type, id, function):
 
         yield from map(operator.itemgetter('objekttype'), rels)
 
+    def get_user_key(effect):
+        try:
+            props = effect['attributter']['organisationfunktionegenskaber']
+        except LookupError:
+            return
+
+        yield from map(operator.itemgetter('brugervendtnoegle'), props)
+
     def getter(rel, field=None):
         def get(effect):
             try:
@@ -571,6 +579,7 @@ def get_detail(type, id, function):
             mapping.PERSON: (user_cache, get_employee_id, None, False),
             mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
             mapping.ITSYSTEM: (itsystem_cache, get_itsystem, None, False),
+            mapping.USER_KEY: (None, get_user_key, None, False),
         },
     }
 
@@ -618,9 +627,10 @@ def get_detail(type, id, function):
 
     # extract all object IDs
     for cache, getter, cachegetter, aslist in converters[function].values():
-        for start, end, funcid, effect in function_effects:
-            for v in as_values((cachegetter or getter)(effect)):
-                cache[v] = None
+        if cache is not None:
+            for start, end, funcid, effect in function_effects:
+                for v in as_values((cachegetter or getter)(effect)):
+                    cache[v] = None
 
     # fetch and convert each object once, rather than multiple times
     class_cache.update({
@@ -674,12 +684,6 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
-
-        if function == 'it':
-            func[mapping.USER_KEY] = (
-                effect['attributter']['organisationfunktionegenskaber'][0]
-                ['brugervendtnoegle']
-            )
 
         return func
 
