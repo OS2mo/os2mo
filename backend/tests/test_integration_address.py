@@ -1243,13 +1243,7 @@ class Writing(util.LoRATestCase):
         }
 
         old_addr = {
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            },
+            'address_type': email_class,
             'href': 'mailto:bruger@example.com',
             'name': 'bruger@example.com',
             'urn': 'urn:mailto:bruger@example.com',
@@ -1384,6 +1378,106 @@ class Writing(util.LoRATestCase):
                     'to': '2018-12-31',
                 },
             }],
+        )
+
+    def test_edit_text_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
+
+        classid = util.load_fixture(
+            'klassifikation/klasse', 'create_klasse.json',
+            '0bf0daec-9d83-4783-a2cf-5e628fe70e51',
+            description=None,
+            example="…",
+            name='Kommentar',
+            scope="TEXT",
+            user_key='Comment',
+            facetid="e337bab4-635f-49ce-aa31-b44047a43aa1",
+        )
+
+        comment_class = {
+            'example': '…',
+            'name': "Kommentar",
+            'scope': 'TEXT',
+            'user_key': 'Comment',
+            'uuid': classid,
+        }
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/f/address_type/',
+                {
+                    'data': {
+                        'offset': 0, 'total': 5,
+                        'items': [
+                            comment_class,
+                            phone_class,
+                            address_class,
+                            email_class,
+                            ean_class,
+                        ],
+                    },
+                    'name': 'address_type',
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/f/address_type/',
+                    'user_key': 'Adressetype',
+                    'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
+            )
+
+        old_addr = {
+            'address_type': email_class,
+            'href': 'mailto:bruger@example.com',
+            'name': 'bruger@example.com',
+            'urn': 'urn:mailto:bruger@example.com',
+            'person': user,
+            'validity': {
+                'from': '1934-06-09',
+                'to': None,
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': {
+                        **old_addr,
+                        'address_type': comment_class,
+                        'value': 'kaflibob',
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': comment_class,
+                    'href': None,
+                    'name': 'kaflibob',
+                    'urn': 'urn:text:kaflibob',
+                    'person': user,
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                }
+            ],
         )
 
     def test_create_unit_address(self, mock):
@@ -1975,13 +2069,7 @@ class Writing(util.LoRATestCase):
         })
 
         addresses.append({
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            },
+            'address_type': email_class,
             'href': 'mailto:root@example.com',
             'name': 'root@example.com',
             'org_unit': unit,
