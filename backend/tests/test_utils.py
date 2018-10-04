@@ -15,6 +15,7 @@ import freezegun
 
 from mora import exceptions
 from mora import util
+from mora import mapping
 
 from .util import TestCase
 
@@ -799,3 +800,8 @@ class TestAppUtils(unittest.TestCase):
             # request
             self.assertEqual(client.get('/?fest=42').status,
                              '200 OK')
+
+    def test_mapping_fieldtype(self):
+        self.assertEqual("FieldTuple(('relationer', 'tilknyttedeitsystemer'), "
+                         "FieldTypes.ADAPTED_ZERO_TO_MANY, None)",
+                         str(mapping.SINGLE_ITSYSTEM_FIELD))
