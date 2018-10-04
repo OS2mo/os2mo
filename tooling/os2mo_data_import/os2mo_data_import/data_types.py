@@ -80,15 +80,12 @@ class Facet(MemoryMap):
 
     defaul_types = [
         "Tilknytningstype",
-        "Funktionstype",
         "Lederansvar",
         "Lederniveau",
-        "Brugertype",
         "Engagementstype",
         "Enhedstype",
         "Ledertyper",
         "Orlovstype",
-        "Myndighedstype",
         "Rolletype",
         "Stillingsbetegnelse",
         "Adressetype"
