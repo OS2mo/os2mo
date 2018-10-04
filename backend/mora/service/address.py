@@ -375,17 +375,19 @@ def get_one_address(c, addrrel, class_cache=None):
 
 class AddressRequestHandler(common.RequestHandler):
 
-    __slots__ = *common.RequestHandler.__slots__, 'obj_type'
+    __slots__ = *common.RequestHandler.__slots__, 'obj_type', 'old_rel', \
+        'new_rel'
 
     def __init__(self, *args, **kwargs):
         self.obj_type = None
+        self.old_rel = None
+        self.new_rel = None
         super().__init__(*args, **kwargs)
 
     def prepare_create(self, req: dict):
         self.uuid, self.obj_type = get_id_and_type(req)
 
-        # Run through to perform validation
-        get_relation_for(req)
+        self.new_rel = get_relation_for(req)
 
     def prepare_edit(self, req: dict):
         old_entry = util.checked_get(self.request, 'original', {},
@@ -394,8 +396,8 @@ class AddressRequestHandler(common.RequestHandler):
 
         self.uuid, self.obj_type = get_id_and_type(old_entry)
 
-        get_relation_for(old_entry)
-        get_relation_for(new_entry, old_entry)
+        self.old_rel = get_relation_for(old_entry)
+        self.new_rel = get_relation_for(new_entry, old_entry)
 
     def submit(self) -> str:
 
@@ -409,13 +411,12 @@ class AddressRequestHandler(common.RequestHandler):
 
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
-        rel = get_relation_for(self.request)
 
         addrs = original['relationer'].get('adresser', [])
 
         payload = {
             'relationer': {
-                'adresser': addrs + [rel],
+                'adresser': addrs + [self.new_rel],
             },
             'note': 'Tilføj adresse',
         }
@@ -425,14 +426,7 @@ class AddressRequestHandler(common.RequestHandler):
         return self.uuid
 
     def _submit_edit(self):
-        old_entry = util.checked_get(self.request, 'original', {},
-                                     required=True)
-        new_entry = util.checked_get(self.request, 'data', {}, required=True)
-
         scope, original = get_scope_and_original(self.uuid, self.obj_type)
-
-        old_rel = get_relation_for(old_entry)
-        new_rel = get_relation_for(new_entry, old_entry)
 
         try:
             addresses = original['relationer']['adresser']
@@ -442,7 +436,8 @@ class AddressRequestHandler(common.RequestHandler):
                 'no addresses to edit!',
             )
 
-        addresses = common.replace_relation_value(addresses, old_rel, new_rel)
+        addresses = common.replace_relation_value(addresses, self.old_rel,
+                                                  self.new_rel)
 
         payload = {
             'relationer': {
