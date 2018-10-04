@@ -18,14 +18,10 @@ A employee move component.
 
 ## data 
 
-- `employee` 
-
-  The move, employee, original, isLoading, backendValidationError component value.
-  Used to detect changes and restore the value. 
-
-**initial value:** `[object Object]` 
-
 - `isLoading` 
+
+  The move, original, isLoading, backendValidationError component value.
+  Used to detect changes and restore the value. 
 
 **initial value:** `false` 
 

@@ -96,6 +96,7 @@
         move: {
           type: 'org_unit',
           data: {
+            org_unit: this.original,
             validity: {}
           }
         },
@@ -121,7 +122,10 @@
        */
       original: {
         handler (newVal) {
-          if (this.original) return this.getCurrentUnit(newVal.uuid)
+          if (this.original) {
+            this.move.data.org_unit = newVal
+            return this.getCurrentUnit(newVal.uuid)
+          }
         },
         deep: true
       }
@@ -145,7 +149,7 @@
           let vm = this
           vm.isLoading = true
 
-          OrganisationUnit.move(this.original.uuid, this.move)
+          OrganisationUnit.move(this.move)
             .then(response => {
               vm.isLoading = false
               if (response.error) {

@@ -139,11 +139,12 @@
 
         switch (this.type) {
           case 'EMPLOYEE':
+            this.entry.person = {uuid: this.uuid}
             this.createEmployee(this.entry)
             break
           case 'ORG_UNIT':
-            this.entry.type = 'address'
-            this.createOrganisationUnit([this.entry])
+            this.entry.org_unit = {uuid: this.uuid}
+            this.createOrganisationUnit(this.entry)
             break
         }
       },
@@ -154,7 +155,7 @@
        */
       createEmployee (data) {
         let vm = this
-        Employee.create(this.uuid, [data])
+        Employee.create([data])
           .then(response => {
             vm.isLoading = false
             if (response.error) {
@@ -171,7 +172,7 @@
        */
       createOrganisationUnit (data) {
         let vm = this
-        return OrganisationUnit.createEntry(this.uuid, data)
+        return OrganisationUnit.createEntry(data)
           .then(response => {
             vm.isLoading = false
             if (response.error) {

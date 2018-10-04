@@ -22,8 +22,8 @@
         :disable-org-unit-picker="disableOrgUnitPicker"
       />
 
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
+      <div class="alert alert-danger" v-if="backendValidationMessage">
+        {{backendValidationMessage}}
       </div>
 
       <div class="float-right">
@@ -98,13 +98,13 @@
     data () {
       return {
       /**
-       * The entry, original, isLoading, backendValidationError component value.
+       * The entry, original, isLoading, backendValidationMessage component value.
        * Used to detect changes and restore the value.
        */
         entry: {},
         original: {},
         isLoading: false,
-        backendValidationError: null
+        backendValidationMessage: null
       }
     },
 
@@ -158,6 +158,8 @@
        */
       this.handleContent(this.content)
 
+      this.backendValidationMessage = null
+
       this.$root.$on('bv::modal::shown', data => {
         if (this.content) {
           this.handleContent(this.content)
@@ -196,9 +198,11 @@
 
         switch (this.type) {
           case 'EMPLOYEE':
+            data.person = {uuid: this.uuid}
             this.editEmployee(data)
             break
           case 'ORG_UNIT':
+            data.org_unit = {uuid: this.uuid}
             this.editOrganisationUnit(data)
             break
         }
@@ -209,16 +213,7 @@
        * Then throw a error if not.
        */
       editEmployee (data) {
-        let vm = this
-        return Employee.edit(this.uuid, [data])
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response.error_key
-            } else {
-              vm.$refs[this.nameId].hide()
-            }
-          })
+        return Employee.edit(data).then(this.handle.bind(this))
       },
 
       /**
@@ -226,16 +221,24 @@
        * Then throw a error if not.
        */
       editOrganisationUnit (data) {
-        let vm = this
-        return OrganisationUnit.edit(this.uuid, data)
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response.error_key
-            } else {
-              vm.$refs[this.nameId].hide()
-            }
-          })
+        return OrganisationUnit.edit(data).then(this.handle.bind(this))
+      },
+
+      handle (response) {
+        this.isLoading = false
+        if (response.error) {
+          let messages = this.$i18n.messages[this.$i18n.locale]
+
+          this.backendValidationMessage =
+            messages.alerts.error[response.error_key]
+
+          if (!this.backendValidationMessage) {
+            this.backendValidationMessage = this.$t('alerts.fallback',
+                                                    response)
+          }
+        } else {
+          this.$refs[this.nameId].hide()
+        }
       }
     }
   }
