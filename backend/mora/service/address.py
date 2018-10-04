@@ -199,7 +199,9 @@ import re
 import flask
 import requests
 
+from . import employee
 from . import facet
+from . import orgunit
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -421,7 +423,9 @@ class AddressRequest(common.Request):
             'note': 'Tilføj adresse',
         }
 
-        return scope.update(payload, id)
+        scope.update(payload, id)
+
+        return id
 
     def _submit_edit(self):
         scope, id, original = get_scope_id_and_original(self.request)
@@ -448,7 +452,9 @@ class AddressRequest(common.Request):
             }
         }
 
-        return scope.update(payload, id)
+        scope.update(payload, id)
+
+        return id
 
 
 class Addresses(common.AbstractRelationDetail):
@@ -489,6 +495,18 @@ class Addresses(common.AbstractRelationDetail):
                     continue
 
                 addr[mapping.VALIDITY] = util.get_effect_validity(addrrel)
+
+                if self.scope.path == 'organisation/bruger':
+                    addr[mapping.PERSON] = employee.get_one_employee(
+                        c, id, effect,
+                    )
+
+                else:
+                    assert self.scope.path == 'organisation/organisationenhed'
+                    addr[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
+                        c, id, effect,
+                        details=orgunit.UnitDetails.MINIMAL,
+                    )
 
                 yield addr
 

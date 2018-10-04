@@ -44,7 +44,7 @@ class ManagerRequest(common.OrgFunkRequest):
             ['relationer']['tilhoerer'][0]['uuid']
         )
 
-        address_obj = util.checked_get(req, mapping.ADDRESS, {})
+        address_objs = util.checked_get(req, mapping.ADDRESS, [])
         manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
         manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
 
@@ -89,9 +89,7 @@ class ManagerRequest(common.OrgFunkRequest):
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
-            adresser=[
-                address.get_relation_for(address_obj),
-            ] if address_obj else None,
+            adresser=[address.get_relation_for(addr) for addr in address_objs],
         )
 
         self.payload = manager
@@ -173,11 +171,7 @@ class ManagerRequest(common.OrgFunkRequest):
                 },
             ))
 
-        if data.get(mapping.ADDRESS):
-            address_obj = (
-                data.get(mapping.ADDRESS) or original_data[mapping.ADDRESS]
-            )
-
+        for address_obj in util.checked_get(data, mapping.ADDRESS, []):
             update_fields.append((
                 mapping.SINGLE_ADDRESS_FIELD,
                 address.get_relation_for(address_obj),

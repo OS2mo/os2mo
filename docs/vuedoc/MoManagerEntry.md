@@ -35,4 +35,8 @@ A manager entry component.
 
    **dependencies:** `$emit`, `val`, `value` 
 
+- `managerAddressPicker` 
+
+   **dependencies:** `value`, `val`, `value`, `value`, `value`, `$emit`, `val`, `value` 
+
 

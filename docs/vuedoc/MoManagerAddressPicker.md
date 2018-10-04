@@ -1,16 +1,12 @@
-# mo-address-entry 
+# mo-manager-address-picker 
 
-A address entry component. 
+A manager address picker component. 
 
 ## props 
 
-- `value` ***Object*** (*optional*) 
+- `value` ***ArrayExpression*** (*optional*) 
 
   Create two-way data bindings with the component. 
-
-- `validity-hidden` ***Boolean*** (*optional*) 
-
-  This boolean property hides the validity dates. 
 
 - `required` ***Boolean*** (*optional*) 
 
@@ -31,17 +27,13 @@ A address entry component.
   The contactInfo, entry, address, addressScope component value.
   Used to detect changes and restore the value. 
 
-**initial value:** `''` 
+**initial value:** `null` 
 
 - `entry` 
 
 **initial value:** `[object Object]` 
 
 - `address` 
-
-**initial value:** `null` 
-
-- `addressScope` 
 
 **initial value:** `null` 
 

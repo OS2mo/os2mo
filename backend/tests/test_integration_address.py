@@ -336,7 +336,7 @@ class Writing(util.LoRATestCase):
                     'error_key': 'E_INVALID_INPUT',
                     'employee_uuid': None,
                     'org_unit_uuid': None,
-                    'obj': req[0],
+                    'obj': req[0]['original'],
                     'status': 400,
                 },
                 status_code=400,
@@ -347,9 +347,11 @@ class Writing(util.LoRATestCase):
             req = [
                 {
                     "type": "address",
-                    "original": orig_address,
-                    "person": {"uuid": userid},
-                    "org_unit": {"uuid": unitid},
+                    "original": {
+                        **orig_address,
+                        "person": {"uuid": userid},
+                        "org_unit": {"uuid": unitid},
+                    },
                     "data": {
                         "address_type": phone_class,
                         "value": "11223344",
@@ -366,7 +368,7 @@ class Writing(util.LoRATestCase):
                     'error_key': 'E_INVALID_INPUT',
                     'employee_uuid': userid,
                     'org_unit_uuid': unitid,
-                    'obj': req[0],
+                    'obj': req[0]['original'],
                     'status': 400,
                 },
                 status_code=400,
@@ -377,8 +379,10 @@ class Writing(util.LoRATestCase):
             req = [
                 {
                     "type": "address",
-                    "original": orig_address,
-                    "person": {"uuid": userid},
+                    "original": {
+                        **orig_address,
+                        "person": {"uuid": userid},
+                    },
                     "data": {
                         "address_type": phone_class,
                         # NB: no value
@@ -404,7 +408,6 @@ class Writing(util.LoRATestCase):
             req = [{
                 "type": "address",
                 # NB: no original!
-                "person": {"uuid": userid},
                 "data": {
                     "validity": {
                         'to': '2009-12-31',
@@ -431,7 +434,6 @@ class Writing(util.LoRATestCase):
                 "type": "address",
                 # NB: no original!
                 "original": None,
-                "person": {"uuid": userid},
                 "data": {
                     "validity": {
                         'to': '2009-12-31',
@@ -459,13 +461,13 @@ class Writing(util.LoRATestCase):
         with self.subTest('wrong original'):
             req = [{
                 "type": "address",
-                "person": {"uuid": userid},
                 "original": {
                     'address_type': email_class,
                     # wrong!
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
+                    "person": {"uuid": userid},
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -493,12 +495,12 @@ class Writing(util.LoRATestCase):
         with self.subTest('wrong original'):
             req = [{
                 "type": "address",
-                "person": {"uuid": other_userid},
                 "original": {
                     'address_type': email_class,
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
+                    "person": {"uuid": other_userid},
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -530,6 +532,10 @@ class Writing(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
 
         relations = {
             'tilhoerer': [
@@ -593,6 +599,7 @@ class Writing(util.LoRATestCase):
                 'href': 'mailto:bruger@example.com',
                 'name': 'bruger@example.com',
                 'urn': 'urn:mailto:bruger@example.com',
+                'person': user,
                 'validity': {
                     'from': '1934-06-09',
                     'to': None,
@@ -672,16 +679,11 @@ class Writing(util.LoRATestCase):
 
         addresses += [
             {
-                'address_type': {
-                    'example': '5712345000014',
-                    'name': 'EAN',
-                    'scope': 'EAN',
-                    'user_key': 'EAN',
-                    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-                },
+                'address_type': ean_class,
                 'href': None,
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
+                'person': user,
                 'validity': {
                     'from': '2013-01-01',
                     'to': None,
@@ -747,6 +749,7 @@ class Writing(util.LoRATestCase):
                 'href': 'mailto:hest@example.com',
                 'name': 'hest@example.com',
                 'urn': 'urn:mailto:hest@example.com',
+                'person': user,
                 'validity': {
                     'from': '2014-01-01', 'to': None,
                 },
@@ -757,6 +760,7 @@ class Writing(util.LoRATestCase):
                 '?mlon=10.20320628&mlat=56.15263055&zoom=16',
                 'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
                 'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
+                'person': user,
                 'validity': {
                     'from': '2015-01-01', 'to': None,
                 },
@@ -766,6 +770,7 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4533369696',
                 'name': '33369696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
+                'person': user,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -863,6 +868,10 @@ class Writing(util.LoRATestCase):
 
         userid = util.load_fixture('organisation/bruger',
                                    'create_bruger_fætterguf.json')
+        user = {
+            'name': 'Fætter Guf',
+            'uuid': userid,
+        }
 
         original = c.bruger.get(userid)
 
@@ -892,7 +901,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": address_class,
                     "uuid": '606cf42e-9dc2-4477-bf70-594830fcbdec',
-                    "person": {'uuid': userid},
+                    "person": user,
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -914,6 +923,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'user_key': 'AdressePost',
                     },
+                    "person": user,
                     'validity': {
                         'to': None,
                         'from': '2013-01-01',
@@ -944,6 +954,10 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:bruger@example.com',
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -958,7 +972,6 @@ class Writing(util.LoRATestCase):
             [userid],
             json=[{
                 "type": "address",
-                "person": {"uuid": userid},
                 "original": {
                     'address_type': {
                         'example': 'test@example.com',
@@ -973,6 +986,10 @@ class Writing(util.LoRATestCase):
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
+                    },
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                 },
                 "data": {
@@ -993,6 +1010,10 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
                     'validity': {
                         'from': '1934-06-09',
                         'to': '2009-12-31',
@@ -1017,7 +1038,6 @@ class Writing(util.LoRATestCase):
             [userid],
             json=[{
                 "type": "address",
-                "person": {"uuid": userid},
                 "original": {
                     'address_type': {
                         'example': 'test@example.com',
@@ -1029,6 +1049,7 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
+                    "person": {"uuid": userid},
                     'validity': {
                         'from': '1934-06-09',
                         'to': '2009-12-31',
@@ -1065,6 +1086,10 @@ class Writing(util.LoRATestCase):
                     '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                     'name': 'Pilestræde 43, 3., 1112 København K',
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -1082,6 +1107,10 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        user = {
+            'name': 'Fedtmule',
+            'uuid': userid,
+        }
 
         address_classes = self.client.get(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -1100,6 +1129,7 @@ class Writing(util.LoRATestCase):
                 "?mlon=12.58176945&mlat=55.67563739&zoom=16",
                 "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
                 "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
+                "person": user,
                 "validity": {
                     "from": "1932-05-12",
                     "to": None
@@ -1110,6 +1140,7 @@ class Writing(util.LoRATestCase):
                 "href": "mailto:goofy@example.com",
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
+                "person": user,
                 "validity": {
                     "from": "1932-05-12",
                     "to": None
@@ -1120,6 +1151,7 @@ class Writing(util.LoRATestCase):
                 "href": "mailto:goofy@example.com",
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
+                "person": user,
                 "validity": {
                     "from": "1932-05-12",
                     "to": None
@@ -1138,7 +1170,6 @@ class Writing(util.LoRATestCase):
             [userid],
             json=[{
                 "type": "address",
-                "person": {"uuid": userid},
                 "original": addresses[0],
                 "data": {
                     'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
@@ -1175,7 +1206,6 @@ class Writing(util.LoRATestCase):
             [userid],
             json=[{
                 "type": "address",
-                "person": {"uuid": userid},
                 "original": addresses[0],
                 "data": {
                     'address_type': address_class,
@@ -1207,18 +1237,17 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
 
         old_addr = {
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            },
+            'address_type': email_class,
             'href': 'mailto:bruger@example.com',
             'name': 'bruger@example.com',
             'urn': 'urn:mailto:bruger@example.com',
+            'person': user,
             'validity': {
                 'from': '1934-06-09',
                 'to': None,
@@ -1236,7 +1265,6 @@ class Writing(util.LoRATestCase):
             json=[
                 {
                     'type': 'address',
-                    'person': {'uuid': userid},
                     'original': old_addr,
                     'data': dict(**old_addr, value='hest@example.com'),
                 },
@@ -1257,6 +1285,7 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:hest@example.com',
                     'name': 'hest@example.com',
                     'urn': 'urn:mailto:hest@example.com',
+                    'person': user,
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -1269,6 +1298,12 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        unit = {
+            'name': 'Afdeling for Samtidshistorik',
+            'user_key': 'frem',
+            'uuid': unitid,
+            'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+        }
 
         self.assertIn(ean_class, self.client.get(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -1287,6 +1322,7 @@ class Writing(util.LoRATestCase):
                     "?mlon=10.19938084&mlat=56.17102843&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            'org_unit': unit,
             "validity": {
                 "from": "2016-01-01",
                 "to": "2018-12-31"
@@ -1304,7 +1340,6 @@ class Writing(util.LoRATestCase):
             json=[
                 {
                     'type': 'address',
-                    'org_unit': {'uuid': unitid},
                     'original': old_addr,
                     'data': {
                         **old_addr,
@@ -1322,6 +1357,7 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01',
                     'to': '2018-12-31',
@@ -1336,11 +1372,112 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01',
                     'to': '2018-12-31',
                 },
             }],
+        )
+
+    def test_edit_text_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
+
+        classid = util.load_fixture(
+            'klassifikation/klasse', 'create_klasse.json',
+            '0bf0daec-9d83-4783-a2cf-5e628fe70e51',
+            description=None,
+            example="…",
+            name='Kommentar',
+            scope="TEXT",
+            user_key='Comment',
+            facetid="e337bab4-635f-49ce-aa31-b44047a43aa1",
+        )
+
+        comment_class = {
+            'example': '…',
+            'name': "Kommentar",
+            'scope': 'TEXT',
+            'user_key': 'Comment',
+            'uuid': classid,
+        }
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/f/address_type/',
+                {
+                    'data': {
+                        'offset': 0, 'total': 5,
+                        'items': [
+                            comment_class,
+                            phone_class,
+                            address_class,
+                            email_class,
+                            ean_class,
+                        ],
+                    },
+                    'name': 'address_type',
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/f/address_type/',
+                    'user_key': 'Adressetype',
+                    'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
+            )
+
+        old_addr = {
+            'address_type': email_class,
+            'href': 'mailto:bruger@example.com',
+            'name': 'bruger@example.com',
+            'urn': 'urn:mailto:bruger@example.com',
+            'person': user,
+            'validity': {
+                'from': '1934-06-09',
+                'to': None,
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': {
+                        **old_addr,
+                        'address_type': comment_class,
+                        'value': 'kaflibob',
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': comment_class,
+                    'href': None,
+                    'name': 'kaflibob',
+                    'urn': 'urn:text:kaflibob',
+                    'person': user,
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                }
+            ],
         )
 
     def test_create_unit_address(self, mock):
@@ -1397,6 +1534,12 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '5798000420229',
                 'urn': 'urn:magenta.dk:ean:5798000420229',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': unitid,
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1412,6 +1555,12 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4587150000',
                 'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': unitid,
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1428,6 +1577,12 @@ class Writing(util.LoRATestCase):
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': unitid,
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1646,6 +1801,13 @@ class Writing(util.LoRATestCase):
                         'user_key': 'Telefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                     },
+                    'org_unit': {
+                        'name': 'Fake Corp',
+                        'user_key':
+                        'Fake Corp 00000000-0000-0000-0000-000000000000',
+                        'uuid': unitid,
+                        'validity': {'from': '2016-02-04', 'to': '2017-10-21'},
+                    },
                     'href': 'tel:+4511223344',
                     'name': '11223344',
                     'validity': {
@@ -1661,6 +1823,13 @@ class Writing(util.LoRATestCase):
                         'scope': 'DAR',
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'org_unit': {
+                        'name': 'Fake Corp',
+                        'user_key':
+                        'Fake Corp 00000000-0000-0000-0000-000000000000',
+                        'uuid': unitid,
+                        'validity': {'from': '2016-02-04', 'to': '2017-10-21'},
                     },
                     'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.18779751&mlat=56.17233057&zoom=16',
@@ -1688,6 +1857,12 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+        unit = {
+            'name': 'Afdeling for Samtidshistorik',
+            'user_key': 'frem',
+            'uuid': unitid,
+            'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+        }
 
         orig_address = {
             "href": "https://www.openstreetmap.org/"
@@ -1695,6 +1870,7 @@ class Writing(util.LoRATestCase):
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "address_type": address_class,
+            "org_unit": unit,
             "validity": {
                 "from": "2016-01-01",
                 "to": "2018-12-31",
@@ -1714,7 +1890,6 @@ class Writing(util.LoRATestCase):
             json=[
                 {
                     "type": "address",
-                    "org_unit": {"uuid": unitid},
                     "original": orig_address,
                     "data": {
                         "address_type": new_address_type,
@@ -1731,6 +1906,7 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4587150000',
                 'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01',
                     'to': '2018-12-31',
@@ -1744,6 +1920,12 @@ class Writing(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         unitid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        unit = {
+            'name': 'Overordnet Enhed',
+            'user_key': 'root',
+            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+            'validity': {'from': '2016-01-01', 'to': None},
+        }
 
         address_rels = [
             {
@@ -1789,6 +1971,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': None,
                 'name': '5798000420229',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1804,6 +1987,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'tel:+4587150000',
                 'name': '87150000',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1820,6 +2004,7 @@ class Writing(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1884,15 +2069,10 @@ class Writing(util.LoRATestCase):
         })
 
         addresses.append({
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            },
+            'address_type': email_class,
             'href': 'mailto:root@example.com',
             'name': 'root@example.com',
+            'org_unit': unit,
             'validity': {
                 'from': '2017-01-02',
                 'to': None,
@@ -1921,6 +2101,12 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+        unit = {
+            'name': 'Filosofisk Institut',
+            'user_key': 'fil',
+            'uuid': unitid,
+            'validity': {'from': '2016-01-01', 'to': None},
+        }
 
         addresses = [
             {
@@ -1933,6 +2119,7 @@ class Writing(util.LoRATestCase):
                 },
                 "href": "tel:+4587150000",
                 "name": "87150000",
+                "org_unit": unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -1950,6 +2137,7 @@ class Writing(util.LoRATestCase):
                 "href": "https://www.openstreetmap.org/"
                 "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                 "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                "org_unit": unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -1967,7 +2155,6 @@ class Writing(util.LoRATestCase):
         req = [
             {
                 "type": "address",
-                "org_unit": {"uuid": unitid},
                 "original": addresses[1],
                 "data": {
                     "uuid": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
@@ -2001,6 +2188,12 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+        unit = {
+            'name': 'Filosofisk Institut',
+            'user_key': 'fil',
+            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+            'validity': {'from': '2016-01-01', 'to': None},
+        }
 
         addresses = [
             {
@@ -2013,6 +2206,7 @@ class Writing(util.LoRATestCase):
                 },
                 "href": "tel:+4587150000",
                 "name": "87150000",
+                'org_unit': unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -2030,6 +2224,7 @@ class Writing(util.LoRATestCase):
                 "href": "https://www.openstreetmap.org/"
                 "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                 "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                'org_unit': unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -2077,6 +2272,7 @@ class Writing(util.LoRATestCase):
             'href': 'https://www.openstreetmap.org/'
             '?mlon=10.20019416&mlat=56.17063452&zoom=16',
             'name': 'Nordre Ringgade 2, 8000 Aarhus C',
+            'org_unit': unit,
             'validity': {'from': '2016-06-01', 'to': None},
             'uuid': 'd901ff7e-8ad9-4581-84c7-5759aaa82f7b',
         })
@@ -2122,6 +2318,10 @@ class Reading(util.LoRATestCase):
                         'name':
                         'Christiansborg Slotsplads 1, 1218 København K',
                         'uuid': 'bae093df-3b06-4f23-90a8-92eabedb3622',
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -2138,6 +2338,10 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -2154,6 +2358,10 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -2178,6 +2386,10 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:bruger@example.com',
                         'name': 'bruger@example.com',
                         'urn': 'urn:mailto:bruger@example.com',
+                        'person': {
+                            'name': 'Anders And',
+                            'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                        },
                         'validity': {
                             'from': '1934-06-09',
                             'to': None,
@@ -2202,6 +2414,14 @@ class Reading(util.LoRATestCase):
                         'href': None,
                         'name': '5798000420229',
                         'urn': 'urn:magenta.dk:ean:5798000420229',
+                        'org_unit': {
+                            'name': 'Overordnet Enhed',
+                            'user_key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01', 'to': None,
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': None,
@@ -2218,6 +2438,14 @@ class Reading(util.LoRATestCase):
                         'href': 'tel:+4587150000',
                         'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'org_unit': {
+                            'name': 'Overordnet Enhed',
+                            'user_key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01', 'to': None,
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': None,
@@ -2235,6 +2463,14 @@ class Reading(util.LoRATestCase):
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'org_unit': {
+                            'name': 'Overordnet Enhed',
+                            'user_key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01', 'to': None,
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': None,
@@ -2258,11 +2494,14 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '87150000',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                     {
                         'address_type': {
@@ -2275,11 +2514,14 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                 ],
             )
@@ -2299,11 +2541,14 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '87150000',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'validity': {
-                            'from': '2017-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Samfundsvidenskabelige fakultet',
+                            'user_key': 'samf',
+                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'validity': {'from': '2017-01-01', 'to': None},
                         },
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'validity': {'from': '2017-01-01', 'to': None},
                     },
                     {
                         'address_type': {
@@ -2316,11 +2561,14 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'validity': {
-                            'from': '2017-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Samfundsvidenskabelige fakultet',
+                            'user_key': 'samf',
+                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'validity': {'from': '2017-01-01', 'to': None},
                         },
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'validity': {'from': '2017-01-01', 'to': None},
                     },
                 ],
             )
@@ -2340,11 +2588,14 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '87150000',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Filosofisk Institut',
+                            'user_key': 'fil',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                     {
                         'address_type': {
@@ -2357,11 +2608,14 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Filosofisk Institut',
+                            'user_key': 'fil',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                 ],
             )
@@ -2383,6 +2637,14 @@ class Reading(util.LoRATestCase):
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'org_unit': {
+                            'name': 'Afdeling for Samtidshistorik',
+                            'user_key': 'frem',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01', 'to': '2018-12-31',
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': '2018-12-31',
@@ -2508,6 +2770,14 @@ class Reading(util.LoRATestCase):
                             'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                             'uuid':
                             'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                            'org_unit': {
+                                'name': 'Afdeling for Fortidshistorik',
+                                'user_key': 'frem',
+                                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                                'validity': {
+                                    'from': '2016-01-01', 'to': '2018-12-31',
+                                },
+                            },
                             'validity': {
                                 'from': '2016-01-01',
                                 'to': '2018-12-31',

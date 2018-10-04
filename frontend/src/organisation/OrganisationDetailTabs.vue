@@ -114,7 +114,7 @@
         ],
         address: [
           {label: 'address_type', data: 'address_type'},
-          {label: 'value', data: null}
+          {label: 'address', data: null}
         ],
         engagement: [
           {label: 'person', data: 'person'},

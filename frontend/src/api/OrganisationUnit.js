@@ -117,8 +117,8 @@ export default {
    * @param {Array} create - A list of elements to create
    * @returns {Object} organisation unit uuid
    */
-  createEntry (uuid, create) {
-    return Service.post(`/ou/${uuid}/create`, create)
+  createEntry (create) {
+    return Service.post('/details/create', create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed')
         store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
@@ -136,8 +136,8 @@ export default {
    * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
-  editEntry (uuid, edit) {
-    return Service.post(`/ou/${uuid}/edit`, edit)
+  editEntry (edit) {
+    return Service.post('/details/edit', edit)
       .then(response => {
         EventBus.$emit('update-tree-view')
         EventBus.$emit('organisation-unit-changed')
@@ -149,8 +149,8 @@ export default {
       })
   },
 
-  edit (uuid, edit) {
-    return this.editEntry(uuid, edit)
+  edit (edit) {
+    return this.editEntry(edit)
       .then(response => {
         store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response.data})
         return response.data
@@ -164,8 +164,8 @@ export default {
    * @returns {Object} organisation unit uuid
    * @see edit
   */
-  rename (uuid, edit) {
-    return this.editEntry(uuid, edit)
+  rename (edit) {
+    return this.editEntry(edit)
       .then(response => {
         store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response.data})
         return response.data
@@ -179,8 +179,8 @@ export default {
    * @returns {Object} organisation unit uuid
    * @see edit
   */
-  move (uuid, edit) {
-    return this.editEntry(uuid, edit)
+  move (edit) {
+    return this.editEntry(edit)
       .then(response => {
         if (response.data.error) {
           return response.data

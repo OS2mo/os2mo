@@ -14,7 +14,7 @@
         <mo-organisation-unit-picker
           label="Enhed" 
           class="col"
-          v-model="original"
+          v-model="rename.data.org_unit"
           required
         />
       </div>
@@ -75,13 +75,13 @@
     data () {
       return {
         /**
-         * The rename, original, isLoading component value.
+         * The rename, isLoading component value.
          * Used to detect changes and restore the value.
          */
-        original: this.orgUnit,
         rename: {
           type: 'org_unit',
           data: {
+            org_unit: this.orgUnit,
             name: '',
             validity: {}
           }
@@ -112,9 +112,11 @@
        * If then return false.
        */
       compareName () {
-        if (this.rename.data.name && this.original.name) {
-          if (this.original.name == null) return true
-          if (this.rename.data.name === this.original.name) return true
+        const original = this.rename.data.org_unit
+
+        if (this.rename.data.name && original.name) {
+          if (original.name == null) return true
+          if (this.rename.data.name === original.name) return true
         }
         return false
       }
@@ -126,7 +128,7 @@
        */
       orgUnit: {
         handler (val) {
-          this.original = val
+          this.rename.data.org_unit = val
         },
         deep: true
       }
@@ -137,7 +139,7 @@
        * After the entire view has been rendered.
        * Set original to orgUnit.
        */
-      this.original = this.orgUnit
+      this.rename.data.org_unit = this.orgUnit
     },
 
     methods: {
@@ -163,7 +165,7 @@
             vm.isLoading = false
             return false
           }
-          OrganisationUnit.rename(this.original.uuid, this.rename)
+          OrganisationUnit.rename(this.rename)
             .then(response => {
               vm.isLoading = false
               vm.$refs.orgUnitRename.hide()

@@ -23,6 +23,7 @@ import signal
 import ssl
 import subprocess
 import sys
+import threading
 import traceback
 import unittest
 import warnings
@@ -32,6 +33,7 @@ import flask
 import pyexcel
 import requests
 import urllib3
+import werkzeug.serving
 
 from . import exceptions
 from . import lora
@@ -474,6 +476,90 @@ def load_fixtures(**kwargs):
         verbose=not kwargs.pop('quiet'),
         **kwargs,
     )
+
+
+@group.command('run-with-db')
+@click.option('hostname', '--host', '-h', default='localhost',
+              help='The interface to bind to.')
+@click.option('--port', '-p', default=5000,
+              help='The port to bind to.')
+@click.option('use_reloader', '--reload/--no-reload', default=None,
+              help='Enable or disable the reloader.  By default the reloader '
+              'is active if debug is enabled.')
+@click.option('use_debugger', '--debugger/--no-debugger', default=None,
+              help='Enable or disable the debugger.  By default the debugger '
+              'is active if debug is enabled.')
+@click.option('use_reloader', '--eager-loading/--lazy-loader', default=None,
+              help='Enable or disable eager loading.  By default eager '
+              'loading is enabled if the reloader is disabled.')
+@click.option('threaded', '--with-threads/--without-threads', default=True,
+              help='Enable or disable multithreading.')
+def run_with_db(**kwargs):
+    from unittest import mock
+
+    import psycopg2
+
+    from oio_rest import app as lora_app
+    from oio_rest.utils import test_support
+    import settings as lora_settings
+
+    from mora import app
+    from mora.importing import spreadsheets
+
+    with \
+            test_support.psql() as psql, \
+            mock.patch('settings.LOG_AMQP_SERVER', None), \
+            mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
+            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True):
+        test_support._initdb()
+
+        lora_server = werkzeug.serving.make_server(
+            'localhost', 0, lora_app.app,
+            threaded=kwargs['threaded'],
+        )
+
+        lora_port = lora_server.socket.getsockname()[1]
+
+        lora_thread = threading.Thread(
+            target=lora_server.serve_forever,
+            args=(),
+            daemon=True,
+        )
+
+        lora_thread.start()
+
+        with \
+                mock.patch('oio_rest.db.pool',
+                           psycopg2.pool.PersistentConnectionPool(
+                               1, 100,
+                               database=lora_settings.DATABASE,
+                               user=psql.dsn()['user'],
+                               password=psql.dsn().get('password'),
+                               host=psql.dsn()['host'],
+                               port=psql.dsn()['port'],
+                           )), \
+                mock.patch('mora.settings.LORA_URL',
+                           'http://localhost:{}/'.format(lora_port)):
+            print(' * LoRA running at {}'.format(settings.LORA_URL))
+
+            spreadsheets.run(
+                target=settings.LORA_URL.rstrip('/'),
+                sheets=[
+                    os.path.join(
+                        backenddir,
+                        'tests/fixtures/importing/BALLERUP.csv',
+                    ),
+                ],
+                dry_run=False,
+                verbose=False,
+                jobs=1,
+                failfast=False,
+                include=None,
+                check=False,
+                exact=False,
+            )
+
+            werkzeug.serving.run_simple(application=app.app, **kwargs)
 
 
 @group.command()

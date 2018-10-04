@@ -19,6 +19,7 @@ from unittest.mock import patch
 
 import flask
 import flask_testing
+import jinja2
 import requests
 import requests_mock
 import time
@@ -42,6 +43,12 @@ DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
 
+jinja_env = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(
+        searchpath=FIXTURE_DIR,
+    ),
+)
+
 
 def is_frontend_built():
     return os.path.isfile(
@@ -62,8 +69,13 @@ def jsonfile_to_dict(path):
         raise ValueError('failed to decode ' + path)
 
 
-def get_fixture(fixture_name):
-    return jsonfile_to_dict(os.path.join(FIXTURE_DIR, fixture_name))
+def get_fixture(fixture_name, **kwargs):
+    if not kwargs:
+        return jsonfile_to_dict(os.path.join(FIXTURE_DIR, fixture_name))
+    else:
+        return json.loads(
+            jinja_env.get_template(fixture_name).render(**kwargs),
+        )
 
 
 def get_mock_data(mock_name):
@@ -75,14 +87,13 @@ def get_mock_text(mock_name, mode='r'):
         return fp.read()
 
 
-def load_fixture(path, fixture_name, uuid=None, *, verbose=False):
+def load_fixture(path, fixture_name, uuid=None, **kwargs):
     '''Load a fixture, i.e. a JSON file with the 'fixtures' directory,
     into LoRA at the given path & UUID.
 
     '''
-    if verbose:
-        print('creating', path, uuid, file=sys.stderr)
-    r = lora.create(path, get_fixture(fixture_name), uuid)
+    print('creating', path, uuid, file=sys.stderr)
+    r = lora.create(path, get_fixture(fixture_name, **kwargs), uuid)
     return r
 
 
@@ -230,7 +241,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
                     uuid, path,
                 ))
         else:
-            load_fixture(path, fixture_name, uuid, verbose=verbose)
+            load_fixture(path, fixture_name, uuid)
 
 
 @contextlib.contextmanager
