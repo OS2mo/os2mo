@@ -14,7 +14,7 @@
         <mo-organisation-unit-picker
           label="Enhed" 
           class="col"
-          v-model="rename.data.org_unit"
+          v-model="original"
           required
         />
       </div>
@@ -75,14 +75,15 @@
     data () {
       return {
         /**
-         * The rename, isLoading component value.
+         * The rename, original, isLoading component value.
          * Used to detect changes and restore the value.
          */
+        original: this.orgUnit,
         rename: {
           type: 'org_unit',
           data: {
-            org_unit: this.orgUnit,
             name: '',
+            uuid: '',
             validity: {}
           }
         },
@@ -112,11 +113,9 @@
        * If then return false.
        */
       compareName () {
-        const original = this.rename.data.org_unit
-
-        if (this.rename.data.name && original.name) {
-          if (original.name == null) return true
-          if (this.rename.data.name === original.name) return true
+        if (this.rename.data.name && this.original.name) {
+          if (this.original.name == null) return true
+          if (this.rename.data.name === this.original.name) return true
         }
         return false
       }
@@ -128,9 +127,15 @@
        */
       orgUnit: {
         handler (val) {
-          this.rename.data.org_unit = val
+          this.original = val
+          if (val) {
+            this.rename.data.uuid = val.uuid
+          }
         },
         deep: true
+      },
+      original (val) {
+        this.rename.data.uuid = val && val.uuid
       }
     },
 
@@ -139,7 +144,7 @@
        * After the entire view has been rendered.
        * Set original to orgUnit.
        */
-      this.rename.data.org_unit = this.orgUnit
+      this.original = this.orgUnit
     },
 
     methods: {
@@ -148,6 +153,7 @@
        */
       resetData () {
         this.rename.data.name = ''
+        this.rename.data.uuid = this.original && this.original.uuid
         this.rename.data.validity = {}
       },
 

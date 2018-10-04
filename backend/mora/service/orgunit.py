@@ -98,8 +98,7 @@ def edit_orgunit(req):
     original_data = util.checked_get(req, 'original', {}, required=False)
     data = util.checked_get(req, 'data', {}, required=True)
 
-    unitid = util.get_mapping_uuid(data, mapping.ORG_UNIT,
-                                   fallback=original_data, required=True)
+    unitid = util.get_uuid(data, fallback=original_data)
 
     # Get the current org-unit which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
