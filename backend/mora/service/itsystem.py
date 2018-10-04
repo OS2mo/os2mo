@@ -31,9 +31,9 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class ItsystemRequest(common.OrgFunkRequest):
+class ItsystemRequestHandler(common.OrgFunkRequestHandler):
 
-    def create(self, req):
+    def prepare_create(self, req):
         c = lora.Connector()
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
@@ -81,7 +81,7 @@ class ItsystemRequest(common.OrgFunkRequest):
         self.payload = func
         self.uuid = util.get_uuid(req, required=False)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change

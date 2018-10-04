@@ -56,7 +56,7 @@ class RequestType(enum.Enum):
     EDIT = 1
 
 
-class Request(abc.ABC):
+class RequestHandler(abc.ABC):
 
     __slots__ = 'request', 'request_type', 'payload', 'uuid'
 
@@ -66,18 +66,19 @@ class Request(abc.ABC):
         :param request: A dict containing a request
         :param request_type: A RequestType, either CREATE or EDIT
         """
+        super().__init__()
         self.request_type = request_type
         self.request = request
         self.payload = None
         self.uuid = None
 
         if request_type == RequestType.CREATE:
-            self.create(request)
+            self.prepare_create(request)
         if request_type == RequestType.EDIT:
-            self.edit(request)
+            self.prepare_edit(request)
 
     @abc.abstractmethod
-    def create(self, request: dict):
+    def prepare_create(self, request: dict):
         """
         Initialize a 'create' request. Performs validation and all
         necessary processing
@@ -86,7 +87,7 @@ class Request(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def edit(self, request: dict):
+    def prepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
         necessary processing
@@ -95,7 +96,7 @@ class Request(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def submit_request(self) -> str:
+    def submit(self) -> str:
         """
         Submit the request to LoRa.
         :return: A string containing the result from submitting the request
@@ -104,16 +105,16 @@ class Request(abc.ABC):
         pass
 
 
-class OrgFunkRequest(Request):
+class OrgFunkRequestHandler(RequestHandler):
     @abc.abstractmethod
-    def create(self, request: dict):
+    def prepare_create(self, request: dict):
         pass
 
     @abc.abstractmethod
-    def edit(self, request: dict):
+    def prepare_edit(self, request: dict):
         pass
 
-    def submit_request(self) -> str:
+    def submit(self) -> str:
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:

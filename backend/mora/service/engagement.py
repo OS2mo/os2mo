@@ -23,9 +23,9 @@ from .. import util
 from .. import validator
 
 
-class EngagementRequest(common.OrgFunkRequest):
+class EngagementRequestHandler(common.OrgFunkRequestHandler):
 
-    def create(self, req):
+    def prepare_create(self, req):
         c = lora.Connector()
 
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
@@ -67,7 +67,7 @@ class EngagementRequest(common.OrgFunkRequest):
         self.payload = payload
         self.uuid = util.get_uuid(req, required=False)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change

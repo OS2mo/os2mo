@@ -27,9 +27,9 @@ blueprint = flask.Blueprint('roles', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class RoleRequest(common.OrgFunkRequest):
+class RoleRequestHandler(common.OrgFunkRequestHandler):
 
-    def create(self, req):
+    def prepare_create(self, req):
         c = lora.Connector()
 
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
@@ -68,7 +68,7 @@ class RoleRequest(common.OrgFunkRequest):
         self.payload = role
         self.uuid = util.get_uuid(req, required=False)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         role_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

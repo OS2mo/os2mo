@@ -28,9 +28,9 @@ blueprint = flask.Blueprint('leave', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class LeaveRequest(common.OrgFunkRequest):
+class LeaveRequestHandler(common.OrgFunkRequestHandler):
 
-    def create(self, req):
+    def prepare_create(self, req):
         c = lora.Connector()
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
@@ -70,7 +70,7 @@ class LeaveRequest(common.OrgFunkRequest):
         self.payload = leave
         self.uuid = util.get_uuid(req, required=False)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         leave_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

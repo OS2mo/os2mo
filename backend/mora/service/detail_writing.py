@@ -33,21 +33,21 @@ blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
 
 HANDLERS = {
-    'engagement': engagement.EngagementRequest,
-    'association': association.AssociationRequest,
-    'role': role.RoleRequest,
-    'manager': manager.ManagerRequest,
-    'leave': leave.LeaveRequest,
-    'it': itsystem.ItsystemRequest,
-    'address': address.AddressRequest,
-    'org_unit': orgunit.OrgUnitRequest
+    'engagement': engagement.EngagementRequestHandler,
+    'association': association.AssociationRequestHandler,
+    'role': role.RoleRequestHandler,
+    'manager': manager.ManagerRequestHandler,
+    'leave': leave.LeaveRequestHandler,
+    'it': itsystem.ItsystemRequestHandler,
+    'address': address.AddressRequestHandler,
+    'org_unit': orgunit.OrgUnitRequestHandler
 }
 
 
 def generate_requests(
     requests: List[dict],
     request_type: common.RequestType
-) -> List[common.Request]:
+) -> List[common.RequestHandler]:
     operations = {req.get('type') for req in requests}
 
     if not operations.issubset(HANDLERS):
@@ -62,8 +62,8 @@ def generate_requests(
     ]
 
 
-def submit_requests(requests: List[common.Request]) -> List[str]:
-    return [request.submit_request() for request in requests]
+def submit_requests(requests: List[common.RequestHandler]) -> List[str]:
+    return [request.submit() for request in requests]
 
 
 def handle_requests(

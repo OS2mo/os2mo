@@ -27,8 +27,8 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class ManagerRequest(common.OrgFunkRequest):
-    def create(self, req):
+class ManagerRequestHandler(common.OrgFunkRequestHandler):
+    def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid """
         c = lora.Connector()
@@ -95,7 +95,7 @@ class ManagerRequest(common.OrgFunkRequest):
         self.payload = manager
         self.uuid = util.get_uuid(req, required=False)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         manager_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

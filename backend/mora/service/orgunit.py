@@ -94,8 +94,8 @@ class OrgUnit(common.AbstractRelationDetail):
         ])
 
 
-class OrgUnitRequest(common.Request):
-    def create(self, req):
+class OrgUnitRequestHandler(common.RequestHandler):
+    def prepare_create(self, req):
         c = lora.Connector()
 
         req = flask.request.get_json()
@@ -152,7 +152,7 @@ class OrgUnitRequest(common.Request):
         self.payload = org_unit
         self.uuid = unitid
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
         data = util.checked_get(req, 'data', {}, required=True)
 
@@ -245,7 +245,7 @@ class OrgUnitRequest(common.Request):
         self.payload = payload
         self.uuid = unitid
 
-    def submit_request(self):
+    def submit(self):
         c = lora.Connector()
 
         if self.request_type == common.RequestType.CREATE:
@@ -605,9 +605,9 @@ def create_org_unit():
     """
 
     req = flask.request.get_json()
-    request = OrgUnitRequest(req, common.RequestType.CREATE)
+    request = OrgUnitRequestHandler(req, common.RequestType.CREATE)
 
-    return flask.jsonify(request.submit_request()), 201
+    return flask.jsonify(request.submit()), 201
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])

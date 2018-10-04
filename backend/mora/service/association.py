@@ -28,8 +28,8 @@ blueprint = flask.Blueprint('associations', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class AssociationRequest(common.OrgFunkRequest):
-    def create(self, req):
+class AssociationRequestHandler(common.OrgFunkRequestHandler):
+    def prepare_create(self, req):
         c = lora.Connector()
 
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
@@ -85,7 +85,7 @@ class AssociationRequest(common.OrgFunkRequest):
         self.payload = association
         self.uuid = util.get_uuid(req, required=False)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         association_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

@@ -373,21 +373,21 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
-class AddressRequest(common.Request):
+class AddressRequestHandler(common.RequestHandler):
 
-    __slots__ = *common.Request.__slots__, 'obj_type'
+    __slots__ = *common.RequestHandler.__slots__, 'obj_type'
 
     def __init__(self, *args, **kwargs):
         self.obj_type = None
         super().__init__(*args, **kwargs)
 
-    def create(self, req: dict):
+    def prepare_create(self, req: dict):
         self.uuid, self.obj_type = get_id_and_type(req)
 
         # Run through to perform validation
         get_relation_for(req)
 
-    def edit(self, req: dict):
+    def prepare_edit(self, req: dict):
         old_entry = util.checked_get(self.request, 'original', {},
                                      required=True)
         new_entry = util.checked_get(self.request, 'data', {}, required=True)
@@ -397,7 +397,7 @@ class AddressRequest(common.Request):
         get_relation_for(old_entry)
         get_relation_for(new_entry, old_entry)
 
-    def submit_request(self) -> str:
+    def submit(self) -> str:
 
         if self.request_type == common.RequestType.CREATE:
             return self._submit_create()
