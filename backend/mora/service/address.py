@@ -374,30 +374,28 @@ def get_one_address(c, addrrel, class_cache=None):
 
 
 class AddressRequest(common.Request):
-    def create(self, req: dict):
-        scope, id, original = get_scope_id_and_original(req)
 
-        # we're editing a many-to-many relation, so inline the
-        # create_organisationsenhed_payload logic for simplicity
-        rel = get_relation_for(req)
+    __slots__ = *common.Request.__slots__, 'obj_type'
+
+    def __init__(self, *args, **kwargs):
+        self.obj_type = None
+        super().__init__(*args, **kwargs)
+
+    def create(self, req: dict):
+        self.uuid, self.obj_type = get_id_and_type(req)
+
+        # Run through to perform validation
+        get_relation_for(req)
 
     def edit(self, req: dict):
         old_entry = util.checked_get(self.request, 'original', {},
                                      required=True)
         new_entry = util.checked_get(self.request, 'data', {}, required=True)
 
-        scope, id, original = get_scope_id_and_original(old_entry)
+        self.uuid, self.obj_type = get_id_and_type(old_entry)
 
-        old_rel = get_relation_for(old_entry)
-        new_rel = get_relation_for(new_entry, old_entry)
-
-        try:
-            addresses = original['relationer']['adresser']
-        except KeyError:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
-                'no addresses to edit!',
-            )
+        get_relation_for(old_entry)
+        get_relation_for(new_entry, old_entry)
 
     def submit_request(self) -> str:
 
@@ -407,7 +405,7 @@ class AddressRequest(common.Request):
             return self._submit_edit()
 
     def _submit_create(self):
-        scope, id, original = get_scope_id_and_original(self.request)
+        scope, original = get_scope_and_original(self.uuid, self.obj_type)
 
         # we're editing a many-to-many relation, so inline the
         # create_organisationsenhed_payload logic for simplicity
@@ -422,16 +420,16 @@ class AddressRequest(common.Request):
             'note': 'Tilføj adresse',
         }
 
-        scope.update(payload, id)
+        scope.update(payload, self.uuid)
 
-        return id
+        return self.uuid
 
     def _submit_edit(self):
         old_entry = util.checked_get(self.request, 'original', {},
                                      required=True)
         new_entry = util.checked_get(self.request, 'data', {}, required=True)
 
-        scope, id, original = get_scope_id_and_original(old_entry)
+        scope, original = get_scope_and_original(self.uuid, self.obj_type)
 
         old_rel = get_relation_for(old_entry)
         new_rel = get_relation_for(new_entry, old_entry)
@@ -452,9 +450,9 @@ class AddressRequest(common.Request):
             }
         }
 
-        scope.update(payload, id)
+        scope.update(payload, self.uuid)
 
-        return id
+        return self.uuid
 
 
 class Addresses(common.AbstractRelationDetail):
@@ -526,7 +524,7 @@ class Addresses(common.AbstractRelationDetail):
         )
 
 
-def get_scope_id_and_original(req: dict):
+def get_id_and_type(req: dict):
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON)
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT)
 
@@ -543,33 +541,41 @@ def get_scope_id_and_original(req: dict):
             obj=req,
         )
 
-    c = lora.Connector()
-
     if employee_uuid is not None:
-        scope, id = c.bruger, employee_uuid
+        return employee_uuid, 'e'
     else:
         assert org_unit_uuid is not None
-        scope, id = c.organisationenhed, org_unit_uuid
+        return org_unit_uuid, 'ou'
+
+
+def get_scope_and_original(obj_uuid, obj_type):
+    c = lora.Connector()
+
+    if obj_type == 'e':
+        scope = c.bruger
+    else:
+        assert obj_type == 'ou'
+        scope = c.organisationenhed
 
     obj = scope.get(
-        uuid=id,
+        uuid=obj_uuid,
         virkningfra='-infinity',
         virkningtil='infinity',
     )
 
     if not obj:
-        if employee_uuid is not None:
+        if obj_type == 'e':
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_USER_NOT_FOUND,
-                uuid=id,
+                uuid=obj_uuid,
             )
         else:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-                uuid=id,
+                uuid=obj_uuid,
             )
 
-    return scope, id, obj
+    return scope, obj
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
