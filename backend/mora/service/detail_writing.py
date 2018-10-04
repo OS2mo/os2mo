@@ -11,7 +11,8 @@
 Writing details
 ---------------
 
-This section describes how to write details to employees.
+This section describes how to write details to employees and
+organisational units
 
 For more information regarding reading relations, refer to:
 

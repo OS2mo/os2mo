@@ -17,8 +17,8 @@ API.
 For details on how to create and edit these metadata, refer to the sections on
 creating and editing relations for employees and organisational units:
 
-* :http:post:`/service/(any:type)/(uuid:uuid)/create`
-* :http:post:`/service/(any:type)/(uuid:uuid)/edit`
+* :http:post:`/service/details/create`
+* :http:post:`/service/details/edit`
 
 
 '''
@@ -41,7 +41,7 @@ from .. import mapping
 from .. import settings
 from .. import util
 
-blueprint = flask.Blueprint('details', __name__, static_url_path='',
+blueprint = flask.Blueprint('detail_reading', __name__, static_url_path='',
                             url_prefix='/service')
 
 DetailType = collections.namedtuple('DetailType', [
