@@ -20,4 +20,4 @@ export MORA_PROG_NAME="$0"
 # we also have '$VENV/bin/python', but use python -m so that we can
 # override the program name
 
-exec "$VENV"/bin/python -m mora.cli "$@"
+exec "$VENV"/bin/flask "$@"

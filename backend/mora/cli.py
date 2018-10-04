@@ -192,7 +192,7 @@ def python(args):
               help='List all available tests',)
 @click.option('--xml-report', type=click.Path(),
               help='Write XML report to the given location',)
-@click.option('--randomise', 'randomise', is_flag=True,
+@click.option('--randomise', '--randomize', 'randomise', is_flag=True,
               help='Randomise execution order',)
 @click.option('--keyword', '-k', 'keywords', multiple=True,
               help='Only run or list tests matching the given keyword',)
