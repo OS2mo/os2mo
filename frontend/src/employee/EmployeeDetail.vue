@@ -26,11 +26,11 @@
    * A employee detail component.
    */
 
-  import Employee from '@/api/Employee'
   import '@/filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
   import MoLoader from '@/components/atoms/MoLoader'
+  import {GET_EMPLOYEE, SET_EMPLOYEE} from '@/vuex/actions/employee'
 
   export default {
     components: {
@@ -45,34 +45,18 @@
         * Used to detect changes and restore the value for columns.
         */
       return {
-        employee: Object,
         isLoading: false
       }
     },
 
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Show the employee.
-       */
-      this.getEmployee(this.$route.params.uuid)
+    computed: {
+      employee () {
+        return this.$store.getters['employee/' + GET_EMPLOYEE]
+      }
     },
 
-    methods: {
-      /**
-       * Get a employee.
-       */
-      getEmployee () {
-        let vm = this
-        vm.isLoading = true
-        let uuid = this.$route.params.uuid
-        Employee.get(uuid)
-          .then(response => {
-            vm.isLoading = false
-            vm.employee = response
-            vm.$store.commit('employee/change', response)
-          })
-      }
+    created () {
+      this.$store.dispatch('employee/' + SET_EMPLOYEE, this.$route.params.uuid)
     }
   }
 </script>

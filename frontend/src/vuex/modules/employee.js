@@ -1,23 +1,63 @@
+import { GET_EMPLOYEE, SET_EMPLOYEE, SET_DETAIL, GET_DETAIL } from '../actions/employee'
+import Service from '@/api/HttpCommon'
+
 const state = {
-  name: undefined,
-  uuid: undefined
+  cpr_no: '',
+  name: '',
+  org: {},
+  user_key: '',
+  uuid: ''
+}
+
+const actions = {
+  [SET_EMPLOYEE] ({ rootState, commit }, payload) {
+    return Service.get(`/e/${payload}/`)
+      .then(response => {
+        commit(SET_EMPLOYEE, response.data)
+        // EventBus.$emit('organisation-changed', response.data.org)
+        return response.data
+      })
+      .catch(error => {
+        rootState.commit('log/newError', { type: 'ERROR', value: error.response })
+      })
+  },
+
+  [SET_DETAIL] ({ state, rootState, commit }, payload) {
+    payload.validity = payload.validity || 'present'
+    return Service.get(`/e/${state.uuid}/details/${payload.detail}?validity=${payload.validity}`)
+      .then(response => {
+        console.log('hello')
+        // return response.data
+      })
+      .catch(error => {
+        rootState.commit('log/newError', { type: 'ERROR', value: error.response })
+      })
+  }
 }
 
 const mutations = {
-  change (state, employee) {
-    state.name = employee.name
-    state.uuid = employee.uuid
+  [SET_EMPLOYEE] (state, payload) {
+    state.cpr_no = payload.cpr_no
+    state.name = payload.name
+    state.org = payload.org
+    state.user_key = payload.user_key
+    state.uuid = payload.uuid
+  },
+
+  [SET_DETAIL] (state, payload) {
+    // TODO
   }
 }
 
 const getters = {
-  getUuid: state => state.uuid,
-  get: state => state
+  [GET_EMPLOYEE]: state => state,
+  [GET_DETAIL]: (state) => (id) => state[id] || {}
 }
 
 export default {
   namespaced: true,
   state,
+  actions,
   mutations,
   getters
 }

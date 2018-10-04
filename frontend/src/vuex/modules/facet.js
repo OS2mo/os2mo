@@ -39,7 +39,7 @@ const mutations = {
 }
 
 const getters = {
-  [GET_FACET]: (state) => (id) => (state[id] === undefined) ? { data: {} } : state[id]
+  [GET_FACET]: (state) => (id) => state[id] || {}
 }
 
 export default {
