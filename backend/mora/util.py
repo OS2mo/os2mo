@@ -471,7 +471,7 @@ def checked_get(
 ) -> V:
     try:
         v = mapping[key]
-    except LookupError:
+    except (LookupError, TypeError):
         exc = exceptions.HTTPException(
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
             message='Missing {}'.format(key),

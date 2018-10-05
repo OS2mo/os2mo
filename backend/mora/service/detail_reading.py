@@ -17,11 +17,13 @@ API.
 For details on how to create and edit these metadata, refer to the sections on
 creating and editing relations for employees and organisational units:
 
-* :http:post:`/service/(any:type)/(uuid:uuid)/create`
-* :http:post:`/service/(any:type)/(uuid:uuid)/edit`
+* :http:post:`/service/details/create`
+* :http:post:`/service/details/edit`
 
 
 '''
+
+from __future__ import generator_stop
 
 import collections
 import functools
@@ -41,7 +43,7 @@ from .. import mapping
 from .. import settings
 from .. import util
 
-blueprint = flask.Blueprint('details', __name__, static_url_path='',
+blueprint = flask.Blueprint('detail_reading', __name__, static_url_path='',
                             url_prefix='/service')
 
 DetailType = collections.namedtuple('DetailType', [
@@ -467,49 +469,22 @@ def get_detail(type, id, function):
     # 'mapping' module, as part of e.g. FieldTuples
 
     def get_address(effect):
-        try:
-            rels = effect['relationer']['adresser']
-        except LookupError:
-            return
-
-        yield from map(functools.partial(address.get_one_address,
-                                         c, class_cache=class_cache),
-                       rels)
+        return [
+            address.get_one_address(c, addr, class_cache)
+            for addr in mapping.ADDRESSES_FIELD(effect)
+        ]
 
     def get_address_type(effect):
-        try:
-            rels = effect['relationer']['adresser']
-        except LookupError:
-            return
+        return [
+            addr['objekttype']
+            for addr in mapping.ADDRESSES_FIELD(effect)
+        ]
 
-        yield from map(operator.itemgetter('objekttype'), rels)
-
-    def getter(rel, field=None):
-        def get(effect):
-            try:
-                vals = effect['relationer'][rel]
-            except LookupError:
-                return
-
-            for val in vals:
-                if val.keys() == {'virkning'}:
-                    continue
-
-                if not field or field.filter_fn(val):
-                    yield val
-
-        get.__name__ = 'get_' + rel
-
-        return get
-
-    get_employee_id = getter('tilknyttedebrugere')
-    get_unit_id = getter('tilknyttedeenheder')
-    get_type_id = getter('organisatoriskfunktionstype')
-    get_title_id = getter('opgaver')
-    get_responsibility = getter('opgaver', mapping.RESPONSIBILITY_FIELD)
-    get_manager_level = getter('opgaver', mapping.MANAGER_LEVEL_FIELD)
-    get_itsystem = getter('tilknyttedeitsystemer',
-                          mapping.SINGLE_ITSYSTEM_FIELD)
+    def get_user_key(effect):
+        return [
+            prop['brugervendtnoegle']
+            for prop in mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
+        ]
 
     #
     # all these caches might be overkill when just listing one
@@ -534,43 +509,89 @@ def get_detail(type, id, function):
     # just return the first hit
     converters = {
         'engagement': {
-            mapping.PERSON: (user_cache, get_employee_id, None, False),
-            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            mapping.JOB_FUNCTION: (class_cache, get_title_id, None, False),
-            mapping.ENGAGEMENT_TYPE: (class_cache, get_type_id, None, False),
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
+            ),
+            mapping.JOB_FUNCTION: (
+                class_cache, mapping.JOB_FUNCTION_FIELD, None, False,
+            ),
+            mapping.ENGAGEMENT_TYPE: (
+                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
         },
         'association': {
-            mapping.PERSON: (user_cache, get_employee_id, None, False),
-            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            mapping.JOB_FUNCTION: (class_cache, get_title_id, None, False),
-            mapping.ASSOCIATION_TYPE: (class_cache, get_type_id, None, False),
-            mapping.ADDRESS: (class_cache, get_address, get_address_type,
-                              False),
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
+            ),
+            mapping.JOB_FUNCTION: (
+                class_cache, mapping.JOB_FUNCTION_FIELD, None, False,
+            ),
+            mapping.ASSOCIATION_TYPE: (
+                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
+            mapping.ADDRESS: (
+                class_cache, get_address, get_address_type, False,
+            ),
         },
         'role': {
-            mapping.PERSON: (user_cache, get_employee_id, None, False),
-            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            mapping.ROLE_TYPE: (class_cache, get_type_id, None, False),
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
+            ),
+            mapping.ROLE_TYPE: (
+                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
         },
         'leave': {
-            mapping.PERSON: (user_cache, get_employee_id, None, False),
-            mapping.LEAVE_TYPE: (class_cache, get_type_id, None, False),
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.LEAVE_TYPE: (
+                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
         },
         'manager': {
-            mapping.PERSON: (user_cache, get_employee_id, None, False),
-            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            mapping.RESPONSIBILITY: (class_cache, get_responsibility, None,
-                                     True),
-            mapping.MANAGER_LEVEL: (class_cache, get_manager_level, None,
-                                    False),
-            mapping.MANAGER_TYPE: (class_cache, get_type_id, None, False),
-            mapping.ADDRESS: (class_cache, get_address, get_address_type,
-                              True),
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
+            ),
+            mapping.RESPONSIBILITY: (
+                class_cache, mapping.RESPONSIBILITY_FIELD, None, True,
+            ),
+            mapping.MANAGER_LEVEL: (
+                class_cache, mapping.MANAGER_LEVEL_FIELD, None, False,
+            ),
+            mapping.MANAGER_TYPE: (
+                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
+            mapping.ADDRESS: (
+                class_cache, get_address,
+                get_address_type, True,
+            ),
         },
         'it': {
-            mapping.PERSON: (user_cache, get_employee_id, None, False),
-            mapping.ORG_UNIT: (unit_cache, get_unit_id, None, False),
-            mapping.ITSYSTEM: (itsystem_cache, get_itsystem, None, False),
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
+            ),
+            mapping.ITSYSTEM: (
+                itsystem_cache, mapping.SINGLE_ITSYSTEM_FIELD, None, False,
+            ),
+            mapping.USER_KEY: (
+                None, get_user_key, None, False,
+            ),
         },
     }
 
@@ -607,20 +628,21 @@ def get_detail(type, id, function):
     ]
 
     def as_values(vs):
-        if not vs:
+        if vs is None:
             return
 
         for v in vs:
             if isinstance(v, str):
                 yield v
             else:
-                yield util.get_uuid(v)
+                yield v.get('uuid', None)
 
     # extract all object IDs
     for cache, getter, cachegetter, aslist in converters[function].values():
-        for start, end, funcid, effect in function_effects:
-            for v in as_values((cachegetter or getter)(effect)):
-                cache[v] = None
+        if cache is not None:
+            for start, end, funcid, effect in function_effects:
+                for v in as_values((cachegetter or getter)(effect)):
+                    cache[v] = None
 
     # fetch and convert each object once, rather than multiple times
     class_cache.update({
@@ -653,14 +675,24 @@ def get_detail(type, id, function):
     def get_one(effect, cache, getter, cachegetter, aslist):
         values = getter(effect)
 
+        if values is None:
+            return None
+
         if cache and not cachegetter:
-            values = (cache[util.get_uuid(v)] for v in values)
+            values = [
+                cache[v['uuid']]
+                for v in values
+                if 'uuid' in v
+            ]
 
         if aslist:
-            return list(values)
+            return values
+        elif values:
+            assert len(values) == 1, 'we got multiple where one was expected!?'
+
+            return values[0]
         else:
-            # TODO: what if we get multiple?
-            return next(values, None)
+            return None
 
     # finally, gather it all in the appropriate objects
     def convert(start, end, funcid, effect):
@@ -674,12 +706,6 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
-
-        if function == 'it':
-            func[mapping.USER_KEY] = (
-                effect['attributter']['organisationfunktionegenskaber'][0]
-                ['brugervendtnoegle']
-            )
 
         return func
 

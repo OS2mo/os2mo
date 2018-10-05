@@ -4,10 +4,14 @@ A organisation unit rename component.
 
 ## data 
 
-- `rename` 
+- `original` 
 
-  The rename, isLoading component value.
+  The rename, original, isLoading component value.
   Used to detect changes and restore the value. 
+
+**initial value:** `[object Object]` 
+
+- `rename` 
 
 **initial value:** `[object Object]` 
 
@@ -28,7 +32,7 @@ A organisation unit rename component.
   Compare if the unit names are identical.
   If then return false. 
 
-   **dependencies:** `rename`, `rename`, `rename` 
+   **dependencies:** `rename`, `original`, `original`, `rename`, `original` 
 
 
 ## methods 

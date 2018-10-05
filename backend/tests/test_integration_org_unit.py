@@ -519,13 +519,11 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
                 "org_unit_type": {
                     'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
                 "name": "Filosofisk Institut",
+                "uuid": org_unit_uuid,
             },
             "data": {
                 "org_unit_type": {
@@ -744,10 +742,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/edit',
             {
-                'description': 'Missing org_unit',
+                'description': 'Missing uuid',
                 'error': True,
                 'error_key': 'V_MISSING_REQUIRED_VALUE',
-                'key': 'org_unit',
+                'key': 'uuid',
                 'obj': req[0]['data'],
                 'status': 400,
             },
@@ -765,9 +763,7 @@ class Tests(util.LoRATestCase):
         req = [{
             "type": "org_unit",
             "data": {
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "org_unit_type": {
                     'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
                 },
@@ -921,9 +917,7 @@ class Tests(util.LoRATestCase):
                 json={
                     "type": "org_unit",
                     "data": {
-                        "org_unit": {
-                            "uuid": org_unit_uuid,
-                        },
+                        "uuid": org_unit_uuid,
                         "validity": {
                             "from": "2010-01-01",
                         },
@@ -946,9 +940,7 @@ class Tests(util.LoRATestCase):
                 json={
                     "type": "org_unit",
                     "data": {
-                        "org_unit": {
-                            "uuid": org_unit_uuid,
-                        },
+                        "uuid": org_unit_uuid,
                         'parent': {
                             'name': 'Overordnet Enhed',
                             'user_key': 'root',
@@ -970,9 +962,7 @@ class Tests(util.LoRATestCase):
             org_unit_uuid, json={
                 "type": "org_unit",
                 "data": {
-                    "org_unit": {
-                        "uuid": org_unit_uuid,
-                    },
+                    "uuid": org_unit_uuid,
                     "validity": {
                         "from": "2016-06-01",
                     },
@@ -1122,9 +1112,7 @@ class Tests(util.LoRATestCase):
         req = {
             "type": "org_unit",
             "data": {
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2016-06-01",
                 },
@@ -1292,9 +1280,6 @@ class Tests(util.LoRATestCase):
             "parent": {
                 'uuid': orgid,
             },
-            "org_unit": {
-                "uuid": unitid,
-            },
             "org_unit_type": {
                 'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
             },
@@ -1353,7 +1338,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "name": "Filosofisk Institut II",
-                "org_unit": {"uuid": org_unit_uuid},
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2018-01-01",
                 },
@@ -1498,7 +1483,7 @@ class Tests(util.LoRATestCase):
                 "type": "org_unit",
                 "data": {
                     "name": "Whatever",
-                    "org_unit": {"uuid": org_unit_uuid},
+                    "uuid": org_unit_uuid,
                     "validity": {
                         "from": "2016-01-01",
                     },
@@ -1563,7 +1548,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "name": "Whatever",
-                "org_unit": {"uuid": org_unit_uuid},
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2018-01-01T00:00:00+01",
                 },
@@ -1701,9 +1686,7 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2017-07-01",
                 },
@@ -1840,9 +1823,7 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2017-07-01",
                 },
@@ -1876,9 +1857,7 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2017-07-01T00:00:00+02",
                 },
@@ -1924,7 +1903,7 @@ class Tests(util.LoRATestCase):
                 json={
                     "type": "org_unit",
                     "data": {
-                        "org_unit": {"uuid": org_unit_uuid},
+                        "uuid": org_unit_uuid,
                         "validity": {
                             "from": "2016-01-01",
                             "to": None,
@@ -1951,7 +1930,7 @@ class Tests(util.LoRATestCase):
                 json={
                     "type": "org_unit",
                     "data": {
-                        "org_unit": {"uuid": org_unit_uuid},
+                        "uuid": org_unit_uuid,
                         "validity": {
                             "from": "2010-01-01",
                             "to": "2018-12-31",
@@ -1972,9 +1951,7 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2017-07-01",
                 },
@@ -2030,9 +2007,7 @@ class Tests(util.LoRATestCase):
                     "parent": {
                         'uuid': other_unit_uuid,
                     },
-                    "org_unit": {
-                        "uuid": org_unit_uuid,
-                    },
+                    "uuid": org_unit_uuid,
                     "validity": {
                         "from": "2018-01-01",
                     },
@@ -2094,9 +2069,7 @@ class Tests(util.LoRATestCase):
                     "parent": {
                         'uuid': root_uuid,
                     },
-                    "org_unit": {
-                        "uuid": org_unit_uuid,
-                    },
+                    "uuid": org_unit_uuid,
                     "validity": {
                         "from": "2018-01-01",
                     },
@@ -2121,9 +2094,7 @@ class Tests(util.LoRATestCase):
                     "parent": {
                         'uuid': root_uuid,
                     },
-                    "org_unit": {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    },
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                     "validity": {
                         "from": "2018-01-01",
                     },
@@ -2154,9 +2125,7 @@ class Tests(util.LoRATestCase):
                     "parent": {
                         'uuid': "00000000-0000-0000-0000-000000000001",
                     },
-                    "org_unit": {
-                        "uuid": org_unit_uuid,
-                    },
+                    "uuid": org_unit_uuid,
                     "validity": {
                         "from": "2017-01-01",
                     },
@@ -2178,9 +2147,7 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     "uuid": "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
-                "org_unit": {
-                    "uuid": org_unit_uuid,
-                },
+                "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2017-07-01",
                     "to": "2015-07-01",

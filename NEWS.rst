@@ -22,6 +22,15 @@ Internal changes
   now read the date from the ``to`` field rather than ``from``.
 * #24198: We now model IT systems using ``organisationfunktion``
   rather than a direct relation.
+* #23558: The employee is now optional on managers.
+
+API changes
+-----------
+
+* #24200: Move all writing and editing APIs from ``/service/ou`` and
+  ``/service/e/`` to a shared endpoint ``/service/details``. This
+  primarily means that writing operations no longer require knowledge of the
+  user, allowing e.g. vacant managers.
 
 Bug fixes
 ---------
