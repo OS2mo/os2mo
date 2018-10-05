@@ -37,7 +37,7 @@ class Tests(util.LoRATestCase):
         userid = r.json
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "note": "Oprettet i MO",
             "attributter": {
                 "brugeregenskaber": [
@@ -234,6 +234,177 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         self.assertTrue(c.bruger.get(uuid))
+
+    def test_create_employee_with_details(self):
+        """Test creating an employee with added details"""
+        self.load_sample_structures()
+
+        employee_uuid = "f7bcc7b1-381a-4f0e-a3f5-48a7b6eedf1c"
+
+        payload = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0101501234",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            },
+            "details": [
+                {
+                    "type": "engagement",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                    },
+                    "job_function": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    },
+                    "engagement_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                    },
+                    "validity": {
+                        "from": "2016-12-01",
+                        "to": None,
+                    }
+                }
+            ],
+            "uuid": employee_uuid
+        }
+
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+        with notsouid.freeze_uuid(mock_uuid):
+            self.request('/service/e/create', json=payload)
+
+        self.assertRequestResponse(
+            '/service/e/{}/'.format(employee_uuid),
+            {
+                'name': 'Torkild Testperson',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'user_key': mock_uuid,
+                'cpr_no': '0101501234',
+                'uuid': employee_uuid,
+            },
+        )
+
+        r = self.request('/service/e/{}/details/engagement'.format(
+            employee_uuid))
+        self.assertEqual(1, len(r.json), 'One engagement should exist')
+
+    def test_create_employee_with_details_fails_atomically(self):
+        """Ensure that we only save data when everything validates correctly"""
+        self.load_sample_structures()
+
+        employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
+
+        payload_broken_engagement = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0101501234",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            },
+            "details": [
+                {
+                    "type": "engagement",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-"
+                                "88c8-da82e3a4bc9e"
+                    },
+                    "job_function": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    },
+                    "engagement_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                    },
+                    "validity": {
+                        "from": "1960-12-01",
+                        "to": "2017-12-01",
+                    }
+                }
+            ],
+            "uuid": employee_uuid
+        }
+
+        self.assertRequestResponse(
+            '/service/e/create',
+            {
+                'description': 'Date range exceeds validity '
+                               'range of associated org unit.',
+                'error': True,
+                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'status': 400,
+                'valid_from': '2016-01-01',
+                'valid_to': None,
+                'wanted_valid_from': '1960-12-01',
+                'wanted_valid_to': '2017-12-01'
+            },
+            status_code=400,
+            json=payload_broken_engagement,
+        )
+
+        payload_broken_employee = {
+            "name": "Torkild Testperson",
+            "cpr_no": "0101174234",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            },
+            "details": [
+                {
+                    "type": "engagement",
+                    "org_unit": {
+                        'uuid': "9d07123e-47ac-4a9a-"
+                                "88c8-da82e3a4bc9e"
+                    },
+                    "job_function": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    },
+                    "engagement_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                    },
+                    "validity": {
+                        "from": "2016-12-01",
+                        "to": "2017-12-01",
+                    }
+                }
+            ],
+            "uuid": employee_uuid
+        }
+
+        self.assertRequestResponse(
+            '/service/e/create',
+            {
+                'description': 'Date range exceeds validity '
+                               'range of associated employee.',
+                'error': True,
+                'error_key': 'V_DATE_OUTSIDE_EMPL_RANGE',
+                'status': 400,
+                'valid_from': '2017-01-01',
+                'valid_to': '9999-12-31',
+                'wanted_valid_from': '2016-12-01',
+                'wanted_valid_to': '2017-12-02'
+            },
+            status_code=400,
+            json=payload_broken_employee,
+        )
+
+        # Assert that nothing has been written
+
+        self.assertRequestResponse(
+            '/service/e/{}/'.format(employee_uuid),
+            {
+                'status': 404,
+                'error': True,
+                'description': 'User not found.',
+                'error_key': 'E_USER_NOT_FOUND'
+            },
+            status_code=404,
+        )
+
+        engagement = self.request('/service/e/{}/details/engagement'.format(
+            employee_uuid)).json
+        self.assertEqual([], engagement,
+                         'No engagement should have been created')
 
     def test_cpr_lookup_prod_mode_false(self):
         # Arrange

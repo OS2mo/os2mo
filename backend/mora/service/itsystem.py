@@ -31,6 +31,139 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+@common.register_request_handler('it')
+class ItsystemRequestHandler(common.OrgFunkRequestHandler):
+
+    def prepare_create(self, req):
+        c = lora.Connector()
+
+        systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
+        system = c.itsystem.get(systemid)
+
+        if not system:
+            raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
+
+        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                              required=False)
+
+        employee = util.checked_get(req, mapping.PERSON, {}, required=False)
+        employee_uuid = util.get_uuid(employee, required=False)
+
+        org_uuid = system['relationer']['tilhoerer'][0]['uuid']
+
+        valid_from, valid_to = util.get_validities(req)
+
+        bvn = util.checked_get(req, mapping.USER_KEY, '', required=True)
+
+        # Validation
+        if org_unit_uuid:
+            validator.is_date_range_in_org_unit_range(org_unit_uuid,
+                                                      valid_from,
+                                                      valid_to)
+
+        if employee:
+            validator.is_date_range_in_employee_range(employee, valid_from,
+                                                      valid_to)
+
+        # TODO: validate that the date range is in
+        # the validity of the IT system!
+
+        func = common.create_organisationsfunktion_payload(
+            funktionsnavn=mapping.ITSYSTEM_KEY,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugervendtnoegle=bvn,
+            tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
+            tilknyttedeorganisationer=[org_uuid],
+            tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
+            tilknyttedeitsystemer=[systemid],
+        )
+
+        self.payload = func
+        self.uuid = util.get_uuid(req, required=False)
+
+    def prepare_edit(self, req: dict):
+        function_uuid = util.get_uuid(req)
+
+        # Get the current org-funktion which the user wants to change
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        original = c.organisationfunktion.get(uuid=function_uuid)
+
+        if not original:
+            raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
+
+        data = req.get('data')
+        new_from, new_to = util.get_validities(data)
+
+        payload = {
+            'note': 'Rediger IT-system',
+        }
+
+        original_data = req.get('original')
+        if original_data:
+            # We are performing an update
+            old_from, old_to = util.get_validities(original_data)
+            payload = common.inactivate_old_interval(
+                old_from, old_to, new_from, new_to, payload,
+                ('tilstande', 'organisationfunktiongyldighed')
+            )
+
+        update_fields = [
+            # Always update gyldighed
+            (
+                mapping.ORG_FUNK_GYLDIGHED_FIELD,
+                {'gyldighed': "Aktiv"}
+            ),
+        ]
+
+        if mapping.ITSYSTEM in data:
+            update_fields.append((
+                mapping.SINGLE_ITSYSTEM_FIELD,
+                {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
+            ))
+
+        if mapping.PERSON in data:
+            update_fields.append((
+                mapping.USER_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.PERSON),
+                },
+            ))
+
+        if mapping.ORG_UNIT in data:
+            update_fields.append((
+                mapping.ASSOCIATED_ORG_UNIT_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.ORG_UNIT),
+                },
+            ))
+
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {
+                    'brugervendtnoegle':
+                        util.checked_get(data, mapping.USER_KEY, ''),
+                },
+            ))
+
+        payload = common.update_payload(new_from, new_to, update_fields,
+                                        original,
+                                        payload)
+
+        bounds_fields = list(mapping.ITSYSTEM_FIELDS.difference(
+            {x[0] for x in update_fields},
+        ))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                       original,
+                                       payload)
+
+        self.payload = payload
+        self.uuid = function_uuid
+
+
 @blueprint.route('/o/<uuid:orgid>/it/')
 @util.restrictargs('at')
 def list_it_systems(orgid: uuid.UUID):
@@ -84,131 +217,6 @@ def list_it_systems(orgid: uuid.UUID):
         list(itertools.starmap(convert,
                                c.itsystem.get_all(tilhoerer=orgid))),
     )
-
-
-def create_itsystem(req):
-    c = lora.Connector()
-
-    systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
-    system = c.itsystem.get(systemid)
-
-    if not system:
-        raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
-
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                          required=False)
-
-    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
-                                          required=False)
-
-    org_uuid = system['relationer']['tilhoerer'][0]['uuid']
-
-    valid_from, valid_to = util.get_validities(req)
-
-    bvn = util.checked_get(req, mapping.USER_KEY, '', required=True)
-
-    # Validation
-    if org_unit_uuid:
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
-                                                  valid_to)
-
-    if employee_uuid:
-        validator.is_date_range_in_employee_range(employee_uuid, valid_from,
-                                                  valid_to)
-
-    # TODO: validate that the date range is in the validity of the IT system!
-
-    func = common.create_organisationsfunktion_payload(
-        funktionsnavn=mapping.ITSYSTEM_KEY,
-        valid_from=valid_from,
-        valid_to=valid_to,
-        brugervendtnoegle=bvn,
-        tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
-        tilknyttedeorganisationer=[org_uuid],
-        tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-        tilknyttedeitsystemer=[systemid],
-    )
-
-    return c.organisationfunktion.create(func)
-
-
-def edit_itsystem(req):
-    function_uuid = util.get_uuid(req)
-
-    # Get the current org-funktion which the user wants to change
-    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    original = c.organisationfunktion.get(uuid=function_uuid)
-
-    if not original:
-        raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
-
-    data = req.get('data')
-    new_from, new_to = util.get_validities(data)
-
-    payload = {
-        'note': 'Rediger IT-system',
-    }
-
-    original_data = req.get('original')
-    if original_data:
-        # We are performing an update
-        old_from, old_to = util.get_validities(original_data)
-        payload = common.inactivate_old_interval(
-            old_from, old_to, new_from, new_to, payload,
-            ('tilstande', 'organisationfunktiongyldighed')
-        )
-
-    update_fields = [
-        # Always update gyldighed
-        (
-            mapping.ORG_FUNK_GYLDIGHED_FIELD,
-            {'gyldighed': "Aktiv"}
-        ),
-    ]
-
-    if mapping.ITSYSTEM in data:
-        update_fields.append((
-            mapping.SINGLE_ITSYSTEM_FIELD,
-            {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
-        ))
-
-    if mapping.PERSON in data:
-        update_fields.append((
-            mapping.USER_FIELD,
-            {
-                'uuid':
-                util.get_mapping_uuid(data, mapping.PERSON),
-            },
-        ))
-
-    if mapping.ORG_UNIT in data:
-        update_fields.append((
-            mapping.ASSOCIATED_ORG_UNIT_FIELD,
-            {
-                'uuid':
-                util.get_mapping_uuid(data, mapping.ORG_UNIT),
-            },
-        ))
-
-    if mapping.USER_KEY in data:
-        update_fields.append((
-            mapping.ORG_FUNK_EGENSKABER_FIELD,
-            {
-                'brugervendtnoegle':
-                util.checked_get(data, mapping.USER_KEY, ''),
-            },
-        ))
-
-    payload = common.update_payload(new_from, new_to, update_fields, original,
-                                    payload)
-
-    bounds_fields = list(mapping.ITSYSTEM_FIELDS.difference(
-        {x[0] for x in update_fields},
-    ))
-    payload = common.ensure_bounds(new_from, new_to, bounds_fields, original,
-                                   payload)
-
-    return c.organisationfunktion.update(payload, function_uuid)
 
 
 def get_one_itsystem(c, systemid, system):

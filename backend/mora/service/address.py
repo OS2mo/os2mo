@@ -375,6 +375,84 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
+@common.register_request_handler('address')
+class AddressRequestHandler(common.RequestHandler):
+
+    __slots__ = *common.RequestHandler.__slots__, 'obj_type', 'old_rel', \
+        'new_rel'
+
+    def __init__(self, *args, **kwargs):
+        self.obj_type = None
+        self.old_rel = None
+        self.new_rel = None
+        super().__init__(*args, **kwargs)
+
+    def prepare_create(self, req: dict):
+        self.uuid, self.obj_type = get_id_and_type(req)
+
+        self.new_rel = get_relation_for(req)
+
+    def prepare_edit(self, req: dict):
+        old_entry = util.checked_get(self.request, 'original', {},
+                                     required=True)
+        new_entry = util.checked_get(self.request, 'data', {}, required=True)
+
+        self.uuid, self.obj_type = get_id_and_type(old_entry)
+
+        self.old_rel = get_relation_for(old_entry)
+        self.new_rel = get_relation_for(new_entry, old_entry)
+
+    def submit(self) -> str:
+
+        if self.request_type == common.RequestType.CREATE:
+            return self._submit_create()
+        else:
+            return self._submit_edit()
+
+    def _submit_create(self):
+        scope, original = get_scope_and_original(self.uuid, self.obj_type)
+
+        # we're editing a many-to-many relation, so inline the
+        # create_organisationsenhed_payload logic for simplicity
+
+        addrs = original['relationer'].get('adresser', [])
+
+        payload = {
+            'relationer': {
+                'adresser': addrs + [self.new_rel],
+            },
+            'note': 'Tilføj adresse',
+        }
+
+        scope.update(payload, self.uuid)
+
+        return self.uuid
+
+    def _submit_edit(self):
+        scope, original = get_scope_and_original(self.uuid, self.obj_type)
+
+        try:
+            addresses = original['relationer']['adresser']
+        except KeyError:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_INPUT,
+                'no addresses to edit!',
+            )
+
+        addresses = common.replace_relation_value(addresses, self.old_rel,
+                                                  self.new_rel)
+
+        payload = {
+            'relationer': {
+                'adresser': addresses,
+            }
+        }
+
+        scope.update(payload, self.uuid)
+
+        return self.uuid
+
+
 class Addresses(common.AbstractRelationDetail):
     @staticmethod
     def has(reg):
@@ -442,7 +520,7 @@ class Addresses(common.AbstractRelationDetail):
         )
 
 
-def get_scope_id_and_original(req: dict):
+def get_id_and_type(req: dict):
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON)
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT)
 
@@ -459,84 +537,41 @@ def get_scope_id_and_original(req: dict):
             obj=req,
         )
 
-    c = lora.Connector()
-
     if employee_uuid is not None:
-        scope, id = c.bruger, employee_uuid
+        return employee_uuid, 'e'
     else:
         assert org_unit_uuid is not None
-        scope, id = c.organisationenhed, org_unit_uuid
+        return org_unit_uuid, 'ou'
+
+
+def get_scope_and_original(obj_uuid, obj_type):
+    c = lora.Connector()
+
+    if obj_type == 'e':
+        scope = c.bruger
+    else:
+        assert obj_type == 'ou'
+        scope = c.organisationenhed
 
     obj = scope.get(
-        uuid=id,
+        uuid=obj_uuid,
         virkningfra='-infinity',
         virkningtil='infinity',
     )
 
     if not obj:
-        if employee_uuid is not None:
+        if obj_type == 'e':
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_USER_NOT_FOUND,
-                uuid=id,
+                uuid=obj_uuid,
             )
         else:
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-                uuid=id,
+                uuid=obj_uuid,
             )
 
-    return scope, id, obj
-
-
-def create_address(req):
-    scope, id, original = get_scope_id_and_original(req)
-
-    # we're editing a many-to-many relation, so inline the
-    # create_organisationsenhed_payload logic for simplicity
-    rel = get_relation_for(req)
-
-    addrs = original['relationer'].get('adresser', [])
-
-    payload = {
-        'relationer': {
-            'adresser': addrs + [rel],
-        },
-        'note': 'Tilføj adresse',
-    }
-
-    scope.update(payload, id)
-
-    return id
-
-
-def edit_address(req):
-    old_entry = util.checked_get(req, 'original', {}, required=True)
-    new_entry = util.checked_get(req, 'data', {}, required=True)
-
-    scope, id, original = get_scope_id_and_original(old_entry)
-
-    old_rel = get_relation_for(old_entry)
-    new_rel = get_relation_for(new_entry, old_entry)
-
-    try:
-        addresses = original['relationer']['adresser']
-    except KeyError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'no addresses to edit!',
-        )
-
-    addresses = common.replace_relation_value(addresses, old_rel, new_rel)
-
-    payload = {
-        'relationer': {
-            'adresser': addresses,
-        }
-    }
-
-    scope.update(payload, id)
-
-    return id
+    return scope, obj
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')

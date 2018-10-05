@@ -9,6 +9,7 @@
 import unittest
 
 import freezegun
+import notsouid
 
 from mora import lora
 from tests import util
@@ -42,8 +43,10 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        engagementid, = self.assertRequest('/service/details/create',
-                                           json=payload)
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+        with notsouid.freeze_uuid(mock_uuid):
+            engagementid, = self.assertRequest('/service/details/create',
+                                               json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -127,10 +130,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Engagement",
+                        "brugervendtnoegle": mock_uuid,
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -166,8 +166,10 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        engagementid, = self.assertRequest('/service/details/create',
-                                           json=payload)
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+        with notsouid.freeze_uuid(mock_uuid):
+            engagementid, = self.assertRequest('/service/details/create',
+                                               json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -251,8 +253,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                        "{} {} Engagement".format(userid, unitid),
+                        "brugervendtnoegle": mock_uuid,
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -271,6 +272,8 @@ class Tests(util.LoRATestCase):
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+
         payload = [
             {
                 "type": "engagement",
@@ -287,8 +290,9 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        engagementid, = self.assertRequest('/service/details/create',
-                                           json=payload)
+        with notsouid.freeze_uuid(mock_uuid):
+            engagementid, = self.assertRequest('/service/details/create',
+                                               json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -372,10 +376,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Engagement",
+                        "brugervendtnoegle": mock_uuid,
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -394,6 +395,8 @@ class Tests(util.LoRATestCase):
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+
         payload = [
             {
                 "type": "engagement",
@@ -408,8 +411,9 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        engagementid, = self.assertRequest('/service/details/create',
-                                           json=payload)
+        with notsouid.freeze_uuid(mock_uuid):
+            engagementid, = self.assertRequest('/service/details/create',
+                                               json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -482,10 +486,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Engagement",
+                        "brugervendtnoegle": mock_uuid,
                         "funktionsnavn": "Engagement"
                     }
                 ]
