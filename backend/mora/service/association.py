@@ -17,22 +17,26 @@ This section describes how to interact with employee associations.
 import flask
 
 from . import address
-from .. import mapping
+from .. import common
 from .. import exceptions
 from .. import lora
-from .. import validator
-from .. import common
+from .. import mapping
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('associations', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def create_association(employee_uuid, req):
+def create_association(req):
     c = lora.Connector()
 
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                           required=True)
+
+    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
+                                          required=True)
+
     org_unit = c.organisationenhed.get(org_unit_uuid)
 
     if not org_unit:
@@ -76,10 +80,13 @@ def create_association(employee_uuid, req):
         ] if address_obj else None,
     )
 
-    c.organisationfunktion.create(association)
+    return c.organisationfunktion.create(
+        association,
+        uuid=util.get_uuid(req, required=False),
+    )
 
 
-def edit_association(employee_uuid, req):
+def edit_association(req):
     association_uuid = req.get('uuid')
     # Get the current org-funktion which the user wants to change
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -87,11 +94,6 @@ def edit_association(employee_uuid, req):
 
     data = req.get('data')
     new_from, new_to = util.get_validities(data)
-
-    # Get org unit uuid for validation purposes
-    org_unit = util.get_obj_value(
-        original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-    org_unit_uuid = util.get_uuid(org_unit)
 
     payload = dict()
     payload['note'] = 'Rediger tilknytning'
@@ -127,10 +129,26 @@ def edit_association(employee_uuid, req):
 
     if mapping.ORG_UNIT in data:
         org_unit_uuid = data.get(mapping.ORG_UNIT).get('uuid')
+
         update_fields.append((
             mapping.ASSOCIATED_ORG_UNIT_FIELD,
             {'uuid': org_unit_uuid},
         ))
+    else:
+        org_unit_uuid = util.get_obj_uuid(
+            original,
+            mapping.ASSOCIATED_ORG_UNIT_FIELD.path,
+        )
+
+    if mapping.PERSON in data:
+        employee_uuid = data.get(mapping.PERSON).get('uuid')
+
+        update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
+    else:
+        employee_uuid = util.get_obj_uuid(
+            original,
+            mapping.USER_FIELD.path,
+        )
 
     if data.get(mapping.ADDRESS):
         address_obj = (
@@ -158,4 +176,4 @@ def edit_association(employee_uuid, req):
                                                       org_unit_uuid, new_from,
                                                       association_uuid)
 
-    c.organisationfunktion.update(payload, association_uuid)
+    return c.organisationfunktion.update(payload, association_uuid)

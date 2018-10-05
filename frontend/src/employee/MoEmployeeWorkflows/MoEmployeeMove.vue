@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker 
         class="search-employee" 
-        v-model="employee" 
+        v-model="move.data.person" 
         required
       />
 
@@ -20,7 +20,7 @@
         <mo-engagement-picker 
           class="mt-3" 
           v-model="original" 
-          :employee="employee" 
+          :employee="move.data.person"
           required
         />
       </div>
@@ -113,15 +113,15 @@
     data () {
       return {
       /**
-        * The move, employee, original, isLoading, backendValidationError component value.
+        * The move, original, isLoading, backendValidationError component value.
         * Used to detect changes and restore the value.
         */
-        employee: {},
         isLoading: false,
         backendValidationError: null,
         original: null,
         move: {
           type: 'engagement',
+          person: {},
           data: {
             validity: {}
           }
@@ -179,7 +179,7 @@
           vm.isLoading = true
           vm.move.uuid = this.original.uuid
 
-          Employee.move(this.employee.uuid, [this.move])
+          Employee.move([this.move])
             .then(response => {
               vm.isLoading = false
               if (response.error) {

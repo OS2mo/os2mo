@@ -68,7 +68,7 @@
 </template>
 
 <script>
-  /**
+/**
    * A employee move many component.
    */
 
@@ -167,7 +167,7 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
-  
+
       /**
        * Selected employees.
        */
@@ -196,31 +196,29 @@
           let vm = this
           vm.isLoading = true
 
-          vm.selected.forEach(engagement => {
-            let move = {
+          let moves = vm.selected.map(engagement => {
+            return {
               type: 'engagement',
+              uuid: engagement.uuid,
               data: {
-                validity: {}
+                // NB: we only need to write the changed values!
+                org_unit: vm.orgUnitDestination,
+                validity: {
+                  from: vm.moveDate
+                }
               }
             }
-
-            move.uuid = engagement.uuid
-            move.data.org_unit = vm.orgUnitDestination
-            move.data.validity.from = vm.moveDate
-
-            let uuid = engagement.person.uuid
-            let data = [move]
-
-            Employee.move(uuid, data)
-              .then(response => {
-                vm.isLoading = false
-                if (response.error) {
-                  vm.backendValidationError = response.error_key
-                } else {
-                  vm.$refs.employeeMoveMany.hide()
-                }
-              })
           })
+
+          Employee.move(moves)
+            .then(response => {
+              vm.isLoading = false
+              if (response.error) {
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.employeeMoveMany.hide()
+              }
+            })
         } else {
           this.$validator.validateAll()
         }

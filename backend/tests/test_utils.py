@@ -15,6 +15,7 @@ import freezegun
 
 from mora import exceptions
 from mora import util
+from mora import mapping
 
 from .util import TestCase
 
@@ -278,6 +279,44 @@ class TestUtils(TestCase):
                 'test2': [
                     {'key2': 'val2'},
                 ]
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_obj_value_existing_path_string(self):
+        # Arrange
+        obj = {'test1': {'test2': '1337'}}
+        path = ('test1', 'test2')
+
+        val = '42'
+
+        expected_result = {
+            'test1': {
+                'test2': '42'
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_obj_value_new_path_string(self):
+        # Arrange
+        obj = {}
+        path = ('test1', 'test2')
+
+        val = '42'
+
+        expected_result = {
+            'test1': {
+                'test2': '42'
             }
         }
 
@@ -708,7 +747,7 @@ class TestUtils(TestCase):
                 'error': True,
                 'error_key': 'E_INVALID_TYPE',
                 'expected': 'str',
-                'actual': '42',
+                'actual': 42,
                 'key': 'urn',
                 'obj': {'urn': 42},
                 'status': 400,
@@ -761,3 +800,8 @@ class TestAppUtils(unittest.TestCase):
             # request
             self.assertEqual(client.get('/?fest=42').status,
                              '200 OK')
+
+    def test_mapping_fieldtype(self):
+        self.assertEqual("FieldTuple(('relationer', 'tilknyttedeitsystemer'), "
+                         "FieldTypes.ADAPTED_ZERO_TO_MANY, None)",
+                         str(mapping.SINGLE_ITSYSTEM_FIELD))

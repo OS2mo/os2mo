@@ -80,8 +80,10 @@
          */
         original: this.orgUnit,
         rename: {
+          type: 'org_unit',
           data: {
             name: '',
+            uuid: '',
             validity: {}
           }
         },
@@ -126,8 +128,14 @@
       orgUnit: {
         handler (val) {
           this.original = val
+          if (val) {
+            this.rename.data.uuid = val.uuid
+          }
         },
         deep: true
+      },
+      original (val) {
+        this.rename.data.uuid = val && val.uuid
       }
     },
 
@@ -145,6 +153,7 @@
        */
       resetData () {
         this.rename.data.name = ''
+        this.rename.data.uuid = this.original && this.original.uuid
         this.rename.data.validity = {}
       },
 
@@ -162,7 +171,7 @@
             vm.isLoading = false
             return false
           }
-          OrganisationUnit.rename(this.original.uuid, this.rename)
+          OrganisationUnit.rename(this.rename)
             .then(response => {
               vm.isLoading = false
               vm.$refs.orgUnitRename.hide()

@@ -32,7 +32,7 @@ A entry edit modal component.
 
 - `entry` 
 
-  The entry, original, isLoading, backendValidationError component value.
+  The entry, original, isLoading, backendValidationMessage component value.
   Used to detect changes and restore the value. 
 
 **initial value:** `[object Object]` 
@@ -45,7 +45,7 @@ A entry edit modal component.
 
 **initial value:** `false` 
 
-- `backendValidationError` 
+- `backendValidationMessage` 
 
 **initial value:** `null` 
 
@@ -95,4 +95,6 @@ A entry edit modal component.
 
   Edit a organisation and check if the data fields are valid.
   Then throw a error if not. 
+
+- `handle(response)` 
 
