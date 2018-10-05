@@ -22,7 +22,6 @@ import uuid
 
 import flask
 
-from mora.service import detail_writing as writing
 from . import org
 from .. import common
 from .. import exceptions
@@ -317,6 +316,12 @@ def create_employee():
     :<json object org: The organisation with which the employee is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
+    :<json list details: A list of details to be created for the employee.
+
+    For more information on the available details,
+    see: :http:post:`/service/details/create`.
+    Note, that the ``person`` parameter is implicit in these payload, and should
+    not be given.
 
     .. sourcecode:: json
 
@@ -327,7 +332,25 @@ def create_employee():
         "org": {
           "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
         },
-        "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f"
+        "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f",
+        "details": [
+          {
+            "type": "engagement",
+            "org_unit": {
+              "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+            },
+            "job_function": {
+              "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+            },
+            "engagement_type": {
+              "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+            },
+            "validity": {
+                "from": "2016-01-01",
+                "to": "2017-12-31"
+            }
+          }
+        ]
       }
 
     :returns: UUID of created employee
