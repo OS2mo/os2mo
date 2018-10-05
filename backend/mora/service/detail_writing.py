@@ -20,75 +20,41 @@ For more information regarding reading relations, refer to:
 
 '''
 
-import typing
+import uuid
+from typing import List
 
 import flask
 
-from . import address
-from . import association
-from . import engagement
-from . import itsystem
-from . import leave
-from . import manager
-from . import orgunit
-from . import role
+from . import (engagement, manager, association, role, leave, itsystem,
+               address, orgunit)
+from .. import common
 from .. import exceptions
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-CREATION_HANDLERS = {
-    'engagement': engagement.create_engagement,
-    'association': association.create_association,
-    'role': role.create_role,
-    'manager': manager.create_manager,
-    'leave': leave.create_leave,
-    'it': itsystem.create_itsystem,
-    'address': address.create_address
-}
-
-EDIT_HANDLERS = {
-    'engagement': engagement.edit_engagement,
-    'association': association.edit_association,
-    'role': role.edit_role,
-    'leave': leave.edit_leave,
-    'manager': manager.edit_manager,
-    'it': itsystem.edit_itsystem,
-    'address': address.edit_address,
-    'org_unit': orgunit.edit_orgunit,
-}
-
-
-def process_requests(handlers, reqs) -> typing.List[str]:
+def handle_requests(
+    reqs: List[dict],
+    request_type: common.RequestType
+):
     if isinstance(reqs, dict):
-        just_one = True
+        is_single_request = True
         reqs = [reqs]
     elif isinstance(reqs, list):
-        just_one = False
+        is_single_request = False
     else:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_INPUT,
             request=reqs,
         )
 
-    operations = {req.get('type') for req in reqs}
+    requests = common.generate_requests(reqs, request_type)
 
-    if not operations.issubset(handlers):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-            types=sorted(operations - handlers.keys()),
-        )
-
-    r = [
-        handlers[req.get('type')](req)
-        for req in reqs
-    ]
-
-    if just_one:
-        return r[0]
-    else:
-        return r
+    uuids = common.submit_requests(requests)
+    if is_single_request:
+        uuids = uuids[0]
+    return uuids
 
 
 @blueprint.route('/details/create', methods=['POST'])
@@ -364,12 +330,10 @@ def create():
 
     """
 
+    reqs = flask.request.get_json()
     return (
-        flask.jsonify(
-            process_requests(CREATION_HANDLERS,
-                             flask.request.get_json()),
-        ),
-        201,
+        flask.jsonify(handle_requests(reqs, common.RequestType.CREATE)),
+        201
     )
 
 
@@ -812,10 +776,8 @@ def edit():
       ]
     """
 
+    reqs = flask.request.get_json()
     return (
-        flask.jsonify(
-            process_requests(EDIT_HANDLERS,
-                             flask.request.get_json()),
-        ),
-        200,
+        flask.jsonify(handle_requests(reqs, common.RequestType.EDIT)),
+        200
     )
