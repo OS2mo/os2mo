@@ -386,12 +386,12 @@ def create_employee():
                                            valid_to)
 
     # Validate the creation requests
-    details_requests = writing.generate_requests(details_with_persons,
-                                                 common.RequestType.CREATE)
+    details_requests = common.generate_requests(details_with_persons,
+                                                common.RequestType.CREATE)
 
     userid = c.bruger.create(user, uuid=userid)
 
-    creation_uuids = writing.submit_requests(details_requests)
+    creation_uuids = common.submit_requests(details_requests)
 
     return flask.jsonify(
         [userid] + creation_uuids if creation_uuids else userid)

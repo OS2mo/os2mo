@@ -94,6 +94,7 @@ class OrgUnit(common.AbstractRelationDetail):
         ])
 
 
+@common.register_request_handler('org_unit')
 class OrgUnitRequestHandler(common.RequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()

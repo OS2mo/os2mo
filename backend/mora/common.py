@@ -56,6 +56,18 @@ class RequestType(enum.Enum):
     EDIT = 1
 
 
+# Handlers is populated by each individual active RequestHandler
+HANDLERS = {}
+
+
+def register_request_handler(name):
+    """Decorator to register a writing request handler"""
+    def wrapper(cls):
+        HANDLERS[name] = cls
+        return cls
+    return wrapper
+
+
 class RequestHandler(abc.ABC):
 
     __slots__ = 'request', 'request_type', 'payload', 'uuid'
@@ -121,6 +133,28 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.create(self.payload, self.uuid)
         else:
             return c.organisationfunktion.update(self.payload, self.uuid)
+
+
+def generate_requests(
+    requests: typing.List[dict],
+    request_type: RequestType
+) -> typing.List[RequestHandler]:
+    operations = {req.get('type') for req in requests}
+
+    if not operations.issubset(HANDLERS):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+            types=sorted(operations - HANDLERS.keys()),
+        )
+
+    return [
+        HANDLERS[req.get('type')](req, request_type)
+        for req in requests
+    ]
+
+
+def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
+    return [request.submit() for request in requests]
 
 
 def get_connector(**loraparams):

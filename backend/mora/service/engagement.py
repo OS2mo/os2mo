@@ -23,6 +23,7 @@ from .. import util
 from .. import validator
 
 
+@common.register_request_handler('engagement')
 class EngagementRequestHandler(common.OrgFunkRequestHandler):
 
     def prepare_create(self, req):

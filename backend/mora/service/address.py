@@ -199,7 +199,9 @@ import re
 import flask
 import requests
 
+from . import employee
 from . import facet
+from . import orgunit
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -373,6 +375,7 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
+@common.register_request_handler('address')
 class AddressRequestHandler(common.RequestHandler):
 
     __slots__ = *common.RequestHandler.__slots__, 'obj_type', 'old_rel', \
@@ -490,13 +493,11 @@ class Addresses(common.AbstractRelationDetail):
                 addr[mapping.VALIDITY] = util.get_effect_validity(addrrel)
 
                 if self.scope.path == 'organisation/bruger':
-                    from . import employee
                     addr[mapping.PERSON] = employee.get_one_employee(
                         c, id, effect,
                     )
 
                 else:
-                    from . import orgunit
                     assert self.scope.path == 'organisation/organisationenhed'
                     addr[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
                         c, id, effect,

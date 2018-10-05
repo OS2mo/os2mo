@@ -28,6 +28,7 @@ blueprint = flask.Blueprint('associations', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+@common.register_request_handler('association')
 class AssociationRequestHandler(common.OrgFunkRequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()

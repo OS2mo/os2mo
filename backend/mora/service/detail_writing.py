@@ -33,39 +33,6 @@ from .. import exceptions
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
 
-HANDLERS = {
-    'engagement': engagement.EngagementRequestHandler,
-    'association': association.AssociationRequestHandler,
-    'role': role.RoleRequestHandler,
-    'manager': manager.ManagerRequestHandler,
-    'leave': leave.LeaveRequestHandler,
-    'it': itsystem.ItsystemRequestHandler,
-    'address': address.AddressRequestHandler,
-    'org_unit': orgunit.OrgUnitRequestHandler
-}
-
-
-def generate_requests(
-    requests: List[dict],
-    request_type: common.RequestType
-) -> List[common.RequestHandler]:
-    operations = {req.get('type') for req in requests}
-
-    if not operations.issubset(HANDLERS):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-            types=sorted(operations - HANDLERS.keys()),
-        )
-
-    return [
-        HANDLERS[req.get('type')](req, request_type)
-        for req in requests
-    ]
-
-
-def submit_requests(requests: List[common.RequestHandler]) -> List[str]:
-    return [request.submit() for request in requests]
-
 
 def handle_requests(
     reqs: List[dict],
@@ -82,9 +49,9 @@ def handle_requests(
             request=reqs,
         )
 
-    requests = generate_requests(reqs, request_type)
+    requests = common.generate_requests(reqs, request_type)
 
-    uuids = submit_requests(requests)
+    uuids = common.submit_requests(requests)
     if is_single_request:
         uuids = uuids[0]
     return uuids
