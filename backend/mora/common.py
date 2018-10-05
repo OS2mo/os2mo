@@ -56,7 +56,7 @@ class RequestType(enum.Enum):
     EDIT = 1
 
 
-# Handlers is populated by each individual active RequestHandler
+# The handler mapping is populated by each individual active RequestHandler
 HANDLERS = {}
 
 
