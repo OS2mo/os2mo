@@ -285,7 +285,7 @@ def update_config(mapping, config_path, allow_environment=True):
         with open(config_path) as fp:
             overrides = json.load(fp)
     except IOError:
-        print(' * Could not read {}'.format(config_path))
+        print(' * Could not read {}'.format(config_path), file=sys.stderr)
         overrides = {}
 
     if allow_environment:
@@ -325,7 +325,9 @@ def is_uuid(v):
     try:
         uuid.UUID(v)
         return True
-    except (ValueError, TypeError):
+    except Exception:
+        # we don't care /why/ it failed. We assume that any failure means
+        # that ``v`` is an invalid UUID.
         return False
 
 
