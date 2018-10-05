@@ -259,7 +259,7 @@ class Facet(BaseMap):
         """
 
         data = {
-            "user_key": (user_key or identifier)
+            "brugervendtnoegle": (user_key or identifier)
         }
 
         return self.save(identifier, data)
@@ -323,7 +323,8 @@ class Klasse(BaseMap):
     def __init__(self):
         super().__init__()
 
-    def add(self, identifier, facet_type_ref, **properties):
+    def add(self, identifier, facet_type_ref, user_key=None,
+            description=None, example=None, scope=None, title=None):
         """
         Add new facet to the storage map.
         In the context of the os2mo application,
@@ -335,18 +336,49 @@ class Klasse(BaseMap):
         :param facet_type_ref:
             User defined identifier
 
-        :param properties:
-            Optional user_key (if the key should differ from the identifier)
-            If the user_key is not set, it conforms to the passed identifier
+        :param user_key:
+            (Required) user_key (str)
+            Defaults to the value of the passed identifier.
+            This can be set for internal reference.
+
+        :param title:
+            (Required) title (str)
+            Defaults to the value of the passed identifier
+            The value which will be displayed in the frontend application
+
+        :param description:
+            (Optional) description (str)
+            This value is reserved for frontend tooltips.
+
+        :param example:
+            (Optional) example (str)
+            This value is reserved for frontend placeholders.
+
+        :param scope:
+            (Optional) scope (str)
+            This value is used for validation and field generation.
+            E.g. scope: DAR will render a field with validation for address uuids
 
         :return:
             Returns data as dict.
 
         """
 
+        klasse_data = {
+            "brugervendtnoegle": (user_key or identifier),
+            "titel": title,
+            "beskrivelse": description,
+            "eksempel": example,
+            "omfang": scope
+        }
+
         data = {
             "facet_type_ref": facet_type_ref,
-            "data": properties
+            "data": {
+                key: value
+                for key, value in klasse_data.items()
+                if value
+            }
         }
 
         return self.save(identifier, data)
@@ -408,8 +440,8 @@ class Itsystem(BaseMap):
         """
 
         data = {
-            "user_key": (user_key or identifier),
-            "system_name": (system_name or identifier),
+            "brugervendtnoegle": (user_key or identifier),
+            "itsystemnavn": (system_name or identifier),
         }
 
         return self.save(identifier, data)
@@ -914,8 +946,10 @@ class Organisation(object):
         """
         return {
             "uuid": self.uuid,
-            "name": self.name,
-            "user_key": self.user_key,
+            "data": {
+                "organisationsnavn": self.name,
+                "brugervendtnoegle": (self.user_key or self.name),
+            },
             "municipality_code": self.municipality_code,
             "validity": self.validity
         }

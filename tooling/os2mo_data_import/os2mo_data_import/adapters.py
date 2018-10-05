@@ -1,45 +1,48 @@
 # -- coding: utf-8 --
 
 
-def build_organisation_payload(organisation):
+def organisation_payload(organisation, municipality_code, validity):
+        """
+        MOX/Lora paylod for organisation
+
+        :param organisation:
+            Data object: Organisation (dict)
+            Example:
+                {
+                    "name": "Magenta Aps,
+                    "user_key": "ABC34D61-FB3F-451A-9299-31218B4570E6",
+                    "municipality_code": 101,
+                }
+
+        :param validity:
+            Start and end date (dict)
+            Example:
+                {
+                    "from": "1900-01-01",
+                    "to": "infinity"
+                }
+
+        :return:
+            POST data payload (dict)
+
         """
 
-        :param organisation:    Data object (Type: dict)
-                                Example:
+        properties = {
+            "virkning": validity
+        }
 
-                                {
-                                    "uuid": self.uuid,
-                                    "name": self.name,
-                                    "user_key": self.user_key,
-                                    "municipality_code": self.municipality_code,
-                                    "validity": self.validity
-                                }
-        :return:                Payload
-        :rtype:                 dict
-        """
+        properties.update(organisation)
 
+        print(properties)
 
-        # Map
-        uuid = organisation["uuid"]
-        name = organisation["name"]
-        user_key = organisation["user_key"]
-        municipality_code = organisation["municipality_code"]
-        validity = organisation["validity"]
+        attributter = {
+            "organisationegenskaber": [properties]
+        }
 
         # Create urn value
         urn_municipality_code = "urn:dk:kommune:{code}".format(
             code=str(municipality_code)
         )
-
-        attributter = {
-            "organisationegenskaber": [
-                {
-                    "brugervendtnoegle": str(user_key or name),
-                    "organisationsnavn": str(name),
-                    "virkning": validity
-                }
-            ]
-        }
 
         relationer = {
             "myndighed": [
@@ -67,37 +70,51 @@ def build_organisation_payload(organisation):
     }
 
 
-def build_klassifikation_payload(klassifikation, organisation_uuid):
+def klassifikation_payload(klassifikation, organisation_uuid, validity):
+    """
+    MOX/Lora paylod for klassifikation
 
-    # Map
-    user_key = klassifikation["user_key"]
-    description = klassifikation["description"]
-    alias = klassifikation["alias"]
-    validity = klassifikation["validity"]
+    :param klassifikation:
+         Data object: Klassifikation (dict)
+
+    :param organisation_uuid:
+        UUID of the organisation wrapper (str: uuid)
+
+    :param validity:
+        Start and end date (dict)
+        Example:
+            {
+                "from": "1900-01-01",
+                "to": "infinity"
+            }
+
+    :return:
+        OIO formatted post data payload (dict)
+
+    """
+
+    properties = {
+        "virkning": validity
+    }
+
+    properties.update(klassifikation)
 
     attributter = {
-        "klassifikationegenskaber": [
-            {
-                "brugervendtnoegle": str(user_key),
-                "beskrivelse": str(description),
-                "kaldenavn": str(alias),
-                "virkning": validity
-            }
-        ]
+        "klassifikationegenskaber": [properties]
     }
 
     relationer = {
         "ansvarlig": [
             {
                 "objekttype": "organisation",
-                "uuid": str(organisation_uuid),
+                "uuid": organisation_uuid,
                 "virkning": validity
             }
         ],
         "ejer": [
             {
                 "objekttype": "organisation",
-                "uuid": str(organisation_uuid),
+                "uuid": organisation_uuid,
                 "virkning": validity
             }
         ]
@@ -119,25 +136,40 @@ def build_klassifikation_payload(klassifikation, organisation_uuid):
     }
 
 
-def build_facet_payload(facet, klassifikation_uuid, organisation_uuid):
+def facet_payload(facet, klassifikation_uuid, organisation_uuid, validity):
     """
+    MOX/Lora paylod for facet
 
     :param facet:
+         Data object: facet (dict)
+
+    :param klassifikation_uuid:
+        UUID of the parent type: klassifikation (str: uuid)
+
     :param organisation_uuid:
+        UUID of the organisation wrapper (str: uuid)
+
+    :param validity:
+        Start and end date (dict)
+        Example:
+            {
+                "from": "1900-01-01",
+                "to": "infinity"
+            }
+
     :return:
+        OIO formatted post data payload (dict)
+
     """
 
-    # Map
-    user_key = facet["user_key"]
-    validity = facet["validity"]
+    properties = {
+        "virkning": validity
+    }
+
+    properties.update(facet)
 
     attributter = {
-        "facetegenskaber": [
-            {
-                "brugervendtnoegle": str(user_key),
-                "virkning": validity
-            }
-        ]
+        "facetegenskaber": [properties]
     }
 
     relationer = {
@@ -173,54 +205,59 @@ def build_facet_payload(facet, klassifikation_uuid, organisation_uuid):
     }
 
 
-def build_klasse_payload(klasse, facet_uuid, organisation_uuid):
+def klasse_payload(klasse, facet_uuid, organisation_uuid, validity):
     """
+    MOX/Lora paylod for klasse
 
     :param klasse:
+         Data object: klasse (dict)
+
+    :param facet_uuid:
+        UUID of the parent type: facet (str: uuid)
+
     :param organisation_uuid:
+        UUID of the organisation wrapper (str: uuid)
+
+    :param validity:
+        Start and end date (dict)
+        Example:
+            {
+                "from": "1900-01-01",
+                "to": "infinity"
+            }
+
     :return:
+        OIO formatted post data payload (dict)
+
     """
 
-    user_key = klasse.get("user_key")
-    description = klasse.get("description")
-    example = klasse.get("example")
-    scope = klasse.get("scope")
-    title = klasse.get("title")
-    validity = klasse.get("validity")
+    # The following keys are required:
+    if "brugervendtnøgle" and "titel" not in klasse:
+        raise ValueError("Required values missing for type klasse")
 
     properties = {
-        "brugervendtnoegle": user_key,
-        "beskrivelse": description,
-        "eksempel": example,
-        "omfang": scope,
-        "titel": (title or user_key),
         "virkning": validity
     }
 
-
+    # Add all user specified properties
+    properties.update(klasse)
 
     attributter = {
-        "klasseegenskaber": [
-            {
-                key : value
-                for key, value in properties.items()
-                if value
-            }
-        ]
+        "klasseegenskaber": [properties]
     }
 
     relationer = {
         "ansvarlig": [
             {
                 "objekttype": "organisation",
-                "uuid": str(organisation_uuid),
+                "uuid": organisation_uuid,
                 "virkning": validity
             }
         ],
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": str(facet_uuid),
+                "uuid": facet_uuid,
                 "virkning": validity
             }
         ]
@@ -242,19 +279,37 @@ def build_klasse_payload(klasse, facet_uuid, organisation_uuid):
 }
 
 
-def build_itsystem_payload(itsystem, organisation_uuid):
-    system_name = itsystem["system_name"]
-    user_key = itsystem["user_key"]
-    validity = itsystem["validity"]
+def itsystem_payload(itsystem, organisation_uuid, validity):
+    """
+    MOX/Lora paylod for itsystem
+
+    :param itsystem:
+         Data object: klasse (dict)
+
+    :param organisation_uuid:
+        UUID of the organisation wrapper (str: uuid)
+
+    :param validity:
+        Start and end date (dict)
+        Example:
+            {
+                "from": "1900-01-01",
+                "to": "infinity"
+            }
+
+    :return:
+        OIO formatted post data payload (dict)
+
+    """
+
+    properties = {
+        "virkning": validity
+    }
+
+    properties.update(itsystem)
 
     attributter = {
-        "itsystemegenskaber": [
-            {
-                "brugervendtnoegle": str(system_name),
-                "itsystemnavn": str(user_key),
-                "virkning": validity
-            }
-        ]
+        "itsystemegenskaber": [properties]
     }
 
     relationer = {
