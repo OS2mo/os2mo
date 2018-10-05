@@ -46,6 +46,7 @@
           :at-date="atDate"
           detail="it"
           :columns="it"
+          :entry-component="timemachineFriendly ? undefined : components.itSystem"
         />
       </b-tab>
 
@@ -78,6 +79,7 @@
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 
   export default {
     components: {
@@ -136,7 +138,7 @@
         ],
         it: [
           {label: 'it_system', data: 'itsystem'},
-          {label: 'user_name', data: null, field: 'user_key'}
+          {label: 'user_key', data: null, field: 'user_key'}
         ],
         manager: [
           {label: 'person', data: 'person'},
@@ -153,7 +155,8 @@
          */
         components: {
           orgUnit: MoOrganisationUnitEntry,
-          address: MoAddressEntry
+          address: MoAddressEntry,
+          itSystem: MoItSystemEntry
         }
       }
     }

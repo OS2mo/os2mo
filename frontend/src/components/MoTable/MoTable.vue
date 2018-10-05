@@ -44,7 +44,7 @@
       </thead>
 
       <tbody>
-        <tr v-for="(c, index) in sortableContent" :key="index">
+        <tr v-for="(c, index) in content" :key="index">
           <td v-if="multiSelect">
             <b-form-checkbox 
               class="checkbox-employee" 

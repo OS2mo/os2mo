@@ -16,6 +16,7 @@
   "responsibility": "Lederansvar",
   "role_type": "Rolletype",
   "start_date": "Startdato",
+  "user_key": "Kontonavn",
   "user_name": "Brugernavn",
   "value": "Værdi"
 }
