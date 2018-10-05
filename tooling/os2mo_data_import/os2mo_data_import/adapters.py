@@ -70,17 +70,17 @@ def build_organisation_payload(organisation):
 def build_klassifikation_payload(klassifikation, organisation_uuid):
 
     # Map
-    brugervendtnoegle = klassifikation["brugervendtnoegle"]
-    beskrivelse = klassifikation["beskrivelse"]
-    kaldenavn = klassifikation["kaldenavn"]
+    user_key = klassifikation["user_key"]
+    description = klassifikation["description"]
+    alias = klassifikation["alias"]
     validity = klassifikation["validity"]
 
     attributter = {
         "klassifikationegenskaber": [
             {
-                "brugervendtnoegle": str(brugervendtnoegle),
-                "beskrivelse": str(beskrivelse),
-                "kaldenavn": str(kaldenavn),
+                "brugervendtnoegle": str(user_key),
+                "beskrivelse": str(description),
+                "kaldenavn": str(alias),
                 "virkning": validity
             }
         ]
@@ -128,13 +128,13 @@ def build_facet_payload(facet, klassifikation_uuid, organisation_uuid):
     """
 
     # Map
-    brugervendtnoegle = facet["brugervendtnoegle"]
+    user_key = facet["user_key"]
     validity = facet["validity"]
 
     attributter = {
         "facetegenskaber": [
             {
-                "brugervendtnoegle": str(brugervendtnoegle),
+                "brugervendtnoegle": str(user_key),
                 "virkning": validity
             }
         ]
@@ -181,20 +181,31 @@ def build_klasse_payload(klasse, facet_uuid, organisation_uuid):
     :return:
     """
 
-    validity = klasse.pop("validity")
-    brugervendtnoegle = klasse["brugervendtnoegle"]
-    title = klasse.get("titel")
+    user_key = klasse.get("user_key")
+    description = klasse.get("description")
+    example = klasse.get("example")
+    scope = klasse.get("scope")
+    title = klasse.get("title")
+    validity = klasse.get("validity")
 
-    klasse_properties = {
-        "titel": (title or brugervendtnoegle),
+    properties = {
+        "brugervendtnoegle": user_key,
+        "beskrivelse": description,
+        "eksempel": example,
+        "omfang": scope,
+        "titel": (title or user_key),
         "virkning": validity
     }
 
-    klasse_properties.update(klasse)
+
 
     attributter = {
         "klasseegenskaber": [
-            klasse_properties
+            {
+                key : value
+                for key, value in properties.items()
+                if value
+            }
         ]
     }
 
