@@ -20,12 +20,12 @@
         <mo-date-picker 
           class="from-date" 
           :label="$t('input_fields.end_date')" 
-          v-model="terminate.validity.to" 
+          v-model="terminate.validity.to"
           required
         />
       </div>
-        
-        <div class="mb-3" v-if="employee">
+
+        <div class="mb-3" v-if="employee.uuid">
           <p>Følgende vil blive afsluttet for medarbejderen:</p>
           <mo-employee-detail-tabs :uuid="employee.uuid" hide-actions/>
         </div>
@@ -47,6 +47,7 @@
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
+  import { SET_EMPLOYEE, GET_EMPLOYEE } from '@/vuex/actions/employeeTerminate'
 
   export default {
       /**
@@ -70,14 +71,28 @@
          * Used to detect changes and restore the value.
          */
         isLoading: false,
-        employee: null,
         terminate: {
-          validity: {}
+          validity: {
+            to: ''
+          }
         }
       }
     },
 
     computed: {
+      /**
+       * Get and set a employee.
+       */
+      employee: {
+        get () { return this.$store.getters['employeeTerminate/' + GET_EMPLOYEE] },
+        set (value) { this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, value) }
+      },
+
+      // endDate: {
+      //   get () { return this.$store.getters['employeeTerminate/' + GET_ENDDATE] },
+      //   set (value) { this.$store.commit('employeeTerminate/' + SET_ENDDATE, value) }
+      // },
+
       isDisabled () {
         return !this.employee.uuid || !this.terminate.validity.to
       },
@@ -98,6 +113,8 @@
        */
       resetData () {
         Object.assign(this.$data, this.$options.data())
+        this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, {})
+        // this.$store.commit('employeeTerminate/' + SET_ENDDATE, '')
       },
 
       /**

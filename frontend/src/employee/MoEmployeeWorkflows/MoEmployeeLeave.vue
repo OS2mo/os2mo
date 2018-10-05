@@ -11,7 +11,8 @@
   >
     <form @submit.stop.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
-
+      {{employee}}
+{{validity}}
       <mo-leave-entry class="mt-3" v-model="leave"/>
 
       <div class="alert alert-danger" v-if="backendValidationError">
@@ -34,6 +35,7 @@
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import { SET_EMPLOYEE, GET_EMPLOYEE, SET_VALIDITY, GET_VALIDITY } from '@/vuex/actions/employeeLeave'
 
   export default {
       /**
@@ -55,16 +57,26 @@
         * The leave, employee, isLoading, backendValidationError component value.
         * Used to detect changes and restore the value.
         */
+        leave: {},
         isLoading: false,
-        backendValidationError: null,
-        employee: {},
-        leave: {
-          validity: {}
-        }
+        backendValidationError: null
       }
     },
 
     computed: {
+      /**
+       * Get and set a employee.
+       */
+      employee: {
+        get () { return this.$store.getters['employeeLeave/' + GET_EMPLOYEE] },
+        set (value) { this.$store.commit('employeeLeave/' + SET_EMPLOYEE, value) }
+      },
+
+      validity: {
+        get () { return this.$store.getters['employeeLeave/' + GET_VALIDITY] },
+        set (value) { this.$store.commit('employeeLeave/' + SET_VALIDITY, value) }
+      },
+
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
