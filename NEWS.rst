@@ -11,7 +11,7 @@ New features
 * #24014: Since we now model IT systems using an
   ``organisationfunktion``, we can now represent the account name.
 * #22849: Added handling for user permissions, giving a fitting error if a user attempts an action without the correct permissions.
-* #23967: Employees with their associated relations can now be created with one API call. All requests are now validated before being submitted to LoRa, to prevent half-writes.
+* #23976: Employees with their associated relations can now be created with one API call. All requests are now validated before being submitted to LoRa, to prevent half-writes.
 
 Internal changes
 ----------------
