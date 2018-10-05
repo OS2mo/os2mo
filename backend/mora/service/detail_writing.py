@@ -101,6 +101,9 @@ def create():
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
           },
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
+          },
           "job_function": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
           },
@@ -136,6 +139,9 @@ def create():
           "type": "association",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
           },
           "job_function": {
             "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
@@ -178,6 +184,9 @@ def create():
           "itsystem": {
              "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
           },
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
+          },
           "validity": {
             "from": "2018-09-01",
              "to": null
@@ -204,6 +213,9 @@ def create():
           "type": "role",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
           },
           "role_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -242,6 +254,9 @@ def create():
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
           },
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
+          },
           "manager_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
@@ -273,6 +288,7 @@ def create():
     **Leave**:
 
     :<jsonarr string type: **"leave"**
+    :<jsonarr object person: The associated employee
     :<jsonarr object leave_type: The leave type
     :<jsonarr object validity: The validities of the created object.
 
@@ -285,6 +301,9 @@ def create():
       [
         {
           "type": "leave",
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
+          },
           "leave_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
@@ -304,7 +323,12 @@ def create():
     :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object org_unit: the UUID of the associated unit, if any
+    :<jsonarr object person: the UUID of the associated employee, if any
     :<jsonarr object validity: The validities of the created object.
+
+    Note that an address can be associated with an employee `or` a unit, but
+    not both.
 
     See :ref:`Adresses <address>` for more information.
 
@@ -319,6 +343,9 @@ def create():
             "scope": "EAN",
             "user_key": "EAN",
             "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
+          },
+          "person": {
+            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
           },
           "type": "address",
           "validity": {
@@ -341,12 +368,7 @@ def create():
 def edit():
     """Edits a relation or attribute on an employee or unit
 
-    .. :quickref: Writing; Edit employee
-
-    :param type: 'ou' for writing to a unit; 'e' for writing an
-        employee.
-    :param uuid uuid: The UUID to of the target of the operation, i.e. the ID
-        of the employee or unit.
+    .. :quickref: Writing; Edit relation
 
     :statuscode 200: The edit succeeded.
 
@@ -381,6 +403,7 @@ def edit():
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
+    :<jsonarr object person: The associated employee
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the changes.
@@ -399,6 +422,9 @@ def edit():
             "validity": {
               "from": "2016-01-01",
               "to": "2017-12-31"
+            },
+            "person": {
+              "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
             },
             "job_function": {
               "uuid": "5b56432c-f289-4d81-a328-b878ea0a4e1b"
@@ -438,6 +464,7 @@ def edit():
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr string org_unit: The associated org unit
+    :<jsonarr object person: The associated employee
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object association_type: The association type
     :<jsonarr object address: The associated address object.
@@ -464,6 +491,9 @@ def edit():
             },
             "association_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
+            },
+            "person": {
+              "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
             },
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
@@ -593,6 +623,9 @@ def edit():
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             }
+            "person": {
+              "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
+            },
           },
           "data": {
             "validity": {
@@ -621,6 +654,7 @@ def edit():
     to contain the fields that need to change along with the validity dates.
 
     :<jsonarr object leave_type: The leave type
+    :<jsonarr object person: The associated employee
     :<jsonarr object validity: The validities of the changes.
 
     The parameter ``leave_type`` should contain a UUID obtained from the
@@ -637,6 +671,9 @@ def edit():
             "validity": {
                 "from": "2016-01-01",
                 "to": "2017-12-31"
+            },
+            "person": {
+              "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
             },
             "leave_type": {
               "uuid": "743a6448-2b0b-48cf-8a2e-bf938a6181ee"
@@ -739,6 +776,8 @@ def edit():
     :<jsonarr object value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object org_unit: the UUID of the associated unit, if any
+    :<jsonarr object person: the UUID of the associated employee, if any
     :<jsonarr object validity: A validity object
 
     See :ref:`Adresses <address>` for more information.
