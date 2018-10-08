@@ -211,53 +211,25 @@ def terminate_employee(employee_uuid):
     """
     date = util.get_valid_to(flask.request.get_json())
 
-    # Org funks
-    types = (
-        mapping.ENGAGEMENT_KEY,
-        mapping.ASSOCIATION_KEY,
-        mapping.ROLE_KEY,
-        mapping.LEAVE_KEY,
-        mapping.MANAGER_KEY
-    )
-
     c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
-    for key in types:
-        for objid, original in c.organisationfunktion.get_all(
+    handlers = [
+        common.handler_for(obj)(
+            {
+                'date': date,
+                'uuid': objid,
+                'original': obj,
+            },
+            common.RequestType.TERMINATE,
+        )
+        for objid, obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
-            funktionsnavn=key,
             gyldighed='Aktiv',
-        ):
-            update_fields = []
+        )
+    ]
 
-            validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
-
-            if key == mapping.MANAGER_KEY:
-                update_fields.append((
-                    mapping.USER_FIELD,
-                    {},
-                ))
-
-            else:
-                update_fields.append((
-                    mapping.ORG_FUNK_GYLDIGHED_FIELD,
-                    {
-                        'gyldighed': 'Inaktiv',
-                    },
-                ))
-
-            c.organisationfunktion.update(
-                common.update_payload(
-                    max(date, util.get_effect_from(validity[0])),
-                    util.POSITIVE_INFINITY,
-                    update_fields,
-                    original,
-                    {
-                        'note': "Afslut medarbejder",
-                    },
-                ),
-                objid,
-            )
+    for handler in handlers:
+        handler.submit()
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")

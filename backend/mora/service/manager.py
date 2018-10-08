@@ -29,6 +29,11 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
 
 @common.register_request_handler('manager', mapping.MANAGER_KEY)
 class ManagerRequestHandler(common.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    termination_field = mapping.USER_FIELD
+    termination_value = {}
+
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid """

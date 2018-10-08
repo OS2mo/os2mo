@@ -22,6 +22,7 @@ import copy
 import datetime
 import enum
 import functools
+import operator
 import typing
 import uuid
 
@@ -52,8 +53,7 @@ class AbstractRelationDetail(abc.ABC):
 
 
 class RequestType(enum.Enum):
-    CREATE = 0
-    EDIT = 1
+    CREATE, EDIT, TERMINATE = range(3)
 
 
 # The handler mapping is populated by each individual active RequestHandler
@@ -91,8 +91,12 @@ class RequestHandler(abc.ABC):
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
-        if request_type == RequestType.EDIT:
+        elif request_type == RequestType.EDIT:
             self.prepare_edit(request)
+        elif request_type == RequestType.TERMINATE:
+            self.prepare_terminate(request)
+        else:
+            raise NotImplementedError
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -112,6 +116,16 @@ class RequestHandler(abc.ABC):
         """
         pass
 
+    def prepare_terminate(self, request: dict):
+        """
+        Initialize a 'termination' request. Performs validation and all
+        necessary processing
+        :param uuid: The UUID to terminate
+        :param request: A dict containing a request
+
+        """
+        raise NotImplementedError
+
     @abc.abstractmethod
     def submit(self) -> str:
         """
@@ -123,6 +137,13 @@ class RequestHandler(abc.ABC):
 
 
 class OrgFunkRequestHandler(RequestHandler):
+    __slots__ = ()
+
+    termination_field = mapping.ORG_FUNK_GYLDIGHED_FIELD
+    termination_value = {
+        'gyldighed': 'Inaktiv',
+    }
+
     @abc.abstractmethod
     def prepare_create(self, request: dict):
         pass
@@ -131,6 +152,23 @@ class OrgFunkRequestHandler(RequestHandler):
     def prepare_edit(self, request: dict):
         pass
 
+    def prepare_terminate(self, request: dict):
+        self.uuid = request['uuid']
+        date = request['date']
+        original = request['original']
+
+        validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+
+        self.payload = update_payload(
+            max(date, util.get_effect_from(validity[0])),
+            util.POSITIVE_INFINITY,
+            [(self.termination_field, self.termination_value)],
+            original,
+            {
+                'note': "Afslut medarbejder",
+            },
+        )
+
     def submit(self) -> str:
         c = lora.Connector()
 
@@ -138,6 +176,14 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.create(self.payload, self.uuid)
         else:
             return c.organisationfunktion.update(self.payload, self.uuid)
+
+
+def handler_for(obj: dict):
+    '''Obtain the handler class corresponding to the given LoRA object'''
+    key, = set(map(operator.itemgetter('funktionsnavn'),
+                   mapping.ORG_FUNK_EGENSKABER_FIELD(obj)))
+
+    return HANDLERS_BY_KEY[key]
 
 
 def generate_requests(
