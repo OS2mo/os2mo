@@ -28,7 +28,7 @@ blueprint = flask.Blueprint('leave', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('leave')
+@common.register_request_handler('leave', mapping.LEAVE_KEY)
 class LeaveRequestHandler(common.OrgFunkRequestHandler):
 
     def prepare_create(self, req):

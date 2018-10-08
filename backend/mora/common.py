@@ -58,12 +58,17 @@ class RequestType(enum.Enum):
 
 # The handler mapping is populated by each individual active RequestHandler
 HANDLERS = {}
+HANDLERS_BY_KEY = {}
+FUNCTION_KEYS = {}
 
 
-def register_request_handler(name):
+def register_request_handler(name, key=None):
     """Decorator to register a writing request handler"""
     def wrapper(cls):
         HANDLERS[name] = cls
+        if key is not None:
+            HANDLERS_BY_KEY[key] = cls
+            FUNCTION_KEYS[name] = key
         return cls
     return wrapper
 

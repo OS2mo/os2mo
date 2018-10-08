@@ -27,7 +27,7 @@ blueprint = flask.Blueprint('roles', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('role')
+@common.register_request_handler('role', mapping.ROLE_KEY)
 class RoleRequestHandler(common.OrgFunkRequestHandler):
 
     def prepare_create(self, req):

@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-
 '''Reading details
 ---------------
 
@@ -99,7 +98,7 @@ def list_details(type, id):
         functype: bool(
             c.organisationfunktion(funktionsnavn=funcname, **search),
         )
-        for functype, funcname in mapping.FUNCTION_KEYS.items()
+        for functype, funcname in common.FUNCTION_KEYS.items()
     }
 
     reg = scope.get(id)
@@ -452,7 +451,7 @@ def get_detail(type, id, function):
         return cls(scope).get(id)
 
     # ensure that we report an error correctly
-    if function not in mapping.FUNCTION_KEYS:
+    if function not in common.FUNCTION_KEYS:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
             type=function,
@@ -462,7 +461,7 @@ def get_detail(type, id, function):
         limit=int(flask.request.args.get('limit', 0)) or
         settings.DEFAULT_PAGE_SIZE,
         start=int(flask.request.args.get('start', 0)),
-        funktionsnavn=mapping.FUNCTION_KEYS[function],
+        funktionsnavn=common.FUNCTION_KEYS[function],
     )
 
     # TODO: the logic encoded in the functions below belong in the

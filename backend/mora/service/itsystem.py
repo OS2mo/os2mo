@@ -31,7 +31,7 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('it')
+@common.register_request_handler('it', mapping.ITSYSTEM_KEY)
 class ItsystemRequestHandler(common.OrgFunkRequestHandler):
 
     def prepare_create(self, req):
