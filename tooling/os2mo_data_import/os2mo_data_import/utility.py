@@ -1,52 +1,120 @@
 # -- coding: utf-8 --
 
-import json
 from uuid import uuid4
 from requests import Session
-from os2mo_data_import.data_types import Organisation
+from urllib.parse import urljoin
 from os2mo_data_import import adapters
+from os2mo_data_import import Organisation
+
+# Default settings
+MOX_BASE = "http://localhost:8080"
+MORA_BASE = "http://localhost:5000"
 
 
-class ImportUtility(Session):
+class ImportUtility(object):
 
-    def __init__(self, organisation_object, dry_run=True):
+    def __init__(self, dry_run=True, mox_base=MOX_BASE, mora_base=MORA_BASE):
+        # Service endpoints
+        self.mox_base = mox_base
+        self.mora_base = mora_base
 
-        if not isinstance(organisation_object, Organisation):
-            raise TypeError("Object is not of type Organisation")
-
-        # Init base class
-        super().__init__()
-
-        # Meta
+        # Session
         self.dry_run = dry_run
-        self.Org = organisation_object
+        self.session = Session()
 
-        # Inserted uuid maps
-        self.inserted_facet = {}
-        self.inserted_klasse = {}
+    def insert_mox_data(self, resource, data):
 
-    def create_uuid(self):
-        uuid = uuid4()
-        return str(uuid)
+        service = urljoin(self.mox_base, resource)
 
-    def dummy_validity(self):
-        return {
-            "from": "1900-01-01",
-            "to": "infinity"
-        }
+        if self.dry_run:
+            response_data = {
+                "uuid": str(
+                    uuid4()
+                )
+            }
+        else:
+            response = self.session.post(url=service, json=data)
+            response_data = response.json()
 
-    def jsonify(self, data_as_dict):
-        output = json.dumps(data_as_dict, indent=2)
-        print(output)
+        return response_data["uuid"]
+
+    def insert_mora_data(self, resource, data):
+
+        service = urljoin(self.mora_base, resource)
+
+        if self.dry_run:
+            response_data = str(
+                uuid4()
+            )
+        else:
+            response = self.session.post(url=service, json=data)
+            response_data = response.json()
+
+        return response_data
+
+    def get_facet_types(self):
+
+        if hasattr(self, "facet_types"):
+            return
+
+        self.facet_types = {}
+
+        resource = "service/o/{uuid}/f/{type}/".format(
+            uuid=self.uuid,
+            type="address_type"
+        )
+
+        service = urljoin(self.mora_base, resource)
+
+
+        if self.dry_run:
+            for value in self.inserted_klasse.values():
+                print("#######", value)
+                self.facet_types[value] = {
+                    "uuid": value
+                }
+
+                print(
+                    self.facet_types
+                )
+        else:
+            response = self.session.get(service)
+
+            if response.status_code != 200:
+                print(response.text)
+                raise RuntimeError(response.text)
+
+            response_data = response.json()
+
+            if "items" not in response_data["data"]:
+                return False
+
+            print("Facet types")
+            for item in response_data["data"]["items"]:
+                uuid = item["uuid"]
+                self.facet_types[uuid] = item
+
+        return True
 
     def import_organisation(self):
         """
-        TODO: add actual import functionality
+        Import Organisation into datastore
         """
 
         # Organisation
-        org_export = self.Org.export()
-        org_data = adapters.build_organisation_payload(org_export)
+        export_data = self.Org.export()
+
+        self.validity = export_data["validity"]
+
+        org_data = adapters.organisation_payload(
+            organisation=export_data["data"],
+            municipality_code=export_data["municipality_code"],
+            validity=self.validity
+        )
+
+        if "uuid" in export_data:
+            # TODO: Import uuid if passed
+            pass
 
         self.uuid = self.insert_mox_data(
             resource="organisation/organisation",
@@ -54,40 +122,6 @@ class ImportUtility(Session):
         )
 
         return self.uuid
-
-    def insert_mox_data(self, resource, data):
-
-        base = "http://localhost:8080"
-        service = "{base}/{resource}".format(
-            base=base,
-            resource=resource
-        )
-
-        response = self.post(url=service, json=data)
-
-        r = response.json()
-
-        if not "uuid" in r:
-            print(response.text)
-
-        return r["uuid"]
-
-    def insert_mora_data(self, resource, data):
-
-        base = "http://localhost:5000"
-        service = "{base}/{resource}".format(
-            base=base,
-            resource=resource
-        )
-
-        response = self.post(url=service, json=data)
-
-        if response.status_code != 200:
-            print("======== FAILED ========")
-            print(data)
-            print(response.text)
-
-        return response.json()
 
     def import_klassifikation(self):
 
@@ -102,13 +136,13 @@ class ImportUtility(Session):
         klassifikation = {
             "brugervendtnoegle": bvn,
             "beskrivelse": description,
-            "kaldenavn": identifier,
-            "validity": self.Org.validity
+            "kaldenavn": identifier
         }
 
-        klassifikation_data = adapters.build_klassifikation_payload(
+        klassifikation_data = adapters.klassifikation_payload(
             klassifikation=klassifikation,
-            organisation_uuid=self.uuid
+            organisation_uuid=self.uuid,
+            validity=self.Org.validity
         )
 
         self.klassifikation_uuid = self.insert_mox_data(
@@ -128,13 +162,11 @@ class ImportUtility(Session):
 
             identifier, data = item
 
-            if "validity" not in data:
-                data["validity"] = self.dummy_validity()
-
-            payload = adapters.build_facet_payload(
+            payload = adapters.facet_payload(
                 facet=data,
                 klassifikation_uuid=self.klassifikation_uuid,
-                organisation_uuid=self.uuid
+                organisation_uuid=self.uuid,
+                validity=self.validity
             )
 
             facet_uuid = self.insert_mox_data(
@@ -159,19 +191,16 @@ class ImportUtility(Session):
             facet_type_ref = data["facet_type_ref"]
             klasse_data = data["data"]
 
-            print("KLASSE DATA ++++++")
-            print(klasse_data)
-
-            if "validity" not in klasse_data:
-                klasse_data["validity"] = self.dummy_validity()
-
             facet_uuid = self.inserted_facet.get(facet_type_ref)
 
-            payload = adapters.build_klasse_payload(
+            payload = adapters.klasse_payload(
                 klasse=klasse_data,
                 facet_uuid=facet_uuid,
-                organisation_uuid=self.uuid
+                organisation_uuid=self.uuid,
+                validity=self.validity
             )
+
+            print(payload)
 
             self.inserted_klasse[identifier] = self.insert_mox_data(
                 resource="klassifikation/klasse",
@@ -183,10 +212,25 @@ class ImportUtility(Session):
     def import_itsystem(self):
         all_items = self.Org.Itsystem.export()
 
+        self.inserted_itsystem = {}
+
         for item in all_items:
             identifier, data = item
 
-            payload = adapters.build_it
+            payload = adapters.itsystem_payload(
+                itsystem=data,
+                organisation_uuid=self.uuid,
+                validity=self.validity
+            )
+
+            store = self.insert_mox_data(
+                resource="organisation/itsystem",
+                data=payload
+            )
+
+            self.inserted_itsystem[identifier] = store
+
+        return self.inserted_itsystem
 
     def import_org_units(self):
         """
@@ -195,8 +239,6 @@ class ImportUtility(Session):
 
         all_units = self.Org.OrganisationUnit.export()
 
-        self.inserted_org_unit = {}
-
         for unit in all_units:
             identifier, content = unit
 
@@ -204,9 +246,16 @@ class ImportUtility(Session):
 
             if parent_ref:
                 parent_data = self.Org.OrganisationUnit.get(parent_ref)
-                self._insert_org_unit(parent_ref, parent_data["data"])
+                store = self._insert_org_unit(parent_ref, parent_data["data"])
 
-            self._insert_org_unit(identifier, content["data"])
+                if store:
+                    self._insert_optional_org_unit(store, parent_data["optional_data"])
+
+
+            store_pr = self._insert_org_unit(identifier, content["data"])
+
+            if store_pr:
+                self._insert_optional_org_unit(store_pr, content["optional_data"])
 
         return self.inserted_org_unit
 
@@ -218,46 +267,33 @@ class ImportUtility(Session):
         payload = self.build_mo_payload(data)
 
         store = self.insert_mora_data(resource="service/ou/create", data=payload)
+        print("STORING ORG UNIT: %s" % store)
+        if not store:
+            print(store)
+            raise RuntimeError("COULD NOT STORE ORG UNIT")
+
 
         self.inserted_org_unit[identifier] = store
 
-        return True
+        return self.inserted_org_unit[identifier]
 
-    def get_facet_types(self):
+    def _insert_optional_org_unit(self, uuid, data):
 
-        if hasattr(self, "facet_types"):
-            return
+        if not uuid:
+            raise RuntimeError("UUID IS MISSING")
 
-        self.facet_types = {}
+        process_optional = [
+            self.build_mo_payload(item)
+            for item in data
+        ]
 
-        resource = "service/o/{uuid}/f/{type}/".format(
-            uuid=self.uuid,
-            type="address_type"
-        )
+        resource = "service/ou/{uuid}/create".format(uuid=uuid)
 
-        service = "{base}/{resource}".format(
-            base="http://localhost:5000",
-            resource=resource
-        )
+        opt_yes = self.insert_mora_data(resource=resource, data=process_optional)
 
-        response = self.get(service)
+        return opt_yes
 
-        if response.status_code != 200:
-            print(response.text)
-            raise RuntimeError(response.text)
 
-        data = response.json()
-
-        if "items" not in data["data"]:
-            return False
-
-        print("Facet types")
-        for item in data["data"]["items"]:
-            uuid = item["uuid"]
-            print(uuid)
-            self.facet_types[uuid] = item
-
-        return True
 
     def _insert_optional(self, uuid, data):
 
@@ -265,6 +301,9 @@ class ImportUtility(Session):
             self.build_mo_payload(item)
             for item in data
         ]
+
+        for i in process_optional:
+            print(i)
 
         resource = "service/e/{uuid}/create".format(uuid=uuid)
 
@@ -276,7 +315,7 @@ class ImportUtility(Session):
 
     def _insert_employee(self, identifier, content):
 
-        if identifier in self.inserted_org_unit:
+        if identifier in self.inserted_employees:
             return False
 
         data = content["data"]
@@ -295,8 +334,6 @@ class ImportUtility(Session):
         """
         TODO: add actual import functionality
         """
-
-        self.inserted_employees = {}
 
         all_employees = self.Org.Employee.export()
 
@@ -326,38 +363,44 @@ class ImportUtility(Session):
             "leave_type",
             "it_type",
             "job_function",
-            "engagement_type"
+            "engagement_type",
+            "manager_type",
+            "manager_level",
+            "association_type"
         ]
 
-        if not hasattr(self, "facet_types"):
-            self.get_facet_types()
+        # Get facet types
+        self.get_facet_types()
+
+        # Prep for adapter
+        build_value = None
 
         for key, val in list_of_tuples:
 
-            if key == "itsystem":
-                self.inserted_itsystem.get(val)
-                payload[key] = {
-                    "uuid": self.uuid
-                }
-
-            if key == "org":
-                payload[key] = {
-                    "uuid": self.uuid
-                }
-
             if key in regular_set:
-                payload[key] = val
+                build_value = val
 
             if key in reference_types:
                 uuid = self.inserted_klasse.get(val)
 
-                payload[key] = {
+                build_value = {
                     "uuid": str(uuid)
+                }
+
+            if key == "itsystem":
+                uuid = self.inserted_itsystem.get(val)
+                build_value = {
+                    "uuid": uuid
+                }
+
+            if key == "org":
+                build_value = {
+                    "uuid": self.uuid
                 }
 
             if key == "org_unit":
                 uuid = self.inserted_org_unit.get(val)
-                payload[key] = {
+                build_value = {
                     "uuid": str(uuid)
                 }
 
@@ -366,19 +409,30 @@ class ImportUtility(Session):
 
                 address_type = self.facet_types.get(uuid)
 
+                print("!!!!!!!")
                 print(address_type)
 
-                payload[key] = address_type
+                build_value = address_type
 
+            if key == "address":
+                type_uuid = self.inserted_klasse.get("AdressePost")
+
+                address_type = self.facet_types.get(type_uuid)
+
+                build_value = {
+                    "uuid": str(val),
+                    "address_type": address_type
+                }
 
             if key == "parent":
+                print("GETTING PARENT: %s" % val)
+                parent_uuid = self.inserted_org_unit.get(val)
+                print("PARENT HAS UUID: %s" % parent_uuid)
 
-                if val:
-                    parent_uuid = self.inserted_org_unit.get(val)
-                else:
+                if not parent_uuid:
                     parent_uuid = self.uuid
 
-                payload[key] = {
+                build_value = {
                     "uuid": str(parent_uuid)
                 }
 
@@ -390,19 +444,44 @@ class ImportUtility(Session):
                     print(self.inserted_klasse)
                     raise RuntimeError("Type not found")
 
-                payload[key] = {
+                build_value = {
                     "uuid": org_unit_type
                 }
 
-            if "parent" not in payload:
-                payload["org"] = {
-                    "uuid": self.uuid
-                }
+            if key == "responsibility":
+                responsibility_list = []
+
+                for responsibility in val:
+
+                    uuid = self.inserted_klasse.get(responsibility)
+
+                    reference = {
+                        "uuid": uuid
+                    }
+
+                    responsibility_list.append(reference)
+
+                build_value = responsibility_list
+
+            if not build_value:
+                print(key, val)
+                raise ValueError("Unable to create build value")
+
+
+            payload[key] = build_value
 
         return payload
 
 
-    def import_all(self):
+    def import_all(self, org):
+
+        self.Org = org
+
+        # Inserted uuid maps
+        self.inserted_facet = {}
+        self.inserted_klasse = {}
+        self.inserted_org_unit = {}
+        self.inserted_employees = {}
 
         store = self.import_organisation()
         print(store)
@@ -426,4 +505,3 @@ class ImportUtility(Session):
         print(store)
 
         return
-
