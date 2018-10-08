@@ -1,4 +1,4 @@
-Version 0.10.0, 2018-10-07
+Version 0.10.1, 2018-10-08
 ==========================
 
 New features
@@ -12,6 +12,11 @@ New features
   ``organisationfunktion``, we can now represent the account name.
 * #22849: Added handling for user permissions, giving a fitting error if a user attempts an action without the correct permissions.
 * #23976: Employees with their associated relations can now be created with one API call. All requests are now validated before being submitted to LoRa, to prevent half-writes.
+* #24134: Columns in the UI can now be sorted.
+* #24135: Dropdowns are now alphabetically sorted.
+* #24068: Clicking the OS2-icon in the top left corner now takes you to the landing page.
+* #23793: Support has been added for P-nummer as address type.
+* #23781: Managers now have a separate set of address types.
 
 Internal changes
 ----------------
@@ -39,6 +44,11 @@ Bug fixes
 * #24067: Fixed being able to edit root organisational units
 * #23559: Display end dates *inclusively*, so that the year ends 31
   December rather than 1 January.
+
+Known bugs
+----------
+
+* #24134: Sorting doesn't work after performing an update.
 
 Version 0.9.0, 2018-09-07
 =========================
