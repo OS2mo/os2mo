@@ -11,11 +11,11 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   modules: {
-    auth: auth,
-    employee: employee,
-    log: log,
-    organisation: organisation,
-    organisationUnit: organisationUnit,
-    facet: facet
+    auth,
+    employee,
+    log,
+    organisation,
+    organisationUnit,
+    facet
   }
 })

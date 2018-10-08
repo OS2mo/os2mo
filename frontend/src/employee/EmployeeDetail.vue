@@ -30,7 +30,7 @@
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
   import MoLoader from '@/components/atoms/MoLoader'
-  import {GET_EMPLOYEE, SET_EMPLOYEE} from '@/vuex/actions/employee'
+  import {GET_EMPLOYEE, SET_EMPLOYEE, RESET_EMPLOYEE} from '@/vuex/actions/employee'
 
   export default {
     components: {
@@ -57,6 +57,10 @@
 
     created () {
       this.$store.dispatch('employee/' + SET_EMPLOYEE, this.$route.params.uuid)
+    },
+    beforeRouteLeave (to, from, next) {
+      this.$store.commit('employee/' + RESET_EMPLOYEE)
+      next()
     }
   }
 </script>

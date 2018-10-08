@@ -56,6 +56,7 @@
   import MoInput from '@/components/atoms/MoInput'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import { mapGetters } from 'vuex'
+  import {GET_ORG_UNIT} from '@/vuex/actions/organisationUnit'
   
   export default {
       /**
@@ -94,7 +95,7 @@
        * Get organisation unit
        */
       ...mapGetters({
-        orgUnit: 'organisationUnit/getOrgUnit'
+        orgUnit: `organisationUnit/${GET_ORG_UNIT}`
       }),
 
       /**

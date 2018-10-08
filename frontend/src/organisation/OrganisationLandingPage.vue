@@ -104,11 +104,6 @@
 
     mounted () {
       /**
-       * When organisation unit change reset.
-       */
-      this.$store.commit('organisationUnit/reset')
-
-      /**
        * Whenever organisation details change update.
        */
       this.getOrganisationDetails()

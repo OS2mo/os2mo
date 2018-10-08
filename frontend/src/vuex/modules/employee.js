@@ -1,10 +1,9 @@
-import { GET_EMPLOYEE, SET_EMPLOYEE, SET_DETAIL, GET_DETAIL } from '../actions/employee'
+import { GET_EMPLOYEE, SET_EMPLOYEE, RESET_EMPLOYEE, SET_DETAIL, GET_DETAIL } from '../actions/employee'
 import Service from '@/api/HttpCommon'
 
 const state = {
   cpr_no: '',
   name: '',
-  org: {},
   user_key: '',
   uuid: ''
 }
@@ -39,9 +38,15 @@ const mutations = {
   [SET_EMPLOYEE] (state, payload) {
     state.cpr_no = payload.cpr_no
     state.name = payload.name
-    state.org = payload.org
     state.user_key = payload.user_key
     state.uuid = payload.uuid
+  },
+
+  [RESET_EMPLOYEE] (state) {
+    state.cpr_no = undefined
+    state.name = undefined
+    state.user_key = undefined
+    state.uuid = undefined
   },
 
   [SET_DETAIL] (state, payload) {
