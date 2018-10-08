@@ -85,7 +85,7 @@ klasse_types = [
         }
     ),
     (
-        "LederAdressePost", "Adressetype",
+        "LederAdressePost", "Lederadressetype",
         {
             "user_key": "LederAdressePost",
             "example": "<UUID>",
@@ -94,7 +94,7 @@ klasse_types = [
         }
     ),
     (
-        "LederEmail", "Adressetype",
+        "LederEmail", "Lederadressetype",
         {
             "user_key": "LederEmail",
             "example": "test@example.com",
@@ -103,7 +103,7 @@ klasse_types = [
         }
     ),
     (
-        "LederTelefon", "Adressetype",
+        "LederTelefon", "Lederadressetype",
         {
             "user_key": "LederTelefon",
             "example": "20304060",
@@ -112,7 +112,7 @@ klasse_types = [
         }
     ),
     (
-        "LederWebadresse", "Adressetype",
+        "LederWebadresse", "Lederadressetype",
         {
             "user_key": "LederWebadresse",
             "example": "http://www.magenta.dk",
