@@ -188,7 +188,7 @@ def get_employee(id):
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
-    specified date.
+    specified date, with the manager roles which are vacated instead.
 
     .. :quickref: Employee; Terminate
 
@@ -220,18 +220,44 @@ def terminate_employee(employee_uuid):
         mapping.MANAGER_KEY
     )
 
-    c = lora.Connector(effective_date=date)
+    c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
     for key in types:
-        for obj in c.organisationfunktion.get_all(
+        for objid, original in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
-            funktionsnavn=key
+            funktionsnavn=key,
+            gyldighed='Aktiv',
         ):
+            update_fields = []
+
+            validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+
+            if key == mapping.MANAGER_KEY:
+                update_fields.append((
+                    mapping.USER_FIELD,
+                    {},
+                ))
+
+            else:
+                update_fields.append((
+                    mapping.ORG_FUNK_GYLDIGHED_FIELD,
+                    {
+                        'gyldighed': 'Inaktiv',
+                    },
+                ))
+
             c.organisationfunktion.update(
-                common.inactivate_org_funktion_payload(
-                    date,
-                    "Afslut medarbejder"),
-                obj[0])
+                common.update_payload(
+                    max(date, util.get_effect_from(validity[0])),
+                    util.POSITIVE_INFINITY,
+                    update_fields,
+                    original,
+                    {
+                        'note': "Afslut medarbejder",
+                    },
+                ),
+                objid,
+            )
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
