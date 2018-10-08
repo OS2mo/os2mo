@@ -606,6 +606,7 @@ def get_detail(type, id, function):
                     'adresser',
                     'organisatoriskfunktionstype',
                     'tilknyttedeenheder',
+                    'tilknyttedebrugere',
                 ),
                 'tilstande': (
                     'organisationfunktiongyldighed',
@@ -617,7 +618,6 @@ def get_detail(type, id, function):
                 ),
                 'relationer': (
                     'tilhoerer',
-                    'tilknyttedebrugere',
                     'tilknyttedeorganisationer',
                     'tilknyttedeitsystemer',
                 ),
