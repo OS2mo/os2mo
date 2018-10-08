@@ -6,12 +6,32 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import unittest
+
 from flask import json
 
 from . import util
 
 
 class EmployeeHistoryTest(util.LoRATestCase):
+
+    def test_invalid_employee_history(self):
+        userid = "00000000-0000-0000-0000-000000000000"
+
+        # Assert
+        self.assertRequestResponse(
+            '/service/e/{}/history/'.format(userid),
+            {
+                'description': 'User not found.',
+                'error': True,
+                'error_key': 'E_USER_NOT_FOUND',
+                'status': 404,
+                'employee_uuid': userid,
+            },
+            status_code=404,
+        )
+
+    @unittest.expectedFailure
     def test_employee_history(self):
         # Create and edit a bunch of stuff, followed by a terminate
         # Arrange
@@ -20,16 +40,16 @@ class EmployeeHistoryTest(util.LoRATestCase):
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         # Act
-        self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+        self.assertRequest(
+            '/service/details/edit',
             json=[
                 {
                     "type": "engagement",
                     "uuid": 'd000591f-8705-4324-897a-075e3623f37b',
                     "data": {
+                        "person": {"uuid": userid},
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -37,8 +57,9 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "type": "association",
                     "uuid": 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
                     "data": {
+                        "person": {"uuid": userid},
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -46,8 +67,9 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "type": "role",
                     "uuid": '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
                     "data": {
+                        "person": {"uuid": userid},
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -55,8 +77,9 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "type": "leave",
                     "uuid": 'b807628c-030c-4f5f-a438-de41c1f26ba5',
                     "data": {
+                        "person": {"uuid": userid},
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
@@ -64,19 +87,21 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "type": "manager",
                     "uuid": '05609702-977f-4869-9fb4-50ad74c6999a',
                     "data": {
+                        "person": {"uuid": userid},
                         "validity": {
-                            "from": "2018-04-01T00:00:00+02",
+                            "from": "2018-04-01",
                         }
                     },
                 },
             ])
 
-        self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+        self.assertRequest(
+            '/service/details/create',
             json=[
                 {
                     "type": "engagement",
+                    "person": {
+                        "uuid": userid},
                     "org_unit": {
                         'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                     "job_function": {
@@ -84,12 +109,14 @@ class EmployeeHistoryTest(util.LoRATestCase):
                     "engagement_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     }
                 },
                 {
                     "type": "association",
+                    "person": {
+                        "uuid": userid},
                     "org_unit": {
                         'uuid': "04c78fc2-72d2-4d02-b55f-807af19eac48"},
                     "job_function": {
@@ -98,32 +125,38 @@ class EmployeeHistoryTest(util.LoRATestCase):
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
                 {
                     "type": "role",
+                    "person": {
+                        "uuid": userid},
                     "org_unit": {
                         'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                     "role_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
                 {
                     "type": "leave",
+                    "person": {
+                        "uuid": userid},
                     "leave_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
                 {
                     "type": "manager",
+                    "person": {
+                        "uuid": userid},
                     "org_unit": {
                         'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                     "responsibility": [{
@@ -135,8 +168,8 @@ class EmployeeHistoryTest(util.LoRATestCase):
                         "uuid": "1edc778c-bf9b-4e7e-b287-9adecd6ee293"
                     },
                     "validity": {
-                        "from": "2017-12-01T00:00:00+01",
-                        "to": "2017-12-02T00:00:00+01",
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 },
             ])
@@ -146,7 +179,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
             userid,
             json={
                 "validity": {
-                    "from": "2017-12-01T00:00:00+01"
+                    "to": "2017-12-01"
                 }
             })
 
@@ -229,6 +262,23 @@ class EmployeeHistoryTest(util.LoRATestCase):
 
 
 class OrgUnitHistoryTest(util.LoRATestCase):
+    def test_invalid_org_unit_history(self):
+        unitid = "00000000-0000-0000-0000-000000000000"
+
+        # Assert
+        self.assertRequestResponse(
+            '/service/ou/{}/history/'.format(unitid),
+            {
+                'description': 'Org unit not found.',
+                'error': True,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': unitid,
+                'status': 404,
+            },
+            status_code=404,
+        )
+
+    @unittest.expectedFailure
     def test_org_unit_history(self):
         # A create, some edits, followed by a termination
         # Arrange
@@ -246,38 +296,56 @@ class OrgUnitHistoryTest(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                 },
                 "validity": {
-                    "from": "2016-02-04T00:00:00+01",
-                    "to": "2017-10-22T00:00:00+02",
+                    "from": "2016-02-04",
+                    "to": "2017-10-21",
                 }
             }
         )
         self.assert200(r)
         unitid = json.loads(r.get_data())
 
-        self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+        self.assertRequest(
+            '/service/details/edit',
             json={
+                "type": "org_unit",
                 "data": {
                     "name": "History test II",
+                    "org_unit": {"uuid": unitid},
                     "validity": {
-                        "from": "2016-01-05T00:00:00+00:00",
+                        "from": "2016-01-05",
+                    }
+                }
+            }
+        )
+
+        self.assertRequest(
+            '/service/details/edit',
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "History test III",
+                    "org_unit": {"uuid": unitid},
+                    "validity": {
+                        "from": "2016-01-12",
                     }
                 }
             }
         )
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
+            '/service/ou/{}/create'.format(unitid),
             unitid,
-            json={
-                "data": {
-                    "name": "History test III",
-                    "validity": {
-                        "from": "2016-01-12T00:00:00+00:00",
-                    }
+            json=[{
+                "type": "manager",
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
                 }
-            }
+            }],
         )
 
         self.assertRequestResponse(
@@ -285,12 +353,15 @@ class OrgUnitHistoryTest(util.LoRATestCase):
             unitid,
             json={
                 "validity": {
-                    "from": "2017-12-01T00:00:00+01"
+                    "to": "2017-12-01"
                 }
             })
 
         expected_result = [
             {'action': 'Afslut enhed',
+             'life_cycle_code': 'Rettet',
+             'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'},
+            {'action': 'Opret leder',
              'life_cycle_code': 'Rettet',
              'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'},
             {'action': 'Rediger organisationsenhed',

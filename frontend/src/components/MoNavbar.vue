@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-    <div class="logo col-1"/>
+    <router-link class="logo col-1" :to="{ name: 'Landing'}"></router-link>
 
     <button 
       class="navbar-toggler" 
@@ -47,6 +47,10 @@
 </template>
 
 <script>
+  /**
+   * A Navbar component.
+   */
+
   import {AUTH_LOGOUT} from '@/vuex/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
   import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
@@ -64,27 +68,39 @@
 
     data () {
       return {
+      /**
+       * The user, isLoading component value.
+       * Used to detect changes and restore the value.
+       */
         user: {},
         isLoading: false,
+
+        /**
+         * The username component value.
+         * Used to define a default username.
+         */
         username: 'N/A'
       }
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Get user and then response data.
+       */
       Service.get('/user').then(response => {
         this.username = response.data || 'N/A'
       })
     },
 
     methods: {
+      /**
+       * Get the logout and redirect.
+       */
       logout () {
         let vm = this
         vm.isLoading = true
         this.$store.dispatch(AUTH_LOGOUT, vm.user)
-        .then(response => {
-          vm.isLoading = false
-          window.location.replace('/')
-        })
       }
     }
   }

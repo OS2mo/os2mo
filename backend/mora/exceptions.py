@@ -59,6 +59,8 @@ class ErrorCodes(Enum):
         400, "Date range exceeds validity range of associated employee."
     V_CANNOT_MOVE_ROOT_ORG_UNIT = \
         400, "Moving the root org unit is not allowed"
+    V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL = \
+        400, "Moving an org unit to the root level is not allowed"
     V_MORE_THAN_ONE_ASSOCIATION = \
         400, "The employee already has an active association with the given " \
              "org unit."
@@ -75,18 +77,20 @@ class ErrorCodes(Enum):
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
     E_USER_NOT_FOUND = 404, "User not found."
     E_UNKNOWN_ROLE_TYPE = 400, "Unknown role type."
+    E_INVALID_ROLE_TYPE = 400, "Invalid role type for target operation."
     E_INVALID_TYPE = 400, "Invalid type."
     E_INVALID_UUID = 400, "Invalid UUID."
     E_INVALID_URN = 400, "Invalid URN."
     E_ORIGINAL_ENTRY_NOT_FOUND = 400, "Original entry not found."
-    E_INVALID_FUNCTION_TYPE = 400, "Invalid function type."
     E_NO_LOCAL_MUNICIPALITY = 400, "No local municipality found."
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
 
     # Misc
     E_INVALID_INPUT = 400, "Invalid input."
     E_UNAUTHORIZED = 401, "Unauthorized."
+    E_FORBIDDEN = 403, "Forbidden."
     E_CONNECTION_FAILED = 500, "Connection failed."
+    E_SAML_AUTH_ERROR = 500, "Internal auth error."
     E_NOT_FOUND = 404, "Not found."
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."

@@ -40,6 +40,16 @@
         />
       </b-tab>
 
+      <b-tab :title="$t('tabs.organisation.it')">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          :at-date="atDate"
+          detail="it"
+          :columns="it"
+          :entry-component="timemachineFriendly ? undefined : components.itSystem"
+        />
+      </b-tab>
+
       <b-tab :title="$t('tabs.organisation.roles')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -62,9 +72,14 @@
 </template>
 
 <script>
+  /**
+   * A organisation detail tabs component.
+   */
+
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 
   export default {
     components: {
@@ -72,13 +87,28 @@
     },
 
     props: {
+      /**
+       * Defines a unique identifier which must be unique.
+       */
       uuid: {type: String, required: true},
+
+      /**
+       * Defines a at date.
+       */
       atDate: [Date, String],
+
+      /**
+       * This Boolean property indicates the timemachine output.
+       */
       timemachineFriendly: Boolean
     },
 
     data () {
       return {
+        /**
+        * The org_unit, address, engagement, association, role, manager component value.
+        * Used to detect changes and restore the value for columns.
+        */
         org_unit: [
           {label: 'org_unit', data: null},
           {label: 'org_unit_type', data: 'org_unit_type'},
@@ -86,7 +116,7 @@
         ],
         address: [
           {label: 'address_type', data: 'address_type'},
-          {label: 'value', data: null}
+          {label: 'address', data: null}
         ],
         engagement: [
           {label: 'person', data: 'person'},
@@ -106,6 +136,10 @@
           {label: 'person', data: 'person'},
           {label: 'role_type', data: 'role_type'}
         ],
+        it: [
+          {label: 'it_system', data: 'itsystem'},
+          {label: 'user_key', data: null, field: 'user_key'}
+        ],
         manager: [
           {label: 'person', data: 'person'},
           {label: 'responsibility', data: 'responsibility'},
@@ -114,9 +148,15 @@
           {label: 'address_type', data: 'address_type'},
           {label: 'address', data: 'address'}
         ],
+
+        /**
+         * The MoOrganisationUnitEntry, MoAddressEntry component.
+         * Used to add edit and create for orgUnit and address.
+         */
         components: {
           orgUnit: MoOrganisationUnitEntry,
-          address: MoAddressEntry
+          address: MoAddressEntry,
+          itSystem: MoItSystemEntry
         }
       }
     }

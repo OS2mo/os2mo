@@ -26,12 +26,19 @@
 </template>
 
 <script>
+  /**
+   * A employee create leave component.
+   */
+
   import Employee from '@/api/Employee'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -44,35 +51,61 @@
 
     data () {
       return {
+      /**
+        * The leave, employee, isLoading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         isLoading: false,
         backendValidationError: null,
         employee: {},
         leave: {
+          person: null,
           validity: {}
         }
       }
     },
 
     computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       }
     },
 
+    watch: {
+      /**
+       * Called whenever the selected person changes
+       */
+      employee: {
+        handler (newVal) {
+          this.leave.person = newVal
+        },
+        deep: true
+      }
+    },
+
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Create leave and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       createLeave (evt) {
         evt.preventDefault()
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.leave(this.employee.uuid, [this.leave])
+          Employee.leave([this.leave])
             .then(response => {
               vm.isLoading = false
               if (response.error) {

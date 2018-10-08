@@ -62,8 +62,7 @@ instance/
 
 # Sphinx documentation
 /docs/out/
-/docs/blueprints/
-/docs/backend.rst
+/docs/backend/
 
 # PyBuilder
 target/

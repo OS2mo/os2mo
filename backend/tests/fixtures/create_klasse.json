@@ -1,13 +1,43 @@
 {
+    "note": "Automatisk indl\u00e6st fra JSON",
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "{{bvn}}",
-                "titel": "{{titel}}",
-                "beskrivelse": "{{beskrivelse}}",
+                "brugervendtnoegle": {{user_key|tojson}},
+                "titel": {{name|tojson}},
+                "eksempel": {{example|tojson}},
+                "omfang": {{scope|tojson}},
                 "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "infinity"
+                    "from": "1900-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "1900-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": {{facetid|tojson}},
+                "virkning": {
+                    "from": "1900-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
                 }
             }
         ]
@@ -17,25 +47,12 @@
             {
                 "publiceret": "Publiceret",
                 "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "infinity"
-                }
-            }
-        ]
-    },
-    "relationer": {
-        "facet": [
-            {
-                "objekttype": "facet",
-                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                "virkning": {
-                    "to": "infinity",
+                    "from": "1900-01-01 00:00:00+01",
                     "from_included": true,
-                    "from": "2016-01-01 00:00:00+01",
+                    "to": "infinity",
                     "to_included": false
                 }
             }
         ]
-    },
-    "note": "Automatisk indl\u00e6sning"
+    }
 }

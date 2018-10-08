@@ -25,7 +25,7 @@
           <input 
             type="text" 
             class="form-control" 
-            :value="currentUnit"
+            :value="parentUnit"
             disabled
           >
         </div>
@@ -60,6 +60,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation unit move component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
@@ -67,6 +71,9 @@
   import '@/filters/GetProperty'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -77,22 +84,18 @@
       ButtonSubmit
     },
 
-    computed: {
-      formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
-    },
-
     data () {
       return {
-        currentUnit: '',
-        uuid: '',
+        /**
+         * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
+         * Used to detect changes and restore the value.
+         */
+        parentUnit: '',
         original: null,
         move: {
+          type: 'org_unit',
           data: {
+            uuid: '',
             validity: {}
           }
         },
@@ -101,27 +104,51 @@
       }
     },
 
+    computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
+      formValid () {
+        return Object.keys(this.fields).every(field => {
+          return this.fields[field] && this.fields[field].valid
+        })
+      }
+    },
+
     watch: {
+      /**
+       * If original exist show its parent.
+       */
       original: {
         handler (newVal) {
-          if (this.original) return this.getCurrentUnit(newVal.uuid)
+          if (this.original) {
+            this.move.data.uuid = newVal.uuid
+            return this.getCurrentUnit(newVal.uuid)
+          }
         },
         deep: true
       }
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Move a organisation unit and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       moveOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
 
-          OrganisationUnit.move(this.original.uuid, this.move)
+          OrganisationUnit.move(this.move)
             .then(response => {
               vm.isLoading = false
               if (response.error) {
@@ -135,12 +162,15 @@
         }
       },
 
+      /**
+       * Get current organisation unit.
+       */
       getCurrentUnit (unitUuid) {
         let vm = this
         if (!unitUuid) return
         OrganisationUnit.get(unitUuid)
           .then(response => {
-            vm.currentUnit = response.parent ? response.parent.name : ''
+            vm.parentUnit = response.parent ? response.parent.name : ''
           })
       }
     }

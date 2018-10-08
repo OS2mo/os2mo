@@ -69,8 +69,11 @@
   </div>
 </template>
 
-
 <script>
+  /**
+   * A employee detail tabs component.
+   */
+
   import MoLoader from '@/components/atoms/MoLoader'
   import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
@@ -88,12 +91,23 @@
     },
 
     props: {
+      /**
+       * Defines a unique identifier which must be unique.
+       */
       uuid: String,
+
+      /**
+       * This Boolean property hides the actions.
+       */
       hideActions: Boolean
     },
 
     data () {
       return {
+      /**
+        * The isLoading, leave, it, address, engagement, association, role, manager component value.
+        * Used to detect changes and restore the value for columns.
+        */
         isLoading: false,
         engagement: [
           {label: 'org_unit', data: 'org_unit'},
@@ -105,15 +119,15 @@
           {label: 'role_type', data: 'role_type'}
         ],
         it: [
-          {label: 'it_system', data: null},
-          {label: 'user_name', data: null, field: 'user_name'}
+          {label: 'it_system', data: 'itsystem'},
+          {label: 'user_key', data: null, field: 'user_key'}
         ],
         association: [
           {label: 'org_unit', data: 'org_unit'},
           {label: 'job_function', data: 'job_function'},
           {label: 'association_type', data: 'association_type'},
-          {label: 'address', data: 'address'},
-          {label: 'address_type', data: 'address_type'}
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'}
         ],
         leave: [
           {label: 'leave_type', data: 'leave_type'}
@@ -128,8 +142,14 @@
         ],
         address: [
           {label: 'address_type', data: 'address_type'},
-          {label: 'value', data: null}
+          {label: 'address', data: null}
         ],
+
+        /**
+         * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
+         * MoAssociationEntry, MoLeaveEntry, MoManagerEntry component.
+         * Used to add the components in the tabs.
+         */
         components: {
           engagement: MoEngagementEntry,
           address: MoAddressEntry,

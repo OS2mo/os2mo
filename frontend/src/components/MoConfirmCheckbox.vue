@@ -20,36 +20,68 @@
 </template>
 
 <script>
+  /**
+   * A confirm checkbox component.
+   */
+
   export default {
     name: 'MoConfirmCheckbox',
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
 
     props: {
+      /**
+       * Defines a entry date.
+       */
       entryDate: [Date, String],
+
+      /**
+       * Defines a entry name.
+       */
       entryName: String,
+
+      /**
+       * Defines a entry OrgName.
+       */
       entryOrgName: String
     },
 
     data () {
       return {
+      /**
+       * The confirm component value.
+       * Used to detect changes and restore the value.
+       */
         confirm: false
       }
     },
 
     mounted () {
+      /**
+       * Called after the instance has been mounted.
+       * When it change validate.
+       */
       this.$validator.validate(this.nameId)
     },
 
     computed: {
+      /**
+       * Get default name.
+       */
       nameId () {
         return 'confirm'
       }
     },
 
     watch: {
+      /**
+       * Whenever value change validate.
+       */
       value () {
         this.confirm = false
         this.$validator.validate(this.nameId)

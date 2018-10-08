@@ -53,7 +53,8 @@ def _is_date_range_valid(parent: typing.Union[dict, str],
         elif start != previous_end:
             # non-consecutive chunk - so not valid for that time
             return False
-        elif start >= enddate or end <= startdate:
+        elif start >= enddate or end < startdate:
+            previous_end = end
             continue
 
         vs = effect['tilstande'][gyldighed_key]
@@ -78,7 +79,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
     '''
 
     return {
-        'valid_from': util.to_iso_time(
+        'valid_from': util.to_iso_date(
             min(
                 (
                     util.get_effect_from(state)
@@ -88,7 +89,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
                 default=util.NEGATIVE_INFINITY,
             ),
         ),
-        'valid_to': util.to_iso_time(
+        'valid_to': util.to_iso_date(
             max(
                 (
                     util.get_effect_to(state)
@@ -97,6 +98,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
                 ),
                 default=util.POSITIVE_INFINITY,
             ),
+            is_end=True,
         ),
     }
 
@@ -125,8 +127,8 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
             org_unit_uuid=org_unit_uuid,
-            wanted_valid_from=util.to_iso_time(valid_from),
-            wanted_valid_to=util.to_iso_time(valid_to),
+            wanted_valid_from=util.to_iso_date(valid_from),
+            wanted_valid_to=util.to_iso_date(valid_to, is_end=True),
             **_get_active_validity(org_unit),
         )
 
@@ -148,21 +150,47 @@ def is_distinct_responsibility(
         )
 
 
-def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
+def is_date_range_in_employee_range(employee_obj: dict,
+                                    valid_from, valid_to):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     ).bruger
-    employee = scope.get(employee_uuid)
+    # If this is a not-yet created user, emulate check
+    if employee_obj.get('allow_nonexistent'):
+        employee_valid_from = employee_obj.get(mapping.VALID_FROM)
+        employee_valid_to = employee_obj.get(mapping.VALID_TO)
+        is_contained_in_employee_range(employee_valid_from, employee_valid_to,
+                                       valid_from, valid_to)
+    else:
+        employee_uuid = employee_obj.get(mapping.UUID)
+        employee = scope.get(employee_uuid)
 
-    gyldighed_key = "brugergyldighed"
+        if not employee:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_USER_NOT_FOUND,
+                employee_uuid=employee_uuid,
+            )
 
-    if not _is_date_range_valid(employee, valid_from, valid_to, scope,
-                                gyldighed_key):
+        gyldighed_key = "brugergyldighed"
+
+        if not _is_date_range_valid(employee, valid_from, valid_to, scope,
+                                    gyldighed_key):
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
+                employee_uuid=employee_uuid,
+                **_get_active_validity(employee),
+            )
+
+
+def is_contained_in_employee_range(empl_from, empl_to, valid_from, valid_to):
+    if valid_from < empl_from or empl_to < valid_to:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
-            employee_uuid=employee_uuid,
-            **_get_active_validity(employee),
+            valid_from=util.to_iso_date(empl_from),
+            valid_to=util.to_iso_date(empl_to),
+            wanted_valid_from=util.to_iso_date(valid_from),
+            wanted_valid_to=util.to_iso_date(valid_to)
         )
 
 
@@ -189,6 +217,10 @@ def is_candidate_parent_valid(unitid: str, parent: str,
     if org_unit_relations['overordnet'][0]['uuid'] == orgid:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
+
+    if parent == orgid:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL)
 
     # Use for checking that the candidate parent is not the units own subtree
     seen = {unitid}

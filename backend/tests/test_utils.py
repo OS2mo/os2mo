@@ -15,6 +15,7 @@ import freezegun
 
 from mora import exceptions
 from mora import util
+from mora import mapping
 
 from .util import TestCase
 
@@ -47,12 +48,12 @@ class TestUtils(TestCase):
             '-infinity': '-infinity',
 
             '2017-07-31T22:00:00+00:00':
-            '2017-07-31T22:00:00+00:00',
+            '2017-08-01T00:00:00+02:00',
 
             # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
             # we get it as a space
             '2017-07-31T22:00:00 00:00':
-            '2017-07-31T22:00:00+00:00',
+            '2017-08-01T00:00:00+02:00',
 
             datetime.date(2015, 6, 1):
             '2015-06-01T00:00:00+02:00',
@@ -90,46 +91,6 @@ class TestUtils(TestCase):
 
         # test fallback
         self.assertEqual(util.parsedatetime('blyf', 'flaf'), 'flaf')
-
-    def test_to_frontend_time(self):
-        self.assertEqual(util.to_frontend_time(self.today), '01-06-2015')
-
-        self.assertEqual(util.to_frontend_time('2017-12-31 00:00:00+01'),
-                         '31-12-2017')
-        self.assertEqual(util.to_frontend_time('infinity'), 'infinity')
-        self.assertEqual(util.to_frontend_time('-infinity'), '-infinity')
-
-        self.assertEqual(
-            util.to_frontend_time('1980-07-01 00:00:00+02'),
-            '01-07-1980',
-        )
-
-        self.assertEqual(
-            util.to_frontend_time('1980-01-01 00:00:00+01'),
-            '01-01-1980',
-        )
-
-        self.assertEqual(
-            util.to_frontend_time('1980-07-01 02:00:00+02'),
-            '1980-07-01T02:00:00+02:00',
-        )
-
-        self.assertEqual('01-06-2015',
-                         util.to_frontend_time(datetime.date.today()))
-        self.assertEqual('01-06-2015',
-                         util.to_frontend_time(self.today))
-        self.assertEqual('2015-06-01T01:10:00+02:00',
-                         util.to_frontend_time(self.now))
-        self.assertEqual('01-01-2015',
-                         util.to_frontend_time(datetime.date(2015, 1, 1)))
-        self.assertEqual('01-06-2015',
-                         util.to_frontend_time(datetime.date(2015, 6, 1)))
-
-        self.assertEqual('-infinity',
-                         util.to_frontend_time('-infinity'))
-
-        self.assertEqual('infinity',
-                         util.to_frontend_time('infinity'))
 
     def test_splitlist(self):
         self.assertEqual(
@@ -327,6 +288,44 @@ class TestUtils(TestCase):
         # Assert
         self.assertEqual(expected_result, actual_result)
 
+    def test_set_obj_value_existing_path_string(self):
+        # Arrange
+        obj = {'test1': {'test2': '1337'}}
+        path = ('test1', 'test2')
+
+        val = '42'
+
+        expected_result = {
+            'test1': {
+                'test2': '42'
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
+    def test_set_obj_value_new_path_string(self):
+        # Arrange
+        obj = {}
+        path = ('test1', 'test2')
+
+        val = '42'
+
+        expected_result = {
+            'test1': {
+                'test2': '42'
+            }
+        }
+
+        # Act
+        actual_result = util.set_obj_value(obj, path, val)
+
+        # Assert
+        self.assertEqual(expected_result, actual_result)
+
     def test_get_valid_from(self):
         ts = '2018-03-21T00:00:00+01:00'
         dt = datetime.datetime(2018, 3, 21,
@@ -397,8 +396,8 @@ class TestUtils(TestCase):
         )
 
     def test_get_valid_to(self):
-        ts = '2018-03-21T00:00:00+01:00'
-        dt = datetime.datetime(2018, 3, 21,
+        ts = '2018-03-21'
+        dt = datetime.datetime(2018, 3, 22,
                                tzinfo=dateutil.tz.tzoffset(None, 3600))
 
         self.assertEqual(dt, util.get_valid_to(
@@ -418,7 +417,7 @@ class TestUtils(TestCase):
                 'validity': {
                     'to': ts,
                 }
-            }
+            },
         ))
 
         self.assertEqual(
@@ -524,6 +523,15 @@ class TestUtils(TestCase):
 
         self.assertEqual(
             datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_from({
+                'validity': {
+                    'from': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 6, tzinfo=util.DEFAULT_TIMEZONE),
             util.get_valid_to({
                 'validity': {
                     'to': '2018-03-05',
@@ -542,7 +550,16 @@ class TestUtils(TestCase):
         )
 
         self.assertEqual(
-            datetime.datetime(2018, 3, 5, tzinfo=util.DEFAULT_TIMEZONE),
+            datetime.datetime(2018, 3, 6, tzinfo=util.DEFAULT_TIMEZONE),
+            util.get_valid_to({}, {
+                'validity': {
+                    'to': '2018-03-05',
+                },
+            }),
+        )
+
+        self.assertEqual(
+            datetime.datetime(2018, 3, 6, tzinfo=util.DEFAULT_TIMEZONE),
             util.get_valid_to({}, {
                 'validity': {
                     'to': '2018-03-05',
@@ -556,7 +573,7 @@ class TestUtils(TestCase):
             util.get_validities({
                 'validity': {
                     'from': '2018-03-05',
-                    'to': '2018-04-05',
+                    'to': '2018-04-04',
                 },
             }),
         )
@@ -730,7 +747,7 @@ class TestUtils(TestCase):
                 'error': True,
                 'error_key': 'E_INVALID_TYPE',
                 'expected': 'str',
-                'actual': '42',
+                'actual': 42,
                 'key': 'urn',
                 'obj': {'urn': 42},
                 'status': 400,
@@ -783,3 +800,8 @@ class TestAppUtils(unittest.TestCase):
             # request
             self.assertEqual(client.get('/?fest=42').status,
                              '200 OK')
+
+    def test_mapping_fieldtype(self):
+        self.assertEqual("FieldTuple(('relationer', 'tilknyttedeitsystemer'), "
+                         "FieldTypes.ADAPTED_ZERO_TO_MANY, None)",
+                         str(mapping.SINGLE_ITSYSTEM_FIELD))

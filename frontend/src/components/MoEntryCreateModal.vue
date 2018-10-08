@@ -32,11 +32,18 @@
 </template>
 
 <script>
+  /**
+   * A entry create modal component.
+   */
+
   import Employee from '@/api/Employee'
   import OrganisationUnit from '@/api/OrganisationUnit'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -46,8 +53,19 @@
     },
 
     props: {
+      /**
+       * Defines a uuid.
+       */
       uuid: String,
+
+      /**
+       * Defines a entryComponent.
+       */
       entryComponent: Object,
+
+      /**
+       * Defines a required type - employee or organisation unit.
+       */
       type: {
         type: String,
         required: true,
@@ -61,6 +79,10 @@
 
     data () {
       return {
+      /**
+       * The entry, isLoading, backendValidationError component value.
+       * Used to detect changes and restore the value.
+       */
         entry: {},
         isLoading: false,
         backendValidationError: null
@@ -68,50 +90,72 @@
     },
 
     computed: {
+      /**
+       * Get name `moCreate`.
+       */
       nameId () {
         return 'moCreate' + this._uid
       },
   
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       },
 
+      /**
+       * If it has a entry component.
+       */
       hasEntryComponent () {
         return this.entryComponent !== undefined
       }
     },
 
     mounted () {
+      /**
+       * Whenever it changes, reset data.
+       */
       this.$root.$on('bv::modal::hidden', () => {
         Object.assign(this.$data, this.$options.data())
       })
     },
 
     beforeDestroy () {
+      /**
+       * Called right before a instance is destroyed.
+       */
       this.$root.$off(['bv::modal::hidden'])
     },
 
     methods: {
+      /**
+       * Create a employee or organisation entry.
+       */
       create () {
         this.isLoading = true
 
         switch (this.type) {
           case 'EMPLOYEE':
+            this.entry.person = {uuid: this.uuid}
             this.createEmployee(this.entry)
             break
           case 'ORG_UNIT':
-            this.entry.type = 'address'
-            this.createOrganisationUnit([this.entry])
+            this.entry.org_unit = {uuid: this.uuid}
+            this.createOrganisationUnit(this.entry)
             break
         }
       },
 
+      /**
+       * Create a employee and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       createEmployee (data) {
         let vm = this
-        Employee.create(this.uuid, [data])
+        Employee.create([data])
           .then(response => {
             vm.isLoading = false
             if (response.error) {
@@ -122,9 +166,13 @@
           })
       },
 
+      /**
+       * Create a organisation unit and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       createOrganisationUnit (data) {
         let vm = this
-        return OrganisationUnit.createEntry(this.uuid, data)
+        return OrganisationUnit.createEntry(data)
           .then(response => {
             vm.isLoading = false
             if (response.error) {

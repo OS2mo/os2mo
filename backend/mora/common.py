@@ -20,6 +20,7 @@ import abc
 import collections
 import copy
 import datetime
+import enum
 import functools
 import typing
 import uuid
@@ -49,13 +50,111 @@ class AbstractRelationDetail(abc.ABC):
     def get(self, objid):
         pass
 
+
+class RequestType(enum.Enum):
+    CREATE = 0
+    EDIT = 1
+
+
+# The handler mapping is populated by each individual active RequestHandler
+HANDLERS = {}
+
+
+def register_request_handler(name):
+    """Decorator to register a writing request handler"""
+    def wrapper(cls):
+        HANDLERS[name] = cls
+        return cls
+    return wrapper
+
+
+class RequestHandler(abc.ABC):
+
+    __slots__ = 'request', 'request_type', 'payload', 'uuid'
+
+    def __init__(self, request, request_type: RequestType):
+        """
+        Initialize a request, and perform all required validation.
+        :param request: A dict containing a request
+        :param request_type: A RequestType, either CREATE or EDIT
+        """
+        super().__init__()
+        self.request_type = request_type
+        self.request = request
+        self.payload = None
+        self.uuid = None
+
+        if request_type == RequestType.CREATE:
+            self.prepare_create(request)
+        if request_type == RequestType.EDIT:
+            self.prepare_edit(request)
+
     @abc.abstractmethod
-    def create(self, id: str, req: dict):
+    def prepare_create(self, request: dict):
+        """
+        Initialize a 'create' request. Performs validation and all
+        necessary processing
+        :param request: A dict containing a request
+        """
         pass
 
     @abc.abstractmethod
-    def edit(self, id: str, req: dict):
+    def prepare_edit(self, request: dict):
+        """
+        Initialize an 'edit' request. Performs validation and all
+        necessary processing
+        :param request: A dict containing a request
+        """
         pass
+
+    @abc.abstractmethod
+    def submit(self) -> str:
+        """
+        Submit the request to LoRa.
+        :return: A string containing the result from submitting the request
+        to LoRa, typically a UUID.
+        """
+        pass
+
+
+class OrgFunkRequestHandler(RequestHandler):
+    @abc.abstractmethod
+    def prepare_create(self, request: dict):
+        pass
+
+    @abc.abstractmethod
+    def prepare_edit(self, request: dict):
+        pass
+
+    def submit(self) -> str:
+        c = lora.Connector()
+
+        if self.request_type == RequestType.CREATE:
+            return c.organisationfunktion.create(self.payload, self.uuid)
+        else:
+            return c.organisationfunktion.update(self.payload, self.uuid)
+
+
+def generate_requests(
+    requests: typing.List[dict],
+    request_type: RequestType
+) -> typing.List[RequestHandler]:
+    operations = {req.get('type') for req in requests}
+
+    if not operations.issubset(HANDLERS):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+            types=sorted(operations - HANDLERS.keys()),
+        )
+
+    return [
+        HANDLERS[req.get('type')](req, request_type)
+        for req in requests
+    ]
+
+
+def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
+    return [request.submit() for request in requests]
 
 
 def get_connector(**loraparams):
@@ -86,6 +185,7 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
                             path: tuple) -> dict:
     """
     Create 'inactivation' updates based on two sets of from/to dates
+
     :param old_from: The old 'from' time, in ISO-8601
     :param old_to: The old 'to' time, in ISO-8601
     :param new_from: The new 'from' time, in ISO-8601
@@ -321,6 +421,7 @@ def create_organisationsfunktion_payload(
     tilknyttedebrugere: typing.List[str],
     tilknyttedeorganisationer: typing.List[str],
     tilknyttedeenheder: typing.List[str] = None,
+    tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
     opgaver: typing.List[dict] = None,
     adresser: typing.List[str] = None
@@ -345,11 +446,6 @@ def create_organisationsfunktion_payload(
             ],
         },
         'relationer': {
-            'tilknyttedebrugere': [
-                {
-                    'uuid': uuid
-                } for uuid in tilknyttedebrugere
-            ],
             'tilknyttedeorganisationer': [
                 {
                     'uuid': uuid
@@ -358,10 +454,24 @@ def create_organisationsfunktion_payload(
         }
     }
 
+    if tilknyttedebrugere:
+        org_funk['relationer']['tilknyttedebrugere'] = [
+            {
+                'uuid': brugerid,
+            }
+            for brugerid in tilknyttedebrugere
+            if brugerid
+        ]
+
     if tilknyttedeenheder:
         org_funk['relationer']['tilknyttedeenheder'] = [{
             'uuid': uuid
         } for uuid in tilknyttedeenheder]
+
+    if tilknyttedeitsystemer:
+        org_funk['relationer']['tilknyttedeitsystemer'] = [{
+            'uuid': uuid
+        } for uuid in tilknyttedeitsystemer]
 
     if funktionstype:
         org_funk['relationer']['organisatoriskfunktionstype'] = [{
@@ -515,9 +625,9 @@ def replace_relation_value(relations: typing.List[dict],
             exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
 
 
-def add_bruger_history_entry(employee_uuid, note: str):
+def add_history_entry(scope: lora.Scope, id: str, note: str):
     """
-    Add a history entry to a given employee.
+    Add a history entry to a given object.
     The idea is to write an update to the employee whenever an object
     associated to him is created or changed, as to easily be able to get an
     overview of the history of the modifications to both the employee
@@ -527,36 +637,42 @@ def add_bruger_history_entry(employee_uuid, note: str):
     able to update the 'note' field - which for now amounts to just
     updating the virkning notetekst of gyldighed with a garbage value
 
-    :param employee_uuid: The UUID of the employee
+    :param id: The UUID of the employee
     :param note: A note to be associated with the entry
     """
-    c = lora.Connector()
-    employee_obj = c.bruger.get(employee_uuid)
-    if not employee_obj:
+
+    obj = scope.get(id)
+    if not obj:
         raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_USER_NOT_FOUND,
-            employee=employee_uuid
+            exceptions.ErrorCodes.E_NOT_FOUND,
+            path=scope.path,
+            uuid=id,
         )
 
-    path = ('tilstande', 'brugergyldighed')
-    gyldighed = util.get_obj_value(employee_obj, path)[-1]
-    gyldighed['virkning']['notetekst'] = str(uuid.uuid4())
+    unique_string = str(uuid.uuid4())
 
     payload = {
-        'note': note
+        'note': note,
+        'tilstande': {
+            validity_name: [
+                util.set_obj_value(validity, ('virkning', 'notetekst'),
+                                   unique_string)
+                for validity in validities
+            ]
+            for validity_name, validities in obj['tilstande'].items()
+        }
     }
 
-    payload = util.set_obj_value(payload, path, [gyldighed])
-    c.bruger.update(payload, employee_uuid)
+    scope.update(payload, id)
 
 
 def convert_reg_to_history(reg):
     return {
         'user_ref': reg['brugerref'],
-        'from': util.to_frontend_time(
+        'from': util.to_iso_time(
             reg['fratidspunkt']['tidsstempeldatotid'],
         ),
-        'to': util.to_frontend_time(
+        'to': util.to_iso_time(
             reg['tiltidspunkt']['tidsstempeldatotid'],
         ),
         'life_cycle_code': reg['livscykluskode'],

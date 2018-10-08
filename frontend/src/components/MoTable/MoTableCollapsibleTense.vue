@@ -40,6 +40,10 @@
 </template>
 
 <script>
+  /**
+   * A table collapsible tense component.
+   */
+
   import MoTableCollapsible from './MoTableCollapsible'
 
   export default {
@@ -48,15 +52,42 @@
     },
 
     props: {
+      /**
+       * Defines columns.
+       */
       columns: Array,
+
+      /**
+       * Defines the loading.
+       */
       loading: Object,
+
+      /**
+       * Defines the editComponent.
+       */
       editComponent: Object,
+
+      /**
+       * Defines the content.
+       */
       content: Object,
+
+      /**
+       * Defines the contentType.
+       */
       contentType: String,
+
+      /**
+       * Defines a required uuid.
+       */
       uuid: {
         type: String,
         required: true
       },
+
+      /**
+       * Defines a required type.
+       */
       type: {
         type: String,
         required: true

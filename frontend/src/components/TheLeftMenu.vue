@@ -14,6 +14,10 @@
 </template>
 
 <script>
+  /**
+   * A the left menu component.
+   */
+
   import { mapGetters } from 'vuex'
   import MoTreeView from '@/components/MoTreeView/MoTreeView'
 
@@ -23,6 +27,9 @@
     },
 
     computed: {
+      /**
+       * Get organisation uuid.
+       */
       ...mapGetters({
         orgUuid: 'organisation/getUuid'
       })

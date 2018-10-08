@@ -60,7 +60,7 @@ NEGATIVE_INFINITY = datetime.datetime.min.replace(
     ),
 )
 MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
-
+ONE_DAY = datetime.timedelta(days=1)
 
 # TODO: the default timezone should be configurable, shouldn't it?
 DEFAULT_TIMEZONE = dateutil.tz.gettz('Europe/Copenhagen')
@@ -71,10 +71,6 @@ _tzinfos = {
     1 * 60**2: DEFAULT_TIMEZONE,
     2 * 60**2: DEFAULT_TIMEZONE,
 }
-
-
-def unparsedate(d: datetime.date) -> str:
-    return d.strftime('%d-%m-%Y')
 
 
 def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
@@ -157,26 +153,57 @@ def to_iso_time(s):
     )
 
 
+def to_iso_date(s, is_end: bool=False):
+    '''Return an ISO 8601 string representing date given by `s`.
+
+    We round times up or down, depending on whether ``is_end`` is set.
+    Since the dates are *inclusive*, we round *down* for start
+    dates and *up* for end dates.
+
+    :param bool is_end: whether to round the time up or down.
+
+    .. doctest::
+
+        >>> to_iso_date('2001-01-01T00:00')
+        '2001-01-01'
+        >>> to_iso_date('2001-01-01T12:00')
+        '2001-01-01'
+        >>> to_iso_date('2001-01-01T00:00', is_end=True)
+        '2000-12-31'
+        >>> to_iso_date('2001-01-01T12:00', is_end=True)
+        '2000-12-31'
+        >>> to_iso_date('2000-20-20')
+        Traceback (most recent call last):
+        ...
+        mora.exceptions.HTTPException: 400 Bad Request: \
+cannot parse '2000-20-20'
+
+    '''
+    dt = parsedatetime(s)
+
+    if is_end and dt == POSITIVE_INFINITY:
+        return None
+    elif not is_end and dt == NEGATIVE_INFINITY:
+        return None
+
+    if dt.time() != datetime.time.min:
+        dt = datetime.datetime.combine(dt, datetime.time.min)
+
+    if is_end:
+        dt -= ONE_DAY
+
+    return dt.date().isoformat()
+
+
 def from_iso_time(s):
     dt = dateutil.parser.isoparse(s)
 
     if not dt.tzinfo:
         dt = dt.replace(tzinfo=DEFAULT_TIMEZONE)
+    else:
+        dt = dt.astimezone(DEFAULT_TIMEZONE)
 
     return dt
-
-
-def to_frontend_time(s):
-    dt = parsedatetime(s)
-
-    if dt == POSITIVE_INFINITY:
-        return 'infinity'
-    elif dt == NEGATIVE_INFINITY:
-        return '-infinity'
-    elif dt and dt.time().replace(tzinfo=None) == datetime.time():
-        return unparsedate(dt.date())
-    else:
-        return dt.isoformat()
 
 
 def now() -> datetime.datetime:
@@ -442,37 +469,44 @@ def checked_get(
     fallback: D=None,
     required: bool=False,
 ) -> V:
-    sentinel = object()
-    v = mapping.get(key, sentinel)
+    try:
+        v = mapping[key]
+    except (LookupError, TypeError):
+        exc = exceptions.HTTPException(
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
+            message='Missing {}'.format(key),
+            key=key,
+            obj=mapping,
+        )
 
-    if v is sentinel:
         if fallback is not None:
-            return checked_get(fallback, key, default, None, required)
+            try:
+                return checked_get(fallback, key, default, None, required)
+            except exceptions.HTTPException:
+                # ensure that we raise an exception describing the
+                # current object, even if a fallback was specified
+                raise exc
+
         elif required:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
-                message='Missing {}'.format(key),
-                key=key,
-                obj=mapping
-            )
+            raise exc
         else:
             return default
 
-    elif not isinstance(v, type(default)):
+    if not isinstance(v, type(default)):
         if not required and v is None:
             return default
 
         expected = type(default).__name__
-        actual = json.dumps(v)
+        actual = v
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_INVALID_TYPE,
             message='Invalid {!r}, expected {}, got: {}'.format(
-                key, expected, actual,
+                key, expected, json.dumps(actual),
             ),
             key=key,
             expected=expected,
             actual=actual,
-            obj=mapping
+            obj=mapping,
         )
 
     return v
@@ -484,7 +518,7 @@ def get_uuid(
     *,
     required: bool=True,
     key: typing.Hashable=mapping.UUID
-) -> str:
+) -> typing.Optional[str]:
     v = checked_get(mapping, key, '', fallback=fallback, required=required)
 
     if not v and not required:
@@ -499,7 +533,7 @@ def get_uuid(
     return v
 
 
-def get_mapping_uuid(mapping, key, required=False):
+def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
     """Extract a UUID from a mapping structure identified by 'key'.
     Expects a structure along the lines of:
 
@@ -512,7 +546,8 @@ def get_mapping_uuid(mapping, key, required=False):
       }
 
     """
-    obj = checked_get(mapping, key, {}, required=required)
+    obj = checked_get(mapping, key, {}, fallback=fallback, required=required)
+
     if obj:
         return get_uuid(obj)
     else:
@@ -542,29 +577,41 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     obj_copy = copy.deepcopy(obj)
 
     current_value = obj_copy
-    while path_list:
-        key = path_list.pop(0)
-        if path_list:
-            current_value = current_value.setdefault(key, {})
-        else:
-            if not current_value.get(key):
-                current_value[key] = val
-            else:
-                current_value[key].extend(val)
+
+    for key in path_list[:-1]:
+        current_value = current_value.setdefault(key, {})
+
+    key = path_list[-1]
+
+    if isinstance(current_value.get(key), list):
+        current_value[key].extend(val)
+    else:
+        current_value[key] = val
 
     return obj_copy
 
 
-def get_obj_value(obj, path: tuple, filter_fn: typing.Callable = None):
+T = typing.TypeVar('T')
+
+
+def get_obj_value(obj,
+                  path: typing.Tuple[str, str],
+                  filter_fn: typing.Callable[[dict], bool] = None,
+                  default: T=None) -> typing.Optional[T]:
     try:
         props = functools.reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
-        return None
+        return default
 
     if filter_fn:
         return list(filter(filter_fn, props))
     else:
         return props
+
+
+def get_obj_uuid(obj, path: tuple):
+    (obj,) = get_obj_value(obj, path, default={})
+    return get_uuid(obj)
 
 
 def get_effect_from(effect: dict) -> datetime.datetime:
@@ -577,12 +624,38 @@ def get_effect_to(effect: dict) -> datetime.datetime:
 
 def get_effect_validity(effect):
     return {
-        mapping.FROM: to_iso_time(get_effect_from(effect)),
-        mapping.TO: to_iso_time(get_effect_to(effect)),
+        mapping.FROM: to_iso_date(get_effect_from(effect)),
+        mapping.TO: to_iso_date(get_effect_to(effect), is_end=True),
     }
 
 
 def get_valid_from(obj, fallback=None) -> datetime.datetime:
+    '''Extract the start of the validity interval in ``obj``, or otherwise
+    ``fallback``, and return it as a timestamp delimiting the
+    corresponding interval.
+
+    :raises mora.exceptions.HTTPException: if the given timestamp does
+      not correspond to midnight in Central Europe.
+    :raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
+      specifiy a validity start.
+
+    .. doctest::
+
+      >>> get_valid_from({'validity': {'from': '2000-01-01'}})
+      datetime.datetime(2000, 1, 1, 0, 0, \
+tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+
+      >>> get_valid_from({})
+      Traceback (most recent call last):
+      ...
+      mora.exceptions.HTTPException: 400 Bad Request: Missing start date.
+      >>> get_valid_from({'validity': {'from': '2000-01-01T12:00Z'}})
+      Traceback (most recent call last):
+      ...
+      mora.exceptions.HTTPException: \
+400 Bad Request: '2000-01-01T13:00:00+01:00' is not at midnight!
+
+    '''
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 
@@ -594,7 +667,15 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
                 obj=obj
             )
         elif valid_from is not sentinel:
-            return from_iso_time(valid_from)
+            dt = from_iso_time(valid_from)
+
+            if dt.time() != datetime.time.min:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    '{!r} is not at midnight!'.format(dt.isoformat()),
+                )
+
+            return dt
 
     if fallback is not None:
         return get_valid_from(fallback)
@@ -606,6 +687,36 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
+    '''Extract the end of the validity interval in ``obj``, or otherwise
+    ``fallback``, and return it as a timestamp delimiting the
+    corresponding interval. If neither specifies an end, assume a
+    timestamp far in the future — practically infinite, in fact.
+
+    Please note that as end intervals are *inclusive*, a date ends at
+    24:00, or 0:00 the following day.
+
+    :see also: :py:func:`to_iso_date`
+
+    :raises mora.exceptions.HTTPException: if the given timestamp does
+      not correspond to midnight in Central Europe.
+    :raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
+      specifiy a validity start.
+
+    .. doctest::
+
+      >>> get_valid_to({'validity': {'to': '1999-12-31'}})
+      datetime.datetime(2000, 1, 1, 0, 0, \
+tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+      >>> get_valid_to({}) == POSITIVE_INFINITY
+      True
+
+      >>> get_valid_to({'validity': {'to': '1999-12-31T12:00Z'}})
+      Traceback (most recent call last):
+      ...
+      mora.exceptions.HTTPException: \
+400 Bad Request: '1999-12-31T13:00:00+01:00' is not at midnight!
+
+    '''
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 
@@ -616,7 +727,18 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
             return POSITIVE_INFINITY
 
         elif valid_to is not sentinel:
-            return from_iso_time(valid_to)
+            dt = from_iso_time(valid_to)
+
+            if dt.time() != datetime.time.min:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    '{!r} is not at midnight!'.format(dt.isoformat()),
+                )
+
+            # this is the reverse of to_iso_date, and an end date
+            # _includes_ the day in question, so the end of the
+            # interval corresponds to 24:00 on that day
+            return dt + ONE_DAY
 
     if fallback is not None:
         return get_valid_to(fallback)

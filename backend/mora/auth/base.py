@@ -14,21 +14,17 @@ This section describes how to authenticate with MO. The API is work in
 progress.
 
 '''
-
+import base64
 import os
+import zlib
 
 import flask
 import requests.auth
 
-from . import tokens
-from .. import exceptions
-from .. import settings
-from .. import util
-
 __all__ = (
     'SAMLAuth',
-    'login',
-    'logout',
+    'get_user',
+    'pack'
 )
 
 TOKEN_KEY = 'MO-Token'
@@ -66,79 +62,21 @@ def get_user():
     :return: The username of the user who is currently logged in.
     '''
 
-    username = flask.session.get('username')
+    username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
+    try:
+        username = flask.session.get('samlUserdata').get(username_attr)[0]
+    except (AttributeError, IndexError):
+        username = None
 
     return flask.jsonify(username)
 
 
-@blueprint.route('/user/login', methods=['POST'])
-def login():
-    '''Attempt a login as the given user name. The internals of this login
-    will be kept from the JavaScript by using httpOnly cookies.
+def _gzipstring(s):
+    compressor = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION,
+                                  zlib.DEFLATED, 16 + zlib.MAX_WBITS)
 
-    .. :quickref: Authentication; Log in
-
-    :statuscode 200: The login succeeded.
-    :statuscode 401: The login failed.
-
-    :<json string username: AD username and domain
-                            (format: <username>@<addomain>)
-    :<json string password: The password of the user.
-    :<json boolean rememberme: Whether to persist the login ---
-        currently ignored.
-
-    :>json string user: The name of the user.
-    '''
-
-    # TODO: remember me?
-    json_payload = flask.request.get_json()
-
-    username = json_payload.get("username")
-    password = json_payload.get("password")
-
-    try:
-        assertion = tokens.get_token(username, password)
-    except requests.exceptions.ConnectionError as e:
-        util.log_exception(e)
-
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_CONNECTION_FAILED)
-
-    flask.session['username'] = username
-
-    if assertion:
-        flask.session[TOKEN_KEY] = assertion
-    else:
-        flask.session.clear()
-
-    return flask.make_response()
+    return compressor.compress(s) + compressor.flush()
 
 
-@blueprint.route('/logout', methods=['POST'])
-def logout():
-    '''Attempt to log out
-
-    .. :quickref: Authentication; Log out
-
-    :return: Nothing.
-
-    :statuscode 200: The logout succeeded --- which it almost always does.
-    '''
-
-    flask.session.clear()
-    return flask.make_response()
-
-
-@blueprint.route('/login', methods=['GET'])
-@util.restrictargs('redirect')
-def get_login():
-    """
-    Direct user towards appropriate login page, given the chosen auth method
-    """
-    redirect = flask.request.args.get('redirect')
-    if settings.AUTH:
-        if settings.AUTH == 'sso':
-            return flask.redirect(flask.url_for('login', next=redirect))
-        elif settings.AUTH == 'token':
-            return flask.redirect('/login?redirect={}'.format(redirect))
-    return flask.redirect('/')
+def pack(s):
+    return b'saml-gzipped ' + base64.standard_b64encode(_gzipstring(s))

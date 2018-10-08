@@ -7,7 +7,7 @@
 
       <div class="row">
         <div class="col">
-          <p class="card-text">Enhedsnr.: {{orgUnit.user_key}}</p>
+          <p class="card-text">Placering: {{orgUnit.location}}</p>
         </div>
 
         <div class="mr-3">
@@ -21,6 +21,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation detail component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
@@ -33,15 +37,25 @@
 
     data () {
       return {
+      /**
+        * The orgUnit component value.
+        * Used to detect changes and restore the value.
+        */
         orgUnit: {}
       }
     },
 
     mounted () {
+      /**
+       * Whenever details change update.
+       */
       this.updateDetails()
     },
 
     methods: {
+      /**
+       * Get organisation unit.
+       */
       updateDetails () {
         var vm = this
         OrganisationUnit.get(this.$route.params.uuid)
