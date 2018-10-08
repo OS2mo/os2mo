@@ -21,198 +21,383 @@ def example_import():
 
     # Init org
 
-    org = Organisation("Enterprise", "Starship Enterprise")
-    print(org)
+    Magenta = Organisation(name="Magenta Aps", user_key="Magenta", municipality_code=101)
 
     # Show all default facet and klasse values
-    all_facet = org.Facet.export()
+    all_facet = Magenta.Facet.export()
     print(all_facet)
 
-    all_klasse = org.Klasse.export()
+    all_klasse = Magenta.Klasse.export()
     print(all_klasse)
 
-    # Example: add klasse with reference to new random type facet
-    # Every key/value pair will be added as properties ("klasseegenskaber")
-    org.Klasse.add(
-        identifier="Command bridge",  # Identifier to recall the item
+    # Example: add klasse with reference to facet "Enhedstype"
+    Magenta.Klasse.add(
+        identifier="Hovedenhed",  # Identifier to recall the item
         facet_type_ref="Enhedstype",  # Belongs to facet: Enhedstype
-        brugervendtnoegle="Command bridge",
-        omfang="TNG",
-        titel="This is the place where cool officers hang out"
+        user_key="D1ED90C5-643A-4C12-8889-6B4174EF4467",  # User key for internal reference
+        title="Hovedenhed"
+    )
+
+    Magenta.Klasse.add(
+        identifier="Afdeling",
+        facet_type_ref="Enhedstype",
+        user_key="91154D1E-E7CA-439B-B910-D4622FD3FD21",
+        title="Afdeling"
     )
 
     # Example: Organisation Unit
     # Required: name, org_unit_type_ref, date_from, date_to
-    org.OrganisationUnit.add(
-        identifier="Officers",
-        org_unit_type_ref="Command bridge",  # This unit is of type: Bridge section
-        date_from="1986-01-01",
-        date_to=None
+    Magenta.OrganisationUnit.add(
+        identifier="Magenta",
+        name="Magenta (Rodenhed)",
+        org_unit_type_ref="Hovedenhed",
+        date_from="1986-01-01"
     )
 
-    # Create "Science Officers"
     # Use parent_ref to make it a sub group of "Officers"
-    org.OrganisationUnit.add(
-        identifier="Science Officers",
-        org_unit_type_ref="Command bridge",  # This unit is of type: Bridge section
-        parent_ref="Officers",  # Sub unit of/Belongs to Officers unit
+    Magenta.OrganisationUnit.add(
+        identifier="Pilestræde",
+        org_unit_type_ref="Afdeling",  # This unit is of type: Rodenhed
+        parent_ref="Magenta",  # Sub unit of/Belongs to Rodenhed
+        date_from="1986-01-01"
+    )
+
+    Magenta.OrganisationUnit.add(
+        identifier="SJA2",
+        org_unit_type_ref="Afdeling",  # This unit is of type: Rodenhed
+        parent_ref="Magenta",  # Sub unit of/Belongs to Rodenhed
+        date_from="1986-01-01"
+    )
+
+    # Address types for Organisation Unit
+    Magenta.OrganisationUnit.add_type_address(
+        owner_ref="Magenta",
+        uuid="0a3f50c4-379f-32b8-e044-0003ba298018",
+        address_type_ref="AdressePost",
         date_from="1986-01-01",
-        date_to=None
+    )
+
+    Magenta.OrganisationUnit.add_type_address(
+        owner_ref="Magenta",
+        value="00112233",
+        address_type_ref="EAN",
+        date_from="1986-01-01",
+    )
+
+    Magenta.OrganisationUnit.add_type_address(
+        owner_ref="Magenta",
+        value="11223344",
+        address_type_ref="Telefon",
+        date_from="1986-01-01",
     )
 
 
-    # Employee
-
-    org.Employee.add(
-        identifier="Jean-Luc Picard",
+    # Employees
+    Magenta.Employee.add(
+        identifier="Susanne Chæf",
         cpr_no="0101862233"
     )
 
-    # Another employee
-    org.Employee.add(
-        identifier="William Riker",
-        cpr_no="0101862234"
+    Magenta.Employee.add(
+        identifier="Odin Perskov",
+        cpr_no="0102862234"
+    )
+
+    Magenta.Employee.add(
+        identifier="Ronja Rwander",
+        cpr_no="0103862234"
+    )
+
+    Magenta.Employee.add(
+        identifier="Jens Mortensen",
+        cpr_no="0104862235"
+    )
+
+    Magenta.Employee.add(
+        identifier="Bolette Buhl",
+        cpr_no="0105862235"
+    )
+
+    Magenta.Employee.add(
+        identifier="Carl Sand Holth",
+        cpr_no="0106862235"
     )
 
 
     # JOB AND ENGAGEMENT
 
     # Add job type "Bridge Officer
-    org.Klasse.add(
-        identifier="Bridge Officer",
+    Magenta.Klasse.add(
+        identifier="Direktør",
         facet_type_ref="Stillingsbetegnelse",
-        brugervendtnoegle="Bridge Officer",
-        titel="Bridge Officer"
+        user_key="Direktør",
+        title="Direktør"
+    )
+
+    Magenta.Klasse.add(
+        identifier="Projektleder",
+        facet_type_ref="Stillingsbetegnelse",
+        user_key="Projektleder",
+        title="Projektleder"
+    )
+
+    Magenta.Klasse.add(
+        identifier="Udvikler",
+        facet_type_ref="Stillingsbetegnelse",
+        user_key="Udvikler",
+        title="Udvikler"
+    )
+
+    Magenta.Klasse.add(
+        identifier="Projektmedarbejder",
+        facet_type_ref="Stillingsbetegnelse",
+        user_key="Projektmedarbejder",
+        title="Projektmedarbejder"
     )
 
     # Get job function type uuid
-    org.Employee.add_type_engagement(
-        owner_ref="William Riker",
-        org_unit_ref="Officers",
-        job_function_ref="Bridge Officer",
+    Magenta.Employee.add_type_engagement(
+        owner_ref="Susanne Chæf",
+        org_unit_ref="Magenta",
+        job_function_ref="Direktør",
         engagement_type_ref="Ansat",
         date_from="1986-01-01"
     )
 
+    Magenta.Employee.add_type_engagement(
+        owner_ref="Odin Perskov",
+        org_unit_ref="Pilestræde",
+        job_function_ref="Projektleder",
+        engagement_type_ref="Ansat",
+        date_from="1986-02-01"
+    )
+
+    Magenta.Employee.add_type_engagement(
+        owner_ref="Ronja Rwander",
+        org_unit_ref="SJA2",
+        job_function_ref="Projektleder",
+        engagement_type_ref="Ansat",
+        date_from="1986-03-01"
+    )
+
+    Magenta.Employee.add_type_engagement(
+        owner_ref="Jens Mortensen",
+        org_unit_ref="Pilestræde",
+        job_function_ref="Udvikler",
+        engagement_type_ref="Ansat",
+        date_from="1986-04-01"
+    )
+
+    Magenta.Employee.add_type_engagement(
+        owner_ref="Bolette Buhl",
+        org_unit_ref="SJA2",
+        job_function_ref="Udvikler",
+        engagement_type_ref="Ansat",
+        date_from="1986-05-01"
+    )
+
+    Magenta.Employee.add_type_engagement(
+        owner_ref="Carl Sand Holth",
+        org_unit_ref="Pilestræde",
+        job_function_ref="Projektmedarbejder",
+        engagement_type_ref="Ansat",
+        date_from="1986-06-01"
+    )
+
+    # Association
+    Magenta.Klasse.add(
+        identifier="Ekstern Konsulent",
+        facet_type_ref="Tilknytningstype",
+        user_key="Ekstern Konsulent",
+        title="Ekstern Konsulent"
+    )
+
+    Magenta.Employee.add_type_association(
+        owner_ref="Carl Sand Holth",
+        org_unit_ref="Pilestræde",
+        job_function_ref="Projektmedarbejder",
+        association_type_ref="Ekstern Konsulent",
+        address_uuid="0a3f50c4-379f-32b8-e044-0003ba298018",
+        date_from="1986-10-01"
+    )
+
 
     # Addresses
-
-    org.Employee.add_type_address(
-        owner_ref="William Riker",
-        uuid="0a3f50b6-efb4-32b8-e044-0003ba298018",
+    Magenta.Employee.add_type_address(
+        owner_ref="Susanne Chæf",
+        uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
         address_type_ref="AdressePost",
-        date_from="1986-01-01",
+        date_from="1986-11-01",
+    )
+
+    Magenta.Employee.add_type_address(
+        owner_ref="Odin Perskov",
+        uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
+        address_type_ref="AdressePost",
+        date_from="1986-11-01",
+    )
+
+    Magenta.Employee.add_type_address(
+        owner_ref="Ronja Rwander",
+        uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
+        address_type_ref="AdressePost",
+        date_from="1986-11-01",
+    )
+
+    Magenta.Employee.add_type_address(
+        owner_ref="Jens Mortensen",
+        uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
+        address_type_ref="AdressePost",
+        date_from="1986-11-01",
+    )
+
+    Magenta.Employee.add_type_address(
+        owner_ref="Bolette Buhl",
+        uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
+        address_type_ref="AdressePost",
+        date_from="1986-11-01",
+    )
+
+    Magenta.Employee.add_type_address(
+        owner_ref="Carl Sand Holth",
+        uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
+        address_type_ref="AdressePost",
+        date_from="1986-11-01",
     )
 
 
     # ROLES
-
-    org.Klasse.add(
-        identifier="Command",
+    Magenta.Klasse.add(
+        identifier="Medarbejder repræsentant",
         facet_type_ref="Rolletype",
-        brugervendtnoegle="Command function",
-        titel="In command of designated unit"
+        user_key="Medarbejder repræsentant",
+        title="Medarbejder repræsentant"
     )
 
-    org.Employee.add_type_role(
-        owner_ref="William Riker",
-        org_unit_ref="Officers",
-        role_type_ref="Command",
-        date_from="1986-01-01"
+    Magenta.Klasse.add(
+        identifier="Nøgleansvarlig",
+        facet_type_ref="Rolletype",
+        user_key="Nøgleansvarlig",
+        title="Nøgleansvarlig"
     )
 
+    Magenta.Employee.add_type_role(
+        owner_ref="Susanne Chæf",
+        org_unit_ref="Magenta",
+        role_type_ref="Nøgleansvarlig",
+        date_from="1986-12-01"
+    )
+
+    Magenta.Employee.add_type_role(
+        owner_ref="Bolette Buhl",
+        org_unit_ref="SJA2",
+        role_type_ref="Medarbejder repræsentant",
+        date_from="1986-12-01"
+    )
+
+    Magenta.Employee.add_type_role(
+        owner_ref="Jens Mortensen",
+        org_unit_ref="Pilestræde",
+        role_type_ref="Medarbejder repræsentant",
+        date_from="1986-12-01"
+    )
 
     # LEADERSHIP
 
     # Manager type
-    org.Klasse.add(
-        identifier="Teamleader",
+    Magenta.Klasse.add(
+        identifier="Direktør",
         facet_type_ref="Ledertyper",
-        brugervendtnoegle="Teamleader",
-        titel="In charge of various teams"
+        user_key="Direktør",
+        title="Virksomhedens direktør"
     )
 
     # Manager level
-    org.Klasse.add(
-        identifier="Priority",
+    Magenta.Klasse.add(
+        identifier="Højeste niveau",
         facet_type_ref="Lederniveau",
-        brugervendtnoegle="Priority",
-        titel="Command Alpha-Gamma-Six"
+        user_key="Højeste niveau",
+        title="Højeste niveau"
     )
 
     # Add responsabilities
-    org.Klasse.add(
-        identifier="Distribute tasks",
+    Magenta.Klasse.add(
+        identifier="Tage beslutninger",
         facet_type_ref="Lederansvar",
-        brugervendtnoegle="Distribute tasks",
-        titel="Must distribute tasks amongst crewmen"
+        user_key="Tage beslutninger",
+        title="Tage beslutninger"
     )
 
-    org.Klasse.add(
-        identifier="Comm Officer",
+    Magenta.Klasse.add(
+        identifier="Motivere medarbejdere",
         facet_type_ref="Lederansvar",
-        brugervendtnoegle="Comm Officer",
-        titel="Must establish and maintain comms"
+        user_key="Motivere medarbejdere",
+        title="Motivere medarbejdere"
     )
 
-    org.Employee.add_type_manager(
-        owner_ref="William Riker",
-        org_unit_ref="Officers",
-        manager_type_ref="Priority",
-        manager_level_ref="Teamleader",
-        address_uuid="F28B0B96-8D1A-4FFF-AB47-FA7E105B1CA8",  # Fake address uuid
-        responsibility_list=["Distribute tasks", "Comm Officer"],
-        date_from="1986-01-01",
+    Magenta.Klasse.add(
+        identifier="Betale løn",
+        facet_type_ref="Lederansvar",
+        user_key="Betale løn",
+        title="Betale løne"
+    )
+
+
+    Magenta.Employee.add_type_manager(
+        owner_ref="Susanne Chæf",
+        org_unit_ref="Magenta",
+        manager_type_ref="Direktør",
+        manager_level_ref="Højeste niveau",
+        responsibility_list=["Tage beslutninger", "Motivere medarbejdere", "Betale løn"],
+        date_from="1986-12-01",
     )
 
 
     # Leave of absence
 
-    org.Klasse.add(
-        identifier="RNR",
-        facet_type_ref="Lederansvar",
-        brugervendtnoegle="RNR",
-        titel="Rest and Recreation"
+    Magenta.Klasse.add(
+        identifier="Sygeorlov",
+        facet_type_ref="Orlovstype",
+        user_key="Sygeorlov",
+        title="Sygeorlov"
     )
 
-    org.Employee.add_type_leave(
-        owner_ref="William Riker",
-        leave_type_ref="RNR",
-        date_from="1986-10-22",
-        date_to="1986-10-29"
+    Magenta.Employee.add_type_leave(
+        owner_ref="Jens Mortensen",
+        leave_type_ref="Sygeorlov",
+        date_from="2018-01-22",
+        date_to="2018-11-02"
     )
 
-    # Itsystem
+    Magenta.Employee.add_type_leave(
+        owner_ref="Bolette Buhl",
+        leave_type_ref="Sygeorlov",
+        date_from="2018-01-22",
+        date_to="2018-11-02"
+    )
 
-    # org.Itsystem.add(
-    #     identifier="Main Computer",
-    #     system_name="Main Computer"
-    # )
-    #
-    # org.Employee.add_type_itsystem(
-    #     owner_ref="William Riker",
-    #     itsystem_ref="Main Computer",
-    #     date_from="1986-01-01"
-    # )
+    #Itsystem
 
-    # # Show all employee metadata
-    employee = org.Employee.get("William Riker")
+    Magenta.Itsystem.add(
+        identifier="Servermiljø",
+        system_name="Servermiljø"
+    )
 
-    data = employee["data"]
-    optional_data = employee["optional_data"]
+    Magenta.Employee.add_type_itsystem(
+        owner_ref="Jens Mortensen",
+        itsystem_ref="Servermiljø",
+        date_from="1987-10-01"
+    )
 
-    print("Employee data:")
-    for item in data:
-        print(item)
-
-    print("Employee optional data:")
-    for item in optional_data:
-        print(item)
-
+    Magenta.Employee.add_type_itsystem(
+        owner_ref="Bolette Buhl",
+        itsystem_ref="Servermiljø",
+        date_from="1987-10-01"
+    )
 
     # TODO: MAKE THIS WORK!
-    os2mo = ImportUtility(org, dry_run=True)
-    os2mo.import_all()
+    os2mo = ImportUtility(dry_run=False)
+    os2mo.import_all(Magenta)
 
 
 if __name__ == "__main__":
