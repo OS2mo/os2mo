@@ -541,7 +541,7 @@ class Employee(ExtendedMap):
     def __init__(self):
         super().__init__()
 
-    def add(self, identifier, cpr_no, name=None, user_key=None, uuid=None):
+    def add(self, identifier, cpr_no=None, name=None, user_key=None, uuid=None):
         """
         Add new employee to the storage map.
         Employee objects have no validity,
@@ -837,9 +837,12 @@ class Employee(ExtendedMap):
 
         return self.save_opt(owner_ref, leave_data)
 
-    def add_type_itsystem(self, owner_ref, itsystem_ref,
+    def add_type_itsystem(self, owner_ref, user_key, itsystem_ref,
                           date_from, date_to=None):
         """
+
+        :param user_key:
+            Refers to the employee's username for the itsystem (str)
 
         :param owner_ref:
             Refers to the user defined identifier when added (str)
@@ -866,6 +869,7 @@ class Employee(ExtendedMap):
 
         it_data = [
             ("type", "it"),
+            ("user_key", user_key),
             ("itsystem", itsystem_ref),
             ("validity", validity)
         ]
@@ -920,7 +924,7 @@ class Organisation(object):
 
         self.uuid = uuid
         self.name = name
-        self.user_key = user_key
+        self.user_key = (user_key or name)
         self.municipality_code = municipality_code
 
         self.validity = {
@@ -948,7 +952,7 @@ class Organisation(object):
             "uuid": self.uuid,
             "data": {
                 "organisationsnavn": self.name,
-                "brugervendtnoegle": (self.user_key or self.name),
+                "brugervendtnoegle": self.user_key,
             },
             "municipality_code": self.municipality_code,
             "validity": self.validity
