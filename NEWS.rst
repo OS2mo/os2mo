@@ -1,3 +1,33 @@
+Version 0.11.0 (in development)
+===============================
+
+New features
+------------
+
+* TBD
+
+
+Internal changes
+----------------
+
+* TBD
+
+API changes
+-----------
+
+* TBD
+
+Bug fixes
+---------
+
+* #24150: When terminating an employee, mark any manager roles it
+  possesses as vacant rather than terminating them.
+
+Known bugs
+----------
+
+* #24134: Sorting doesn't work after performing an update.
+
 Version 0.10.1, 2018-10-08
 ==========================
 
