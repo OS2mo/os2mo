@@ -44,6 +44,7 @@ from .auth import base, tokens
 basedir = os.path.dirname(__file__)
 backenddir = os.path.dirname(basedir)
 topdir = os.path.dirname(backenddir)
+docsdir = os.path.join(topdir, 'docs')
 frontenddir = os.path.join(topdir, 'frontend')
 
 
@@ -153,6 +154,40 @@ def build(target=None):
             cwd=frontenddir)
 
 
+@group.command()
+@click.option('-b', '--open-browser', is_flag=True)
+@click.argument('destdir', type=click.Path(), required=False)
+def docs(open_browser, destdir):
+    '''Build the documentation'''
+    import webbrowser
+
+    import sphinx.cmdline
+
+    vuedoc_cmd = [
+        os.path.join(frontenddir, 'node_modules', '.bin', 'vuedoc.md'),
+        '--output', os.path.join(docsdir, 'vuedoc'),
+    ] + [
+        os.path.join(dirpath, file_name)
+        for dirpath, dirs, file_names in
+        os.walk(os.path.join(frontenddir, 'src'))
+        for file_name in file_names
+        if file_name.endswith('.vue')
+    ]
+
+    subprocess.check_call(vuedoc_cmd)
+
+    if destdir:
+        destdir = click.format_filename(destdir)
+    else:
+        destdir = os.path.join(topdir, 'docs', 'out', 'html')
+
+    sphinx.cmdline.main(['-b', 'html', docsdir, destdir])
+
+    if open_browser:
+        webbrowser.get('default').open(click.format_filename(destdir))
+
+
+@cli.command()
 @group.command()
 def develop():
     'Run for development.'
