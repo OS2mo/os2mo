@@ -9,7 +9,7 @@ def example_import():
 
     Install into venv or python path:
 
-        pip install -e /path/to/os2mo_data_import
+        pip install /path/to/os2mo_data_import
 
     Run the example:
 
@@ -339,9 +339,8 @@ def example_import():
         identifier="Betale løn",
         facet_type_ref="Lederansvar",
         user_key="Betale løn",
-        title="Betale løne"
+        title="Betale løn"
     )
-
 
     Magenta.Employee.add_type_manager(
         owner_ref="Susanne Chæf",
@@ -353,28 +352,29 @@ def example_import():
     )
 
 
-    # Leave of absence
+    # Leave of absence (Does not work after release 0.10)
+    # Leave type requires an exisiting engagement type
 
-    Magenta.Klasse.add(
-        identifier="Sygeorlov",
-        facet_type_ref="Orlovstype",
-        user_key="Sygeorlov",
-        title="Sygeorlov"
-    )
-
-    Magenta.Employee.add_type_leave(
-        owner_ref="Jens Mortensen",
-        leave_type_ref="Sygeorlov",
-        date_from="2018-01-22",
-        date_to="2018-11-02"
-    )
-
-    Magenta.Employee.add_type_leave(
-        owner_ref="Bolette Buhl",
-        leave_type_ref="Sygeorlov",
-        date_from="2018-01-22",
-        date_to="2018-11-02"
-    )
+    # Magenta.Klasse.add(
+    #     identifier="Sygeorlov",
+    #     facet_type_ref="Orlovstype",
+    #     user_key="Sygeorlov",
+    #     title="Sygeorlov"
+    # )
+    #
+    # Magenta.Employee.add_type_leave(
+    #     owner_ref="Jens Mortensen",
+    #     leave_type_ref="Sygeorlov",
+    #     date_from="2018-01-22",
+    #     date_to="2018-11-02"
+    # )
+    #
+    # Magenta.Employee.add_type_leave(
+    #     owner_ref="Bolette Buhl",
+    #     leave_type_ref="Sygeorlov",
+    #     date_from="2018-01-22",
+    #     date_to="2018-11-02"
+    # )
 
     #Itsystem
 
@@ -385,12 +385,14 @@ def example_import():
 
     Magenta.Employee.add_type_itsystem(
         owner_ref="Jens Mortensen",
+        user_key="jmort",
         itsystem_ref="Servermiljø",
         date_from="1987-10-01"
     )
 
     Magenta.Employee.add_type_itsystem(
         owner_ref="Bolette Buhl",
+        user_key="bolbu",
         itsystem_ref="Servermiljø",
         date_from="1987-10-01"
     )
