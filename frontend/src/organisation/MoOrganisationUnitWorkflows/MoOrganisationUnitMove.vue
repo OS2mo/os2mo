@@ -25,7 +25,7 @@
           <input 
             type="text" 
             class="form-control" 
-            :value="currentUnit"
+            :value="parentUnit"
             disabled
           >
         </div>
@@ -87,14 +87,15 @@
     data () {
       return {
         /**
-         * The move, currentUnit, uuid, original, isLoading, backendValidationError component value.
+         * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
          * Used to detect changes and restore the value.
          */
-        currentUnit: '',
-        uuid: '',
+        parentUnit: '',
         original: null,
         move: {
+          type: 'org_unit',
           data: {
+            uuid: '',
             validity: {}
           }
         },
@@ -120,7 +121,10 @@
        */
       original: {
         handler (newVal) {
-          if (this.original) return this.getCurrentUnit(newVal.uuid)
+          if (this.original) {
+            this.move.data.uuid = newVal.uuid
+            return this.getCurrentUnit(newVal.uuid)
+          }
         },
         deep: true
       }
@@ -144,7 +148,7 @@
           let vm = this
           vm.isLoading = true
 
-          OrganisationUnit.move(this.original.uuid, this.move)
+          OrganisationUnit.move(this.move)
             .then(response => {
               vm.isLoading = false
               if (response.error) {
@@ -166,7 +170,7 @@
         if (!unitUuid) return
         OrganisationUnit.get(unitUuid)
           .then(response => {
-            vm.currentUnit = response.parent ? response.parent.name : ''
+            vm.parentUnit = response.parent ? response.parent.name : ''
           })
       }
     }

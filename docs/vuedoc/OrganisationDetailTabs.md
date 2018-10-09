@@ -41,6 +41,10 @@ A organisation detail tabs component.
 
 **initial value:** `[object Object]` 
 
+- `it` 
+
+**initial value:** `[object Object]` 
+
 - `manager` 
 
 **initial value:** `[object Object]` 

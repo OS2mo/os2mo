@@ -59,6 +59,7 @@
         backendValidationError: null,
         employee: {},
         leave: {
+          person: null,
           validity: {}
         }
       }
@@ -72,6 +73,18 @@
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
+      }
+    },
+
+    watch: {
+      /**
+       * Called whenever the selected person changes
+       */
+      employee: {
+        handler (newVal) {
+          this.leave.person = newVal
+        },
+        deep: true
       }
     },
 
@@ -92,7 +105,7 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.leave(this.employee.uuid, [this.leave])
+          Employee.leave([this.leave])
             .then(response => {
               vm.isLoading = false
               if (response.error) {

@@ -119,8 +119,8 @@
           {label: 'role_type', data: 'role_type'}
         ],
         it: [
-          {label: 'it_system', data: null},
-          {label: 'user_name', data: null, field: 'user_name'}
+          {label: 'it_system', data: 'itsystem'},
+          {label: 'user_key', data: null, field: 'user_key'}
         ],
         association: [
           {label: 'org_unit', data: 'org_unit'},

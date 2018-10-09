@@ -12,6 +12,7 @@
     "unit": "Enhed",
     "addresses": "Adresser",
     "engagements": "Engagementer",
+    "it": "IT",
     "association": "@:shared.association",
     "roles": "Roller",
     "managers": "Ledere"

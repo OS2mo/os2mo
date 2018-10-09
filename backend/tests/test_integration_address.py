@@ -15,11 +15,515 @@ import freezegun
 from mora import lora
 from tests import util
 
+address_class = {
+    'example': '<UUID>',
+    'name': 'Adresse',
+    'scope': 'DAR',
+    'user_key': 'AdressePost',
+    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+}
+
+ean_class = {
+    'example': '5712345000014',
+    'name': 'EAN',
+    'scope': 'EAN',
+    'user_key': 'EAN',
+    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+}
+
+email_class = {
+    'example': 'test@example.com',
+    'name': 'Emailadresse',
+    'scope': 'EMAIL',
+    'user_key': 'Email',
+    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+}
+
+phone_class = {
+    'example': '20304060',
+    'name': 'Telefonnummer',
+    'scope': 'PHONE',
+    'user_key': 'Telefon',
+    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+}
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True)
 class Writing(util.LoRATestCase):
     maxDiff = None
+
+    def test_create_errors(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+        nothingid = "00000000-0000-0000-0000-000000000000"
+
+        with self.subTest('neither failing'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": ean_class,
+                    "value": '1234567890',
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': None,
+                    'org_unit_uuid': None,
+                    'obj': req[0],
+                    'status': 400,
+                },
+                json=req,
+                status_code=400,
+            )
+
+        with self.subTest('both failing'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": ean_class,
+                    "value": '1234567890',
+                    "person": {
+                        'uuid': userid,
+                    },
+                    "org_unit": {
+                        'uuid': unitid,
+                    },
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': userid,
+                    'org_unit_uuid': unitid,
+                    'obj': req[0],
+                    'status': 400,
+                },
+                json=req,
+                status_code=400,
+            )
+
+        with self.subTest('no value'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": email_class,
+                    "org_unit": {"uuid": unitid},
+                    # NB: no value
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing value",
+                    'key': 'value',
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('no type'):
+            req = [
+                {
+                    "type": "address",
+                    # NB: no type!
+                    "address_type": None,
+                    "value": "hallo@exmaple.com",
+                    "org_unit": {"uuid": unitid},
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'E_INVALID_TYPE',
+                    'description': (
+                        "Invalid 'address_type', expected dict, got: null"
+                    ),
+                    'key': 'address_type',
+                    'expected': 'dict',
+                    'actual': None,
+                    'status': 400,
+                    "obj": req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('wrong key'):
+            req = [
+                {
+                    "type": "address",
+                    "address_type": address_class,
+                    # NB: wrong key!
+                    "value": "hallo@exmaple.com",
+                    "org_unit": {"uuid": unitid},
+                    "validity": {
+                        "from": "2013-01-01",
+                        "to": None,
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': "Missing uuid",
+                    'key': 'uuid',
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('not a UUID'):
+            req = [{
+                "type": "address",
+                "address_type": address_class,
+                # NB: not a UUID!
+                        "uuid": "hallo@exmaple.com",
+                "org_unit": {"uuid": unitid},
+                "validity": {
+                    "from": "2013-01-01",
+                    "to": None,
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'error': True,
+                    'error_key': 'E_INVALID_UUID',
+                    'description': (
+                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
+                    ),
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('unit not found'):
+            req = [{
+                "type": "address",
+                "address_type": address_class,
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "org_unit": {"uuid": nothingid},
+                "validity": {
+                    "from": "2013-01-01",
+                    "to": None,
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description': 'Org unit not found.',
+                    'error': True,
+                    'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                    'status': 404,
+                    'uuid': nothingid,
+                },
+                status_code=404,
+                json=req,
+            )
+
+        with self.subTest('employee not found'):
+            req = [{
+                "type": "address",
+                "address_type": address_class,
+                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                "person": {"uuid": nothingid},
+                "validity": {
+                    "from": "2013-01-01",
+                    "to": None,
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/create',
+                {
+                    'description': 'User not found.',
+                    'error': True,
+                    'error_key': 'E_USER_NOT_FOUND',
+                    'status': 404,
+                    'uuid': nothingid,
+                },
+                status_code=404,
+                json=req,
+            )
+
+    def test_edit_errors(self, mock):
+        self.load_sample_structures()
+
+        other_userid = util.load_fixture('organisation/bruger',
+                                         'create_bruger_fætterguf.json')
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+        nothingid = "00000000-0000-0000-0000-000000000000"
+
+        orig_address = {
+            "href": "https://www.openstreetmap.org/"
+            "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+            "name": "Nordre Ringgade 1, 8000 Aarhus C",
+            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": address_class,
+            "validity": {
+                "from": "2016-01-01",
+                "to": "2018-12-31",
+            },
+        }
+
+        with self.subTest('neither failing'):
+            req = [
+                {
+                    "type": "address",
+                    "original": orig_address,
+                    "data": {
+                        "address_type": phone_class,
+                        "value": "11223344",
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': None,
+                    'org_unit_uuid': None,
+                    'obj': req[0]['original'],
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('both failing'):
+            req = [
+                {
+                    "type": "address",
+                    "original": {
+                        **orig_address,
+                        "person": {"uuid": userid},
+                        "org_unit": {"uuid": unitid},
+                    },
+                    "data": {
+                        "address_type": phone_class,
+                        "value": "11223344",
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description':
+                    'must specify only one of person and org_unit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'employee_uuid': userid,
+                    'org_unit_uuid': unitid,
+                    'obj': req[0]['original'],
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('missing edit value'):
+            req = [
+                {
+                    "type": "address",
+                    "original": {
+                        **orig_address,
+                        "person": {"uuid": userid},
+                    },
+                    "data": {
+                        "address_type": phone_class,
+                        # NB: no value
+                    },
+                },
+            ]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'description': 'Missing value',
+                    'key': 'value',
+                    'status': 400,
+                    'obj': req[0]['data'],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('missing original'):
+            req = [{
+                "type": "address",
+                # NB: no original!
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description': 'Missing original',
+                    'error': True,
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
+                    'key': 'original',
+                    'obj': req[0],
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('invalid original'):
+            req = [{
+                "type": "address",
+                # NB: no original!
+                "original": None,
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'error': True,
+                    'error_key': 'E_INVALID_TYPE',
+                    'description':
+                    "Invalid 'original', expected dict, got: null",
+                    'actual': None,
+                    'key': 'original',
+                    'expected': 'dict',
+                    'status': 400,
+                    'obj': req[0],
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('wrong original'):
+            req = [{
+                "type": "address",
+                "original": {
+                    'address_type': email_class,
+                    # wrong!
+                    'href': 'mailto:user@example.com',
+                    'name': 'user@example.com',
+                    'urn': 'urn:mailto:user@example.com',
+                    "person": {"uuid": userid},
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                },
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'error': True,
+                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
+                    'description': 'Original entry not found.',
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
+
+        with self.subTest('wrong original'):
+            req = [{
+                "type": "address",
+                "original": {
+                    'address_type': email_class,
+                    'href': 'mailto:user@example.com',
+                    'name': 'user@example.com',
+                    'urn': 'urn:mailto:user@example.com',
+                    "person": {"uuid": other_userid},
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                },
+                "data": {
+                    "validity": {
+                        'to': '2009-12-31',
+                    },
+                }
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description': 'no addresses to edit!',
+                    'error': True,
+                    'error_key': 'E_INVALID_INPUT',
+                    'status': 400,
+                },
+                status_code=400,
+                json=req,
+            )
 
     def test_employee_address(self, mock):
         self.load_sample_structures()
@@ -28,6 +532,10 @@ class Writing(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
 
         relations = {
             'tilhoerer': [
@@ -79,38 +587,6 @@ class Writing(util.LoRATestCase):
 
         original = c.bruger.get(userid)
 
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
-        ean_class = {
-            'example': '5712345000014',
-            'name': 'EAN',
-            'scope': 'EAN',
-            'user_key': 'EAN',
-            'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-        }
-
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        phone_class = {
-            'example': '20304060',
-            'name': 'Telefonnummer',
-            'scope': 'PHONE',
-            'user_key': 'Telefon',
-            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-        }
-
         addresses = [
             {
                 'address_type': {
@@ -123,6 +599,7 @@ class Writing(util.LoRATestCase):
                 'href': 'mailto:bruger@example.com',
                 'name': 'bruger@example.com',
                 'urn': 'urn:mailto:bruger@example.com',
+                'person': user,
                 'validity': {
                     'from': '1934-06-09',
                     'to': None,
@@ -163,13 +640,14 @@ class Writing(util.LoRATestCase):
             self.assertEqual(original['relationer'], relations)
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+            '/service/details/create',
+            [userid],
             json=[
                 {
                     "type": "address",
                     "address_type": ean_class,
                     "value": '1234567890',
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -180,9 +658,6 @@ class Writing(util.LoRATestCase):
         edited = c.bruger.get(userid)
 
         self.assertNotEqual(original, edited)
-
-        # XXX: Remove 'garbage' value placed as part of create operation
-        del edited['tilstande']['brugergyldighed'][0]['virkning']['notetekst']
 
         self.assertEqual(original['attributter'], edited['attributter'])
         self.assertEqual(original['tilstande'], edited['tilstande'])
@@ -204,16 +679,11 @@ class Writing(util.LoRATestCase):
 
         addresses += [
             {
-                'address_type': {
-                    'example': '5712345000014',
-                    'name': 'EAN',
-                    'scope': 'EAN',
-                    'user_key': 'EAN',
-                    'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-                },
+                'address_type': ean_class,
                 'href': None,
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
+                'person': user,
                 'validity': {
                     'from': '2013-01-01',
                     'to': None,
@@ -240,13 +710,14 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+            '/service/details/create',
+            [userid, userid, userid],
             json=[
                 {
                     "type": "address",
                     "address_type": email_class,
                     "value": "hest@example.com",
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2014-01-01",
                     },
@@ -255,6 +726,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": address_class,
                     "uuid": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2015-01-01",
                     },
@@ -263,6 +735,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": phone_class,
                     "value": '3336 9696',
+                    "person": {'uuid': userid},
                     "validity": {
                         "from": "2016-01-01",
                     },
@@ -276,6 +749,7 @@ class Writing(util.LoRATestCase):
                 'href': 'mailto:hest@example.com',
                 'name': 'hest@example.com',
                 'urn': 'urn:mailto:hest@example.com',
+                'person': user,
                 'validity': {
                     'from': '2014-01-01', 'to': None,
                 },
@@ -286,6 +760,7 @@ class Writing(util.LoRATestCase):
                 '?mlon=10.20320628&mlat=56.15263055&zoom=16',
                 'name': 'Rådhuspladsen 2, 4., 8000 Aarhus C',
                 'uuid': 'ae95777c-7ec1-4039-8025-e2ecce5099fb',
+                'person': user,
                 'validity': {
                     'from': '2015-01-01', 'to': None,
                 },
@@ -295,6 +770,7 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4533369696',
                 'name': '33369696',
                 'urn': 'urn:magenta.dk:telefon:+4533369696',
+                'person': user,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -390,16 +866,12 @@ class Writing(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
-
         userid = util.load_fixture('organisation/bruger',
                                    'create_bruger_fætterguf.json')
+        user = {
+            'name': 'Fætter Guf',
+            'uuid': userid,
+        }
 
         original = c.bruger.get(userid)
 
@@ -422,13 +894,14 @@ class Writing(util.LoRATestCase):
             self.assertNotIn('adresser', original['relationer'])
 
         self.assertRequestResponse(
-            '/service/e/{}/create'.format(userid),
-            userid,
+            '/service/details/create',
+            [userid],
             json=[
                 {
                     "type": "address",
                     "address_type": address_class,
                     "uuid": '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                    "person": user,
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -450,6 +923,7 @@ class Writing(util.LoRATestCase):
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         'user_key': 'AdressePost',
                     },
+                    "person": user,
                     'validity': {
                         'to': None,
                         'from': '2013-01-01',
@@ -463,22 +937,6 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
 
         address_classes = self.client.get(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -496,6 +954,10 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:bruger@example.com',
                     'name': 'bruger@example.com',
                     'urn': 'urn:mailto:bruger@example.com',
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -504,81 +966,10 @@ class Writing(util.LoRATestCase):
             ],
         )
 
-        with self.subTest('bad edits'):
-            self.assertRequestResponse(
-                '/service/e/{}/edit'.format(userid),
-                {
-                    'error': True,
-                    'error_key': 'E_INVALID_TYPE',
-                    'description':
-                    "Invalid 'original', expected dict, got: null",
-                    'actual': 'null',
-                    'key': 'original',
-                    'expected': 'dict',
-                    'status': 400,
-                    'obj': {
-                        'data': {
-                            'validity': {
-                                'to': '2009-12-31'
-                            }
-                        },
-                        'original': None,
-                        'type': 'address'
-                    },
-                },
-                status_code=400,
-                json=[{
-                    "type": "address",
-                    # NB: no original!
-                    "original": None,
-                    "data": {
-                        "validity": {
-                            'to': '2009-12-31',
-                        },
-                    }
-                }],
-            )
-
-            self.assertRequestResponse(
-                '/service/e/{}/edit'.format(userid),
-                {
-                    'error': True,
-                    'error_key': 'E_ORIGINAL_ENTRY_NOT_FOUND',
-                    'description': 'Original entry not found.',
-                    'status': 400,
-                },
-                status_code=400,
-                json=[{
-                    "type": "address",
-                    "original": {
-                        'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Emailadresse',
-                            'scope': 'EMAIL',
-                            'user_key': 'Email',
-                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        },
-                        # wrong!
-                        'href': 'mailto:user@example.com',
-                        'name': 'user@example.com',
-                        'urn': 'urn:mailto:user@example.com',
-                        'validity': {
-                            'from': '1934-06-09',
-                            'to': None,
-                        },
-                    },
-                    "data": {
-                        "validity": {
-                            'to': '2009-12-31',
-                        },
-                    }
-                }],
-            )
-
         # first, test editing the value & the end time
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
                 "original": {
@@ -595,6 +986,10 @@ class Writing(util.LoRATestCase):
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
+                    },
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                 },
                 "data": {
@@ -615,6 +1010,10 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
                     'validity': {
                         'from': '1934-06-09',
                         'to': '2009-12-31',
@@ -635,8 +1034,8 @@ class Writing(util.LoRATestCase):
 
         # second, test editing type, value, and removing the end date
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
                 "original": {
@@ -650,6 +1049,7 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:user@example.com',
                     'name': 'user@example.com',
                     'urn': 'urn:mailto:user@example.com',
+                    "person": {"uuid": userid},
                     'validity': {
                         'from': '1934-06-09',
                         'to': '2009-12-31',
@@ -686,6 +1086,10 @@ class Writing(util.LoRATestCase):
                     '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                     'name': 'Pilestræde 43, 3., 1112 København K',
                     'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'person': {
+                        'name': 'Anders And',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    },
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -703,21 +1107,9 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+        user = {
+            'name': 'Fedtmule',
+            'uuid': userid,
         }
 
         address_classes = self.client.get(
@@ -737,6 +1129,7 @@ class Writing(util.LoRATestCase):
                 "?mlon=12.58176945&mlat=55.67563739&zoom=16",
                 "name": "Christiansborg Slotsplads 1, 1218 K\u00f8benhavn K",
                 "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
+                "person": user,
                 "validity": {
                     "from": "1932-05-12",
                     "to": None
@@ -747,6 +1140,7 @@ class Writing(util.LoRATestCase):
                 "href": "mailto:goofy@example.com",
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
+                "person": user,
                 "validity": {
                     "from": "1932-05-12",
                     "to": None
@@ -757,6 +1151,7 @@ class Writing(util.LoRATestCase):
                 "href": "mailto:goofy@example.com",
                 "name": "goofy@example.com",
                 "urn": "urn:mailto:goofy@example.com",
+                "person": user,
                 "validity": {
                     "from": "1932-05-12",
                     "to": None
@@ -771,8 +1166,8 @@ class Writing(util.LoRATestCase):
 
         # first, test editing the value only
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
                 "original": addresses[0],
@@ -807,8 +1202,8 @@ class Writing(util.LoRATestCase):
 
         # second, test editing type
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[{
                 "type": "address",
                 "original": addresses[0],
@@ -842,18 +1237,17 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
 
         old_addr = {
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            },
+            'address_type': email_class,
             'href': 'mailto:bruger@example.com',
             'name': 'bruger@example.com',
             'urn': 'urn:mailto:bruger@example.com',
+            'person': user,
             'validity': {
                 'from': '1934-06-09',
                 'to': None,
@@ -866,8 +1260,8 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/edit'.format(userid),
-            userid,
+            '/service/details/edit',
+            [userid],
             json=[
                 {
                     'type': 'address',
@@ -891,6 +1285,7 @@ class Writing(util.LoRATestCase):
                     'href': 'mailto:hest@example.com',
                     'name': 'hest@example.com',
                     'urn': 'urn:mailto:hest@example.com',
+                    'person': user,
                     'validity': {
                         'from': '1934-06-09',
                         'to': None,
@@ -903,13 +1298,11 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-
-        ean_class = {
-            'example': '5712345000014',
-            'name': 'EAN',
-            'scope': 'EAN',
-            'user_key': 'EAN',
-            'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+        unit = {
+            'name': 'Afdeling for Samtidshistorik',
+            'user_key': 'frem',
+            'uuid': unitid,
+            'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
         }
 
         self.assertIn(ean_class, self.client.get(
@@ -929,6 +1322,7 @@ class Writing(util.LoRATestCase):
                     "?mlon=10.19938084&mlat=56.17102843&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            'org_unit': unit,
             "validity": {
                 "from": "2016-01-01",
                 "to": "2018-12-31"
@@ -941,8 +1335,8 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit',
+            [unitid],
             json=[
                 {
                     'type': 'address',
@@ -963,6 +1357,7 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01',
                     'to': '2018-12-31',
@@ -977,11 +1372,112 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '1234567890',
                 'urn': 'urn:magenta.dk:ean:1234567890',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01',
                     'to': '2018-12-31',
                 },
             }],
+        )
+
+    def test_edit_text_address(self, mock):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        user = {
+            'name': 'Anders And',
+            'uuid': userid,
+        }
+
+        classid = util.load_fixture(
+            'klassifikation/klasse', 'create_klasse.json',
+            '0bf0daec-9d83-4783-a2cf-5e628fe70e51',
+            description=None,
+            example="…",
+            name='Kommentar',
+            scope="TEXT",
+            user_key='Comment',
+            facetid="e337bab4-635f-49ce-aa31-b44047a43aa1",
+        )
+
+        comment_class = {
+            'example': '…',
+            'name': "Kommentar",
+            'scope': 'TEXT',
+            'user_key': 'Comment',
+            'uuid': classid,
+        }
+
+        with self.subTest('preconditions'):
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                '/f/address_type/',
+                {
+                    'data': {
+                        'offset': 0, 'total': 5,
+                        'items': [
+                            comment_class,
+                            phone_class,
+                            address_class,
+                            email_class,
+                            ean_class,
+                        ],
+                    },
+                    'name': 'address_type',
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                    '/f/address_type/',
+                    'user_key': 'Adressetype',
+                    'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
+            )
+
+        old_addr = {
+            'address_type': email_class,
+            'href': 'mailto:bruger@example.com',
+            'name': 'bruger@example.com',
+            'urn': 'urn:mailto:bruger@example.com',
+            'person': user,
+            'validity': {
+                'from': '1934-06-09',
+                'to': None,
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [old_addr],
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=[
+                {
+                    'type': 'address',
+                    'original': old_addr,
+                    'data': {
+                        **old_addr,
+                        'address_type': comment_class,
+                        'value': 'kaflibob',
+                    },
+                },
+            ],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/address'.format(userid),
+            [
+                {
+                    'address_type': comment_class,
+                    'href': None,
+                    'name': 'kaflibob',
+                    'urn': 'urn:text:kaflibob',
+                    'person': user,
+                    'validity': {
+                        'from': '1934-06-09',
+                        'to': None,
+                    },
+                }
+            ],
         )
 
     def test_create_unit_address(self, mock):
@@ -1038,6 +1534,12 @@ class Writing(util.LoRATestCase):
                 'href': None,
                 'name': '5798000420229',
                 'urn': 'urn:magenta.dk:ean:5798000420229',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': unitid,
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1053,6 +1555,12 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4587150000',
                 'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': unitid,
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1069,27 +1577,17 @@ class Writing(util.LoRATestCase):
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                 'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': unitid,
+                    'validity': {'from': '2016-01-01', 'to': None},
+                },
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
             },
         ]
-
-        email_class = {
-            'example': 'test@example.com',
-            'name': 'Emailadresse',
-            'scope': 'EMAIL',
-            'user_key': 'Email',
-            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-        }
-
-        address_class = {
-            'example': '<UUID>',
-            'name': 'Adresse',
-            'scope': 'DAR',
-            'user_key': 'AdressePost',
-            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-        }
 
         original = c.organisationenhed.get(unitid)
 
@@ -1127,173 +1625,17 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(address_rels, original['relationer']['adresser'])
 
-        # ERROR CHECKING
-
-        with self.subTest('errors'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing value",
-                    'key': 'value',
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Emailadresse',
-                            'scope': 'EMAIL',
-                            'user_key': 'Email',
-                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
-                        },
-                        'type': 'address',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None
-                        }
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "address_type": email_class,
-                        # NB: no value
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('errors II'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'E_INVALID_TYPE',
-                    'description': (
-                        "Invalid 'address_type', expected dict, got: null"
-                    ),
-                    'key': 'address_type',
-                    'expected': 'dict',
-                    'actual': 'null',
-                    'status': 400,
-                    "obj": {
-                        'address_type': None,
-                        'type': 'address',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None},
-                        'value': 'hallo@exmaple.com'
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        # NB: no type!
-                        "address_type": None,
-                        "value": "hallo@exmaple.com",
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('errors III'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing uuid",
-                    'key': 'uuid',
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                        },
-                        'type': 'address',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None},
-                        'value': 'hallo@exmaple.com'
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "address_type": address_class,
-                        # NB: wrong key!
-                        "value": "hallo@exmaple.com",
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('errors IV'):
-            self.assertRequestResponse(
-                '/service/ou/{}/create'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'E_INVALID_UUID',
-                    'description': (
-                        "Invalid uuid for 'uuid': 'hallo@exmaple.com'"
-                    ),
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                        },
-                        'type': 'address',
-                        'uuid': 'hallo@exmaple.com',
-                        'validity': {
-                            'from': '2013-01-01',
-                            'to': None
-                        }
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "address_type": address_class,
-                        # NB: not a UUID!
-                        "uuid": "hallo@exmaple.com",
-                        "validity": {
-                            "from": "2013-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-            )
-
         # NOW CREATE IT
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid,
+            '/service/details/create',
+            [unitid],
             json=[
                 {
                     "type": "address",
                     "address_type": email_class,
                     "value": "hallo@exmaple.com",
+                    "org_unit": {"uuid": unitid},
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -1459,6 +1801,13 @@ class Writing(util.LoRATestCase):
                         'user_key': 'Telefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                     },
+                    'org_unit': {
+                        'name': 'Fake Corp',
+                        'user_key':
+                        'Fake Corp 00000000-0000-0000-0000-000000000000',
+                        'uuid': unitid,
+                        'validity': {'from': '2016-02-04', 'to': '2017-10-21'},
+                    },
                     'href': 'tel:+4511223344',
                     'name': '11223344',
                     'validity': {
@@ -1474,6 +1823,13 @@ class Writing(util.LoRATestCase):
                         'scope': 'DAR',
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    'org_unit': {
+                        'name': 'Fake Corp',
+                        'user_key':
+                        'Fake Corp 00000000-0000-0000-0000-000000000000',
+                        'uuid': unitid,
+                        'validity': {'from': '2016-02-04', 'to': '2017-10-21'},
                     },
                     'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.18779751&mlat=56.17233057&zoom=16',
@@ -1501,73 +1857,36 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
+        unit = {
+            'name': 'Afdeling for Samtidshistorik',
+            'user_key': 'frem',
+            'uuid': unitid,
+            'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
+        }
 
         orig_address = {
             "href": "https://www.openstreetmap.org/"
             "?mlon=10.19938084&mlat=56.17102843&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
             "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": {
-                "example": "<UUID>",
-                "name": "Adresse",
-                "scope": "DAR",
-                "user_key": "AdressePost",
-                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-            },
+            "address_type": address_class,
+            "org_unit": unit,
             "validity": {
                 "from": "2016-01-01",
                 "to": "2018-12-31",
             },
         }
 
-        new_address_type = {
-            'example': '20304060',
-            'name': 'Telefonnummer',
-            'scope': 'PHONE',
-            'user_key': 'Telefon',
-            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-        }
+        new_address_type = phone_class
 
         self.assertRequestResponse(
             '/service/ou/{}/details/address'.format(unitid),
             [orig_address],
         )
 
-        with self.subTest('errors'):
-            self.assertRequestResponse(
-                '/service/ou/{}/edit'.format(unitid),
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': 'Missing value',
-                    'key': 'value',
-                    'status': 400,
-                    'obj': {
-                        'address_type': {
-                            'example': '20304060',
-                            'name': 'Telefonnummer',
-                            'scope': 'PHONE',
-                            'user_key': 'Telefon',
-                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
-                        }
-                    },
-                },
-                status_code=400,
-                json=[
-                    {
-                        "type": "address",
-                        "original": orig_address,
-                        "data": {
-                            "address_type": new_address_type,
-                            # NB: no value
-                        },
-                    },
-                ],
-            )
-
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid,
+            '/service/details/edit',
+            [unitid],
             json=[
                 {
                     "type": "address",
@@ -1587,6 +1906,7 @@ class Writing(util.LoRATestCase):
                 'href': 'tel:+4587150000',
                 'name': '87150000',
                 'urn': 'urn:magenta.dk:telefon:+4587150000',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01',
                     'to': '2018-12-31',
@@ -1600,6 +1920,12 @@ class Writing(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         unitid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        unit = {
+            'name': 'Overordnet Enhed',
+            'user_key': 'root',
+            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+            'validity': {'from': '2016-01-01', 'to': None},
+        }
 
         address_rels = [
             {
@@ -1645,6 +1971,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': None,
                 'name': '5798000420229',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1660,6 +1987,7 @@ class Writing(util.LoRATestCase):
                 },
                 'href': 'tel:+4587150000',
                 'name': '87150000',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1676,6 +2004,7 @@ class Writing(util.LoRATestCase):
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                 'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'org_unit': unit,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
                 },
@@ -1707,8 +2036,8 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid,
+            '/service/details/create',
+            [unitid],
             json=[
                 {
                     "type": "address",
@@ -1720,6 +2049,7 @@ class Writing(util.LoRATestCase):
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'value': 'root@example.com',
+                    "org_unit": {"uuid": unitid},
                     "validity": {
                         "from": "2017-01-02",
                     },
@@ -1739,15 +2069,10 @@ class Writing(util.LoRATestCase):
         })
 
         addresses.append({
-            'address_type': {
-                'example': 'test@example.com',
-                'name': 'Emailadresse',
-                'scope': 'EMAIL',
-                'user_key': 'Email',
-                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            },
+            'address_type': email_class,
             'href': 'mailto:root@example.com',
             'name': 'root@example.com',
+            'org_unit': unit,
             'validity': {
                 'from': '2017-01-02',
                 'to': None,
@@ -1776,6 +2101,12 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+        unit = {
+            'name': 'Filosofisk Institut',
+            'user_key': 'fil',
+            'uuid': unitid,
+            'validity': {'from': '2016-01-01', 'to': None},
+        }
 
         addresses = [
             {
@@ -1788,6 +2119,7 @@ class Writing(util.LoRATestCase):
                 },
                 "href": "tel:+4587150000",
                 "name": "87150000",
+                "org_unit": unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -1805,6 +2137,7 @@ class Writing(util.LoRATestCase):
                 "href": "https://www.openstreetmap.org/"
                 "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                 "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                "org_unit": unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -1833,8 +2166,8 @@ class Writing(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/ou/{}/edit'.format(unitid),
-            unitid, json=req)
+            '/service/details/edit',
+            [unitid], json=req)
 
         addresses[1]['validity']['from'] = '2016-06-01'
         addresses[1].update(
@@ -1855,6 +2188,12 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         unitid = '85715fc7-925d-401b-822d-467eb4b163b6'
+        unit = {
+            'name': 'Filosofisk Institut',
+            'user_key': 'fil',
+            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+            'validity': {'from': '2016-01-01', 'to': None},
+        }
 
         addresses = [
             {
@@ -1867,6 +2206,7 @@ class Writing(util.LoRATestCase):
                 },
                 "href": "tel:+4587150000",
                 "name": "87150000",
+                'org_unit': unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -1884,6 +2224,7 @@ class Writing(util.LoRATestCase):
                 "href": "https://www.openstreetmap.org/"
                 "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                 "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                'org_unit': unit,
                 "validity": {
                     "from": "2016-01-01",
                     "to": None
@@ -1901,6 +2242,7 @@ class Writing(util.LoRATestCase):
         req = [
             {
                 "type": "address",
+                "org_unit": {"uuid": unitid},
                 "address_type": {
                     "example": "<UUID>",
                     "name": "Adresse",
@@ -1916,8 +2258,8 @@ class Writing(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/ou/{}/create'.format(unitid),
-            unitid, json=req)
+            '/service/details/create',
+            [unitid], json=req)
 
         addresses.append({
             'address_type': {
@@ -1930,6 +2272,7 @@ class Writing(util.LoRATestCase):
             'href': 'https://www.openstreetmap.org/'
             '?mlon=10.20019416&mlat=56.17063452&zoom=16',
             'name': 'Nordre Ringgade 2, 8000 Aarhus C',
+            'org_unit': unit,
             'validity': {'from': '2016-06-01', 'to': None},
             'uuid': 'd901ff7e-8ad9-4581-84c7-5759aaa82f7b',
         })
@@ -1975,6 +2318,10 @@ class Reading(util.LoRATestCase):
                         'name':
                         'Christiansborg Slotsplads 1, 1218 København K',
                         'uuid': 'bae093df-3b06-4f23-90a8-92eabedb3622',
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -1991,6 +2338,10 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -2007,6 +2358,10 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
                         'urn': 'urn:mailto:goofy@example.com',
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -2031,6 +2386,10 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:bruger@example.com',
                         'name': 'bruger@example.com',
                         'urn': 'urn:mailto:bruger@example.com',
+                        'person': {
+                            'name': 'Anders And',
+                            'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                        },
                         'validity': {
                             'from': '1934-06-09',
                             'to': None,
@@ -2055,6 +2414,14 @@ class Reading(util.LoRATestCase):
                         'href': None,
                         'name': '5798000420229',
                         'urn': 'urn:magenta.dk:ean:5798000420229',
+                        'org_unit': {
+                            'name': 'Overordnet Enhed',
+                            'user_key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01', 'to': None,
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': None,
@@ -2071,6 +2438,14 @@ class Reading(util.LoRATestCase):
                         'href': 'tel:+4587150000',
                         'name': '87150000',
                         'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'org_unit': {
+                            'name': 'Overordnet Enhed',
+                            'user_key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01', 'to': None,
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': None,
@@ -2088,6 +2463,14 @@ class Reading(util.LoRATestCase):
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'org_unit': {
+                            'name': 'Overordnet Enhed',
+                            'user_key': 'root',
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01', 'to': None,
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': None,
@@ -2111,11 +2494,14 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '87150000',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                     {
                         'address_type': {
@@ -2128,11 +2514,14 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                 ],
             )
@@ -2152,11 +2541,14 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '87150000',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'validity': {
-                            'from': '2017-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Samfundsvidenskabelige fakultet',
+                            'user_key': 'samf',
+                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'validity': {'from': '2017-01-01', 'to': None},
                         },
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'validity': {'from': '2017-01-01', 'to': None},
                     },
                     {
                         'address_type': {
@@ -2169,11 +2561,14 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'validity': {
-                            'from': '2017-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Samfundsvidenskabelige fakultet',
+                            'user_key': 'samf',
+                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'validity': {'from': '2017-01-01', 'to': None},
                         },
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'validity': {'from': '2017-01-01', 'to': None},
                     },
                 ],
             )
@@ -2193,11 +2588,14 @@ class Reading(util.LoRATestCase):
                         },
                         'href': 'tel:+4587150000',
                         'name': '87150000',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Filosofisk Institut',
+                            'user_key': 'fil',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'urn': 'urn:magenta.dk:telefon:+4587150000',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                     {
                         'address_type': {
@@ -2210,11 +2608,14 @@ class Reading(util.LoRATestCase):
                         'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
+                        'org_unit': {
+                            'name': 'Filosofisk Institut',
+                            'user_key': 'fil',
+                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                            'validity': {'from': '2016-01-01', 'to': None},
                         },
+                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'validity': {'from': '2016-01-01', 'to': None},
                     },
                 ],
             )
@@ -2236,6 +2637,14 @@ class Reading(util.LoRATestCase):
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'org_unit': {
+                            'name': 'Afdeling for Samtidshistorik',
+                            'user_key': 'frem',
+                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                            'validity': {
+                                'from': '2016-01-01', 'to': '2018-12-31',
+                            },
+                        },
                         'validity': {
                             'from': '2016-01-01',
                             'to': '2018-12-31',
@@ -2361,6 +2770,14 @@ class Reading(util.LoRATestCase):
                             'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                             'uuid':
                             'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                            'org_unit': {
+                                'name': 'Afdeling for Fortidshistorik',
+                                'user_key': 'frem',
+                                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                                'validity': {
+                                    'from': '2016-01-01', 'to': '2018-12-31',
+                                },
+                            },
                             'validity': {
                                 'from': '2016-01-01',
                                 'to': '2018-12-31',

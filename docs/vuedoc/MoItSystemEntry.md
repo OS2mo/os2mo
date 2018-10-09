@@ -21,3 +21,10 @@ A it system entry component.
 
 **initial value:** `[object Object]` 
 
+## computed properties 
+
+- `nameId` 
+
+   **dependencies:** `_uid` 
+
+

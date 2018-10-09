@@ -13,6 +13,7 @@ import json
 import os
 import platform
 import subprocess
+import traceback
 import unittest
 
 from mora import util as mora_util
@@ -27,8 +28,6 @@ SKIP_FILES = {
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
 
-    XML_REPORT_FILE = os.path.join(util.REPORTS_DIR, "testcafe.xml")
-    JSON_REPORT_FILE = os.path.join(util.REPORTS_DIR, "testcafe.json")
     TEST_DIR = os.path.join(util.FRONTEND_DIR, "e2e-tests")
 
     TESTCAFE_COMMAND = os.path.join(util.FRONTEND_DIR,
@@ -102,26 +101,24 @@ class TestCafeTests(util.LiveLoRATestCase):
                 print(process.stdout.decode(), end='')
 
                 try:
-                    with open(self.JSON_REPORT_FILE, 'rt') as fp:
+                    with open(json_report_file, 'rt') as fp:
                         res = json.load(fp)
                 except IOError:
+                    print('FAILED TO GATHER REPORT')
+                    traceback.print_exc()
+
                     res = None
 
-                print("")
-                print("Status:")
-
-                if res is None:
-                    print('FAILED')
-                else:
+                if res is not None:
                     duration = (
                         mora_util.from_iso_time(res['endTime']) -
                         mora_util.from_iso_time(res['startTime'])
                     )
 
+                    print("")
+                    print("Status:")
                     print("ran {} tests in {}".format(res['total'], duration))
                     print("{} tests passed".format(res['passed']))
                     print("{} tests skipped".format(res['skipped']))
 
-                print("")
-
-                self.assertFalse(process.returncode, "Test run failed!")
+                self.assertEqual(process.returncode, 0, "Test run failed!")
