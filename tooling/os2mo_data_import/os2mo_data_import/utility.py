@@ -1,9 +1,11 @@
 # -- coding: utf-8 --
 
+import json
 from uuid import uuid4
 from requests import Session
 from urllib.parse import urljoin
-from os2mo_data_import import adapters
+
+import os2mo_data_import.adapters as adapters
 from os2mo_data_import import Organisation
 
 # Default settings
@@ -12,8 +14,26 @@ MORA_BASE = "http://localhost:5000"
 
 
 class ImportUtility(object):
+    """
+        The ImportUtility class is the handler for storing
+        the organisation content into the os2mo datastore.
 
-    def __init__(self, dry_run=True, mox_base=MOX_BASE, mora_base=MORA_BASE):
+        :param dry_run:
+            A toggle for a simulation of the import procedure (bool)
+            During a dry run, uuid's for inserts are generated
+            and the post data payloads are shown in json format.
+
+        :param mox_base:
+            The base url of the mox backend (str)
+            E.g. http://mox.magenta.dk
+
+        :param mora_base:
+            The base url of the mora backend (str)
+            E.g. http://mora.magenta.dk
+
+        """
+
+    def __init__(self, dry_run=False, mox_base=MOX_BASE, mora_base=MORA_BASE):
         # Service endpoints
         self.mox_base = mox_base
         self.mora_base = mora_base
@@ -22,11 +42,38 @@ class ImportUtility(object):
         self.dry_run = dry_run
         self.session = Session()
 
+        # Inserted uuid maps
+        self.inserted_facet_map = {}
+        self.inserted_klasse_map = {}
+        self.inserted_org_unit_map = {}
+        self.inserted_employee_map = {}
+        self.inserted_itsystem_map = {}
+
     def insert_mox_data(self, resource, data):
+        """
+        Insert post data into the MOX/OIO REST interface
+
+        :param resource:
+            Resource path of the service endpoint (str)
+            e.g. /organisation/organisation
+
+        :param data:
+            Post data object (dict)
+            Metadata converted into OIO REST formatted post data
+
+        :return:
+            Inserted UUID (str)
+
+        """
 
         service = urljoin(self.mox_base, resource)
 
         if self.dry_run:
+
+            print(
+                json.dumps(data, indent=2)
+            )
+
             response_data = {
                 "uuid": str(
                     uuid4()
@@ -39,10 +86,30 @@ class ImportUtility(object):
         return response_data["uuid"]
 
     def insert_mora_data(self, resource, data):
+        """
+        Insert post data into the MORA backend
+
+        :param resource:
+            Resource path of the service endpoint (str)
+            e.g. /service/ou/create
+
+        :param data:
+            Post data object (dict)
+            Metadata converted into OIO REST formatted post data
+
+        :return:
+            Inserted UUID (str)
+
+        """
 
         service = urljoin(self.mora_base, resource)
 
         if self.dry_run:
+
+            print(
+                json.dumps(data, indent=2)
+            )
+
             response_data = str(
                 uuid4()
             )
@@ -53,6 +120,15 @@ class ImportUtility(object):
         return response_data
 
     def get_facet_types(self):
+        """
+        Retrieve a list of klasse type items
+        These are needed to create the correct post data payloads
+        for address type objects for organisation units and employees.
+
+        For more detailed information, please refer to the official mora docs:
+        https://mora.readthedocs.io/en/development/api/address.html
+
+        """
 
         if hasattr(self, "facet_types"):
             return
@@ -60,7 +136,7 @@ class ImportUtility(object):
         self.facet_types = {}
 
         resource = "service/o/{uuid}/f/{type}/".format(
-            uuid=self.uuid,
+            uuid=self.organisation_uuid,
             type="address_type"
         )
 
@@ -68,15 +144,10 @@ class ImportUtility(object):
 
 
         if self.dry_run:
-            for value in self.inserted_klasse.values():
-                print("#######", value)
+            for value in self.inserted_klasse_map.values():
                 self.facet_types[value] = {
                     "uuid": value
                 }
-
-                print(
-                    self.facet_types
-                )
         else:
             response = self.session.get(service)
 
@@ -89,60 +160,71 @@ class ImportUtility(object):
             if "items" not in response_data["data"]:
                 return False
 
-            print("Facet types")
             for item in response_data["data"]["items"]:
                 uuid = item["uuid"]
                 self.facet_types[uuid] = item
 
         return True
 
-    def import_organisation(self):
+    def import_organisation(self, org_export):
         """
-        Import Organisation into datastore
+        Convert organisation to OIO formatted post data
+        and import into the MOX datastore.
+
+        :param org_export:
+            Data objected returned by the export() method (dict)
+
+        :returns:
+            Inserted UUID (str)
+
         """
 
-        # Organisation
-        export_data = self.Org.export()
-
-        self.validity = export_data["validity"]
-
-        org_data = adapters.organisation_payload(
-            organisation=export_data["data"],
-            municipality_code=export_data["municipality_code"],
-            validity=self.validity
+        payload = adapters.organisation_payload(
+            organisation=org_export["data"],
+            municipality_code=org_export["municipality_code"],
+            validity=self.global_validity
         )
 
-        if "uuid" in export_data:
+        if "uuid" in org_export:
             # TODO: Import uuid if passed
             pass
 
-        self.uuid = self.insert_mox_data(
+        self.organisation_uuid = self.insert_mox_data(
             resource="organisation/organisation",
-            data=org_data
+            data=payload
         )
 
-        return self.uuid
+        return self.organisation_uuid
 
-    def import_klassifikation(self):
+    def import_klassifikation(self, parent_name):
+        """
+        Generate and insert a klassifikation object
+        This is the parent of all the facet types which
+        belong to the organisation.
 
-        user_key = (
-            self.Org.user_key or self.Org.name
-        )
+        :param parent_name:
+            The user_key of the parent organisation (str)
+            This is used to generate the user_key, description
+            and alias for the klassifikation object.
 
-        identifier = user_key
-        bvn = "Organisation {name}".format(name=user_key)
-        description = "Belongs to {name}".format(name=user_key)
+        :returns:
+            Inserted UUID (str)
+
+        """
+
+        user_key = "Organisation {name}".format(name=parent_name)
+        description = "Belongs to {name}".format(name=parent_name)
 
         klassifikation = {
-            "brugervendtnoegle": bvn,
+            "brugervendtnoegle": user_key,
             "beskrivelse": description,
-            "kaldenavn": identifier
+            "kaldenavn": parent_name
         }
 
         klassifikation_data = adapters.klassifikation_payload(
             klassifikation=klassifikation,
-            organisation_uuid=self.uuid,
-            validity=self.Org.validity
+            organisation_uuid=self.organisation_uuid,
+            validity=self.global_validity
         )
 
         self.klassifikation_uuid = self.insert_mox_data(
@@ -152,222 +234,232 @@ class ImportUtility(object):
 
         return self.klassifikation_uuid
 
-    def import_facet(self):
+    def import_facet(self, reference, facet):
         """
-        TODO: add actual import functionality
-        """
-        all_items = self.Org.Facet.export()
+        Generate and insert a facet object
+        This is the parent of all the klasse type objects.
 
-        for item in all_items:
+        :param reference:
+            Reference to the user defined identifier (str)
 
-            identifier, data = item
+        :param klasse:
+            Facet type data object (dict)
 
-            payload = adapters.facet_payload(
-                facet=data,
-                klassifikation_uuid=self.klassifikation_uuid,
-                organisation_uuid=self.uuid,
-                validity=self.validity
-            )
+        :returns:
+            Inserted UUID (str)
 
-            facet_uuid = self.insert_mox_data(
-                resource="klassifikation/facet",
-                data=payload
-            )
-
-            self.inserted_facet[identifier] = facet_uuid
-
-        return self.inserted_facet
-
-    def import_klasse(self):
-        """
-        TODO: add actual import functionality
         """
 
-        all_items = self.Org.Klasse.export()
+        payload = adapters.facet_payload(
+            facet=facet,
+            klassifikation_uuid=self.klassifikation_uuid,
+            organisation_uuid=self.organisation_uuid,
+            validity=self.global_validity
+        )
 
-        for item in all_items:
-            identifier, data = item
+        uuid = self.insert_mox_data(
+            resource="klassifikation/facet",
+            data=payload
+        )
 
-            facet_type_ref = data["facet_type_ref"]
-            klasse_data = data["data"]
+        self.inserted_facet_map[reference] = uuid
 
-            facet_uuid = self.inserted_facet.get(facet_type_ref)
+        return uuid
 
-            payload = adapters.klasse_payload(
-                klasse=klasse_data,
-                facet_uuid=facet_uuid,
-                organisation_uuid=self.uuid,
-                validity=self.validity
-            )
-
-            print(payload)
-
-            self.inserted_klasse[identifier] = self.insert_mox_data(
-                resource="klassifikation/klasse",
-                data=payload
-            )
-
-        return self.inserted_klasse
-
-    def import_itsystem(self):
-        all_items = self.Org.Itsystem.export()
-
-        self.inserted_itsystem = {}
-
-        for item in all_items:
-            identifier, data = item
-
-            payload = adapters.itsystem_payload(
-                itsystem=data,
-                organisation_uuid=self.uuid,
-                validity=self.validity
-            )
-
-            store = self.insert_mox_data(
-                resource="organisation/itsystem",
-                data=payload
-            )
-
-            self.inserted_itsystem[identifier] = store
-
-        return self.inserted_itsystem
-
-    def import_org_units(self):
+    def import_klasse(self, reference, klasse):
         """
-        TODO: add actual import functionality
+        Insert a klasse object
+
+        :param reference:
+            Reference to the user defined identifier (str)
+
+        :param klasse:
+            Klasse type data object (dict)
+
+        :returns:
+            Inserted UUID (str)
+
         """
 
-        all_units = self.Org.OrganisationUnit.export()
+        klasse_data = klasse["data"]
+        facet_type_ref = klasse["facet_type_ref"]
 
-        for unit in all_units:
-            identifier, content = unit
+        facet_uuid = self.inserted_facet_map.get(facet_type_ref)
 
-            parent_ref = content["parent_ref"]
+        payload = adapters.klasse_payload(
+            klasse=klasse_data,
+            facet_uuid=facet_uuid,
+            organisation_uuid=self.organisation_uuid,
+            validity=self.global_validity
+        )
 
-            if parent_ref:
-                parent_data = self.Org.OrganisationUnit.get(parent_ref)
-                store = self._insert_org_unit(parent_ref, parent_data["data"])
+        uuid = self.insert_mox_data(
+            resource="klassifikation/klasse",
+            data=payload
+        )
 
-                if store:
-                    self._insert_optional_org_unit(store, parent_data["optional_data"])
+        self.inserted_klasse_map[reference] = uuid
 
+        return uuid
 
-            store_pr = self._insert_org_unit(identifier, content["data"])
+    def import_itsystem(self, itsystem):
+        """
+        Insert an itsystem object
 
-            if store_pr:
-                self._insert_optional_org_unit(store_pr, content["optional_data"])
+        :param itsystem:
+            Itsystem data object (dict)
 
-        return self.inserted_org_unit
+        :returns:
+            Inserted UUID (str)
 
-    def _insert_org_unit(self, identifier, data):
+        """
 
-        if identifier in self.inserted_org_unit:
+        payload = adapters.itsystem_payload(
+            itsystem=itsystem,
+            organisation_uuid=self.organisation_uuid,
+            validity=self.global_validity
+        )
+
+        return self.insert_mox_data(
+            resource="organisation/itsystem",
+            data=payload
+        )
+
+    def import_org_unit(self, reference, organisation_unit_data, optional_data=None):
+        """
+        Insert primary and optional data for an organisation unit
+
+        Optional data objects are relational objects which
+        belong to the organisation unit, such as an address type
+
+        :param reference:
+            Reference to the user defined identifier (str)
+
+        :param organisation_unit_data:
+            Organisation Unit primary data object (dict)
+
+        :param optional_data:
+            Organisation Unit optional data object (dict)
+
+        :returns:
+            Inserted UUID (str)
+
+        """
+
+        if reference in self.inserted_org_unit_map:
+            print("The organisation unit has already been inserted")
             return False
 
-        payload = self.build_mo_payload(data)
+        payload = self.build_mo_payload(organisation_unit_data)
 
-        store = self.insert_mora_data(resource="service/ou/create", data=payload)
-        print("STORING ORG UNIT: %s" % store)
-        if not store:
-            print(store)
-            raise RuntimeError("COULD NOT STORE ORG UNIT")
+        if optional_data:
+            additional_payload = [
+                self.build_mo_payload(item)
+                for item in optional_data
+            ]
 
+            addresses = {
+                "addresses": additional_payload
+            }
 
-        self.inserted_org_unit[identifier] = store
+            payload.update(addresses)
 
-        return self.inserted_org_unit[identifier]
-
-    def _insert_optional_org_unit(self, uuid, data):
+        uuid = self.insert_mora_data(
+            resource="service/ou/create",
+            data=payload
+        )
 
         if not uuid:
-            raise RuntimeError("UUID IS MISSING")
+            raise ConnectionError("Something went wrong")
 
-        process_optional = [
-            self.build_mo_payload(item)
-            for item in data
-        ]
+        # Add to the inserted map
+        self.inserted_org_unit_map[reference] = uuid
 
-        resource = "service/ou/{uuid}/create".format(uuid=uuid)
+        return uuid
 
-        opt_yes = self.insert_mora_data(resource=resource, data=process_optional)
+    def import_employee(self, reference, employee_data, optional_data=None):
+        """
+        Insert primary and optional data for an employee
 
-        return opt_yes
+        Optional data objects are relational objects which
+        belong to the employee, such as an engagement, address, role etc.
 
+        :param reference:
+            Reference to the user defined identifier (str)
 
+        :param employee_data:
+            Employee primary data object (dict)
 
-    def _insert_optional(self, uuid, data):
+        :param optional_data:
+            Employee optional data object (dict)
 
-        process_optional = [
-            self.build_mo_payload(item)
-            for item in data
-        ]
+        :returns:
+            Inserted UUID (str)
 
-        for i in process_optional:
-            print(i)
+        """
 
-        resource = "service/e/{uuid}/create".format(uuid=uuid)
-
-        opt_yes = self.insert_mora_data(resource=resource, data=process_optional)
-
-        print(opt_yes)
-
-        return True
-
-    def _insert_employee(self, identifier, content):
-
-        if identifier in self.inserted_employees:
+        if reference in self.inserted_employee_map:
+            print("Employee has already been inserted")
             return False
 
-        data = content["data"]
-        optional_data = content["optional_data"]
+        payload = self.build_mo_payload(employee_data)
 
-        payload = self.build_mo_payload(data)
+        uuid = self.insert_mora_data(resource="service/e/create", data=payload)
 
-        store = self.insert_mora_data(resource="service/e/create", data=payload)
+        # Add uuid to the inserted employee map
+        self.inserted_employee_map[reference] = uuid
 
-        self.inserted_employees[identifier] = store
+        # Details: /service/details/create endpoint
+        if optional_data:
+            additional_payload = [
+                self.build_mo_payload(item, person_uuid=uuid)
+                for item in optional_data
+            ]
 
-        self._insert_optional(store, optional_data)
-        return True
+            self.insert_mora_data(
+                resource="service/details/create",
+                data=additional_payload
+            )
 
-    def import_employees(self):
+        return uuid
+
+    def build_mo_payload(self, list_of_tuples, person_uuid=None):
         """
-        TODO: add actual import functionality
+        MORA backed post data builder
+        A generic adapter for bulding json (dict) post data
+        from a list of key value pairs.
+
+        TODO:
+            * This adapter is crude and needs to be reworked
+
+        :param list_of_tuples:
+            Accepts a list of tuples exported by
+            the Organisation Unit and Employee classes.
+            Example: (employee)
+
+            [
+                ("name", name),
+                ("cpr_no", cpr_no),
+                ("org", None)
+            ]
+
+        :param person_uuid:
+            The UUID of the employee which optional data belongs to.
+            If the parameter is passed, a reference to the person is
+            attached to the final payload, e.g.
+
+            {
+                "person": {
+                    "uuid": "A9E559BD-BA31-48CC-8898-E36A7FAF3E05"
+                }
+            }
+
+        :return:
+            Post data payload (dict)
+
         """
-
-        all_employees = self.Org.Employee.export()
-
-        for employee in all_employees:
-            identifier, content = employee
-
-            uuid = self._insert_employee(identifier, content)
-
-        return self.inserted_employees
-
-
-    def build_mo_payload(self, list_of_tuples):
 
         payload = {}
-
-        regular_set = [
-            "type",
-            "name",
-            "cpr_no",
-            "validity",
-            "uuid",
-            "value"
-        ]
-
-        reference_types = [
-            "role_type",
-            "leave_type",
-            "it_type",
-            "job_function",
-            "engagement_type",
-            "manager_type",
-            "manager_level",
-            "association_type"
-        ]
 
         # Get facet types
         self.get_facet_types()
@@ -377,72 +469,77 @@ class ImportUtility(object):
 
         for key, val in list_of_tuples:
 
-            if key in regular_set:
+            if key in [
+                "type",
+                "name",
+                "cpr_no",
+                "validity",
+                "uuid",
+                "value",
+                "user_key"
+            ]:
                 build_value = val
 
-            if key in reference_types:
-                uuid = self.inserted_klasse.get(val)
-
+            if key in [
+                "role_type",
+                "leave_type",
+                "it_type",
+                "job_function",
+                "engagement_type",
+                "manager_type",
+                "manager_level",
+                "association_type"
+            ]:
+                uuid = self.inserted_klasse_map.get(val)
                 build_value = {
                     "uuid": str(uuid)
                 }
 
             if key == "itsystem":
-                uuid = self.inserted_itsystem.get(val)
+                uuid = self.inserted_itsystem_map.get(val)
                 build_value = {
                     "uuid": uuid
                 }
 
             if key == "org":
                 build_value = {
-                    "uuid": self.uuid
+                    "uuid": self.organisation_uuid
                 }
 
             if key == "org_unit":
-                uuid = self.inserted_org_unit.get(val)
+                uuid = self.inserted_org_unit_map.get(val)
                 build_value = {
                     "uuid": str(uuid)
                 }
 
             if key == "address_type":
-                uuid = self.inserted_klasse.get(val)
-
+                uuid = self.inserted_klasse_map.get(val)
                 address_type = self.facet_types.get(uuid)
-
-                print("!!!!!!!")
-                print(address_type)
-
                 build_value = address_type
 
             if key == "address":
-                type_uuid = self.inserted_klasse.get("AdressePost")
-
+                type_uuid = self.inserted_klasse_map.get("AdressePost")
                 address_type = self.facet_types.get(type_uuid)
-
                 build_value = {
                     "uuid": str(val),
                     "address_type": address_type
                 }
 
             if key == "parent":
-                print("GETTING PARENT: %s" % val)
-                parent_uuid = self.inserted_org_unit.get(val)
-                print("PARENT HAS UUID: %s" % parent_uuid)
+                parent_uuid = self.inserted_org_unit_map.get(val)
 
                 if not parent_uuid:
-                    parent_uuid = self.uuid
+                    parent_uuid = self.organisation_uuid
 
                 build_value = {
                     "uuid": str(parent_uuid)
                 }
 
             if key == "org_unit_type":
-                org_unit_type = self.inserted_klasse.get(val)
+                org_unit_type = self.inserted_klasse_map.get(val)
 
                 if not org_unit_type:
-                    print(key, val)
-                    print(self.inserted_klasse)
-                    raise RuntimeError("Type not found")
+                    raise ValueError("Type not found")
 
                 build_value = {
                     "uuid": org_unit_type
@@ -453,7 +550,7 @@ class ImportUtility(object):
 
                 for responsibility in val:
 
-                    uuid = self.inserted_klasse.get(responsibility)
+                    uuid = self.inserted_klasse_map.get(responsibility)
 
                     reference = {
                         "uuid": uuid
@@ -464,44 +561,97 @@ class ImportUtility(object):
                 build_value = responsibility_list
 
             if not build_value:
-                print(key, val)
-                raise ValueError("Unable to create build value")
-
+                continue
 
             payload[key] = build_value
 
+        if person_uuid:
+            payload["person"] = {
+                "uuid": person_uuid
+            }
+
         return payload
 
-
     def import_all(self, org):
+        """
+        The main import function
 
-        self.Org = org
+        :param org:
+            An object of the Organistion class type (Organisation)
 
-        # Inserted uuid maps
-        self.inserted_facet = {}
-        self.inserted_klasse = {}
-        self.inserted_org_unit = {}
-        self.inserted_employees = {}
+        :return:
+            A dummy return status (bool)
 
-        store = self.import_organisation()
-        print(store)
+        """
 
-        store = self.import_klassifikation()
-        print(store)
+        if not isinstance(org, Organisation):
+            raise AssertionError("Object is not an instance of Organisation")
 
-        store = self.import_facet()
-        print(store)
+        # Set global validity
+        self.global_validity = org.validity
 
-        store = self.import_klasse()
-        print(store)
+        # Insert Organisation
+        org_export = org.export()
+        org_uuid = self.import_organisation(org_export)
+        print("Inserted organisation: %s" % org_uuid)
 
-        store = self.import_itsystem()
-        print(store)
+        # Insert Klassifikation
+        parent_name = (org.user_key or org.name)
+        klassifikation_uuid = self.import_klassifikation(parent_name)
+        print("Inserted klassifikation: %s" % klassifikation_uuid)
 
-        store = self.import_org_units()
-        print(store)
+        # Insert Facet
+        for identifier, facet in org.Facet.export():
+            uuid = self.import_facet(identifier, facet)
+            print("Inserted facet: %s" % uuid)
 
-        store = self.import_employees()
-        print(store)
+        # Insert Klasse
+        for identifier, klasse in org.Klasse.export():
+            uuid = self.import_klasse(identifier, klasse)
+            print("Inserted klasse: %s" % uuid)
 
-        return
+        # Insert Itsystem
+        for identifier, itsystem in org.Itsystem.export():
+            uuid = self.import_itsystem(itsystem)
+            self.inserted_itsystem_map[identifier] = uuid
+
+            print("Inserted itsystem: %s" % uuid)
+
+        # Insert Organisation Units
+        for identifier, org_unit in org.OrganisationUnit.export():
+
+            parent_ref = org_unit["parent_ref"]
+
+            # Insert parent if the organisation unit has a parent
+            if parent_ref and parent_ref not in self.inserted_org_unit_map:
+                parent = org.OrganisationUnit.get(parent_ref)
+                parent_uuid = self.import_org_unit(
+                    reference=parent_ref,
+                    organisation_unit_data=parent["data"],
+                    optional_data=parent["optional_data"]
+                )
+
+
+                print("Inserted parent org unit: %s" % parent_uuid)
+
+            # Insert the actual organisation unit
+            uuid = self.import_org_unit(
+                reference=identifier,
+                organisation_unit_data = org_unit["data"],
+                optional_data=org_unit["optional_data"]
+            )
+
+            print("Inserted org unit: %s" % uuid)
+
+        # Insert Employees
+        for identifier, employee in org.Employee.export():
+
+            uuid = self.import_employee(
+                reference=identifier,
+                employee_data=employee["data"],
+                optional_data=employee["optional_data"]
+            )
+
+            print("Inserted employee: %s" % uuid)
+
+        return True
