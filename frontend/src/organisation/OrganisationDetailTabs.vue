@@ -40,6 +40,16 @@
         />
       </b-tab>
 
+      <b-tab :title="$t('tabs.organisation.it')">
+        <mo-organisation-unit-detail 
+          :uuid="uuid" 
+          :at-date="atDate"
+          detail="it"
+          :columns="it"
+          :entry-component="timemachineFriendly ? undefined : components.itSystem"
+        />
+      </b-tab>
+
       <b-tab :title="$t('tabs.organisation.roles')">
         <mo-organisation-unit-detail 
           :uuid="uuid" 
@@ -69,6 +79,7 @@
   import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 
   export default {
     components: {
@@ -125,6 +136,10 @@
           {label: 'person', data: 'person'},
           {label: 'role_type', data: 'role_type'}
         ],
+        it: [
+          {label: 'it_system', data: 'itsystem'},
+          {label: 'user_key', data: null, field: 'user_key'}
+        ],
         manager: [
           {label: 'person', data: 'person'},
           {label: 'responsibility', data: 'responsibility'},
@@ -140,7 +155,8 @@
          */
         components: {
           orgUnit: MoOrganisationUnitEntry,
-          address: MoAddressEntry
+          address: MoAddressEntry,
+          itSystem: MoItSystemEntry
         }
       }
     }

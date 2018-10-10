@@ -11,8 +11,7 @@
   >
     <form @submit.stop.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
-      {{employee}}
-{{validity}}
+
       <mo-leave-entry class="mt-3" v-model="leave"/>
 
       <div class="alert alert-danger" v-if="backendValidationError">
@@ -57,9 +56,12 @@
         * The leave, employee, isLoading, backendValidationError component value.
         * Used to detect changes and restore the value.
         */
-        leave: {},
         isLoading: false,
-        backendValidationError: null
+        backendValidationError: null,
+        leave: {
+          person: null,
+          validity: {}
+        }
       }
     },
 
@@ -87,6 +89,18 @@
       }
     },
 
+    watch: {
+      /**
+       * Called whenever the selected person changes
+       */
+      employee: {
+        handler (newVal) {
+          this.leave.person = newVal
+        },
+        deep: true
+      }
+    },
+
     methods: {
       /**
        * Resets the data fields.
@@ -104,7 +118,7 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.leave(this.employee.uuid, [this.leave])
+          Employee.leave([this.leave])
             .then(response => {
               vm.isLoading = false
               if (response.error) {

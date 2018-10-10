@@ -40,7 +40,7 @@ A table component.
 
 - `selectAll` 
 
-  The selectAll, selected component value.
+  The selectAll, selected, open, sortableContent component value.
   Used to detect changes and restore the value. 
 
 **initial value:** `false` 
@@ -48,6 +48,14 @@ A table component.
 - `selected` 
 
 **initial value:** `[object Object]` 
+
+- `open` 
+
+**initial value:** `[object Object]` 
+
+- `sortableContent` 
+
+**initial value:** `null` 
 
 ## computed properties 
 
@@ -57,4 +65,14 @@ A table component.
 
    **dependencies:** `content`, `content` 
 
+
+## methods 
+
+- `sortData(colName, toggleIcon)` 
+
+  Sort data in columns. 
+
+- `sortDate(toggleIcon, date)` 
+
+  Sort dates in columns. 
 

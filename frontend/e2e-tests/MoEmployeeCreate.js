@@ -47,6 +47,7 @@ const roleTypeOption = roleTypeSelect.find('option')
 // IT System
 const itSystemSelect = dialog.find('.select-itSystem select[data-vv-as="IT systemer"]')
 const itSystemOption = itSystemSelect.find('option')
+const itSystemInput = dialog.find('.input-itSystem input[data-vv-as="Kontonavn"]')
 
 // Manager
 const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Enhed"]')
@@ -148,6 +149,8 @@ test('Workflow: create employee', async t => {
 
     .click(itSystemSelect)
     .click(itSystemOption.withText('Active Directory'))
+    .click(itSystemInput)
+    .typeText(itSystemInput, 'chefen')
 
     // Manager
     .click(dialog.find('.btn-manager .btn-outline-success'))

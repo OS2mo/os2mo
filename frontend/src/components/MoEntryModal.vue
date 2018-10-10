@@ -272,9 +272,11 @@
 
         switch (this.type) {
           case 'EMPLOYEE':
+            data.person = {uuid: this.uuid}
             this.editEmployee(data)
             break
           case 'ORG_UNIT':
+            data.org_unit = {uuid: this.uuid}
             this.editOrganisationUnit(data)
             break
         }
@@ -284,48 +286,46 @@
        * Create a employee.
        */
       createEmployee (data) {
-        let vm = this
-        Employee.create(this.uuid, [data])
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs['moCreate' + vm._uid].hide()
-          })
+        return Employee.create([data]).then(this.handle.bind(this))
       },
 
       /**
        * Edit a employee.
        */
       editEmployee (data) {
-        let vm = this
-        return Employee.edit(this.uuid, [data])
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs['moCreate' + vm._uid].hide()
-          })
+        return Employee.edit([data]).then(this.handle.bind(this))
       },
 
       /**
        * Create organisation unit entry.
        */
       createOrganisationUnit (data) {
-        let vm = this
-        return OrganisationUnit.createEntry(this.uuid, data)
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs['moCreate' + vm._uid].hide()
-          })
+        return OrganisationUnit.createEntry(data).then(this.handle.bind(this))
       },
 
       /**
        * Edit organisation unit entry.
        */
       editOrganisationUnit (data) {
-        let vm = this
-        return OrganisationUnit.edit(this.uuid, data)
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs['moCreate' + vm._uid].hide()
-          })
+        return OrganisationUnit.edit([data]).then(this.handle.bind(this))
+      }
+
+      handle (response) {
+        this.isLoading = false
+
+        if (response.error) {
+          let messages = this.$i18n.messages[this.$i18n.locale]
+
+          this.backendValidationMessage =
+            messages.alerts.error[response.error_key]
+
+          if (!this.backendValidationMessage) {
+            this.backendValidationMessage = this.$t('alerts.fallback',
+                                                    response)
+          }
+        } else {
+          this.$refs['moCreate' + this._uid].hide()
+        }
       }
     }
   }

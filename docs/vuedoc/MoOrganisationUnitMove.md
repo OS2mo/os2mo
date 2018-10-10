@@ -4,14 +4,10 @@ A organisation unit move component.
 
 ## data 
 
-- `currentUnit` 
+- `parentUnit` 
 
-  The move, currentUnit, uuid, original, isLoading, backendValidationError component value.
+  The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
   Used to detect changes and restore the value. 
-
-**initial value:** `''` 
-
-- `uuid` 
 
 **initial value:** `''` 
 

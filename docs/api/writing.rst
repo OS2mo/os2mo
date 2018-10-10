@@ -1,14 +1,13 @@
-.. automodule:: mora.service.details
-
+.. automodule:: mora.service.detail_writing
 
 .. qrefflask:: mora.app:app
-   :blueprints: details
+   :blueprints: detail_writing
    :order: path
 
 .. autoflask:: mora.app:app
    :include-empty-docstring:
    :order: path
-   :blueprints: details
+   :blueprints: detail_writing
 
 .. Indices and tables
    ==================

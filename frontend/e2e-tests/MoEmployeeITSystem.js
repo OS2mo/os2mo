@@ -10,8 +10,8 @@ fixture('Employee IT system test')
 test('Read IT System', async t => {
   await t
     .click(VueSelector('employee-detail-tabs bTabButtonHelper').withText('IT'))
-    .expect(VueSelector('mo-link').filter('.name').innerText)
-    .contains('Lokal Rammearkitektur')
-    .expect(VueSelector('mo-link').filter('.user_name').innerText)
-    .contains('—')
+    .expect(VueSelector('mo-link').filter('.itsystem-name').innerText)
+    .contains('Active Directory')
+    .expect(VueSelector('mo-link').filter('.user_key').innerText)
+    .contains('chef@ballerup.dk')
 })
