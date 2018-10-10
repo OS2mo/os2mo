@@ -1,0 +1,36 @@
+{
+  "attributter": {
+    "itsystemegenskaber": [
+      {
+        "brugervendtnoegle": "12D77A83-E793-4CC1-8AB4-0E183999E508",
+        "itsystemnavn": "supercomputer",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "tilhoerer": [
+      {
+        "uuid": "AAD095CB-05B7-497A-8964-E2BCD3824D6E",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "itsystemgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ]
+  }
+}

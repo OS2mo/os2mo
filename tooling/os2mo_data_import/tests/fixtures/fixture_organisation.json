@@ -1,0 +1,37 @@
+{
+  "note": "Automatisk indl\u00e6sning",
+  "attributter": {
+    "organisationegenskaber": [
+      {
+        "brugervendtnoegle": "AAD095CB-05B7-497A-8964-E2BCD3824D6E",
+        "organisationsnavn": "test organisation",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "myndighed": [
+      {
+        "urn": "urn:dk:kommune:999",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}
