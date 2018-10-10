@@ -58,6 +58,7 @@ extensions = [
     'sphinxcontrib.autohttp.flask',
     'sphinxcontrib.autohttp.flaskqref',
     'sphinxcontrib.apidoc',
+    'sphinx_click.ext',
 ]
 
 autodoc_default_flags = [

@@ -1,3 +1,32 @@
+Version 0.11.0 (in development)
+===============================
+
+New features
+------------
+
+* #24400: Better documentation of command line interface.
+
+
+Internal changes
+----------------
+
+* TBD
+
+API changes
+-----------
+
+* TBD
+
+Bug fixes
+---------
+
+* TBD
+
+Known bugs
+----------
+
+* #24134: Sorting doesn't work after performing an update.
+
 Version 0.10.1, 2018-10-08
 ==========================
 

@@ -3,6 +3,8 @@
 
 . $(dirname $0)/common.sh
 
+GIT_COMMIT=$(GIT_DIR="$TOPDIR/.git" git rev-parse --short HEAD)
+
 #
 # this script exists to deploy a successful build on our two servers,
 # eventually, we'll do something much better using a proper
