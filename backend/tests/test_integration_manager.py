@@ -2568,7 +2568,8 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'href': None,
                     'name': 'Fejl',
-                    'error': 'No mock address: GET http://dawa.aws.dk/adresser'
+                    'error': 'No mock address: '
+                    'GET https://dawa.aws.dk/adresser'
                     '/44c532e1-f617-4174-b144-d37ce9fda2bd?noformat=1',
                     'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'address_type': {

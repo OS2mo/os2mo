@@ -1,5 +1,5 @@
 {
-  "http://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018?noformat=1": {
+  "https://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6176_725",
@@ -21,14 +21,14 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/12337669-d99e-6b98-e053-d480220a5a3f",
+          "href": "https://dawa.aws.dk/bebyggelser/12337669-d99e-6b98-e053-d480220a5a3f",
           "id": "12337669-d99e-6b98-e053-d480220a5a3f",
           "kode": null,
           "navn": "Indre By",
           "type": "bydel"
         },
         {
-          "href": "http://dawa.aws.dk/bebyggelser/290f85b8-8c7a-6fd1-e053-d480220af996",
+          "href": "https://dawa.aws.dk/bebyggelser/290f85b8-8c7a-6fd1-e053-d480220af996",
           "id": "290f85b8-8c7a-6fd1-e053-d480220af996",
           "kode": 18368,
           "navn": "K\u00f8benhavn",
@@ -44,53 +44,53 @@
         "oprettet": "2000-02-05T20:30:37.000",
         "\u00e6ndret": "2009-11-25T01:07:37.000"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f507a-da84-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f507a-da84-32b8-e044-0003ba298018",
       "husnr": "43",
       "id": "0a3f507a-da84-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2000162",
+          "href": "https://dawa.aws.dk/ejerlav/2000162",
           "kode": 2000162,
           "navn": "K\u00f8bmager Kvarter, K\u00f8benhavn"
         },
         "esrejendomsnr": "436756",
-        "href": "http://dawa.aws.dk/jordstykker/2000162/80",
+        "href": "https://dawa.aws.dk/jordstykker/2000162/80",
         "matrikelnr": "80"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0101",
+        "href": "https://dawa.aws.dk/kommuner/0101",
         "kode": "0101",
         "navn": "K\u00f8benhavn"
       },
       "kvh": "01015520__43",
       "matrikelnr": "80",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/3",
+        "href": "https://dawa.aws.dk/opstillingskredse/3",
         "kode": "0003",
         "navn": "Indre By"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1470",
+        "href": "https://dawa.aws.dk/politikredse/1470",
         "kode": "1470",
         "navn": "K\u00f8benhavns Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/1112",
+        "href": "https://dawa.aws.dk/postnumre/1112",
         "navn": "K\u00f8benhavn K",
         "nr": "1112"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1084",
+        "href": "https://dawa.aws.dk/regioner/1084",
         "kode": "1084",
         "navn": "Region Hovedstaden"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1101",
+        "href": "https://dawa.aws.dk/retskredse/1101",
         "kode": "1101",
         "navn": "K\u00f8benhavns Byret"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/7002",
+        "href": "https://dawa.aws.dk/sogne/7002",
         "kode": "7002",
         "navn": "Hellig\u00e5nds"
       },
@@ -109,7 +109,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "Pilestr\u00e6de",
-        "href": "http://dawa.aws.dk/vejstykker/101/5520",
+        "href": "https://dawa.aws.dk/vejstykker/101/5520",
         "kode": "5520",
         "navn": "Pilestr\u00e6de"
       },
@@ -122,12 +122,12 @@
       "oprettet": "2000-02-05T20:30:37.000",
       "\u00e6ndret": "2000-02-05T20:30:37.000"
     },
-    "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018",
+    "href": "https://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018",
     "id": "0a3f50a0-23c9-32b8-e044-0003ba298018",
     "kvhx": "01015520__43__3____",
     "status": 1
   },
-  "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd?noformat=1": {
+  "https://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6225_573",
@@ -149,7 +149,7 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
+          "href": "https://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
           "id": "12337669-a188-6b98-e053-d480220a5a3f",
           "kode": 11045,
           "navn": "Aarhus",
@@ -165,53 +165,53 @@
         "oprettet": "2000-02-05T15:30:10.000",
         "\u00e6ndret": "2016-09-07T09:25:55.310"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f5097-3260-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f5097-3260-32b8-e044-0003ba298018",
       "husnr": "15",
       "id": "0a3f5097-3260-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2006353",
+          "href": "https://dawa.aws.dk/ejerlav/2006353",
           "kode": 2006353,
           "navn": "\u00c5rhus Markjorder"
         },
         "esrejendomsnr": "562276",
-        "href": "http://dawa.aws.dk/jordstykker/2006353/117ki",
+        "href": "https://dawa.aws.dk/jordstykker/2006353/117ki",
         "matrikelnr": "117ki"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0751",
+        "href": "https://dawa.aws.dk/kommuner/0751",
         "kode": "0751",
         "navn": "Aarhus"
       },
       "kvh": "07519651__15",
       "matrikelnr": "117ki",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/64",
+        "href": "https://dawa.aws.dk/opstillingskredse/64",
         "kode": "0064",
         "navn": "Aarhus Nord"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1461",
+        "href": "https://dawa.aws.dk/politikredse/1461",
         "kode": "1461",
         "navn": "\u00d8stjyllands Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/8200",
+        "href": "https://dawa.aws.dk/postnumre/8200",
         "navn": "Aarhus N",
         "nr": "8200"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1082",
+        "href": "https://dawa.aws.dk/regioner/1082",
         "kode": "1082",
         "navn": "Region Midtjylland"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1165",
+        "href": "https://dawa.aws.dk/retskredse/1165",
         "kode": "1165",
         "navn": "Retten i \u00c5rhus"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/8121",
+        "href": "https://dawa.aws.dk/sogne/8121",
         "kode": "8121",
         "navn": "Christians"
       },
@@ -230,7 +230,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "\u00c5bogade",
-        "href": "http://dawa.aws.dk/vejstykker/751/9651",
+        "href": "https://dawa.aws.dk/vejstykker/751/9651",
         "kode": "9651",
         "navn": "\u00c5bogade"
       },
@@ -243,12 +243,12 @@
       "oprettet": "2014-05-05T19:07:48.577",
       "\u00e6ndret": "2014-05-05T19:07:48.577"
     },
-    "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+    "href": "https://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
     "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
     "kvhx": "07519651__15_______",
     "status": 1
   },
-  "http://dawa.aws.dk/adresser/606cf42e-9dc2-4477-bf70-594830fcbdec?noformat=1": {
+  "https://dawa.aws.dk/adresser/606cf42e-9dc2-4477-bf70-594830fcbdec?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6225_573",
@@ -270,7 +270,7 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
+          "href": "https://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
           "id": "12337669-a188-6b98-e053-d480220a5a3f",
           "kode": 11045,
           "navn": "Aarhus",
@@ -286,53 +286,53 @@
         "oprettet": "2000-02-05T15:30:10.000",
         "\u00e6ndret": "2016-09-07T09:25:55.310"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f5097-3260-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f5097-3260-32b8-e044-0003ba298018",
       "husnr": "15",
       "id": "0a3f5097-3260-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2006353",
+          "href": "https://dawa.aws.dk/ejerlav/2006353",
           "kode": 2006353,
           "navn": "\u00c5rhus Markjorder"
         },
         "esrejendomsnr": "562276",
-        "href": "http://dawa.aws.dk/jordstykker/2006353/117ki",
+        "href": "https://dawa.aws.dk/jordstykker/2006353/117ki",
         "matrikelnr": "117ki"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0751",
+        "href": "https://dawa.aws.dk/kommuner/0751",
         "kode": "0751",
         "navn": "Aarhus"
       },
       "kvh": "07519651__15",
       "matrikelnr": "117ki",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/64",
+        "href": "https://dawa.aws.dk/opstillingskredse/64",
         "kode": "0064",
         "navn": "Aarhus Nord"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1461",
+        "href": "https://dawa.aws.dk/politikredse/1461",
         "kode": "1461",
         "navn": "\u00d8stjyllands Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/8200",
+        "href": "https://dawa.aws.dk/postnumre/8200",
         "navn": "Aarhus N",
         "nr": "8200"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1082",
+        "href": "https://dawa.aws.dk/regioner/1082",
         "kode": "1082",
         "navn": "Region Midtjylland"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1165",
+        "href": "https://dawa.aws.dk/retskredse/1165",
         "kode": "1165",
         "navn": "Retten i \u00c5rhus"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/8121",
+        "href": "https://dawa.aws.dk/sogne/8121",
         "kode": "8121",
         "navn": "Christians"
       },
@@ -351,7 +351,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "\u00c5bogade",
-        "href": "http://dawa.aws.dk/vejstykker/751/9651",
+        "href": "https://dawa.aws.dk/vejstykker/751/9651",
         "kode": "9651",
         "navn": "\u00c5bogade"
       },
@@ -364,12 +364,12 @@
       "oprettet": "2015-10-05T20:54:34.880",
       "\u00e6ndret": "2015-10-05T20:54:34.880"
     },
-    "href": "http://dawa.aws.dk/adresser/606cf42e-9dc2-4477-bf70-594830fcbdec",
+    "href": "https://dawa.aws.dk/adresser/606cf42e-9dc2-4477-bf70-594830fcbdec",
     "id": "606cf42e-9dc2-4477-bf70-594830fcbdec",
     "kvhx": "07519651__15__1____",
     "status": 1
   },
-  "http://dawa.aws.dk/adresser/ae95777c-7ec1-4039-8025-e2ecce5099fb?noformat=1": {
+  "https://dawa.aws.dk/adresser/ae95777c-7ec1-4039-8025-e2ecce5099fb?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6223_574",
@@ -391,7 +391,7 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
+          "href": "https://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
           "id": "12337669-a188-6b98-e053-d480220a5a3f",
           "kode": 11045,
           "navn": "Aarhus",
@@ -407,53 +407,53 @@
         "oprettet": "2000-02-05T15:27:47.000",
         "\u00e6ndret": "2012-04-11T17:04:13.630"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f5096-c91f-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f5096-c91f-32b8-e044-0003ba298018",
       "husnr": "2",
       "id": "0a3f5096-c91f-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2006351",
+          "href": "https://dawa.aws.dk/ejerlav/2006351",
           "kode": 2006351,
           "navn": "\u00c5rhus Bygrunde"
         },
         "esrejendomsnr": "397720",
-        "href": "http://dawa.aws.dk/jordstykker/2006351/2154",
+        "href": "https://dawa.aws.dk/jordstykker/2006351/2154",
         "matrikelnr": "2154"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0751",
+        "href": "https://dawa.aws.dk/kommuner/0751",
         "kode": "0751",
         "navn": "Aarhus"
       },
       "kvh": "07517005___2",
       "matrikelnr": "2154",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/65",
+        "href": "https://dawa.aws.dk/opstillingskredse/65",
         "kode": "0065",
         "navn": "Aarhus \u00d8st"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1461",
+        "href": "https://dawa.aws.dk/politikredse/1461",
         "kode": "1461",
         "navn": "\u00d8stjyllands Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/8000",
+        "href": "https://dawa.aws.dk/postnumre/8000",
         "navn": "Aarhus C",
         "nr": "8000"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1082",
+        "href": "https://dawa.aws.dk/regioner/1082",
         "kode": "1082",
         "navn": "Region Midtjylland"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1165",
+        "href": "https://dawa.aws.dk/retskredse/1165",
         "kode": "1165",
         "navn": "Retten i \u00c5rhus"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/8115",
+        "href": "https://dawa.aws.dk/sogne/8115",
         "kode": "8115",
         "navn": "Vor Frue"
       },
@@ -472,7 +472,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "R\u00e5dhuspladsen",
-        "href": "http://dawa.aws.dk/vejstykker/751/7005",
+        "href": "https://dawa.aws.dk/vejstykker/751/7005",
         "kode": "7005",
         "navn": "R\u00e5dhuspladsen"
       },
@@ -485,12 +485,12 @@
       "oprettet": "2015-10-05T19:46:55.817",
       "\u00e6ndret": "2015-10-05T19:46:55.817"
     },
-    "href": "http://dawa.aws.dk/adresser/ae95777c-7ec1-4039-8025-e2ecce5099fb",
+    "href": "https://dawa.aws.dk/adresser/ae95777c-7ec1-4039-8025-e2ecce5099fb",
     "id": "ae95777c-7ec1-4039-8025-e2ecce5099fb",
     "kvhx": "07517005___2__4____",
     "status": 1
   },
-  "http://dawa.aws.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197?noformat=1": {
+  "https://dawa.aws.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6225_574",
@@ -512,7 +512,7 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
+          "href": "https://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
           "id": "12337669-a188-6b98-e053-d480220a5a3f",
           "kode": 11045,
           "navn": "Aarhus",
@@ -528,53 +528,53 @@
         "oprettet": "2000-02-05T15:26:42.000",
         "\u00e6ndret": "2016-08-25T13:42:00.330"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f5096-a0da-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f5096-a0da-32b8-e044-0003ba298018",
       "husnr": "1",
       "id": "0a3f5096-a0da-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2006353",
+          "href": "https://dawa.aws.dk/ejerlav/2006353",
           "kode": 2006353,
           "navn": "\u00c5rhus Markjorder"
         },
         "esrejendomsnr": "331045",
-        "href": "http://dawa.aws.dk/jordstykker/2006353/117gr",
+        "href": "https://dawa.aws.dk/jordstykker/2006353/117gr",
         "matrikelnr": "117gr"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0751",
+        "href": "https://dawa.aws.dk/kommuner/0751",
         "kode": "0751",
         "navn": "Aarhus"
       },
       "kvh": "07515902___1",
       "matrikelnr": "117gr",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/65",
+        "href": "https://dawa.aws.dk/opstillingskredse/65",
         "kode": "0065",
         "navn": "Aarhus \u00d8st"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1461",
+        "href": "https://dawa.aws.dk/politikredse/1461",
         "kode": "1461",
         "navn": "\u00d8stjyllands Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/8000",
+        "href": "https://dawa.aws.dk/postnumre/8000",
         "navn": "Aarhus C",
         "nr": "8000"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1082",
+        "href": "https://dawa.aws.dk/regioner/1082",
         "kode": "1082",
         "navn": "Region Midtjylland"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1165",
+        "href": "https://dawa.aws.dk/retskredse/1165",
         "kode": "1165",
         "navn": "Retten i \u00c5rhus"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/8121",
+        "href": "https://dawa.aws.dk/sogne/8121",
         "kode": "8121",
         "navn": "Christians"
       },
@@ -593,7 +593,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "Nordre Ringgade",
-        "href": "http://dawa.aws.dk/vejstykker/751/5902",
+        "href": "https://dawa.aws.dk/vejstykker/751/5902",
         "kode": "5902",
         "navn": "Nordre Ringgade"
       },
@@ -606,12 +606,12 @@
       "oprettet": "2014-05-05T19:07:48.577",
       "\u00e6ndret": "2014-05-05T19:07:48.577"
     },
-    "href": "http://dawa.aws.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
+    "href": "https://dawa.aws.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
     "id": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
     "kvhx": "07515902___1_______",
     "status": 1
   },
-  "http://dawa.aws.dk/adresser/bae093df-3b06-4f23-90a8-92eabedb3622?noformat=1": {
+  "https://dawa.aws.dk/adresser/bae093df-3b06-4f23-90a8-92eabedb3622?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6175_725",
@@ -633,7 +633,7 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/290f85b8-8c7a-6fd1-e053-d480220af996",
+          "href": "https://dawa.aws.dk/bebyggelser/290f85b8-8c7a-6fd1-e053-d480220af996",
           "id": "290f85b8-8c7a-6fd1-e053-d480220af996",
           "kode": 18368,
           "navn": "K\u00f8benhavn",
@@ -649,59 +649,59 @@
         "oprettet": "2009-11-25T01:07:37.000",
         "\u00e6ndret": "2009-11-25T01:07:37.000"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f507a-582d-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f507a-582d-32b8-e044-0003ba298018",
       "husnr": "1",
       "id": "0a3f507a-582d-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2000169",
+          "href": "https://dawa.aws.dk/ejerlav/2000169",
           "kode": 2000169,
           "navn": "Strand Kvarter, K\u00f8benhavn"
         },
         "esrejendomsnr": "509532",
-        "href": "http://dawa.aws.dk/jordstykker/2000169/78",
+        "href": "https://dawa.aws.dk/jordstykker/2000169/78",
         "matrikelnr": "78"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0101",
+        "href": "https://dawa.aws.dk/kommuner/0101",
         "kode": "0101",
         "navn": "K\u00f8benhavn"
       },
       "kvh": "01011128___1",
       "matrikelnr": "78",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/3",
+        "href": "https://dawa.aws.dk/opstillingskredse/3",
         "kode": "0003",
         "navn": "Indre By"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1470",
+        "href": "https://dawa.aws.dk/politikredse/1470",
         "kode": "1470",
         "navn": "K\u00f8benhavns Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/1218",
+        "href": "https://dawa.aws.dk/postnumre/1218",
         "navn": "K\u00f8benhavn K",
         "nr": "1218"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1084",
+        "href": "https://dawa.aws.dk/regioner/1084",
         "kode": "1084",
         "navn": "Region Hovedstaden"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1101",
+        "href": "https://dawa.aws.dk/retskredse/1101",
         "kode": "1101",
         "navn": "K\u00f8benhavns Byret"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/7036",
+        "href": "https://dawa.aws.dk/sogne/7036",
         "kode": "7036",
         "navn": "Holmens"
       },
       "status": 1,
       "stormodtagerpostnummer": {
-        "href": "http://dawa.aws.dk/postnumre/1240",
+        "href": "https://dawa.aws.dk/postnumre/1240",
         "navn": "K\u00f8benhavn K",
         "nr": "1240"
       },
@@ -718,7 +718,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "Christiansb Slotspl",
-        "href": "http://dawa.aws.dk/vejstykker/101/1128",
+        "href": "https://dawa.aws.dk/vejstykker/101/1128",
         "kode": "1128",
         "navn": "Christiansborg Slotsplads"
       },
@@ -731,12 +731,12 @@
       "oprettet": "2014-05-05T19:07:48.577",
       "\u00e6ndret": "2014-05-05T19:07:48.577"
     },
-    "href": "http://dawa.aws.dk/adresser/bae093df-3b06-4f23-90a8-92eabedb3622",
+    "href": "https://dawa.aws.dk/adresser/bae093df-3b06-4f23-90a8-92eabedb3622",
     "id": "bae093df-3b06-4f23-90a8-92eabedb3622",
     "kvhx": "01011128___1_______",
     "status": 1
   },
-  "http://dawa.aws.dk/adresser/d901ff7e-8ad9-4581-84c7-5759aaa82f7b?noformat=1": {
+  "https://dawa.aws.dk/adresser/d901ff7e-8ad9-4581-84c7-5759aaa82f7b?noformat=1": {
     "adgangsadresse": {
       "DDKN": {
         "km1": "1km_6225_574",
@@ -758,7 +758,7 @@
       },
       "bebyggelser": [
         {
-          "href": "http://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
+          "href": "https://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
           "id": "12337669-a188-6b98-e053-d480220a5a3f",
           "kode": 11045,
           "navn": "Aarhus",
@@ -774,53 +774,53 @@
         "oprettet": "2000-02-05T15:26:42.000",
         "\u00e6ndret": "2016-08-29T12:04:14.883"
       },
-      "href": "http://dawa.aws.dk/adgangsadresser/0a3f5096-a0db-32b8-e044-0003ba298018",
+      "href": "https://dawa.aws.dk/adgangsadresser/0a3f5096-a0db-32b8-e044-0003ba298018",
       "husnr": "2",
       "id": "0a3f5096-a0db-32b8-e044-0003ba298018",
       "jordstykke": {
         "ejerlav": {
-          "href": "http://dawa.aws.dk/ejerlav/2006351",
+          "href": "https://dawa.aws.dk/ejerlav/2006351",
           "kode": 2006351,
           "navn": "\u00c5rhus Bygrunde"
         },
         "esrejendomsnr": "331045",
-        "href": "http://dawa.aws.dk/jordstykker/2006351/1546o",
+        "href": "https://dawa.aws.dk/jordstykker/2006351/1546o",
         "matrikelnr": "1546o"
       },
       "kommune": {
-        "href": "http://dawa.aws.dk/kommuner/0751",
+        "href": "https://dawa.aws.dk/kommuner/0751",
         "kode": "0751",
         "navn": "Aarhus"
       },
       "kvh": "07515902___2",
       "matrikelnr": "1546o",
       "opstillingskreds": {
-        "href": "http://dawa.aws.dk/opstillingskredse/65",
+        "href": "https://dawa.aws.dk/opstillingskredse/65",
         "kode": "0065",
         "navn": "Aarhus \u00d8st"
       },
       "politikreds": {
-        "href": "http://dawa.aws.dk/politikredse/1461",
+        "href": "https://dawa.aws.dk/politikredse/1461",
         "kode": "1461",
         "navn": "\u00d8stjyllands Politi"
       },
       "postnummer": {
-        "href": "http://dawa.aws.dk/postnumre/8000",
+        "href": "https://dawa.aws.dk/postnumre/8000",
         "navn": "Aarhus C",
         "nr": "8000"
       },
       "region": {
-        "href": "http://dawa.aws.dk/regioner/1082",
+        "href": "https://dawa.aws.dk/regioner/1082",
         "kode": "1082",
         "navn": "Region Midtjylland"
       },
       "retskreds": {
-        "href": "http://dawa.aws.dk/retskredse/1165",
+        "href": "https://dawa.aws.dk/retskredse/1165",
         "kode": "1165",
         "navn": "Retten i \u00c5rhus"
       },
       "sogn": {
-        "href": "http://dawa.aws.dk/sogne/8120",
+        "href": "https://dawa.aws.dk/sogne/8120",
         "kode": "8120",
         "navn": "Sankt Johannes"
       },
@@ -839,7 +839,7 @@
       },
       "vejstykke": {
         "adresseringsnavn": "Nordre Ringgade",
-        "href": "http://dawa.aws.dk/vejstykker/751/5902",
+        "href": "https://dawa.aws.dk/vejstykker/751/5902",
         "kode": "5902",
         "navn": "Nordre Ringgade"
       },
@@ -852,7 +852,7 @@
       "oprettet": "2014-05-05T19:07:48.577",
       "\u00e6ndret": "2014-05-05T19:07:48.577"
     },
-    "href": "http://dawa.aws.dk/adresser/d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+    "href": "https://dawa.aws.dk/adresser/d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
     "id": "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
     "kvhx": "07515902___2_______",
     "status": 1

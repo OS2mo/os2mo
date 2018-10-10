@@ -2793,7 +2793,7 @@ class Reading(util.LoRATestCase):
         addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
 
         mock.get(
-            'http://dawa.aws.dk/adresser/{}?noformat=1'.format(addrid),
+            'https://dawa.aws.dk/adresser/{}?noformat=1'.format(addrid),
             json={
                 "type": "ResourceNotFoundError",
                 "title": "The resource was not found",
@@ -2884,7 +2884,8 @@ class Reading(util.LoRATestCase):
                 [{
                     'name': 'Fejl',
                     'error': 'No mock address: GET '
-                    'http://dawa.aws.dk/adresser/{}?noformat=1'.format(addrid),
+                    'https://dawa.aws.dk/adresser/{}?noformat=1'
+                    .format(addrid),
                     'address_type': address_class,
                     'href': None,
                     'org_unit': {

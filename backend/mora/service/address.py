@@ -185,7 +185,7 @@ More information regarding creating and editing addresses can be found in the
 sections on creating and editing relations for employees and organisational
 units.
 
-.. _DAR: http://dawa.aws.dk/dok/api/adresse
+.. _DAR: https://dawa.aws.dk/dok/api/adresse
 
 
 API
@@ -316,7 +316,7 @@ def get_one_address(c, addrrel, class_cache=None):
         # the formatted address :(
         try:
             r = session.get(
-                'http://dawa.aws.dk/adresser/' + addrrel['uuid'],
+                'https://dawa.aws.dk/adresser/' + addrrel['uuid'],
                 params={
                     'noformat': '1',
                 },
@@ -664,7 +664,7 @@ def address_autocomplete(orgid):
         code = None
 
     addrs = requests.get(
-        'http://dawa.aws.dk/adresser/autocomplete',
+        'https://dawa.aws.dk/adresser/autocomplete',
         params={
             'noformat': '1',
             'kommunekode': code,
