@@ -17,7 +17,12 @@
       lazy
     >
     <form @submit.stop.prevent="create">
-      <component :is="entryComponent" v-model="entry"/>
+      <component 
+        :is="entryComponent" 
+        v-model="entry"
+        :hide-org-picker="hideOrgPicker"
+        :hide-employee-picker="hideEmployeePicker"
+      />
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
@@ -111,6 +116,20 @@
        */
       hasEntryComponent () {
         return this.entryComponent !== undefined
+      },
+
+      /**
+       * Get hideOrgPicker type.
+       */
+      hideOrgPicker () {
+        return this.type === 'ORG_UNIT'
+      },
+
+      /**
+       * Get hideEmployeePicker type.
+       */
+      hideEmployeePicker () {
+        return this.type === 'EMPLOYEE'
       }
     },
 
