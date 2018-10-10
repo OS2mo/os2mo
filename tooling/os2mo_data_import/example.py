@@ -5,37 +5,26 @@ from os2mo_data_import import Organisation, ImportUtility
 
 def example_import():
     """
-    This example requires that the os2mo_data_import library is installed!
-
-    Install into venv or python path:
-
-        pip install /path/to/os2mo_data_import
-
-    Run the example:
-
-        python /path/to/os2mo_data_import/example.py
-
-    !! Unittest is missing !!
+    Run the example to import the fictional organisation Magenta.
 
     """
 
-    # Init org
+    # The Organisation class is the main entry point,
+    # It exposes the related sub classes such as:
+    # Facet, Klasse, Itsystem, OrganisationUnit, Employee
+    Magenta = Organisation(
+        name="Magenta Aps",
+        user_key="Magenta",
+        municipality_code=101,
+        create_defaults=True
+    )
 
-    Magenta = Organisation(name="Magenta Aps", user_key="Magenta", municipality_code=101)
-
-    # Show all default facet and klasse values
-    all_facet = Magenta.Facet.export()
-    print(all_facet)
-
-    all_klasse = Magenta.Klasse.export()
-    print(all_klasse)
-
-    # Example: add klasse with reference to facet "Enhedstype"
+    # Add klasse with reference to facet "Enhedstype"
     Magenta.Klasse.add(
-        identifier="Hovedenhed",  # Identifier to recall the item
+        identifier="Hovedenhed",  # User defined identifier
         facet_type_ref="Enhedstype",  # Belongs to facet: Enhedstype
         user_key="D1ED90C5-643A-4C12-8889-6B4174EF4467",  # User key for internal reference
-        title="Hovedenhed"
+        title="Hovedenhed"  # This is the displayed value
     )
 
     Magenta.Klasse.add(
@@ -45,27 +34,27 @@ def example_import():
         title="Afdeling"
     )
 
-    # Example: Organisation Unit
-    # Required: name, org_unit_type_ref, date_from, date_to
+    # Root unit: Magenta
+    # Belongs to unit type: "Hovedenhed"
     Magenta.OrganisationUnit.add(
         identifier="Magenta",
-        name="Magenta (Rodenhed)",
-        org_unit_type_ref="Hovedenhed",
+        name="Magenta Aps",
+        org_unit_type_ref="Hovedenhed",  # Reference to the unit type
         date_from="1986-01-01"
     )
 
-    # Use parent_ref to make it a sub group of "Officers"
+    # Use parent_ref to make it a sub group of "Magenta"
     Magenta.OrganisationUnit.add(
         identifier="Pilestræde",
-        org_unit_type_ref="Afdeling",  # This unit is of type: Rodenhed
-        parent_ref="Magenta",  # Sub unit of/Belongs to Rodenhed
+        org_unit_type_ref="Afdeling",  # This unit is of type: Afdeling
+        parent_ref="Magenta",  # Sub unit of/Belongs to Magenta
         date_from="1986-01-01"
     )
 
     Magenta.OrganisationUnit.add(
         identifier="SJA2",
-        org_unit_type_ref="Afdeling",  # This unit is of type: Rodenhed
-        parent_ref="Magenta",  # Sub unit of/Belongs to Rodenhed
+        org_unit_type_ref="Afdeling",
+        parent_ref="Magenta",  # Sub unit of/Belongs to Magenta
         date_from="1986-01-01"
     )
 
@@ -92,7 +81,7 @@ def example_import():
     )
 
 
-    # Employees
+    # Create employees
     Magenta.Employee.add(
         identifier="Susanne Chæf",
         cpr_no="0101862233"
@@ -124,9 +113,9 @@ def example_import():
     )
 
 
-    # JOB AND ENGAGEMENT
+    # Create job functions and assign to employees
 
-    # Add job type "Bridge Officer
+    # Add job functions
     Magenta.Klasse.add(
         identifier="Direktør",
         facet_type_ref="Stillingsbetegnelse",
@@ -155,7 +144,7 @@ def example_import():
         title="Projektmedarbejder"
     )
 
-    # Get job function type uuid
+    # Assign job functions
     Magenta.Employee.add_type_engagement(
         owner_ref="Susanne Chæf",
         org_unit_ref="Magenta",
@@ -204,7 +193,7 @@ def example_import():
         date_from="1986-06-01"
     )
 
-    # Association
+    # Add association
     Magenta.Klasse.add(
         identifier="Ekstern Konsulent",
         facet_type_ref="Tilknytningstype",
@@ -222,7 +211,7 @@ def example_import():
     )
 
 
-    # Addresses
+    # Add addresses
     Magenta.Employee.add_type_address(
         owner_ref="Susanne Chæf",
         uuid="0a3f50a0-ef5a-32b8-e044-0003ba298018",
@@ -266,7 +255,7 @@ def example_import():
     )
 
 
-    # ROLES
+    # Add roles and assign to employees
     Magenta.Klasse.add(
         identifier="Medarbejder repræsentant",
         facet_type_ref="Rolletype",
@@ -302,7 +291,8 @@ def example_import():
         date_from="1986-12-01"
     )
 
-    # LEADERSHIP
+    # Create manager type, level and responsibilites
+    # and assign to employee
 
     # Manager type
     Magenta.Klasse.add(
@@ -376,7 +366,7 @@ def example_import():
     #     date_to="2018-11-02"
     # )
 
-    #Itsystem
+    # Create IT system and assign to employee
 
     Magenta.Itsystem.add(
         identifier="Servermiljø",
@@ -397,7 +387,8 @@ def example_import():
         date_from="1987-10-01"
     )
 
-    # TODO: MAKE THIS WORK!
+    # Import everything into running instance
+    # Requires an actual running instance
     os2mo = ImportUtility(dry_run=False)
     os2mo.import_all(Magenta)
 
