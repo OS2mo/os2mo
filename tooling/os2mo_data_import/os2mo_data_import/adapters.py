@@ -33,8 +33,6 @@ def organisation_payload(organisation, municipality_code, validity):
 
         properties.update(organisation)
 
-        print(properties)
-
         attributter = {
             "organisationegenskaber": [properties]
         }
