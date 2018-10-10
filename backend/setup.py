@@ -106,12 +106,6 @@ setuptools.setup(
     packages=setuptools.find_packages(where=BACKEND_DIR, exclude=['tests']),
     test_loader='unittest:TestLoader',
 
-    entry_points={
-        'console_scripts': [
-            'mora = mora.cli:group',
-        ],
-    },
-
     classifiers=[
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Programming Language :: Python :: 3 :: Only',

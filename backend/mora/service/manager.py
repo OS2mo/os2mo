@@ -14,17 +14,12 @@ This section describes how to interact with employee manager roles.
 """
 import uuid
 
-import flask
-
 from . import address
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 from .. import validator
-
-blueprint = flask.Blueprint('manager', __name__, static_url_path='',
-                            url_prefix='/service')
 
 
 class ManagerRequestHandler(common.OrgFunkRequestHandler):

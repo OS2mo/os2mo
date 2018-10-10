@@ -15,17 +15,12 @@ This section describes how to interact with employee leave.
 '''
 import uuid
 
-import flask
-
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
 from .. import validator
-
-blueprint = flask.Blueprint('leave', __name__, static_url_path='',
-                            url_prefix='/service')
 
 
 class LeaveRequestHandler(common.OrgFunkRequestHandler):

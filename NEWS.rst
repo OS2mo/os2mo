@@ -4,7 +4,7 @@ Version 0.11.0 (in development)
 New features
 ------------
 
-* TBD
+* #24400: Better documentation of command line interface.
 
 
 Internal changes
