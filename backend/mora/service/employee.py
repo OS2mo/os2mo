@@ -188,7 +188,8 @@ def get_employee(id):
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
-    specified date, with the manager roles which are vacated instead.
+    specified date. Except for the manager roles, which we vacate
+    instead.
 
     .. :quickref: Employee; Terminate
 
