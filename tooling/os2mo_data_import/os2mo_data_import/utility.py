@@ -286,6 +286,13 @@ class ImportUtility(object):
 
         facet_uuid = self.inserted_facet_map.get(facet_type_ref)
 
+        if not facet_uuid:
+            error_message = "Facet ref: {ref} does not exist".format(
+                ref=facet_type_ref
+            )
+
+            raise KeyError(error_message)
+
         payload = adapters.klasse_payload(
             klasse=klasse_data,
             facet_uuid=facet_uuid,
