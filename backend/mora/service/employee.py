@@ -214,7 +214,7 @@ def terminate_employee(employee_uuid):
     c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
     handlers = [
-        common.handler_for(obj)(
+        common.get_handler_for_function(obj)(
             {
                 'date': date,
                 'uuid': objid,

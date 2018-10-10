@@ -375,11 +375,10 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
-@common.register_request_handler('address')
 class AddressRequestHandler(common.RequestHandler):
+    __slots__ = ('obj_type', 'old_rel', 'new_rel')
 
-    __slots__ = *common.RequestHandler.__slots__, 'obj_type', 'old_rel', \
-        'new_rel'
+    role_type = 'address'
 
     def __init__(self, *args, **kwargs):
         self.obj_type = None

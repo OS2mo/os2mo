@@ -28,8 +28,11 @@ blueprint = flask.Blueprint('leave', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('leave', mapping.LEAVE_KEY)
 class LeaveRequestHandler(common.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'leave'
+    function_key = mapping.LEAVE_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()

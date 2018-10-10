@@ -23,8 +23,11 @@ from .. import util
 from .. import validator
 
 
-@common.register_request_handler('engagement', mapping.ENGAGEMENT_KEY)
 class EngagementRequestHandler(common.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'engagement'
+    function_key = mapping.ENGAGEMENT_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()

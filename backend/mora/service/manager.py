@@ -27,9 +27,11 @@ blueprint = flask.Blueprint('manager', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('manager', mapping.MANAGER_KEY)
 class ManagerRequestHandler(common.OrgFunkRequestHandler):
     __slots__ = ()
+
+    role_type = 'manager'
+    function_key = mapping.MANAGER_KEY
 
     termination_field = mapping.USER_FIELD
     termination_value = {}

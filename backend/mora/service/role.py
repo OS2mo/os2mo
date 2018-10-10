@@ -27,8 +27,11 @@ blueprint = flask.Blueprint('roles', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('role', mapping.ROLE_KEY)
 class RoleRequestHandler(common.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'role'
+    function_key = mapping.ROLE_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()

@@ -57,25 +57,43 @@ class RequestType(enum.Enum):
 
 
 # The handler mapping is populated by each individual active RequestHandler
-HANDLERS = {}
-HANDLERS_BY_KEY = {}
+HANDLERS_BY_ROLE_TYPE = {}
+HANDLERS_BY_FUNCTION_KEY = {}
 FUNCTION_KEYS = {}
 
 
-def register_request_handler(name, key=None):
-    """Decorator to register a writing request handler"""
-    def wrapper(cls):
-        HANDLERS[name] = cls
-        if key is not None:
-            HANDLERS_BY_KEY[key] = cls
-            FUNCTION_KEYS[name] = key
+class _RequestHandlerMeta(abc.ABCMeta):
+    '''Metaclass for automatically registering handlers
+
+    '''
+
+    @staticmethod
+    def __new__(mcls, name, bases, namespace):
+        cls = super().__new__(mcls, name, bases, namespace)
+
+        if cls.role_type is not None:
+            # sanity check
+            assert cls.role_type not in HANDLERS_BY_ROLE_TYPE
+
+            HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
+
+        if cls.function_key is not None:
+            # sanity checks
+            assert cls.function_key not in HANDLERS_BY_FUNCTION_KEY
+            assert cls.role_type is not None
+
+            HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
+            FUNCTION_KEYS[cls.role_type] = cls.function_key
+
         return cls
-    return wrapper
 
 
-class RequestHandler(abc.ABC):
+class RequestHandler(metaclass=_RequestHandlerMeta):
 
     __slots__ = 'request', 'request_type', 'payload', 'uuid'
+
+    role_type = None
+    function_key = None
 
     def __init__(self, request, request_type: RequestType):
         """
@@ -178,12 +196,16 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.update(self.payload, self.uuid)
 
 
-def handler_for(obj: dict):
+def get_handler_for_function(obj: dict):
     '''Obtain the handler class corresponding to the given LoRA object'''
-    key, = set(map(operator.itemgetter('funktionsnavn'),
-                   mapping.ORG_FUNK_EGENSKABER_FIELD(obj)))
 
-    return HANDLERS_BY_KEY[key]
+    # use unpacking to ensure that the set contains just one element
+    (key,) = {
+        attrs['funktionsnavn']
+        for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
+    }
+
+    return HANDLERS_BY_FUNCTION_KEY[key]
 
 
 def generate_requests(
@@ -192,14 +214,14 @@ def generate_requests(
 ) -> typing.List[RequestHandler]:
     operations = {req.get('type') for req in requests}
 
-    if not operations.issubset(HANDLERS):
+    if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-            types=sorted(operations - HANDLERS.keys()),
+            types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
         )
 
     return [
-        HANDLERS[req.get('type')](req, request_type)
+        HANDLERS_BY_ROLE_TYPE[req.get('type')](req, request_type)
         for req in requests
     ]
 
