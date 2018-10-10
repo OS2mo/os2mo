@@ -319,7 +319,22 @@ def get_one_address(c, addrrel, class_cache=None):
             },
         )
 
-        r.raise_for_status()
+        if not r.ok:
+            error = r.json()
+
+            flask.current_app.logger.warn(
+                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+                    flask.request.url,
+                    json.dumps(error, indent=2),
+                ),
+            )
+
+            return {
+                mapping.ADDRESS_TYPE: addrclass,
+                mapping.HREF: None,
+                mapping.NAME: error.get('title', 'Fejl'),
+                mapping.UUID: addrrel['uuid'],
+            }
 
         addrobj = r.json()
 
