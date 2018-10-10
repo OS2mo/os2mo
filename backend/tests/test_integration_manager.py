@@ -2514,3 +2514,108 @@ class Tests(util.LoRATestCase):
                 },
             ],
         )
+
+    @util.mock(allow_mox=True)
+    def test_create_manager_offline(self, m):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "manager",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
+                'address': [{
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                }],
+                "responsibility": [{
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                }],
+                "manager_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "manager_level": {
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                },
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        managerid, = self.assertRequest('/service/details/create',
+                                        json=payload)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'address': [{
+                    'href': None,
+                    'name': 'No mock address: GET http://dawa.aws.dk/adresser'
+                    '/44c532e1-f617-4174-b144-d37ce9fda2bd?noformat=1',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                }],
+                'manager_level': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01',
+                        'to': None,
+                    },
+                },
+                'person': {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                'responsibility': [{
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                }],
+                'uuid': managerid,
+                'validity': {
+                    'from': '2017-12-01',
+                    'to': '2017-12-01',
+                },
+            }],
+        )

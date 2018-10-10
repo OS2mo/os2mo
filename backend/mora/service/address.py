@@ -312,12 +312,25 @@ def get_one_address(c, addrrel, class_cache=None):
     if scope == 'DAR':
         # unfortunately, we cannot live with struktur=mini, as it omits
         # the formatted address :(
-        r = session.get(
-            'http://dawa.aws.dk/adresser/' + addrrel['uuid'],
-            params={
-                'noformat': '1',
-            },
-        )
+        try:
+            r = session.get(
+                'http://dawa.aws.dk/adresser/' + addrrel['uuid'],
+                params={
+                    'noformat': '1',
+                },
+            )
+        except Exception as exc:
+            # the exception above is overly broad for a) safety and b)
+            # testing -- specifically, the exception raised by
+            # requests_mock does not descend from RequestException :(
+            util.log_exception('failed to get address ' + addrrel['uuid'])
+
+            return {
+                mapping.ADDRESS_TYPE: addrclass,
+                mapping.HREF: None,
+                mapping.NAME: str(exc),
+                mapping.UUID: addrrel['uuid'],
+            }
 
         if not r.ok:
             error = r.json()
