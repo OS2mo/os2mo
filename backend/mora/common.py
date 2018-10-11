@@ -35,23 +35,7 @@ from . import mapping
 from . import util
 
 
-class AbstractRelationDetail(abc.ABC):
-    __slots__ = (
-        'scope',
-    )
-
-    def __init__(self, scope):
-        self.scope = scope
-
-    @abc.abstractmethod
-    def has(self, registration):
-        pass
-
-    @abc.abstractmethod
-    def get(self, objid):
-        pass
-
-
+@enum.unique
 class RequestType(enum.Enum):
     '''
     Support requests for :class:`RequestHandler`.
@@ -82,8 +66,11 @@ class _RequestHandlerMeta(abc.ABCMeta):
 
 
 class RequestHandler(metaclass=_RequestHandlerMeta):
-    '''Abstract base class for automatically registering
-    handlers for details.'''
+    '''Abstract base class for automatically registering handlers for
+    details. Subclass are automatically registered once they
+    implements all relevant methods, i.e. they're no longer abstract.
+
+    '''
 
     __slots__ = 'request', 'request_type', 'payload', 'uuid'
 
@@ -94,10 +81,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     @classmethod
     def _register(cls):
-        if cls.role_type is not None:
-            assert cls.role_type not in HANDLERS_BY_ROLE_TYPE
+        assert cls.role_type is not None
+        assert cls.role_type not in HANDLERS_BY_ROLE_TYPE
 
-            HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
+        HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
     def __init__(self, request, request_type: RequestType):
         """
@@ -160,6 +147,17 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         """
         pass
+
+
+class ReadingRequestHandler(RequestHandler):
+    @classmethod
+    @abc.abstractmethod
+    def has(self, scope, registration):
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def get(self, scope, objid):
         pass
 
 
@@ -196,12 +194,12 @@ class OrgFunkRequestHandler(RequestHandler):
         super()._register()
 
         # sanity checks
-        if cls.function_key is not None:
-            assert cls.role_type is not None
-            assert cls.function_key not in HANDLERS_BY_FUNCTION_KEY
+        assert cls.function_key is not None
+        assert cls.role_type is not None
+        assert cls.function_key not in HANDLERS_BY_FUNCTION_KEY
 
-            HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
-            FUNCTION_KEYS[cls.role_type] = cls.function_key
+        HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
+        FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
         self.uuid = request['uuid']
@@ -239,6 +237,18 @@ def get_handler_for_function(obj: dict):
     }
 
     return HANDLERS_BY_FUNCTION_KEY[key]
+
+
+def get_handler_for_role_type(role_type: str):
+    '''Obtain the handler class corresponding to given role_type'''
+
+    try:
+        return HANDLERS_BY_ROLE_TYPE[role_type]
+    except LookupError:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+            type=role_type,
+        )
 
 
 def generate_requests(

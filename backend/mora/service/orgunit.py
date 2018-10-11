@@ -51,17 +51,23 @@ class UnitDetails(enum.Enum):
     FULL = 2
 
 
-class OrgUnit(common.AbstractRelationDetail):
-    def has(self, reg):
-        return self.scope.path == 'organisation/organisationenhed' and reg
+class OrgUnitRequestHandler(common.ReadingRequestHandler):
+    __slots__ = ()
 
-    def get(self, objid):
-        if self.scope.path != 'organisation/organisationenhed':
+    role_type = 'org_unit'
+
+    @classmethod
+    def has(cls, scope, reg):
+        return scope.path == 'organisation/organisationenhed' and reg
+
+    @classmethod
+    def get(cls, scope, objid):
+        if scope.path != 'organisation/organisationenhed':
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
             )
 
-        c = common.get_connector()
+        c = scope.connector
 
         return flask.jsonify([
             get_one_orgunit(
@@ -71,7 +77,7 @@ class OrgUnit(common.AbstractRelationDetail):
                     mapping.TO: util.to_iso_date(end, is_end=True),
                 },
             )
-            for start, end, effect in c.organisationenhed.get_effects(
+            for start, end, effect in scope.get_effects(
                 objid,
                 {
                     'attributter': (
@@ -92,12 +98,6 @@ class OrgUnit(common.AbstractRelationDetail):
                   .get('organisationenhedgyldighed')[0]
                   .get('gyldighed') == 'Aktiv'
         ])
-
-
-class OrgUnitRequestHandler(common.RequestHandler):
-    __slots__ = ()
-
-    role_type = 'org_unit'
 
     def prepare_create(self, req):
         c = lora.Connector()

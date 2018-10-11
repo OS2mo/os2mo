@@ -55,11 +55,6 @@ DETAIL_TYPES = {
     'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
 }
 
-RELATION_TYPES = {
-    'address': address.Addresses,
-    'org_unit': orgunit.OrgUnit,
-}
-
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
 def list_details(type, id):
@@ -103,8 +98,9 @@ def list_details(type, id):
 
     reg = scope.get(id)
 
-    for relname, cls in RELATION_TYPES.items():
-        r[relname] = bool(cls(scope).has(reg))
+    for relname, cls in common.HANDLERS_BY_ROLE_TYPE.items():
+        if issubclass(cls, common.ReadingRequestHandler):
+            r[relname] = bool(cls.has(scope, reg))
 
     return flask.jsonify(r)
 
@@ -445,10 +441,10 @@ def get_detail(type, id, function):
     }
     scope = getattr(c, info.scope)
 
-    cls = RELATION_TYPES.get(function)
+    cls = common.get_handler_for_role_type(function)
 
-    if cls:
-        return cls(scope).get(id)
+    if issubclass(cls, common.ReadingRequestHandler):
+        return cls.get(scope, id)
 
     # ensure that we report an error correctly
     if function not in common.FUNCTION_KEYS:
