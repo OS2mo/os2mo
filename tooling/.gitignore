@@ -1,0 +1,8 @@
+# Development
+.idea
+*.gz
+
+# Python
+__pychache__
+*.pyc
+

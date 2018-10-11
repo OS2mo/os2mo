@@ -1,0 +1,46 @@
+{
+  "attributter": {
+    "facetegenskaber": [
+      {
+        "brugervendtnoegle": "0F011AB1-9F23-408E-A5D2-AE1BF2765151",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "facettilhoerer": [
+      {
+        "objekttype": "klassifikation",
+        "uuid": "FDAEE71E-0772-4D13-BF19-0D01E4296992",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ],
+    "ansvarlig": [
+      {
+        "objekttype": "organisation",
+        "uuid": "AAD095CB-05B7-497A-8964-E2BCD3824D6E",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "facetpubliceret": [
+      {
+        "publiceret": "Publiceret",
+        "virkning": {
+          "from": "1900-01-01",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "attributter": {
+    "klasseegenskaber": [
+      {
+        "brugervendtnoegle": "FDAEE71E-0772-4D13-BF19-0D01E4296992",
+        "beskrivelse": "test",
+        "eksempel": "python -m unittest",
+        "titel": "Test klasse",
+        "omfang": "UNITTEST",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "ansvarlig": [
+      {
+        "objekttype": "organisation",
+        "uuid": "AAD095CB-05B7-497A-8964-E2BCD3824D6E",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ],
+    "facet": [
+      {
+        "objekttype": "facet",
+        "uuid": "FDAEE71E-0772-4D13-BF19-0D01E4296992",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "klassepubliceret": [
+      {
+        "publiceret": "Publiceret",
+        "virkning": {
+          "to": "infinity",
+          "from": "1900-01-01"
+        }
+      }
+    ]
+  }
+}
