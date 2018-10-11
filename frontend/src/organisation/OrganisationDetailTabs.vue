@@ -105,21 +105,12 @@
        */
       uuid: {type: String, required: true},
 
-      /**
-       * Defines a at date.
-       */
-      atDate: [Date, String],
+      content: Object,
 
       /**
        * This Boolean property indicates the timemachine output.
        */
       timemachineFriendly: Boolean
-    },
-
-    computed: {
-      content () {
-        return this.$store.getters['organisationUnit/GET_DETAILS']
-      }
     },
 
     data () {
@@ -185,10 +176,9 @@
         let payload = {
           detail: contentType,
           validity: event,
-          atDate: this.atDate,
           uuid: this.uuid
         }
-        this.$store.dispatch('organisationUnit/SET_DETAIL', payload)
+        this.$emit('show', payload)
       }
     }
   }

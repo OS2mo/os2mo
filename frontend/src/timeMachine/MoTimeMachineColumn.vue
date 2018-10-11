@@ -22,8 +22,9 @@
       <h4>{{orgUnit.name}}</h4>
 
       <organisation-detail-tabs 
-        :uuid="orgUnit.uuid" 
-        :at-date="date" 
+        :uuid="orgUnit.uuid"
+        @show="loadContent($event)" 
+        :content="$store.getters[storeId + '/GET_DETAILS']"
         timemachine-friendly
       />
     </div>
@@ -39,6 +40,7 @@
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import MoTreeView from '@/components/MoTreeView/MoTreeView'
   import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
+  import orgUnit from '@/vuex/modules/organisationUnit'
 
   export default {
     components: {
@@ -46,6 +48,9 @@
       MoOrganisationPicker,
       MoTreeView,
       OrganisationDetailTabs
+    },
+    props: {
+      storeId: String
     },
 
     data () {
@@ -66,6 +71,18 @@
        */
       org () {
         this.orgUnit = null
+      }
+    },
+    created () {
+      this.$store.registerModule(this.storeId, orgUnit)
+    },
+    destroyed () {
+      this.$store.unregisterModule(this.storeId)
+    },
+    methods: {
+      loadContent (event) {
+        event.atDate = this.date
+        this.$store.dispatch(this.storeId + '/SET_DETAIL', event)
       }
     }
   }

@@ -15,7 +15,7 @@
         </div>
       </div>
 
-      <organisation-detail-tabs :uuid="$route.params.uuid"/>
+      <organisation-detail-tabs :uuid="$route.params.uuid" :content="$store.getters['organisationUnit/GET_DETAILS']" @show="loadContent($event)"/>
     </div>
   </div>
 </template>
@@ -41,6 +41,11 @@
     computed: {
       orgUnit () {
         return this.$store.getters['organisationUnit/' + GET_ORG_UNIT]
+      }
+    },
+    methods: {
+      loadContent (event) {
+        this.$store.dispatch('organisationUnit/SET_DETAIL', event)
       }
     },
     beforeRouteLeave (to, from, next) {
