@@ -31,6 +31,7 @@ JOB_FUNCTION = 'job_function'
 ITSYSTEM = 'itsystem'
 ADDRESS = 'address'
 ITSYSTEM_KEY = 'IT-system'
+ERROR = 'error'
 
 # Address
 ADDRESS_KEY = 'Adresse'

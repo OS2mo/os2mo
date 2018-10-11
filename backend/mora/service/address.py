@@ -229,6 +229,8 @@ HREF_PREFIXES = {
     'WWW': '',
 }
 
+DEFAULT_ERROR = 'Fejl'
+
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
 
 blueprint = flask.Blueprint('address', __name__, static_url_path='',
@@ -328,8 +330,9 @@ def get_one_address(c, addrrel, class_cache=None):
             return {
                 mapping.ADDRESS_TYPE: addrclass,
                 mapping.HREF: None,
-                mapping.NAME: str(exc),
+                mapping.NAME: DEFAULT_ERROR,
                 mapping.UUID: addrrel['uuid'],
+                mapping.ERROR: str(exc),
             }
 
         if not r.ok:
@@ -345,8 +348,9 @@ def get_one_address(c, addrrel, class_cache=None):
             return {
                 mapping.ADDRESS_TYPE: addrclass,
                 mapping.HREF: None,
-                mapping.NAME: error.get('title', 'Fejl'),
+                mapping.NAME: DEFAULT_ERROR,
                 mapping.UUID: addrrel['uuid'],
+                mapping.ERROR: error,
             }
 
         addrobj = r.json()

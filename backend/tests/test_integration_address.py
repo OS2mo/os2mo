@@ -2826,7 +2826,14 @@ class Reading(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/address'.format(unitid),
                 [{
-                    'name': 'The resource was not found',
+                    'name': 'Fejl',
+                    'error': {
+                        'details': {
+                            'id': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                        },
+                        'title': 'The resource was not found',
+                        'type': 'ResourceNotFoundError',
+                    },
                     'address_type': address_class,
                     'href': None,
                     'org_unit': {
@@ -2875,7 +2882,8 @@ class Reading(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/address'.format(unitid),
                 [{
-                    'name': 'No mock address: GET '
+                    'name': 'Fejl',
+                    'error': 'No mock address: GET '
                     'http://dawa.aws.dk/adresser/{}?noformat=1'.format(addrid),
                     'address_type': address_class,
                     'href': None,
