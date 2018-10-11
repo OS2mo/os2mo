@@ -20,7 +20,7 @@
         <mo-date-picker 
           class="from-date" 
           :label="$t('input_fields.end_date')" 
-          v-model="terminate.validity.to"
+          v-model="validity"
           required
         />
       </div>
@@ -47,7 +47,7 @@
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
-  import { SET_EMPLOYEE, GET_EMPLOYEE } from '@/vuex/actions/employeeTerminate'
+  import { SET_EMPLOYEE, GET_EMPLOYEE, SET_ENDDATE, GET_ENDDATE } from '@/vuex/actions/employeeTerminate'
 
   export default {
       /**
@@ -70,12 +70,7 @@
          * The terminate, employee, isLoading component value.
          * Used to detect changes and restore the value.
          */
-        isLoading: false,
-        terminate: {
-          validity: {
-            to: ''
-          }
-        }
+        isLoading: false
       }
     },
 
@@ -88,13 +83,13 @@
         set (value) { this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, value) }
       },
 
-      // endDate: {
-      //   get () { return this.$store.getters['employeeTerminate/' + GET_ENDDATE] },
-      //   set (value) { this.$store.commit('employeeTerminate/' + SET_ENDDATE, value) }
-      // },
+      validity: {
+        get () { return this.$store.getters['employeeTerminate/' + GET_ENDDATE] },
+        set (value) { this.$store.commit('employeeTerminate/' + SET_ENDDATE, value) }
+      },
 
       isDisabled () {
-        return !this.employee.uuid || !this.terminate.validity.to
+        return !this.employee.uuid || !this.validity
       },
 
       /**
@@ -114,7 +109,7 @@
       resetData () {
         Object.assign(this.$data, this.$options.data())
         this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, {})
-        // this.$store.commit('employeeTerminate/' + SET_ENDDATE, '')
+        this.$store.commit('employeeTerminate/' + SET_ENDDATE, '')
       },
 
       /**
@@ -126,7 +121,7 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.terminate(this.employee.uuid, this.terminate)
+          Employee.terminate(this.employee.uuid, this.validity)
             .then(response => {
               vm.isLoading = false
               vm.$refs.employeeTerminate.hide()
