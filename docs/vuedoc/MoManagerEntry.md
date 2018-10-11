@@ -12,6 +12,14 @@ A manager entry component.
 
   This boolean property hides validity. 
 
+- `hide-org-picker` ***Boolean*** (*optional*) 
+
+  This boolean property hide the org picker. 
+
+- `hide-employee-picker` ***Boolean*** (*optional*) 
+
+  This boolean property hide the employee picker. 
+
 ## data 
 
 - `entry` 
@@ -31,11 +39,13 @@ A manager entry component.
 
 - `facetPicker` 
 
-  Adds the facetPicker to the add many component. 
+  Adds the facetPicker template to the add many component. 
 
    **dependencies:** `$emit`, `val`, `value` 
 
 - `managerAddressPicker` 
+
+  Adds the managerAddressPicker template to the add many component. 
 
    **dependencies:** `value`, `val`, `value`, `value`, `value`, `$emit`, `val`, `value` 
 
