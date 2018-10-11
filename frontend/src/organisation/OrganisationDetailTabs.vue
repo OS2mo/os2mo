@@ -2,69 +2,83 @@
   <div>
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="org_unit"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['org_unit']" 
+          content-type="org_unit"
           :columns="org_unit"
-          :entry-component="timemachineFriendly ? undefined : components.orgUnit"
+          @show="loadContent('org_unit', $event)"
+          :entry-component="!timemachineFriendly ? components.orgUnit : undefined"
           hide-create
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.organisation.addresses')">
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="address"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['address']" 
+          content-type="address"
           :columns="address"
-          :entry-component="timemachineFriendly ? undefined : components.address"
+          @show="loadContent('address', $event)"
+          :entry-component="!timemachineFriendly ? components.address : undefined"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.organisation.engagements')">
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="engagement"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['engagement']" 
+          content-type="engagement"
           :columns="engagement"
+          @show="loadContent('engagement', $event)"
         />
       </b-tab>
 
       <b-tab :title="$tc('tabs.organisation.association', 2)">
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="association"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['association']" 
+          content-type="association"
           :columns="association"
+          @show="loadContent('association', $event)"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.organisation.it')">
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="it"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['it']" 
+          content-type="it"
           :columns="it"
-          :entry-component="timemachineFriendly ? undefined : components.itSystem"
+          @show="loadContent('it', $event)"
+          :entry-component="!timemachineFriendly ? components.itSystem : undefined"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.organisation.roles')">
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="role"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['role']" 
+          content-type="role"
           :columns="role"
+          @show="loadContent('role', $event)"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.organisation.managers')">
-        <mo-organisation-unit-detail 
-          :uuid="uuid" 
-          :at-date="atDate"
-          detail="manager"
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['manager']" 
+          content-type="manager"
           :columns="manager"
+          @show="loadContent('manager', $event)"
         />
       </b-tab>
     </b-tabs>
@@ -75,15 +89,14 @@
   /**
    * A organisation detail tabs component.
    */
-
-  import MoOrganisationUnitDetail from './MoOrganisationUnitDetail'
+  import MoTableDetail from '@/components/MoTable/MoTableDetail'
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 
   export default {
     components: {
-      MoOrganisationUnitDetail
+      MoTableDetail
     },
 
     props: {
@@ -101,6 +114,12 @@
        * This Boolean property indicates the timemachine output.
        */
       timemachineFriendly: Boolean
+    },
+
+    computed: {
+      content () {
+        return this.$store.getters['organisationUnit/GET_DETAILS']
+      }
     },
 
     data () {
@@ -158,6 +177,18 @@
           address: MoAddressEntry,
           itSystem: MoItSystemEntry
         }
+      }
+    },
+
+    methods: {
+      loadContent (contentType, event) {
+        let payload = {
+          detail: contentType,
+          validity: event,
+          atDate: this.atDate,
+          uuid: this.uuid
+        }
+        this.$store.dispatch('organisationUnit/SET_DETAIL', payload)
       }
     }
   }

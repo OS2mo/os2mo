@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import Service from '@/api/HttpCommon'
 import { GET_ORG_UNIT, SET_ORG_UNIT, RESET_ORG_UNIT } from '../actions/organisationUnit'
 const state = {
@@ -5,18 +6,38 @@ const state = {
   user_key: undefined,
   uuid: undefined,
   org_uuid: undefined,
-  parent_uuid: undefined
+  parent_uuid: undefined,
+  details: {}
 }
 
 const actions = {
-  [SET_ORG_UNIT] ({ rootState, commit }, payload) {
+  [SET_ORG_UNIT] ({ commit }, payload) {
     return Service.get(`/ou/${payload}/`)
       .then(response => {
         commit(SET_ORG_UNIT, response.data)
         // EventBus.$emit('organisation-changed', response.data.org)
       })
       .catch(error => {
-        rootState.commit('log/newError', { type: 'ERROR', value: error.response })
+        commit('log/newError', { type: 'ERROR', value: error.response })
+      })
+  },
+
+  SET_DETAIL ({ state, commit }, payload) {
+    payload.validity = payload.validity || 'present'
+    let uuid = payload.uuid || state.uuid
+    let atDate = payload.atDate || new Date()
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}`)
+      .then(response => {
+        let content = {
+          key: payload.detail,
+          validity: payload.validity,
+          value: response.data
+        }
+        commit('SET_DETAIL', content)
+      })
+      .catch(error => {
+        console.log(error)
       })
   }
 }
@@ -36,11 +57,21 @@ const mutations = {
     state.uuid = undefined
     state.org_uuid = undefined
     state.parent_uuid = undefined
+    state.details = {}
+  },
+
+  SET_DETAIL (state, payload) {
+    if (!state.details[payload.key]) {
+      Vue.set(state.details, payload.key, {})
+    }
+    Vue.set(state.details[payload.key], payload.validity, payload.value)
   }
 }
 
 const getters = {
-  [GET_ORG_UNIT]: state => state
+  [GET_ORG_UNIT]: state => state,
+  GET_DETAIL: (state) => (id) => state.details[id] || {},
+  GET_DETAILS: (state) => state.details || {}
 }
 
 export default {

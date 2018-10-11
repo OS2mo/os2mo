@@ -1,5 +1,6 @@
-import { SET_FACET, GET_FACET } from '../actions/facet'
+import Vue from 'vue'
 import Service from '@/api/HttpCommon'
+import { SET_FACET, GET_FACET } from '../actions/facet'
 
 const state = {
   address_type: undefined,
@@ -19,22 +20,22 @@ const actions = {
     if (state[payload.facet]) return
     return Service.get(`/o/${rootState.organisation.uuid}/f/${payload}/`)
       .then(response => {
+        response.data.data.items = response.data.data.items.slice().sort((a, b) => {
+          if (a.name < b.name) return -1
+          if (a.name > b.name) return 1
+          return 0
+        })
         commit(SET_FACET, response.data)
       })
       .catch(error => {
-        console.log(error)
+        commit('log/newError', { type: 'ERROR', value: error.response })
       })
   }
 }
 
 const mutations = {
   [SET_FACET] (state, payload) {
-    payload.data.items = payload.data.items.slice().sort((a, b) => {
-      if (a.name < b.name) return -1
-      if (a.name > b.name) return 1
-      return 0
-    })
-    state[payload.name] = payload
+    Vue.set(state, payload.name, payload)
   }
 }
 

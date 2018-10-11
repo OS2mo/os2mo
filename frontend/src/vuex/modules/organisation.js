@@ -7,14 +7,14 @@ const state = {
 }
 
 const actions = {
-  setOrg ({ commit, rootState }, payload) {
+  setOrg ({ commit }, payload) {
     console.log(payload)
     return Service.get(`/o/${payload}/`)
       .then(response => {
         commit('setOrg', response.data)
       })
       .catch(error => {
-        rootState.commit('log/newError', { type: 'ERROR', value: error.response })
+        commit('log/newError', { type: 'ERROR', value: error.response })
       })
   }
 }

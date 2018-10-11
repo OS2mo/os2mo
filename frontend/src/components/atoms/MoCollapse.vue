@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <b-collapse :id="nameId" :visible="open" @shown="$emit('shown')">
+    <b-collapse :id="nameId" :visible="open" @show="$emit('show')">
       <slot>
         Put some content here
       </slot>
@@ -38,7 +38,7 @@
       /**
        * This Boolean property defines the visible.
        */
-      initiallyOpen: Boolean
+      visible: Boolean
     },
 
     data () {
@@ -65,7 +65,8 @@
        * Called synchronously after the instance is created.
        * Set open to initiallyOpen.
        */
-      this.open = this.initiallyOpen
+      this.open = this.visible
+      if (this.visible) this.$emit('show')
     }
   }
 </script>
