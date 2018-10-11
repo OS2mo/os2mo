@@ -22,7 +22,7 @@ import copy
 import datetime
 import enum
 import functools
-import operator
+import inspect
 import typing
 import uuid
 
@@ -53,10 +53,14 @@ class AbstractRelationDetail(abc.ABC):
 
 
 class RequestType(enum.Enum):
+    '''
+    Support requests for :class:`RequestHandler`.
+    '''
     CREATE, EDIT, TERMINATE = range(3)
 
 
-# The handler mapping is populated by each individual active RequestHandler
+# The handler mappings are populated by each individual active
+# RequestHandler
 HANDLERS_BY_ROLE_TYPE = {}
 HANDLERS_BY_FUNCTION_KEY = {}
 FUNCTION_KEYS = {}
@@ -71,35 +75,36 @@ class _RequestHandlerMeta(abc.ABCMeta):
     def __new__(mcls, name, bases, namespace):
         cls = super().__new__(mcls, name, bases, namespace)
 
-        if cls.role_type is not None:
-            # sanity check
-            assert cls.role_type not in HANDLERS_BY_ROLE_TYPE
-
-            HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
-
-        if cls.function_key is not None:
-            # sanity checks
-            assert cls.function_key not in HANDLERS_BY_FUNCTION_KEY
-            assert cls.role_type is not None
-
-            HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
-            FUNCTION_KEYS[cls.role_type] = cls.function_key
+        if not inspect.isabstract(cls):
+            cls._register()
 
         return cls
 
 
 class RequestHandler(metaclass=_RequestHandlerMeta):
+    '''Abstract base class for automatically registering
+    handlers for details.'''
 
     __slots__ = 'request', 'request_type', 'payload', 'uuid'
 
     role_type = None
-    function_key = None
+    '''
+    The `role_type` for corresponding details to this attribute.
+    '''
+
+    @classmethod
+    def _register(cls):
+        if cls.role_type is not None:
+            assert cls.role_type not in HANDLERS_BY_ROLE_TYPE
+
+            HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
     def __init__(self, request, request_type: RequestType):
         """
         Initialize a request, and perform all required validation.
+
         :param request: A dict containing a request
-        :param request_type: A RequestType, either CREATE or EDIT
+        :param request_type: An instance of :class:`RequestType`.
         """
         super().__init__()
         self.request_type = request_type
@@ -121,6 +126,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         Initialize a 'create' request. Performs validation and all
         necessary processing
+
         :param request: A dict containing a request
         """
         pass
@@ -130,6 +136,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         Initialize an 'edit' request. Performs validation and all
         necessary processing
+
         :param request: A dict containing a request
         """
         pass
@@ -138,7 +145,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         Initialize a 'termination' request. Performs validation and all
         necessary processing
-        :param uuid: The UUID to terminate
+
         :param request: A dict containing a request
 
         """
@@ -146,29 +153,55 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     @abc.abstractmethod
     def submit(self) -> str:
+        """Submit the request to LoRa.
+
+        :return: A string containing the result from submitting the
+        request to LoRa, typically a UUID.
+
         """
-        Submit the request to LoRa.
-        :return: A string containing the result from submitting the request
-        to LoRa, typically a UUID.
-        """
+        pass
         pass
 
 
 class OrgFunkRequestHandler(RequestHandler):
+    '''Abstract base class for automatically registering
+    `organisationsfunktion`-based handlers.'''
+
     __slots__ = ()
 
+    function_key = None
+    '''
+    When set, automatically register this class as a writing handler
+    for `organisationsfunktion` objects with the corresponding
+    ``funktionsnavn``.
+    '''
+
     termination_field = mapping.ORG_FUNK_GYLDIGHED_FIELD
+    '''The relation to change when terminating an employee tied to to an
+    ``organisationsfunktion`` objects tied for `organisationsfunktion`
+    objects with the corresponding ``funktionsnavn``.
+
+    '''
+
     termination_value = {
         'gyldighed': 'Inaktiv',
     }
+    '''On termination, the value to assign to the relation specified by
+    :py:attr:`termination_field`.
 
-    @abc.abstractmethod
-    def prepare_create(self, request: dict):
-        pass
+    '''
 
-    @abc.abstractmethod
-    def prepare_edit(self, request: dict):
-        pass
+    @classmethod
+    def _register(cls):
+        super()._register()
+
+        # sanity checks
+        if cls.function_key is not None:
+            assert cls.role_type is not None
+            assert cls.function_key not in HANDLERS_BY_FUNCTION_KEY
+
+            HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
+            FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
         self.uuid = request['uuid']
@@ -265,6 +298,7 @@ def inactivate_old_interval(old_from: str, old_to: str, new_from: str,
     :param new_to: The new 'to' time, in ISO-8601
     :param payload: An existing payload to add the updates to
     :param path: The path to where the object's 'gyldighed' is located
+
     :return: The payload with the inactivation updates added, if relevant
     """
     if old_from < new_from:
