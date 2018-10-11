@@ -26,6 +26,7 @@ import flask
 
 from . import address
 from . import facet
+from . import handlers
 from . import org
 from .. import common
 from .. import exceptions
@@ -51,7 +52,7 @@ class UnitDetails(enum.Enum):
     FULL = 2
 
 
-class OrgUnitRequestHandler(common.ReadingRequestHandler):
+class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     __slots__ = ()
 
     role_type = 'org_unit'
@@ -251,7 +252,7 @@ class OrgUnitRequestHandler(common.ReadingRequestHandler):
     def submit(self):
         c = lora.Connector()
 
-        if self.request_type == common.RequestType.CREATE:
+        if self.request_type == handlers.RequestType.CREATE:
             return c.organisationenhed.create(self.payload, self.uuid)
         else:
             return c.organisationenhed.update(self.payload, self.uuid)
@@ -608,7 +609,7 @@ def create_org_unit():
     """
 
     req = flask.request.get_json()
-    request = OrgUnitRequestHandler(req, common.RequestType.CREATE)
+    request = OrgUnitRequestHandler(req, handlers.RequestType.CREATE)
 
     return flask.jsonify(request.submit()), 201
 

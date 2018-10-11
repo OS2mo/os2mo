@@ -20,6 +20,7 @@ import uuid
 
 import flask
 
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -31,7 +32,7 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class ItsystemRequestHandler(common.OrgFunkRequestHandler):
+class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     __slots__ = ()
 
     role_type = 'it'

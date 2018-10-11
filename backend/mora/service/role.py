@@ -14,6 +14,7 @@ This section describes how to interact with employee roles.
 
 '''
 
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -22,7 +23,7 @@ from .. import util
 from .. import validator
 
 
-class RoleRequestHandler(common.OrgFunkRequestHandler):
+class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     __slots__ = ()
 
     role_type = 'role'

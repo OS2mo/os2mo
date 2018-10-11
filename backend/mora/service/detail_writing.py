@@ -20,13 +20,19 @@ For more information regarding reading relations, refer to:
 
 '''
 
-import uuid
-from typing import List
+import typing
 
 import flask
 
-from . import (engagement, manager, association, role, leave, itsystem,
-               address, orgunit)
+from . import address
+from . import association
+from . import engagement
+from . import handlers
+from . import itsystem
+from . import leave
+from . import manager
+from . import orgunit
+from . import role
 from .. import common
 from .. import exceptions
 
@@ -35,8 +41,8 @@ blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
 
 
 def handle_requests(
-    reqs: List[dict],
-    request_type: common.RequestType
+    reqs: typing.List[dict],
+    request_type: handlers.RequestType
 ):
     if isinstance(reqs, dict):
         is_single_request = True
@@ -49,9 +55,9 @@ def handle_requests(
             request=reqs,
         )
 
-    requests = common.generate_requests(reqs, request_type)
+    requests = handlers.generate_requests(reqs, request_type)
 
-    uuids = common.submit_requests(requests)
+    uuids = handlers.submit_requests(requests)
     if is_single_request:
         uuids = uuids[0]
     return uuids
@@ -359,7 +365,7 @@ def create():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, common.RequestType.CREATE)),
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.CREATE)),
         201
     )
 
@@ -817,6 +823,6 @@ def edit():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, common.RequestType.EDIT)),
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.EDIT)),
         200
     )

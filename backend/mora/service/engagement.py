@@ -16,6 +16,7 @@ employees and organisational units.
 '''
 import uuid
 
+from . import handlers
 from .. import common
 from .. import lora
 from .. import mapping
@@ -23,7 +24,7 @@ from .. import util
 from .. import validator
 
 
-class EngagementRequestHandler(common.OrgFunkRequestHandler):
+class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     __slots__ = ()
 
     role_type = 'engagement'

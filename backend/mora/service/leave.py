@@ -15,6 +15,7 @@ This section describes how to interact with employee leave.
 '''
 import uuid
 
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -23,7 +24,7 @@ from .. import util
 from .. import validator
 
 
-class LeaveRequestHandler(common.OrgFunkRequestHandler):
+class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
     __slots__ = ()
 
     role_type = 'leave'

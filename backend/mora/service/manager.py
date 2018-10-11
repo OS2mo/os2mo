@@ -15,6 +15,7 @@ This section describes how to interact with employee manager roles.
 import uuid
 
 from . import address
+from . import handlers
 from .. import common
 from .. import lora
 from .. import mapping
@@ -22,7 +23,7 @@ from .. import util
 from .. import validator
 
 
-class ManagerRequestHandler(common.OrgFunkRequestHandler):
+class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     __slots__ = ()
 
     role_type = 'manager'

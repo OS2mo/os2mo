@@ -201,6 +201,7 @@ import requests
 
 from . import employee
 from . import facet
+from . import handlers
 from . import orgunit
 from .. import common
 from .. import exceptions
@@ -375,7 +376,7 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
-class AddressRequestHandler(common.ReadingRequestHandler):
+class AddressRequestHandler(handlers.ReadingRequestHandler):
     __slots__ = ('obj_type', 'old_rel', 'new_rel')
 
     role_type = 'address'
@@ -403,7 +404,7 @@ class AddressRequestHandler(common.ReadingRequestHandler):
 
     def submit(self) -> str:
 
-        if self.request_type == common.RequestType.CREATE:
+        if self.request_type == handlers.RequestType.CREATE:
             return self._submit_create()
         else:
             return self._submit_edit()
@@ -450,7 +451,6 @@ class AddressRequestHandler(common.ReadingRequestHandler):
         scope.update(payload, self.uuid)
 
         return self.uuid
-
 
     @classmethod
     def has(cls, scope, reg):

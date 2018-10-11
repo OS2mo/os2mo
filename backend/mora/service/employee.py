@@ -22,6 +22,7 @@ import uuid
 
 import flask
 
+from . import handlers
 from . import org
 from .. import common
 from .. import exceptions
@@ -214,14 +215,14 @@ def terminate_employee(employee_uuid):
 
     c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
-    handlers = [
-        common.get_handler_for_function(obj)(
+    request_handlers = [
+        handlers.get_handler_for_function(obj)(
             {
                 'date': date,
                 'uuid': objid,
                 'original': obj,
             },
-            common.RequestType.TERMINATE,
+            handlers.RequestType.TERMINATE,
         )
         for objid, obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
@@ -229,7 +230,7 @@ def terminate_employee(employee_uuid):
         )
     ]
 
-    for handler in handlers:
+    for handler in request_handlers:
         handler.submit()
 
     # Write a noop entry to the user, to be used for the history
@@ -408,12 +409,12 @@ def create_employee():
                                            valid_to)
 
     # Validate the creation requests
-    details_requests = common.generate_requests(details_with_persons,
-                                                common.RequestType.CREATE)
+    details_requests = handlers.generate_requests(details_with_persons,
+                                                  handlers.RequestType.CREATE)
 
     userid = c.bruger.create(user, uuid=userid)
 
-    creation_uuids = common.submit_requests(details_requests)
+    creation_uuids = handlers.submit_requests(details_requests)
 
     return flask.jsonify(
         [userid] + creation_uuids if creation_uuids else userid)

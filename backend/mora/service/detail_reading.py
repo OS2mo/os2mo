@@ -25,15 +25,14 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
-import functools
 import itertools
-import operator
 
 import flask
 
 from . import address
 from . import employee
 from . import facet
+from . import handlers
 from . import itsystem
 from . import orgunit
 from .. import common
@@ -93,13 +92,13 @@ def list_details(type, id):
         functype: bool(
             c.organisationfunktion(funktionsnavn=funcname, **search),
         )
-        for functype, funcname in common.FUNCTION_KEYS.items()
+        for functype, funcname in handlers.FUNCTION_KEYS.items()
     }
 
     reg = scope.get(id)
 
-    for relname, cls in common.HANDLERS_BY_ROLE_TYPE.items():
-        if issubclass(cls, common.ReadingRequestHandler):
+    for relname, cls in handlers.HANDLERS_BY_ROLE_TYPE.items():
+        if issubclass(cls, handlers.ReadingRequestHandler):
             r[relname] = bool(cls.has(scope, reg))
 
     return flask.jsonify(r)
@@ -441,13 +440,13 @@ def get_detail(type, id, function):
     }
     scope = getattr(c, info.scope)
 
-    cls = common.get_handler_for_role_type(function)
+    cls = handlers.get_handler_for_role_type(function)
 
-    if issubclass(cls, common.ReadingRequestHandler):
+    if issubclass(cls, handlers.ReadingRequestHandler):
         return cls.get(scope, id)
 
     # ensure that we report an error correctly
-    if function not in common.FUNCTION_KEYS:
+    if function not in handlers.FUNCTION_KEYS:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
             type=function,
@@ -457,7 +456,7 @@ def get_detail(type, id, function):
         limit=int(flask.request.args.get('limit', 0)) or
         settings.DEFAULT_PAGE_SIZE,
         start=int(flask.request.args.get('start', 0)),
-        funktionsnavn=common.FUNCTION_KEYS[function],
+        funktionsnavn=handlers.FUNCTION_KEYS[function],
     )
 
     # TODO: the logic encoded in the functions below belong in the
