@@ -17,9 +17,15 @@ import unittest
 from . import util
 
 
+VUEDOC_CMD = os.path.join(util.FRONTEND_DIR,
+                          'node_modules', '.bin', 'vuedoc.md')
+
+
 class Tests(unittest.TestCase):
     maxDiff = None
 
+    @unittest.skipUnless(os.path.exists(VUEDOC_CMD),
+                         'vuedoc.md unavailable!')
     def test_is_vuedoc_uptodate(self):
         '''Check whether the VueDoc-generated files are up-to-date.'''
 
@@ -36,8 +42,7 @@ class Tests(unittest.TestCase):
 
         subprocess.check_call(
             [
-                os.path.join(util.FRONTEND_DIR,
-                             'node_modules', '.bin', 'vuedoc.md'),
+                VUEDOC_CMD,
                 '--output', tempdir,
                 *sources,
             ],
