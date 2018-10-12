@@ -75,10 +75,10 @@
         return this.validity != null
       },
 
+      /**
+       * Disabled organisation dates.
+       */
       orgUnitValidity () {
-        /**
-         * Disabled organisation dates.
-         */
         if (this.entry.org_unit) {
           return this.entry.org_unit.validity
         }

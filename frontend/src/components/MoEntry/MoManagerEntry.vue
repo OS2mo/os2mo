@@ -6,8 +6,17 @@
         label="Angiv enhed" 
         class="col unit-manager"
         required
+        v-if="!hideOrgPicker"
       />
     </div>
+
+      <label v-if="!hideEmployeePicker">{{$tc('input_fields.employee_optional')}}</label>
+      <mo-employee-picker
+        v-model="entry.person"
+        class="search-employee mb-3"
+        v-if="!hideEmployeePicker"
+        noLabel
+      />
 
       <mo-add-many
         class="address-manager"
@@ -55,6 +64,7 @@
   import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
   import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
   import MoAddMany from '@/components/MoAddMany/MoAddMany'
+  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 
@@ -65,6 +75,7 @@
       MoFacetPicker,
       MoAddressPicker,
       MoAddMany,
+      MoEmployeePicker,
       MoManagerAddressPicker,
       MoAddressEntry
     },
@@ -78,7 +89,17 @@
       /**
        * This boolean property hides validity.
        */
-      validityHidden: Boolean
+      validityHidden: Boolean,
+
+      /**
+       * This boolean property hide the org picker.
+       */
+      hideOrgPicker: Boolean,
+
+      /**
+       * This boolean property hide the employee picker.
+       */
+      hideEmployeePicker: Boolean
     },
 
     data () {
@@ -100,7 +121,7 @@
       },
 
       /**
-       * Adds the facetPicker to the add many component.
+       * Adds the facetPicker template to the add many component.
        */
       facetPicker () {
         return {
@@ -132,6 +153,9 @@
         }
       },
 
+      /**
+       * Adds the managerAddressPicker template to the add many component.
+       */
       managerAddressPicker () {
         return {
           components: {
