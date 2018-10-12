@@ -4,9 +4,8 @@ branch = True
 source =
      mora/
 omit =
-     mora/cli.py
-     mora/importing/aak_engagements.py
-     mora/importing/preimport.py
+     mora/cli/*
+     mora/importing/*
 
 [report]
 exclude_lines =
