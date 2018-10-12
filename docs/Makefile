@@ -4,7 +4,10 @@
 # You can set these variables from the command line.
 PYTHON = python3
 SPHINXOPTS    =
+SPHINXBUILD   = ../backend/venv/bin/sphinx-build
+ifeq ($(realpath $(SPHINXBUILD)),)
 SPHINXBUILD   = $(PYTHON) -msphinx
+endif
 SPHINXPROJ    = MORa
 SOURCEDIR     = .
 BUILDDIR      = out

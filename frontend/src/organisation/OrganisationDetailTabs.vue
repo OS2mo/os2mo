@@ -79,6 +79,7 @@
           content-type="manager"
           :columns="manager"
           @show="loadContent('manager', $event)"
+          :entry-component="timemachineFriendly ? undefined : components.manager"
         />
       </b-tab>
     </b-tabs>
@@ -93,6 +94,7 @@
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+  import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
 
   export default {
     components: {
@@ -166,7 +168,8 @@
         components: {
           orgUnit: MoOrganisationUnitEntry,
           address: MoAddressEntry,
-          itSystem: MoItSystemEntry
+          itSystem: MoItSystemEntry,
+          manager: MoManagerEntry
         }
       }
     },

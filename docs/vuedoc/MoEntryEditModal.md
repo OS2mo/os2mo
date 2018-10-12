@@ -63,6 +63,18 @@ A entry edit modal component.
 
    **dependencies:** `type` 
 
+- `hideOrgPicker` 
+
+  Get hideOrgPicker type. 
+
+   **dependencies:** `type` 
+
+- `hideEmployeePicker` 
+
+  Get hideEmployeePicker type. 
+
+   **dependencies:** `type` 
+
 - `hasEntryComponent` 
 
   If it has a entry component. 

@@ -14,8 +14,6 @@ This section describes how to interact with employee associations.
 
 '''
 
-import flask
-
 from . import address
 from .. import common
 from .. import exceptions
@@ -23,9 +21,6 @@ from .. import lora
 from .. import mapping
 from .. import util
 from .. import validator
-
-blueprint = flask.Blueprint('associations', __name__, static_url_path='',
-                            url_prefix='/service')
 
 
 @common.register_request_handler('association')

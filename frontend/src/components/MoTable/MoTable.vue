@@ -171,11 +171,22 @@
         this.$emit('selected-changed', newVal)
       },
 
+      /**
+       * Whenever contentAvailable change, set sortableContent to content.
+       */
       contentAvailable: function () {
         if (!this.sortableContent) {
           this.sortableContent = this.content
         }
-      }
+      },
+
+      /**
+       * Whenever content change, set sortableContent to content.
+       */
+      content () {
+        this.sortableContent = this.content
+      },
+      deep: true
     },
 
     methods: {

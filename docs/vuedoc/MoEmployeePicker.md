@@ -4,6 +4,8 @@ A employee picker component.
 
 ## props 
 
+- `value` ***Object*** (*optional*) 
+
 - `no-label` ***Boolean*** (*optional*) 
 
   This boolean property defines a noLabel value. 

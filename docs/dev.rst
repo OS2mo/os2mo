@@ -6,6 +6,7 @@ Technical Documentation
    :caption: Indhold:
    :glob:
 
+   cli
    dev/*
    api
    backend

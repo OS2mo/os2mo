@@ -31,6 +31,8 @@ A engagement entry component.
 
 - `orgUnitValidity` 
 
+  Disabled organisation dates. 
+
    **dependencies:** `entry`, `entry` 
 
 
