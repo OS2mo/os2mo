@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Service from '@/api/HttpCommon'
-import { SET_FACET, GET_FACET } from '../actions/facet'
 
 const state = {
   address_type: undefined,
@@ -16,7 +15,7 @@ const state = {
 }
 
 const actions = {
-  [SET_FACET] ({ state, rootState, commit }, payload) {
+  SET_FACET ({ state, rootState, commit }, payload) {
     if (state[payload.facet]) return
     return Service.get(`/o/${rootState.organisation.uuid}/f/${payload}/`)
       .then(response => {
@@ -25,7 +24,9 @@ const actions = {
           if (a.name > b.name) return 1
           return 0
         })
-        commit(SET_FACET, response.data)
+        response.data.classes = response.data.data.items
+        delete response.data.data.items
+        commit('SET_FACET', response.data)
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response })
@@ -34,13 +35,13 @@ const actions = {
 }
 
 const mutations = {
-  [SET_FACET] (state, payload) {
+  SET_FACET (state, payload) {
     Vue.set(state, payload.name, payload)
   }
 }
 
 const getters = {
-  [GET_FACET]: (state) => (id) => state[id] || {}
+  GET_FACET: (state) => (id) => state[id] || {}
 }
 
 export default {
