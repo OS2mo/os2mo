@@ -2,7 +2,7 @@
   <mo-select 
     v-model="selected" 
     :label="facetData.user_key" 
-    :options="facetData.data.items" 
+    :options="facetData.classes" 
     :required="required" 
     :disabled="isDisabled"
   />
@@ -14,7 +14,6 @@
    */
 
   import MoSelect from '@/components/atoms/MoSelect'
-  import {SET_FACET, GET_FACET} from '@/vuex/actions/facet'
 
   export default {
     name: 'MoFacetPicker',
@@ -38,7 +37,7 @@
 
     computed: {
       facetData () {
-        return this.$store.getters['facet/' + GET_FACET](this.facet)
+        return this.$store.getters['facet/GET_FACET'](this.facet)
       },
       isDisabled () {
         return this.preselectedUserKey !== undefined
@@ -59,7 +58,7 @@
     },
 
     created () {
-      this.$store.dispatch('facet/' + SET_FACET, this.facet)
+      this.$store.dispatch('facet/SET_FACET', this.facet)
     },
 
     mounted () {
@@ -72,7 +71,8 @@
 
     methods: {
       setPreselected () {
-        return this.facetData.filter(data => {
+        if (!this.facetData.classes) return [undefined]
+        return this.facetData.classes.filter(data => {
           return data.user_key === this.preselectedUserKey
         })
       }
