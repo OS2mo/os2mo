@@ -15,7 +15,10 @@
         </div>
       </div>
 
-      <organisation-detail-tabs :uuid="$route.params.uuid" :content="$store.getters['organisationUnit/GET_DETAILS']" @show="loadContent($event)"/>
+      <organisation-detail-tabs 
+        :uuid="$route.params.uuid" 
+        :content="$store.getters['organisationUnit/GET_DETAILS']" 
+        @show="loadContent($event)"/>
     </div>
   </div>
 </template>
@@ -28,7 +31,6 @@
   // import OrganisationUnit from '@/api/OrganisationUnit'
   import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
-  import { SET_ORG_UNIT, GET_ORG_UNIT, RESET_ORG_UNIT } from '@/vuex/actions/organisationUnit'
 
   export default {
     components: {
@@ -36,11 +38,11 @@
       OrganisationDetailTabs
     },
     created () {
-      this.$store.dispatch('organisationUnit/' + SET_ORG_UNIT, this.$route.params.uuid)
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
     },
     computed: {
       orgUnit () {
-        return this.$store.getters['organisationUnit/' + GET_ORG_UNIT]
+        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
       }
     },
     methods: {
@@ -49,7 +51,7 @@
       }
     },
     beforeRouteLeave (to, from, next) {
-      this.$store.commit('organisationUnit/' + RESET_ORG_UNIT)
+      this.$store.commit('organisationUnit/RESET_ORG_UNIT')
       next()
     }
   }

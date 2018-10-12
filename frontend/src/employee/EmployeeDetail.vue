@@ -16,7 +16,10 @@
         </div>
       </div>
 
-      <employee-detail-tabs :uuid="$route.params.uuid"/>
+      <employee-detail-tabs 
+        :uuid="$route.params.uuid"
+        :content="$store.getters['employee/GET_DETAILS']" 
+        @show="loadContent($event)"/>
     </div>
   </div>
 </template>
@@ -30,7 +33,6 @@
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
   import MoLoader from '@/components/atoms/MoLoader'
-  import {GET_EMPLOYEE, SET_EMPLOYEE, RESET_EMPLOYEE} from '@/vuex/actions/employee'
 
   export default {
     components: {
@@ -51,17 +53,23 @@
 
     computed: {
       employee () {
-        return this.$store.getters['employee/' + GET_EMPLOYEE]
+        return this.$store.getters['employee/GET_EMPLOYEE']
       }
     },
 
     created () {
-      this.$store.dispatch('employee/' + SET_EMPLOYEE, this.$route.params.uuid)
+      this.$store.dispatch('employee/SET_EMPLOYEE', this.$route.params.uuid)
+    },
+    methods: {
+      loadContent (event) {
+        this.$store.dispatch('employee/SET_DETAIL', event)
+      }
     },
     beforeRouteLeave (to, from, next) {
-      this.$store.commit('employee/' + RESET_EMPLOYEE)
+      this.$store.commit('employee/RESET_EMPLOYEE')
       next()
     }
+
   }
 </script>
 

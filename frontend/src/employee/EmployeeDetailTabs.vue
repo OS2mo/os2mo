@@ -115,16 +115,12 @@
        */
       uuid: String,
 
+      content: Object,
+
       /**
        * This Boolean property hides the actions.
        */
       hideActions: Boolean
-    },
-
-    computed: {
-      content () {
-        return this.$store.getters['employee/GET_DETAILS']
-      }
     },
 
     data () {
@@ -193,7 +189,7 @@
           validity: event,
           uuid: this.uuid
         }
-        this.$store.dispatch('employee/SET_DETAIL', payload)
+        this.$emit('show', payload)
       }
     }
   }
