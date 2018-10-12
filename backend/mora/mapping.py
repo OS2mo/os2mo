@@ -140,15 +140,6 @@ class FieldTuple(object):
 #
 
 
-FUNCTION_KEYS = {
-    'engagement': ENGAGEMENT_KEY,
-    'association': ASSOCIATION_KEY,
-    'role': ROLE_KEY,
-    'leave': LEAVE_KEY,
-    'manager': MANAGER_KEY,
-    'it': ITSYSTEM_KEY,
-}
-
 ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
     path=('tilstande', 'organisationfunktiongyldighed'),
     type=FieldTypes.ZERO_TO_ONE,

@@ -26,6 +26,7 @@ import flask
 
 from . import address
 from . import facet
+from . import handlers
 from . import org
 from .. import common
 from .. import exceptions
@@ -51,17 +52,23 @@ class UnitDetails(enum.Enum):
     FULL = 2
 
 
-class OrgUnit(common.AbstractRelationDetail):
-    def has(self, reg):
-        return self.scope.path == 'organisation/organisationenhed' and reg
+class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
+    __slots__ = ()
 
-    def get(self, objid):
-        if self.scope.path != 'organisation/organisationenhed':
+    role_type = 'org_unit'
+
+    @classmethod
+    def has(cls, scope, reg):
+        return scope.path == 'organisation/organisationenhed' and reg
+
+    @classmethod
+    def get(cls, scope, objid):
+        if scope.path != 'organisation/organisationenhed':
             raise exceptions.HTTPException(
                 exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
             )
 
-        c = common.get_connector()
+        c = scope.connector
 
         return flask.jsonify([
             get_one_orgunit(
@@ -71,7 +78,7 @@ class OrgUnit(common.AbstractRelationDetail):
                     mapping.TO: util.to_iso_date(end, is_end=True),
                 },
             )
-            for start, end, effect in c.organisationenhed.get_effects(
+            for start, end, effect in scope.get_effects(
                 objid,
                 {
                     'attributter': (
@@ -93,9 +100,6 @@ class OrgUnit(common.AbstractRelationDetail):
                   .get('gyldighed') == 'Aktiv'
         ])
 
-
-@common.register_request_handler('org_unit')
-class OrgUnitRequestHandler(common.RequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
 
@@ -248,7 +252,7 @@ class OrgUnitRequestHandler(common.RequestHandler):
     def submit(self):
         c = lora.Connector()
 
-        if self.request_type == common.RequestType.CREATE:
+        if self.request_type == handlers.RequestType.CREATE:
             return c.organisationenhed.create(self.payload, self.uuid)
         else:
             return c.organisationenhed.update(self.payload, self.uuid)
@@ -605,7 +609,7 @@ def create_org_unit():
     """
 
     req = flask.request.get_json()
-    request = OrgUnitRequestHandler(req, common.RequestType.CREATE)
+    request = OrgUnitRequestHandler(req, handlers.RequestType.CREATE)
 
     return flask.jsonify(request.submit()), 201
 

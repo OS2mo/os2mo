@@ -15,6 +15,7 @@ This section describes how to interact with employee leave.
 '''
 import uuid
 
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -23,8 +24,11 @@ from .. import util
 from .. import validator
 
 
-@common.register_request_handler('leave')
-class LeaveRequestHandler(common.OrgFunkRequestHandler):
+class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'leave'
+    function_key = mapping.LEAVE_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()

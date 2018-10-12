@@ -20,7 +20,8 @@ API changes
 Bug fixes
 ---------
 
-* TBD
+* #24150: When terminating an employee, mark any manager roles it
+  possesses as vacant rather than terminating them.
 
 Known bugs
 ----------
