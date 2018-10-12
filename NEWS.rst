@@ -28,6 +28,21 @@ Known bugs
 
 * #24134: Sorting doesn't work after performing an update.
 
+Version 0.10.1-post1, 2018-10-12
+================================
+
+Bug fixes
+---------
+
+* A missing check for Node packages broke the `mox
+  <http://github.com/magenta-aps/mox/>` test suite.
+
+Known bugs
+----------
+
+* #24134: Sorting doesn't work after performing an update.
+
+
 Version 0.10.1, 2018-10-08
 ==========================
 
