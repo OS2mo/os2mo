@@ -1,37 +1,49 @@
-import { LEAVE_EMPLOYEE, SET_EMPLOYEE, SET_VALIDITY, GET_EMPLOYEE, GET_VALIDITY } from '../actions/employeeLeave'
+import { LEAVE_EMPLOYEE, SET_EMPLOYEE, SET_LEAVE, GET_EMPLOYEE, GET_LEAVE } from '../actions/employeeLeave'
 import Service from '@/api/HttpCommon'
+import { EventBus } from '@/EventBus'
 
 const state = {
   employee: {},
-  validity: {
-    from: '',
-    to: ''
+  leave: {
+    person: {},
+    leave_type: {},
+    type: 'leave',
+    validity: {
+      from: '',
+      to: ''
+    }
   }
 }
 
 const actions = {
   [LEAVE_EMPLOYEE] ({commit, state}, payload) {
-    return Service.createEntry(state.employee.uuid, state.validity)
-      .then(response => {
-        if (response.data.error) {
-          return response.data
-        }
-        // store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response.data})
+    return Service.post('/details/create', [state.leave])
+    .then(response => {
+      if (response.data.error) {
         return response.data
-      })
+      }
+      EventBus.$emit('employee-changed')
+      this.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response.data})
+      return response.data
+    })
+    .catch(error => {
+      EventBus.$emit('employee-changed')
+      this.commit('log/newError', {type: 'ERROR', value: error.response})
+      return error.response
+    })
   }
 }
 
 const mutations = {
   change (state, employee) {
     state.employee = employee.employee
-    state.validity = employee.validity
+    state.leave = employee.leave
   },
   [SET_EMPLOYEE] (state, payload) {
     state.employee = payload
   },
-  [SET_VALIDITY] (state, payload) {
-    state.validity = payload
+  [SET_LEAVE] (state, payload) {
+    state.leave = payload
   }
 }
 
@@ -39,7 +51,7 @@ const getters = {
   getUuid: state => state.uuid,
   get: state => state,
   [GET_EMPLOYEE]: state => state.employee,
-  [GET_VALIDITY]: state => state.validity
+  [GET_LEAVE]: state => state.leave
 }
 
 export default {

@@ -1,5 +1,5 @@
 export const LEAVE_EMPLOYEE = 'LEAVE_EMPLOYEE'
 export const SET_EMPLOYEE = 'SET_EMPLOYEE'
 export const GET_EMPLOYEE = 'GET_EMPLOYEE'
-export const SET_VALIDITY = 'SET_VALIDITY'
-export const GET_VALIDITY = 'GET_VALIDITY'
+export const SET_LEAVE = 'SET_LEAVE'
+export const GET_LEAVE = 'GET_LEAVE'

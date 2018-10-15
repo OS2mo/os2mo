@@ -30,11 +30,10 @@
    * A employee create leave component.
    */
 
-  import Employee from '@/api/Employee'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
-  import { SET_EMPLOYEE, GET_EMPLOYEE, SET_VALIDITY, GET_VALIDITY } from '@/vuex/actions/employeeLeave'
+  import { LEAVE_EMPLOYEE, SET_EMPLOYEE, GET_EMPLOYEE, SET_LEAVE, GET_LEAVE } from '@/vuex/actions/employeeLeave'
 
   export default {
       /**
@@ -57,11 +56,7 @@
         * Used to detect changes and restore the value.
         */
         isLoading: false,
-        backendValidationError: null,
-        leave: {
-          person: null,
-          validity: {}
-        }
+        backendValidationError: null
       }
     },
 
@@ -74,9 +69,9 @@
         set (value) { this.$store.commit('employeeLeave/' + SET_EMPLOYEE, value) }
       },
 
-      validity: {
-        get () { return this.$store.getters['employeeLeave/' + GET_VALIDITY] },
-        set (value) { this.$store.commit('employeeLeave/' + SET_VALIDITY, value) }
+      leave: {
+        get () { return this.$store.getters['employeeLeave/' + GET_LEAVE] },
+        set (value) { this.$store.commit('employeeLeave/' + SET_LEAVE, value) }
       },
 
       /**
@@ -118,7 +113,7 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.leave([this.leave])
+          this.$store.dispatch('employeeLeave/' + LEAVE_EMPLOYEE)
             .then(response => {
               vm.isLoading = false
               if (response.error) {

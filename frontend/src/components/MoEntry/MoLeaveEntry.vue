@@ -3,7 +3,7 @@
     <div class="form-row">
       <mo-facet-picker 
         facet="leave_type" 
-        v-model="entry.leave_type" 
+        v-model="leave_type" 
         required
       />
     </div>
