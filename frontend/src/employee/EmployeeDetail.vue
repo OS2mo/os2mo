@@ -16,7 +16,10 @@
         </div>
       </div>
 
-      <employee-detail-tabs :uuid="$route.params.uuid"/>
+      <employee-detail-tabs 
+        :uuid="$route.params.uuid"
+        :content="$store.getters['employee/GET_DETAILS']" 
+        @show="loadContent($event)"/>
     </div>
   </div>
 </template>
@@ -26,7 +29,6 @@
    * A employee detail component.
    */
 
-  import Employee from '@/api/Employee'
   import '@/filters/CPRNumber'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
@@ -45,35 +47,29 @@
         * Used to detect changes and restore the value for columns.
         */
       return {
-        employee: Object,
         isLoading: false
       }
     },
 
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Show the employee.
-       */
-      this.getEmployee(this.$route.params.uuid)
+    computed: {
+      employee () {
+        return this.$store.getters['employee/GET_EMPLOYEE']
+      }
     },
 
+    created () {
+      this.$store.dispatch('employee/SET_EMPLOYEE', this.$route.params.uuid)
+    },
     methods: {
-      /**
-       * Get a employee.
-       */
-      getEmployee () {
-        let vm = this
-        vm.isLoading = true
-        let uuid = this.$route.params.uuid
-        Employee.get(uuid)
-          .then(response => {
-            vm.isLoading = false
-            vm.employee = response
-            vm.$store.commit('employee/change', response)
-          })
+      loadContent (event) {
+        this.$store.dispatch('employee/SET_DETAIL', event)
       }
+    },
+    beforeRouteLeave (to, from, next) {
+      this.$store.commit('employee/RESET_EMPLOYEE')
+      next()
     }
+
   }
 </script>
 

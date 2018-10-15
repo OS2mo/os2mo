@@ -7,6 +7,7 @@ import organisation from './modules/organisation'
 import organisationUnit from './modules/organisationUnit'
 import employeeTerminate from './modules/employeeTerminate'
 import employeeLeave from './modules/employeeLeave'
+import facet from './modules/facet'
 
 Vue.use(Vuex)
 
@@ -18,6 +19,7 @@ export default new Vuex.Store({
     organisation: organisation,
     organisationUnit: organisationUnit,
     employeeTerminate: employeeTerminate,
-    employeeLeave: employeeLeave
+    employeeLeave: employeeLeave,
+    facet: facet
   }
 })

@@ -47,6 +47,7 @@
     },
 
     props: {
+      value: Object,
       /**
        * This boolean property defines a noLabel value.
        */
@@ -89,6 +90,15 @@
       }
     },
 
+    watch: {
+      /**
+       * Whenever item change, update newVal.
+       */
+      item (newVal) {
+        this.$emit('input', newVal)
+      }
+    },
+
     methods: {
       /**
        * Get employee name.
@@ -115,6 +125,14 @@
       selected (value) {
         this.$emit('input', value)
       }
+    },
+
+    created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set item to value.
+       */
+      this.item = this.value
     }
   }
 </script>

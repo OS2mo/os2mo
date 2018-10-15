@@ -308,7 +308,7 @@
        */
       editOrganisationUnit (data) {
         return OrganisationUnit.edit([data]).then(this.handle.bind(this))
-      }
+      },
 
       handle (response) {
         this.isLoading = false

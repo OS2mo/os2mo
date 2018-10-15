@@ -15,7 +15,10 @@
         </div>
       </div>
 
-      <organisation-detail-tabs :uuid="$route.params.uuid"/>
+      <organisation-detail-tabs 
+        :uuid="$route.params.uuid" 
+        :content="$store.getters['organisationUnit/GET_DETAILS']" 
+        @show="loadContent($event)"/>
     </div>
   </div>
 </template>
@@ -25,7 +28,7 @@
    * A organisation detail component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
+  // import OrganisationUnit from '@/api/OrganisationUnit'
   import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
 
@@ -34,36 +37,22 @@
       MoHistory,
       OrganisationDetailTabs
     },
-
-    data () {
-      return {
-      /**
-        * The orgUnit component value.
-        * Used to detect changes and restore the value.
-        */
-        orgUnit: {}
+    created () {
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
+    },
+    computed: {
+      orgUnit () {
+        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
       }
     },
-
-    mounted () {
-      /**
-       * Whenever details change update.
-       */
-      this.updateDetails()
-    },
-
     methods: {
-      /**
-       * Get organisation unit.
-       */
-      updateDetails () {
-        var vm = this
-        OrganisationUnit.get(this.$route.params.uuid)
-          .then(response => {
-            vm.orgUnit = response
-            vm.$store.commit('organisationUnit/change', response)
-          })
+      loadContent (event) {
+        this.$store.dispatch('organisationUnit/SET_DETAIL', event)
       }
+    },
+    beforeRouteLeave (to, from, next) {
+      this.$store.commit('organisationUnit/RESET_ORG_UNIT')
+      next()
     }
   }
 </script>

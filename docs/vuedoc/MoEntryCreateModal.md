@@ -53,6 +53,18 @@ A entry create modal component.
 
    **dependencies:** `entryComponent` 
 
+- `hideOrgPicker` 
+
+  Get hideOrgPicker type. 
+
+   **dependencies:** `type` 
+
+- `hideEmployeePicker` 
+
+  Get hideEmployeePicker type. 
+
+   **dependencies:** `type` 
+
 
 ## methods 
 
