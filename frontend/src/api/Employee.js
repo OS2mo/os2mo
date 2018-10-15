@@ -152,24 +152,5 @@ export default {
         store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
         return response
       })
-  },
-
-  /**
-   * End an employee
-   * @param {String} uuid - employee uuid
-   * @param {Object} end - Object containing the end date
-   * @returns {Object} employee uuid
-   */
-  terminate (uuid, end) {
-    return Service.post(`/e/${uuid}/terminate`, end)
-      .then(response => {
-        EventBus.$emit('employee-changed')
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
-        return response.data
-      })
-      .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
-        return error.response
-      })
   }
 }

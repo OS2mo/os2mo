@@ -1,5 +1,6 @@
 import { TERMINATE_EMPLOYEE, SET_EMPLOYEE, SET_ENDDATE, GET_EMPLOYEE, GET_ENDDATE } from '../actions/employeeTerminate'
 import Service from '@/api/HttpCommon'
+import { EventBus } from '@/EventBus'
 
 const state = {
   employee: {},
@@ -10,16 +11,18 @@ const state = {
 
 const actions = {
   [TERMINATE_EMPLOYEE] ({commit, state}, payload) {
-    return Service.post(`/e/${state.employee.uuid}/terminate`, state.validity.to)
-      .then(response => {
-        // EventBus.$emit('employee-changed')
-        // store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
-        return response.data
-      })
-      .catch(error => {
-        // store.commit('log/newError', {type: 'ERROR', value: error.response})
-        return error.response
-      })
+    return Service.post(`/e/${state.employee.uuid}/terminate`, {
+      validity: state.validity
+    })
+    .then(response => {
+      EventBus.$emit('employee-changed')
+      this.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
+      return response.data
+    })
+    .catch(error => {
+      this.commit('log/newError', {type: 'ERROR', value: error.response})
+      return error.response.data
+    })
   }
 }
 

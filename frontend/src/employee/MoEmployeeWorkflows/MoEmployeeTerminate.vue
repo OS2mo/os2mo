@@ -22,12 +22,17 @@
           :label="$t('input_fields.end_date')" 
           v-model="validity"
           required
+          disableToDate
         />
       </div>
 
         <div class="mb-3" v-if="employee.uuid">
           <p>Følgende vil blive afsluttet for medarbejderen:</p>
           <mo-employee-detail-tabs :uuid="employee.uuid" hide-actions/>
+        </div>
+
+        <div class="alert alert-danger" v-if="backendValidationError">
+          {{$t('alerts.error.' + backendValidationError)}}
         </div>
 
         <div class="float-right">
@@ -42,12 +47,11 @@
    * A employee terminate component.
    */
 
-  import Employee from '@/api/Employee'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
-  import { SET_EMPLOYEE, GET_EMPLOYEE, SET_ENDDATE, GET_ENDDATE } from '@/vuex/actions/employeeTerminate'
+  import { TERMINATE_EMPLOYEE, SET_EMPLOYEE, GET_EMPLOYEE, SET_ENDDATE, GET_ENDDATE } from '@/vuex/actions/employeeTerminate'
 
   export default {
       /**
@@ -70,7 +74,8 @@
          * The terminate, employee, isLoading component value.
          * Used to detect changes and restore the value.
          */
-        isLoading: false
+        isLoading: false,
+        backendValidationError: null
       }
     },
 
@@ -83,6 +88,9 @@
         set (value) { this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, value) }
       },
 
+      /**
+       * Get and set a end date.
+       */
       validity: {
         get () { return this.$store.getters['employeeTerminate/' + GET_ENDDATE] },
         set (value) { this.$store.commit('employeeTerminate/' + SET_ENDDATE, value) }
@@ -121,10 +129,14 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.terminate(this.employee.uuid, this.validity)
+          this.$store.dispatch('employeeTerminate/' + TERMINATE_EMPLOYEE)
             .then(response => {
-              vm.isLoading = false
-              vm.$refs.employeeTerminate.hide()
+              if (response.error) {
+                vm.isLoading = false
+                vm.backendValidationError = response.error_key
+              } else {
+                vm.$refs.employeeTerminate.hide()
+              }
             })
         } else {
           this.$validator.validateAll()
