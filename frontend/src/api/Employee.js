@@ -86,17 +86,6 @@ export default {
       })
   },
 
-  leave (leave) {
-    return this.createEntry(leave)
-      .then(response => {
-        if (response.data.error) {
-          return response.data
-        }
-        store.commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value: response.data })
-        return response.data
-      })
-  },
-
   /**
    * Edit an employee
    * @param {String} uuid - employee uuid
