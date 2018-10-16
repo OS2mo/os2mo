@@ -12,7 +12,7 @@ const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
 const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
-const MoQuery = () => import('@/query/MoQuery')
+const QueryList = () => import('@/modules/query/QueryList')
 
 Vue.use(Router)
 
@@ -84,8 +84,8 @@ const router = new Router({
         },
         {
           path: '/forespoergsler',
-          name: 'Query',
-          component: MoQuery
+          name: 'QueryList',
+          component: QueryList
         },
         {
           path: '*',
