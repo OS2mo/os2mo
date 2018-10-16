@@ -5,7 +5,7 @@ New features
 ------------
 
 * #24400: Better documentation of command line interface.
-
+* #24750: Added functionality for listing and retrieving generated export files from external directory.
 
 Internal changes
 ----------------
