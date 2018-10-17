@@ -1,49 +1,78 @@
-import { TERMINATE_EMPLOYEE, SET_EMPLOYEE, SET_ENDDATE, GET_EMPLOYEE, GET_ENDDATE } from '../actions/employeeTerminate'
+import Vue from 'vue'
+import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus } from '@/EventBus'
 
 const state = {
   employee: {},
-  validity: {
-    to: ''
-  }
+  endDate: '',
+  details: {}
 }
 
 const actions = {
-  [TERMINATE_EMPLOYEE] ({commit, state}, payload) {
-    return Service.post(`/e/${state.employee.uuid}/terminate`, {
-      validity: state.validity
-    })
-    .then(response => {
-      EventBus.$emit('employee-changed')
-      this.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
-      return response.data
-    })
-    .catch(error => {
-      this.commit('log/newError', {type: 'ERROR', value: error.response})
-      return error.response.data
-    })
+  TERMINATE_EMPLOYEE ({ state, commit, dispatch }) {
+    let payload = {
+      validity: {
+        to: state.endDate
+      }
+    }
+    return Service.post(`/e/${state.employee.uuid}/terminate`, payload)
+      .then(response => {
+        EventBus.$emit('employee-changed')
+        commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: response.data })
+        dispatch('resetFields')
+        return response.data
+      })
+      .catch(error => {
+        commit('log/newError', { type: 'ERROR', value: error.response })
+        return error.response.data
+      })
+  },
+
+  // TODO: copypaste from the employee module. Need to be refactored
+  setDetails ({ state, commit }, payload) {
+    payload.validity = payload.validity || 'present'
+    let uuid = payload.uuid || state.employee.uuid
+    return Service.get(`/e/${uuid}/details/${payload.detail}?validity=${payload.validity}`)
+      .then(response => {
+        let content = {
+          key: payload.detail,
+          validity: payload.validity,
+          value: response.data
+        }
+        commit('setDetail', content)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  },
+
+  resetFields ({ commit }) {
+    commit('resetFields')
   }
 }
 
 const mutations = {
-  change (state, employee) {
-    state.employee = employee.employee
-    state.validity.to = employee.validity.to
+  updateField,
+
+  resetFields (state) {
+    state.employee = {}
+    state.endDate = ''
+    state.details = {}
   },
-  [SET_EMPLOYEE] (state, payload) {
-    state.employee = payload
-  },
-  [SET_ENDDATE] (state, payload) {
-    state.validity.to = payload
+
+  // todo: copy paste from employee module. need to be refactored
+  setDetail (state, payload) {
+    if (!state.details[payload.key]) {
+      Vue.set(state.details, payload.key, {})
+    }
+    Vue.set(state.details[payload.key], payload.validity, payload.value)
   }
 }
 
 const getters = {
-  getUuid: state => state.uuid,
-  get: state => state,
-  [GET_EMPLOYEE]: state => state.employee,
-  [GET_ENDDATE]: state => state.validity.to
+  getField,
+  getDetails: (state) => state.details || {}
 }
 
 export default {

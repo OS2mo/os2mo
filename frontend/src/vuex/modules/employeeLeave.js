@@ -1,55 +1,50 @@
-import { LEAVE_EMPLOYEE, SET_EMPLOYEE, SET_LEAVE, GET_EMPLOYEE, GET_LEAVE } from '../actions/employeeLeave'
+import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus } from '@/EventBus'
 
 const state = {
-  person: {},
-  leave_type: {},
-  type: 'leave',
-  validity: {
-    from: '',
-    to: ''
-  }
+  employee: {},
+  leave: {}
 }
 
 const actions = {
-  [LEAVE_EMPLOYEE] ({commit, state}, payload) {
-    return Service.post('/details/create', [state])
-    .then(response => {
-      if (response.data.error) {
+  LEAVE_EMPLOYEE ({ commit, state }) {
+    let payload = state.leave
+    payload.person = state.employee
+
+    // todo: all create calls are shared now. refactor to one central handler
+    return Service.post('/details/create', [payload])
+      .then(response => {
+        if (response.data.error) {
+          return response.data
+        }
+        EventBus.$emit('employee-changed')
+        commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value: response.data })
         return response.data
-      }
-      EventBus.$emit('employee-changed')
-      this.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response.data})
-      return response.data
-    })
-    .catch(error => {
-      EventBus.$emit('employee-changed')
-      this.commit('log/newError', {type: 'ERROR', value: error.response.data})
-      return error.response.data
-    })
+      })
+      .catch(error => {
+        EventBus.$emit('employee-changed')
+        commit('log/newError', { type: 'ERROR', value: error.response.data })
+        return error.response.data
+      })
+  },
+
+  resetFields ({ commit }) {
+    commit('resetFields')
   }
 }
 
 const mutations = {
-  change (state, employee) {
-    state.person = employee.person
-    state.leave_type = employee.leave_type
-    state.validity = employee.validity
-  },
-  [SET_EMPLOYEE] (state, payload) {
-    state.person = payload
-  },
-  [SET_LEAVE] (state, payload) {
-    state = payload
+  updateField,
+
+  resetFields (state) {
+    state.employee = {}
+    state.leave = {}
   }
 }
 
 const getters = {
-  getUuid: state => state.uuid,
-  get: state => state,
-  [GET_EMPLOYEE]: state => state.person,
-  [GET_LEAVE]: state => state
+  getField
 }
 
 export default {

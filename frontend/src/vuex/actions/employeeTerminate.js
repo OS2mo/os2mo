@@ -1,5 +1,0 @@
-export const TERMINATE_EMPLOYEE = 'TERMINATE_EMPLOYEE'
-export const SET_EMPLOYEE = 'SET_EMPLOYEE'
-export const GET_EMPLOYEE = 'GET_EMPLOYEE'
-export const SET_ENDDATE = 'SET_ENDDATE'
-export const GET_ENDDATE = 'GET_ENDDATE'

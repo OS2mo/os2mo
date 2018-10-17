@@ -30,6 +30,7 @@
    */
 
   import '@/filters/CPRNumber'
+  import { EventBus } from '@/EventBus'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
   import MoLoader from '@/components/atoms/MoLoader'
@@ -47,7 +48,8 @@
         * Used to detect changes and restore the value for columns.
         */
       return {
-        isLoading: false
+        isLoading: false,
+        latestEvent: undefined
       }
     },
 
@@ -60,8 +62,14 @@
     created () {
       this.$store.dispatch('employee/SET_EMPLOYEE', this.$route.params.uuid)
     },
+    mounted () {
+      EventBus.$on('employee-changed', () => {
+        this.loadContent(this.latestEvent)
+      })
+    },
     methods: {
       loadContent (event) {
+        this.latestEvent = event
         this.$store.dispatch('employee/SET_DETAIL', event)
       }
     },

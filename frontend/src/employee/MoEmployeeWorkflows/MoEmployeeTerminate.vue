@@ -4,40 +4,35 @@
     size="lg" 
     :title="$t('workflows.employee.terminate_employee')"
     ref="employeeTerminate"
-    @hidden="resetData"
+    @hidden="$store.dispatch('employeeTerminate/resetFields')"
     hide-footer 
     lazy
     no-close-on-backdrop
   >
-    <form @submit.stop.prevent="endEmployee">
+    <form @submit.stop.prevent="terminateEmployee">
       <div class="form-row">
-        <mo-employee-picker 
-          class="col search-employee" 
-          v-model="employee" 
-          required
-        />
+        <mo-employee-picker v-model="employee" class="col search-employee" required/>
 
-        <mo-date-picker 
-          class="from-date" 
-          :label="$t('input_fields.end_date')" 
-          v-model="validity"
-          required
-          disableToDate
+        <mo-date-picker v-model="endDate" :label="$t('input_fields.end_date')" class="from-date" required/>
+      </div>
+
+      <div class="mb-3" v-if="employee.uuid">
+        <p>{{$t('workflows.employee.messages.following_will_be_terminated')}}</p>
+        <employee-detail-tabs 
+          :uuid="employee.uuid"
+          :content="details" 
+          @show="loadContent($event)"
+          hide-actions
         />
       </div>
 
-        <div class="mb-3" v-if="employee.uuid">
-          <p>Følgende vil blive afsluttet for medarbejderen:</p>
-          <mo-employee-detail-tabs :uuid="employee.uuid" hide-actions/>
-        </div>
+      <div class="alert alert-danger" v-if="backendValidationError">
+        {{$t('alerts.error.' + backendValidationError)}}
+      </div>
 
-        <div class="alert alert-danger" v-if="backendValidationError">
-          {{$t('alerts.error.' + backendValidationError)}}
-        </div>
-
-        <div class="float-right">
-          <button-submit :is-loading="isLoading"/>
-        </div>
+      <div class="float-right">
+        <button-submit :is-loading="isLoading"/>
+      </div>
     </form>
   </b-modal>
 </template>
@@ -46,12 +41,12 @@
   /**
    * A employee terminate component.
    */
-
+  import { mapFields } from 'vuex-map-fields'
+  import { mapGetters } from 'vuex'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoEmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
-  import { TERMINATE_EMPLOYEE, SET_EMPLOYEE, GET_EMPLOYEE, SET_ENDDATE, GET_ENDDATE } from '@/vuex/actions/employeeTerminate'
+  import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
   export default {
       /**
@@ -65,43 +60,28 @@
       MoEmployeePicker,
       MoDatePicker,
       ButtonSubmit,
-      MoEmployeeDetailTabs
+      EmployeeDetailTabs
     },
 
     data () {
       return {
-        /**
-         * The terminate, employee, isLoading component value.
-         * Used to detect changes and restore the value.
-         */
         isLoading: false,
         backendValidationError: null
       }
     },
 
     computed: {
-      /**
-       * Get and set a employee.
-       */
-      employee: {
-        get () { return this.$store.getters['employeeTerminate/' + GET_EMPLOYEE] },
-        set (value) { this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, value) }
-      },
+      ...mapFields('employeeTerminate', [
+        'employee',
+        'endDate'
+      ]),
+
+      ...mapGetters({
+        details: 'employeeTerminate/getDetails'
+      }),
 
       /**
-       * Get and set a end date.
-       */
-      validity: {
-        get () { return this.$store.getters['employeeTerminate/' + GET_ENDDATE] },
-        set (value) { this.$store.commit('employeeTerminate/' + SET_ENDDATE, value) }
-      },
-
-      isDisabled () {
-        return !this.employee.uuid || !this.validity
-      },
-
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
+       * Check validity of form. this.fields is a magic property created by vee-validate
        */
       formValid () {
         return Object.keys(this.fields).every(field => {
@@ -111,28 +91,23 @@
     },
 
     methods: {
-      /**
-       * Resets the data fields.
-       */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-        this.$store.commit('employeeTerminate/' + SET_EMPLOYEE, {})
-        this.$store.commit('employeeTerminate/' + SET_ENDDATE, '')
+
+      loadContent (event) {
+        this.$store.dispatch('employeeTerminate/setDetails', event)
       },
 
       /**
        * Terminate employee and check if the data fields are valid.
        * Then throw a error if not.
        */
-      endEmployee (evt) {
-        evt.preventDefault()
+      terminateEmployee () {
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          this.$store.dispatch('employeeTerminate/' + TERMINATE_EMPLOYEE)
+          this.$store.dispatch('employeeTerminate/TERMINATE_EMPLOYEE')
             .then(response => {
+              vm.isLoading = false
               if (response.error) {
-                vm.isLoading = false
                 vm.backendValidationError = response.error_key
               } else {
                 vm.$refs.employeeTerminate.hide()
