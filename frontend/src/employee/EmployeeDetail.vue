@@ -19,7 +19,8 @@
       <employee-detail-tabs 
         :uuid="$route.params.uuid"
         :content="$store.getters['employee/GET_DETAILS']" 
-        @show="loadContent($event)"/>
+        @show="loadContent($event)"
+      />
     </div>
   </div>
 </template>
