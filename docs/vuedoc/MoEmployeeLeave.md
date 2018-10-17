@@ -6,39 +6,24 @@ A employee create leave component.
 
 - `isLoading` 
 
-  The leave, employee, isLoading, backendValidationError component value.
-  Used to detect changes and restore the value. 
-
 **initial value:** `false` 
 
 - `backendValidationError` 
 
 **initial value:** `null` 
 
-- `employee` 
-
-**initial value:** `[object Object]` 
-
-- `leave` 
-
-**initial value:** `[object Object]` 
-
 ## computed properties 
 
 - `formValid` 
 
-  Loop over all contents of the fields object and check if they exist and valid. 
+  Check validity of form. this.fields is a magic property created by vee-validate 
 
    **dependencies:** `fields`, `fields`, `fields` 
 
 
 ## methods 
 
-- `resetData()` 
-
-  Resets the data fields. 
-
-- `createLeave(evt)` 
+- `createLeave()` 
 
   Create leave and check if the data fields are valid.
   Then throw a error if not. 

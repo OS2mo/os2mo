@@ -28,7 +28,7 @@
    * A organisation detail component.
    */
 
-  // import OrganisationUnit from '@/api/OrganisationUnit'
+  import { EventBus } from '@/EventBus'
   import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
 
@@ -37,16 +37,27 @@
       MoHistory,
       OrganisationDetailTabs
     },
-    created () {
-      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
+    data () {
+      return {
+        latestEvent: undefined
+      }
     },
     computed: {
       orgUnit () {
         return this.$store.getters['organisationUnit/GET_ORG_UNIT']
       }
     },
+    created () {
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
+    },
+    mounted () {
+      EventBus.$on('organisation-unit-changed', () => {
+        this.loadContent(this.latestEvent)
+      })
+    },
     methods: {
       loadContent (event) {
+        this.latestEvent = event
         this.$store.dispatch('organisationUnit/SET_DETAIL', event)
       }
     },

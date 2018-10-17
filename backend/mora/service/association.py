@@ -15,6 +15,7 @@ This section describes how to interact with employee associations.
 '''
 
 from . import address
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -23,8 +24,12 @@ from .. import util
 from .. import validator
 
 
-@common.register_request_handler('association')
-class AssociationRequestHandler(common.OrgFunkRequestHandler):
+class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'association'
+    function_key = mapping.ASSOCIATION_KEY
+
     def prepare_create(self, req):
         c = lora.Connector()
 

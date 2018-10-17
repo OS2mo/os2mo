@@ -2,6 +2,10 @@
 
 A timemachine column component. 
 
+## props 
+
+- `store-id` ***String*** (*optional*) 
+
 ## data 
 
 - `date` 
@@ -18,4 +22,8 @@ A timemachine column component.
 - `orgUnit` 
 
 **initial value:** `null` 
+
+## methods 
+
+- `loadContent(event)` 
 

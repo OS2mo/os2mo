@@ -8,20 +8,18 @@ A employee detail tabs component.
 
   Defines a unique identifier which must be unique. 
 
+- `content` ***Object*** (*optional*) 
+
 - `hide-actions` ***Boolean*** (*optional*) 
 
   This Boolean property hides the actions. 
 
 ## data 
 
-- `isLoading` 
-
-  The isLoading, leave, it, address, engagement, association, role, manager component value.
-  Used to detect changes and restore the value for columns. 
-
-**initial value:** `false` 
-
 - `engagement` 
+
+  The leave, it, address, engagement, association, role, manager component value.
+  Used to detect changes and restore the value for columns. 
 
 **initial value:** `[object Object]` 
 
@@ -56,4 +54,12 @@ A employee detail tabs component.
   Used to add the components in the tabs. 
 
 **initial value:** `[object Object]` 
+
+## events 
+
+- `show` 
+
+## methods 
+
+- `loadContent(contentType, event)` 
 
