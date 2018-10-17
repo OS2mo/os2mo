@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker 
         class="search-employee" 
-        v-model="move.data.person" 
+        v-model="employee" 
         required
       />
 
@@ -20,7 +20,7 @@
         <mo-engagement-picker 
           class="mt-3" 
           v-model="original" 
-          :employee="move.data.person"
+          :employee="employee"
           required
         />
       </div>
@@ -29,7 +29,7 @@
         <mo-organisation-unit-picker
           :label="$t('input_fields.move_to')" 
           class="col" 
-          v-model="move.data.org_unit"
+          v-model="org_unit"
           required
         />       
       </div>
@@ -38,14 +38,14 @@
         <mo-date-picker 
           class="col from-date"
           :label="$t('input_fields.move_date')" 
-          v-model="move.data.validity.from"
+          v-model="dateFrom"
           :valid-dates="validDates"
           required
         />
       </div>
 
       <mo-confirm-checkbox
-        :entry-date="move.data.validity.from"
+        :entry-date="dateFrom"
         :entry-name="original.engagement_type.name"
         :entry-org-name="original.org_unit.name"
         v-if="dateConflict" 
@@ -68,13 +68,13 @@
    * A employee move component.
    */
 
-  import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
+  import { MOVE_EMPLOYEE, GET_EMPLOYEE, SET_EMPLOYEE, SET_ORG, GET_ORG, GET_VALIDITY, SET_VALIDITY } from '@/vuex/actions/employeeMove'
 
   export default {
       /**
@@ -113,23 +113,34 @@
     data () {
       return {
       /**
-        * The move, original, isLoading, backendValidationError component value.
+        * The original, isLoading, backendValidationError component value.
         * Used to detect changes and restore the value.
         */
         isLoading: false,
         backendValidationError: null,
-        original: null,
-        move: {
-          type: 'engagement',
-          person: {},
-          data: {
-            validity: {}
-          }
-        }
+        original: null
       }
     },
 
     computed: {
+      /**
+       * Get and set move data.
+       */
+      employee: {
+        get () { return this.$store.getters['employeeMove/' + GET_EMPLOYEE] },
+        set (value) { this.$store.commit('employeeMove/' + SET_EMPLOYEE, value) }
+      },
+
+      org_unit: {
+        get () { return this.$store.getters['employeeMove/' + GET_ORG] },
+        set (value) { this.$store.commit('employeeMove/' + SET_ORG, value) }
+      },
+
+      dateFrom: {
+        get () { return this.$store.getters['employeeMove/' + GET_VALIDITY] },
+        set (value) { this.$store.commit('employeeMove/' + SET_VALIDITY, value) }
+      },
+
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
@@ -143,11 +154,11 @@
        * Check if the dates are valid.
        */
       dateConflict () {
-        if (this.move.data.validity.from && this.original) {
+        if (this.dateFrom && this.original) {
           if (this.original.validity.to == null) return true
-          this.move.data.validity.from = new Date(this.move.data.validity.from)
+          this.dateFrom = new Date(this.dateFrom)
           this.original.validity.to = new Date(this.original.validity.to)
-          if (this.move.data.validity.from <= this.original.validity.to) return true
+          if (this.dateFrom <= this.original.validity.to) return true
         }
         return false
       },
@@ -156,7 +167,7 @@
        * Check if the organisation date are valid.
        */
       validDates () {
-        return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
+        return this.org_unit ? this.org_unit.validity : {}
       }
     },
 
@@ -177,9 +188,8 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          vm.move.uuid = this.original.uuid
 
-          Employee.move([this.move])
+          this.$store.dispatch('employeeMove/' + MOVE_EMPLOYEE)
             .then(response => {
               vm.isLoading = false
               if (response.error) {

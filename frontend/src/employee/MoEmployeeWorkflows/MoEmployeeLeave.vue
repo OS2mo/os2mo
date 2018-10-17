@@ -52,7 +52,7 @@
     data () {
       return {
       /**
-        * The leave, employee, isLoading, backendValidationError component value.
+        * The isLoading, backendValidationError component value.
         * Used to detect changes and restore the value.
         */
         isLoading: false,
@@ -69,6 +69,9 @@
         set (value) { this.$store.commit('employeeLeave/' + SET_EMPLOYEE, value) }
       },
 
+      /**
+       * Get and set leave data.
+       */
       leave: {
         get () { return this.$store.getters['employeeLeave/' + GET_LEAVE] },
         set (value) { this.$store.commit('employeeLeave/' + SET_LEAVE, value) }
@@ -102,6 +105,7 @@
        */
       resetData () {
         Object.assign(this.$data, this.$options.data())
+        this.$store.commit('employeeLeave/' + SET_EMPLOYEE, {})
       },
 
       /**

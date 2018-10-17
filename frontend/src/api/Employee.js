@@ -103,13 +103,5 @@ export default {
         store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
-  },
-
-  move (move) {
-    return this.edit(move)
-      .then(response => {
-        store.commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response })
-        return response
-      })
   }
 }
