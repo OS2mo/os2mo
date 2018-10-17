@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-
 '''Reading details
 ---------------
 
@@ -26,15 +25,14 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
-import functools
 import itertools
-import operator
 
 import flask
 
 from . import address
 from . import employee
 from . import facet
+from . import handlers
 from . import itsystem
 from . import orgunit
 from .. import common
@@ -54,11 +52,6 @@ DetailType = collections.namedtuple('DetailType', [
 DETAIL_TYPES = {
     'e': DetailType('tilknyttedebrugere', 'bruger'),
     'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
-}
-
-RELATION_TYPES = {
-    'address': address.Addresses,
-    'org_unit': orgunit.OrgUnit,
 }
 
 
@@ -99,13 +92,14 @@ def list_details(type, id):
         functype: bool(
             c.organisationfunktion(funktionsnavn=funcname, **search),
         )
-        for functype, funcname in mapping.FUNCTION_KEYS.items()
+        for functype, funcname in handlers.FUNCTION_KEYS.items()
     }
 
     reg = scope.get(id)
 
-    for relname, cls in RELATION_TYPES.items():
-        r[relname] = bool(cls(scope).has(reg))
+    for relname, cls in handlers.HANDLERS_BY_ROLE_TYPE.items():
+        if issubclass(cls, handlers.ReadingRequestHandler):
+            r[relname] = bool(cls.has(scope, reg))
 
     return flask.jsonify(r)
 
@@ -446,13 +440,13 @@ def get_detail(type, id, function):
     }
     scope = getattr(c, info.scope)
 
-    cls = RELATION_TYPES.get(function)
+    cls = handlers.get_handler_for_role_type(function)
 
-    if cls:
-        return cls(scope).get(id)
+    if issubclass(cls, handlers.ReadingRequestHandler):
+        return cls.get(scope, id)
 
     # ensure that we report an error correctly
-    if function not in mapping.FUNCTION_KEYS:
+    if function not in handlers.FUNCTION_KEYS:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
             type=function,
@@ -462,7 +456,7 @@ def get_detail(type, id, function):
         limit=int(flask.request.args.get('limit', 0)) or
         settings.DEFAULT_PAGE_SIZE,
         start=int(flask.request.args.get('start', 0)),
-        funktionsnavn=mapping.FUNCTION_KEYS[function],
+        funktionsnavn=handlers.FUNCTION_KEYS[function],
     )
 
     # TODO: the logic encoded in the functions below belong in the
@@ -607,6 +601,7 @@ def get_detail(type, id, function):
                     'adresser',
                     'organisatoriskfunktionstype',
                     'tilknyttedeenheder',
+                    'tilknyttedebrugere',
                 ),
                 'tilstande': (
                     'organisationfunktiongyldighed',
@@ -618,7 +613,6 @@ def get_detail(type, id, function):
                 ),
                 'relationer': (
                     'tilhoerer',
-                    'tilknyttedebrugere',
                     'tilknyttedeorganisationer',
                     'tilknyttedeitsystemer',
                 ),

@@ -22,6 +22,7 @@ import uuid
 
 import flask
 
+from . import handlers
 from . import org
 from .. import common
 from .. import exceptions
@@ -188,7 +189,8 @@ def get_employee(id):
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
-    specified date.
+    specified date. Except for the manager roles, which we vacate
+    instead.
 
     .. :quickref: Employee; Terminate
 
@@ -211,27 +213,25 @@ def terminate_employee(employee_uuid):
     """
     date = util.get_valid_to(flask.request.get_json())
 
-    # Org funks
-    types = (
-        mapping.ENGAGEMENT_KEY,
-        mapping.ASSOCIATION_KEY,
-        mapping.ROLE_KEY,
-        mapping.LEAVE_KEY,
-        mapping.MANAGER_KEY
-    )
+    c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
-    c = lora.Connector(effective_date=date)
-
-    for key in types:
-        for obj in c.organisationfunktion.get_all(
+    request_handlers = [
+        handlers.get_handler_for_function(obj)(
+            {
+                'date': date,
+                'uuid': objid,
+                'original': obj,
+            },
+            handlers.RequestType.TERMINATE,
+        )
+        for objid, obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
-            funktionsnavn=key
-        ):
-            c.organisationfunktion.update(
-                common.inactivate_org_funktion_payload(
-                    date,
-                    "Afslut medarbejder"),
-                obj[0])
+            gyldighed='Aktiv',
+        )
+    ]
+
+    for handler in request_handlers:
+        handler.submit()
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
@@ -409,12 +409,12 @@ def create_employee():
                                            valid_to)
 
     # Validate the creation requests
-    details_requests = common.generate_requests(details_with_persons,
-                                                common.RequestType.CREATE)
+    details_requests = handlers.generate_requests(details_with_persons,
+                                                  handlers.RequestType.CREATE)
 
     userid = c.bruger.create(user, uuid=userid)
 
-    creation_uuids = common.submit_requests(details_requests)
+    creation_uuids = handlers.submit_requests(details_requests)
 
     return flask.jsonify(
         [userid] + creation_uuids if creation_uuids else userid)

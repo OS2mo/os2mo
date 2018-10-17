@@ -16,6 +16,7 @@ employees and organisational units.
 '''
 import uuid
 
+from . import handlers
 from .. import common
 from .. import lora
 from .. import mapping
@@ -23,8 +24,11 @@ from .. import util
 from .. import validator
 
 
-@common.register_request_handler('engagement')
-class EngagementRequestHandler(common.OrgFunkRequestHandler):
+class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'engagement'
+    function_key = mapping.ENGAGEMENT_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()

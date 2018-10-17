@@ -201,6 +201,7 @@ import requests
 
 from . import employee
 from . import facet
+from . import handlers
 from . import orgunit
 from .. import common
 from .. import exceptions
@@ -375,11 +376,10 @@ def get_one_address(c, addrrel, class_cache=None):
         )
 
 
-@common.register_request_handler('address')
-class AddressRequestHandler(common.RequestHandler):
+class AddressRequestHandler(handlers.ReadingRequestHandler):
+    __slots__ = ('obj_type', 'old_rel', 'new_rel')
 
-    __slots__ = *common.RequestHandler.__slots__, 'obj_type', 'old_rel', \
-        'new_rel'
+    role_type = 'address'
 
     def __init__(self, *args, **kwargs):
         self.obj_type = None
@@ -404,7 +404,7 @@ class AddressRequestHandler(common.RequestHandler):
 
     def submit(self) -> str:
 
-        if self.request_type == common.RequestType.CREATE:
+        if self.request_type == handlers.RequestType.CREATE:
             return self._submit_create()
         else:
             return self._submit_edit()
@@ -452,10 +452,8 @@ class AddressRequestHandler(common.RequestHandler):
 
         return self.uuid
 
-
-class Addresses(common.AbstractRelationDetail):
-    @staticmethod
-    def has(reg):
+    @classmethod
+    def has(cls, scope, reg):
         return(
             reg and
             reg.get('relationer') and
@@ -467,8 +465,9 @@ class Addresses(common.AbstractRelationDetail):
             )
         )
 
-    def get(self, id):
-        c = self.scope.connector
+    @classmethod
+    def get(cls, scope, id):
+        c = scope.connector
 
         class_cache = common.cache(facet.get_one_class, c)
 
@@ -492,13 +491,13 @@ class Addresses(common.AbstractRelationDetail):
 
                 addr[mapping.VALIDITY] = util.get_effect_validity(addrrel)
 
-                if self.scope.path == 'organisation/bruger':
+                if scope.path == 'organisation/bruger':
                     addr[mapping.PERSON] = employee.get_one_employee(
                         c, id, effect,
                     )
 
                 else:
-                    assert self.scope.path == 'organisation/organisationenhed'
+                    assert scope.path == 'organisation/organisationenhed'
                     addr[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
                         c, id, effect,
                         details=orgunit.UnitDetails.MINIMAL,
@@ -508,7 +507,7 @@ class Addresses(common.AbstractRelationDetail):
 
         return flask.jsonify(
             sorted(
-                convert(self.scope.get(id)),
+                convert(scope.get(id)),
                 key=(
                     lambda v: (
                         util.get_valid_from(v) or util.NEGATIVE_INFINITY,

@@ -327,6 +327,7 @@ class TestCaseMixin(object):
     maxDiff = None
 
     def create_app(self, overrides=None):
+        os.makedirs(BUILD_DIR, exist_ok=True)
         session_dir = tempfile.mkdtemp(prefix='session', dir=BUILD_DIR)
 
         self.addCleanup(shutil.rmtree, session_dir)
