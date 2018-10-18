@@ -29,7 +29,7 @@ const actions = {
         commit('SET_FACET', response.data)
       })
       .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response })
+        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
       })
   }
 }

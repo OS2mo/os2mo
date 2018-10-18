@@ -14,7 +14,7 @@ const actions = {
         commit('setOrg', response.data)
       })
       .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response })
+        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
       })
   }
 }

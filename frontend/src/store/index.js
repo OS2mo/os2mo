@@ -12,7 +12,7 @@ import facet from './modules/facet'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  strict: true,
+  // strict: true,
   modules: {
     auth: auth,
     employee: employee,

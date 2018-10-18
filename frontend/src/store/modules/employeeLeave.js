@@ -19,12 +19,12 @@ const actions = {
           return response.data
         }
         EventBus.$emit('employee-changed')
-        commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value: response.data })
+        commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value: response.data }, { root: true })
         return response.data
       })
       .catch(error => {
         EventBus.$emit('employee-changed')
-        commit('log/newError', { type: 'ERROR', value: error.response.data })
+        commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
         return error.response.data
       })
   },

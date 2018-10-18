@@ -1,6 +1,6 @@
 import Service from './HttpCommon'
 import { EventBus } from '@/EventBus'
-import store from '@/vuex/store'
+import store from '@/store'
 
 export default {
 

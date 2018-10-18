@@ -51,7 +51,7 @@
    * A Navbar component.
    */
 
-  import {AUTH_LOGOUT} from '@/vuex/actions/auth'
+  import {AUTH_LOGOUT} from '@/store/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
   import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'

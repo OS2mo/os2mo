@@ -20,7 +20,7 @@ const actions = {
         // EventBus.$emit('organisation-changed', response.data.org)
       })
       .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response })
+        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
       })
   },
 
@@ -39,7 +39,7 @@ const actions = {
         commit('SET_DETAIL', content)
       })
       .catch(error => {
-        console.log(error)
+        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
       })
   }
 }
