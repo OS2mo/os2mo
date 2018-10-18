@@ -74,7 +74,7 @@
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
-  import { MOVE_EMPLOYEE, GET_EMPLOYEE, SET_EMPLOYEE, SET_ORG, GET_ORG, GET_VALIDITY, SET_VALIDITY } from '@/vuex/actions/employeeMove'
+  import { mapFields } from 'vuex-map-fields'
 
   export default {
       /**
@@ -123,23 +123,11 @@
     },
 
     computed: {
-      /**
-       * Get and set move data.
-       */
-      employee: {
-        get () { return this.$store.getters['employeeMove/' + GET_EMPLOYEE] },
-        set (value) { this.$store.commit('employeeMove/' + SET_EMPLOYEE, value) }
-      },
-
-      org_unit: {
-        get () { return this.$store.getters['employeeMove/' + GET_ORG] },
-        set (value) { this.$store.commit('employeeMove/' + SET_ORG, value) }
-      },
-
-      dateFrom: {
-        get () { return this.$store.getters['employeeMove/' + GET_VALIDITY] },
-        set (value) { this.$store.commit('employeeMove/' + SET_VALIDITY, value) }
-      },
+      ...mapFields('employeeMove', [
+        'employee',
+        'org_unit',
+        'dateFrom'
+      ]),
 
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
@@ -189,7 +177,7 @@
           let vm = this
           vm.isLoading = true
 
-          this.$store.dispatch('employeeMove/' + MOVE_EMPLOYEE)
+          this.$store.dispatch('employeeMove/MOVE_EMPLOYEE')
             .then(response => {
               vm.isLoading = false
               if (response.error) {
