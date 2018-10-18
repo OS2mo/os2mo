@@ -12,6 +12,7 @@ const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
 const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
+const OrganisationMapper = () => import('@/modules/OrganisationMapper')
 
 Vue.use(Router)
 
@@ -80,6 +81,11 @@ const router = new Router({
           path: '/tidsmaskine',
           name: 'Timemachine',
           component: MoTimeMachine
+        },
+        {
+          path: '/organisationssammenkobling',
+          name: 'OrganisationMapper',
+          component: OrganisationMapper
         },
         {
           path: '*',

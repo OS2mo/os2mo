@@ -3,11 +3,11 @@
     <div class="card-body d-flex flex-column">
       <h4 class="card-title">
         <icon name="folder-open"/>
-        Overblik
+        {{$t('shared.overview')}}
       </h4>
 
       <div id="tree-wrapper">
-        <mo-tree-view :org-uuid="orgUuid" linkable/>
+        <mo-tree-view v-model="selected" :org-uuid="orgUuid"/>
       </div>
     </div>
   </div>
@@ -25,7 +25,11 @@
     components: {
       MoTreeView
     },
-
+    data () {
+      return {
+        selected: undefined
+      }
+    },
     computed: {
       /**
        * Get organisation uuid.
@@ -33,6 +37,11 @@
       ...mapGetters({
         orgUuid: 'organisation/getUuid'
       })
+    },
+    watch: {
+      selected (val) {
+        this.$router.push({ name: 'OrganisationDetail', params: { uuid: val.uuid } })
+      }
     }
   }
 </script>

@@ -1,4 +1,6 @@
 {
+  "welcome_message": "Velkommen til MO",
+  "welcome_tagline": "Medarbejder | Organisation",
   "address": "Adresse | Adresser",
   "association": "Tilknytning | Tilknytninger",
   "date": {
@@ -11,5 +13,9 @@
   "it_system": "IT system | IT systemer",
   "manager": "Leder | Ledere",
   "role": "Rolle | Roller",
-  "unit": "Enhed | Enheder"
+  "unit": "Enhed | Enheder",
+  "overview": "Overblik",
+  "organisation": "Organisation | Organisationer",
+  "organisation_mapping": "Organisationssammenkobling",
+  "history": "Historik"
 }

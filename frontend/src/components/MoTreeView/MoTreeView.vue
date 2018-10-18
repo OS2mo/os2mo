@@ -3,25 +3,21 @@
     <mo-loader v-show="isLoading"/>
     <ul v-show="!isLoading">
       <mo-tree-view-item
-        v-for="(c, index) in children"
-        :key="index"
+        v-for="item in children"
+        :key="item.uuid"
         v-model="selectedOrgUnit"
-        :model="c"
-        :linkable="linkable"
-        :at-date="atDate"
-        first-open
+        :item="item"
+        @show-children="getOrgUnitChildren($event)"
+        unfold
       />
     </ul>
   </div>
 </template>
 
 <script>
-  /**
-   * A tree view component.
-   */
-
   import { EventBus } from '@/EventBus'
   import Organisation from '@/api/Organisation'
+  import OrganisationUnit from '@/api/OrganisationUnit'
   import MoTreeViewItem from './MoTreeViewItem'
   import MoLoader from '@/components/atoms/MoLoader'
 
@@ -32,33 +28,12 @@
     },
 
     props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
       value: Object,
-
-      /**
-       * Defines a orgUuid.
-       */
-      orgUuid: String,
-
-      /**
-       * This boolean property defines a able link.
-       */
-      linkable: Boolean,
-
-      /**
-       * Defines a atDate.
-       */
-      atDate: [Date, String]
+      orgUuid: String
     },
 
     data () {
       return {
-      /**
-       * The children, selectedOrgUnit, isLoading component value.
-       * Used to detect changes and restore the value.
-       */
         children: [],
         selectedOrgUnit: {},
         isLoading: false
@@ -66,36 +41,27 @@
     },
 
     watch: {
-      /**
-       * When orgUnit change, get children.
-       */
       orgUuid () {
-        this.getChildren()
+        this.getRootChildren()
       },
 
-      /**
-       * When atDate change, get children.
-       */
       atDate () {
-        this.getChildren()
+        this.getRootChildren()
       },
 
-      /**
-       * Whenever selectedOrgUnit change, update val.
-       */
-      selectedOrgUnit (val) {
-        this.$emit('input', val)
+      selectedOrgUnit: {
+        handler (val) {
+          this.$emit('input', val)
+        },
+        deep: true
       }
     },
 
     mounted () {
-      /**
-       * Whenever tree view change, update children.
-       */
-      this.getChildren()
+      this.getRootChildren()
 
       EventBus.$on('update-tree-view', () => {
-        this.getChildren()
+        this.getRootChildren()
       })
     },
 
@@ -103,7 +69,7 @@
       /**
        * Get organisation children.
        */
-      getChildren () {
+      getRootChildren () {
         if (this.orgUuid === undefined) return
         let vm = this
         vm.isLoading = true
@@ -111,6 +77,18 @@
           .then(response => {
             vm.isLoading = false
             vm.children = response
+          })
+      },
+
+      getOrgUnitChildren (event) {
+        // let vm = this
+        // vm.loading = true
+        // vm.model.children = []
+        OrganisationUnit.getChildren(event.uuid, this.atDate)
+          .then(response => {
+            console.log(response)
+            // vm.loading = false
+            // vm.model.children = response
           })
       }
     }
