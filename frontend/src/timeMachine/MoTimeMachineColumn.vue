@@ -40,7 +40,7 @@
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import MoTreeView from '@/components/MoTreeView/MoTreeView'
   import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
-  import orgUnit from '@/vuex/modules/organisationUnit'
+  import orgUnit from '@/store/modules/organisationUnit'
 
   export default {
     components: {

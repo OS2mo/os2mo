@@ -19,12 +19,12 @@ const actions = {
     return Service.post(`/e/${state.employee.uuid}/terminate`, payload)
       .then(response => {
         EventBus.$emit('employee-changed')
-        commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: response.data })
+        commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: response.data }, { root: true })
         dispatch('resetFields')
         return response.data
       })
       .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response })
+        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
         return error.response.data
       })
   },
