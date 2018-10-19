@@ -29,7 +29,11 @@
 
       <mo-search-bar class="ml-auto mr-auto"/>
 
-      <mo-time-machine-button/>
+      <router-link :to="{ name: 'Timemachine'}">
+        <button type="button" aria-label="Tidsmaskine" class="btn btn-link text-white">
+          <icon name="history"/>
+        </button>
+      </router-link>
 
       <help-button/>
 
@@ -53,7 +57,6 @@
 
   import {AUTH_LOGOUT} from '@/store/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
-  import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import Service from '@/api/HttpCommon'
@@ -61,7 +64,6 @@
   export default {
     components: {
       HelpButton,
-      MoTimeMachineButton,
       MoSearchBar,
       MoOrganisationPicker
     },

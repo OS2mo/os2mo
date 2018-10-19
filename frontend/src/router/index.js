@@ -1,94 +1,60 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import employeeRouter from '@/employee/router'
+import organisationRouter from '@/organisation/router'
+import timeMachineRouter from '@/modules/timeMachine/_router'
+
 const LoginPage = () => import('@/login/LoginPage')
 const Landing = () => import('@/landing/LandingPage')
 const MoBase = () => import('@/MoBase')
-const Organisation = () => import('@/organisation/Organisation')
-const OrganisationLandingPage = () => import('@/organisation/OrganisationLandingPage')
-const OrganisationDetail = () => import('@/organisation/OrganisationDetail')
-const Employee = () => import('@/employee/Employee')
-const MoEmployeeList = () => import('@/employee/MoEmployeeList')
-const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
-const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 
 Vue.use(Router)
 
-const router = new Router({
-  mode: 'history',
-  routes: [
-    {
-      path: '',
-      name: 'Landing',
-      component: Landing
-    },
-    {
-      path: '/login',
-      name: 'Login',
-      component: LoginPage
-    },
-    {
-      path: '/',
-      name: 'Base',
-      component: MoBase,
-      children: [
-        {
-          path: '/organisation',
-          name: 'Organisation',
-          component: Organisation,
-          redirect: { name: 'OrganisationLandingPage' },
+// TODO: this is a little messy, try and make it a bit more clean
 
-          children: [
-            {
-              path: '',
-              name: 'OrganisationLandingPage',
-              component: OrganisationLandingPage
-            },
-            {
-              path: ':uuid',
-              name: 'OrganisationDetail',
-              component: OrganisationDetail
-            }
-          ]
-        },
-        {
-          path: '/medarbejder',
-          name: 'Employee',
-          component: Employee,
-          redirect: { name: 'EmployeeList' },
+const GlobalRouter = [
+  {
+    path: '',
+    name: 'Landing',
+    component: Landing
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginPage
+  }
+]
 
-          children: [
-            {
-              path: 'liste',
-              name: 'EmployeeList',
-              component: MoEmployeeList
-            },
-            {
-              path: ':uuid',
-              name: 'EmployeeDetail',
-              component: EmployeeDetail
-            }
-          ]
-        },
-        {
-          path: '/hjaelp',
-          name: 'Help',
-          component: TheHelp
-        },
-        {
-          path: '/tidsmaskine',
-          name: 'Timemachine',
-          component: MoTimeMachine
-        },
-        {
-          path: '*',
-          name: 'PageNotFound',
-          component: PageNotFound
-        }
-      ]
+const BaseRouter = {
+  path: '/',
+  name: 'Base',
+  component: MoBase,
+  children: [
+    {
+      path: '/hjaelp',
+      name: 'Help',
+      component: TheHelp
     }
   ]
-})
+}
 
-export default router
+const PageNotFoundRouter = {
+  path: '*',
+  name: 'PageNotFound',
+  component: PageNotFound
+}
+
+BaseRouter.children.push(employeeRouter[0])
+BaseRouter.children.push(organisationRouter[0])
+BaseRouter.children.push(timeMachineRouter[0])
+// important page not found is last otherwise it overwrites all other routes
+BaseRouter.children.push(PageNotFoundRouter)
+
+const routes = GlobalRouter.concat([BaseRouter])
+
+export default new Router({
+  mode: 'history',
+  routes
+})
