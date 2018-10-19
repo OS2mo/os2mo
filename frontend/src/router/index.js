@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import employeeRouter from '@/employee/router'
 import organisationRouter from '@/organisation/router'
-import timeMachineRouter from '@/modules/timeMachine/_router'
+import timeMachineRouter from '@/modules/timeMachine/router'
 
 const LoginPage = () => import('@/login/LoginPage')
 const Landing = () => import('@/landing/LandingPage')
@@ -11,8 +11,6 @@ const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
 
 Vue.use(Router)
-
-// TODO: this is a little messy, try and make it a bit more clean
 
 const GlobalRouter = [
   {

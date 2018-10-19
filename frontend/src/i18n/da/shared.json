@@ -7,13 +7,12 @@
     "end_date": "Slutdato"
   },
   "employee": "Medarbejder | Medarbejdere",
+  "organisation": "Organisation | Organisationer",
   "engagement": "Engagement | Engagementer",
   "it_system": "IT system | IT systemer",
   "manager": "Leder | Ledere",
   "role": "Rolle | Roller",
   "unit": "Enhed | Enheder",
-  "past": "Fortid",
-  "present": "Nutid",
-  "future": "Fremtid",
-  "time_machine": "Tidsmaskine | Tidsmaskinen"
+  "leave": "Orlov",
+  "manager_function": "Lederfunktion | Lederfunktioner"
 }
