@@ -31,7 +31,7 @@ class Tests(util.TestCase):
     @mock.patch('mora.service.exports.os.path.isfile')
     @mock.patch('mora.service.exports.os.listdir')
     def test_list_export_files_returns_filenames(self, mock_listdir,
-                                                mock_isfile):
+                                                 mock_isfile):
         """Ensure that we only return filenames from the export directory"""
         filenames = ['file1', 'file2']
 

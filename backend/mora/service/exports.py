@@ -22,7 +22,19 @@ blueprint = flask.Blueprint('exports', __name__, static_url_path='',
 def list_export_files():
     """
     List the available exports
+
+    .. :quickref: Exports; List
+
     :return: A list of available export files
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+      [
+        "export1.xlsx",
+        "export2.xlsx"
+      ]
     """
     export_dir = flask.current_app.config['QUERY_EXPORT_DIR']
     if not os.path.isdir(export_dir):
@@ -43,7 +55,11 @@ def list_export_files():
 def get_export_file(file_name: str):
     """
     Fetch a export file with a given name
-    :param file_name: Name of the export file
+
+    .. :quickref: Exports; Get
+
+    :param string file_name: Name of the export file
+
     :return: The file corresponding to the given export file name
     """
     export_dir = flask.current_app.config['QUERY_EXPORT_DIR']
