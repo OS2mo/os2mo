@@ -9,6 +9,7 @@ function state () {
     uuid: undefined,
     org_uuid: undefined,
     parent_uuid: undefined,
+    user_settings: undefined,
     details: {}
   }
 }
@@ -53,6 +54,7 @@ const mutations = {
     state.uuid = payload.uuid
     state.org_uuid = payload.org.uuid
     state.parent_uuid = payload.parent.uuid
+    state.user_settings = payload.user_settings
   },
 
   RESET_ORG_UNIT (state) {
@@ -62,6 +64,7 @@ const mutations = {
     state.uuid = undefined
     state.org_uuid = undefined
     state.parent_uuid = undefined
+    state.user_settings = undefined
     state.details = {}
   },
 
