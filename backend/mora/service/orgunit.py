@@ -23,17 +23,15 @@ import operator
 import uuid
 
 import flask
-import werkzeug
 
 from . import address
-from .. import common
 from . import facet
-from . import itsystem
-from . import manager
-from .. import mapping
+from . import handlers
 from . import org
+from .. import common
 from .. import exceptions
 from .. import lora
+from .. import mapping
 from .. import settings
 from .. import util
 from .. import validator
@@ -54,15 +52,23 @@ class UnitDetails(enum.Enum):
     FULL = 2
 
 
-class OrgUnit(common.AbstractRelationDetail):
-    def has(self, reg):
-        return self.scope.path == 'organisation/organisationenhed' and reg
+class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
+    __slots__ = ()
 
-    def get(self, objid):
-        if self.scope.path != 'organisation/organisationenhed':
-            raise werkzeug.exceptions.NotFound('not an organisation unit!')
+    role_type = 'org_unit'
 
-        c = common.get_connector()
+    @classmethod
+    def has(cls, scope, reg):
+        return scope.path == 'organisation/organisationenhed' and reg
+
+    @classmethod
+    def get(cls, scope, objid):
+        if scope.path != 'organisation/organisationenhed':
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
+            )
+
+        c = scope.connector
 
         return flask.jsonify([
             get_one_orgunit(
@@ -72,7 +78,7 @@ class OrgUnit(common.AbstractRelationDetail):
                     mapping.TO: util.to_iso_date(end, is_end=True),
                 },
             )
-            for start, end, effect in c.organisationenhed.get_effects(
+            for start, end, effect in scope.get_effects(
                 objid,
                 {
                     'attributter': (
@@ -94,12 +100,79 @@ class OrgUnit(common.AbstractRelationDetail):
                   .get('gyldighed') == 'Aktiv'
         ])
 
-    def edit(self, unitid, req):
+    def prepare_create(self, req):
+        c = lora.Connector()
+
+        req = flask.request.get_json()
+
+        name = util.checked_get(req, mapping.NAME, "", required=True)
+
+        unitid = util.get_uuid(req, required=False)
+        bvn = util.checked_get(req, mapping.USER_KEY,
+                               "{} {}".format(name, uuid.uuid4()))
+
+        parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
+        organisationenhed_get = c.organisationenhed.get(parent_uuid)
+
+        if organisationenhed_get:
+            org_uuid = organisationenhed_get['relationer']['tilhoerer'][0][
+                'uuid']
+        else:
+            organisation_get = c.organisation(uuid=parent_uuid)
+
+            if organisation_get:
+                org_uuid = parent_uuid
+            else:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
+                    parent_uuid=parent_uuid,
+                    org_unit_uuid=unitid,
+                )
+
+        org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
+                                                   required=False)
+
+        addresses = [
+            address.get_relation_for(addr)
+            for addr in util.checked_get(req, mapping.ADDRESSES, [])
+        ]
+        valid_from = util.get_valid_from(req)
+        valid_to = util.get_valid_to(req)
+
+        org_unit = common.create_organisationsenhed_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            enhedsnavn=name,
+            brugervendtnoegle=bvn,
+            tilhoerer=org_uuid,
+            enhedstype=org_unit_type_uuid,
+            overordnet=parent_uuid,
+            adresser=addresses,
+        )
+
+        if org_uuid != parent_uuid:
+            validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
+                                                      valid_to)
+
+        self.payload = org_unit
+        self.uuid = unitid
+
+    def prepare_edit(self, req: dict):
+        original_data = util.checked_get(req, 'original', {}, required=False)
+        data = util.checked_get(req, 'data', {}, required=True)
+
+        unitid = util.get_uuid(data, fallback=original_data)
+
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         original = c.organisationenhed.get(uuid=unitid)
 
-        data = req.get('data')
+        if not original:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+                org_unit_uuid=unitid,
+            )
+
         new_from, new_to = util.get_validities(data)
 
         # Get org unit uuid for validation purposes
@@ -107,14 +180,11 @@ class OrgUnit(common.AbstractRelationDetail):
             original, mapping.PARENT_FIELD.path)[-1]
         parent_uuid = util.get_uuid(parent)
 
-        org = util.get_obj_value(
-            original, mapping.BELONGS_TO_FIELD.path)[-1]
-        org_uuid = util.get_uuid(org)
+        org_uuid = util.get_obj_uuid(original, mapping.BELONGS_TO_FIELD.path)
 
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
 
-        original_data = req.get('original')
         if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
@@ -122,6 +192,15 @@ class OrgUnit(common.AbstractRelationDetail):
                 old_from, old_to, new_from, new_to, payload,
                 ('tilstande', 'organisationenhedgyldighed')
             )
+
+            original_uuid = util.get_mapping_uuid(original_data,
+                                                  mapping.ORG_UNIT)
+
+            if original_uuid and original_uuid != unitid:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    'cannot change unit uuid!',
+                )
 
         update_fields = list()
 
@@ -167,20 +246,16 @@ class OrgUnit(common.AbstractRelationDetail):
         if org_uuid != parent_uuid:
             validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
                                                       new_to)
+        self.payload = payload
+        self.uuid = unitid
 
-        c.organisationenhed.update(payload, unitid)
+    def submit(self):
+        c = lora.Connector()
 
-    def create(self, id, req):
-        raise werkzeug.exceptions.NotImplemented
-
-
-RELATION_TYPES = {
-    'address': address.Addresses,
-    'it': itsystem.ITSystems,
-    'org_unit': OrgUnit,
-}
-
-ORGFUNC_TYPES = {'manager': manager.create_manager}
+        if self.request_type == handlers.RequestType.CREATE:
+            return c.organisationenhed.create(self.payload, self.uuid)
+        else:
+            return c.organisationenhed.update(self.payload, self.uuid)
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -205,10 +280,7 @@ def get_one_orgunit(c, unitid, unit=None,
         'uuid': unitid,
     }
 
-    if details is UnitDetails.MINIMAL:
-        pass
-
-    elif details is UnitDetails.NCHILDREN:
+    if details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
 
         r['child_count'] = len(children)
@@ -255,10 +327,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'invalid details {!r}'.format(details),
-        )
+        assert details is UnitDetails.MINIMAL, 'enum is {}!?'.format(details)
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
@@ -329,7 +398,10 @@ def get_children(type, parentid):
     obj = scope.get(parentid)
 
     if not obj or not obj.get('attributter'):
-        raise werkzeug.exceptions.NotFound
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            org_unit_uuid=parentid,
+        )
 
     children = [
         get_one_orgunit(c, childid, child)
@@ -371,7 +443,7 @@ def get_orgunit(unitid):
     .. sourcecode:: json
 
       {
-        "location:'Overordnet Enhed/Humanistisk fakultet/Historisk Institut'
+        "location": "Overordnet Enhed/Humanistisk fakultet/Historisk Institut",
         "name": "Afdeling for Fortidshistorik",
         "user_key": "frem",
         "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
@@ -545,333 +617,10 @@ def create_org_unit():
 
     """
 
-    c = lora.Connector()
-
     req = flask.request.get_json()
+    request = OrgUnitRequestHandler(req, handlers.RequestType.CREATE)
 
-    name = util.checked_get(req, mapping.NAME, "", required=True)
-
-    unitid = util.get_uuid(req, required=False)
-    bvn = util.checked_get(req, mapping.USER_KEY,
-                           "{} {}".format(name, uuid.uuid4()))
-
-    parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
-    organisationenhed_get = c.organisationenhed.get(parent_uuid)
-
-    if organisationenhed_get:
-        org_uuid = organisationenhed_get['relationer']['tilhoerer'][0]['uuid']
-    else:
-        organisation_get = c.organisation(uuid=parent_uuid)
-
-        if organisation_get:
-            org_uuid = parent_uuid
-        else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
-                parent_uuid=parent_uuid,
-                org_unit_uuid=unitid,
-            )
-
-    org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
-                                               required=False)
-
-    addresses = [
-        address.get_relation_for(addr)
-        for addr in util.checked_get(req, mapping.ADDRESSES, [])
-    ]
-    valid_from = util.get_valid_from(req)
-    valid_to = util.get_valid_to(req)
-
-    org_unit = common.create_organisationsenhed_payload(
-        valid_from=valid_from,
-        valid_to=valid_to,
-        enhedsnavn=name,
-        brugervendtnoegle=bvn,
-        tilhoerer=org_uuid,
-        enhedstype=org_unit_type_uuid,
-        overordnet=parent_uuid,
-        adresser=addresses,
-    )
-
-    if org_uuid != parent_uuid:
-        validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                                  valid_to)
-
-    unitid = c.organisationenhed.create(org_unit, unitid)
-
-    return flask.jsonify(unitid)
-
-
-@blueprint.route('/ou/<uuid:unitid>/edit', methods=['POST'])
-def edit_org_unit(unitid):
-    """Edits an organisational unit
-
-    .. :quickref: Unit; Edit
-
-    :statuscode 200: The edit succeeded.
-
-    :param unitid: The UUID of the organisational unit.
-
-    :<jsonarr string type: The type of the operation, defaulting to
-        ``org_unit``.
-    :<jsonarr object original: An **optional** object containing the original
-        state of the org unit to be overwritten. If supplied, the change will
-        modify the existing registration on the org unit object.
-        Detailed below.
-    :<jsonarr object data: An object containing the changes to be made to the
-        org unit. Detailed below.
-
-    The **original** and **data** objects follow the same structure.
-    Every field in **original** is required, whereas **data** only needs
-    to contain the fields that need to change along with the validity dates.
-
-    :<json string name: The name of the org unit
-    :<json string parent: The parent org unit
-    :<json string org_unit_type: The type of org unit
-    :<json object validity: The validities of the changes.
-
-    The parameter ``org_unit_type`` should contain
-    an UUID obtained from the respective facet endpoint.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-
-    Validity objects are defined as such:
-
-    :<json string from: The from date, in ISO 8601.
-    :<json string to: The to date, in ISO 8601.
-
-    **Example Request**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "original": {
-            "name": "Pandekagehuset",
-            "parent": {
-              "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-            },
-            "org_unit_type": {
-              "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
-            },
-            "validity": {
-              "from": "2016-01-01",
-              "to": null
-            }
-          },
-          "data": {
-            "name": "Vaffelhuset",
-            "validity": {
-              "from": "2016-01-01",
-            }
-          }
-        }
-      ]
-
-    **Address**:
-
-    :<jsonarr string type: ``"address"``
-    :<jsonarr object address_type: The type of the address, exactly as
-        returned by returned by
-        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr string value: The value of the address field. Please
-        note that as a special case, this should be a UUID for *DAR*
-        addresses.
-    :<jsonarr object validity: A validity object
-
-    See :ref:`Adresses <address>` for more information.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "original": {
-            "value": "0101501234",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "data": {
-            "value": "123456789",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "type": "address",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }
-      ]
-
-    """
-
-    reqs = flask.request.get_json()
-
-    if isinstance(reqs, dict):
-        reqs = [reqs]
-
-    for req in reqs:
-        role_type = req.get('type', 'org_unit')
-        handler = RELATION_TYPES.get(role_type)
-
-        if not handler:
-            return flask.jsonify('Unknown role type: ' + role_type), 400
-
-        handler(common.get_connector().organisationenhed).edit(
-            str(unitid),
-            req,
-        )
-
-    # TODO:
-    return flask.jsonify(unitid), 200
-
-
-@blueprint.route('/ou/<uuid:unitid>/create', methods=['POST'])
-def create_org_unit_relation(unitid):
-    """Creates new unit relations
-
-    .. :quickref: Unit; Create relation
-
-    :statuscode 200: Creation succeeded.
-
-    :param unitid: The UUID of the organisational unit.
-
-    All requests contain validity objects on the following form:
-
-    :<jsonarr string from: The from date, in ISO 8601.
-    :<jsonarr string to: The to date, in ISO 8601.
-
-    .. sourcecode:: json
-
-      {
-        "from": "2016-01-01",
-        "to": "2017-12-31",
-      }
-
-    Request payload contains a list of creation objects, each differentiated
-    by the attribute ``type``. Each of these object types are detailed below:
-
-
-    **Address**:
-
-    :<jsonarr string type: ``"address"``
-    :<jsonarr object address_type: The type of the address, exactly as
-        returned by returned by
-        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr string value: The value of the address field. Please
-        note that as a special case, this should be a UUID for *DAR*
-        addresses.
-    :<jsonarr object validity: A validity object
-
-    See :ref:`Adresses <address>` for more information.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "value": "0101501234",
-          "address_type": {
-            "example": "5712345000014",
-            "name": "EAN",
-            "scope": "EAN",
-            "user_key": "EAN",
-            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-          },
-          "type": "address",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }
-      ]
-
-    **Manager**:
-
-    If managers are created through the ou/ endpoint, they will be be created
-    as vacant, ie without an associated employee. To create a manager role that
-    is connected to an employee, use the e/ endpoint.
-
-    :<jsonarr string type: **"manager"**
-    :<jsonarr string manager_type: The manager type
-    :<jsonarr array responsibility: The manager responsibilities
-    :<jsonarr string manager_level: The manager level
-    :<jsonarr string address: The associated address.
-    :<jsonarr object validity: The validities of the created object.
-
-    The parameters ``manager_type``, ``responsibility`` and ``manager_level``
-    should contain UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    For the ``address`` parameter, see :ref:`Adresses <address>`.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "type": "manager",
-          "manager_type": {
-            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-          },
-          "responsibility": [
-            {
-              "uuid": "e6b24f90-b056-433b-ad65-e6ab95d25826"
-            }
-          ],
-          "manager_level": {
-            "uuid": "f17f2d60-9750-4577-a367-8a5f065b63fa"
-          },
-          "address": {
-            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": {
-              "example": "<UUID>",
-              "name": "Adresse",
-              "scope": "DAR",
-              "user_key": "Adresse",
-              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-            }
-          },
-          "validity": {
-            "from": "2016-01-01T00:00:00+00:00",
-            "to": "2018-01-01T00:00:00+00:00"
-          }
-        }
-      ]
-    """
-
-    reqs = flask.request.get_json()
-
-    if not isinstance(reqs, list):
-        return flask.jsonify('Root object must be a list!'), 400
-
-    if not all('type' in r and r['type'] in
-               (list(RELATION_TYPES.keys()) + list(ORGFUNC_TYPES.keys()))
-               for r in reqs):
-        return flask.jsonify('Invalid role types!'), 400
-
-    for req in reqs:
-        if req['type'] in ORGFUNC_TYPES:
-            ORGFUNC_TYPES.get(req['type'])(
-                employee_uuid=None,
-                org_unit_uuid=str(unitid),
-                req=req)
-        else:
-            RELATION_TYPES.get(req['type'])(
-                common.get_connector().organisationenhed,
-            ).create(
-                str(unitid),
-                req,
-            )
-
-    # TODO:
-    return flask.jsonify(unitid), 200
+    return flask.jsonify(request.submit()), 201
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])

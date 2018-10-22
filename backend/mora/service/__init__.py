@@ -9,19 +9,23 @@
 from . import address
 from . import cpr
 from . import employee
-from . import details
+from . import detail_reading
+from . import detail_writing
 from . import facet
 from . import itsystem
 from . import org
 from . import orgunit
+from . import exports
 
 blueprints = (
     address.blueprint,
     cpr.blueprint,
     employee.blueprint,
-    details.blueprint,
+    detail_reading.blueprint,
+    detail_writing.blueprint,
     facet.blueprint,
     itsystem.blueprint,
     org.blueprint,
     orgunit.blueprint,
+    exports.blueprint,
 )

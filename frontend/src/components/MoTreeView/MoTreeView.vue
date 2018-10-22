@@ -16,6 +16,10 @@
 </template>
 
 <script>
+  /**
+   * A tree view component.
+   */
+
   import { EventBus } from '@/EventBus'
   import Organisation from '@/api/Organisation'
   import MoTreeViewItem from './MoTreeViewItem'
@@ -28,14 +32,33 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * Defines a orgUuid.
+       */
       orgUuid: String,
+
+      /**
+       * This boolean property defines a able link.
+       */
       linkable: Boolean,
+
+      /**
+       * Defines a atDate.
+       */
       atDate: [Date, String]
     },
 
     data () {
       return {
+      /**
+       * The children, selectedOrgUnit, isLoading component value.
+       * Used to detect changes and restore the value.
+       */
         children: [],
         selectedOrgUnit: {},
         isLoading: false
@@ -43,20 +66,32 @@
     },
 
     watch: {
+      /**
+       * When orgUnit change, get children.
+       */
       orgUuid () {
         this.getChildren()
       },
 
+      /**
+       * When atDate change, get children.
+       */
       atDate () {
         this.getChildren()
       },
 
+      /**
+       * Whenever selectedOrgUnit change, update val.
+       */
       selectedOrgUnit (val) {
         this.$emit('input', val)
       }
     },
 
     mounted () {
+      /**
+       * Whenever tree view change, update children.
+       */
       this.getChildren()
 
       EventBus.$on('update-tree-view', () => {
@@ -65,6 +100,9 @@
     },
 
     methods: {
+      /**
+       * Get organisation children.
+       */
       getChildren () {
         if (this.orgUuid === undefined) return
         let vm = this

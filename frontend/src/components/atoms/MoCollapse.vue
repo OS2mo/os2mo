@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <b-collapse :id="nameId" :visible="open" @shown="$emit('shown')">
+    <b-collapse :id="nameId" :visible="open" @show="$emit('show')">
       <slot>
         Put some content here
       </slot>
@@ -21,29 +21,52 @@
 </template>
 
 <script>
+  /**
+   * A collapse component.
+   */
+
   export default {
     props: {
+      /**
+       * Defines a title.
+       */
       title: {
         type: String,
         required: true
       },
-      initiallyOpen: Boolean
+
+      /**
+       * This Boolean property defines the visible.
+       */
+      visible: Boolean
     },
 
     data () {
       return {
+      /**
+        * The open component value.
+        * Used to detect changes and restore the value.
+        */
         open: false
       }
     },
 
     computed: {
+      /**
+       * Get name `mo-collapse`.
+       */
       nameId () {
         return 'mo-collapse-' + this._uid
       }
     },
 
     created () {
-      this.open = this.initiallyOpen
+      /**
+       * Called synchronously after the instance is created.
+       * Set open to initiallyOpen.
+       */
+      this.open = this.visible
+      if (this.visible) this.$emit('show')
     }
   }
 </script>

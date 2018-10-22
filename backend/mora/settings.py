@@ -59,4 +59,7 @@ except FileNotFoundError:  # Defaults
                                  'show_roles': True}
                      }
 
+QUERY_EXPORT_DIR = ''
+
+
 _util.update_config(globals(), CONFIG_FILE)

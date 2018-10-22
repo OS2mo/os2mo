@@ -10,24 +10,22 @@ import os
 from urllib.parse import urlparse, parse_qs, urlencode
 
 import freezegun
-from flask_testing import TestCase
 from mock import patch
 from onelogin.saml2.utils import OneLogin_Saml2_Utils as saml_utils
 
-from mora.app import app
+from . import util
 
 TESTS_DIR = os.path.dirname(__file__)
 
 
-class TestSSO(TestCase):
+class TestSSO(util.TestCase):
 
     def create_app(self):
-        app.config['TESTING'] = True
-        app.config['SERVER_NAME'] = "127.0.0.1:5000"
-
-        app.config['AUTH'] = True
-        app.config['SAML_IDP_METADATA_FILE'] = TESTS_DIR + '/sso/idp.xml'
-        return app
+        return super().create_app({
+            'AUTH': True,
+            'SAML_IDP_METADATA_FILE': TESTS_DIR + '/sso/idp.xml',
+            'SERVER_NAME': "127.0.0.1:5000",
+        })
 
     def get_sso_response(self):
         with open(TESTS_DIR + '/sso/sso_response.xml', 'rb') as sso_response:

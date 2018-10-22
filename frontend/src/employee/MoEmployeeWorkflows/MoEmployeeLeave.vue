@@ -7,7 +7,7 @@
     hide-footer 
     lazy
     no-close-on-backdrop
-    @hidden="resetData"
+    @hidden="$store.dispatch('employeeLeave/resetFields')"
   >
     <form @submit.stop.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
@@ -17,7 +17,7 @@
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
       </div>
-      
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -26,12 +26,19 @@
 </template>
 
 <script>
-  import Employee from '@/api/Employee'
+  /**
+   * A employee create leave component.
+   */
+
+  import { mapFields } from 'vuex-map-fields'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -45,34 +52,35 @@
     data () {
       return {
         isLoading: false,
-        backendValidationError: null,
-        employee: {},
-        leave: {
-          validity: {}
-        }
+        backendValidationError: null
       }
     },
 
     computed: {
+      ...mapFields('employeeLeave', [
+        'employee',
+        'leave'
+      ]),
+
+      /**
+       * Check validity of form. this.fields is a magic property created by vee-validate
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       }
     },
-
     methods: {
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
-      createLeave (evt) {
-        evt.preventDefault()
+      /**
+       * Create leave and check if the data fields are valid.
+       * Then throw a error if not.
+       */
+      createLeave () {
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.leave(this.employee.uuid, [this.leave])
+          this.$store.dispatch('employeeLeave/LEAVE_EMPLOYEE')
             .then(response => {
               vm.isLoading = false
               if (response.error) {

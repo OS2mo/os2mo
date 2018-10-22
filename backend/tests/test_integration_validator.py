@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import datetime
 
 from mora import exceptions
 from mora import util as mora_util
@@ -149,10 +150,13 @@ class TestValidator(TestHelper):
         employee_uuid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'  # Anders And
         valid_from = mora_util.parsedatetime("1910-01-01")
         valid_to = mora_util.parsedatetime("2040-01-01")
+        employee = {
+            'uuid': employee_uuid
+        }
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_date_range_in_employee_range(employee_uuid,
+            validator.is_date_range_in_employee_range(employee,
                                                       valid_from, valid_to)
 
     def test_is_date_range_in_employee_valid_inside_range(self):
@@ -164,10 +168,13 @@ class TestValidator(TestHelper):
         employee_uuid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'  # Anders And
         valid_from = mora_util.parsedatetime("2020-01-01")
         valid_to = mora_util.parsedatetime("2040-01-01")
+        employee = {
+            'uuid': employee_uuid
+        }
 
         # Act & Assert
         # Should be callable without raising exception
-        validator.is_date_range_in_employee_range(employee_uuid,
+        validator.is_date_range_in_employee_range(employee,
                                                   valid_from, valid_to)
 
     def test_is_distinct_responsibility_with_duplicate(self):
@@ -305,3 +312,39 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
             validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
+
+
+class TestIsContainedInEmployeeRange(TestHelper):
+
+    def test_raises_when_outside_range_upper(self):
+        empl_from = datetime.date(2010, 1, 1)
+        empl_to = datetime.date(2018, 1, 1)
+
+        valid_from = datetime.date(2012, 1, 1)
+        valid_to = datetime.date(2020, 1, 1)
+
+        with self.assertRaises(exceptions.HTTPException):
+            validator.is_contained_in_employee_range(empl_from, empl_to,
+                                                     valid_from, valid_to)
+
+    def test_raises_when_outside_range_lower(self):
+        empl_from = datetime.date(2010, 1, 1)
+        empl_to = datetime.date(2018, 1, 1)
+
+        valid_from = datetime.date(2008, 1, 1)
+        valid_to = datetime.date(2016, 1, 1)
+
+        with self.assertRaises(exceptions.HTTPException):
+            validator.is_contained_in_employee_range(empl_from, empl_to,
+                                                     valid_from, valid_to)
+
+    def test_passes_when_inside_range(self):
+        empl_from = datetime.date(2010, 1, 1)
+        empl_to = datetime.date(2018, 1, 1)
+
+        valid_from = datetime.date(2010, 1, 1)
+        valid_to = datetime.date(2018, 1, 1)
+
+        # Should not raise an exception
+        validator.is_contained_in_employee_range(empl_from, empl_to,
+                                                 valid_from, valid_to)

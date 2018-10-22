@@ -25,6 +25,10 @@
 </template>
 
 <script>
+  /**
+   * A add many component.
+   */
+
   import MoRemovableComponent from './MoRemovableComponent'
   
   export default {
@@ -33,29 +37,59 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Array,
       entryComponent: {
         type: Object,
         required: true
       },
+
+      /**
+       * This boolean property defines the entry.
+       */
       hasInitialEntry: Boolean,
+
+      /**
+       * This boolean property defines smallButtons.
+       */
       smallButtons: Boolean,
+
+      /**
+       * This boolean property hides the validity.
+       */
       validityHidden: Boolean,
+
+      /**
+       * Defines the label.
+       */
       label: String
     },
 
     data () {
       return {
+      /**
+        * The values component value.
+        * Used to detect changes and restore the value.
+        */
         values: []
       }
     },
 
     updated () {
+      /**
+       * Called after data change.
+       * Update value if value lenght is not 0.
+       */
       let data = this.values.filter(value => Object.keys(value).length !== 0)
       this.$emit('input', data)
     },
 
     mounted () {
+      /**
+       * Show values else add new values.
+       */
       if (this.value) {
         this.values = this.value
       } else {
@@ -66,6 +100,9 @@
     },
 
     methods: {
+      /**
+       * Push new values.
+       */
       add () {
         this.values.push({})
       }

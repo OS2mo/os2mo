@@ -150,21 +150,47 @@ def is_distinct_responsibility(
         )
 
 
-def is_date_range_in_employee_range(employee_uuid, valid_from, valid_to):
+def is_date_range_in_employee_range(employee_obj: dict,
+                                    valid_from, valid_to):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     ).bruger
-    employee = scope.get(employee_uuid)
+    # If this is a not-yet created user, emulate check
+    if employee_obj.get('allow_nonexistent'):
+        employee_valid_from = employee_obj.get(mapping.VALID_FROM)
+        employee_valid_to = employee_obj.get(mapping.VALID_TO)
+        is_contained_in_employee_range(employee_valid_from, employee_valid_to,
+                                       valid_from, valid_to)
+    else:
+        employee_uuid = employee_obj.get(mapping.UUID)
+        employee = scope.get(employee_uuid)
 
-    gyldighed_key = "brugergyldighed"
+        if not employee:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_USER_NOT_FOUND,
+                employee_uuid=employee_uuid,
+            )
 
-    if not _is_date_range_valid(employee, valid_from, valid_to, scope,
-                                gyldighed_key):
+        gyldighed_key = "brugergyldighed"
+
+        if not _is_date_range_valid(employee, valid_from, valid_to, scope,
+                                    gyldighed_key):
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
+                employee_uuid=employee_uuid,
+                **_get_active_validity(employee),
+            )
+
+
+def is_contained_in_employee_range(empl_from, empl_to, valid_from, valid_to):
+    if valid_from < empl_from or empl_to < valid_to:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
-            employee_uuid=employee_uuid,
-            **_get_active_validity(employee),
+            valid_from=util.to_iso_date(empl_from),
+            valid_to=util.to_iso_date(empl_to),
+            wanted_valid_from=util.to_iso_date(valid_from),
+            wanted_valid_to=util.to_iso_date(valid_to)
         )
 
 

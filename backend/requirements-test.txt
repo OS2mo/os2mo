@@ -14,3 +14,6 @@ flake8-module-name>=0.1.5
 flake8-mypy>=17.8.0
 notsouid>=0.0.3
 testing.postgresql>=1.3.0
+flask-shell-ipython
+python-dotenv
+watchdog

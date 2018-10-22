@@ -27,6 +27,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation unit entry component.
+   */
+
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -40,18 +44,31 @@
       MoInput
     },
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
-      disableOrgUnitPicker: Boolean,
+
+      /**
+       * This boolean property able the date in create organisation component.
+       */
       creatingDate: Boolean
     },
 
     data () {
       return {
+      /**
+        * The orgUnit component value.
+        * Used to detect changes and restore the value.
+        */
         orgUnit: {
           name: '',
           validity: {}
@@ -60,6 +77,9 @@
     },
 
     watch: {
+      /**
+       * Whenever orgUnit change, update newVal.
+       */
       orgUnit: {
         handler (newVal) {
           this.$emit('input', newVal)
@@ -69,6 +89,10 @@
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set orgUnit to value.
+       */
       this.orgUnit = this.value
     }
   }

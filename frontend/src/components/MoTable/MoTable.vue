@@ -22,10 +22,23 @@
             v-for="(col, index) in columns" 
             :key="index"
           >
-            {{$t('table_headers.'+col.label)}}
+            <span class="link" @click="sortData(col.label, open)">
+              {{$t('table_headers.'+col.label)}}
+              <icon :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
+            </span>
           </th>
-          <th>{{$t('table_headers.start_date')}}</th>
-          <th>{{$t('table_headers.end_date')}}</th>
+          <th>
+            <span class="link" @click="sortDate(open.from, 'from')">
+              {{$t('table_headers.start_date')}}
+              <icon :name="open.from ? 'sort-up' : 'sort-down'"/>
+            </span>
+          </th>
+          <th>
+            <span class="link" @click="sortDate(open.to, 'to')">
+              {{$t('table_headers.end_date')}}
+              <icon :name="open.to ? 'sort-up' : 'sort-down'"/>
+            </span>
+          </th>
           <th></th>
         </tr>
       </thead>
@@ -66,6 +79,10 @@
 </template>
 
 <script>
+  /**
+   * A table component.
+   */
+
   import '@/filters/GetProperty'
   import '@/filters/Date'
   import MoLoader from '@/components/atoms/MoLoader'
@@ -80,13 +97,44 @@
     },
 
     props: {
+      /**
+       * Defines a content.
+       */
       content: Array,
+
+      /**
+       * Defines a contentType.
+       */
       contentType: String,
+
+      /**
+       * Defines columns.
+       */
       columns: Array,
+
+      /**
+       * This boolean property defines the loading.
+       */
       isLoading: Boolean,
+
+      /**
+       * Defines the editComponent.
+       */
       editComponent: Object,
+
+      /**
+       * Defines the editUuid.
+       */
       editUuid: String,
+
+      /**
+       * This boolean property defines the multiSelect
+       */
       multiSelect: Boolean,
+
+      /**
+       * Defines a required type.
+       */
       type: {
         type: String,
         required: true
@@ -95,20 +143,88 @@
 
     data () {
       return {
+      /**
+       * The selectAll, selected, open, sortableContent component value.
+       * Used to detect changes and restore the value.
+       */
         selectAll: false,
-        selected: []
+        selected: [],
+        open: {},
+        sortableContent: null
       }
     },
 
     computed: {
+      /**
+       * If content is available, get content.
+       */
       contentAvailable () {
         return this.content ? this.content.length > 0 : false
       }
     },
 
     watch: {
+      /**
+       * Whenever selected change, update newVal.
+       */
       selected (newVal) {
         this.$emit('selected-changed', newVal)
+      },
+
+      /**
+       * Whenever contentAvailable change, set sortableContent to content.
+       */
+      contentAvailable: function () {
+        if (!this.sortableContent) {
+          this.sortableContent = this.content
+        }
+      },
+
+      /**
+       * Whenever content change, set sortableContent to content.
+       */
+      content () {
+        this.sortableContent = this.content
+      },
+      deep: true
+    },
+
+    methods: {
+      /**
+       * Sort data in columns.
+       */
+      sortData (colName, toggleIcon) {
+        if (toggleIcon[colName] === undefined) {
+          toggleIcon[colName] = true
+        }
+        this.sortableContent.sort(function (a, b) {
+          let strA = a[colName].name
+          let strB = b[colName].name
+
+          if (toggleIcon[colName]) {
+            return (strA < strB) ? -1 : (strA > strB) ? 1 : 0
+          } else {
+            return (strA < strB) ? 1 : (strA > strB) ? -1 : 0
+          }
+        })
+        this.open[colName] = !this.open[colName]
+      },
+
+      /**
+       * Sort dates in columns.
+       */
+      sortDate (toggleIcon, date) {
+        this.sortableContent.sort(function (a, b) {
+          let dateA = new Date(a.validity[date])
+          let dateB = new Date(b.validity[date])
+
+          if (toggleIcon) {
+            return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0
+          } else {
+            return (dateA < dateB) ? 1 : (dateA > dateB) ? -1 : 0
+          }
+        })
+        this.open[date] = !this.open[date]
       }
     }
   }
@@ -123,5 +239,9 @@
     max-height: 55vh;
     overflow-x: hidden;
     overflow-y: auto;
+  }
+
+  .link{
+    cursor: pointer;
   }
 </style>

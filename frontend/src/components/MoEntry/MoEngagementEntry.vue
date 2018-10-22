@@ -30,6 +30,10 @@
 </template>
 
 <script>
+  /**
+   * A engagement entry component.
+   */
+
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -42,21 +46,38 @@
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * Defines the validity.
+       */
       validity: Object
     },
 
     data () {
       return {
+      /**
+        * The entry component value.
+        * Used to detect changes and restore the value.
+        */
         entry: {}
       }
     },
 
     computed: {
+      /**
+       * Hide the dates.
+       */
       datePickerHidden () {
         return this.validity != null
       },
 
+      /**
+       * Disabled organisation dates.
+       */
       orgUnitValidity () {
         if (this.entry.org_unit) {
           return this.entry.org_unit.validity
@@ -66,6 +87,9 @@
     },
 
     watch: {
+      /**
+       * Whenever entry change update.
+       */
       entry: {
         handler (newVal) {
           newVal.type = 'engagement'
@@ -74,12 +98,19 @@
         deep: true
       },
 
+      /**
+       * When validity change update newVal.
+       */
       validity (newVal) {
         this.entry.validity = newVal
       }
     },
 
     created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Set entry to value.
+       */
       this.entry = this.value
     }
   }

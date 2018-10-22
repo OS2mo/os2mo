@@ -16,7 +16,7 @@
       v-validate="{required: true}"
     >
       <option disabled>{{label}}</option>
-      <option v-for="e in engagements" :key="e.uuid" :value="e">
+      <option v-for="e in orderedListOptions" :key="e.uuid" :value="e">
           {{e.engagement_type.name}}, {{e.org_unit.name}}
       </option>
     </select>
@@ -28,6 +28,10 @@
 </template>
 
 <script>
+  /**
+   * A engagement picker component.
+   */
+
   import Employee from '@/api/Employee'
   import MoLoader from '@/components/atoms/MoLoader'
 
@@ -38,21 +42,39 @@
       MoLoader
     },
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
 
     props: {
+      /**
+       * Create two-way data bindings with the component.
+       */
       value: Object,
+
+      /**
+       * Defines a required employee.
+       */
       employee: {
         type: Object,
         required: true
       },
+
+      /**
+       * This boolean property requires a selected name.
+       */
       required: Boolean
     },
 
     data () {
       return {
+        /**
+         * The selected, engagements, isLoading, label component value.
+         * Used to detect changes and restore the value.
+         */
         selected: null,
         engagements: [],
         isLoading: false,
@@ -61,15 +83,24 @@
     },
 
     computed: {
+      /**
+       * Get name `engagement-picker`
+       */
       nameId () {
         return 'engagement-picker-' + this._uid
       },
 
+      /**
+       * Set employee as required.
+       */
       isRequired () {
         if (!this.employeeDefined) return false
         return this.required
       },
 
+      /**
+       * If employee is not defined, return false and disable.
+       */
       employeeDefined () {
         for (let key in this.employee) {
           if (this.employee.hasOwnProperty(key)) {
@@ -77,9 +108,24 @@
           }
         }
         return false
+      },
+
+      orderedListOptions () {
+        return this.engagements.slice().sort((a, b) => {
+          if (a.engagement_type.name && a.org_unit.name < b.engagement_type.name && b.org_unit.name) {
+            return -1
+          }
+          if (a.engagement_type.name && a.org_unit.name > b.engagement_type.name && b.org_unit.name) {
+            return 1
+          }
+          return 0
+        })
       }
     },
 
+    /**
+     * Whenever employee change, get engagements.
+     */
     watch: {
       employee () {
         this.getEngagements()
@@ -87,6 +133,9 @@
     },
 
     methods: {
+      /**
+       * Get engagement details.
+       */
       getEngagements () {
         if (this.employeeDefined) {
           let vm = this
@@ -99,6 +148,9 @@
         }
       },
 
+      /**
+       * Update selected engagement.
+       */
       updateSelectedEngagement () {
         this.$emit('input', this.selected)
       }

@@ -1,67 +1,86 @@
 <template>
   <div>
-    <mo-loader v-show="isLoading"/>
-
-    <b-tabs v-show="!isLoading" lazy>
-      <b-tab :title="$t('tabs.employee.engagements')" active> 
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="engagement"
+    <b-tabs lazy>
+      <b-tab :title="$t('tabs.employee.engagements')" active>
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['engagement'] " 
+          content-type="engagement"
           :columns="engagement"
+          @show="loadContent('engagement', $event)"
           :entry-component="!hideActions ? components.engagement : undefined"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.employee.addresses')">
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="address"
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['address']" 
+          content-type="address"
           :columns="address"
+          @show="loadContent('address', $event)"
           :entry-component="!hideActions ? components.address : undefined"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.employee.roles')">
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="role"
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['role']" 
+          content-type="role"
           :columns="role"
+          @show="loadContent('role', $event)"
           :entry-component="!hideActions ? components.role : undefined"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.employee.it')">
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="it"
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['it']" 
+          content-type="it"
           :columns="it"
+          @show="loadContent('it', $event)"
           :entry-component="!hideActions ? components.it : undefined"
         />
       </b-tab>
 
       <b-tab :title="$tc('tabs.employee.association', 2)">
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="association"
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['association']" 
+          content-type="association"
           :columns="association"
+          @show="loadContent('association', $event)"
           :entry-component="!hideActions ? components.association : undefined"
         />
       </b-tab>
 
       <b-tab :title="$t('tabs.employee.leave')">
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="leave"
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['leave']" 
+          content-type="leave"
           :columns="leave"
+          @show="loadContent('leave', $event)"
           :entry-component="!hideActions ? components.leave : undefined"
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.manager')" >
-        <mo-employee-detail 
-          :uuid="uuid" 
-          detail="manager"
+      <b-tab :title="$t('tabs.employee.manager')">
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['manager']" 
+          content-type="manager"
           :columns="manager"
+          @show="loadContent('manager', $event)"
           :entry-component="!hideActions ? components.manager : undefined"
         />
       </b-tab>
@@ -69,10 +88,12 @@
   </div>
 </template>
 
-
 <script>
+  /**
+   * A employee detail tabs component.
+   */
+
   import MoLoader from '@/components/atoms/MoLoader'
-  import MoEmployeeDetail from './MoEmployeeDetail'
   import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
@@ -80,21 +101,34 @@
   import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+  import MoTableDetail from '@/components/MoTable/MoTableDetail'
 
   export default {
     components: {
       MoLoader,
-      MoEmployeeDetail
+      MoTableDetail
     },
 
     props: {
+      /**
+       * Defines a unique identifier which must be unique.
+       */
       uuid: String,
+
+      content: Object,
+
+      /**
+       * This Boolean property hides the actions.
+       */
       hideActions: Boolean
     },
 
     data () {
       return {
-        isLoading: false,
+      /**
+        * The leave, it, address, engagement, association, role, manager component value.
+        * Used to detect changes and restore the value for columns.
+        */
         engagement: [
           {label: 'org_unit', data: 'org_unit'},
           {label: 'job_function', data: 'job_function'},
@@ -105,15 +139,15 @@
           {label: 'role_type', data: 'role_type'}
         ],
         it: [
-          {label: 'it_system', data: null},
-          {label: 'user_name', data: null, field: 'user_name'}
+          {label: 'it_system', data: 'itsystem'},
+          {label: 'user_key', data: null, field: 'user_key'}
         ],
         association: [
           {label: 'org_unit', data: 'org_unit'},
           {label: 'job_function', data: 'job_function'},
           {label: 'association_type', data: 'association_type'},
-          {label: 'address', data: 'address'},
-          {label: 'address_type', data: 'address_type'}
+          {label: 'address_type', data: 'address_type'},
+          {label: 'address', data: 'address'}
         ],
         leave: [
           {label: 'leave_type', data: 'leave_type'}
@@ -128,8 +162,14 @@
         ],
         address: [
           {label: 'address_type', data: 'address_type'},
-          {label: 'value', data: null}
+          {label: 'address', data: null}
         ],
+
+        /**
+         * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
+         * MoAssociationEntry, MoLeaveEntry, MoManagerEntry component.
+         * Used to add the components in the tabs.
+         */
         components: {
           engagement: MoEngagementEntry,
           address: MoAddressEntry,
@@ -139,6 +179,17 @@
           leave: MoLeaveEntry,
           manager: MoManagerEntry
         }
+      }
+    },
+
+    methods: {
+      loadContent (contentType, event) {
+        let payload = {
+          detail: contentType,
+          validity: event,
+          uuid: this.uuid
+        }
+        this.$emit('show', payload)
       }
     }
   }

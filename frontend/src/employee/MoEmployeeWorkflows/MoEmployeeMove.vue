@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker 
         class="search-employee" 
-        v-model="employee" 
+        v-model="move.data.person" 
         required
       />
 
@@ -20,7 +20,7 @@
         <mo-engagement-picker 
           class="mt-3" 
           v-model="original" 
-          :employee="employee" 
+          :employee="move.data.person"
           required
         />
       </div>
@@ -64,6 +64,10 @@
 </template>
 
 <script>
+  /**
+   * A employee move component.
+   */
+
   import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -73,6 +77,9 @@
   import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
 
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -87,19 +94,34 @@
     },
 
     props: {
+      /**
+       * Defines a engagement type name.
+       */
       entryName: String,
+
+      /**
+       * Defines a from date.
+       */
       entryDate: Date,
+
+      /**
+       * Defines a orgName.
+       */
       entryOrgName: String
     },
 
     data () {
       return {
-        employee: {},
+      /**
+        * The move, original, isLoading, backendValidationError component value.
+        * Used to detect changes and restore the value.
+        */
         isLoading: false,
         backendValidationError: null,
         original: null,
         move: {
           type: 'engagement',
+          person: {},
           data: {
             validity: {}
           }
@@ -108,13 +130,18 @@
     },
 
     computed: {
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       },
 
+      /**
+       * Check if the dates are valid.
+       */
       dateConflict () {
         if (this.move.data.validity.from && this.original) {
           if (this.original.validity.to == null) return true
@@ -125,16 +152,26 @@
         return false
       },
 
+      /**
+       * Check if the organisation date are valid.
+       */
       validDates () {
         return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
       }
     },
 
     methods: {
+      /**
+       * Resets the data fields.
+       */
       resetData () {
         Object.assign(this.$data, this.$options.data())
       },
 
+      /**
+       * Move a employee and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       moveEmployee (evt) {
         evt.preventDefault()
         if (this.formValid) {
@@ -142,7 +179,7 @@
           vm.isLoading = true
           vm.move.uuid = this.original.uuid
 
-          Employee.move(this.employee.uuid, [this.move])
+          Employee.move([this.move])
             .then(response => {
               vm.isLoading = false
               if (response.error) {

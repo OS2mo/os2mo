@@ -1,15 +1,18 @@
 <template>
   <mo-select 
     v-model="selected" 
-    :label="label" 
-    :options="facets" 
+    :label="facetData.user_key" 
+    :options="facetData.classes" 
     :required="required" 
     :disabled="isDisabled"
   />
 </template>
 
 <script>
-  import Facet from '@/api/Facet'
+  /**
+   * A facet picker component.
+   */
+
   import MoSelect from '@/components/atoms/MoSelect'
 
   export default {
@@ -28,46 +31,48 @@
 
     data () {
       return {
-        selected: null,
-        facets: [],
-        label: ''
+        selected: null
       }
     },
 
     computed: {
+      facetData () {
+        return this.$store.getters['facet/GET_FACET'](this.facet)
+      },
       isDisabled () {
         return this.preselectedUserKey !== undefined
       }
     },
 
     watch: {
+      /**
+       * Whenever selected change, update val.
+       */
       selected (val) {
         this.$emit('input', val)
+      },
+
+      facetData (val) {
+        this.selected = this.preselectedUserKey ? this.setPreselected()[0] : this.selected
       }
     },
 
+    created () {
+      this.$store.dispatch('facet/SET_FACET', this.facet)
+    },
+
     mounted () {
-      this.getFacet()
+      this.selected = this.preselectedUserKey ? this.setPreselected()[0] : this.selected
+
       if (this.value && this.preselectedUserKey == null) {
         this.selected = this.value
       }
     },
 
     methods: {
-      getFacet () {
-        let vm = this
-        let org = this.$store.state.organisation
-        if (org.uuid === undefined) return
-        Facet.getFacet(org.uuid, this.facet)
-          .then(response => {
-            vm.facets = response.data.items
-            vm.label = response.user_key
-            vm.selected = vm.preselectedUserKey ? vm.setPreselected()[0] : vm.selected
-          })
-      },
-
       setPreselected () {
-        return this.facets.filter(data => {
+        if (!this.facetData.classes) return [undefined]
+        return this.facetData.classes.filter(data => {
           return data.user_key === this.preselectedUserKey
         })
       }

@@ -14,6 +14,10 @@
 </template>
 
 <script>
+  /**
+   * A button submit component.
+   */
+
   import MoLoader from '@/components/atoms/MoLoader'
   export default {
     components: {
@@ -21,8 +25,19 @@
     },
 
     props: {
+      /**
+       * This boolean property disable the button.
+       */
       isDisabled: Boolean,
+
+      /**
+       * This boolean property defines the loading.
+       */
       isLoading: Boolean,
+
+      /**
+       * This Function defines a click action.
+       */
       onClickAction: Function
     }
   }

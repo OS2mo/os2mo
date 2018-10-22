@@ -7,8 +7,9 @@
 #
 import collections
 import enum
-
-from . import util
+import functools
+import operator
+import typing
 
 # Common
 
@@ -87,134 +88,137 @@ RELATION_TRANSLATIONS = {
 
 @enum.unique
 class FieldTypes(enum.IntEnum):
-    ZERO_TO_ONE = 0,
-    ZERO_TO_MANY = 1,
-    ADAPTED_ZERO_TO_MANY = 2,
+    '''The different kinds of fields we support'''
+    ZERO_TO_ONE, ZERO_TO_MANY, ADAPTED_ZERO_TO_MANY = range(3)
 
 
-FieldTuple = collections.namedtuple(
-    'PropTuple',
-    [
-        'path',
-        'type',
-        'filter_fn'
-    ]
-)
+class FieldTuple(object):
+    __slots__ = (
+        '__path',
+        '__type',
+        '__filter_fn',
+    )
 
+    def __init__(self, path: typing.Tuple[str, str], type: FieldTypes,
+                 filter_fn: typing.Callable[[dict], bool]=None):
+        self.__path = path
+        self.__type = type
+        self.__filter_fn = filter_fn
 
-def get_field_value(field: FieldTuple, obj):
-    return util.get_obj_value(obj, field.path, field.filter_fn)
+    def get(self, obj):
+        try:
+            props = functools.reduce(operator.getitem, self.path, obj)
+        except (LookupError, TypeError):
+            return []
 
+        return list(filter(self.filter_fn, props))
 
-FieldTuple.get = get_field_value
+    __call__ = get
+
+    @property
+    def path(self) -> typing.Tuple[str, str]:
+        return self.__path
+
+    @property
+    def type(self) -> FieldTypes:
+        return self.__type
+
+    @property
+    def filter_fn(self) -> typing.Callable[[dict], bool]:
+        return self.__filter_fn
+
+    def __repr__(self):
+        return '{}({!r}, FieldTypes.{}, {!r})'.format(
+            type(self).__name__,
+            self.path,
+            self.type.name,
+            self.filter_fn,
+        )
 
 
 #
 # MAPPINGS
 #
 
-FUNCTION_KEYS = {
-    'engagement': ENGAGEMENT_KEY,
-    'association': ASSOCIATION_KEY,
-    'role': ROLE_KEY,
-    'leave': LEAVE_KEY,
-    'manager': MANAGER_KEY,
-}
 
 ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
     path=('tilstande', 'organisationfunktiongyldighed'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 ORG_FUNK_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'organisationfunktionegenskaber'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 ORG_FUNK_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 JOB_FUNCTION_FIELD = FieldTuple(
     path=('relationer', 'opgaver'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: True
 )
 
 ORG_FUNK_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: True
 )
 
 ASSOCIATED_ORG_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeorganisationer'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: True
 )
 
 ORG_UNIT_GYLDIGHED_FIELD = FieldTuple(
     path=('tilstande', 'organisationenhedgyldighed'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 ORG_UNIT_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'organisationenhedegenskaber'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 ORG_UNIT_TYPE_FIELD = FieldTuple(
     path=('relationer', 'enhedstype'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 PARENT_FIELD = FieldTuple(
     path=('relationer', 'overordnet'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 BELONGS_TO_FIELD = FieldTuple(
     path=('relationer', 'tilhoerer'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 USER_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedebrugere'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: True
 )
 
 ADDRESSES_FIELD = FieldTuple(
     path=('relationer', 'adresser'),
     type=FieldTypes.ZERO_TO_MANY,
-    filter_fn=lambda x: True
 )
 
 SINGLE_ADDRESS_FIELD = FieldTuple(
     path=('relationer', 'adresser'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: True
 )
 
 MANAGER_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
-    filter_fn=lambda x: True
 )
 
 RESPONSIBILITY_FIELD = FieldTuple(
@@ -229,10 +233,9 @@ MANAGER_LEVEL_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'lederniveau'
 )
 
-ITSYSTEMS_FIELD = FieldTuple(
+SINGLE_ITSYSTEM_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeitsystemer'),
-    type=FieldTypes.ZERO_TO_MANY,
-    filter_fn=lambda x: True
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ENGAGEMENT_FIELDS = {
@@ -294,8 +297,11 @@ ORG_UNIT_FIELDS = {
     PARENT_FIELD
 }
 
-ITSYSTEMS_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeitsystemer'),
-    type=FieldTypes.ZERO_TO_MANY,
-    filter_fn=lambda x: True
-)
+ITSYSTEM_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
+    USER_FIELD,
+    SINGLE_ITSYSTEM_FIELD,
+}

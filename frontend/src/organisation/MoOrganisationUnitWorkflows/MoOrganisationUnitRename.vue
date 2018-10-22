@@ -46,6 +46,10 @@
 </template>
 
 <script>
+  /**
+   * A organisation unit rename component.
+   */
+
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -54,6 +58,9 @@
   import { mapGetters } from 'vuex'
   
   export default {
+      /**
+       * Requesting a new validator scope to its children.
+       */
     $_veeValidate: {
       validator: 'new'
     },
@@ -67,10 +74,16 @@
 
     data () {
       return {
+        /**
+         * The rename, original, isLoading component value.
+         * Used to detect changes and restore the value.
+         */
         original: this.orgUnit,
         rename: {
+          type: 'org_unit',
           data: {
             name: '',
+            uuid: '',
             validity: {}
           }
         },
@@ -79,17 +92,26 @@
     },
 
     computed: {
+      /**
+       * Get organisation unit
+       */
       ...mapGetters({
-        orgUnit: 'organisationUnit/getOrgUnit'
+        orgUnit: 'organisationUnit/GET_ORG_UNIT'
       }),
 
+      /**
+       * Loop over all contents of the fields object and check if they exist and valid.
+       */
       formValid () {
-        // loop over all contents of the fields object and check if they exist and valid.
         return Object.keys(this.fields).every(field => {
           return this.fields[field] && this.fields[field].valid
         })
       },
 
+      /**
+       * Compare if the unit names are identical.
+       * If then return false.
+       */
       compareName () {
         if (this.rename.data.name && this.original.name) {
           if (this.original.name == null) return true
@@ -100,24 +122,45 @@
     },
 
     watch: {
+      /**
+       * Whenever orgUnit changes, this function will run.
+       */
       orgUnit: {
         handler (val) {
           this.original = val
+          if (val) {
+            this.rename.data.uuid = val.uuid
+          }
         },
         deep: true
+      },
+      original (val) {
+        this.rename.data.uuid = val && val.uuid
       }
     },
 
     mounted () {
+      /**
+       * After the entire view has been rendered.
+       * Set original to orgUnit.
+       */
       this.original = this.orgUnit
     },
 
     methods: {
+      /**
+       * Resets the data fields name and validity.
+       */
       resetData () {
         this.rename.data.name = ''
+        this.rename.data.uuid = this.original && this.original.uuid
         this.rename.data.validity = {}
       },
 
+      /**
+       * Rename a organisation unit and check if the data fields are valid.
+       * Then throw a error if not.
+       */
       renameOrganisationUnit (evt) {
         evt.preventDefault()
         if (this.formValid) {
@@ -128,7 +171,7 @@
             vm.isLoading = false
             return false
           }
-          OrganisationUnit.rename(this.original.uuid, this.rename)
+          OrganisationUnit.rename(this.rename)
             .then(response => {
               vm.isLoading = false
               vm.$refs.orgUnitRename.hide()

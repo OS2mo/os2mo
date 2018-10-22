@@ -26,8 +26,15 @@
 </template>
 
 <script>
+  /**
+   * A landing page component.
+   */
+
   export default {
     methods: {
+      /**
+       * Push route to destination.
+       */
       setDestination (val) {
         this.$router.push({
           name: val

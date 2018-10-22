@@ -7,6 +7,7 @@
 #
 
 from mora import lora
+from mora import util as mora_util
 
 from . import util
 
@@ -34,11 +35,27 @@ class Tests(util.LoRATestCase):
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
-        expected_engagement = c.organisationfunktion.get(engagement_uuid)
-        expected_association = c.organisationfunktion.get(association_uuid)
-        expected_role = c.organisationfunktion.get(role_uuid)
-        expected_leave = c.organisationfunktion.get(leave_uuid)
-        expected_manager = c.organisationfunktion.get(manager_uuid)
+        def get_expected(id, is_manager=False):
+            o = c.organisationfunktion.get(id)
+
+            o.update(
+                livscykluskode='Rettet',
+                note='Afslut medarbejder',
+            )
+
+            if is_manager:
+                del o['relationer']['tilknyttedebrugere'][0]['uuid']
+            else:
+                v = o['tilstande']['organisationfunktiongyldighed']
+                v[0]['gyldighed'] = 'Inaktiv'
+
+            return o
+
+        expected_engagement = get_expected(engagement_uuid)
+        expected_association = get_expected(association_uuid)
+        expected_role = get_expected(role_uuid)
+        expected_leave = get_expected(leave_uuid)
+        expected_manager = get_expected(manager_uuid, True)
 
         self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
                                    userid, json=payload)
@@ -49,8 +66,22 @@ class Tests(util.LoRATestCase):
         actual_leave = c.organisationfunktion.get(leave_uuid)
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
-        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
-        self.assertRegistrationsEqual(expected_association, actual_association)
-        self.assertRegistrationsEqual(expected_role, actual_role)
-        self.assertRegistrationsEqual(expected_leave, actual_leave)
-        self.assertRegistrationsEqual(expected_manager, actual_manager)
+        with self.subTest('engagement'):
+            self.assertRegistrationsEqual(expected_engagement,
+                                          actual_engagement)
+
+        with self.subTest('association'):
+            self.assertRegistrationsEqual(expected_association,
+                                          actual_association)
+
+        with self.subTest('role'):
+            self.assertRegistrationsEqual(expected_role,
+                                          actual_role)
+
+        with self.subTest('leave'):
+            self.assertRegistrationsEqual(expected_leave,
+                                          actual_leave)
+
+        with self.subTest('manager'):
+            self.assertRegistrationsEqual(expected_manager,
+                                          actual_manager)

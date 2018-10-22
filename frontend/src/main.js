@@ -10,7 +10,7 @@ import VeeValidate, { Validator } from 'vee-validate'
 import DateInRange from './validators/DateInRange'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
-import store from './vuex/store'
+import store from './store'
 
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'

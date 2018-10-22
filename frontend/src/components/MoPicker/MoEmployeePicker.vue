@@ -4,11 +4,11 @@
     <v-autocomplete
       name="employee-picker"
       :data-vv-as="$tc('input_fields.employee')"
-      :items="items" 
+      :items="orderedListOptions" 
       v-model="item" 
       :get-label="getLabel" 
       :component-item="template" 
-      @item-selected="selected"
+      @item-selected="$emit('input', $event)"
       @update-items="updateItems"
       :auto-select-one-item="false"
       :min-len="2"
@@ -23,6 +23,10 @@
 </template>
 
 <script>
+  /**
+   * A employee picker component.
+   */
+
   import Search from '@/api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
@@ -35,11 +39,15 @@
       VAutocomplete
     },
 
+      /**
+       * Validator scope, sharing all errors and validation state.
+       */
     inject: {
       $validator: '$validator'
     },
 
     props: {
+      value: Object,
       noLabel: Boolean,
       required: Boolean
     },
@@ -52,11 +60,31 @@
       }
     },
 
+    computed: {
+      orderedListOptions () {
+        return this.items.slice().sort((a, b) => {
+          if (a.name < b.name) return -1
+          if (a.name > b.name) return 1
+          return 0
+        })
+      }
+    },
+
+    created () {
+      this.item = this.value
+    },
+
     methods: {
+      /**
+       * Get employee name.
+       */
       getLabel (item) {
         return item ? item.name : null
       },
 
+      /**
+       * Update employees suggestions based on search query.
+       */
       updateItems (query) {
         let vm = this
         let org = this.$store.state.organisation
@@ -64,10 +92,6 @@
           .then(response => {
             vm.items = response
           })
-      },
-
-      selected (value) {
-        this.$emit('input', value)
       }
     }
   }

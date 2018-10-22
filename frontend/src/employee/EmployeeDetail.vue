@@ -16,14 +16,22 @@
         </div>
       </div>
 
-      <employee-detail-tabs :uuid="$route.params.uuid"/>
+      <employee-detail-tabs 
+        :uuid="$route.params.uuid"
+        :content="$store.getters['employee/GET_DETAILS']" 
+        @show="loadContent($event)"
+      />
     </div>
   </div>
 </template>
 
 <script>
-  import Employee from '@/api/Employee'
+  /**
+   * A employee detail component.
+   */
+
   import '@/filters/CPRNumber'
+  import { EventBus } from '@/EventBus'
   import EmployeeDetailTabs from './EmployeeDetailTabs'
   import MoHistory from '@/components/MoHistory'
   import MoLoader from '@/components/atoms/MoLoader'
@@ -36,29 +44,41 @@
     },
 
     data () {
+      /**
+        * The employee, isLoading component value.
+        * Used to detect changes and restore the value for columns.
+        */
       return {
-        employee: Object,
-        isLoading: false
+        isLoading: false,
+        latestEvent: undefined
+      }
+    },
+
+    computed: {
+      employee () {
+        return this.$store.getters['employee/GET_EMPLOYEE']
       }
     },
 
     created () {
-      this.getEmployee(this.$route.params.uuid)
+      this.$store.dispatch('employee/SET_EMPLOYEE', this.$route.params.uuid)
     },
-
+    mounted () {
+      EventBus.$on('employee-changed', () => {
+        this.loadContent(this.latestEvent)
+      })
+    },
     methods: {
-      getEmployee () {
-        let vm = this
-        vm.isLoading = true
-        let uuid = this.$route.params.uuid
-        Employee.get(uuid)
-          .then(response => {
-            vm.isLoading = false
-            vm.employee = response
-            vm.$store.commit('employee/change', response)
-          })
+      loadContent (event) {
+        this.latestEvent = event
+        this.$store.dispatch('employee/SET_DETAIL', event)
       }
+    },
+    beforeRouteLeave (to, from, next) {
+      this.$store.commit('employee/RESET_EMPLOYEE')
+      next()
     }
+
   }
 </script>
 

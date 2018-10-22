@@ -451,30 +451,8 @@
       },
       "note": null,
       "relationer": {
-        "ansvarlig": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ansvarlig": [],
+        "ejer": [],
         "facettilhoerer": [
           {
             "objekttype": "klassifikation",
@@ -851,30 +829,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -951,18 +907,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -1051,30 +996,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -1151,18 +1074,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -1227,18 +1139,7 @@
             }
           }
         ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ejer": [],
         "facet": [
           {
             "objekttype": "facet",
@@ -1251,18 +1152,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -1351,30 +1241,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -1451,18 +1319,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -1551,30 +1408,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -1627,18 +1462,7 @@
             }
           }
         ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-02T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ejer": [],
         "facet": [
           {
             "objekttype": "facet",
@@ -1651,18 +1475,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-02T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -1751,18 +1564,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -1851,30 +1653,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -1951,30 +1731,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -2051,18 +1809,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -2151,18 +1898,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -2251,18 +1987,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -2351,30 +2076,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -2451,30 +2154,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -2551,18 +2232,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -2651,18 +2321,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -2751,30 +2410,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -2851,30 +2488,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -2951,30 +2566,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -3051,18 +2644,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -3151,18 +2733,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -3251,30 +2822,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -3351,30 +2900,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -3451,18 +2978,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -3515,30 +3031,8 @@
       },
       "note": null,
       "relationer": {
-        "ansvarlig": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ansvarlig": [],
+        "ejer": [],
         "facet": [
           {
             "objekttype": "facet",
@@ -3551,30 +3045,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -3651,30 +3123,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -3751,30 +3201,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -3851,18 +3279,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -3951,18 +3368,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -4051,18 +3457,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -4151,18 +3546,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -4251,18 +3635,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -4351,18 +3724,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -4451,30 +3813,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -4551,30 +3891,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -4651,18 +3969,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -4751,30 +4058,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -4851,30 +4136,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -4915,30 +4178,8 @@
       },
       "note": null,
       "relationer": {
-        "ansvarlig": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ansvarlig": [],
+        "ejer": [],
         "facet": [
           {
             "objekttype": "facet",
@@ -4951,30 +4192,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -5051,30 +4270,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -5151,30 +4348,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -5251,18 +4426,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -5351,18 +4515,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -5451,18 +4604,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -5551,30 +4693,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -5651,30 +4771,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -5751,18 +4849,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -5851,18 +4938,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -5951,18 +5027,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6051,18 +5116,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6151,30 +5205,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -6227,18 +5259,7 @@
             }
           }
         ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ejer": [],
         "facet": [
           {
             "objekttype": "facet",
@@ -6251,18 +5272,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6351,18 +5361,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6451,30 +5450,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -6551,18 +5528,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6651,30 +5617,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -6751,18 +5695,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6851,18 +5784,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -6951,18 +5873,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7051,18 +5962,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7151,18 +6051,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7251,18 +6140,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7351,30 +6229,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -7451,18 +6307,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7527,18 +6372,7 @@
             }
           }
         ],
-        "ejer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-03T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "ejer": [],
         "facet": [
           {
             "objekttype": "facet",
@@ -7551,18 +6385,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-03T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7651,30 +6474,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -7751,30 +6552,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -7851,18 +6630,7 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "mapninger": [],
         "overordnetklasse": [
           {
             "objekttype": null,
@@ -7951,30 +6719,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -8051,30 +6797,8 @@
             }
           }
         ],
-        "mapninger": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "overordnetklasse": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2016-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "mapninger": [],
+        "overordnetklasse": []
       },
       "tilstande": {
         "klassepubliceret": [
@@ -8510,18 +7234,7 @@
             }
           }
         ],
-        "tilknyttedeorganisationer": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "2010-01-01T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ]
+        "tilknyttedeorganisationer": []
       },
       "tilstande": {
         "itsystemgyldighed": [
@@ -8630,30 +7343,8 @@
       },
       "note": null,
       "relationer": {
-        "myndighed": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
-        "myndighedstype": [
-          {
-            "objekttype": null,
-            "uuid": null,
-            "virkning": {
-              "from": "1999-11-15T00:00:00+01:00",
-              "from_included": true,
-              "to": "infinity",
-              "to_included": false
-            }
-          }
-        ],
+        "myndighed": [],
+        "myndighedstype": [],
         "virksomhed": [
           {
             "objekttype": null,

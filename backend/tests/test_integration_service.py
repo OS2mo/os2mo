@@ -1115,7 +1115,7 @@ class Tests(util.LoRATestCase):
 
         func = [
             {
-                'address': {
+                'address': [{
                     'href': 'mailto:ceo@example.com',
                     'name': 'ceo@example.com',
                     'urn': 'urn:mailto:ceo@example.com',
@@ -1126,7 +1126,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Email',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                },
+                }],
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
@@ -1339,9 +1339,10 @@ class Tests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': True,
+                    'it': False,
                     'leave': False,
                     'manager': False,
+                    'org_unit': False,
                     'role': False,
                 },
             )
@@ -1354,9 +1355,10 @@ class Tests(util.LoRATestCase):
                     'address': True,
                     'association': True,
                     'engagement': True,
-                    'it': False,
+                    'it': True,
                     'leave': True,
                     'manager': True,
+                    'org_unit': False,
                     'role': True,
                 },
             )
@@ -1433,7 +1435,7 @@ class Tests(util.LoRATestCase):
                     'address': True,
                     'association': False,
                     'engagement': False,
-                    'it': False,
+                    'it': True,
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
