@@ -2,11 +2,12 @@
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">
-        <icon name="users" /> {{orgUnitInfo.name}}
+        <icon name="users" /> {{orgUnit.name}}
       </h4>
-      <div class="row" v-if="orgUnitInfo.user_settings">
-	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_location">Placering: {{orgUnitInfo.location}}</p>
-	<p class="card-text" v-if="orgUnitInfo.user_settings.orgunit.show_bvn">Enhedsnr.: {{orgUnitInfo.user_key}}</p>
+
+      <div class="row">
+        <div class="col">
+          <p class="card-text">Placering: {{orgUnit.location}}</p>
         </div>
 
         <div class="mr-3">
@@ -14,40 +15,55 @@
         </div>
       </div>
 
-      <organisation-detail-tabs :uuid="$route.params.uuid"/>
+      <organisation-detail-tabs 
+        :uuid="$route.params.uuid" 
+        :content="$store.getters['organisationUnit/GET_DETAILS']" 
+        @show="loadContent($event)"/>
     </div>
   </div>
 </template>
 
 <script>
-  import OrganisationUnit from '@/api/OrganisationUnit'
+  /**
+   * A organisation detail component.
+   */
+
+  import { EventBus } from '@/EventBus'
   import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
 
   export default {
     components: {
-      MoHistory: MoHistory,
+      MoHistory,
       OrganisationDetailTabs
     },
-
     data () {
       return {
-        orgUnitInfo: {}
+        latestEvent: undefined
       }
     },
-
+    computed: {
+      orgUnit () {
+        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
+      }
+    },
     created () {
-      this.updateDetails()
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
     },
-
+    mounted () {
+      EventBus.$on('organisation-unit-changed', () => {
+        this.loadContent(this.latestEvent)
+      })
+    },
     methods: {
-      updateDetails () {
-        OrganisationUnit.get(this.$route.params.uuid)
-          .then(response => {
-            this.orgUnitInfo = response
-            this.$store.commit('organisationUnit/change', response)
-          })
+      loadContent (event) {
+        this.latestEvent = event
+        this.$store.dispatch('organisationUnit/SET_DETAIL', event)
       }
+    },
+    beforeRouteLeave (to, from, next) {
+      this.$store.commit('organisationUnit/RESET_ORG_UNIT')
+      next()
     }
   }
 </script>
