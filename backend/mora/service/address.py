@@ -312,6 +312,15 @@ def get_one_address(c, addrrel, class_cache=None):
     scope = util.checked_get(addrclass, 'scope', 'DAR')
 
     if scope == 'DAR':
+        def make_error_object(errordesc):
+            return {
+                mapping.ADDRESS_TYPE: addrclass,
+                mapping.HREF: None,
+                mapping.NAME: DEFAULT_ERROR,
+                mapping.UUID: addrrel['uuid'],
+                mapping.ERROR: errordesc,
+            }
+
         # unfortunately, we cannot live with struktur=mini, as it omits
         # the formatted address :(
         try:
@@ -327,13 +336,7 @@ def get_one_address(c, addrrel, class_cache=None):
             # requests_mock does not descend from RequestException :(
             util.log_exception('failed to get address ' + addrrel['uuid'])
 
-            return {
-                mapping.ADDRESS_TYPE: addrclass,
-                mapping.HREF: None,
-                mapping.NAME: DEFAULT_ERROR,
-                mapping.UUID: addrrel['uuid'],
-                mapping.ERROR: str(exc),
-            }
+            return make_error_object(str(exc))
 
         if not r.ok:
             error = r.json()
@@ -345,13 +348,7 @@ def get_one_address(c, addrrel, class_cache=None):
                 ),
             )
 
-            return {
-                mapping.ADDRESS_TYPE: addrclass,
-                mapping.HREF: None,
-                mapping.NAME: DEFAULT_ERROR,
-                mapping.UUID: addrrel['uuid'],
-                mapping.ERROR: error,
-            }
+            return make_error_object(error)
 
         addrobj = r.json()
 
