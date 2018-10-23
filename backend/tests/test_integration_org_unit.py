@@ -694,6 +694,9 @@ class Tests(util.LoRATestCase):
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 "parent": None,
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -726,6 +729,9 @@ class Tests(util.LoRATestCase):
                     "name": "Aarhus Universitet",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 },
+                'user_settings': {'orgunit': {'show_bvn': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 "user_key": "frem",
                 "org_unit_type": {
                     "user_key": "afd",
@@ -1331,7 +1337,10 @@ class Tests(util.LoRATestCase):
             "validity": {
                 "from": "2017-01-01",
                 "to": "2018-01-01"
-            }
+            },
+             'user_settings': {'orgunit': {'show_bvn': False,
+                                           'show_location': True,
+                                           'show_roles': True}},
         })
 
         roots.insert(0, {
