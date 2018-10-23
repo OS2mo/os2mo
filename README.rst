@@ -251,7 +251,7 @@ Licens og Copyright
 -------------------
 
 Copyright OS2 Offentlig Digitaliseringsfællesskab. 
-Dette værk er licenseret under MPL2.0, læs mere i LICENSE.
+Dette værk er frigivet under [Mozilla Public License, version 2.0](https://www.mozilla.org/en-US/MPL/), som gengivet i ``LICENSE``. Ophavsretten tilhører de individuelle bidragydere.
 
 Værket anvender følgende Open Source software-komponenter:
 
