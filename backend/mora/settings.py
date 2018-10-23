@@ -55,7 +55,7 @@ try:
         user_settings = json.load(f)
 except FileNotFoundError:  # Defaults
     user_settings = {'orgunit': {'show_location': True,
-                                 'show_bvn': False,
+                                 'show_user_key': False,
                                  'show_roles': True}
                      }
 

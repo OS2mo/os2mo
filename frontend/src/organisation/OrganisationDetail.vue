@@ -8,7 +8,7 @@
       <div class="row">
         <div class="col">
           <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">Placering: {{orgUnit.location}}</p>
-          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_bvn">Enhedsnr.:: {{orgUnit.user_key}}</p>
+          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">Enhedsnr.:: {{orgUnit.user_key}}</p>
         </div>
 
         <div class="mr-3">

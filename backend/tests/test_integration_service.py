@@ -488,7 +488,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {'show_bvn': False,
+                'user_settings': {'orgunit': {'show_user_key': False,
                                               'show_location': True,
                                               'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -520,7 +520,7 @@ class Tests(util.LoRATestCase):
             [{
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {'show_bvn': False,
+                'user_settings': {'orgunit': {'show_user_key': False,
                                               'show_location': True,
                                               'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -557,7 +557,7 @@ class Tests(util.LoRATestCase):
             [{
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {'show_bvn': False,
+                'user_settings': {'orgunit': {'show_user_key': False,
                                               'show_location': True,
                                               'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -586,7 +586,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {'show_bvn': False,
+                'user_settings': {'orgunit': {'show_user_key': False,
                                               'show_location': True,
                                               'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',

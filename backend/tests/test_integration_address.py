@@ -1763,7 +1763,7 @@ class Writing(util.LoRATestCase):
                 },
                 'location': 'Overordnet Enhed',
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
-                'user_settings': {'orgunit': {'show_bvn': False,
+                'user_settings': {'orgunit': {'show_user_key': False,
                                               'show_location': True,
                                               'show_roles': True}},
                 'uuid': unitid,

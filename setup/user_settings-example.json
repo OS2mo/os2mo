@@ -2,11 +2,11 @@
     "orgunit": {
 	"show_location": true,
 	"show_roles": true,
-	"show_bvn": true,
+	"show_key": true,
 	"927dc4d5-fdca-4062-a0d8-a44e8a9e8685": {
 	    "show_location": true,
 	    "show_roles": false,
-	    "show_bvn": false
+	    "show_user_key": false
 	}
     }
 }
