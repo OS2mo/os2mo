@@ -54,6 +54,13 @@ A organisation detail tabs component.
 
 **initial value:** `[object Object]` 
 
+## computed properties 
+
+- `orgUnit` 
+
+   **dependencies:** `$store` 
+
+
 ## events 
 
 - `show` 

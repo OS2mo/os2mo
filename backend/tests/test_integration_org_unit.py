@@ -1338,9 +1338,9 @@ class Tests(util.LoRATestCase):
                 "from": "2017-01-01",
                 "to": "2018-01-01"
             },
-             'user_settings': {'orgunit': {'show_bvn': False,
-                                           'show_location': True,
-                                           'show_roles': True}},
+            'user_settings': {'orgunit': {'show_bvn': False,
+                                          'show_location': True,
+                                          'show_roles': True}},
         })
 
         roots.insert(0, {
