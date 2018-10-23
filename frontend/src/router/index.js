@@ -12,6 +12,7 @@ const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
 const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
+const QueryList = () => import('@/modules/query/QueryList')
 
 Vue.use(Router)
 
@@ -80,6 +81,11 @@ const router = new Router({
           path: '/tidsmaskine',
           name: 'Timemachine',
           component: MoTimeMachine
+        },
+        {
+          path: '/forespoergsler',
+          name: 'QueryList',
+          component: QueryList
         },
         {
           path: '*',

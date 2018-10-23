@@ -12,7 +12,7 @@ A collapse component.
 
   Defines a title. 
 
-- `initially-open` ***Boolean*** (*optional*) 
+- `visible` ***Boolean*** (*optional*) 
 
   This Boolean property defines the visible. 
 
@@ -33,4 +33,8 @@ A collapse component.
 
    **dependencies:** `_uid` 
 
+
+## events 
+
+- `show` 
 

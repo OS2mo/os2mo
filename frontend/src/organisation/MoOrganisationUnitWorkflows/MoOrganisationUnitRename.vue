@@ -96,7 +96,7 @@
        * Get organisation unit
        */
       ...mapGetters({
-        orgUnit: 'organisationUnit/getOrgUnit'
+        orgUnit: 'organisationUnit/GET_ORG_UNIT'
       }),
 
       /**
