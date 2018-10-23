@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="orgUnit"> <!-- Hold rendering until settings are available -->
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-table-detail

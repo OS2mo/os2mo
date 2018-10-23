@@ -6,7 +6,7 @@
       </h4>
 
       <div class="row">
-        <div class="col">
+        <div class="col" v-if="orgUnit">
           <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">Placering: {{orgUnit.location}}</p>
           <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">Enhedsnr.:: {{orgUnit.user_key}}</p>
         </div>
