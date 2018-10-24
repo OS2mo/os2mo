@@ -4,12 +4,12 @@ import Service from '@/api/HttpCommon'
 function state () {
   return {
     name: undefined,
-    location: undefined,
     user_key: undefined,
     uuid: undefined,
     org_uuid: undefined,
     parent_uuid: undefined,
-    user_settings: undefined,
+    location: undefined,
+    user_settings: {},
     details: {}
   }
 }
@@ -49,22 +49,22 @@ const actions = {
 const mutations = {
   SET_ORG_UNIT (state, payload) {
     state.name = payload.name
-    state.location = payload.location
     state.user_key = payload.user_key
     state.uuid = payload.uuid
     state.org_uuid = payload.org.uuid
-    state.parent_uuid = payload.parent.uuid
+    state.location = payload.location
     state.user_settings = payload.user_settings
+    state.parent_uuid = payload.parent.uuid
   },
 
   RESET_ORG_UNIT (state) {
     state.name = undefined
-    state.location = undefined
     state.user_key = undefined
     state.uuid = undefined
     state.org_uuid = undefined
     state.parent_uuid = undefined
-    state.user_settings = undefined
+    state.location = undefined
+    state.user_settings = {}
     state.details = {}
   },
 

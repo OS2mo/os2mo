@@ -1,6 +1,5 @@
 <template>
-  <div v-if="orgUnitInfo">
-  <div v-if="orgUnitInfo.user_settings">
+  <div v-if="orgUnitInfo.user_settings.orgunit">
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-table-detail
@@ -85,7 +84,6 @@
       </b-tab>
     </b-tabs>
   </div>
-  </div>
 </template>
 
 <script>
@@ -115,6 +113,11 @@
        * This Boolean property indicates the timemachine output.
        */
       timemachineFriendly: Boolean
+    },
+    computed: {
+      orgUnitInfo () {
+        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
+      }
     },
 
     data () {
@@ -175,14 +178,7 @@
         }
       }
     },
-    computed: {
-      orgUnitInfo () {
-        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
-      }
-    },
-    created () {
-      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
-    },
+
     methods: {
       loadContent (contentType, event) {
         let payload = {
