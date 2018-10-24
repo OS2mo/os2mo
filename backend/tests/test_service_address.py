@@ -8,6 +8,10 @@
 
 import freezegun
 
+from mora import exceptions
+from mora import lora
+from mora.service import address
+
 from tests import util
 
 
@@ -115,10 +119,41 @@ class TestAddressLookup(util.TestCase):
             status_code=400,
         )
 
+    @freezegun.freeze_time('2016-06-06')
+    @util.mock()
+    def test_autocomplete_missing_org(self, mock):
+        mock.get(
+            'http://mox/organisation/organisation'
+            '?uuid=00000000-0000-0000-0000-000000000000'
+            '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
+            '&virkningtil=2016-06-06T00%3A00%3A00.000001%2B02%3A00',
+            json={
+                "results": []
+            }
+        )
+
+        self.assertRequestResponse(
+            '/service/o/00000000-0000-0000-0000-000000000000/'
+            'address_autocomplete/?q=42',
+            {
+                'error': True,
+                'error_key': 'E_NO_LOCAL_MUNICIPALITY',
+                'description': 'No local municipality found.',
+                'status': 400,
+            },
+            status_code=400,
+        )
+
     @freezegun.freeze_time('2017-07-28')
     @util.mock(('reading-organisation.json', 'dawa-autocomplete.json'))
     def test_autocomplete(self, mock):
         found = [
+            {
+                "location": {
+                    "name": "Strandlodsvej 25M, 2300 K\u00f8benhavn S",
+                    "uuid": "18fbd56e-c6b2-4d0f-bb08-80133edb896e"
+                }
+            },
             {
                 "location": {
                     "name": "Strandlodsvej 25M, 1. th, 2300 K\u00f8benhavn S",
@@ -210,3 +245,124 @@ class TestAddressLookup(util.TestCase):
             'address_autocomplete/?q=Strandlodsvej+25M&global=false',
             [],
         )
+
+    @util.mock('many-addresses.json')
+    def test_many_addresses(self, m):
+        addresses = {
+            '00000000-0000-0000-0000-000000000000': {
+                'address_type': {
+                    'scope': 'DAR',
+                },
+                'error': 'Ukendt',
+                'href': None,
+                'name': 'Ukendt',
+                'uuid': '00000000-0000-0000-0000-000000000000',
+            },
+            '0a3f507b-6b35-32b8-e044-0003ba298018': {
+                'address_type': {
+                    'scope': 'DAR',
+                },
+                'href': 'https://www.openstreetmap.org/'
+                '?mlon=12.3647784&mlat=55.73404048&zoom=16',
+                'name': 'Hold-An Vej 7, 2750 Ballerup',
+                'uuid': '0a3f507b-6b35-32b8-e044-0003ba298018',
+            },
+            '0a3f5081-75bf-32b8-e044-0003ba298018': {
+                'address_type': {
+                    'scope': 'DAR',
+                },
+                'href': 'https://www.openstreetmap.org/'
+                '?mlon=11.91321841&mlat=55.62985492&zoom=16',
+                'name': 'Brobjergvej 9, Abbetved, 4060 Kirke S\u00e5by',
+                'uuid': '0a3f5081-75bf-32b8-e044-0003ba298018',
+            },
+            '0ead9b4d-c615-442d-8447-b328a73b5b39': {
+                'address_type': {
+                    'scope': 'DAR',
+                },
+                'href': 'https://www.openstreetmap.org/'
+                '?mlon=12.57924839&mlat=55.68113676&zoom=16',
+                'name': 'Pilestr\u00e6de 43, 3. th, 1112 K\u00f8benhavn K',
+                'uuid': '0ead9b4d-c615-442d-8447-b328a73b5b39',
+            },
+            '2ef51a73-ad7d-4ee7-e044-0003ba298018': {
+                'address_type': {
+                    'scope': 'DAR',
+                },
+                'href': 'https://www.openstreetmap.org/'
+                '?mlon=12.3647784&mlat=55.73404048&zoom=16',
+                'name': 'Hold-An Vej 7, 1., 2750 Ballerup',
+                'uuid': '2ef51a73-ad7d-4ee7-e044-0003ba298018',
+            },
+            'bd7e5317-4a9e-437b-8923-11156406b117': {
+                'address_type': {
+                    'scope': 'DAR',
+                },
+                'href': None,
+                'name': 'Hold-An Vej 7, 2750 Ballerup',
+                'uuid': 'bd7e5317-4a9e-437b-8923-11156406b117',
+            },
+        }
+
+        for addrid, expected in sorted(addresses.items()):
+            with self.subTest(addrid):
+                actual = address.get_one_address(
+                    lora.Connector(),
+                    {
+                        'objekttype': 'DAR',
+                        'uuid': addrid,
+                    },
+                )
+
+                self.assertEquals(actual, expected)
+
+    @util.mock()
+    def test_bad_scope(self, m):
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    'invalid address scope'):
+            address.get_one_address(
+                lora.Connector(),
+                {
+                    'objekttype': 'kaflaflibob',
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                },
+            )
+
+    @util.mock()
+    @freezegun.freeze_time('2010-01-01', tz_offset=1)
+    def test_bad_phone(self, m):
+        m.get(
+            'http://mox/klassifikation/klasse'
+            '?uuid=00000000-0000-0000-0000-000000000000',
+            json={
+                'results': [[{
+                    "id": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                    "registreringer": [{
+                        "attributter": {
+                            "klasseegenskaber": [{
+                                "brugervendtnoegle": "Telefon",
+                                "eksempel": "20304060",
+                                "omfang": "PHONE",
+                                "titel": "Telefonnummer",
+                                "virkning": {
+                                    "from": "2000-01-01 00:00:00+01",
+                                    "from_included": True,
+                                    "to": "infinity",
+                                    "to_included": False
+                                }
+                            }]
+                        },
+                    }],
+                }]],
+            },
+        )
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "invalid urn 'kaflaflibob'"):
+            address.get_one_address(
+                lora.Connector(),
+                {
+                    'objekttype': '00000000-0000-0000-0000-000000000000',
+                    'urn': 'kaflaflibob',
+                },
+            )

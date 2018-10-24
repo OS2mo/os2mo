@@ -1,4 +1,21 @@
 {
+  "https://dawa.aws.dk/adgangsadresser/autocomplete?per_side=5&noformat=1&kommunekode=751&q=Strandlodsvej+25M": [],
+  "https://dawa.aws.dk/adgangsadresser/autocomplete?per_side=5&noformat=1&q=Strandlodsvej+25M": [
+    {
+      "adgangsadresse": {
+        "href": "https://dawa.aws.dk/adgangsadresser/18fbd56e-c6b2-4d0f-bb08-80133edb896e",
+        "husnr": "25M",
+        "id": "18fbd56e-c6b2-4d0f-bb08-80133edb896e",
+        "postnr": "2300",
+        "postnrnavn": "K\u00f8benhavn S",
+        "stormodtagerpostnr": null,
+        "stormodtagerpostnrnavn": null,
+        "supplerendebynavn": null,
+        "vejnavn": "Strandlodsvej"
+      },
+      "tekst": "Strandlodsvej 25M, 2300 K\u00f8benhavn S"
+    }
+  ],
   "https://dawa.aws.dk/adresser/autocomplete?per_side=10&noformat=1&kommunekode=751&q=Strandlodsvej+25M": [],
   "https://dawa.aws.dk/adresser/autocomplete?per_side=10&noformat=1&q=Strandlodsvej+25M": [
     {

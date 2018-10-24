@@ -24,6 +24,8 @@ Bug fixes
   possesses as vacant rather than terminating them.
 * #24069: Handle DAR address errors gracefully, displaying the error
   message rather than suppressing all addresses.
+* #24077: Allow entering DAR access addresses as well as regular
+  adresses in all fields, and allow reading historical addresses.
 
 Known bugs
 ----------
