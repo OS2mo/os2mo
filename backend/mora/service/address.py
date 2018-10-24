@@ -662,11 +662,13 @@ def address_autocomplete(orgid):
 
     addrs = requests.get(
         'https://dawa.aws.dk/adresser/autocomplete',
-        params={
-            'noformat': '1',
-            'kommunekode': code,
-            'q': q,
-        },
+        # use a list to work around unordered dicts in Python < 3.6
+        params=[
+            ('per_side', '10'),
+            ('noformat', '1'),
+            ('kommunekode', code),
+            ('q', q),
+        ],
     ).json()
 
     return flask.jsonify([
