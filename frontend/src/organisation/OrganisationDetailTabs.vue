@@ -1,5 +1,6 @@
 <template>
-  <div v-if="orgUnit"> <!-- Hold rendering until settings are available -->
+  <div v-if="orgUnitInfo">
+  <div v-if="orgUnitInfo.user_settings">
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-table-detail
@@ -60,7 +61,7 @@
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.roles')" v-if="orgUnit.user_settings.orgunit.show_roles">
+      <b-tab :title="$t('tabs.organisation.roles')" v-if="orgUnitInfo.user_settings.orgunit.show_roles">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -83,6 +84,7 @@
         />
       </b-tab>
     </b-tabs>
+  </div>
   </div>
 </template>
 
@@ -113,12 +115,6 @@
        * This Boolean property indicates the timemachine output.
        */
       timemachineFriendly: Boolean
-    },
-
-    computed: {
-      orgUnit () {
-        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
-      }
     },
 
     data () {
@@ -179,7 +175,14 @@
         }
       }
     },
-
+    computed: {
+      orgUnitInfo () {
+        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
+      }
+    },
+    created () {
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
+    },
     methods: {
       loadContent (contentType, event) {
         let payload = {

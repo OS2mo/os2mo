@@ -6,16 +6,20 @@
       </h4>
 
       <div class="row">
-        <div class="col" v-if="orgUnit">
-          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">Placering: {{orgUnit.location}}</p>
-          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">Enhedsnr.:: {{orgUnit.user_key}}</p>
+        <div class="col" v-if="orgUnit.user_settings">
+          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
+	      Placering: {{orgUnit.location}}
+	  </p>
+	  
+          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">
+	      Enhedsnr.:: {{orgUnit.user_key}}
+	  </p>
         </div>
 
         <div class="mr-3">
           <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
         </div>
       </div>
-
 
       <organisation-detail-tabs 
         :uuid="$route.params.uuid" 
