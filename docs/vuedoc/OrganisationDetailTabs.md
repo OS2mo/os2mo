@@ -56,7 +56,7 @@ A organisation detail tabs component.
 
 ## computed properties 
 
-- `orgUnit` 
+- `orgUnitInfo` 
 
    **dependencies:** `$store` 
 
