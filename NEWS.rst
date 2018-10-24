@@ -22,6 +22,8 @@ Bug fixes
 
 * #24150: When terminating an employee, mark any manager roles it
   possesses as vacant rather than terminating them.
+* #24069: Handle DAR address errors gracefully, displaying the error
+  message rather than suppressing all addresses.
 
 Known bugs
 ----------
