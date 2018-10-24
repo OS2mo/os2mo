@@ -9,12 +9,16 @@
 ---------
 .. _address:
 
-
 Within the context of MO, we have two forms of addresses, `DAR`_ and
 everything else. **DAR** is short for *Danmarks Adresseregister* or
 the *Address Register of Denmark*, and constitutes a UUID representing a
 DAWA address or access address. We represent other addresses merely
 through their textual value.
+
+.. tip::
+
+  See also the `official documentation
+  <http://dawa.aws.dk/dok/adresser>`_ — in Danish — on DAR addresses.
 
 Before writing a DAR address, a UI or client should convert the
 address string to a UUID using either their API or the
@@ -189,7 +193,7 @@ units.
 
 
 API
-~~~
+^^^
 
 '''
 
@@ -654,7 +658,9 @@ def get_scope_and_original(obj_uuid, obj_type):
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
 @util.restrictargs('global', required=['q'])
 def address_autocomplete(orgid):
-    """Perform address autocomplete
+    """Perform address autocomplete, resolving both ``adgangsadresse`` and
+    ``adresse``.
+
     :param orgid: The UUID of the organisation
 
     .. :quickref: Address; Autocomplete
