@@ -5,7 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import collections
 import enum
 import functools
 import operator
@@ -49,7 +48,7 @@ ENGAGEMENT_TYPE = 'engagement_type'
 # Association
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
-#LOCATION = 'location' - see under common
+# LOCATION = 'location' - see under common
 
 # Role type
 ROLE_KEY = 'Rolle'
@@ -71,7 +70,7 @@ ORG_UNIT_TYPE = 'org_unit_type'
 # NAME = 'name' - see under common
 PARENT = 'parent'
 ADDRESSES = 'addresses'
-#LOCATION = 'location' - see under common
+# LOCATION = 'location' - see under common
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
@@ -241,7 +240,7 @@ SINGLE_ITSYSTEM_FIELD = FieldTuple(
 )
 
 EMPLOYEE_PERSON_FIELD = FieldTuple(
-    path=('relationer','tilknyttedepersoner'),
+    path=('relationer', 'tilknyttedepersoner'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
@@ -249,7 +248,7 @@ EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'brugeregenskaber'),
     type=FieldTypes.ZERO_TO_ONE,
 )
-    
+
 EMPLOYEE_GYLDIGHED_FIELD = FieldTuple(
     path=('tilstande', 'brugergyldighed'),
     type=FieldTypes.ZERO_TO_ONE,
@@ -330,4 +329,3 @@ ITSYSTEM_FIELDS = {
     USER_FIELD,
     SINGLE_ITSYSTEM_FIELD,
 }
-

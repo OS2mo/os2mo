@@ -460,7 +460,6 @@ class Tests(util.LoRATestCase):
         )
 
 
-
     def test_edit_employee_overwrite(self):
         # A generic example of editing an employee
 
@@ -476,7 +475,7 @@ class Tests(util.LoRATestCase):
                     "to": None
                 },
                 "cpr_no": "1205320000",
-                "name": "Fedtmule", 
+                "name": "Fedtmule",
                 "uuid": userid,
             },
             "data": {
@@ -495,59 +494,67 @@ class Tests(util.LoRATestCase):
         )
 
         # there must be a registration of the new name
-        expected_brugeregenskaber=[
-            {'brugernavn': 'Fedtmule',
+        expected_brugeregenskaber = [{
+            'brugernavn': 'Fedtmule',
             'brugervendtnoegle': 'fedtmule',
-            'virkning': {'from': '1932-05-12 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': '2017-01-01 '
-                              '00:00:00+01',
-                        'to_included': False}},
-            {'brugernavn': 'Test 2 Employee',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': '2017-01-01 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'brugernavn': 'Test 2 Employee',
             'brugervendtnoegle': 'fedtmule',
-            'virkning': {'from': '2017-01-01 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False}}
-        ]
+            'virkning': {
+                'from': '2017-01-01 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
 
         # but looking at the validity of the original that was sent along
-        # the period from that fromdate up to the this fromdate has been 
+        # the period from that fromdate up to the this fromdate has been
         # removed
-        expected_brugergyldighed = [
-            {'gyldighed': 'Aktiv',
-            'virkning': {'from': '1932-05-12 '
-                                 '00:00:00+01',
-                         'from_included': True,
-                         'to': '2016-01-01 00:00:00+01',
-                         'to_included': False}},
-           {'gyldighed': 'Aktiv',
-            'virkning': {'from': '2017-01-01 '
-                                 '00:00:00+01',
-                         'from_included': True,
-                         'to': 'infinity',
-                         'to_included': False}},
-           {'gyldighed': 'Inaktiv',
-            'virkning': {'from': '2016-01-01 '
-                                 '00:00:00+01',
-                         'from_included': True,
-                         'to': '2017-01-01 00:00:00+01',
-                         'to_included': False}}
-        ]
+
+        expected_brugergyldighed = [{
+            'gyldighed': 'Aktiv',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': '2016-01-01 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'gyldighed': 'Aktiv',
+            'virkning': {
+                'from': '2017-01-01 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }, {
+            'gyldighed': 'Inaktiv',
+            'virkning': {
+                'from': '2016-01-01 00:00:00+01',
+                'from_included': True,
+                'to': '2017-01-01 00:00:00+01',
+                'to_included': False
+            }
+        }]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.bruger.get(userid)
 
-        self.assertEqual(expected_brugeregenskaber, 
+        self.assertEqual(
+            expected_brugeregenskaber,
             actual['attributter']['brugeregenskaber']
         )
-        self.assertEqual(expected_brugergyldighed, 
+        self.assertEqual(
+            expected_brugergyldighed,
             actual['tilstande']['brugergyldighed']
         )
-
-
 
     def test_edit_employee(self):
         # A generic example of editing an employee
@@ -576,49 +583,56 @@ class Tests(util.LoRATestCase):
         )
 
         # there must be a registration of the new name
-        expected_brugeregenskaber=[
-            {'brugernavn': 'Fedtmule',
+        expected_brugeregenskaber = [{
+            'brugernavn': 'Fedtmule',
             'brugervendtnoegle': 'fedtmule',
-            'virkning': {'from': '1932-05-12 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': '2017-02-02 '
-                              '00:00:00+01',
-                        'to_included': False}},
-            {'brugernavn': 'Test 1 Employee',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': '2017-02-02 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'brugernavn': 'Test 1 Employee',
             'brugervendtnoegle': 'fedtmule',
-            'virkning': {'from': '2017-02-02 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False}}
-        ]
+            'virkning': {
+                'from': '2017-02-02 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
 
         # but looking at the validity of the original that was sent along
-        # the period from that fromdate up to the this fromdate has been 
+        # the period from that fromdate up to the this fromdate has been
         # removed
-        expected_brugergyldighed = [
-            {'gyldighed': 'Aktiv',
-            'virkning': {'from': '1932-05-12 '
-                                 '00:00:00+01',
-                         'from_included': True,
-                         'to': '2017-02-02 00:00:00+01',
-                         'to_included': False}},
-           {'gyldighed': 'Aktiv',
-            'virkning': {'from': '2017-02-02 '
-                                 '00:00:00+01',
-                         'from_included': True,
-                         'to': 'infinity',
-                         'to_included': False}},
-        ]
+
+        expected_brugergyldighed = [{
+            'gyldighed': 'Aktiv',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': '2017-02-02 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'gyldighed': 'Aktiv',
+            'virkning': {
+                'from': '2017-02-02 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.bruger.get(userid)
 
-        self.assertEqual(expected_brugeregenskaber, 
+        self.assertEqual(
+            expected_brugeregenskaber,
             actual['attributter']['brugeregenskaber']
         )
-        self.assertEqual(expected_brugergyldighed, 
+        self.assertEqual(
+            expected_brugergyldighed,
             actual['tilstande']['brugergyldighed']
         )
-
