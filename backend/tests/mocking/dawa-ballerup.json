@@ -1,5 +1,5 @@
 {
-  "http://dawa.aws.dk/datavask/adresser?betegnelse=%C3%85bogade+15%2C+8200+Aarhus+N": {
+  "https://dawa.aws.dk/datavask/adresser?betegnelse=%C3%85bogade+15%2C+8200+Aarhus+N": {
     "kategori": "A",
     "resultater": [
       {
@@ -8,7 +8,7 @@
           "adresseringsvejnavn": "\u00c5bogade",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+          "href": "https://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
           "husnr": "15",
           "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
           "postnr": "8200",
@@ -22,7 +22,7 @@
           "adresseringsvejnavn": "\u00c5bogade",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
+          "href": "https://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
           "husnr": "15",
           "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
           "postnr": "8200",
@@ -60,7 +60,7 @@
       }
     ]
   },
-  "http://dawa.aws.dk/datavask/adresser?betegnelse=Ballerup+Idr%C3%A6tsby+38%2C+2750+Ballerup": {
+  "https://dawa.aws.dk/datavask/adresser?betegnelse=Ballerup+Idr%C3%A6tsby+38%2C+2750+Ballerup": {
     "kategori": "A",
     "resultater": [
       {
@@ -69,7 +69,7 @@
           "adresseringsvejnavn": "Ballerup Idr\u00e6tsby",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/9ab45e95-a42a-47c0-b284-e5d2377fc429",
+          "href": "https://dawa.aws.dk/adresser/9ab45e95-a42a-47c0-b284-e5d2377fc429",
           "husnr": "38",
           "id": "9ab45e95-a42a-47c0-b284-e5d2377fc429",
           "postnr": "2750",
@@ -83,7 +83,7 @@
           "adresseringsvejnavn": "Ballerup Idr\u00e6tsby",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/9ab45e95-a42a-47c0-b284-e5d2377fc429",
+          "href": "https://dawa.aws.dk/adresser/9ab45e95-a42a-47c0-b284-e5d2377fc429",
           "husnr": "38",
           "id": "9ab45e95-a42a-47c0-b284-e5d2377fc429",
           "postnr": "2750",
@@ -121,7 +121,7 @@
       }
     ]
   },
-  "http://dawa.aws.dk/datavask/adresser?betegnelse=Baneg\u00e5rdspladsen+1%2C+2750+Ballerup": {
+  "https://dawa.aws.dk/datavask/adresser?betegnelse=Baneg\u00e5rdspladsen+1%2C+2750+Ballerup": {
     "kategori": "A",
     "resultater": [
       {
@@ -130,7 +130,7 @@
           "adresseringsvejnavn": "Baneg\u00e5rdspladsen",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/99b29a62-01fd-40be-b5fe-8bfc4be35e83",
+          "href": "https://dawa.aws.dk/adresser/99b29a62-01fd-40be-b5fe-8bfc4be35e83",
           "husnr": "1",
           "id": "99b29a62-01fd-40be-b5fe-8bfc4be35e83",
           "postnr": "2750",
@@ -144,7 +144,7 @@
           "adresseringsvejnavn": "Baneg\u00e5rdspladsen",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/99b29a62-01fd-40be-b5fe-8bfc4be35e83",
+          "href": "https://dawa.aws.dk/adresser/99b29a62-01fd-40be-b5fe-8bfc4be35e83",
           "husnr": "1",
           "id": "99b29a62-01fd-40be-b5fe-8bfc4be35e83",
           "postnr": "2750",
@@ -182,7 +182,7 @@
       }
     ]
   },
-  "http://dawa.aws.dk/datavask/adresser?betegnelse=Hold-an+Vej+7%2C+2750+Ballerup": {
+  "https://dawa.aws.dk/datavask/adresser?betegnelse=Hold-an+Vej+7%2C+2750+Ballerup": {
     "kategori": "A",
     "resultater": [
       {
@@ -191,7 +191,7 @@
           "adresseringsvejnavn": "Hold-An Vej",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/bd7e5317-4a9e-437b-8923-11156406b117",
+          "href": "https://dawa.aws.dk/adresser/bd7e5317-4a9e-437b-8923-11156406b117",
           "husnr": "7",
           "id": "bd7e5317-4a9e-437b-8923-11156406b117",
           "postnr": "2750",
@@ -205,7 +205,7 @@
           "adresseringsvejnavn": "Hold-An Vej",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/bd7e5317-4a9e-437b-8923-11156406b117",
+          "href": "https://dawa.aws.dk/adresser/bd7e5317-4a9e-437b-8923-11156406b117",
           "husnr": "7",
           "id": "bd7e5317-4a9e-437b-8923-11156406b117",
           "postnr": "2750",
@@ -243,7 +243,7 @@
       }
     ]
   },
-  "http://dawa.aws.dk/datavask/adresser?betegnelse=Pilestr%C3%A6de+43%2C+3.%2C+1112+K%C3%B8benhavn+K": {
+  "https://dawa.aws.dk/datavask/adresser?betegnelse=Pilestr%C3%A6de+43%2C+3.%2C+1112+K%C3%B8benhavn+K": {
     "kategori": "A",
     "resultater": [
       {
@@ -265,7 +265,7 @@
           "adresseringsvejnavn": "Pilestr\u00e6de",
           "d\u00f8r": null,
           "etage": "3",
-          "href": "http://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018",
+          "href": "https://dawa.aws.dk/adresser/0a3f50a0-23c9-32b8-e044-0003ba298018",
           "husnr": "43",
           "id": "0a3f50a0-23c9-32b8-e044-0003ba298018",
           "postnr": "1112",
@@ -305,7 +305,7 @@
       }
     ]
   },
-  "http://dawa.aws.dk/datavask/adresser?betegnelse=Torvevej+21%2C+2740+Skovlunde": {
+  "https://dawa.aws.dk/datavask/adresser?betegnelse=Torvevej+21%2C+2740+Skovlunde": {
     "kategori": "A",
     "resultater": [
       {
@@ -314,7 +314,7 @@
           "adresseringsvejnavn": "Torvevej",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/45b40fc3-bb75-412c-b122-d9df7b0ade94",
+          "href": "https://dawa.aws.dk/adresser/45b40fc3-bb75-412c-b122-d9df7b0ade94",
           "husnr": "21",
           "id": "45b40fc3-bb75-412c-b122-d9df7b0ade94",
           "postnr": "2740",
@@ -328,7 +328,7 @@
           "adresseringsvejnavn": "Torvevej",
           "d\u00f8r": null,
           "etage": null,
-          "href": "http://dawa.aws.dk/adresser/45b40fc3-bb75-412c-b122-d9df7b0ade94",
+          "href": "https://dawa.aws.dk/adresser/45b40fc3-bb75-412c-b122-d9df7b0ade94",
           "husnr": "21",
           "id": "45b40fc3-bb75-412c-b122-d9df7b0ade94",
           "postnr": "2740",

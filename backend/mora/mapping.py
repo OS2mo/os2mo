@@ -32,6 +32,7 @@ ADDRESS = 'address'
 ITSYSTEM_KEY = 'IT-system'
 EMPLOYEE = "employee"
 LOCATION = 'location'
+ERROR = 'error'
 
 # Address
 ADDRESS_KEY = 'Adresse'
