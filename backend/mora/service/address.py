@@ -212,6 +212,7 @@ from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
+from .. import settings
 from .. import util
 
 session = requests.Session()
@@ -733,7 +734,7 @@ def address_autocomplete(orgid):
             'https://dawa.aws.dk/adgangsadresser/autocomplete',
             # use a list to work around unordered dicts in Python < 3.6
             params=[
-                ('per_side', '5'),
+                ('per_side', settings.AUTOCOMPLETE_ACCESS_ADDRESS_COUNT),
                 ('noformat', '1'),
                 ('kommunekode', code),
                 ('q', q),
@@ -745,7 +746,7 @@ def address_autocomplete(orgid):
         'https://dawa.aws.dk/adresser/autocomplete',
         # use a list to work around unordered dicts in Python < 3.6
         params=[
-            ('per_side', '10'),
+            ('per_side', settings.AUTOCOMPLETE_ADDRESS_COUNT),
             ('noformat', '1'),
             ('kommunekode', code),
             ('q', q),
