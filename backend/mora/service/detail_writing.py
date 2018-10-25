@@ -393,6 +393,47 @@ def edit():
     Request payload contains a list of edit objects, each differentiated
     by the attribute ``type``. Each of these object types are detailed below:
 
+    **Employee**:
+
+    :<json string type: **"employee"**
+    :<json string uuid: The UUID of the employee,
+    :<json object original: An **optional** object containing the original
+        state of the employee to be overwritten. If supplied, the change
+        will modify the existing registration on the employee object.
+        Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        employee. Detailed below.
+
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string cpr_no: The cpr number of the employee
+    :<jsonarr string name: The Name of the employee
+    :<jsonarr object validity: The validities of the changes.
+
+    .. sourcecode:: json
+        [{
+            "type": "employee",
+            "original": {
+                "validity": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": None
+                },
+                "cpr_no": "1205320000",
+                "name": "Test 1 Employee",
+            },
+            "data": {
+                "validity": {
+                    "from": "2017-01-01",
+                },
+                "cpr_no": "0202020202",
+                "name": "Test 2 Employee"
+            },
+            "uuid": de9e7513-1934-481f-f8c8-45336387e9cb,
+        }]
+          
+
     **Engagement**:
 
     :<json string type: **"engagement"**

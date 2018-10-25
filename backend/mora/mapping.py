@@ -31,6 +31,8 @@ JOB_FUNCTION = 'job_function'
 ITSYSTEM = 'itsystem'
 ADDRESS = 'address'
 ITSYSTEM_KEY = 'IT-system'
+EMPLOYEE = "employee"
+LOCATION = 'location'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -39,6 +41,7 @@ ADDRESS_TYPE = 'address_type'
 # Employee
 CPR_NO = 'cpr_no'
 
+
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
 ENGAGEMENT_TYPE = 'engagement_type'
@@ -46,7 +49,7 @@ ENGAGEMENT_TYPE = 'engagement_type'
 # Association
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
-LOCATION = 'location'
+#LOCATION = 'location' - see under common
 
 # Role type
 ROLE_KEY = 'Rolle'
@@ -65,10 +68,10 @@ MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
-NAME = 'name'
+# NAME = 'name' - see under common
 PARENT = 'parent'
 ADDRESSES = 'addresses'
-LOCATION = 'location'
+#LOCATION = 'location' - see under common
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
@@ -237,6 +240,29 @@ SINGLE_ITSYSTEM_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+EMPLOYEE_PERSON_FIELD = FieldTuple(
+    path=('relationer','tilknyttedepersoner'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
+EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
+    path=('attributter', 'brugeregenskaber'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+    
+EMPLOYEE_GYLDIGHED_FIELD = FieldTuple(
+    path=('tilstande', 'brugergyldighed'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+EMPLOYEE_FIELDS = {
+    EMPLOYEE_PERSON_FIELD,
+    EMPLOYEE_EGENSKABER_FIELD,
+    EMPLOYEE_GYLDIGHED_FIELD,
+    BELONGS_TO_FIELD,
+}
+
+
 ENGAGEMENT_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,
     ORG_FUNK_GYLDIGHED_FIELD,
@@ -304,3 +330,4 @@ ITSYSTEM_FIELDS = {
     USER_FIELD,
     SINGLE_ITSYSTEM_FIELD,
 }
+
