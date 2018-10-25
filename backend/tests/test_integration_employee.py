@@ -459,7 +459,6 @@ class Tests(util.LoRATestCase):
             status_code=400,
         )
 
-
     def test_edit_employee_overwrite(self):
         # A generic example of editing an employee
 
