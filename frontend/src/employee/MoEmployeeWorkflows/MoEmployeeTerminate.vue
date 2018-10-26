@@ -75,17 +75,23 @@
 
     data () {
       return {
-        isLoading: false,
-        backendValidationError: null
+        isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get mapFields from vuex store.
+       */
       ...mapFields('employeeTerminate', [
         'employee',
-        'endDate'
+        'endDate',
+        'backendValidationError'
       ]),
 
+      /**
+       * Get mapGetters from vuex store.
+       */
       ...mapGetters({
         details: 'employeeTerminate/getDetails'
       }),
@@ -101,7 +107,6 @@
     },
 
     methods: {
-
       loadContent (event) {
         this.$store.dispatch('employeeTerminate/setDetails', event)
       },
