@@ -49,7 +49,6 @@ ENGAGEMENT_TYPE = 'engagement_type'
 # Association
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
-# LOCATION = 'location' - see under common
 
 # Role type
 ROLE_KEY = 'Rolle'
@@ -68,10 +67,8 @@ MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
-# NAME = 'name' - see under common
 PARENT = 'parent'
 ADDRESSES = 'addresses'
-# LOCATION = 'location' - see under common
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
