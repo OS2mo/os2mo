@@ -7,12 +7,12 @@
     hide-footer 
     lazy
     no-close-on-backdrop
-    @hidden="resetData"
+    @hidden="$store.dispatch('employeeMove/resetFields')"
   >
     <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker 
         class="search-employee" 
-        v-model="employee" 
+        v-model="person" 
         required
       />
 
@@ -20,7 +20,7 @@
         <mo-engagement-picker 
           class="mt-3" 
           v-model="original" 
-          :employee="employee"
+          :employee="person"
           required
         />
       </div>
@@ -38,14 +38,14 @@
         <mo-date-picker 
           class="col from-date"
           :label="$t('input_fields.move_date')" 
-          v-model="dateFrom"
+          v-model="from"
           :valid-dates="validDates"
           required
         />
       </div>
 
       <mo-confirm-checkbox
-        :entry-date="dateFrom"
+        :entry-date="from"
         :entry-name="original.engagement_type.name"
         :entry-org-name="original.org_unit.name"
         v-if="dateConflict" 
@@ -113,20 +113,24 @@
     data () {
       return {
       /**
-        * The original, isLoading, backendValidationError component value.
+        * The isLoading component value.
         * Used to detect changes and restore the value.
         */
-        isLoading: false,
-        backendValidationError: null,
-        original: null
+        isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get mapFields from vuex store.
+       */
       ...mapFields('employeeMove', [
-        'employee',
-        'org_unit',
-        'dateFrom'
+        'move',
+        'move.data.person',
+        'move.data.org_unit',
+        'move.data.validity.from',
+        'original',
+        'backendValidationError'
       ]),
 
       /**
@@ -142,11 +146,11 @@
        * Check if the dates are valid.
        */
       dateConflict () {
-        if (this.dateFrom && this.original) {
+        if (this.from && this.original) {
           if (this.original.validity.to == null) return true
-          this.dateFrom = new Date(this.dateFrom)
-          this.original.validity.to = new Date(this.original.validity.to)
-          if (this.dateFrom <= this.original.validity.to) return true
+          const newFrom = new Date(this.from)
+          const originalTo = new Date(this.original.validity.to)
+          if (newFrom <= originalTo) return true
         }
         return false
       },
@@ -155,18 +159,11 @@
        * Check if the organisation date are valid.
        */
       validDates () {
-        return this.org_unit ? this.org_unit.validity : {}
+        return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
       }
     },
 
     methods: {
-      /**
-       * Resets the data fields.
-       */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
       /**
        * Move a employee and check if the data fields are valid.
        * Then throw a error if not.
