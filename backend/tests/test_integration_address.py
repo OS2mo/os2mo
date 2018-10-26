@@ -2785,3 +2785,124 @@ class Reading(util.LoRATestCase):
                         },
                     ],
                 )
+
+    def test_missing_address(self, mock):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
+
+        mock.get(
+            'https://dawa.aws.dk/adresser/{}?noformat=1'.format(addrid),
+            json={
+                "type": "ResourceNotFoundError",
+                "title": "The resource was not found",
+                "details": {
+                    "id": "bd7e5317-4a9e-437b-8923-11156406b117",
+                },
+            },
+            status_code=404,
+        )
+
+        lora.Connector().organisationenhed.update(
+            {
+                'relationer': {
+                    'adresser': [
+                        {
+                            'objekttype': address_class['uuid'],
+                            'uuid': addrid,
+                            'virkning': {
+                                'from': '2016-01-01',
+                                'to': '2020-01-01',
+                            },
+                        },
+                    ],
+                },
+            },
+            unitid,
+        )
+
+        with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                [{
+                    'name': 'Fejl',
+                    'error': {
+                        'details': {
+                            'id': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                        },
+                        'title': 'The resource was not found',
+                        'type': 'ResourceNotFoundError',
+                    },
+                    'address_type': address_class,
+                    'href': None,
+                    'org_unit': {
+                        'name': 'Afdeling for Samtidshistorik',
+                        'user_key': 'frem',
+                        'uuid': unitid,
+                        'validity': {
+                            'from': '2016-01-01', 'to': '2018-12-31',
+                        },
+                    },
+                    'uuid': addrid,
+                    'validity': {
+                        'from': '2016-01-01', 'to': '2019-12-31',
+                    },
+                }],
+            )
+
+            self.assertRegex(log_res.output[0],
+                             "ADDRESS LOOKUP FAILED")
+
+    def test_offline(self, mock):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
+
+        lora.Connector().organisationenhed.update(
+            {
+                'relationer': {
+                    'adresser': [
+                        {
+                            'objekttype': address_class['uuid'],
+                            'uuid': addrid,
+                            'virkning': {
+                                'from': '2016-01-01',
+                                'to': '2020-01-01',
+                            },
+                        },
+                    ],
+                },
+            },
+            unitid,
+        )
+
+        with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                [{
+                    'name': 'Fejl',
+                    'error': 'No mock address: GET '
+                    'https://dawa.aws.dk/adresser/{}?noformat=1'
+                    .format(addrid),
+                    'address_type': address_class,
+                    'href': None,
+                    'org_unit': {
+                        'name': 'Afdeling for Samtidshistorik',
+                        'user_key': 'frem',
+                        'uuid': unitid,
+                        'validity': {
+                            'from': '2016-01-01', 'to': '2018-12-31',
+                        },
+                    },
+                    'uuid': addrid,
+                    'validity': {
+                        'from': '2016-01-01', 'to': '2019-12-31',
+                    },
+                }],
+            )
+
+            self.assertRegex(log_res.output[0],
+                             "AN ERROR OCCURRED in '[^']*': "
+                             "failed to get address")

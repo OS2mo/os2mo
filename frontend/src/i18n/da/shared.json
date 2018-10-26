@@ -14,5 +14,9 @@
   "role": "Rolle | Roller",
   "unit": "Enhed | Enheder",
   "leave": "Orlov",
-  "manager_function": "Lederfunktion | Lederfunktioner"
+  "manager_function": "Lederfunktion | Lederfunktioner",
+  "past": "Fortid",
+  "present": "Nutid",
+  "future": "Fremtid",
+  "query": "Forespørgsel | Forespørgsler"
 }

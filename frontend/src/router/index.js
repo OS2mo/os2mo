@@ -9,6 +9,7 @@ const Landing = () => import('@/landing/LandingPage')
 const MoBase = () => import('@/MoBase')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
+const QueryList = () => import('@/modules/query/QueryList')
 
 Vue.use(Router)
 
@@ -34,6 +35,16 @@ const BaseRouter = {
       path: '/hjaelp',
       name: 'Help',
       component: TheHelp
+    },
+    {
+      path: '/forespoergsler',
+      name: 'QueryList',
+      component: QueryList
+    },
+    {
+      path: '*',
+      name: 'PageNotFound',
+      component: PageNotFound
     }
   ]
 }
