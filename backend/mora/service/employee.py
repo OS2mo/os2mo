@@ -35,7 +35,7 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-class BrugerRequestHandler(handlers.RequestHandler):
+class EmployeeRequestHandler(handlers.RequestHandler):
     __slots__ = ('details_requests',)
     role_type = "employee"
 
@@ -551,7 +551,7 @@ def create_employee():
 
     """
     req = flask.request.get_json()
-    request = BrugerRequestHandler(req, handlers.RequestType.CREATE)
+    request = EmployeeRequestHandler(req, handlers.RequestType.CREATE)
     return flask.jsonify(request.submit()), 201
 
 

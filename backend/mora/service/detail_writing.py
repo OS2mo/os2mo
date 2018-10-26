@@ -413,24 +413,25 @@ def edit():
     :<jsonarr object validity: The validities of the changes.
 
     .. sourcecode:: json
+
         [{
             "type": "employee",
             "original": {
                 "validity": {
                     "from": "2016-01-01 00:00:00+01",
-                    "to": None
+                    "to": null
                 },
                 "cpr_no": "1205320000",
-                "name": "Test 1 Employee",
+                "name": "Test 1 Employee"
             },
             "data": {
                 "validity": {
-                    "from": "2017-01-01",
+                    "from": "2017-01-01"
                 },
                 "cpr_no": "0202020202",
                 "name": "Test 2 Employee"
             },
-            "uuid": de9e7513-1934-481f-f8c8-45336387e9cb,
+            "uuid": "de9e7513-1934-481f-f8c8-45336387e9cb"
         }]
 
 
