@@ -9,12 +9,16 @@
 ---------
 .. _address:
 
-
 Within the context of MO, we have two forms of addresses, `DAR`_ and
 everything else. **DAR** is short for *Danmarks Adresseregister* or
 the *Address Register of Denmark*, and constitutes a UUID representing a
 DAWA address or access address. We represent other addresses merely
 through their textual value.
+
+.. tip::
+
+  See also the `official documentation
+  <http://dawa.aws.dk/dok/adresser>`_ — in Danish — on DAR addresses.
 
 Before writing a DAR address, a UI or client should convert the
 address string to a UUID using either their API or the
@@ -185,14 +189,15 @@ More information regarding creating and editing addresses can be found in the
 sections on creating and editing relations for employees and organisational
 units.
 
-.. _DAR: http://dawa.aws.dk/dok/api/adresse
+.. _DAR: https://dawa.aws.dk/dok/api/adresse
 
 
 API
-~~~
+^^^
 
 '''
 
+import collections
 import json
 import re
 
@@ -207,6 +212,7 @@ from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
+from .. import settings
 from .. import util
 
 session = requests.Session()
@@ -229,10 +235,51 @@ HREF_PREFIXES = {
     'WWW': '',
 }
 
+DEFAULT_ERROR = 'Fejl'
+NOT_FOUND = 'Ukendt'
+
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
 
 blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+def _address_string_chunks(addr):
+    # loosely inspired by 'adressebetegnelse' in apiSpecification/util.js from
+    # https://github.com/DanmarksAdresser/Dawa/
+
+    yield addr['vejnavn']
+
+    if addr.get('husnr') is not None:
+        yield ' '
+        yield addr['husnr']
+
+    if addr.get('etage') is not None or addr.get('dør') is not None:
+        yield ','
+
+    if addr.get('etage') is not None:
+        yield ' '
+        yield addr['etage']
+        yield '.'
+
+    if addr.get('dør') is not None:
+        yield ' '
+        yield addr['dør']
+
+    yield ', '
+
+    if addr.get('supplerendebynavn') is not None:
+        yield addr['supplerendebynavn']
+        yield ', '
+
+    yield addr['postnr']
+    yield ' '
+    yield addr['postnrnavn']
+
+
+def stringify(addr):
+    '''Return a string representation of the given DAWA address object'''
+    return ''.join(_address_string_chunks(addr))
 
 
 def get_relation_for(addrobj, fallback=None):
@@ -310,30 +357,66 @@ def get_one_address(c, addrrel, class_cache=None):
     scope = util.checked_get(addrclass, 'scope', 'DAR')
 
     if scope == 'DAR':
-        # unfortunately, we cannot live with struktur=mini, as it omits
-        # the formatted address :(
-        r = session.get(
-            'http://dawa.aws.dk/adresser/' + addrrel['uuid'],
-            params={
-                'noformat': '1',
-            },
-        )
+        def make_error_object(errordesc, name=DEFAULT_ERROR):
+            flask.current_app.logger.warn(
+                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+                    flask.request.url,
+                    errordesc,
+                ),
+            )
 
-        r.raise_for_status()
+            return {
+                mapping.ADDRESS_TYPE: addrclass,
+                mapping.HREF: None,
+                mapping.NAME: name,
+                mapping.UUID: addrrel['uuid'],
+                mapping.ERROR: errordesc,
+            }
 
-        addrobj = r.json()
+        for addrtype in ('adresser', 'adgangsadresser',
+                         'historik/adresser', 'historik/adgangsadresser'):
+            try:
+                r = session.get(
+                    'https://dawa.aws.dk/' + addrtype,
+                    # use a list to work around unordered dicts in Python < 3.6
+                    params=[
+                        ('id', addrrel['uuid']),
+                        ('noformat', '1'),
+                        ('struktur', 'mini'),
+                    ],
+                )
+
+                addrobjs = r.json()
+
+            except Exception as exc:
+                # the exception above is overly broad for a) safety and b)
+                # testing -- specifically, the exception raised by
+                # requests_mock does not descend from RequestException :(
+                return make_error_object(str(exc))
+
+            if not r.ok:
+                return make_error_object(addrobjs)
+
+            if addrobjs:
+                # found, escape loop!
+                break
+
+        else:
+            return make_error_object(NOT_FOUND, NOT_FOUND)
+
+        addrobj = addrobjs.pop()
 
         return {
             mapping.ADDRESS_TYPE: addrclass,
             mapping.HREF: (
+                # link to the location on OSM; historical addresses
+                # may lack coordinates
                 'https://www.openstreetmap.org/'
-                '?mlon={}&mlat={}&zoom=16'.format(
-                    *addrobj['adgangsadresse']
-                    ['adgangspunkt']['koordinater']
-                )
+                '?mlon={x}&mlat={y}&zoom=16'.format(**addrobj)
+                if 'x' in addrobj and 'y' in addrobj else None
             ),
 
-            mapping.NAME: addrobj['adressebetegnelse'],
+            mapping.NAME: stringify(addrobj),
             mapping.UUID: addrrel['uuid'],
         }
 
@@ -576,7 +659,9 @@ def get_scope_and_original(obj_uuid, obj_type):
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
 @util.restrictargs('global', required=['q'])
 def address_autocomplete(orgid):
-    """Perform address autocomplete
+    """Perform address autocomplete, resolving both ``adgangsadresse`` and
+    ``adresse``.
+
     :param orgid: The UUID of the organisation
 
     .. :quickref: Address; Autocomplete
@@ -631,21 +716,50 @@ def address_autocomplete(orgid):
     else:
         code = None
 
-    addrs = requests.get(
-        'http://dawa.aws.dk/adresser/autocomplete',
-        params={
-            'noformat': '1',
-            'kommunekode': code,
-            'q': q,
-        },
-    ).json()
+    #
+    # In order to allow reading both access & regular addresses, we
+    # autocomplete both into an ordered dictionary, with the textual
+    # representation as keys. Regular addresses tend to be less
+    # relevant than access addresses, so we list them last.
+    #
+    # The limits are somewhat arbitrary: Since access addresses mostly
+    # differ by street number or similar, we only show five -- by
+    # comparison, ten addresses seems apt since they may refer to
+    # apartments etc.
+    #
+
+    addrs = collections.OrderedDict(
+        (addr['tekst'], addr['adgangsadresse']['id'])
+        for addr in session.get(
+            'https://dawa.aws.dk/adgangsadresser/autocomplete',
+            # use a list to work around unordered dicts in Python < 3.6
+            params=[
+                ('per_side', settings.AUTOCOMPLETE_ACCESS_ADDRESS_COUNT),
+                ('noformat', '1'),
+                ('kommunekode', code),
+                ('q', q),
+            ],
+        ).json()
+    )
+
+    for addr in session.get(
+        'https://dawa.aws.dk/adresser/autocomplete',
+        # use a list to work around unordered dicts in Python < 3.6
+        params=[
+            ('per_side', settings.AUTOCOMPLETE_ADDRESS_COUNT),
+            ('noformat', '1'),
+            ('kommunekode', code),
+            ('q', q),
+        ],
+    ).json():
+        addrs.setdefault(addr['tekst'], addr['adresse']['id'])
 
     return flask.jsonify([
         {
             "location": {
-                "uuid": addr['adresse']['id'],
-                "name": addr['tekst']
-            }
+                "name": k,
+                "uuid": addrs[k],
+            },
         }
-        for addr in addrs
+        for k in addrs
     ])

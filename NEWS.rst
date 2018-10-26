@@ -3,7 +3,7 @@ Version 0.11.0 (in development)
 
 New features
 ------------
-
+* #24547: Edit behaviour for employee name and cpr number
 * #24400: Better documentation of command line interface.
 * #24750: Added functionality for listing and retrieving generated export files from external directory.
 
@@ -22,6 +22,10 @@ Bug fixes
 
 * #24150: When terminating an employee, mark any manager roles it
   possesses as vacant rather than terminating them.
+* #24069: Handle DAR address errors gracefully, displaying the error
+  message rather than suppressing all addresses.
+* #24077: Allow entering DAR access addresses as well as regular
+  adresses in all fields, and allow reading historical addresses.
 
 Known bugs
 ----------
