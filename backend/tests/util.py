@@ -276,20 +276,24 @@ class mock(requests_mock.Mocker):
 
     '''
 
-    def __init__(self, name=None, allow_mox=False, **kwargs):
+    def __init__(self, names=None, allow_mox=False, **kwargs):
         super().__init__(**kwargs)
 
-        self.__name = name
+        self.__names = names
         self.__allow_mox = allow_mox
         self.__kwargs = kwargs
 
-        if name:
+        if names:
+            if not isinstance(names, (list, tuple)):
+                names = [names]
+
             # inject the fixture; note that complete_qs is
             # important: without it, a URL need only match *some*
             # of the query parameters passed, and that's quite
             # obnoxious if requests only differ by them
-            for url, value in get_mock_data(name).items():
-                self.get(url, json=value, complete_qs=True)
+            for name in names:
+                for url, value in get_mock_data(name).items():
+                    self.get(url, json=value, complete_qs=True)
 
         if not allow_mox:
             self.__overrider = override_lora_url()
@@ -304,7 +308,7 @@ class mock(requests_mock.Mocker):
     def copy(self):
         """Returns an exact copy of current mock
         """
-        return mock(self.__name, self.__allow_mox, **self.__kwargs)
+        return mock(self.__names, self.__allow_mox, **self.__kwargs)
 
     def start(self):
         if self.__overrider:

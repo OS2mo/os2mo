@@ -1,123 +1,21 @@
 {
-  "https://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd?noformat=1": {
-    "adgangsadresse": {
-      "DDKN": {
-        "km1": "1km_6225_573",
-        "km10": "10km_622_57",
-        "m100": "100m_62258_5737"
-      },
-      "adgangspunkt": {
-        "h\u00f8jde": 68,
-        "id": "0a3f5097-3260-32b8-e044-0003ba298018",
-        "kilde": 5,
-        "koordinater": [
-          10.18779751,
-          56.17233057
-        ],
-        "n\u00f8jagtighed": "A",
-        "tekniskstandard": "TD",
-        "tekstretning": 318,
-        "\u00e6ndret": "2016-09-07T00:00:00.000"
-      },
-      "bebyggelser": [
-        {
-          "href": "https://dawa.aws.dk/bebyggelser/12337669-a188-6b98-e053-d480220a5a3f",
-          "id": "12337669-a188-6b98-e053-d480220a5a3f",
-          "kode": 11045,
-          "navn": "Aarhus",
-          "type": "by"
-        }
-      ],
-      "ejerlav": {
-        "kode": 2006353,
-        "navn": "\u00c5rhus Markjorder"
-      },
-      "esrejendomsnr": "562276",
-      "historik": {
-        "oprettet": "2000-02-05T15:30:10.000",
-        "\u00e6ndret": "2016-09-07T09:25:55.310"
-      },
-      "href": "https://dawa.aws.dk/adgangsadresser/0a3f5097-3260-32b8-e044-0003ba298018",
+  "https://dawa.aws.dk/adresser?id=44c532e1-f617-4174-b144-d37ce9fda2bd&noformat=1&struktur=mini": [
+    {
+      "adgangsadresseid": "0a3f5097-3260-32b8-e044-0003ba298018",
+      "adresseringsvejnavn": "\u00c5bogade",
+      "d\u00f8r": null,
+      "etage": null,
       "husnr": "15",
-      "id": "0a3f5097-3260-32b8-e044-0003ba298018",
-      "jordstykke": {
-        "ejerlav": {
-          "href": "https://dawa.aws.dk/ejerlav/2006353",
-          "kode": 2006353,
-          "navn": "\u00c5rhus Markjorder"
-        },
-        "esrejendomsnr": "562276",
-        "href": "https://dawa.aws.dk/jordstykker/2006353/117ki",
-        "matrikelnr": "117ki"
-      },
-      "kommune": {
-        "href": "https://dawa.aws.dk/kommuner/0751",
-        "kode": "0751",
-        "navn": "Aarhus"
-      },
-      "kvh": "07519651__15",
-      "matrikelnr": "117ki",
-      "opstillingskreds": {
-        "href": "https://dawa.aws.dk/opstillingskredse/64",
-        "kode": "0064",
-        "navn": "Aarhus Nord"
-      },
-      "politikreds": {
-        "href": "https://dawa.aws.dk/politikredse/1461",
-        "kode": "1461",
-        "navn": "\u00d8stjyllands Politi"
-      },
-      "postnummer": {
-        "href": "https://dawa.aws.dk/postnumre/8200",
-        "navn": "Aarhus N",
-        "nr": "8200"
-      },
-      "region": {
-        "href": "https://dawa.aws.dk/regioner/1082",
-        "kode": "1082",
-        "navn": "Region Midtjylland"
-      },
-      "retskreds": {
-        "href": "https://dawa.aws.dk/retskredse/1165",
-        "kode": "1165",
-        "navn": "Retten i \u00c5rhus"
-      },
-      "sogn": {
-        "href": "https://dawa.aws.dk/sogne/8121",
-        "kode": "8121",
-        "navn": "Christians"
-      },
+      "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+      "kommunekode": "0751",
+      "postnr": "8200",
+      "postnrnavn": "Aarhus N",
       "status": 1,
-      "stormodtagerpostnummer": null,
       "supplerendebynavn": null,
-      "vejpunkt": {
-        "id": "1bd35784-af45-11e7-847e-066cff24d637",
-        "kilde": "Ekstern",
-        "koordinater": [
-          10.18800013,
-          56.17230413
-        ],
-        "n\u00f8jagtighed": "B",
-        "tekniskstandard": "V0"
-      },
-      "vejstykke": {
-        "adresseringsnavn": "\u00c5bogade",
-        "href": "https://dawa.aws.dk/vejstykker/751/9651",
-        "kode": "9651",
-        "navn": "\u00c5bogade"
-      },
-      "zone": "Byzone"
-    },
-    "adressebetegnelse": "\u00c5bogade 15, 8200 Aarhus N",
-    "d\u00f8r": null,
-    "etage": null,
-    "historik": {
-      "oprettet": "2014-05-05T19:07:48.577",
-      "\u00e6ndret": "2014-05-05T19:07:48.577"
-    },
-    "href": "https://dawa.aws.dk/adresser/44c532e1-f617-4174-b144-d37ce9fda2bd",
-    "id": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-    "kvhx": "07519651__15_______",
-    "status": 1
-  }
+      "vejkode": "9651",
+      "vejnavn": "\u00c5bogade",
+      "x": 10.18779751,
+      "y": 56.17233057
+    }
+  ]
 }

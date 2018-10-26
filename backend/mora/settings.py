@@ -19,6 +19,10 @@ DEFAULT_PAGE_SIZE = 2000
 LORA_URL = 'http://mox.lxc/'
 CA_BUNDLE = None
 
+# for our autocomplete support
+AUTOCOMPLETE_ACCESS_ADDRESS_COUNT = 5
+AUTOCOMPLETE_ADDRESS_COUNT = 10
+
 # Session config
 SESSION_TYPE = 'filesystem'
 SESSION_PERMANENT = False
