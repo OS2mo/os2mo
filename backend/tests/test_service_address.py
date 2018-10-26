@@ -159,13 +159,13 @@ class TestAddressLookup(util.TestCase):
         )
 
         mock.get(
-            'http://dawa.aws.dk/adresser/autocomplete?'
+            'https://dawa.aws.dk/adresser/autocomplete?'
             'kommunekode=751&noformat=1&q=42',
             json=[{
                 "tekst": "Strandlodsvej 25M, 7. tv, 2300 København S",
                 "adresse": {
                     "id": "00002732-733c-433a-a5da-a7d428a980cf",
-                    "href": "http://dawa.aws.dk/adresser/"
+                    "href": "https://dawa.aws.dk/adresser/"
                             "00002732-733c-433a-a5da-a7d428a980cf",
                     "vejnavn": "Strandlodsvej",
                     "husnr": "25M",
@@ -193,12 +193,12 @@ class TestAddressLookup(util.TestCase):
     @util.mock('reading-organisation.json')
     def test_autocomplete_global(self, mock):
         mock.get(
-            'http://dawa.aws.dk/adresser/autocomplete?noformat=1&q=42',
+            'https://dawa.aws.dk/adresser/autocomplete?noformat=1&q=42',
             json=[{
                 "tekst": "Strandlodsvej 25M, 7. tv, 2300 København S",
                 "adresse": {
                     "id": "00002732-733c-433a-a5da-a7d428a980cf",
-                    "href": "http://dawa.aws.dk/adresser/"
+                    "href": "https://dawa.aws.dk/adresser/"
                             "00002732-733c-433a-a5da-a7d428a980cf",
                     "vejnavn": "Strandlodsvej",
                     "husnr": "25M",
@@ -212,13 +212,13 @@ class TestAddressLookup(util.TestCase):
                 }
             }])
         mock.get(
-            'http://dawa.aws.dk/adresser/autocomplete'
+            'https://dawa.aws.dk/adresser/autocomplete'
             '?noformat=1&q=42&kommunekode=751',
             json=[{
                 "tekst": "Hestfestegade 42, 8000 Aarhus C",
                 "adresse": {
                     "id": "00000000-0000-0000-0000-000000000000",
-                    "href": "http://dawa.aws.dk/adresser/"
+                    "href": "https://dawa.aws.dk/adresser/"
                             "00000000-0000-0000-0000-000000000000",
                     "vejnavn": "Hestfestegade",
                     "husnr": "42",

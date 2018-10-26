@@ -185,7 +185,7 @@ More information regarding creating and editing addresses can be found in the
 sections on creating and editing relations for employees and organisational
 units.
 
-.. _DAR: http://dawa.aws.dk/dok/api/adresse
+.. _DAR: https://dawa.aws.dk/dok/api/adresse
 
 
 API
@@ -228,6 +228,8 @@ HREF_PREFIXES = {
     'PHONE': 'tel:',
     'WWW': '',
 }
+
+DEFAULT_ERROR = 'Fejl'
 
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
 
@@ -310,16 +312,43 @@ def get_one_address(c, addrrel, class_cache=None):
     scope = util.checked_get(addrclass, 'scope', 'DAR')
 
     if scope == 'DAR':
+        def make_error_object(errordesc):
+            return {
+                mapping.ADDRESS_TYPE: addrclass,
+                mapping.HREF: None,
+                mapping.NAME: DEFAULT_ERROR,
+                mapping.UUID: addrrel['uuid'],
+                mapping.ERROR: errordesc,
+            }
+
         # unfortunately, we cannot live with struktur=mini, as it omits
         # the formatted address :(
-        r = session.get(
-            'http://dawa.aws.dk/adresser/' + addrrel['uuid'],
-            params={
-                'noformat': '1',
-            },
-        )
+        try:
+            r = session.get(
+                'https://dawa.aws.dk/adresser/' + addrrel['uuid'],
+                params={
+                    'noformat': '1',
+                },
+            )
+        except Exception as exc:
+            # the exception above is overly broad for a) safety and b)
+            # testing -- specifically, the exception raised by
+            # requests_mock does not descend from RequestException :(
+            util.log_exception('failed to get address ' + addrrel['uuid'])
 
-        r.raise_for_status()
+            return make_error_object(str(exc))
+
+        if not r.ok:
+            error = r.json()
+
+            flask.current_app.logger.warn(
+                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+                    flask.request.url,
+                    json.dumps(error, indent=2),
+                ),
+            )
+
+            return make_error_object(error)
 
         addrobj = r.json()
 
@@ -632,7 +661,7 @@ def address_autocomplete(orgid):
         code = None
 
     addrs = requests.get(
-        'http://dawa.aws.dk/adresser/autocomplete',
+        'https://dawa.aws.dk/adresser/autocomplete',
         params={
             'noformat': '1',
             'kommunekode': code,

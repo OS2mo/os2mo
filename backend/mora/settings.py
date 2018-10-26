@@ -47,4 +47,6 @@ SP_CERTIFICATE_PATH = ""
 
 PROD_MODE = False
 
+QUERY_EXPORT_DIR = ''
+
 _util.update_config(globals(), CONFIG_FILE)

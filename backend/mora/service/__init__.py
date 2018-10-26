@@ -15,6 +15,7 @@ from . import facet
 from . import itsystem
 from . import org
 from . import orgunit
+from . import exports
 
 blueprints = (
     address.blueprint,
@@ -26,4 +27,5 @@ blueprints = (
     itsystem.blueprint,
     org.blueprint,
     orgunit.blueprint,
+    exports.blueprint,
 )
