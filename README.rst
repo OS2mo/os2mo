@@ -255,104 +255,16 @@ Dette værk er frigivet under [Mozilla Public License, version 2.0](https://www.
 
 Værket anvender følgende Open Source software-komponenter:
 
-* `Babel <http://babel.pocoo.org/>`_, BSD License
-* `Click <https://palletsprojects.com/p/click/>`_, BSD License
-* `CommonMark <https://github.com/rolandshoemaker/CommonMark-py>`_, BSD License
 * `Flask <https://www.palletsprojects.com/p/flask/>`_, BSD License
 * `Flask-Session <https://github.com/fengsp/flask-session>`_, BSD License
-* `Flask-Testing <https://github.com/jarus/flask-testing>`_, BSD License
-* `Jinja2 <http://jinja.pocoo.org/>`_, BSD License
-* `MarkupSafe <http://github.com/pallets/markupsafe>`_, BSD License
-* `PyYAML <http://pyyaml.org/wiki/PyYAML>`_, MIT License
-* `Pygments <http://pygments.org/>`_, BSD License
-* `Sphinx <http://sphinx-doc.org/>`_, BSD License
-* `Werkzeug <https://www.palletsprojects.org/p/werkzeug/>`_, BSD License
-* `alabaster <https://alabaster.readthedocs.io>`_, BSD License
-* `argh <http://github.com/neithere/argh/>`_, GNU Library or Lesser General Public License (LGPL)
-* `attrs <https://www.attrs.org/>`_, MIT License
-* `backcall <https://github.com/takluyver/backcall>`_, BSD License
-* `certifi <http://certifi.io/>`_, Mozilla Public License 2.0 (MPL 2.0)
-* `chardet <https://github.com/chardet/chardet>`_, GNU Library or Lesser General Public License (LGPL)
-* `coverage <https://bitbucket.org/ned/coveragepy>`_, Apache Software License
-* `decorator <https://github.com/micheles/decorator>`_, BSD License
-* `defusedxml <https://github.com/tiran/defusedxml>`_, Python Software Foundation License
-* `docutils <http://docutils.sourceforge.net/>`_, Public Domain, Python Software Foundation License, BSD License, GNU General Public License (GPL)
-* `et-xmlfile <https://bitbucket.org/openpyxl/et_xmlfile>`_, MIT License
-* `flake8 <https://gitlab.com/pycqa/flake8>`_, MIT License
-* `flake8-imports <https://gitlab.com/mvantellingen/flake8-imports>`_, MIT License
-* `flake8-module-name <https://github.com/ohjeah/flake8_module_name>`_, MIT License
-* `flake8-mypy <https://github.com/ambv/flake8-mypy>`_, MIT License
-* `flask-shell-ipython <http://github.com/ei-grad/flask-shell-ipython>`_, MIT License
-* `freezegun <https://github.com/spulec/freezegun>`_, Apache Software License
 * `gevent <http://www.gevent.org/>`_, MIT License
-* `greenlet <https://github.com/python-greenlet/greenlet>`_, MIT License
 * `grequests <https://github.com/kennethreitz/grequests>`_, BSD License
-* `idna <https://github.com/kjd/idna>`_, BSD License
-* `imagesize <https://github.com/shibukawa/imagesize_py>`_, MIT License
-* `ipython <https://ipython.org>`_, BSD License
-* `ipython-genutils <http://ipython.org>`_, BSD License
-* `isodate <https://github.com/gweis/isodate/>`_, BSD License
-* `isort <https://github.com/timothycrosley/isort>`_, MIT License
-* `itsdangerous <http://github.com/mitsuhiko/itsdangerous>`_, BSD License
-* `jdcal <https://github.com/phn/jdcal>`_, BSD License
-* `jedi <https://github.com/davidhalter/jedi>`_, MIT License
-* `jsonschema <http://github.com/Julian/jsonschema>`_, MIT License
-* `lml <https://github.com/chfw/lml>`_, New BSD License
 * `lxml <http://lxml.de/>`_, BSD License
-* `mccabe <https://github.com/pycqa/mccabe>`_, MIT License
-* `mock <https://github.com/testing-cabal/mock>`_, BSD License
-* `mypy <http://www.mypy-lang.org/>`_, MIT License
-* `mypy-extensions <http://www.mypy-lang.org/>`_, MIT License
-* `notsouid <https://github.com/nicwest/notsouid>`_, MIT License
-* `odfpy <https://github.com/eea/odfpy>`_, Apache Software License, GNU General Public License (GPL), GNU Library or Lesser General Public License (LGPL)
-* `oio-rest <https://github.com/magenta-aps/mox>`_, MPL License
-* `openpyxl <https://openpyxl.readthedocs.io>`_, MIT License
-* `packaging <https://github.com/pypa/packaging>`_, Apache Software License, BSD License
-* `parso <https://github.com/davidhalter/parso>`_, MIT License
-* `pathtools <http://github.com/gorakhargosh/pathtools>`_, MIT License
-* `pbr <https://docs.openstack.org/pbr/latest/>`_, Apache Software License
-* `pexpect <https://pexpect.readthedocs.io/>`_, ISC License (ISCL)
-* `pg8000 <https://github.com/mfenniak/pg8000>`_, BSD License
-* `pickleshare <https://github.com/pickleshare/pickleshare>`_, MIT License
-* `pika <https://pika.readthedocs.io>`_, BSD License
-* `pkgconfig <http://github.com/matze/pkgconfig>`_, MIT License
-* `prompt-toolkit <https://github.com/jonathanslenders/python-prompt-toolkit>`_, BSD License
-* `psycopg2 <http://initd.org/psycopg/>`_, GNU Library or Lesser General Public License (LGPL), Zope Public License
-* `psycopg2cffi-compat <https://github.com/dstufft/psycopg2cffi-compat>`_, Apache Software License
-* `ptyprocess <https://github.com/pexpect/ptyprocess>`_, ISC License (ISCL)
-* `pycodestyle <https://pycodestyle.readthedocs.io/>`_, MIT License
 * `pyexcel <https://github.com/pyexcel/pyexcel>`_, New BSD License
 * `pyexcel-io <https://github.com/pyexcel/pyexcel-io>`_, BSD License
 * `pyexcel-ods <https://github.com/pyexcel/pyexcel-ods>`_, New BSD License
 * `pyexcel-xlsx <https://github.com/pyexcel/pyexcel-xlsx>`_, New BSD License
-* `pyflakes <https://github.com/PyCQA/pyflakes>`_, MIT License
-* `pyparsing <https://github.com/pyparsing/pyparsing/>`_, MIT License
 * `python-dateutil <https://dateutil.readthedocs.io>`_, BSD License, Apache Software License
-* `python-dotenv <http://github.com/theskumar/python-dotenv>`_, BSD License
 * `python3-saml <https://github.com/onelogin/python3-saml>`_, MIT License
-* `pytz <http://pythonhosted.org/pytz>`_, MIT License
-* `recommonmark <https://github.com/rtfd/recommonmark>`_, MIT License
 * `requests <http://python-requests.org>`_, Apache Software License
-* `requests-mock <https://requests-mock.readthedocs.io/>`_, Apache Software License
-* `service-person-stamdata-udvidet <#>`_, MPL License
-* `simplegeneric <http://cheeseshop.python.org/pypi/simplegeneric>`_, Zope Public License
-* `six <http://pypi.python.org/pypi/six/>`_, MIT License
-* `snowballstemmer <https://github.com/shibukawa/snowball_py>`_, BSD License
-* `sphinx-click <https://github.com/stephenfin/sphinx-click>`_, MIT License
-* `sphinx-rtd-theme <https://github.com/rtfd/sphinx_rtd_theme/>`_, MIT License
-* `sphinxcontrib-apidoc <https://github.com/sphinx-contrib/apidoc>`_, BSD License
-* `sphinxcontrib-httpdomain <https://github.com/sphinx-contrib/httpdomain>`_, BSD License
-* `sphinxcontrib-websupport <http://sphinx-doc.org/>`_, BSD License
-* `termcolor <http://pypi.python.org/pypi/termcolor>`_, MIT License
-* `testing.common.database <https://github.com/tk0miya/testing.common.database>`_, Apache Software License
-* `testing.postgresql <https://github.com/tk0miya/testing.postgresql>`_, Apache Software License
-* `texttable <https://github.com/foutaise/texttable/>`_, GNU Library or Lesser General Public License (LGPL)
-* `traitlets <http://ipython.org>`_, BSD License
-* `typed-ast <https://github.com/python/typed_ast>`_, Apache 2.0
-* `unittest-xml-reporting <http://github.com/xmlrunner/unittest-xml-reporting/tree/master/>`_, BSD License
-* `urllib3 <https://urllib3.readthedocs.io/>`_, MIT License
-* `watchdog <http://github.com/gorakhargosh/watchdog>`_, Apache Software License
-* `wcwidth <https://github.com/jquast/wcwidth>`_, MIT License
-* `xmlsec <https://github.com/mehcode/python-xmlsec>`_, MIT License
-* `xmltodict <https://github.com/martinblech/xmltodict>`_, MIT License
 
