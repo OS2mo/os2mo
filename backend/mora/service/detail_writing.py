@@ -103,7 +103,7 @@ def create():
     should not be given.
 
     .. sourcecode:: json
-    
+
         [
           {
             "type": "employee",

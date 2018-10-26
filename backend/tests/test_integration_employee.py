@@ -513,7 +513,7 @@ class Tests(util.LoRATestCase):
             }
         }]
 
-        expected_tilknyttedepersoner= [{
+        expected_tilknyttedepersoner = [{
             'urn': 'urn:dk:cpr:person:1205320000',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
@@ -575,7 +575,7 @@ class Tests(util.LoRATestCase):
         self.assertEqual(
             expected_tilknyttedepersoner,
             actual['relationer']['tilknyttedepersoner']
-        ) 
+        )
 
     def test_edit_employee(self):
         # A generic example of editing an employee
@@ -646,7 +646,7 @@ class Tests(util.LoRATestCase):
             }
         }]
 
-        expected_tilknyttedepersoner = [{   
+        expected_tilknyttedepersoner = [{
             'urn': 'urn:dk:cpr:person:1205320000',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
@@ -678,4 +678,4 @@ class Tests(util.LoRATestCase):
         self.assertEqual(
             expected_tilknyttedepersoner,
             actual['relationer']['tilknyttedepersoner']
-        ) 
+        )
