@@ -33,6 +33,7 @@ ITSYSTEM_KEY = 'IT-system'
 EMPLOYEE = "employee"
 LOCATION = 'location'
 ERROR = 'error'
+USER_SETTINGS = 'user_settings'
 
 # Address
 ADDRESS_KEY = 'Adresse'

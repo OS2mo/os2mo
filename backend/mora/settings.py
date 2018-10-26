@@ -5,7 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 from os import path as _path
 
 from . import util as _util
@@ -16,7 +15,7 @@ CONFIG_FILE = _path.join(BASE_DIR, '..', 'setup', 'mora.json')
 MAX_REQUEST_LENGTH = 4096
 DEFAULT_PAGE_SIZE = 2000
 
-LORA_URL = 'http://mox.lxc/'
+LORA_URL = 'http://localhost:8080/'
 CA_BUNDLE = None
 
 # for our autocomplete support
@@ -51,6 +50,15 @@ SP_CERTIFICATE_PATH = ""
 
 PROD_MODE = False
 
+USER_SETTINGS = {
+    'orgunit': {
+        'show_location': True,
+        'show_user_key': False,
+        'show_roles': True
+    }
+}
+
 QUERY_EXPORT_DIR = ''
+
 
 _util.update_config(globals(), CONFIG_FILE)
