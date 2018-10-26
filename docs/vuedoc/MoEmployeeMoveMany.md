@@ -4,41 +4,12 @@ A employee move many component.
 
 ## data 
 
-- `employees` 
-
-  The employees, selected, moveDate, orgUnitSource, orgUnitDestination,
-  isLoading, backendValidationError, columns component value.
-  Used to detect changes and restore the value. 
-
-**initial value:** `[object Object]` 
-
-- `selected` 
-
-**initial value:** `[object Object]` 
-
-- `moveDate` 
-
-**initial value:** `null` 
-
-- `orgUnitSource` 
-
-**initial value:** `null` 
-
-- `orgUnitDestination` 
-
-**initial value:** `null` 
-
 - `isLoading` 
 
+  The isLoading component value.
+  Used to detect changes and restore the value. 
+
 **initial value:** `false` 
-
-- `backendValidationError` 
-
-**initial value:** `null` 
-
-- `columns` 
-
-**initial value:** `[object Object]` 
 
 ## computed properties 
 
@@ -68,10 +39,6 @@ A employee move many component.
 
 
 ## methods 
-
-- `resetData()` 
-
-  Resets the data fields. 
 
 - `selectedEmployees(val)` 
 
