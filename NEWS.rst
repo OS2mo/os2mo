@@ -1,21 +1,20 @@
-Version 0.11.0 (in development)
-===============================
+Version 0.11.0, 2018-10-29
+==========================
 
 New features
 ------------
 * #24547: Edit behaviour for employee name and cpr number
 * #24400: Better documentation of command line interface.
 * #24750: Added functionality for listing and retrieving generated export files from external directory.
+* #24092: Added functionality for creating managers through the organisation interface in UI
+* #24131: Added a simple configuration module.
+
 
 Internal changes
 ----------------
 
-* TBD
+* #21966: Implemented use of Vuex in frontend
 
-API changes
------------
-
-* TBD
 
 Bug fixes
 ---------
@@ -26,11 +25,9 @@ Bug fixes
   message rather than suppressing all addresses.
 * #24077: Allow entering DAR access addresses as well as regular
   adresses in all fields, and allow reading historical addresses.
+* #24810: Support for Internet Explorer
+* #24570: Sorting now works after performing an update
 
-Known bugs
-----------
-
-* #24134: Sorting doesn't work after performing an update.
 
 Version 0.10.1-post1, 2018-10-12
 ================================
@@ -57,7 +54,6 @@ New features
   single sign-on and single logout.
 * #22381: Replace 'Enhedsnummer' with a description of the location of the organisational unit.
 * #23558: Added the possibility to create managers without employees through the ou endpoint, thus allowing for vacant manager positions.
-* #24131: Added a simple configuration module.
 * #24014: Since we now model IT systems using an
   ``organisationfunktion``, we can now represent the account name.
 * #22849: Added handling for user permissions, giving a fitting error if a user attempts an action without the correct permissions.
