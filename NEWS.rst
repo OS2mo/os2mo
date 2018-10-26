@@ -3,7 +3,7 @@ Version 0.11.0 (in development)
 
 New features
 ------------
-
+* #24547: Edit behaviour for employee name and cpr number
 * #24400: Better documentation of command line interface.
 * #24750: Added functionality for listing and retrieving generated export files from external directory.
 
