@@ -7,7 +7,7 @@
     hide-footer 
     lazy
     no-close-on-backdrop
-    @hidden="resetData"
+    @hidden="$store.dispatch('employeeMoveMany/resetFields')"
   >
     <form @submit.stop.prevent="moveMany">
       <div class="form-row">
@@ -68,16 +68,16 @@
 </template>
 
 <script>
-/**
+  /**
    * A employee move many component.
    */
 
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import { mapFields } from 'vuex-map-fields'
 
   export default {
       /**
@@ -97,26 +97,27 @@
     data () {
       return {
         /**
-         * The employees, selected, moveDate, orgUnitSource, orgUnitDestination,
-         * isLoading, backendValidationError, columns component value.
+         * The isLoading component value.
          * Used to detect changes and restore the value.
          */
-        employees: [],
-        selected: [],
-        moveDate: null,
-        orgUnitSource: null,
-        orgUnitDestination: null,
-        isLoading: false,
-        backendValidationError: null,
-        columns: [
-          {label: 'person', data: 'person'},
-          {label: 'engagement_type', data: 'engagement_type'},
-          {label: 'job_function', data: 'job_function'}
-        ]
+        isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get mapFields from vuex store.
+       */
+      ...mapFields('employeeMoveMany', [
+        'employees',
+        'selected',
+        'moveDate',
+        'orgUnitSource',
+        'orgUnitDestination',
+        'columns',
+        'backendValidationError'
+      ]),
+
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
@@ -162,13 +163,6 @@
 
     methods: {
       /**
-       * Resets the data fields.
-       */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
-      /**
        * Selected employees.
        */
       selectedEmployees (val) {
@@ -196,21 +190,7 @@
           let vm = this
           vm.isLoading = true
 
-          let moves = vm.selected.map(engagement => {
-            return {
-              type: 'engagement',
-              uuid: engagement.uuid,
-              data: {
-                // NB: we only need to write the changed values!
-                org_unit: vm.orgUnitDestination,
-                validity: {
-                  from: vm.moveDate
-                }
-              }
-            }
-          })
-
-          Employee.move(moves)
+          this.$store.dispatch('employeeMoveMany/MOVE_MANY_EMPLOYEES')
             .then(response => {
               vm.isLoading = false
               if (response.error) {
