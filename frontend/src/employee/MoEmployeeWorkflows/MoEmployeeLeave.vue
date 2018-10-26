@@ -52,18 +52,21 @@
     data () {
       return {
       /**
-        * The isLoading, backendValidationError component value.
+        * The isLoading component value.
         * Used to detect changes and restore the value.
         */
-        isLoading: false,
-        backendValidationError: null
+        isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get mapFields from vuex store.
+       */
       ...mapFields('employeeLeave', [
         'employee',
-        'leave'
+        'leave',
+        'backendValidationError'
       ]),
 
       /**
@@ -75,6 +78,7 @@
         })
       }
     },
+
     methods: {
       /**
        * Create leave and check if the data fields are valid.

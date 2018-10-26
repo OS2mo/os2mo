@@ -4,7 +4,8 @@ import { EventBus } from '@/EventBus'
 
 const state = {
   employee: {},
-  leave: {}
+  leave: {},
+  backendValidationError: null
 }
 
 const actions = {
@@ -40,6 +41,7 @@ const mutations = {
   resetFields (state) {
     state.employee = {}
     state.leave = {}
+    state.backendValidationError = null
   }
 }
 
