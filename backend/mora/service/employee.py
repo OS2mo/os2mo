@@ -36,7 +36,7 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
 
 
 class BrugerRequestHandler(handlers.RequestHandler):
-    __slots__ = ['details_requests']
+    __slots__ = ('details_requests',)
     role_type = "employee"
 
     def prepare_create(self, req):
