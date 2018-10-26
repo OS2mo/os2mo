@@ -1,6 +1,6 @@
-# mo-table-collapsible-tense 
+# mo-table-detail 
 
-A table collapsible tense component. 
+A employeedetail component. 
 
 ## props 
 
@@ -12,7 +12,7 @@ A table collapsible tense component.
 
   Defines the loading. 
 
-- `edit-component` ***Object*** (*optional*) 
+- `entry-component` ***Object*** (*optional*) 
 
   Defines the editComponent. 
 
@@ -31,4 +31,13 @@ A table collapsible tense component.
 - `type` ***String*** (*required*) 
 
   Defines a required type. 
+
+- `hide-create` ***Boolean*** (*optional*) 
+
+## computed properties 
+
+- `contentStore` 
+
+   **dependencies:** `content` 
+
 

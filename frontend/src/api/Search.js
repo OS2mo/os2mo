@@ -1,5 +1,5 @@
 import Service from './HttpCommon'
-import store from '@/vuex/store'
+import store from '@/store'
 
 export default {
   /**
@@ -19,18 +19,18 @@ export default {
       })
   },
 
-    /**
-   * Look up a CPR number in the service platform
-   * @param {String} query - search query. Can ONLY be a FULL CPR number
-   * @returns {Object} the data matching the query
-   */
+  /**
+ * Look up a CPR number in the service platform
+ * @param {String} query - search query. Can ONLY be a FULL CPR number
+ * @returns {Object} the data matching the query
+ */
   cprLookup (query) {
     return Service.get(`/e/cpr_lookup/?q=${query}`)
       .then(response => {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
   },

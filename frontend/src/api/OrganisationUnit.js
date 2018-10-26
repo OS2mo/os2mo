@@ -1,6 +1,6 @@
 import Service from './HttpCommon'
 import { EventBus } from '@/EventBus'
-import store from '@/vuex/store'
+import store from '@/store'
 
 export default {
 
@@ -16,7 +16,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
       })
   },
 
@@ -33,7 +33,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
       })
   },
 
@@ -87,7 +87,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
       })
   },
 
@@ -101,11 +101,11 @@ export default {
     return Service.post('/ou/create', create)
       .then(response => {
         EventBus.$emit('update-tree-view')
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
   },
@@ -121,11 +121,11 @@ export default {
     return Service.post('/details/create', create)
       .then(response => {
         EventBus.$emit('organisation-unit-changed')
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_CREATE', value: response.data})
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
         return error.response
       })
   },
@@ -144,7 +144,7 @@ export default {
         return response
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
         return error.response
       })
   },
@@ -152,7 +152,7 @@ export default {
   edit (edit) {
     return this.editEntry(edit)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_EDIT', value: response.data})
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_EDIT', value: response.data })
         return response.data
       })
   },
@@ -167,7 +167,7 @@ export default {
   rename (edit) {
     return this.editEntry(edit)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_RENAME', value: response.data})
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_RENAME', value: response.data })
         return response.data
       })
   },
@@ -186,7 +186,7 @@ export default {
           return response.data
         }
         EventBus.$emit('update-tree-view')
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_MOVE', value: response.data})
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_MOVE', value: response.data })
         return response.data
       })
   },
@@ -202,11 +202,11 @@ export default {
       .then(response => {
         EventBus.$emit('update-tree-view')
         EventBus.$emit('organisation-unit-changed')
-        store.commit('log/newWorkLog', {type: 'ORGANISATION_TERMINATE', value: response.data})
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_TERMINATE', value: response.data })
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
   }

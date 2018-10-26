@@ -4,17 +4,22 @@ A employee detail component.
 
 ## data 
 
-- `employee` 
-
-**initial value:** `'Object'` 
-
 - `isLoading` 
 
 **initial value:** `false` 
 
+- `latestEvent` 
+
+**initial value:** `undefined` 
+
+## computed properties 
+
+- `employee` 
+
+   **dependencies:** `$store` 
+
+
 ## methods 
 
-- `getEmployee()` 
-
-  Get a employee. 
+- `loadContent(event)` 
 

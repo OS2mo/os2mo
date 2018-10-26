@@ -11,5 +11,9 @@
   "it_system": "IT system | IT systemer",
   "manager": "Leder | Ledere",
   "role": "Rolle | Roller",
-  "unit": "Enhed | Enheder"
+  "unit": "Enhed | Enheder",
+  "past": "Fortid",
+  "present": "Nutid",
+  "future": "Fremtid",
+  "query": "Forespørgsel | Forespørgsler"
 }

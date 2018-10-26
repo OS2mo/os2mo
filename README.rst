@@ -5,9 +5,9 @@ Om OS2MO 2.0
 .. contents:: `Indhold`
    :depth: 2
 
-.. image:: http://lorajenkins.atlas.magenta.dk/buildStatus/icon?job=mora/development
+.. image:: https://lorajenkins.magenta.dk/buildStatus/icon?job=mora/development
    :alt: Build Status
-   :target: http://lorajenkins.atlas.magenta.dk/job/mora/job/development/
+   :target: https://lorajenkins.magenta.dk/job/mora/job/development/
 
 
 Introduktion

@@ -8,9 +8,7 @@ A organisation detail tabs component.
 
   Defines a unique identifier which must be unique. 
 
-- `at-date` ***ArrayExpression*** (*optional*) 
-
-  Defines a at date. 
+- `content` ***Object*** (*optional*) 
 
 - `timemachine-friendly` ***Boolean*** (*optional*) 
 
@@ -55,4 +53,12 @@ A organisation detail tabs component.
   Used to add edit and create for orgUnit and address. 
 
 **initial value:** `[object Object]` 
+
+## events 
+
+- `show` 
+
+## methods 
+
+- `loadContent(contentType, event)` 
 
