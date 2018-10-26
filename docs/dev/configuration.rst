@@ -2,7 +2,7 @@ Configuration module
 =====================
 
 Front-end configuration
-------------
+-----------------------
 
 It is possible to perform simple configuration of the MO frontend using the
 configuation file found in ``backend/mora/user_settings.json`` or in the file
@@ -11,16 +11,16 @@ indicated in the env-variable USER_SETTINGS.
 This file could look something like this::
 
     {
-	"orgunit": {
-	    "show_location": true,
-	    "show_roles": true,
-	    "show_bvn": true,
-	    "927dc4d5-fdca-4062-a0d8-a44e8a9e8685": {
-		"show_location": true,
-		"show_roles": false,
-		"show_user_key": false
-	    }
-	}
+        "orgunit": {
+            "show_location": true,
+            "show_roles": true,
+            "show_bvn": true,
+            "927dc4d5-fdca-4062-a0d8-a44e8a9e8685": {
+                "show_location": true,
+                "show_roles": false,
+                "show_user_key": false
+            }
+        }
     }
 
 

@@ -48,16 +48,10 @@ SP_CERTIFICATE_PATH = ""
 
 PROD_MODE = False
 
-SETTINGS_FILE = getenv('USER_SETTINGS', 'backend/mora/user_settings.json')
-
-try:
-    with open(SETTINGS_FILE) as f:
-        user_settings = json.load(f)
-except FileNotFoundError:  # Defaults
-    user_settings = {'orgunit': {'show_location': True,
-                                 'show_user_key': False,
-                                 'show_roles': True}
-                     }
+USER_SETTINGS = {'orgunit': {'show_location': True,
+                             'show_user_key': False,
+                             'show_roles': True}
+}
 
 QUERY_EXPORT_DIR = ''
 
