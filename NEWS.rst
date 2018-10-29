@@ -25,6 +25,7 @@ Internal changes
 * #24657: The solution is fully documented on a technical: https://mora.readthedocs.io/
 * #24660: Communication documents for the business and strategic level created https://os2.eu/blog/os2mos-naeste-sprint-gaar-i-retning-af-os2-produktet-og-udvikling-af-integrationer https://os2.eu/blog/lokal-rammearkitektur-og-idm-med-os2mo-os2rollekatalog
 
+
 Bug fixes
 ---------
 
