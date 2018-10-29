@@ -20,20 +20,11 @@ For more information regarding reading relations, refer to:
 
 '''
 
+import flask
 import typing
 
-import flask
-
-from . import address
-from . import association
-from . import engagement
+from flask_saml_sso import requires_auth
 from . import handlers
-from . import itsystem
-from . import leave
-from . import manager
-from . import orgunit
-from . import role
-from .. import common
 from .. import exceptions
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
@@ -64,6 +55,7 @@ def handle_requests(
 
 
 @blueprint.route('/details/create', methods=['POST'])
+@requires_auth
 def create():
     """Creates new relations on employees and units
 
@@ -421,6 +413,7 @@ def create():
 
 
 @blueprint.route('/details/edit', methods=['POST'])
+@requires_auth
 def edit():
     """Edits a relation or attribute on an employee or unit
 

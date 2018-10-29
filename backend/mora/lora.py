@@ -11,18 +11,17 @@ from __future__ import generator_stop
 import collections
 import functools
 import itertools
+import requests
 import uuid
 
-import requests
-
-from .auth import base
+import flask_saml_sso
 from . import exceptions
 from . import settings
 from . import util
 
 session = requests.Session()
 session.verify = settings.CA_BUNDLE or True
-session.auth = base.SAMLAuth()
+session.auth = flask_saml_sso.SAMLAuth()
 session.headers = {
     'User-Agent': 'MORA/0.1',
 }

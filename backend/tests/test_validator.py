@@ -12,14 +12,15 @@ import unittest
 import freezegun
 import requests_mock
 
-from mora import util
 from mora import lora
 from mora import settings
 from mora import validator
 from mora import util as mora_util
 
+from . import util
 
-class TestIsDateRangeValid(unittest.TestCase):
+
+class TestIsDateRangeValid(util.TestCase):
     def test_startdate_should_be_smaller_than_enddate(self):
         self.assertFalse(
             validator._is_date_range_valid(None, '01-01-2017', '01-01-2016',
@@ -74,8 +75,8 @@ class TestIsDateRangeValid(unittest.TestCase):
                     expect,
                     validator._is_date_range_valid(
                         '00000000-0000-0000-0000-000000000000',
-                        util.parsedatetime('01-01-2000'),
-                        util.parsedatetime('01-01-3000'),
+                        mora_util.parsedatetime('01-01-2000'),
+                        mora_util.parsedatetime('01-01-3000'),
                         c,
                         'organisationenhedgyldighed'
                     )

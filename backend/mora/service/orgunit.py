@@ -24,6 +24,8 @@ import uuid
 
 import flask
 
+from flask_saml_sso import requires_auth
+
 from . import address
 from . import facet
 from . import handlers
@@ -335,6 +337,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
 
 @blueprint.route('/<any(o,ou):type>/<uuid:parentid>/children')
+@requires_auth
 @util.restrictargs('at')
 def get_children(type, parentid):
     '''Obtain the list of nested units within an organisation or an
@@ -416,6 +419,7 @@ def get_children(type, parentid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
+@requires_auth
 @util.restrictargs('at')
 def get_orgunit(unitid):
     '''Get an organisational unit
@@ -489,6 +493,7 @@ def get_orgunit(unitid):
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
+@requires_auth
 @util.restrictargs('at', 'start', 'limit', 'query')
 def list_orgunits(orgid):
     '''Query organisational units in an organisation.
@@ -558,6 +563,7 @@ def list_orgunits(orgid):
 
 
 @blueprint.route('/ou/create', methods=['POST'])
+@requires_auth
 def create_org_unit():
     """Creates new organisational unit
 
@@ -624,6 +630,7 @@ def create_org_unit():
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
+@requires_auth
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 
@@ -722,6 +729,7 @@ def terminate_org_unit(unitid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
+@requires_auth
 def get_org_unit_history(unitid):
     """
     Get the history of an org unit

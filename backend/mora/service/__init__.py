@@ -7,15 +7,20 @@
 #
 
 from . import address
+from . import association
 from . import cpr
-from . import employee
 from . import detail_reading
 from . import detail_writing
+from . import employee
+from . import engagement
+from . import exports
 from . import facet
 from . import itsystem
+from . import leave
+from . import manager
 from . import org
 from . import orgunit
-from . import exports
+from . import role
 
 blueprints = (
     address.blueprint,
