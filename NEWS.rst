@@ -3,37 +3,54 @@ Version 0.11.0, 2018-10-29
 
 New features
 ------------
-* #24547: It is now possible for a service user to update employee name and cpr number
-* #24400: Better documentation of command line interface
-* #24750: Added functionality for listing and retrieving generated export files from external directory
-* #24092: Added functionality for creating managers through the organisation interface in UI. It is also possible to create 
-          vacant Leader functions via this functionality
-* #24131: Added a simple configuration module that makes it possible to locally remove fields and tabs in the UI
-* #23960: A new page in the UI allows for specific queries to generate .csv-files (/forespoergsler)
-* #23276: The agent that fetches personal data on the Serviceplatform now includes the synchronisation of users and CPR-
-          numbers in LoRa
-* #24214: Attached (tilknyt) employees for the MED-organisation (Ballerup)
-* #24427: It is no longer possible to circumvent security by pasting a URL in a browser
+* #24547: Backend support for modifying the name and CPR number of employees.
+* #24400: Better documentation of command line interface.
+* #24750: Added functionality for listing and retrieving generated
+  export files from external directory.
+* #24092: Added functionality for creating managers through the
+  organisation interface in UI, including vacant managers.
+* #24131: Added a simple configuration module that makes it possible
+  to hide remove fields and tabs in the UI.
+* #23960: A new page in the UI, ``/forespoergsler``, offers CSV
+  exports of certain specific queries.
+* #23276: Support for synchronising user names and CPR numbers added
+  to the agent for fetching personal data from *Serviceplatformen*.
+* #24214: Added associations to employees in the MED-organisation in
+  Ballerup Kommune.
 
 
 Internal changes
 ----------------
 
-* #21966: Implemented use of Vuex in frontend
-* #24654: The source code is now located at: https://github.com/OS2mo
-* #24658: Technical implementation of the solution is fully documented: https://mora.readthedocs.io/en/development/dev.html
-* #24657: The solution is fully documented on a technical: https://mora.readthedocs.io/
-* #24660: Communication documents for the business and strategic level created https://os2.eu/blog/os2mos-naeste-sprint-gaar-i-retning-af-os2-produktet-og-udvikling-af-integrationer https://os2.eu/blog/lokal-rammearkitektur-og-idm-med-os2mo-os2rollekatalog
+* #21966: Implemented use of Vuex in frontend.
+* #24654: Source code is relocated to the `OS2mo organisation
+  <https://github.com/OS2mo>`_ on GitHub.
+* #24658: Technical implementation available as a `sub-page on our
+  ReadTheDocs site
+  <https://mora.readthedocs.io/en/development/dev.html>`_.
+* #24657: The solution is fully documented on `ReadTheDocs
+  <https://mora.readthedocs.io/>`_.
+* #24660: Communication documents for the business and strategic level
+  created at:
+
+  - `OS2mo’s næste sprint går i retning af OS2-produktet og udvikling
+    af integrationer
+    <https://os2.eu/blog/os2mos-naeste-sprint-gaar-i-retning-af-os2-produktet-og-udvikling-af-integrationer>`_
+  - `Lokal rammearkitektur og IDM med OS2MO & OS2rollekatalog
+    <https://os2.eu/blog/lokal-rammearkitektur-og-idm-med-os2mo-os2rollekatalog>`_.
 
 
 Bug fixes
 ---------
 
-* #24150: When terminating an employee, mark any manager roles it possesses as vacant rather than terminating them
-* #24069: Handle DAR address errors gracefully, displaying the error message rather than suppressing all addresses
-* #24077: Allow entering DAR access addresses as well as regular adresses in all fields, and allow reading historical addresses.
-* #24810: Support for Internet Explorer
-* #24570: Sorting now works after performing an update
+* #24150:  When terminating an employee, mark any manager roles it
+  possesses as vacant rather than terminating them.
+* #24069: Handle DAR address errors gracefully, displaying the error
+  message rather than suppressing all addresses.
+* #24077: Allow entering DAR access addresses as well as regular
+  adresses in all fields, and allow reading historical addresses.
+* #24810: Support for Internet Explorer 11.
+* #24570: Sorting now works after performing an update.
 
 
 Version 0.10.1-post1, 2018-10-12
