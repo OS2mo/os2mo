@@ -6,7 +6,8 @@ New features
 * #24547: It is now possible for a service user to update employee name and cpr number
 * #24400: Better documentation of command line interface
 * #24750: Added functionality for listing and retrieving generated export files from external directory
-* #24092: Added functionality for creating managers through the organisation interface in UI
+* #24092: Added functionality for creating managers through the organisation interface in UI. It is also possible to create 
+          vacant Leader functions via this functionality
 * #24131: Added a simple configuration module that makes it possible to locally remove fields and tabs in the UI
 * #23960: A new page in the UI allows for specific queries to generate .csv-files (/forespoergsler)
 * #23276: The agent that fetches personal data on the Serviceplatform now includes the synchronisation of users and CPR-
