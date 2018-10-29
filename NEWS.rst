@@ -9,8 +9,8 @@ New features
 * #24092: Added functionality for creating managers through the organisation interface in UI
 * #24131: Added a simple configuration module that makes it possible to locally remove fields and tabs in the UI
 * #23960: A new page in the UI allows for specific queries to generate .csv-files (/forespoergsler)
-* #23276: The agent that fetches personal data on the Serviceplatform now includes the synchronisation of users and CPR-numbers 
-          in LoRa
+* #23276: The agent that fetches personal data on the Serviceplatform now includes the synchronisation of users and CPR-
+          numbers in LoRa
 * #24214: Attached (tilknyt) employees for the MED-organisation (Ballerup)
 * #24427: It is no longer possible to circumvent security by pasting a URL in a browser
 
