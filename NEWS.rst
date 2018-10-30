@@ -26,6 +26,7 @@ Bug fixes
   message rather than suppressing all addresses.
 * #24077: Allow entering DAR access addresses as well as regular
   adresses in all fields, and allow reading historical addresses.
+* #24738: Removed sorting and icons for some columns.
 
 Known bugs
 ----------
