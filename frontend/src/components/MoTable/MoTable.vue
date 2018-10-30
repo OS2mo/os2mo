@@ -193,6 +193,9 @@
     },
 
     methods: {
+      /**
+       * Columns which contains sorting.
+       */
       hasSorting (col) {
         if (this.contentType === 'address') {
           return col.data === 'address_type'

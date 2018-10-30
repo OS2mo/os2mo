@@ -68,6 +68,10 @@ A table component.
 
 ## methods 
 
+- `hasSorting(col)` 
+
+  Columns which contains sorting. 
+
 - `sortData(colName, toggleIcon)` 
 
   Sort data in columns. 
