@@ -2,8 +2,8 @@
   <div class="wrapper">
     <div 
       class="alert alert-success mt-2" 
-      v-for="log in reverse(worklogs)" 
-      v-bind:key="log.value" 
+      v-for="(log, index) in reverse(worklogs)" 
+      :key="index" 
       role="alert"
     >
       {{$t('alerts.success.' + log.type, {uuid: log.value})}}

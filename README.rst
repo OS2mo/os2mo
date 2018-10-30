@@ -5,9 +5,9 @@ Om OS2MO 2.0
 .. contents:: `Indhold`
    :depth: 2
 
-.. image:: http://lorajenkins.atlas.magenta.dk/buildStatus/icon?job=mora/development
+.. image:: https://lorajenkins.magenta.dk/buildStatus/icon?job=mora/development
    :alt: Build Status
-   :target: http://lorajenkins.atlas.magenta.dk/job/mora/job/development/
+   :target: https://lorajenkins.magenta.dk/job/mora/job/development/
 
 
 Introduktion
@@ -157,11 +157,11 @@ Scriptet ``flask.sh`` kan bruges til en række forskellige operationer. De
 mulige funktioner ses ved blot at køre scriptet fra kommandolinjen
 uden argumenter::
 
-  $ /path/to/folder/mora/backend/flask.sh
+  $ /path/to/folder/mora/flask.sh
 
 hvilket vil resultere i flg. output::
 
-  Usage: /path/to/folder/mora/backend/flask.sh [OPTIONS] COMMAND [ARGS]...
+  Usage: /path/to/folder/mora/flask.sh [OPTIONS] COMMAND [ARGS]...
 
     Management utility for MORA.
 
@@ -170,19 +170,13 @@ hvilket vil resultere i flg. output::
     --help     Show this message and exit.
 
   Commands:
-    auth
-    build          Build the frontend application.
-    develop        Run for development.
-    fixroots       Import the sample fixtures into LoRA.
-    get
-    import         Import an Excel spreadsheet into LoRa
-    load-fixtures  Import the sample fixtures into LoRA.
-    python
-    run            Runs a development server.
-    sheet-convert  Convert a spreadsheet to another format.
-    shell          Runs a shell in the app context.
-    test
-    update
+    auth         Test and extract authentication tokens from SAML IdP.
+    build        Build the frontend application.
+    routes       Show the routes for the app.
+    run          Runs a development server.
+    run-with-db  Runs a development server with a one-off LoRA.
+    shell        Runs a shell in the app context.
+    test         Unit test runner
 
 En liste af mulige funktioner ses under *Commands*. Hvis man fx vil importere
 et regneark med data til en kørende LoRa-instans, kan dette gøre således

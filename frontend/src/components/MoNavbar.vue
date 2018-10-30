@@ -29,6 +29,12 @@
 
       <mo-search-bar class="ml-auto mr-auto"/>
 
+      <router-link :to="{ name: 'QueryList'}">
+        <button type="button" aria-label="Foresørgsler" class="btn btn-link text-white">
+          <icon name="exchange-alt"/>
+        </button>
+      </router-link>
+
       <mo-time-machine-button/>
 
       <help-button/>
@@ -47,11 +53,7 @@
 </template>
 
 <script>
-  /**
-   * A Navbar component.
-   */
-
-  import {AUTH_LOGOUT} from '@/vuex/actions/auth'
+  import {AUTH_LOGOUT} from '@/store/actions/auth'
   import HelpButton from '@/help/TheHelpButton'
   import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
@@ -68,17 +70,7 @@
 
     data () {
       return {
-      /**
-       * The user, isLoading component value.
-       * Used to detect changes and restore the value.
-       */
         user: {},
-        isLoading: false,
-
-        /**
-         * The username component value.
-         * Used to define a default username.
-         */
         username: 'N/A'
       }
     },
@@ -99,7 +91,6 @@
        */
       logout () {
         let vm = this
-        vm.isLoading = true
         this.$store.dispatch(AUTH_LOGOUT, vm.user)
       }
     }

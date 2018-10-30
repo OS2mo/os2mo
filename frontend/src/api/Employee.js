@@ -1,38 +1,8 @@
 import Service from './HttpCommon'
 import { EventBus } from '@/EventBus'
-import store from '@/vuex/store'
+import store from '@/store'
 
 export default {
-
-  /**
-   * Get a list of all employees
-   * @returns {Array} List of all employees
-   */
-  getAll (orgUuid) {
-    return Service.get(`/o/${orgUuid}/e/`)
-      .then(response => {
-        return response.data.items
-      })
-      .catch(error => {
-        console.log(error.response)
-      })
-  },
-
-  /**
-   * Get an employee
-   * @param {String} uuid - uuid for employee
-   * @returns {Object} employee object
-   */
-  get (uuid) {
-    return Service.get(`/e/${uuid}/`)
-      .then(response => {
-        EventBus.$emit('organisation-changed', response.data.org)
-        return response.data
-      })
-      .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
-      })
-  },
 
   history (uuid) {
     return Service.get(`/e/${uuid}/history/`)
@@ -63,7 +33,7 @@ export default {
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
       })
   },
 
@@ -77,11 +47,11 @@ export default {
         if (response.data.error) {
           return response.data
         }
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: employeeUuid})
+        store.commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value: employeeUuid })
         return employeeUuid
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
   },
@@ -100,7 +70,7 @@ export default {
       })
       .catch(error => {
         EventBus.$emit('employee-changed')
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
+        store.commit('log/newError', { type: 'ERROR', value: error.response })
         return error.response
       })
   },
@@ -111,18 +81,7 @@ export default {
         if (response.data.error) {
           return response.data
         }
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_CREATE', value: response.data})
-        return response.data
-      })
-  },
-
-  leave (leave) {
-    return this.createEntry(leave)
-      .then(response => {
-        if (response.data.error) {
-          return response.data
-        }
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_LEAVE', value: response.data})
+        store.commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value: response.data })
         return response.data
       })
   },
@@ -137,11 +96,11 @@ export default {
     return Service.post('/details/edit', edit)
       .then(response => {
         EventBus.$emit('employee-changed')
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_EDIT', value: response.data})
+        store.commit('log/newWorkLog', { type: 'EMPLOYEE_EDIT', value: response.data })
         return response.data
       })
       .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response.data})
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
   },
@@ -149,27 +108,8 @@ export default {
   move (move) {
     return this.edit(move)
       .then(response => {
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_MOVE', value: response})
+        store.commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response })
         return response
-      })
-  },
-
-  /**
-   * End an employee
-   * @param {String} uuid - employee uuid
-   * @param {Object} end - Object containing the end date
-   * @returns {Object} employee uuid
-   */
-  terminate (uuid, end) {
-    return Service.post(`/e/${uuid}/terminate`, end)
-      .then(response => {
-        EventBus.$emit('employee-changed')
-        store.commit('log/newWorkLog', {type: 'EMPLOYEE_TERMINATE', value: response.data})
-        return response.data
-      })
-      .catch(error => {
-        store.commit('log/newError', {type: 'ERROR', value: error.response})
-        return error.response
       })
   }
 }

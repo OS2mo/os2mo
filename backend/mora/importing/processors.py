@@ -14,7 +14,7 @@ from .. import util
 
 @util.cached
 def _fetch(k):
-    r = lora.session.get('http://dawa.aws.dk/datavask/adresser',
+    r = lora.session.get('https://dawa.aws.dk/datavask/adresser',
                          params={
                              'betegnelse': k,
                          })

@@ -2010,6 +2010,14 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
                             "to": "infinity"
                         }
                     }
@@ -2024,15 +2032,6 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2017-12-01 00:00:00+01"
-                        }
-                    },
-                    {
-                        "gyldighed": "Inaktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-12-01 00:00:00+01",
                             "to": "infinity"
                         }
                     },
@@ -2059,69 +2058,75 @@ class Tests(util.LoRATestCase):
 
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
-        self.assertRegistrationsEqual(actual_manager, expected)
+        self.assertRegistrationsEqual(expected, actual_manager)
+
+        expected = {
+            'address': [{
+                'href': 'mailto:ceo@example.com',
+                'name': 'ceo@example.com',
+                'urn': 'urn:mailto:ceo@example.com',
+                'address_type': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+            }],
+            'manager_level': {
+                'example': None,
+                'name': 'Institut',
+                'scope': None,
+                'user_key': 'inst',
+                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+            },
+            'manager_type': {
+                'example': None,
+                'name': 'Afdeling',
+                'scope': None,
+                'user_key': 'afd',
+                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+            },
+            'org_unit': {
+                'name': 'Humanistisk fakultet',
+                'user_key': 'hum',
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01',
+                    'to': None,
+                },
+            },
+            'person': {
+                'name': 'Anders And',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+            },
+            'responsibility': [{
+                'example': None,
+                'name': 'Fakultet',
+                'scope': None,
+                'user_key': 'fak',
+                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+            }],
+            'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+            'validity': {
+                'from': '2017-01-01',
+                'to': '2017-11-30',
+            },
+        }
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
-            [{
-                'address': [{
-                    'href': 'mailto:ceo@example.com',
-                    'name': 'ceo@example.com',
-                    'urn': 'urn:mailto:ceo@example.com',
-                    'address_type': {
-                        'example': 'test@example.com',
-                        'name': 'Emailadresse',
-                        'scope': 'EMAIL',
-                        'user_key': 'Email',
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                    },
-                }],
-                'manager_level': {
-                    'example': None,
-                    'name': 'Institut',
-                    'scope': None,
-                    'user_key': 'inst',
-                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                },
-                'manager_type': {
-                    'example': None,
-                    'name': 'Afdeling',
-                    'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-                },
-                'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'validity': {
-                        'from': '2016-01-01',
-                        'to': None,
-                    },
-                },
-                'person': {
-                    'name': 'Anders And',
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                },
-                'responsibility': [{
-                    'example': None,
-                    'name': 'Fakultet',
-                    'scope': None,
-                    'user_key': 'fak',
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                }],
-                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
-                'validity': {
-                    'from': '2017-01-01',
-                    'to': '2017-11-30',
-                },
-            }],
+            [expected],
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
-            [],
+            [{
+                **expected,
+                'person': None,
+                'validity': {'from': '2017-12-01', 'to': None},
+            }],
         )
 
     def test_edit_manager_minimal(self):
@@ -2508,4 +2513,112 @@ class Tests(util.LoRATestCase):
                     },
                 },
             ],
+        )
+
+    @util.mock(allow_mox=True)
+    def test_create_manager_offline(self, m):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "manager",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
+                'address': [{
+                    'href': 'https://www.openstreetmap.org/'
+                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                }],
+                "responsibility": [{
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                }],
+                "manager_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "manager_level": {
+                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                },
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        managerid, = self.assertRequest('/service/details/create',
+                                        json=payload)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'address': [{
+                    'href': None,
+                    'name': 'Fejl',
+                    'error': 'No mock address: '
+                    'GET https://dawa.aws.dk/adresser'
+                    '?id=44c532e1-f617-4174-b144-d37ce9fda2bd'
+                    '&noformat=1&struktur=mini',
+                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                }],
+                'manager_level': {
+                    'example': 'test@example.com',
+                    'name': 'Emailadresse',
+                    'scope': 'EMAIL',
+                    'user_key': 'Email',
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01',
+                        'to': None,
+                    },
+                },
+                'person': {
+                    'name': 'Fedtmule',
+                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                },
+                'responsibility': [{
+                    'example': None,
+                    'name': 'Medlem',
+                    'scope': None,
+                    'user_key': 'medl',
+                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                }],
+                'uuid': managerid,
+                'validity': {
+                    'from': '2017-12-01',
+                    'to': '2017-12-01',
+                },
+            }],
         )

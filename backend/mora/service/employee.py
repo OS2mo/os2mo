@@ -22,6 +22,7 @@ import uuid
 
 import flask
 
+from . import handlers
 from . import org
 from .. import common
 from .. import exceptions
@@ -32,6 +33,145 @@ from .. import util
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+class EmployeeRequestHandler(handlers.RequestHandler):
+    __slots__ = ('details_requests',)
+    role_type = "employee"
+
+    def prepare_create(self, req):
+        c = lora.Connector()
+        name = util.checked_get(req, mapping.NAME, "", required=True)
+        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+        cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
+        userid = util.get_uuid(req, required=False)
+
+        if not userid:
+            userid = str(uuid.uuid4())
+        try:
+            valid_from = \
+                util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
+        except ValueError as exc:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_CPR_NOT_VALID,
+                cpr=cpr,
+                cause=exc,
+            )
+
+        userids = c.bruger.fetch(
+            tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
+            tilhoerer=org_uuid
+        )
+
+        if userids and userid not in userids:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.V_EXISTING_CPR,
+                cpr=cpr,
+            )
+
+        valid_to = util.POSITIVE_INFINITY
+        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
+
+        user = common.create_bruger_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugernavn=name,
+            brugervendtnoegle=bvn,
+            tilhoerer=org_uuid,
+            cpr=cpr,
+        )
+
+        details = util.checked_get(req, 'details', [])
+        details_with_persons = _inject_persons(details, userid, valid_from,
+                                               valid_to)
+        # Validate the creation requests
+        self.details_requests = handlers.generate_requests(
+            details_with_persons,
+            handlers.RequestType.CREATE
+        )
+
+        self.payload = user
+        self.uuid = userid
+
+    def prepare_edit(self, req: dict):
+        original_data = util.checked_get(req, 'original', {}, required=False)
+        data = util.checked_get(req, 'data', {}, required=True)
+        userid = util.get_uuid(req, required=False)
+        if not userid:
+            userid = util.get_uuid(data, fallback=original_data)
+
+        # Get the current org-unit which the user wants to change
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        original = c.bruger.get(uuid=userid)
+        new_from, new_to = util.get_validities(data)
+
+        payload = dict()
+        if original_data:
+            # We are performing an update
+            old_from, old_to = util.get_validities(original_data)
+            payload = common.inactivate_old_interval(
+                old_from, old_to, new_from, new_to, payload,
+                ('tilstande', 'brugergyldighed')
+            )
+
+            original_uuid = util.get_mapping_uuid(original_data,
+                                                  mapping.EMPLOYEE)
+
+            if original_uuid and original_uuid != userid:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                    'cannot change employee uuid!',
+                )
+
+        update_fields = list()
+
+        # Always update gyldighed
+        update_fields.append((
+            mapping.EMPLOYEE_GYLDIGHED_FIELD,
+            {'gyldighed': "Aktiv"}
+        ))
+
+        if mapping.NAME in data:
+            attrs = mapping.EMPLOYEE_EGENSKABER_FIELD.get(original)[-1].copy()
+            attrs['brugernavn'] = data[mapping.NAME]
+
+            update_fields.append((
+                mapping.EMPLOYEE_EGENSKABER_FIELD,
+                attrs,
+            ))
+
+        if mapping.CPR_NO in data:
+            attrs = mapping.EMPLOYEE_PERSON_FIELD.get(original)[-1].copy()
+            attrs['urn'] = 'urn:dk:cpr:person:{}'.format(data[mapping.CPR_NO])
+
+            update_fields.append((
+                mapping.EMPLOYEE_PERSON_FIELD,
+                attrs,
+            ))
+
+        payload = common.update_payload(new_from, new_to, update_fields,
+                                        original, payload)
+
+        bounds_fields = list(
+            mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                       original, payload)
+
+        self.payload = payload
+        self.uuid = userid
+
+    def submit(self):
+        c = lora.Connector()
+
+        if self.request_type == handlers.RequestType.CREATE:
+            result = c.bruger.create(self.payload, self.uuid)
+        else:
+            result = c.bruger.update(self.payload, self.uuid)
+
+        # process subrequests, if any
+        [r.submit() for r in getattr(self, "details_requests", [])]
+
+        return result
 
 
 def get_one_employee(c, userid, user=None, full=False):
@@ -188,7 +328,8 @@ def get_employee(id):
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
-    specified date.
+    specified date. Except for the manager roles, which we vacate
+    instead.
 
     .. :quickref: Employee; Terminate
 
@@ -211,27 +352,25 @@ def terminate_employee(employee_uuid):
     """
     date = util.get_valid_to(flask.request.get_json())
 
-    # Org funks
-    types = (
-        mapping.ENGAGEMENT_KEY,
-        mapping.ASSOCIATION_KEY,
-        mapping.ROLE_KEY,
-        mapping.LEAVE_KEY,
-        mapping.MANAGER_KEY
-    )
+    c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
-    c = lora.Connector(effective_date=date)
-
-    for key in types:
-        for obj in c.organisationfunktion.get_all(
+    request_handlers = [
+        handlers.get_handler_for_function(obj)(
+            {
+                'date': date,
+                'uuid': objid,
+                'original': obj,
+            },
+            handlers.RequestType.TERMINATE,
+        )
+        for objid, obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
-            funktionsnavn=key
-        ):
-            c.organisationfunktion.update(
-                common.inactivate_org_funktion_payload(
-                    date,
-                    "Afslut medarbejder"),
-                obj[0])
+            gyldighed='Aktiv',
+        )
+    ]
+
+    for handler in request_handlers:
+        handler.submit()
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
@@ -356,68 +495,9 @@ def create_employee():
     :returns: UUID of created employee
 
     """
-
-    c = lora.Connector()
-
     req = flask.request.get_json()
-
-    name = util.checked_get(req, mapping.NAME, "", required=True)
-    org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
-    cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
-    userid = util.get_uuid(req, required=False)
-    if not userid:
-        userid = str(uuid.uuid4())
-
-    try:
-        valid_from = \
-            util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
-    except ValueError as exc:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_CPR_NOT_VALID,
-            cpr=cpr,
-            cause=exc,
-        )
-
-    userids = c.bruger.fetch(
-        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
-        tilhoerer=org_uuid
-    )
-
-    if userids and userid not in userids:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_EXISTING_CPR,
-            cpr=cpr,
-        )
-
-    valid_to = util.POSITIVE_INFINITY
-
-    # TODO: put something useful into the default user key
-    bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
-
-    user = common.create_bruger_payload(
-        valid_from=valid_from,
-        valid_to=valid_to,
-        brugernavn=name,
-        brugervendtnoegle=bvn,
-        tilhoerer=org_uuid,
-        cpr=cpr,
-    )
-
-    details = util.checked_get(req, 'details', [])
-
-    details_with_persons = _inject_persons(details, userid, valid_from,
-                                           valid_to)
-
-    # Validate the creation requests
-    details_requests = common.generate_requests(details_with_persons,
-                                                common.RequestType.CREATE)
-
-    userid = c.bruger.create(user, uuid=userid)
-
-    creation_uuids = common.submit_requests(details_requests)
-
-    return flask.jsonify(
-        [userid] + creation_uuids if creation_uuids else userid)
+    request = EmployeeRequestHandler(req, handlers.RequestType.CREATE)
+    return flask.jsonify(request.submit()), 201
 
 
 def _inject_persons(details, employee_uuid, valid_from, valid_to):

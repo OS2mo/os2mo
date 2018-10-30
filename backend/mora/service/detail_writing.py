@@ -20,13 +20,19 @@ For more information regarding reading relations, refer to:
 
 '''
 
-import uuid
-from typing import List
+import typing
 
 import flask
 
-from . import (engagement, manager, association, role, leave, itsystem,
-               address, orgunit)
+from . import address
+from . import association
+from . import engagement
+from . import handlers
+from . import itsystem
+from . import leave
+from . import manager
+from . import orgunit
+from . import role
 from .. import common
 from .. import exceptions
 
@@ -35,8 +41,8 @@ blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
 
 
 def handle_requests(
-    reqs: List[dict],
-    request_type: common.RequestType
+    reqs: typing.List[dict],
+    request_type: handlers.RequestType
 ):
     if isinstance(reqs, dict):
         is_single_request = True
@@ -49,9 +55,9 @@ def handle_requests(
             request=reqs,
         )
 
-    requests = common.generate_requests(reqs, request_type)
+    requests = handlers.generate_requests(reqs, request_type)
 
-    uuids = common.submit_requests(requests)
+    uuids = handlers.submit_requests(requests)
     if is_single_request:
         uuids = uuids[0]
     return uuids
@@ -79,6 +85,56 @@ def create():
 
     Request payload contains a list of creation objects, each differentiated
     by the attribute ``type``. Each of these object types are detailed below:
+
+
+    **Employee**:
+
+    :<json string name: The name of the employee
+    :<json string cpr_no: The CPR no of the employee
+    :<json string user_key: Short, unique key identifying the employee.
+    :<json object org: The organisation with which the empl. is associated
+    :<json string uuid: An **optional** parameter, that will be used as the
+      UUID for the employee.
+    :<json list details: A list of details to be created for the employee.
+
+    For more information on the available details,
+    see: :http:post:`/service/details/create`.
+    Note, that the ``person`` parameter is implicit in these payload, and
+    should not be given.
+
+    .. sourcecode:: json
+
+        [
+          {
+            "type": "employee",
+            "name": "Name Name",
+            "cpr_no": "0101501234",
+            "user_key": "1234",
+            "org": {
+              "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+            },
+            "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f",
+            "details": [
+              {
+                "type": "engagement",
+                "org_unit": {
+                  "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+                },
+                "job_function": {
+                  "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                },
+                "engagement_type": {
+                  "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": "2017-12-31"
+                }
+              }
+            ]
+          }
+        ]
+
 
     **Engagement**:
 
@@ -359,7 +415,7 @@ def create():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, common.RequestType.CREATE)),
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.CREATE)),
         201
     )
 
@@ -386,6 +442,48 @@ def edit():
 
     Request payload contains a list of edit objects, each differentiated
     by the attribute ``type``. Each of these object types are detailed below:
+
+    **Employee**:
+
+    :<json string type: **"employee"**
+    :<json string uuid: The UUID of the employee,
+    :<json object original: An **optional** object containing the original
+        state of the employee to be overwritten. If supplied, the change
+        will modify the existing registration on the employee object.
+        Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        employee. Detailed below.
+
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string cpr_no: The cpr number of the employee
+    :<jsonarr string name: The Name of the employee
+    :<jsonarr object validity: The validities of the changes.
+
+    .. sourcecode:: json
+
+        [{
+            "type": "employee",
+            "original": {
+                "validity": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": null
+                },
+                "cpr_no": "1205320000",
+                "name": "Test 1 Employee"
+            },
+            "data": {
+                "validity": {
+                    "from": "2017-01-01"
+                },
+                "cpr_no": "0202020202",
+                "name": "Test 2 Employee"
+            },
+            "uuid": "de9e7513-1934-481f-f8c8-45336387e9cb"
+        }]
+
 
     **Engagement**:
 
@@ -817,6 +915,6 @@ def edit():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, common.RequestType.EDIT)),
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.EDIT)),
         200
     )

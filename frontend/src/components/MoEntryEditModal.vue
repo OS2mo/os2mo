@@ -20,6 +20,8 @@
         :is="entryComponent"
         v-model="entry" 
         :disable-org-unit-picker="disableOrgUnitPicker"
+        :hide-org-picker="hideOrgPicker"
+        :hide-employee-picker="hideEmployeePicker"
       />
 
       <div class="alert alert-danger" v-if="backendValidationMessage">
@@ -121,6 +123,20 @@
        */
       disableOrgUnitPicker () {
         return this.type === 'ORG_UNIT'
+      },
+
+      /**
+       * Get hideOrgPicker type.
+       */
+      hideOrgPicker () {
+        return this.type === 'ORG_UNIT'
+      },
+
+      /**
+       * Get hideEmployeePicker type.
+       */
+      hideEmployeePicker () {
+        return this.type === 'EMPLOYEE'
       },
 
       /**

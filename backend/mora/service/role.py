@@ -14,8 +14,7 @@ This section describes how to interact with employee roles.
 
 '''
 
-import flask
-
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -23,12 +22,12 @@ from .. import mapping
 from .. import util
 from .. import validator
 
-blueprint = flask.Blueprint('roles', __name__, static_url_path='',
-                            url_prefix='/service')
 
+class RoleRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ()
 
-@common.register_request_handler('role')
-class RoleRequestHandler(common.OrgFunkRequestHandler):
+    role_type = 'role'
+    function_key = mapping.ROLE_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()

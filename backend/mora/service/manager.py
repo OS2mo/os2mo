@@ -14,21 +14,24 @@ This section describes how to interact with employee manager roles.
 """
 import uuid
 
-import flask
-
 from . import address
+from . import handlers
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 from .. import validator
 
-blueprint = flask.Blueprint('manager', __name__, static_url_path='',
-                            url_prefix='/service')
 
+class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ()
 
-@common.register_request_handler('manager')
-class ManagerRequestHandler(common.OrgFunkRequestHandler):
+    role_type = 'manager'
+    function_key = mapping.MANAGER_KEY
+
+    termination_field = mapping.USER_FIELD
+    termination_value = {}
+
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid """

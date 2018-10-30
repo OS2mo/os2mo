@@ -3,6 +3,7 @@
   "current_super_unit": "Nuværende overenhed",
   "account_name": "Kontonavn",
   "employee": "@:shared.employee",
+  "employee_optional": "Angiv medarbejder (Valgfri)",
   "end_date": "@:shared.date.end_date",
   "move_date": "Flyttedato",
   "move_from": "Flyt fra",

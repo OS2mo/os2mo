@@ -20,6 +20,7 @@ import uuid
 
 import flask
 
+from . import handlers
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -31,8 +32,11 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@common.register_request_handler('it')
-class ItsystemRequestHandler(common.OrgFunkRequestHandler):
+class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ()
+
+    role_type = 'it'
+    function_key = mapping.ITSYSTEM_KEY
 
     def prepare_create(self, req):
         c = lora.Connector()
