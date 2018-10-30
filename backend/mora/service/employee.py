@@ -22,7 +22,6 @@ import uuid
 
 import flask
 
-from flask_saml_sso import requires_auth
 from . import handlers
 from . import org
 from .. import common
@@ -205,7 +204,6 @@ def get_one_employee(c, userid, user=None, full=False):
 
 
 @blueprint.route('/o/<uuid:orgid>/e/')
-@requires_auth
 @util.restrictargs('at', 'start', 'limit', 'query')
 def list_employees(orgid):
     '''Query employees in an organisation.
@@ -279,7 +277,6 @@ def list_employees(orgid):
 
 
 @blueprint.route('/e/<uuid:id>/')
-@requires_auth
 @util.restrictargs('at')
 def get_employee(id):
     '''Retrieve an employee.
@@ -329,7 +326,6 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
-@requires_auth
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -384,7 +380,6 @@ def terminate_employee(employee_uuid):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
-@requires_auth
 def get_employee_history(employee_uuid):
     """
     Get the history of an employee
@@ -445,7 +440,6 @@ def get_employee_history(employee_uuid):
 
 
 @blueprint.route('/e/create', methods=['POST'])
-@requires_auth
 def create_employee():
     """Create a new employee
 

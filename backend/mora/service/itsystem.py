@@ -20,8 +20,6 @@ import uuid
 
 import flask
 
-from flask_saml_sso import requires_auth
-
 from . import handlers
 from .. import common
 from .. import exceptions
@@ -171,7 +169,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
 
 @blueprint.route('/o/<uuid:orgid>/it/')
-@requires_auth
 @util.restrictargs('at')
 def list_it_systems(orgid: uuid.UUID):
     '''List the IT systems available within the given organisation.

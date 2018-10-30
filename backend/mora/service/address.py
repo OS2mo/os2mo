@@ -204,7 +204,6 @@ import flask
 import re
 import requests
 
-from flask_saml_sso import requires_auth
 from . import employee
 from . import facet
 from . import handlers
@@ -658,7 +657,6 @@ def get_scope_and_original(obj_uuid, obj_type):
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
-@requires_auth
 @util.restrictargs('global', required=['q'])
 def address_autocomplete(orgid):
     """Perform address autocomplete, resolving both ``adgangsadresse`` and

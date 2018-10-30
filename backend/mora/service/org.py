@@ -19,8 +19,6 @@ import operator
 import flask
 import werkzeug
 
-from flask_saml_sso import requires_auth
-
 from .. import common
 from .. import mapping
 from .. import util
@@ -46,7 +44,6 @@ def get_one_organisation(c, orgid, org=None):
 
 
 @blueprint.route('/o/')
-@requires_auth
 @util.restrictargs('at')
 def list_organisations():
     '''List displayable organisations. We consider anything that has *at
@@ -94,7 +91,6 @@ def list_organisations():
 
 
 @blueprint.route('/o/<uuid:orgid>/')
-@requires_auth
 @util.restrictargs('at')
 def get_organisation(orgid):
     '''Obtain the initial level of an organisation.

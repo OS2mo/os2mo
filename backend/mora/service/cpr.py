@@ -15,7 +15,6 @@ based on their CPR number.
 
 import flask
 
-from flask_saml_sso import requires_auth
 from .. import exceptions
 from .. import mapping
 from .. import util
@@ -27,7 +26,6 @@ blueprint = flask.Blueprint('cpr', __name__, static_url_path='',
 
 
 @blueprint.route('/e/cpr_lookup/')
-@requires_auth
 @util.restrictargs(required=['q'])
 def search_cpr():
     """

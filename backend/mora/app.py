@@ -43,9 +43,11 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     # Initialize SSO and Session
     flask_saml_sso.init_app(app)
 
+    base.blueprint.before_request(flask_saml_sso.check_saml_authentication)
     app.register_blueprint(base.blueprint)
 
     for blueprint in service.blueprints:
+        blueprint.before_request(flask_saml_sso.check_saml_authentication)
         app.register_blueprint(blueprint)
 
     @app.errorhandler(Exception)

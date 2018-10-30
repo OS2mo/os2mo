@@ -28,7 +28,6 @@ import collections
 import itertools
 
 import flask
-from flask_saml_sso import requires_auth
 
 from . import address
 from . import employee
@@ -57,7 +56,6 @@ DETAIL_TYPES = {
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
-@requires_auth
 def list_details(type, id):
     '''List the available 'detail' types under this entry.
 
@@ -109,7 +107,6 @@ def list_details(type, id):
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
-@requires_auth
 @util.restrictargs('at', 'validity', 'start', 'limit')
 def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.

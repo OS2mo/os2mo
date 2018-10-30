@@ -28,7 +28,6 @@ import uuid
 import flask
 import werkzeug
 
-from flask_saml_sso import requires_auth
 from .. import common
 from .. import exceptions
 from .. import mapping
@@ -162,7 +161,6 @@ def get_one_class(c, classid, clazz=None):
 
 
 @blueprint.route('/o/<uuid:orgid>/f/<facet>/')
-@requires_auth
 @util.restrictargs('limit', 'start')
 def get_classes(orgid: uuid.UUID, facet: str):
     '''List classes available in the given facet.

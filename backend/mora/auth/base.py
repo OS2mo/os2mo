@@ -30,7 +30,6 @@ blueprint = flask.Blueprint('authentication', __name__,
                             url_prefix='/service', root_path=basedir)
 
 
-@flask_saml_sso.requires_auth
 @blueprint.route('/user', methods=['GET'])
 def get_user():
     '''Get the currently logged in user
@@ -42,7 +41,8 @@ def get_user():
 
     username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
     try:
-        username = flask.session.get('samlUserdata').get(username_attr)[0]
+        username = flask_saml_sso.get_session_attributes().get(
+            username_attr)[0]
     except (AttributeError, IndexError):
         username = None
 
