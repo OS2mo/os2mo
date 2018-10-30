@@ -70,7 +70,7 @@ A table component.
 
 - `hasSorting(col)` 
 
-  Columns which contains sorting. 
+  Columns that not contain sorting. 
 
 - `sortData(colName, toggleIcon)` 
 

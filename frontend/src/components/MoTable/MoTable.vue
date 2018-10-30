@@ -194,7 +194,7 @@
 
     methods: {
       /**
-       * Columns which contains sorting.
+       * Columns that not contain sorting.
        */
       hasSorting (col) {
         if (this.contentType === 'address') {
