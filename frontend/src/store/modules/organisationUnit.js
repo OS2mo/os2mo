@@ -8,6 +8,8 @@ function state () {
     uuid: undefined,
     org_uuid: undefined,
     parent_uuid: undefined,
+    location: undefined,
+    user_settings: {},
     details: {}
   }
 }
@@ -50,6 +52,8 @@ const mutations = {
     state.user_key = payload.user_key
     state.uuid = payload.uuid
     state.org_uuid = payload.org.uuid
+    state.location = payload.location
+    state.user_settings = payload.user_settings
     state.parent_uuid = payload.parent.uuid
   },
 
@@ -59,6 +63,8 @@ const mutations = {
     state.uuid = undefined
     state.org_uuid = undefined
     state.parent_uuid = undefined
+    state.location = undefined
+    state.user_settings = {}
     state.details = {}
   },
 
