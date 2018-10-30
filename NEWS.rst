@@ -1,3 +1,31 @@
+Version 0.12.0 (in development)
+===============================
+
+New features
+------------
+
+
+Internal changes
+----------------
+
+
+* TBD
+
+API changes
+-----------
+
+
+* TBD
+
+Bug fixes
+---------
+* #24738: Removed sorting and icons for some columns.
+
+
+Known bugs
+----------
+
+
 Version 0.11.0 (in development)
 ===============================
 
@@ -26,7 +54,7 @@ Bug fixes
   message rather than suppressing all addresses.
 * #24077: Allow entering DAR access addresses as well as regular
   adresses in all fields, and allow reading historical addresses.
-* #24738: Removed sorting and icons for some columns.
+
 
 Known bugs
 ----------
