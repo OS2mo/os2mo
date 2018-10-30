@@ -11,25 +11,21 @@
 '''
 
 
-import base64
 import functools
 import importlib
 import json
-import ssl
 import sys
 import traceback
-import warnings
 
 import click
 import flask
 import pyexcel
-import requests
-import urllib3
 
 from .. import exceptions
 from .. import lora
 from .. import settings
-from ..auth import base as auth_base, tokens as auth_tokens
+
+import flask_saml_sso
 
 from . import base
 
@@ -40,55 +36,15 @@ def group():
 
 
 def requires_auth(func):
-    @click.option('--user', '-u',
-                  help="account user name")
-    @click.option('--password', '-p',
-                  help="account password")
-    @click.option('--insecure', '-k', is_flag=True,
-                  help="disable SSL/TLS security checks")
+    @click.option('--token', '-t',
+                  help="auth session token")
     @flask.cli.with_appcontext
     def wrapper(*args, **options):
-        insecure = options.pop('insecure')
+        token = options['token']
 
-        if insecure:
-            warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
+        lora.session.auth = flask_saml_sso.SAMLAuth(token)
 
-            lora.session.verify = False
-        else:
-            warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
-
-        if options['user'] and not options['password']:
-            options['password'] = click.prompt(
-                'Enter password for {}'.format(
-                    options['user'],
-                ),
-                hide_input=True,
-                err=True,
-            )
-
-        try:
-            assertion = auth_tokens.get_token(
-                options.pop('user'),
-                options.pop('password'),
-                insecure=insecure,
-            )
-
-            lora.session.auth = auth_base.SAMLAuth(assertion)
-
-            return func(*args, **options)
-        except urllib3.exceptions.HTTPWarning as e:
-            if flask.current_app.debug:
-                traceback.print_exc()
-            else:
-                print(e)
-            print('or use -k/--insecure to suppress this warning')
-            raise click.Abort()
-
-        except exceptions.HTTPException as exc:
-            click.secho('Authentication failed! {}'.format(exc),
-                        fg='red', bold=True)
-            click.echo(json.dumps(exc.body, indent=2))
-            raise click.Abort()
+        return func(*args, **options)
 
     return functools.update_wrapper(wrapper, func)
 
