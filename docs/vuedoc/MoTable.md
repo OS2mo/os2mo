@@ -4,6 +4,8 @@ A table component.
 
 ## props 
 
+- `v-model` ***Array*** (*optional*) 
+
 - `content` ***Array*** (*optional*) 
 
   Defines a content. 
