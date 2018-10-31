@@ -302,6 +302,15 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.LOCATION] = ''
 
+            if unitid in settings.USER_SETTINGS['orgunit']:
+                org_settings = {'orgunit':
+                                settings.USER_SETTINGS['orgunit'][unitid]}
+                r[mapping.USER_SETTINGS] = org_settings
+            elif parent and mapping.USER_SETTINGS in parent:
+                r[mapping.USER_SETTINGS] = parent[mapping.USER_SETTINGS]
+            else:
+                r[mapping.USER_SETTINGS] = settings.USER_SETTINGS
+
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
         )

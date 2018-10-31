@@ -8,7 +8,7 @@
       v-model="item" 
       :get-label="getLabel" 
       :component-item="template" 
-      @item-selected="selected"
+      @item-selected="$emit('input', $event)"
       @update-items="updateItems"
       :auto-select-one-item="false"
       :min-len="2"
@@ -48,30 +48,14 @@
 
     props: {
       value: Object,
-      /**
-       * This boolean property defines a noLabel value.
-       */
       noLabel: Boolean,
-
-      /**
-       * This boolean property requires a selected name.
-       */
       required: Boolean
     },
 
     data () {
       return {
-        /**
-         * The item, items component value.
-         * Used to detect changes and restore the value.
-         */
         item: null,
         items: [],
-
-        /**
-         * The template component value.
-         * Used to add MoSearchBarTemplate to the autocomplete search.
-         */
         template: MoSearchBarTemplate
       }
     },
@@ -79,24 +63,15 @@
     computed: {
       orderedListOptions () {
         return this.items.slice().sort((a, b) => {
-          if (a.name < b.name) {
-            return -1
-          }
-          if (a.name > b.name) {
-            return 1
-          }
+          if (a.name < b.name) return -1
+          if (a.name > b.name) return 1
           return 0
         })
       }
     },
 
-    watch: {
-      /**
-       * Whenever item change, update newVal.
-       */
-      item (newVal) {
-        this.$emit('input', newVal)
-      }
+    created () {
+      this.item = this.value
     },
 
     methods: {
@@ -117,22 +92,7 @@
           .then(response => {
             vm.items = response
           })
-      },
-
-      /**
-       * Update selected value.
-       */
-      selected (value) {
-        this.$emit('input', value)
       }
-    },
-
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Set item to value.
-       */
-      this.item = this.value
     }
   }
 </script>

@@ -13,6 +13,7 @@ const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
 const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
 const OrganisationMapper = () => import('@/modules/OrganisationMapper')
+const QueryList = () => import('@/modules/query/QueryList')
 
 Vue.use(Router)
 
@@ -86,6 +87,11 @@ const router = new Router({
           path: '/organisationssammenkobling',
           name: 'OrganisationMapper',
           component: OrganisationMapper
+        },
+        {
+          path: '/forespoergsler',
+          name: 'QueryList',
+          component: QueryList
         },
         {
           path: '*',

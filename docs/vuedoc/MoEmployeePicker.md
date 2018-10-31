@@ -8,18 +8,11 @@ A employee picker component.
 
 - `no-label` ***Boolean*** (*optional*) 
 
-  This boolean property defines a noLabel value. 
-
 - `required` ***Boolean*** (*optional*) 
-
-  This boolean property requires a selected name. 
 
 ## data 
 
 - `item` 
-
-  The item, items component value.
-  Used to detect changes and restore the value. 
 
 **initial value:** `null` 
 
@@ -28,9 +21,6 @@ A employee picker component.
 **initial value:** `[object Object]` 
 
 - `template` 
-
-  The template component value.
-  Used to add MoSearchBarTemplate to the autocomplete search. 
 
 **initial value:** `'MoSearchBarTemplate'` 
 
@@ -41,10 +31,6 @@ A employee picker component.
    **dependencies:** `items` 
 
 
-## events 
-
-- `input` 
-
 ## methods 
 
 - `getLabel(item)` 
@@ -54,8 +40,4 @@ A employee picker component.
 - `updateItems(query)` 
 
   Update employees suggestions based on search query. 
-
-- `selected(value)` 
-
-  Update selected value. 
 

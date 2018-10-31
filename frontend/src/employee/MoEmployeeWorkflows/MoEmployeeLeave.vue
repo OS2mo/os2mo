@@ -7,7 +7,7 @@
     hide-footer 
     lazy
     no-close-on-backdrop
-    @hidden="resetData"
+    @hidden="$store.dispatch('employeeLeave/resetFields')"
   >
     <form @submit.stop.prevent="createLeave">
       <mo-employee-picker v-model="employee" required/>
@@ -17,7 +17,7 @@
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
       </div>
-      
+
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
       </div>
@@ -30,7 +30,7 @@
    * A employee create leave component.
    */
 
-  import Employee from '@/api/Employee'
+  import { mapFields } from 'vuex-map-fields'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
@@ -51,23 +51,19 @@
 
     data () {
       return {
-      /**
-        * The leave, employee, isLoading, backendValidationError component value.
-        * Used to detect changes and restore the value.
-        */
         isLoading: false,
-        backendValidationError: null,
-        employee: {},
-        leave: {
-          person: null,
-          validity: {}
-        }
+        backendValidationError: null
       }
     },
 
     computed: {
+      ...mapFields('employeeLeave', [
+        'employee',
+        'leave'
+      ]),
+
       /**
-       * Loop over all contents of the fields object and check if they exist and valid.
+       * Check validity of form. this.fields is a magic property created by vee-validate
        */
       formValid () {
         return Object.keys(this.fields).every(field => {
@@ -75,37 +71,16 @@
         })
       }
     },
-
-    watch: {
-      /**
-       * Called whenever the selected person changes
-       */
-      employee: {
-        handler (newVal) {
-          this.leave.person = newVal
-        },
-        deep: true
-      }
-    },
-
     methods: {
-      /**
-       * Resets the data fields.
-       */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
       /**
        * Create leave and check if the data fields are valid.
        * Then throw a error if not.
        */
-      createLeave (evt) {
-        evt.preventDefault()
+      createLeave () {
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          Employee.leave([this.leave])
+          this.$store.dispatch('employeeLeave/LEAVE_EMPLOYEE')
             .then(response => {
               vm.isLoading = false
               if (response.error) {

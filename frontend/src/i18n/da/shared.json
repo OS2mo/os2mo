@@ -17,5 +17,9 @@
   "overview": "Overblik",
   "organisation": "Organisation | Organisationer",
   "organisation_mapping": "Organisationssammenkobling",
-  "history": "Historik"
+  "history": "Historik",
+  "past": "Fortid",
+  "present": "Nutid",
+  "future": "Fremtid",
+  "query": "Forespørgsel | Forespørgsler"
 }

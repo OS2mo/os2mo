@@ -94,6 +94,7 @@ class ErrorCodes(Enum):
     E_NOT_FOUND = 404, "Not found."
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."
+    E_DIR_NOT_FOUND = 500, "Directory does not exist."
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):

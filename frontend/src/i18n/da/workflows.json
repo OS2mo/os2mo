@@ -13,6 +13,9 @@
       "manager": "@:shared.manager",
       "other_addresses": "Øvrige adresser",
       "role": "@:shared.role"
+    },
+    "messages": {
+      "following_will_be_terminated": "Følgende vil blive afsluttet for medarbejderen:"
     }
   },
   "organisation": {
