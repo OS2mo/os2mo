@@ -106,6 +106,7 @@
        * Defines a unique identifier which must be unique.
        */
       uuid: {type: String, required: true},
+      orgUnitInfo: Object,
 
       content: Object,
 
@@ -113,11 +114,6 @@
        * This Boolean property indicates the timemachine output.
        */
       timemachineFriendly: Boolean
-    },
-    computed: {
-      orgUnitInfo () {
-        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
-      }
     },
 
     data () {
