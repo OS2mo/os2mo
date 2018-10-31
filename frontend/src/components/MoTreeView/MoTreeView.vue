@@ -1,30 +1,22 @@
 <template>
-  <div>
-    <mo-loader v-show="isLoading"/>
-    <ul v-show="!isLoading">
-      <mo-tree-view-item
-        v-for="item in children"
-        :key="item.uuid"
-        v-model="selectedOrgUnit"
-        :item="item"
-        @show-children="getOrgUnitChildren($event)"
-        unfold
-      />
-    </ul>
+  <div>    
+
+    {{children}}
+    <liquor-tree :data="treeData" :options="treeOptions" ref="tree"/>
+
   </div>
 </template>
 
 <script>
-  import { EventBus } from '@/EventBus'
   import Organisation from '@/api/Organisation'
   import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoTreeViewItem from './MoTreeViewItem'
-  import MoLoader from '@/components/atoms/MoLoader'
+  import LiquorTree from 'liquor-tree'
+  import treeStore from './_store'
+  // import Store from '@/vuex/store'
 
   export default {
     components: {
-      MoTreeViewItem,
-      MoLoader
+      LiquorTree
     },
 
     props: {
@@ -34,38 +26,49 @@
 
     data () {
       return {
+        treeData: [
+
+        ],
         children: [],
-        selectedOrgUnit: {},
-        isLoading: false
+        treeOptions: {
+          propertyNames: {
+            text: 'name',
+            isBatch: 'child_count',
+            id: 'uuid'
+          },
+          fetchData (node) {
+            return OrganisationUnit.getChildren(node.id, this.atDate)
+              .then(response => {
+                // node.append(response)
+                console.log(node.children)
+                return response
+              })
+          }
+          // store: {
+          //   store: Store,
+          //   getter: () => {
+          //     return this.$store.getters['liquorTree/getTreeData']
+          //   },
+          //   dispatcher (tree) {
+          //     this.$store.dispatch('liquorTree/updateTree', tree)
+          //   }
+          // }
+        }
       }
     },
 
-    watch: {
-      orgUuid () {
-        this.getRootChildren()
-      },
-
-      atDate () {
-        this.getRootChildren()
-      },
-
-      selectedOrgUnit: {
-        handler (val) {
-          this.$emit('input', val)
-        },
-        deep: true
-      }
+    created () {
+      this.$store.registerModule('liquorTree', treeStore)
     },
 
     mounted () {
-      this.getRootChildren()
-
-      EventBus.$on('update-tree-view', () => {
-        this.getRootChildren()
+      this.$refs.tree.$on('node:expanded', () => {
+        console.log('hello')
       })
     },
 
     methods: {
+
       /**
        * Get organisation children.
        */
@@ -73,10 +76,11 @@
         if (this.orgUuid === undefined) return
         let vm = this
         vm.isLoading = true
-        Organisation.getChildren(this.orgUuid, this.atDate)
+        return Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
             vm.isLoading = false
             vm.children = response
+            return response
           })
       },
 
