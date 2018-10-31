@@ -23,11 +23,11 @@ const actions = {
     return Service.post('/details/edit', [state.move])
     .then(response => {
       EventBus.$emit('employee-changed')
-      commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response })
+      commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
       return response.data
     })
     .catch(error => {
-      commit('log/newError', { type: 'ERROR', value: error.response.data })
+      commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
       return error.response.data
     })
   },
