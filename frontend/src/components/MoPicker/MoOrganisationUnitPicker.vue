@@ -12,7 +12,7 @@
       :placeholder="$t('input_fields.choose_unit')"
       v-model="orgName"
       @click.stop="toggleTree()"
-      v-validate="{required: required}"
+      v-validate="{ required: '' ? required : this.orgName }"
     >
 
     <div class="mo-input-group" v-show="showTree">
