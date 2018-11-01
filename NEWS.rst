@@ -3,7 +3,7 @@ Version 0.12.0 (in development)
 
 New features
 ------------
-
+* #24652: Best practices added for implementation in organization
 
 Internal changes
 ----------------
