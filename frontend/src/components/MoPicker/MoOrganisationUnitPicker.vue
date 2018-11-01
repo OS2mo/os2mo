@@ -12,7 +12,7 @@
       :placeholder="$t('input_fields.choose_unit')"
       v-model="orgName"
       @click.stop="toggleTree()"
-      v-validate="{ required: '' ? required : this.orgName }"
+      v-validate="{ required: this.orgName !== null ? required : this.orgName }"
     >
 
     <div class="mo-input-group" v-show="showTree">
@@ -101,14 +101,6 @@
        */
       nameId () {
         return 'org-unit-' + this._uid
-      },
-
-      /**
-       * When its not disable, make it required.
-       */
-      isRequired () {
-        if (this.isDisabled) return false
-        return this.required
       }
     },
 
