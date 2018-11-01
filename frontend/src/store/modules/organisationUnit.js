@@ -6,8 +6,10 @@ function state () {
     name: undefined,
     user_key: undefined,
     uuid: undefined,
+    org: undefined,
     org_uuid: undefined,
     parent_uuid: undefined,
+    parents: [],
     location: undefined,
     user_settings: {},
     details: {}
@@ -51,18 +53,26 @@ const mutations = {
     state.name = payload.name
     state.user_key = payload.user_key
     state.uuid = payload.uuid
+    state.org = payload.org
     state.org_uuid = payload.org.uuid
     state.location = payload.location
     state.user_settings = payload.user_settings
     state.parent_uuid = payload.parent.uuid
+    state.parents = []
+
+    for (let current = payload; current; current = current.parent) {
+      state.parents.push(current.uuid)
+    }
   },
 
   RESET_ORG_UNIT (state) {
     state.name = undefined
     state.user_key = undefined
     state.uuid = undefined
+    state.org = undefined
     state.org_uuid = undefined
     state.parent_uuid = undefined
+    state.parents = []
     state.location = undefined
     state.user_settings = {}
     state.details = {}
