@@ -288,12 +288,13 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.FULL:
         unittype = util.get_uuid(rels['enhedstype'][0], required=False)
 
-        if rels['overordnet'][0]['uuid'] is not None:
-            r[mapping.PARENT] = get_one_orgunit(c,
-                                                rels['overordnet'][0]['uuid'],
-                                                details=UnitDetails.FULL)
+        parent = get_one_orgunit(
+            c,
+            rels['overordnet'][0]['uuid'],
+            details=UnitDetails.FULL,
+        )
 
-            parent = r[mapping.PARENT]
+        if rels['overordnet'][0]['uuid'] is not None:
             if parent and parent[mapping.LOCATION]:
                 r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
                                        parent[mapping.NAME])
@@ -311,14 +312,10 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.USER_SETTINGS] = settings.USER_SETTINGS
 
+        r[mapping.PARENT] = parent
+
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
-        )
-
-        r[mapping.PARENT] = get_one_orgunit(
-            c,
-            rels['overordnet'][0]['uuid'],
-            details=UnitDetails.MINIMAL,
         )
 
         r[mapping.ORG] = org.get_one_organisation(
