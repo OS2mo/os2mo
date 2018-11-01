@@ -7,6 +7,7 @@ New features
 
 Internal changes
 ----------------
+* #21966 Implemented use of vuex for employee workflows.
 
 
 * TBD
