@@ -4,6 +4,8 @@ A table component.
 
 ## props 
 
+- `v-model` ***Array*** (*optional*) 
+
 - `content` ***Array*** (*optional*) 
 
   Defines a content. 
@@ -67,6 +69,10 @@ A table component.
 
 
 ## methods 
+
+- `hasSorting(col)` 
+
+  Columns that not contain sorting. 
 
 - `sortData(colName, toggleIcon)` 
 

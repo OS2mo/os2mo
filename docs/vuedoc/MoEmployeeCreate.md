@@ -4,45 +4,12 @@ A employee create component.
 
 ## data 
 
-- `employee` 
-
-  The employee, engagement, address, association, role, itSystem, manager,
-  isLoading, backendValidationError component value.
-  Used to detect changes and restore the value. 
-
-**initial value:** `[object Object]` 
-
-- `engagement` 
-
-**initial value:** `[object Object]` 
-
-- `address` 
-
-**initial value:** `[object Object]` 
-
-- `association` 
-
-**initial value:** `[object Object]` 
-
-- `role` 
-
-**initial value:** `[object Object]` 
-
-- `itSystem` 
-
-**initial value:** `[object Object]` 
-
-- `manager` 
-
-**initial value:** `[object Object]` 
-
 - `isLoading` 
 
+  The isLoading component value.
+  Used to detect changes and restore the value. 
+
 **initial value:** `false` 
-
-- `backendValidationError` 
-
-**initial value:** `null` 
 
 - `entry` 
 
@@ -62,10 +29,6 @@ A employee create component.
 
 
 ## methods 
-
-- `resetData()` 
-
-  Resets the data fields. 
 
 - `createEmployee(evt)` 
 
