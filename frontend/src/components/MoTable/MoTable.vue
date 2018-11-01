@@ -22,9 +22,12 @@
             v-for="(col, index) in columns" 
             :key="index"
           >
-            <span class="link" @click="sortData(col.label, open)">
+            <span class="link" @click="sortData(col.label, open)" v-if="hasSorting(col)">
               {{$t('table_headers.'+col.label)}}
               <icon :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
+            </span>
+            <span v-if="!hasSorting(col)">
+              {{$t('table_headers.'+col.label)}}
             </span>
           </th>
           <th>
@@ -194,6 +197,35 @@
     },
 
     methods: {
+      /**
+       * Columns that not contain sorting.
+       */
+      hasSorting (col) {
+        if (this.contentType === 'address') {
+          return col.data === 'address_type'
+        }
+        if (this.contentType === 'it') {
+          return false
+        }
+        if (this.contentType === 'engagement' && this.type === 'ORG_UNIT') {
+          return col.data !== 'org_unit'
+        }
+        if (this.contentType === 'association' && this.type === 'ORG_UNIT') {
+          return col.data !== 'org_unit' &&
+          col.data !== 'address' &&
+          col.data !== 'address_type'
+        }
+        if (this.contentType === 'manager') {
+          return col.data !== 'responsibility' &&
+          col.data !== 'address' &&
+          col.data !== 'address_type' &&
+          col.data !== 'person'
+        }
+        return (col.data || col.label === 'org_unit') &&
+        col.data !== 'address' &&
+        col.data !== 'address_type'
+      },
+
       /**
        * Sort data in columns.
        */

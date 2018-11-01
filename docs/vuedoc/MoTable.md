@@ -70,6 +70,10 @@ A table component.
 
 ## methods 
 
+- `hasSorting(col)` 
+
+  Columns that not contain sorting. 
+
 - `sortData(colName, toggleIcon)` 
 
   Sort data in columns. 
