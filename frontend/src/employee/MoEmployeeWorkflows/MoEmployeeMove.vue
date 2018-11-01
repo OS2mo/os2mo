@@ -7,12 +7,12 @@
     hide-footer 
     lazy
     no-close-on-backdrop
-    @hidden="resetData"
+    @hidden="$store.dispatch('employeeMove/resetFields')"
   >
     <form @submit.stop.prevent="moveEmployee">
       <mo-employee-picker 
         class="search-employee" 
-        v-model="move.data.person" 
+        v-model="person" 
         required
       />
 
@@ -20,7 +20,7 @@
         <mo-engagement-picker 
           class="mt-3" 
           v-model="original" 
-          :employee="move.data.person"
+          :employee="person"
           required
         />
       </div>
@@ -29,7 +29,7 @@
         <mo-organisation-unit-picker
           :label="$t('input_fields.move_to')" 
           class="col" 
-          v-model="move.data.org_unit"
+          v-model="org_unit"
           required
         />       
       </div>
@@ -38,14 +38,14 @@
         <mo-date-picker 
           class="col from-date"
           :label="$t('input_fields.move_date')" 
-          v-model="move.data.validity.from"
+          v-model="from"
           :valid-dates="validDates"
           required
         />
       </div>
 
       <mo-confirm-checkbox
-        :entry-date="move.data.validity.from"
+        :entry-date="from"
         :entry-name="original.engagement_type.name"
         :entry-org-name="original.org_unit.name"
         v-if="dateConflict" 
@@ -68,13 +68,13 @@
    * A employee move component.
    */
 
-  import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
+  import { mapFields } from 'vuex-map-fields'
 
   export default {
       /**
@@ -113,23 +113,26 @@
     data () {
       return {
       /**
-        * The move, original, isLoading, backendValidationError component value.
+        * The isLoading component value.
         * Used to detect changes and restore the value.
         */
-        isLoading: false,
-        backendValidationError: null,
-        original: null,
-        move: {
-          type: 'engagement',
-          person: {},
-          data: {
-            validity: {}
-          }
-        }
+        isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get mapFields from vuex store.
+       */
+      ...mapFields('employeeMove', [
+        'move',
+        'move.data.person',
+        'move.data.org_unit',
+        'move.data.validity.from',
+        'original',
+        'backendValidationError'
+      ]),
+
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
@@ -143,11 +146,11 @@
        * Check if the dates are valid.
        */
       dateConflict () {
-        if (this.move.data.validity.from && this.original) {
+        if (this.from && this.original) {
           if (this.original.validity.to == null) return true
-          this.move.data.validity.from = new Date(this.move.data.validity.from)
-          this.original.validity.to = new Date(this.original.validity.to)
-          if (this.move.data.validity.from <= this.original.validity.to) return true
+          const newFrom = new Date(this.from)
+          const originalTo = new Date(this.original.validity.to)
+          if (newFrom <= originalTo) return true
         }
         return false
       },
@@ -162,13 +165,6 @@
 
     methods: {
       /**
-       * Resets the data fields.
-       */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
-      /**
        * Move a employee and check if the data fields are valid.
        * Then throw a error if not.
        */
@@ -177,9 +173,8 @@
         if (this.formValid) {
           let vm = this
           vm.isLoading = true
-          vm.move.uuid = this.original.uuid
 
-          Employee.move([this.move])
+          this.$store.dispatch('employeeMove/MOVE_EMPLOYEE')
             .then(response => {
               vm.isLoading = false
               if (response.error) {

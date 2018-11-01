@@ -98,6 +98,10 @@
 
     props: {
       /**
+       * @model
+       */
+      value: Array,
+      /**
        * Defines a content.
        */
       content: Array,
@@ -168,7 +172,7 @@
        * Whenever selected change, update newVal.
        */
       selected (newVal) {
-        this.$emit('selected-changed', newVal)
+        this.$emit('input', newVal)
       },
 
       /**
