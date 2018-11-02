@@ -1,3 +1,12 @@
+Version 0.11.1 2018-11-02
+==========================
+
+Bug fixes
+---------
+
+* #25028: Timemachine now shows and updates the organisation unit 
+  view when changing organisation unit
+
 Version 0.11.0, 2018-10-30
 ==========================
 
