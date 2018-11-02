@@ -83,7 +83,10 @@
       }
     },
     created () {
-      this.$store.registerModule(this.storeId, orgUnit)
+      // avoid reregistering the module if it already exists
+      if (!this.$store._modules.root._children[this.storeId]) {
+        this.$store.registerModule(this.storeId, orgUnit)
+      }
     },
     destroyed () {
       this.$store.unregisterModule(this.storeId)

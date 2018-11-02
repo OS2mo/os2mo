@@ -118,6 +118,8 @@
 
     data () {
       return {
+        // keep track of the latest tap shown
+        latestTab: [],
         /**
         * The org_unit, address, engagement, association, role, manager component value.
         * Used to detect changes and restore the value for columns.
@@ -174,6 +176,15 @@
         }
       }
     },
+    watch: {
+      /**
+       * update content when uuid changes.
+       * This part is needed for the timemachine, for some reason
+       */
+      uuid () {
+        this.loadContent(this.latestTab.detail, this.latestTab.validity)
+      }
+    },
 
     methods: {
       loadContent (contentType, event) {
@@ -182,6 +193,7 @@
           validity: event,
           uuid: this.uuid
         }
+        this.latestTab = payload
         this.$emit('show', payload)
       }
     }
