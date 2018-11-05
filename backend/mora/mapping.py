@@ -34,6 +34,7 @@ EMPLOYEE = "employee"
 LOCATION = 'location'
 ERROR = 'error'
 USER_SETTINGS = 'user_settings'
+INTEGRATIONDATA = 'integrationdata'
 
 # Address
 ADDRESS_KEY = 'Adresse'

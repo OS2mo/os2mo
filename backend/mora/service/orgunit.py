@@ -51,6 +51,8 @@ class UnitDetails(enum.Enum):
     # with everything except child count
     FULL = 2
 
+    # minimal and integrationdata
+    INTEGRATION = 3
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     __slots__ = ()
@@ -210,9 +212,14 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data:
+        if mapping.NAME in data or mapping.INTEGRATIONDATA in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
-            attrs['enhedsnavn'] = data[mapping.NAME]
+
+            if mapping.NAME in data:
+                attrs['enhedsnavn'] = data[mapping.NAME]
+
+            if mapping.INTEGRATIONDATA in data:
+                attrs['integrationsdata'] = data[mapping.INTEGRATIONDATA]
 
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
@@ -326,8 +333,12 @@ def get_one_orgunit(c, unitid, unit=None,
             rels['tilhoerer'][0]['uuid'],
         )
 
+    elif details is UnitDetails.MINIMAL:
+        pass  # already done
+    elif details is UnitDetails.INTEGRATION:
+        r["integrationdata"] = attrs["integrationsdata"]
     else:
-        assert details is UnitDetails.MINIMAL, 'enum is {}!?'.format(details)
+        assert False, 'enum is {}!?'.format(details)
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
@@ -415,9 +426,10 @@ def get_children(type, parentid):
     return flask.jsonify(children)
 
 
-@blueprint.route('/ou/<uuid:unitid>/')
+@blueprint.route('/ou/<uuid:unitid>/', defaults={"details": UnitDetails.FULL})
+@blueprint.route('/ou/<uuid:unitid>/<string:details>')
 @util.restrictargs('at')
-def get_orgunit(unitid):
+def get_orgunit(unitid, details=UnitDetails.FULL):
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
@@ -477,7 +489,16 @@ def get_orgunit(unitid):
     '''
     c = common.get_connector()
 
-    r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
+    if isinstance(details, str):
+        enum_details = getattr(UnitDetails, details, False)
+        if not enum_details:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_DETAILS_SPEC_NOT_FOUND,
+                detail_spec=details,
+            )
+        details = enum_details
+
+    r = get_one_orgunit(c, unitid, details=details)
 
     if not r:
         raise exceptions.HTTPException(

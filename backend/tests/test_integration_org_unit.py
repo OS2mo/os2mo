@@ -2704,3 +2704,92 @@ class Tests(util.LoRATestCase):
             '/details/org_unit?validity=future',
             [],
         )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_get_integrationdata(self):
+        self.load_sample_structures()
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        self.assertRequestResponse(
+            '/service/ou/{}/INTEGRATION'.format(org_unit_uuid),
+            {
+                'integrationdata': '{}',
+                'name': 'Humanistisk fakultet',
+                'user_key': 'hum',
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01', 
+                    'to': None 
+                }
+            }
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_illegal_detail_spec(self):
+        self.load_sample_structures()
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        self.assertRequestResponse(
+            '/service/ou/{}/HASSELHOFF'.format(org_unit_uuid),
+            {
+                'description': 'Details specification not found',
+                'detail_spec': 'HASSELHOFF',
+                'error': True,
+                'error_key': 'E_DETAILS_SPEC_NOT_FOUND',
+                'status': 404
+            },
+            status_code=404
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_edit_integrationdata(self):
+        self.load_sample_structures()
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "type": "org_unit",
+            "data": {
+                "uuid": org_unit_uuid,
+                "integrationdata": "{'baywatchname': 'Hasselhoff'}",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": "2016-01-02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            org_unit_uuid,
+            json=req,
+        )
+
+        expected_organisationenhedegenskaber = [{
+            'brugervendtnoegle': 'hum',
+            'enhedsnavn': 'Humanistisk fakultet',
+            'integrationsdata': '{}',
+            'virkning': {
+                'from': '2016-01-03 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+                }
+        }, {
+            'brugervendtnoegle': 'hum',
+            'enhedsnavn': 'Humanistisk fakultet',
+            'integrationsdata': "{'baywatchname': 'Hasselhoff'}",
+            'virkning': {
+                'from': '2016-01-01 00:00:00+01',
+                'from_included': True,
+                'to': '2016-01-03 00:00:00+01',
+                'to_included': False
+            }
+        }]
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.organisationenhed.get(org_unit_uuid)
+
+        self.assertEqual(
+            expected_organisationenhedegenskaber,
+            actual['attributter']['organisationenhedegenskaber']
+        )
