@@ -49,7 +49,10 @@ class UnitDetails(enum.Enum):
     NCHILDREN = 1
 
     # with everything except child count
-    FULL = 2
+    SELF = 2
+
+    # same as above, but with all parents
+    FULL = 3
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
@@ -72,7 +75,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         return flask.jsonify([
             get_one_orgunit(
-                c, objid, effect, details=UnitDetails.FULL,
+                c, objid, effect, details=UnitDetails.SELF,
                 validity={
                     mapping.FROM: util.to_iso_date(start),
                     mapping.TO: util.to_iso_date(end, is_end=True),
@@ -274,6 +277,10 @@ def get_one_orgunit(c, unitid, unit=None,
     rels = unit['relationer']
     validities = unit['tilstande']['organisationenhedgyldighed']
 
+    unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+    parentid = rels['overordnet'][0]['uuid']
+    orgid = rels['tilhoerer'][0]['uuid']
+
     r = {
         'name': attrs['enhedsnavn'],
         'user_key': attrs['brugervendtnoegle'],
@@ -286,15 +293,13 @@ def get_one_orgunit(c, unitid, unit=None,
         r['child_count'] = len(children)
 
     elif details is UnitDetails.FULL:
-        unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+        parent = get_one_orgunit(c, parentid, details=UnitDetails.FULL)
 
-        parent = get_one_orgunit(
-            c,
-            rels['overordnet'][0]['uuid'],
-            details=UnitDetails.FULL,
+        r[mapping.ORG] = org.get_one_organisation(
+            c, orgid,
         )
 
-        if rels['overordnet'][0]['uuid'] is not None:
+        if parentid is not None:
             if parent and parent[mapping.LOCATION]:
                 r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
                                        parent[mapping.NAME])
@@ -318,9 +323,12 @@ def get_one_orgunit(c, unitid, unit=None,
             facet.get_one_class(c, unittype) if unittype else None
         )
 
-        r[mapping.ORG] = org.get_one_organisation(
-            c,
-            rels['tilhoerer'][0]['uuid'],
+    elif details is UnitDetails.SELF:
+        r[mapping.ORG] = org.get_one_organisation(c, orgid)
+        r[mapping.PARENT] = get_one_orgunit(c, parentid,
+                                            details=UnitDetails.MINIMAL)
+        r[mapping.ORG_UNIT_TYPE] = (
+            facet.get_one_class(c, unittype) if unittype else None
         )
 
     else:
