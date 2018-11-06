@@ -4,7 +4,7 @@ A timemachine column component.
 
 ## props 
 
-- `store-id` ***String*** (*optional*) 
+- `store-id` ***String*** (*required*) 
 
 ## data 
 
@@ -22,6 +22,13 @@ A timemachine column component.
 - `orgUnit` 
 
 **initial value:** `null` 
+
+## computed properties 
+
+- `orgUnitInfo` 
+
+   **dependencies:** `$store`, `storeId` 
+
 
 ## methods 
 
