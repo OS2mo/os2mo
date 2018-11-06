@@ -4,9 +4,9 @@
     size="lg" 
     :title="$t('workflows.employee.new_employee')"
     ref="employeeCreate"
+    @hidden="$store.dispatch('employeeCreate/resetFields')"
     hide-footer 
     no-close-on-backdrop
-    @hidden="resetData"
     lazy
   >
     <form @submit.stop.prevent="createEmployee">
@@ -71,7 +71,7 @@
    * A employee create component.
    */
 
-  import Employee from '@/api/Employee'
+  import { mapFields } from 'vuex-map-fields'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoCpr from '@/components/MoCpr/MoCpr'
   import MoAddMany from '@/components/MoAddMany/MoAddMany'
@@ -105,19 +105,10 @@
     data () {
       return {
       /**
-        * The employee, engagement, address, association, role, itSystem, manager,
-        * isLoading, backendValidationError component value.
+        * The isLoading component value.
         * Used to detect changes and restore the value.
         */
-        employee: {},
-        engagement: {},
-        address: [],
-        association: [],
-        role: [],
-        itSystem: [],
-        manager: [],
         isLoading: false,
-        backendValidationError: null,
 
       /**
         * The entry - address, association, role, it, manager component.
@@ -136,6 +127,20 @@
 
     computed: {
       /**
+       * Get mapFields from vuex store.
+       */
+      ...mapFields('employeeCreate', [
+        'employee',
+        'engagement',
+        'address',
+        'association',
+        'role',
+        'itSystem',
+        'manager',
+        'backendValidationError'
+      ]),
+
+      /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
       formValid () {
@@ -147,13 +152,6 @@
 
     methods: {
       /**
-       * Resets the data fields.
-       */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
-      /**
        * Create a employee and check if the data fields are valid.
        * Then throw a error if not.
        */
@@ -163,22 +161,7 @@
           let vm = this
           this.isLoading = true
 
-          let create = [].concat(this.engagement, this.address, this.association, this.role, this.itSystem, this.manager)
-
-          create.forEach(e => {
-            if (!e.validity) {
-              e.validity = this.engagement.validity
-            }
-          })
-
-          let newEmployee = {
-            name: this.employee.name,
-            cpr_no: this.employee.cpr_no,
-            org: this.$store.state.organisation,
-            details: create
-          }
-
-          Employee.new(newEmployee)
+          this.$store.dispatch('employeeCreate/CREATE_EMPLOYEE')
             .then(employeeUuid => {
               if (employeeUuid.error) {
                 vm.isLoading = false
@@ -186,6 +169,7 @@
               } else {
                 vm.$refs.employeeCreate.hide()
                 vm.$router.push({name: 'EmployeeDetail', params: {uuid: employeeUuid}})
+                vm.isLoading = false
               }
             })
         } else {

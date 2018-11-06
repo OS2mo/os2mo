@@ -1,3 +1,31 @@
+Version 0.12.0 (in development)
+===============================
+
+New features
+------------
+
+
+Internal changes
+----------------
+
+
+* TBD
+
+API changes
+-----------
+
+
+* TBD
+
+Bug fixes
+---------
+* #24738: Removed sorting and icons for some columns.
+
+
+Known bugs
+----------
+
+
 Version 0.11.1 2018-11-02
 ==========================
 
@@ -6,6 +34,7 @@ Bug fixes
 
 * #25028: Timemachine now shows and updates the organisation unit 
   view when changing organisation unit
+
 
 Version 0.11.0, 2018-10-30
 ==========================
@@ -60,6 +89,10 @@ Bug fixes
   adresses in all fields, and allow reading historical addresses.
 * #24810: Support for Internet Explorer 11.
 * #24570: Sorting now works after performing an update.
+
+
+Known bugs
+----------
 
 
 Version 0.10.1-post1, 2018-10-12
