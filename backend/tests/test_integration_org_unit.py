@@ -283,6 +283,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "name": "Fake Corp",
+            "integrationdata":'{"fakekey":42}',
             "parent": {
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
             },
@@ -333,8 +334,9 @@ class Tests(util.LoRATestCase):
                             "from": "2016-02-04 00:00:00+01"
                         },
                         "brugervendtnoegle":
-                            'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
-                        "enhedsnavn": "Fake Corp"
+                        'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
+                        "enhedsnavn": "Fake Corp",
+                        "integrationsdata":'{"fakekey":42}'
                     }
                 ]
             },
