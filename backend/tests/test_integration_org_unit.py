@@ -1742,7 +1742,8 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "hum",
-                        "enhedsnavn": "Humanistisk fakultet"
+                        "enhedsnavn": "Humanistisk fakultet",
+                        "integrationsdata":"{}",
                     }
                 ]
             },
@@ -2767,7 +2768,7 @@ class Tests(util.LoRATestCase):
         expected_organisationenhedegenskaber = [{
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '',
+            'integrationsdata': '{}',
             'virkning': {
                 'from': '2016-01-03 00:00:00+01',
                 'from_included': True,

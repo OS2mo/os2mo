@@ -340,7 +340,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     elif details is UnitDetails.INTEGRATION:
-        r["integrationdata"] = attrs["integrationsdata"]
+        r["integrationdata"] = attrs.get("integrationsdata","")
     else:
         assert False, 'enum is {}!?'.format(details)
 
