@@ -30,6 +30,7 @@
    * A it system component.
    */
 
+  import _ from 'lodash'
   import Facet from '@/api/Facet'
   import { EventBus } from '@/EventBus'
 
@@ -75,15 +76,7 @@
       },
 
       orderedListOptions () {
-        return this.itSystems.slice().sort((a, b) => {
-          if (a.name < b.name) {
-            return -1
-          }
-          if (a.name > b.name) {
-            return 1
-          }
-          return 0
-        })
+        return _.sortBy(this.itSystems, 'name')
       }
     },
 

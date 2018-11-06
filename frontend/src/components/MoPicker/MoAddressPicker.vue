@@ -38,7 +38,7 @@
   /**
    * A address picker component.
    */
-
+  import _ from 'lodash'
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoLoader from '@/components/atoms/MoLoader'
 
@@ -111,15 +111,7 @@
       },
 
       orderedListOptions () {
-        return this.addresses.slice().sort((a, b) => {
-          if (a.address_type.name < b.address_type.name) {
-            return -1
-          }
-          if (a.address_type.name > b.address_type.name) {
-            return 1
-          }
-          return 0
-        })
+        return _.sortBy(this.addresses, 'address_type.name')
       }
     },
 

@@ -19,11 +19,6 @@ const actions = {
     if (state[payload.facet]) return
     return Service.get(`/o/${rootState.organisation.uuid}/f/${payload}/`)
       .then(response => {
-        response.data.data.items = response.data.data.items.slice().sort((a, b) => {
-          if (a.name < b.name) return -1
-          if (a.name > b.name) return 1
-          return 0
-        })
         response.data.classes = response.data.data.items
         delete response.data.data.items
         commit('SET_FACET', response.data)

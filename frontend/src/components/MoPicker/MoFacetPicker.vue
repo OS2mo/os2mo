@@ -2,7 +2,7 @@
   <mo-select 
     v-model="selected" 
     :label="facetData.user_key" 
-    :options="facetData.classes" 
+    :options="sortedOptions" 
     :required="required" 
     :disabled="isDisabled"
   />
@@ -13,6 +13,7 @@
    * A facet picker component.
    */
 
+  import _ from 'lodash'
   import MoSelect from '@/components/atoms/MoSelect'
 
   export default {
@@ -38,6 +39,10 @@
     computed: {
       facetData () {
         return this.$store.getters['facet/GET_FACET'](this.facet)
+      },
+      sortedOptions () {
+        let data = this.$store.getters['facet/GET_FACET'](this.facet)
+        return _.sortBy(data.classes, 'name')
       },
       isDisabled () {
         return this.preselectedUserKey !== undefined
