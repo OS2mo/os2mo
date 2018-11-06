@@ -12,7 +12,7 @@ const EmployeeDetail = () => import('@/employee/EmployeeDetail')
 const PageNotFound = () => import('@/components/PageNotFound')
 const TheHelp = () => import('@/help/TheHelp')
 const MoTimeMachine = () => import('@/timeMachine/MoTimeMachine')
-const OrganisationMapper = () => import('@/modules/OrganisationMapper')
+const OrganisationMapper = () => import('@/modules/organisationMapper')
 const QueryList = () => import('@/modules/query/QueryList')
 
 Vue.use(Router)
