@@ -10,7 +10,6 @@ Dette er den fuldstændige dokumentation til OS2MO 2.0 — MedarbejderOrganisati
    README
    dev
    news
-   release
 
 Indekser og tabeller
 ====================
