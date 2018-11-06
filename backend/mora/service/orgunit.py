@@ -54,6 +54,7 @@ class UnitDetails(enum.Enum):
     # minimal and integrationdata
     INTEGRATION = 3
 
+
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     __slots__ = ()
 
@@ -426,10 +427,9 @@ def get_children(type, parentid):
     return flask.jsonify(children)
 
 
-@blueprint.route('/ou/<uuid:unitid>/', defaults={"details": UnitDetails.FULL})
-@blueprint.route('/ou/<uuid:unitid>/<string:details>')
-@util.restrictargs('at')
-def get_orgunit(unitid, details=UnitDetails.FULL):
+@blueprint.route('/ou/<uuid:unitid>/')
+@util.restrictargs('at','unitdetails')
+def get_orgunit(unitid):
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
@@ -488,6 +488,9 @@ def get_orgunit(unitid, details=UnitDetails.FULL):
 
     '''
     c = common.get_connector()
+
+    #details = flask.request.headers.get("Unit Details", UnitDetails.FULL)
+    details = flask.request.args.get("unitdetails", UnitDetails.FULL)
 
     if isinstance(details, str):
         enum_details = getattr(UnitDetails, details, False)

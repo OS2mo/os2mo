@@ -2711,15 +2711,15 @@ class Tests(util.LoRATestCase):
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         self.assertRequestResponse(
-            '/service/ou/{}/INTEGRATION'.format(org_unit_uuid),
+            '/service/ou/{}/?unitdetails=INTEGRATION'.format(org_unit_uuid),
             {
                 'integrationdata': '{}',
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 'validity': {
-                    'from': '2016-01-01', 
-                    'to': None 
+                    'from': '2016-01-01',
+                    'to': None
                 }
             }
         )
@@ -2730,7 +2730,7 @@ class Tests(util.LoRATestCase):
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         self.assertRequestResponse(
-            '/service/ou/{}/HASSELHOFF'.format(org_unit_uuid),
+            '/service/ou/{}/?unitdetails=HASSELHOFF'.format(org_unit_uuid),
             {
                 'description': 'Details specification not found',
                 'detail_spec': 'HASSELHOFF',
@@ -2773,7 +2773,7 @@ class Tests(util.LoRATestCase):
                 'from_included': True,
                 'to': 'infinity',
                 'to_included': False
-                }
+            }
         }, {
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
