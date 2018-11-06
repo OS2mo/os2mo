@@ -6,7 +6,8 @@ import { EventBus } from '@/EventBus'
 const state = {
   employee: {},
   endDate: '',
-  details: {}
+  details: {},
+  backendValidationError: null
 }
 
 const actions = {
@@ -59,6 +60,7 @@ const mutations = {
     state.employee = {}
     state.endDate = ''
     state.details = {}
+    state.backendValidationError = null
   },
 
   // todo: copy paste from employee module. need to be refactored
