@@ -110,6 +110,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
+        integrationdata = util.checked_get(req, mapping.INTEGRATIONDATA, "", required=False)
+
         unitid = util.get_uuid(req, required=False)
         bvn = util.checked_get(req, mapping.USER_KEY,
                                "{} {}".format(name, uuid.uuid4()))
@@ -151,6 +153,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             enhedstype=org_unit_type_uuid,
             overordnet=parent_uuid,
             adresser=addresses,
+            integrationdata=integrationdata,
         )
 
         if org_uuid != parent_uuid:
@@ -428,7 +431,7 @@ def get_children(type, parentid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at','unitdetails')
+@util.restrictargs('at', 'unitdetails')
 def get_orgunit(unitid):
     '''Get an organisational unit
 
@@ -489,7 +492,6 @@ def get_orgunit(unitid):
     '''
     c = common.get_connector()
 
-    #details = flask.request.headers.get("Unit Details", UnitDetails.FULL)
     details = flask.request.args.get("unitdetails", UnitDetails.FULL)
 
     if isinstance(details, str):

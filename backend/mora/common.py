@@ -374,6 +374,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     adresser: typing.List[dict] = None,
+    integrationdata: str = ""
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -383,7 +384,8 @@ def create_organisationsenhed_payload(
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': enhedsnavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': integrationdata,
                 },
             ],
         },

@@ -2750,7 +2750,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "uuid": org_unit_uuid,
-                "integrationdata": "{'baywatchname': 'Hasselhoff'}",
+                "integrationdata": '{"baywatchname": "Hasselhoff"}',
                 "validity": {
                     "from": "2016-01-01",
                     "to": "2016-01-02",
@@ -2767,7 +2767,7 @@ class Tests(util.LoRATestCase):
         expected_organisationenhedegenskaber = [{
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '{}',
+            'integrationsdata': '',
             'virkning': {
                 'from': '2016-01-03 00:00:00+01',
                 'from_included': True,
@@ -2777,7 +2777,7 @@ class Tests(util.LoRATestCase):
         }, {
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': "{'baywatchname': 'Hasselhoff'}",
+            'integrationsdata': '{"baywatchname": "Hasselhoff"}',
             'virkning': {
                 'from': '2016-01-01 00:00:00+01',
                 'from_included': True,
