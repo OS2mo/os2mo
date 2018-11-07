@@ -51,7 +51,7 @@ Best practices for implementering
      - 
        * VPN-forbindelse tilvejebringes
        
-       * Én administrator-konto oprettes til den indledende opkobling til vores deployment-miljø (distribueret management)
+       * Én administratorkonto oprettes til den indledende opkobling til vores deploymentmiljø for distribueret management.
        
        * Deploymentserverens IP-adresse er ``178.23.177.238``, og dens værtsnavn er ``ctrl1.magenta.dk``.
      - Kunde
