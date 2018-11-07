@@ -60,7 +60,7 @@ Best practices for implementering
      - 
        * Databehandleraftale (obligatorisk)
        
-       * Fortrolighedsaftale (optionel)
+       * Fortrolighedsaftale, om nødvendigt.
      - Kunde
    * - 
      - 
