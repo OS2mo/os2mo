@@ -53,7 +53,7 @@ Best practices for implementering
        
        * Én administrator-konto oprettes til den indledende opkobling til vores deployment-miljø (distribueret management)
        
-       * Deployment-serverens IP-adressen: 178.23.177.238 (ctrl1.magenta.dk)
+       * Deploymentserverens IP-adresse er ``178.23.177.238``, og dens værtsnavn er ``ctrl1.magenta.dk``.
      - Kunde
    * - 3.
      - Indgåelse af aftaler
