@@ -1,7 +1,7 @@
 <template>
   <div class="card card-margin">
     <div class="card-body">
-      <h5>{{label}}</h5>
+      <h5>{{$t('common.work_log')}}</h5>
       <mo-worklog/>
     </div>
   </div>
