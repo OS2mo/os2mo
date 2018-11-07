@@ -61,6 +61,8 @@
     },
 
     mounted () {
+      const vm = this
+
       this.renderTree()
 
       this.$refs.tree.$on('node:expanded', node => {
@@ -69,19 +71,12 @@
 
       this.$refs.tree.$on('node:selected', (node) => {
         console.log('selected', node.text)
+
+        OrganisationUnit.get(node.id).then(unit => vm.$emit('input', unit))
       })
 
       this.$refs.tree.$on('tree:data:fetch', node => {
         console.log('fetching', node.text)
-      })
-
-      this.$refs.tree.$on('node:selected', node => {
-        if (node.id !== this.currentUnit.uuid) {
-          this.$router.push({
-            name: 'OrganisationDetail',
-            params: { uuid: node.id }
-          })
-        }
       })
     },
 
