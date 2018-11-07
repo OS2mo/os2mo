@@ -40,11 +40,6 @@ const BaseRouter = {
       path: '/forespoergsler',
       name: 'QueryList',
       component: QueryList
-    },
-    {
-      path: '*',
-      name: 'PageNotFound',
-      component: PageNotFound
     }
   ]
 }
@@ -55,9 +50,9 @@ const PageNotFoundRouter = {
   component: PageNotFound
 }
 
-BaseRouter.children.push(employeeRouter[0])
-BaseRouter.children.push(organisationRouter[0])
-BaseRouter.children.push(timeMachineRouter[0])
+BaseRouter.children.push(employeeRouter)
+BaseRouter.children.push(organisationRouter)
+BaseRouter.children.push(timeMachineRouter)
 // important page not found is last otherwise it overwrites all other routes
 BaseRouter.children.push(PageNotFoundRouter)
 
