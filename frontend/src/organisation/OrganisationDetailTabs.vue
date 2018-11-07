@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="orgUnitInfo.user_settings.orgunit">
     <b-tabs lazy>
       <b-tab :title="$t('tabs.organisation.unit')" active>
         <mo-table-detail
@@ -60,7 +60,7 @@
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.roles')">
+      <b-tab :title="$t('tabs.organisation.roles')" v-if="orgUnitInfo.user_settings.orgunit.show_roles">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -106,6 +106,7 @@
        * Defines a unique identifier which must be unique.
        */
       uuid: {type: String, required: true},
+      orgUnitInfo: Object,
 
       content: Object,
 
@@ -117,6 +118,8 @@
 
     data () {
       return {
+        // keep track of the latest tap shown
+        latestTab: [],
         /**
         * The org_unit, address, engagement, association, role, manager component value.
         * Used to detect changes and restore the value for columns.
@@ -173,6 +176,15 @@
         }
       }
     },
+    watch: {
+      /**
+       * update content when uuid changes.
+       * This part is needed for the timemachine, for some reason
+       */
+      uuid () {
+        this.loadContent(this.latestTab.detail, this.latestTab.validity)
+      }
+    },
 
     methods: {
       loadContent (contentType, event) {
@@ -181,6 +193,7 @@
           validity: event,
           uuid: this.uuid
         }
+        this.latestTab = payload
         this.$emit('show', payload)
       }
     }

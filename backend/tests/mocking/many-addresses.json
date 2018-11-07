@@ -1,0 +1,116 @@
+{
+  "https://dawa.aws.dk/adgangsadresser?id=00000000-0000-0000-0000-000000000000&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/adgangsadresser?id=0a3f507b-6b35-32b8-e044-0003ba298018&noformat=1&struktur=mini": [
+    {
+      "adresseringsvejnavn": "Hold-An Vej",
+      "husnr": "7",
+      "id": "0a3f507b-6b35-32b8-e044-0003ba298018",
+      "kommunekode": "0151",
+      "postnr": "2750",
+      "postnrnavn": "Ballerup",
+      "status": 1,
+      "supplerendebynavn": null,
+      "vejkode": "0152",
+      "vejnavn": "Hold-An Vej",
+      "x": 12.3647784,
+      "y": 55.73404048
+    }
+  ],
+  "https://dawa.aws.dk/adgangsadresser?id=0a3f5081-75bf-32b8-e044-0003ba298018&noformat=1&struktur=mini": [
+    {
+      "adresseringsvejnavn": "Brobjergvej",
+      "husnr": "9",
+      "id": "0a3f5081-75bf-32b8-e044-0003ba298018",
+      "kommunekode": "0350",
+      "postnr": "4060",
+      "postnrnavn": "Kirke S\u00e5by",
+      "status": 1,
+      "supplerendebynavn": "Abbetved",
+      "vejkode": "0086",
+      "vejnavn": "Brobjergvej",
+      "x": 11.91321841,
+      "y": 55.62985492
+    }
+  ],
+  "https://dawa.aws.dk/adgangsadresser?id=bd7e5317-4a9e-437b-8923-11156406b117&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/adresser?id=00000000-0000-0000-0000-000000000000&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/adresser?id=0a3f507b-6b35-32b8-e044-0003ba298018&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/adresser?id=0a3f5081-75bf-32b8-e044-0003ba298018&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/adresser?id=0ead9b4d-c615-442d-8447-b328a73b5b39&noformat=1&struktur=mini": [
+    {
+      "adgangsadresseid": "0a3f507a-da84-32b8-e044-0003ba298018",
+      "adresseringsvejnavn": "Pilestr\u00e6de",
+      "d\u00f8r": "th",
+      "etage": "3",
+      "husnr": "43",
+      "id": "0ead9b4d-c615-442d-8447-b328a73b5b39",
+      "kommunekode": "0101",
+      "postnr": "1112",
+      "postnrnavn": "K\u00f8benhavn K",
+      "status": 1,
+      "supplerendebynavn": null,
+      "vejkode": "5520",
+      "vejnavn": "Pilestr\u00e6de",
+      "x": 12.57924839,
+      "y": 55.68113676
+    }
+  ],
+  "https://dawa.aws.dk/adresser?id=2ef51a73-ad7d-4ee7-e044-0003ba298018&noformat=1&struktur=mini": [
+    {
+      "adgangsadresseid": "0a3f507b-6b35-32b8-e044-0003ba298018",
+      "adresseringsvejnavn": "Hold-An Vej",
+      "d\u00f8r": null,
+      "etage": "1",
+      "husnr": "7",
+      "id": "2ef51a73-ad7d-4ee7-e044-0003ba298018",
+      "kommunekode": "0151",
+      "postnr": "2750",
+      "postnrnavn": "Ballerup",
+      "status": 1,
+      "supplerendebynavn": null,
+      "vejkode": "0152",
+      "vejnavn": "Hold-An Vej",
+      "x": 12.3647784,
+      "y": 55.73404048
+    }
+  ],
+  "https://dawa.aws.dk/adresser?id=bd7e5317-4a9e-437b-8923-11156406b117&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/historik/adgangsadresser?id=00000000-0000-0000-0000-000000000000&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/historik/adresser?id=00000000-0000-0000-0000-000000000000&noformat=1&struktur=mini": [],
+  "https://dawa.aws.dk/historik/adresser?id=bd7e5317-4a9e-437b-8923-11156406b117&noformat=1&struktur=mini": [
+    {
+      "adgangsadresseid": "0a3f507b-6b35-32b8-e044-0003ba298018",
+      "adgangspunktstatus": 1,
+      "d\u00f8r": null,
+      "etage": null,
+      "husnr": "7",
+      "id": "bd7e5317-4a9e-437b-8923-11156406b117",
+      "kommunekode": "0151",
+      "postnr": "2750",
+      "postnrnavn": "Ballerup",
+      "status": 1,
+      "supplerendebynavn": null,
+      "vejkode": "0152",
+      "vejnavn": "Hold-An Vej",
+      "virkningslut": "2018-08-08T09:44:38.924Z",
+      "virkningstart": "2016-04-27T12:41:51.207Z"
+    },
+    {
+      "adgangsadresseid": "0a3f507b-6b35-32b8-e044-0003ba298018",
+      "adgangspunktstatus": 1,
+      "d\u00f8r": null,
+      "etage": null,
+      "husnr": "7",
+      "id": "bd7e5317-4a9e-437b-8923-11156406b117",
+      "kommunekode": "0151",
+      "postnr": "2750",
+      "postnrnavn": "Ballerup",
+      "status": 2,
+      "supplerendebynavn": null,
+      "vejkode": "0152",
+      "vejnavn": "Hold-An Vej",
+      "virkningslut": null,
+      "virkningstart": "2018-08-08T09:44:38.924Z"
+    }
+  ]
+}

@@ -51,6 +51,6 @@ test('Workflow: moveMany employee', async t => {
     .expect(VueSelector('MoLog MoWorklog')
             .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet redigeret/
+      /Medarbejderen med UUID [-0-9a-f]* er blevet flyttet/
     )
 })

@@ -8,6 +8,7 @@
 
 import copy
 import logging
+import re
 import unittest.mock
 
 import freezegun
@@ -1763,6 +1764,9 @@ class Writing(util.LoRATestCase):
                 },
                 'location': 'Overordnet Enhed',
                 'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
+                'user_settings': {'orgunit': {'show_user_key': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': unitid,
                 'validity': {
                     'from': '2016-02-04',
@@ -2792,8 +2796,61 @@ class Reading(util.LoRATestCase):
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
         addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
 
+        for t in ('adresser', 'adgangsadresser',
+                  'historik/adresser', 'historik/adgangsadresser'):
+            mock.get(
+                'https://dawa.aws.dk/' + t,
+                json=[],
+            )
+
+        lora.Connector().organisationenhed.update(
+            {
+                'relationer': {
+                    'adresser': [
+                        {
+                            'objekttype': address_class['uuid'],
+                            'uuid': addrid,
+                            'virkning': {
+                                'from': '2016-01-01',
+                                'to': '2020-01-01',
+                            },
+                        },
+                    ],
+                },
+            },
+            unitid,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'name': 'Ukendt',
+                'error': 'Ukendt',
+                'address_type': address_class,
+                'href': None,
+                'org_unit': {
+                    'name': 'Afdeling for Samtidshistorik',
+                    'user_key': 'frem',
+                    'uuid': unitid,
+                    'validity': {
+                        'from': '2016-01-01', 'to': '2018-12-31',
+                    },
+                },
+                'uuid': addrid,
+                'validity': {
+                    'from': '2016-01-01', 'to': '2019-12-31',
+                },
+            }],
+        )
+
+    def test_missing_error(self, mock):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
+
         mock.get(
-            'https://dawa.aws.dk/adresser/{}?noformat=1'.format(addrid),
+            'https://dawa.aws.dk/adresser',
             json={
                 "type": "ResourceNotFoundError",
                 "title": "The resource was not found",
@@ -2801,7 +2858,7 @@ class Reading(util.LoRATestCase):
                     "id": "bd7e5317-4a9e-437b-8923-11156406b117",
                 },
             },
-            status_code=404,
+            status_code=500,
         )
 
         lora.Connector().organisationenhed.update(
@@ -2878,14 +2935,16 @@ class Reading(util.LoRATestCase):
             unitid,
         )
 
+        mock_error_msg = ('No mock address: GET '
+                          'https://dawa.aws.dk/adresser?id={}'
+                          '&noformat=1&struktur=mini').format(addrid)
+
         with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
             self.assertRequestResponse(
                 '/service/ou/{}/details/address'.format(unitid),
                 [{
                     'name': 'Fejl',
-                    'error': 'No mock address: GET '
-                    'https://dawa.aws.dk/adresser/{}?noformat=1'
-                    .format(addrid),
+                    'error': mock_error_msg,
                     'address_type': address_class,
                     'href': None,
                     'org_unit': {
@@ -2904,5 +2963,5 @@ class Reading(util.LoRATestCase):
             )
 
             self.assertRegex(log_res.output[0],
-                             "AN ERROR OCCURRED in '[^']*': "
-                             "failed to get address")
+                             "ADDRESS LOOKUP FAILED in '[^']*':\n" +
+                             re.escape(mock_error_msg))

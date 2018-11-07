@@ -23,7 +23,8 @@
 
       <organisation-detail-tabs 
         :uuid="orgUnit.uuid"
-        @show="loadContent($event)" 
+        :org-unit-info="orgUnitInfo"
+        @show="loadContent($event)"
         :content="$store.getters[storeId + '/GET_DETAILS']"
         timemachine-friendly
       />
@@ -50,7 +51,7 @@
       OrganisationDetailTabs
     },
     props: {
-      storeId: String
+      storeId: {type: String, required: true}
     },
 
     data () {
@@ -64,6 +65,11 @@
         orgUnit: null
       }
     },
+    computed: {
+      orgUnitInfo () {
+        return this.$store.getters[this.storeId + '/GET_ORG_UNIT']
+      }
+    },
 
     watch: {
       /**
@@ -71,10 +77,16 @@
        */
       org () {
         this.orgUnit = null
+      },
+      orgUnit (val) {
+        this.$store.dispatch(this.storeId + '/SET_ORG_UNIT', val.uuid)
       }
     },
     created () {
-      this.$store.registerModule(this.storeId, orgUnit)
+      // avoid reregistering the module if it already exists
+      if (!this.$store._modules.root._children[this.storeId]) {
+        this.$store.registerModule(this.storeId, orgUnit)
+      }
     },
     destroyed () {
       this.$store.unregisterModule(this.storeId)

@@ -8,10 +8,6 @@ A employee terminate component.
 
 **initial value:** `false` 
 
-- `backendValidationError` 
-
-**initial value:** `null` 
-
 ## computed properties 
 
 - `formValid` 
