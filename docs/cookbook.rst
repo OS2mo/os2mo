@@ -44,7 +44,7 @@ Best practices for implementering
        
        * Tillade udgående trafik på portene 80, 443, 4505 og 4506
        
-       * Send jeres netværks IP-adresse (for at åbne vores firewall)
+       * Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
      - Kunde
    * - 2.
      - Adgange til servermiljø
