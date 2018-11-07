@@ -58,7 +58,7 @@ Best practices for implementering
    * - 3.
      - Indgåelse af aftaler
      - 
-       * Databehandleraftale (obligatorisk)
+       * Databehandleraftale; *påkrævet*.
        
        * Fortrolighedsaftale, om nødvendigt.
      - Kunde
