@@ -42,7 +42,7 @@ Best practices for implementering
        
        * Ubuntu 16.04
        
-       * Tillade UDgående trafik på porte 80, 443, 4505 og 4506
+       * Tillade udgående trafik på portene 80, 443, 4505 og 4506
        
        * Send jeres netværks IP-adresse (for at åbne vores firewall)
      - Kunde
