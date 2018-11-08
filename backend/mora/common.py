@@ -384,7 +384,7 @@ def create_organisationsenhed_payload(
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': enhedsnavn,
-                    'brugervendtnoegle': brugervendtnoegle,
+                    'brugervendtnoegle': brugervendtnoegle
                 },
             ],
         },
@@ -448,7 +448,7 @@ def create_bruger_payload(
             'brugeregenskaber': [
                 {
                     'brugernavn': brugernavn,
-                    'brugervendtnoegle': brugervendtnoegle,
+                    'brugervendtnoegle': brugervendtnoegle
                 },
             ],
         },
