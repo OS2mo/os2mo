@@ -20,12 +20,12 @@ try:
     patchfile = os.path.join(topdir, 'setup', "db_structure.py")
     if not open(orgfile).read() == open(patchfile).read():
         open(orgfile,"w").write(open(patchfile).read())
-
-    # then monkeypatching necessary for first time running tests (jenkins)
-    sys.path.insert(0,os.path.join(topdir, 'setup',))
-    import db_structure as new_db_structure
-    oio_common.db_structure = new_db_structure
-    sys.path.pop(0)
+        # monkeypatching necessary for 
+        # first time running tests (jenkins)
+        sys.path.insert(0,os.path.join(topdir, 'setup',))
+        import db_structure as new_db_structure
+        oio_common.db_structure = new_db_structure
+        sys.path.pop(0)
 except:
     pass
 
