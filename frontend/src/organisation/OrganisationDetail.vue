@@ -8,10 +8,10 @@
       <div class="row">
           <div class="col" v-if="orgUnit.user_settings.orgunit">
             <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
-	      Placering: {{orgUnit.location}}
+	      {{$t('common.placement')}}: {{orgUnit.location}}
 	    </p>
           <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">
-	    Enhedsnr.:: {{orgUnit.user_key}}
+	    {{$t('common.unit_number')}}: {{orgUnit.user_key}}
 	  </p>
         </div>
 

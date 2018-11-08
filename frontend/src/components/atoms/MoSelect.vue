@@ -40,7 +40,7 @@
 
     props: {
       /**
-       * Create two-way data bindings with the component.
+       * @model
        */
       value: Object,
 

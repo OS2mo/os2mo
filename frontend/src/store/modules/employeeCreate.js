@@ -13,7 +13,7 @@ const state = {
 }
 
 const actions = {
-  CREATE_EMPLOYEE ({commit, state}) {
+  CREATE_EMPLOYEE ({ commit, state }) {
     let create = [].concat(state.engagement, state.address, state.association, state.role, state.itSystem, state.manager)
 
     create.forEach(e => {
@@ -54,6 +54,14 @@ const actions = {
 
 const mutations = {
   updateField,
+
+  updateError (state, error) {
+    state.backendValidationError = error
+  },
+
+  updateIsLoading (state, isLoading) {
+    state.isLoading = isLoading
+  },
 
   resetFields (state) {
     state.employee = {}
