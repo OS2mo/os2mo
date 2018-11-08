@@ -50,9 +50,9 @@ const actions = {
 
 const mutations = {
   SET_ORG_UNIT (state, payload) {
+    state.uuid = payload.uuid
     state.name = payload.name
     state.user_key = payload.user_key
-    state.uuid = payload.uuid
     state.org = payload.org
     state.org_uuid = payload.org.uuid
     state.location = payload.location
@@ -66,9 +66,9 @@ const mutations = {
   },
 
   RESET_ORG_UNIT (state) {
+    state.uuid = undefined
     state.name = undefined
     state.user_key = undefined
-    state.uuid = undefined
     state.org = undefined
     state.org_uuid = undefined
     state.parent_uuid = undefined
