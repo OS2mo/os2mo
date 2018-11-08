@@ -19,6 +19,7 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import uuid
+import enum
 
 import flask
 
@@ -35,6 +36,18 @@ blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+@enum.unique
+class EmployeeDetails(enum.Enum):
+    # name & userkey only
+    MINIMAL = 0
+
+    # with everything except child count
+    FULL = 1
+
+    # minimal and integrationdata
+    INTEGRATION = 2
+
+
 class EmployeeRequestHandler(handlers.RequestHandler):
     __slots__ = ('details_requests',)
     role_type = "employee"
@@ -42,6 +55,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
         name = util.checked_get(req, mapping.NAME, "", required=True)
+        integrationdata = util.checked_get(
+            req,
+            mapping.INTEGRATIONDATA,
+            "",
+            required=False
+        )
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False)
@@ -79,6 +98,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
+            integrationdata=integrationdata,
         )
 
         details = util.checked_get(req, 'details', [])
@@ -131,9 +151,14 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data:
+        if mapping.NAME in data or mapping.INTEGRATIONDATA in data:
             attrs = mapping.EMPLOYEE_EGENSKABER_FIELD.get(original)[-1].copy()
-            attrs['brugernavn'] = data[mapping.NAME]
+
+            if mapping.NAME in data:
+                attrs['brugernavn'] = data[mapping.NAME]
+
+            if mapping.INTEGRATIONDATA in data:
+                attrs['integrationsdata'] = data[mapping.INTEGRATIONDATA]
 
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
@@ -174,7 +199,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return result
 
 
-def get_one_employee(c, userid, user=None, full=False):
+def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     if not user:
         user = c.bruger.get(userid)
 
@@ -188,7 +213,7 @@ def get_one_employee(c, userid, user=None, full=False):
         mapping.UUID: userid,
     }
 
-    if full:
+    if details is EmployeeDetails.FULL:
         rels = user['relationer']
         orgid = rels['tilhoerer'][0]['uuid']
 
@@ -199,7 +224,10 @@ def get_one_employee(c, userid, user=None, full=False):
 
         r[mapping.ORG] = org.get_one_organisation(c, orgid)
         r[mapping.USER_KEY] = props['brugervendtnoegle']
-
+    elif details is EmployeeDetails.MINIMAL:
+        pass  # already done
+    elif details is EmployeeDetails.INTEGRATION:
+        r["integrationdata"] = props.get("integrationsdata", "")
     return r
 
 
@@ -277,7 +305,7 @@ def list_employees(orgid):
 
 
 @blueprint.route('/e/<uuid:id>/')
-@util.restrictargs('at')
+@util.restrictargs('at', 'employeedetails')
 def get_employee(id):
     '''Retrieve an employee.
 
@@ -317,7 +345,18 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    r = get_one_employee(c, id, full=True)
+    details = flask.request.args.get("employeedetails", EmployeeDetails.FULL)
+
+    if isinstance(details, str):
+        enum_details = getattr(EmployeeDetails, details, False)
+        if not enum_details:
+            raise exceptions.HTTPException(
+                exceptions.ErrorCodes.E_DETAILS_SPEC_NOT_FOUND,
+                detail_spec=details,
+            )
+        details = enum_details
+
+    r = get_one_employee(c, id, user=None, details=details)
 
     if r:
         return flask.jsonify(r)

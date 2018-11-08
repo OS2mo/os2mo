@@ -679,3 +679,112 @@ class Tests(util.LoRATestCase):
             expected_tilknyttedepersoner,
             actual['relationer']['tilknyttedepersoner']
         )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_get_integrationdata(self):
+        self.load_sample_structures()
+        employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersine.json',
+                          employee_uuid)
+
+        self.assertRequestResponse(
+            '/service/e/{}/?employeedetails=INTEGRATION'.format(employee_uuid),
+            {
+                'integrationdata': '{"von-and-løn-id": "2468"}',
+                'name': 'Andersine And',
+                'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+            }
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_illegal_detail_spec(self):
+        self.load_sample_structures()
+        employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersine.json',
+                          employee_uuid)
+
+        self.assertRequestResponse(
+            '/service/e/{}/?employeedetails=HASSELHOFF'.format(employee_uuid),
+
+            {
+                'description': 'Details specification not found',
+                'detail_spec': 'HASSELHOFF',
+                'error': True,
+                'error_key': 'E_DETAILS_SPEC_NOT_FOUND',
+                'status': 404
+            },
+            status_code=404
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_edit_integrationdata(self):
+        self.load_sample_structures()
+        employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersine.json',
+                          employee_uuid)
+
+        req = {
+            "type": "employee",
+            "data": {
+                "uuid": employee_uuid,
+                "integrationdata": '{"von-and-løn-id": "2468", '
+                    '"bjørnebanden-hjælper-id": "sorte-slyngel"}',
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": "2016-01-02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            employee_uuid,
+            json=req,
+        )
+
+        expected_brugeregenskaber = [{
+            'brugernavn': 'Andersine And',
+            'brugervendtnoegle': 'andersineand',
+            'integrationsdata': '{"von-and-løn-id": "2468"}',
+            'virkning': {
+                'from': '1937-01-09 00:00:00+01',
+                'from_included': True,
+                'to': '2016-01-01 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'brugernavn': 'Andersine And',
+            'brugervendtnoegle': 'andersineand',
+            'integrationsdata': '{"von-and-løn-id": "2468"}',
+            'virkning': {
+                'from': '2016-01-03 00:00:00+01',
+                'from_included': True,
+                'to': '2020-01-01 00:00:00+01',
+                'to_included': False}
+        }, {
+            'brugernavn': 'Andersine And',
+            'brugervendtnoegle': 'andersineand',
+            'integrationsdata': '{"von-and-løn-id": "2468", '
+                                '"bjørnebanden-hjælper-id": "sorte-slyngel"}',
+            'virkning': {
+                'from': '2016-01-01 00:00:00+01',
+                'from_included': True,
+                'to': '2016-01-03 00:00:00+01',
+                'to_included': False
+            }
+        }]
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.bruger.get(employee_uuid)
+
+        self.assertEqual(
+            len(expected_brugeregenskaber),
+            len(actual['attributter']['brugeregenskaber'])
+        )
+        [
+            self.assertIn(x, expected_brugeregenskaber)
+            for x in actual['attributter']['brugeregenskaber']
+        ]
