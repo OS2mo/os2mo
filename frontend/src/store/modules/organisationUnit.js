@@ -60,7 +60,7 @@ const mutations = {
     state.parent_uuid = payload.parent.uuid
     state.parents = []
 
-    for (let current = payload; current; current = current.parent) {
+    for (let current = payload.parent; current; current = current.parent) {
       state.parents.push(current.uuid)
     }
   },

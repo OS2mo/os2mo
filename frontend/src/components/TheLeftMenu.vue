@@ -7,7 +7,7 @@
       </h4>
 
       <div id="tree-wrapper">
-        <mo-tree-view v-model="selected" :org-uuid="orgUuid"/>
+        <mo-tree-view v-model="selected" :unit-uuid="currentUnit.uuid"/>
       </div>
     </div>
   </div>
@@ -35,7 +35,7 @@
        * Get organisation uuid.
        */
       ...mapGetters({
-        orgUuid: 'organisation/getUuid'
+        currentUnit: 'organisationUnit/GET_ORG_UNIT'
       })
     },
     watch: {

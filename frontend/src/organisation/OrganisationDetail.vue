@@ -34,6 +34,7 @@
    * A organisation detail component.
    */
 
+  import { mapGetters } from 'vuex'
   import { EventBus } from '@/EventBus'
   import MoHistory from '@/components/MoHistory'
   import OrganisationDetailTabs from './OrganisationDetailTabs'
@@ -49,9 +50,12 @@
       }
     },
     computed: {
-      orgUnit () {
-        return this.$store.getters['organisationUnit/GET_ORG_UNIT']
-      }
+      /**
+       * Get organisation uuid.
+       */
+      ...mapGetters({
+        orgUnit: 'organisationUnit/GET_ORG_UNIT'
+      })
     },
     created () {
       this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
