@@ -21,31 +21,31 @@
 
           <info-box 
             icon="user-tag" 
-            label="Engagementer" 
+            :label="$tc('shared.engagement', 2)" 
             :info="info.engagement_count"
           />
 
           <info-box 
             icon="user-plus" 
-            label="Tilknytninger" 
+            :label="$tc('shared.association', 2)" 
             :info="info.association_count"
           />
 
           <info-box 
             icon="user-lock" 
-            label="På orlov" 
+            :label="$t('shared.leave')" 
             :info="info.leave_count"
           />
 
           <info-box 
             icon="user-tie" 
-            label="Lederfunktioner" 
+            :label="$tc('shared.manager_function', 2)" 
             :info="info.manager_count"
           />
 
           <info-box 
             icon="user-cog" 
-            label="Roller" 
+            :label="$tc('shared.role', 2)" 
             :info="info.role_count"
           />
         </div>

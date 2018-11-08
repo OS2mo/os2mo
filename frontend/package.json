@@ -1,6 +1,6 @@
 {
   "name": "mora",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "OS2 Mennesker + Organisation 2.0",
   "author": "Magenta ApS <info@magenta.dk>",
   "private": true,
@@ -8,7 +8,7 @@
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "testcafe": "testcafe",
-    "test": "npm run unit && npm run e2e",
+    "e2e": "testcafe chrome e2e-tests",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
     "build": "node build/build.js",
     "vuedoc": "node node_modules/@vuedoc/md/bin/cli.js"
