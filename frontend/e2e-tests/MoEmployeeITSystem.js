@@ -1,6 +1,3 @@
-let moment = require('moment')
-
-import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
 import { baseURL } from './support'
 
