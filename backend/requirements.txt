@@ -11,4 +11,4 @@ python-dateutil>=2.7.0
 setuptools>=40.0.0
 Flask-Session~=0.3.1
 -e git+https://github.com/magenta-aps/service_person_stamdata_udvidet@master#egg=service_person_stamdata_udvidet
--e git+https://github.com/magenta-aps/flask_saml_sso@development#egg=flask_saml_sso
+-e git+https://github.com/magenta-aps/flask_saml_sso@master#egg=flask_saml_sso
