@@ -2,8 +2,8 @@
   <div id="login-wrapper">
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
       <div class="col text-center">
-        <h1>Velkommen til MO</h1>
-        <h4>Medarbejder | Organisation</h4>
+        <h1>{{$t('common.welcome_message')}}</h1>
+        <h4>{{$t('common.welcome_tagline')}}</h4>
       </div>
     </nav>
 
@@ -12,7 +12,7 @@
         <b-form-input
           name="username"
           type="text"
-          placeholder="Brugernavn"
+          :placeholder="$t('common.username')"
           v-model="user.username"
         />
       </div>
@@ -21,14 +21,14 @@
         <b-form-input
           name="password"
           type="password"
-          placeholder="Adgangskode"
+          :placeholder="$t('common.password')"
           v-model="user.password"
         />
       </div>
 
       <div class="form-group col">
         <b-form-checkbox id="checkbox1" value="accepted">
-          Husk mig
+          {{$t('common.remember_me')}}
         </b-form-checkbox>
       </div>
 
@@ -36,8 +36,8 @@
         {{$t('alerts.error.' + status)}}
       </div>
 
-      <button type="submit" aria-label="Log ind" class="btn btn-primary col">
-        Log ind
+      <button type="submit" :aria-label="$t('common.sign_in')" class="btn btn-primary col">
+        {{$t('common.sign_in')}}
       </button>
     </form>
   </div>
