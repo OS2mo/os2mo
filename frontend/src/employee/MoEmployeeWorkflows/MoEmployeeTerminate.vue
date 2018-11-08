@@ -56,15 +56,11 @@
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
   import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm],
 
     components: {
       MoEmployeePicker,
@@ -72,13 +68,7 @@
       ButtonSubmit,
       EmployeeDetailTabs
     },
-
-    data () {
-      return {
-        isLoading: false
-      }
-    },
-
+  
     computed: {
       /**
        * Get mapFields from vuex store.
@@ -86,6 +76,7 @@
       ...mapFields('employeeTerminate', [
         'employee',
         'endDate',
+        'isLoading',
         'backendValidationError'
       ]),
 
@@ -94,16 +85,7 @@
        */
       ...mapGetters({
         details: 'employeeTerminate/getDetails'
-      }),
-
-      /**
-       * Check validity of form. this.fields is a magic property created by vee-validate
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
+      })
     },
 
     methods: {
@@ -116,17 +98,11 @@
        * Then throw a error if not.
        */
       terminateEmployee () {
+        let vm = this
         if (this.formValid) {
-          let vm = this
-          vm.isLoading = true
-          this.$store.dispatch('employeeTerminate/TERMINATE_EMPLOYEE')
-            .then(response => {
-              vm.isLoading = false
-              if (response.error) {
-                vm.backendValidationError = response.error_key
-              } else {
-                vm.$refs.employeeTerminate.hide()
-              }
+          this.$store.dispatch(`employeeTerminate/terminateEmployee`)
+            .then(() => {
+              vm.$refs.employeeTerminate.hide()
             })
         } else {
           this.$validator.validateAll()

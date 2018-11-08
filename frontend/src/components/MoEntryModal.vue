@@ -39,14 +39,10 @@
   import Employee from '@/api/Employee'
   import OrganisationUnit from '@/api/OrganisationUnit'
   import ButtonSubmit from './ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm],
 
     components: {
       ButtonSubmit
@@ -124,15 +120,6 @@
        */
       idLabel () {
         return 'moCreate' + this._uid
-      },
-
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
       },
 
       /**

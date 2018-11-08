@@ -60,16 +60,11 @@
   import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
   import MoAddMany from '@/components/MoAddMany/MoAddMany'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import ValidateForm from '@/mixins/ValidateForm'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
-
     name: 'OrganisationUnitCreate',
+    mixins: [ValidateForm],
 
     components: {
       ButtonSubmit,
@@ -98,17 +93,6 @@
          * Used to add MoAddressEntry component in `<mo-add-many/>`.
          */
         addressEntry: MoAddressEntry
-      }
-    },
-
-    computed: {
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
       }
     },
 

@@ -81,14 +81,10 @@
   import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
   import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import ValidateForm from '@/mixins/ValidateForm'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm],
 
     components: {
       ButtonSubmit,
@@ -138,16 +134,7 @@
         'itSystem',
         'manager',
         'backendValidationError'
-      ]),
-
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
+      ])
     },
 
     methods: {
