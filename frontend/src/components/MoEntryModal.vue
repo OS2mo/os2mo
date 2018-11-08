@@ -160,9 +160,9 @@
       modalTitle () {
         switch (this.action) {
           case 'CREATE':
-            return 'Opret'
+            return this.$t('common.create')
           case 'EDIT':
-            return 'Rediger'
+            return this.$t('common.edit')
         }
       },
 

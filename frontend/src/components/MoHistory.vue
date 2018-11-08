@@ -7,7 +7,7 @@
     <b-modal 
       id="theHistory" 
       size="lg" 
-      title="Historik"
+      :title="$t('common.history')"
       @change="reloadHistory"
       hide-footer 
       lazy
@@ -15,10 +15,10 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th scope="col">Dato</th>
-            <th scope="col">Sektion</th>
-            <th scope="col">Handling</th>
-            <th scope="col">Udført af</th>
+            <th scope="col">{{$t('common.date')}}</th>
+            <th scope="col">{{$t('common.section')}}</th>
+            <th scope="col">{{$t('common.action')}}</th>
+            <th scope="col">{{$t('common.action_by')}}</th>
           </tr>
         </thead>
 

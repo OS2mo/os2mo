@@ -56,7 +56,7 @@
          * The noItem component value.
          * Used to give a default name.
          */
-        noItem: [{name: 'Ingen resultater matcher din søgning'}]
+        noItem: [{name: this.$t('alerts.no_search_results')}]
       }
     },
 

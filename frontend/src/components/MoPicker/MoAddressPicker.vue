@@ -2,12 +2,9 @@
   <span>
     <mo-loader v-show="isLoading"/>
 
-    <div 
-      class="col no-address" 
-      v-show="!isLoading && noAddresses && orgUnit"
-    >
-      Ingen adresser er tilknyttet til enheden
-    </div>
+    <p class="col no-address" v-show="!isLoading && noAddresses && orgUnit">
+      {{$t('input_fields.no_addresses_associated_to_org_unit')}}
+    </p>
 
     <div class="form-group" v-show="!isLoading && !noAddresses">
       <label :for="nameId">{{label}}</label>

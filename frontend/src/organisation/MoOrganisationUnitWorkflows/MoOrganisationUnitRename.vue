@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
         <mo-organisation-unit-picker
-          label="Enhed" 
+          :label="$t('input_fields.select_unit')" 
           class="col"
           v-model="original"
           required

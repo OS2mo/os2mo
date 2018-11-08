@@ -12,7 +12,7 @@
       :id="nameId"
       size="lg"
       hide-footer 
-      title="Opret"
+      :title="$t('common.create')"
       :ref="nameId"
       lazy
     >

@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
         <mo-organisation-unit-picker 
-          :label="$tc('input_fields.unit', 1)" 
+          :label="$t('input_fields.select_unit')"
           class="col" 
           v-model="org_unit"
           required
@@ -28,7 +28,7 @@
       </div>
 
       <div class="mb-3" v-if="org_unit">
-        <p>Følgende vil blive afsluttet for enheden:</p>
+        <p>{{$t('workflows.organisation.messages.following_will_be_terminated')}}</p>
         <mo-organisation-detail-tabs 
           :uuid="org_unit.uuid" 
           timemachine-friendly

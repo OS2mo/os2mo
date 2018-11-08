@@ -18,5 +18,6 @@
   "past": "Fortid",
   "present": "Nutid",
   "future": "Fremtid",
-  "query": "Forespørgsel | Forespørgsler"
+  "query": "Forespørgsel | Forespørgsler",
+  "manager_responsibility": "Lederansvar"
 }

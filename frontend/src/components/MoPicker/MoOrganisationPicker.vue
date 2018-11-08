@@ -6,7 +6,7 @@
       v-model="selectedOrganisation"
       @change="resetToBaseRoute"
     >
-      <option disabled>Vælg organisation</option>
+      <option disabled>{{$t('input_fields.choose_organisation')}}</option>
       <option 
         v-for="org in orderedListOptions" 
         :key="org.uuid"
@@ -39,7 +39,7 @@
 
     props: {
       /**
-       * Create two-way data bindings with the component.
+       * @model
        */
       value: Object,
 

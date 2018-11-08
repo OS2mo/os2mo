@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-body d-flex flex-column">
       <div class="input-group justify-content-md-center">
-      <h3>Søg på medarbejderens navn eller CPR-nummer</h3>
+      <h3>{{$t('input_fiends.search_for_name_or_cpr')}}</h3>
       </div>
 
       <div class="input-group input-group-lg justify-content-md-center">

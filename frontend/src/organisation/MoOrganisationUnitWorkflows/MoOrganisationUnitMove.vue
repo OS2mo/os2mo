@@ -14,7 +14,7 @@
         <div class="col">
           <mo-organisation-unit-picker
             v-model="original" 
-            :label="$t('input_fields.choose_unit')"
+            :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"
             required
           />

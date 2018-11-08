@@ -6,7 +6,7 @@
       <tbody>
       <tr>
         <td>
-          <span>Intet at vise</span>
+          <span>{{$t('common.nothing_to_show')}}</span>
         </td>
       </tr>
       </tbody>

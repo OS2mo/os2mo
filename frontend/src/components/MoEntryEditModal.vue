@@ -11,7 +11,7 @@
       :id="nameId"
       size="lg"
       hide-footer 
-      title="Rediger"
+      :title="$t('common.edit')"
       :ref="nameId"
       lazy
     >
@@ -249,8 +249,7 @@
             messages.alerts.error[response.error_key]
 
           if (!this.backendValidationMessage) {
-            this.backendValidationMessage = this.$t('alerts.fallback',
-                                                    response)
+            this.backendValidationMessage = this.$t('alerts.fallback', response)
           }
         } else {
           this.$refs[this.nameId].hide()
