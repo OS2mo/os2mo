@@ -385,7 +385,6 @@ def create_organisationsenhed_payload(
                 {
                     'enhedsnavn': enhedsnavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': integrationdata,
                 },
             ],
         },
@@ -418,6 +417,15 @@ def create_organisationsenhed_payload(
     if adresser:
         org_unit['relationer']['adresser'] = adresser
 
+    if integrationdata:
+        org_unit[
+            'attributter'
+        ][
+            'organisationenhedegenskaber'
+        ][0][
+            'integrationsdata'
+        ] = integrationdata
+
     org_unit = _set_virkning(org_unit, virkning)
 
     return org_unit
@@ -429,7 +437,8 @@ def create_bruger_payload(
     brugernavn: str,
     brugervendtnoegle: str,
     tilhoerer: str,
-    cpr: str
+    cpr: str,
+    integrationdata: str,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -439,7 +448,7 @@ def create_bruger_payload(
             'brugeregenskaber': [
                 {
                     'brugernavn': brugernavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
                 },
             ],
         },
@@ -465,6 +474,15 @@ def create_bruger_payload(
                 'urn': 'urn:dk:cpr:person:{}'.format(cpr),
             },
         ]
+
+    if integrationdata:
+        user[
+            'attributter'
+        ][
+            'brugeregenskaber'
+        ][0][
+            'integrationsdata'
+        ] = integrationdata
 
     user = _set_virkning(user, virkning)
 
