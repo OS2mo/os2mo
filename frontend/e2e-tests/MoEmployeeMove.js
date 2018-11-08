@@ -41,7 +41,7 @@ test('Workflow: move employee', async t => {
     .click(engagementOption.withText('Ansat, Ballerup Kommune'))
 
     .click(unitInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

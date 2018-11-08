@@ -27,11 +27,11 @@ test('Workflow: move unit', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(unitInput)
-    .click(dialog.find('li .item .link-color')
+    .click(dialog.find('li.tree-node span.tree-anchor span')
            .withText('Ballerup Familiehus'))
 
     .click(parentInput)
-    .click(dialog.find('.parentUnit li .item .link-color')
+    .click(dialog.find('.parentUnit li.tree-node span.tree-anchor span')
            .withText('Ballerup Bibliotek'))
 
     .click(fromInput)

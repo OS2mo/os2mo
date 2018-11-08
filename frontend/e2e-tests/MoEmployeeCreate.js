@@ -78,8 +78,6 @@ test('Workflow: create employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
-
     .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
     .click('.btn-employee-create')
 
@@ -93,7 +91,7 @@ test('Workflow: create employee', async t => {
 
     // Engagement
     .click(parentEngagementInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(jobFunctionEngagementSelect)
     .click(jobFunctionEngagementOption.withText('Afdelingssygeplejerske'))
@@ -124,7 +122,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-association .btn-outline-success'))
 
     .click(parentAssociationInput)
-    .doubleClick(dialog.find('.unit-association li .item'))
+    .doubleClick(dialog.find('.unit-association li.tree-node span.tree-anchor span'))
 
     .click(addressAssociationSelect)
     .pressKey('down enter')
@@ -139,7 +137,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-role .btn-outline-success'))
 
     .click(parentRoleInput)
-    .doubleClick(dialog.find('.unit-role li .item'))
+    .doubleClick(dialog.find('.unit-role li.tree-node span.tree-anchor span'))
 
     .click(roleTypeSelect)
     .click(roleTypeOption.withText('Tillidsmand'))
@@ -156,7 +154,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-manager .btn-outline-success'))
 
     .click(parentManagerInput)
-    .click(dialog.find('.unit-manager .link-color'))
+    .click(dialog.find('.unit-manager .tree-anchor'))
 
     .click(addressManagerTypeSelect)
     .click(addressManagerTypeOption.withText('Fysisk adresse'))

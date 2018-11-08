@@ -24,7 +24,7 @@ test('Workflow: terminate employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(parentInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
