@@ -3,7 +3,7 @@ Version 0.12.0 (in development)
 
 New features
 ------------
-
+* #24797 Integrationdata added to employee and org.unit
 
 Internal changes
 ----------------

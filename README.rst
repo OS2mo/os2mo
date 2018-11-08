@@ -53,6 +53,15 @@ En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
 
+MO betjener sig af tilretninger af datamodellen i LoRa. Før Lora kan anvendes sammen 
+med MO skal disse tilretninger afspejles i databasen. 
+
+MO-tilretninger af datamodellen i LoRa
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For at får datamodellen i LoRa til at afspejle datamodellen i MO skal man, 
+inden systemet tages i brug, kopiere MO's: *os2mo/setup/db_structure.py* til 
+Loras: *oio_rest/oio_common/db_structure.py* og afvikle recreatedb.sh
+
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 MOs middleend fungerer som en bro mellem frontenden og backenden, og den har
@@ -221,6 +230,10 @@ test case, så testene effektivt set køres isoleret. For at anvende denne test
 feature kræver det følgende afhængigheder::
 
   $ sudo apt install libxmlsec1-dev libxmlsec1-openssl postgresql-contrib
+
+For at få datamodellen i Loras testinstans til at afspejle datamodellen i MO skal man, 
+inden test kopiere MO's: *os2mo/setup/db_structure.py* oveni oio_rests: *oio_common/db_structure.py*
+i det aktuelle python-environment
 
 Testsuiten kan køres med kommandoen::
 
