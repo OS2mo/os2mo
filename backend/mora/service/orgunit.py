@@ -110,7 +110,12 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
-        integrationdata = util.checked_get(req, mapping.INTEGRATIONDATA, "", required=False)
+        integrationdata = util.checked_get(
+            req,
+            mapping.INTEGRATIONDATA,
+            "",
+            required=False
+        )
 
         unitid = util.get_uuid(req, required=False)
         bvn = util.checked_get(req, mapping.USER_KEY,
@@ -340,7 +345,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     elif details is UnitDetails.INTEGRATION:
-        r["integrationdata"] = attrs.get("integrationsdata","")
+        r["integrationdata"] = attrs.get("integrationsdata", "")
     else:
         assert False, 'enum is {}!?'.format(details)
 
