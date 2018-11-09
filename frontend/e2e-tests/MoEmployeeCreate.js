@@ -91,7 +91,7 @@ test('Workflow: create employee', async t => {
 
     // Engagement
     .click(parentEngagementInput)
-    .click(dialog.find('li.tree-node span.tree-anchor span'))
+    .click(dialog.find('span.tree-anchor'))
 
     .click(jobFunctionEngagementSelect)
     .click(jobFunctionEngagementOption.withText('Afdelingssygeplejerske'))
@@ -122,7 +122,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-association .btn-outline-success'))
 
     .click(parentAssociationInput)
-    .doubleClick(dialog.find('.unit-association li.tree-node span.tree-anchor span'))
+    .click(dialog.find('.unit-association span.tree-anchor'))
 
     .click(addressAssociationSelect)
     .pressKey('down enter')
@@ -137,7 +137,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-role .btn-outline-success'))
 
     .click(parentRoleInput)
-    .doubleClick(dialog.find('.unit-role li.tree-node span.tree-anchor span'))
+    .click(dialog.find('.unit-role span.tree-anchor'))
 
     .click(roleTypeSelect)
     .click(roleTypeOption.withText('Tillidsmand'))
@@ -190,4 +190,64 @@ test('Workflow: create employee', async t => {
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )
+})
+
+
+test('Workflow: create employee with role only', async t => {
+  let today = moment()
+
+  await t
+    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .click('.btn-employee-create')
+
+    .expect(dialog.exists).ok('Opened dialog')
+
+    // CPR Number
+    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920009')
+    .click(dialog.find('.btn-outline-primary'))
+    .click(checkbox)
+    .expect(checkbox.checked).ok()
+
+    // Engagement
+    .click(parentEngagementInput)
+    .click(dialog.find('span.tree-anchor'))
+
+    .click(jobFunctionEngagementSelect)
+    .click(jobFunctionEngagementOption.withText('Afdelingssygeplejerske'))
+
+    .click(engagementTypeSelect)
+    .click(engagementTypeOption.withText('Frivillig'))
+
+    .click(fromInput)
+    .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
+           .withText(today.date().toString()))
+    .click(dialog.find('.vdp-datepicker .day:not(.blank)')
+           .withText(today.date().toString()))
+    .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    // Role
+    .click(dialog.find('.btn-role .btn-outline-success'))
+
+    .click(parentRoleInput)
+    .click(dialog.find('.unit-role span.tree-anchor'))
+
+    .click(roleTypeSelect)
+    .click(roleTypeOption.withText('Tillidsmand'))
+
+    // Submit button
+    .click(dialog.find('.btn-primary'))
+
+    .expect(dialog.exists).notOk()
+
+    .expect(VueSelector('MoLog MoWorklog')
+            .find('.alert').nth(-1).innerText)
+    .match(
+      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+    )
+    .expect(Selector('.card-title').textContent)
+    .match(/Oliver Jensen \(200392-0009\)/)
+    .click(VueSelector('bTabButtonHelper').withText('Roller'))
+    .expect(Selector('ul.role_type-name').textContent)
+    .match(/Tillidsmand/)
+  
 })

@@ -19,19 +19,22 @@ test('Workflow: move unit', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
-
     .hover('#mo-workflow', {offsetX: 10, offsetY: 90})
     .click('.btn-unit-move')
 
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(unitInput)
-    .click(dialog.find('li.tree-node span.tree-anchor span')
+    .click(dialog.find('.currentUnit .tree-node')
+           .withText('Ballerup Kommune').find('.tree-arrow'))
+    .click(dialog.find('.currentUnit .tree-node')
            .withText('Ballerup Familiehus'))
 
     .click(parentInput)
-    .click(dialog.find('.parentUnit li.tree-node span.tree-anchor span')
+    .click(dialog.find('.parentUnit .tree-node')
+           .withText('Ballerup Kommune')
+           .find('.tree-arrow'))
+    .click(dialog.find('.parentUnit .tree-anchor')
            .withText('Ballerup Bibliotek'))
 
     .click(fromInput)
@@ -50,4 +53,19 @@ test('Workflow: move unit', async t => {
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet flyttet/
     )
+
+    .expect(Selector('.orgunit-name').textContent)
+    .eql('Ballerup Familiehus')
+    .expect(Selector('.orgunit-location').textContent)
+    .eql('Ballerup Kommune/Ballerup Bibliotek')
+    .expect(Selector('.detail-present ul.parent-name').textContent)
+    .match(/Ballerup Bibliotek/)
+
+    .click(Selector('.detail-past .card-header'))
+    .expect(Selector('.detail-past ul.parent-name').textContent)
+    .match(/Ballerup Kommune/)
+
+    .click(Selector('.detail-future .card-header'))
+    .expect(Selector('.detail-past ul.parent-name').textContent)
+    .match(/Ballerup Kommune/)
 })
