@@ -8,11 +8,11 @@
 
 import os
 import sys
-import oio_common
 
 # cant do monkeypatching only because file is used as program
 try:
     # first file patching in case we have test module installed:
+    import oio_common
     from oio_common import db_structure
     orgfile = db_structure.__file__
     backenddir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
