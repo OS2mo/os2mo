@@ -67,7 +67,6 @@
 </template>
 
 <script>
-  import {AUTH_LOGOUT} from '@/store/actions/auth'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import Service from '@/api/HttpCommon'
@@ -101,7 +100,7 @@
        */
       logout () {
         let vm = this
-        this.$store.dispatch(AUTH_LOGOUT, vm.user)
+        this.$store.dispatch('AUTH_LOGOUT', vm.user)
       }
     }
   }
