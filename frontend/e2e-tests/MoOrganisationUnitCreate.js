@@ -46,7 +46,7 @@ test('Workflow: create unit', async t => {
 
   await t
     .setTestSpeed(0.8)
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-unit-create')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -61,9 +61,9 @@ test('Workflow: create unit', async t => {
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(addressInput)
@@ -86,8 +86,8 @@ test('Workflow: create unit', async t => {
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet oprettet/
     )

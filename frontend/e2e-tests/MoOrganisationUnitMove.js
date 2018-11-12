@@ -21,32 +21,32 @@ test('Workflow: move unit', async t => {
   await t
     .setTestSpeed(0.8)
 
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 90})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 90 })
     .click('.btn-unit-move')
 
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(unitInput)
     .click(dialog.find('li .item .link-color')
-           .withText('Ballerup Familiehus'))
+      .withText('Ballerup Familiehus'))
 
     .click(parentInput)
     .click(dialog.find('.parentUnit li .item .link-color')
-           .withText('Ballerup Bibliotek'))
+      .withText('Ballerup Bibliotek'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(dialog.find('.btn-primary'))
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet flyttet/
     )

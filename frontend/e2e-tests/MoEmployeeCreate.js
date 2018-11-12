@@ -80,7 +80,7 @@ test('Workflow: create employee', async t => {
   await t
     .setTestSpeed(0.8)
 
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-employee-create')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -103,9 +103,9 @@ test('Workflow: create employee', async t => {
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     // Address
@@ -187,8 +187,8 @@ test('Workflow: create employee', async t => {
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )

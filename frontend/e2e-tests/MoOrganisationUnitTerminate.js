@@ -18,7 +18,7 @@ test('Workflow: terminate employee', async t => {
 
   await t
     .setTestSpeed(0.8)
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 130})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 130 })
     .click('.btn-unit-terminate')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -28,17 +28,17 @@ test('Workflow: terminate employee', async t => {
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(dialog.find('.btn-primary'))
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet afsluttet/
     )
