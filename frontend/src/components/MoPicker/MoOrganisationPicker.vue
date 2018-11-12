@@ -92,7 +92,6 @@
        */
       selectedOrganisation (newVal) {
         this.$store.commit(`organisation/setOrg`, newVal)
-        Organisation.setSelectedOrganisation(newVal)
         this.$emit('input', newVal)
       },
 

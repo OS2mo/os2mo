@@ -1,4 +1,5 @@
 import Service from '@/api/HttpCommon'
+import { EventBus } from '@/EventBus'
 
 const state = {
   name: undefined,
@@ -12,6 +13,7 @@ const actions = {
     return Service.get(`/o/${payload}/`)
       .then(response => {
         commit('setOrg', response.data)
+        EventBus.$emit('organisation-changed', response.data)
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
