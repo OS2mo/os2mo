@@ -20,22 +20,10 @@ A employee move component.
 
 - `isLoading` 
 
-  The move, original, isLoading, backendValidationError component value.
+  The isLoading component value.
   Used to detect changes and restore the value. 
 
 **initial value:** `false` 
-
-- `backendValidationError` 
-
-**initial value:** `null` 
-
-- `original` 
-
-**initial value:** `null` 
-
-- `move` 
-
-**initial value:** `[object Object]` 
 
 ## computed properties 
 
@@ -49,7 +37,7 @@ A employee move component.
 
   Check if the dates are valid. 
 
-   **dependencies:** `move`, `original`, `original`, `move`, `move`, `original`, `original`, `move`, `original` 
+   **dependencies:** `from`, `original`, `original`, `from`, `original` 
 
 - `validDates` 
 
@@ -59,10 +47,6 @@ A employee move component.
 
 
 ## methods 
-
-- `resetData()` 
-
-  Resets the data fields. 
 
 - `moveEmployee(evt)` 
 

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <mo-collapse :title="$t('shared.future')" @show="$emit('show', 'future')">
+    <mo-collapse :title="$t('common.future')" @show="$emit('show', 'future')">
       <mo-table 
         :columns="columns"
         :content="contentStore.future"
@@ -11,7 +11,7 @@
       />
     </mo-collapse>
 
-    <mo-collapse :title="$t('shared.present')" visible @show="$emit('show', 'present')">
+    <mo-collapse :title="$t('common.present')" visible @show="$emit('show', 'present')">
       <mo-table 
         :columns="columns"
         :content="contentStore.present"
@@ -22,7 +22,7 @@
       />
     </mo-collapse>
 
-    <mo-collapse :title="$t('shared.past')" @show="$emit('show', 'past')">
+    <mo-collapse :title="$t('common.past')" @show="$emit('show', 'past')">
       <mo-table 
         :columns="columns"
         :content="contentStore.past"

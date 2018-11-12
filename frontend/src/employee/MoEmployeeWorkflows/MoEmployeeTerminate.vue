@@ -11,9 +11,18 @@
   >
     <form @submit.stop.prevent="terminateEmployee">
       <div class="form-row">
-        <mo-employee-picker v-model="employee" class="col search-employee" required/>
+        <mo-employee-picker 
+          v-model="employee" 
+          class="col search-employee" 
+          required
+        />
 
-        <mo-date-picker v-model="endDate" :label="$t('input_fields.end_date')" class="from-date" required/>
+        <mo-date-picker 
+          v-model="endDate" 
+          :label="$t('input_fields.end_date')" 
+          class="from-date" 
+          required
+        />
       </div>
 
       <div class="mb-3" v-if="employee.uuid">
@@ -41,6 +50,7 @@
   /**
    * A employee terminate component.
    */
+
   import { mapFields } from 'vuex-map-fields'
   import { mapGetters } from 'vuex'
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
@@ -65,17 +75,23 @@
 
     data () {
       return {
-        isLoading: false,
-        backendValidationError: null
+        isLoading: false
       }
     },
 
     computed: {
+      /**
+       * Get mapFields from vuex store.
+       */
       ...mapFields('employeeTerminate', [
         'employee',
-        'endDate'
+        'endDate',
+        'backendValidationError'
       ]),
 
+      /**
+       * Get mapGetters from vuex store.
+       */
       ...mapGetters({
         details: 'employeeTerminate/getDetails'
       }),
@@ -91,7 +107,6 @@
     },
 
     methods: {
-
       loadContent (event) {
         this.$store.dispatch('employeeTerminate/setDetails', event)
       },

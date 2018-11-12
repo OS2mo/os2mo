@@ -35,9 +35,23 @@
         </button>
       </router-link>
 
-      <mo-time-machine-button/>
+      <router-link :to="{ name: 'Timemachine'}">
+        <button type="button" :aria-label="$tc('common.time_machine', 1)" class="btn btn-link text-white">
+          <icon name="history"/>
+        </button>
+      </router-link>
 
-      <help-button/>
+      <router-link :to="{ name: 'Help'}">
+        <button 
+          type="button" 
+          :aria-label="$t('common.help')"
+          class="btn btn-link text-white" 
+          v-shortkey.once="['h']" 
+          @shortkey="$router.push({name: 'Help'})"
+        >
+          <icon name="question-circle"/>
+        </button>
+      </router-link>
 
       <b-dropdown id="ddown1" variant="primary">
         <template slot="button-content">
@@ -45,7 +59,7 @@
         </template>
 
         <b-dropdown-item @click="logout()">
-          <icon name="sign-out-alt"/> Log ud
+          <icon name="sign-out-alt"/> {{$t('common.sign_out')}}
         </b-dropdown-item>
       </b-dropdown>
     </div>
@@ -54,16 +68,12 @@
 
 <script>
   import {AUTH_LOGOUT} from '@/store/actions/auth'
-  import HelpButton from '@/help/TheHelpButton'
-  import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import Service from '@/api/HttpCommon'
 
   export default {
     components: {
-      HelpButton,
-      MoTimeMachineButton,
       MoSearchBar,
       MoOrganisationPicker
     },
