@@ -19,15 +19,13 @@ import traceback
 
 import click
 import flask
+import flask_saml_sso
 import pyexcel
 
+from . import base
 from .. import exceptions
 from .. import lora
 from .. import settings
-
-import flask_saml_sso
-
-from . import base
 
 
 @base.cli.group('lora')
@@ -37,12 +35,10 @@ def group():
 
 def requires_auth(func):
     @click.option('--token', '-t',
-                  help="auth session token")
+                  help="API token")
     @flask.cli.with_appcontext
     def wrapper(*args, **options):
-        token = options['token']
-
-        lora.session.auth = flask_saml_sso.SAMLAuth(token)
+        lora.session.auth = flask_saml_sso.SAMLAuth(options['token'])
 
         return func(*args, **options)
 

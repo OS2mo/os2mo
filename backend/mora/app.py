@@ -11,6 +11,7 @@ import os
 import typing
 
 import flask
+import flask_saml_sso
 import werkzeug
 
 from . import exceptions
@@ -18,8 +19,6 @@ from . import service
 from . import settings
 from . import util
 from .auth import base
-
-import flask_saml_sso
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')

@@ -11,8 +11,9 @@ from __future__ import generator_stop
 import collections
 import functools
 import itertools
-import requests
 import uuid
+
+import requests
 
 import flask_saml_sso
 from . import exceptions

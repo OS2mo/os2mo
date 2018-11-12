@@ -19,9 +19,9 @@ For more information regarding reading relations, refer to:
 * :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
+import typing
 
 import flask
-import typing
 
 from . import handlers
 from .. import exceptions

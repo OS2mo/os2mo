@@ -199,9 +199,9 @@ API
 
 import collections
 import json
+import re
 
 import flask
-import re
 import requests
 
 from . import employee
