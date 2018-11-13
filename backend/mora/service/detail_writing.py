@@ -19,21 +19,11 @@ For more information regarding reading relations, refer to:
 * :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
-
 import typing
 
 import flask
 
-from . import address
-from . import association
-from . import engagement
 from . import handlers
-from . import itsystem
-from . import leave
-from . import manager
-from . import orgunit
-from . import role
-from .. import common
 from .. import exceptions
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
