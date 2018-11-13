@@ -286,12 +286,13 @@ def update_config(mapping, config_path, allow_environment=True):
         overrides = {
             k[5:]: v
             for k, v in os.environ.items()
-            if k.startswith('MORA_')
+            if k.startswith('OS2MO_')
         }
 
         for key in overrides.keys():
-            print(' * Using override MORA_{}={!r}'.format(key, overrides[key]),
-                  file=sys.stderr)
+            print(
+                ' * Using override OS2MO_{}={!r}'.format(key, overrides[key]),
+                file=sys.stderr)
             mapping[key] = overrides[key]
 
 
