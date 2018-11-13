@@ -2,8 +2,8 @@
   <div>
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
       <div class="col text-center">
-        <h1>{{$t('shared.welcome_message')}}</h1>
-        <h4>{{$t('shared.welcome_tagline')}}</h4>
+        <h1>{{$t('common.welcome_message')}}</h1>
+        <h4>{{$t('common.welcome_tagline')}}</h4>
       </div>
     </nav>
 

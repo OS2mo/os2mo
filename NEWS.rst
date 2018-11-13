@@ -4,6 +4,8 @@ Version 0.12.0 (in development)
 New features
 ------------
 
+* 23928: Updated auth to use Flask SAML SSO module.
+  Session is now shared between OS2MO and LoRa.
 
 Internal changes
 ----------------

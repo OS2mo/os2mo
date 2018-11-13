@@ -16,7 +16,6 @@ blueprint = flask.Blueprint('exports', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-# TODO: Add auth
 @blueprint.route('/exports/')
 @util.restrictargs()
 def list_export_files():
@@ -49,7 +48,6 @@ def list_export_files():
     return flask.jsonify(files)
 
 
-# TODO: Add auth
 @blueprint.route('/exports/<string:file_name>')
 @util.restrictargs()
 def get_export_file(file_name: str):

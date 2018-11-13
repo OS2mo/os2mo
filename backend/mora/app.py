@@ -11,14 +11,14 @@ import os
 import typing
 
 import flask
+import flask_saml_sso
 import werkzeug
-import flask_session
 
 from . import exceptions
 from . import service
 from . import settings
 from . import util
-from .auth import base, sso
+from .auth import base
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -39,12 +39,14 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     if overrides is not None:
         app.config.update(overrides)
 
-    flask_session.Session(app)
+    # Initialize SSO and Session
+    flask_saml_sso.init_app(app)
 
+    base.blueprint.before_request(flask_saml_sso.check_saml_authentication)
     app.register_blueprint(base.blueprint)
-    app.register_blueprint(sso.blueprint)
 
     for blueprint in service.blueprints:
+        blueprint.before_request(flask_saml_sso.check_saml_authentication)
         app.register_blueprint(blueprint)
 
     @app.errorhandler(Exception)

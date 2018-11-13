@@ -332,17 +332,13 @@ class TestCaseMixin(object):
 
     def create_app(self, overrides=None):
         os.makedirs(BUILD_DIR, exist_ok=True)
-        session_dir = tempfile.mkdtemp(prefix='session', dir=BUILD_DIR)
-
-        self.addCleanup(shutil.rmtree, session_dir)
 
         return app.create_app({
             'DEBUG': False,
             'TESTING': True,
             'LIVESERVER_PORT': 0,
             'PRESERVE_CONTEXT_ON_EXCEPTION': False,
-            'SESSION_TYPE': 'filesystem',
-            'SESSION_FILE_DIR': session_dir,
+            'SECRET_KEY': 'secret',
             **(overrides or {})
         })
 
