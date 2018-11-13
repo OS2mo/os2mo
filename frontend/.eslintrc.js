@@ -7,7 +7,7 @@ module.exports = {
   extends: [
     'plugin:vue/essential',
     '@vue/standard',
-    "plugin:testcafe/recommended"
+    'plugin:testcafe/recommended'
   ],
   plugins: [
     'testcafe'
