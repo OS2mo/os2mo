@@ -1,7 +1,7 @@
 <template>
   <div class="orgunit-tree">
     <liquor-tree
-      ref="tree"
+      :ref="nameId"
       :data="treeData"
       :options="treeOptions"/>
   </div>
@@ -36,6 +36,14 @@
         orgUuid: 'organisation/getUuid'
       }),
 
+      nameId () {
+        return 'moTreeView' + this._uid
+      },
+
+      tree () {
+        return this.$refs[this.nameId]
+      },
+
       contents () {
         function visitNode (node, level) {
           if (!node) {
@@ -60,7 +68,7 @@
           }
         }
 
-        return visitNode(this.$refs.tree.getRootNode(), 0)
+        return visitNode(this.tree.getRootNode(), 0)
       }
     },
 
@@ -85,7 +93,7 @@
     mounted () {
       const vm = this
 
-      this.$refs.tree.$on('node:selected', node => {
+      this.tree.$on('node:selected', node => {
         vm.$emit('input', vm.units[node.id])
       })
 
@@ -93,19 +101,19 @@
 
       EventBus.$on('organisation-unit-changed', () => vm.updateTree())
 
-      // this.$refs.tree.$on('node:expanded', node => {
+      // this.tree.$on('node:expanded', node => {
       //   console.log('expanded', node.text, node.id)
       // })
 
-      // this.$refs.tree.$on('node:unselected', node => {
+      // this.tree.$on('node:unselected', node => {
       //   console.log('deselected', node.text)
       // })
 
-      // this.$refs.tree.$on('tree:data:fetch', node => {
+      // this.tree.$on('tree:data:fetch', node => {
       //   console.log('fetching', node.text, node.id)
       // })
 
-      // this.$refs.tree.$on('tree:data:received', node => {
+      // this.tree.$on('tree:data:received', node => {
       //   console.log('received', node.text, node.children)
       // })
 
@@ -162,9 +170,9 @@
         }
 
         this.log(`selecting ${unitid}`)
-        this.$refs.tree.tree.unselectAll()
+        this.tree.tree.unselectAll()
 
-        for (let n of this.$refs.tree.tree.find({id: unitid})) {
+        for (let n of this.tree.tree.find({id: unitid})) {
           n.expandTop()
           n.select()
         }
@@ -193,13 +201,12 @@
        */
       updateTree () {
         let vm = this
-        let tree = this.$refs.tree
 
         if (!this.orgUuid) {
           return
         }
 
-        if (!tree) {
+        if (!this.tree) {
           console.warn(`no tree!!!`)
           return
         }
@@ -212,8 +219,8 @@
               vm.log('injecting unit tree')
 
               vm.units = {}
-              tree.remove({})
-              tree.append(vm.toNode(response))
+              vm.tree.remove({})
+              vm.tree.append(vm.toNode(response))
 
               vm.setSelection()
             })
@@ -223,10 +230,10 @@
               vm.log('injecting org tree')
 
               vm.units = {}
-              tree.remove({})
+              vm.tree.remove({})
 
               for (let unit of response) {
-                tree.append(vm.toNode(unit))
+                vm.tree.append(vm.toNode(unit))
               }
             })
         }
