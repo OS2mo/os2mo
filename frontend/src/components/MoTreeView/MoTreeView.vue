@@ -34,8 +34,34 @@
     computed: {
       ...mapGetters({
         orgUuid: 'organisation/getUuid'
-      })
+      }),
 
+      contents () {
+        function visitNode (node, level) {
+          if (!node) {
+            return null
+          }
+
+          let text = node.selected() ? `=+= ${node.text} =+=` : node.text
+
+          if (node.expanded()) {
+            const children = node.children
+                  .filter(c => c.visible())
+                  .map(c => visitNode(c, level + 1))
+            const r = {}
+
+            r[text] = children
+
+            return r
+          } else if (node.hasChildren()) {
+            return '> ' + text
+          } else {
+            return text
+          }
+        }
+
+        return visitNode(this.$refs.tree.getRootNode(), 0)
+      }
     },
 
     data () {
@@ -64,6 +90,8 @@
       })
 
       EventBus.$on('update-tree-view', () => vm.updateTree())
+
+      EventBus.$on('organisation-unit-changed', () => vm.updateTree())
 
       // this.$refs.tree.$on('node:expanded', node => {
       //   console.log('expanded', node.text, node.id)
@@ -168,6 +196,11 @@
         let tree = this.$refs.tree
 
         if (!this.orgUuid) {
+          return
+        }
+
+        if (!tree) {
+          console.warn(`no tree!!!`)
           return
         }
 

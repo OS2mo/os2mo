@@ -1,5 +1,6 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import VueSelector from 'testcafe-vue-selectors'
+import { baseURL, getTreeContents } from './support'
 
 const dialog = Selector('#orgUnitTerminate')
 
@@ -9,18 +10,15 @@ const fromInput = dialog.find('.from-date input.form-control')
 
 
 const trees = new Map([
-  ['', [
-    'Ballerup Kommune'
-  ]],
-  ['9f42976b-93be-4e0b-9a25-0dcb8af2f6b4', [
-    'Ballerup Kommune'
-  ]],
-  ['ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc', [
-    'Ballerup Kommune',
-    'Ballerup Bibliotek',
-    'Ballerup Familiehus',
-    'Ballerup Idrætspark'
-  ]]
+  ['', "> Ballerup Kommune"],
+  ['9f42976b-93be-4e0b-9a25-0dcb8af2f6b4', "> =+= Ballerup Kommune =+="],
+  ['ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc', {
+    "Ballerup Kommune": [
+      "Ballerup Bibliotek",
+      "Ballerup Familiehus",
+      "=+= Ballerup Idrætspark =+="
+    ]
+  }],
 ])
 
 
@@ -34,19 +32,20 @@ let currentUnitName = Selector('.orgunit .orgunit-name')
 
 fixture('Tree Tests')
 
-for (const [selection, treeList] of trees.entries()) {
+for (const [selection, contents] of trees.entries()) {
   test
     .page `${baseURL}/organisation/${selection}`
     (`Load of '${selection}'`, async t => {
       await t
-        .expect(treeNode.exists)
+        .expect(treeNode.exists, {timeout: 1500})
         .notOk()
         .expect(rootNode.exists)
-        .ok()
-        .expect(selected.exists)
         .eql(selection.length > 0, {timeout: 1500})
-        .expect(tree.innerText)
-        .eql(treeList.join('\n'))
+        .expect(VueSelector('mo-tree-view').exists)
+        .ok()
+        .expect(VueSelector('the-left-menu mo-tree-view')
+                .getVue(({ computed }) => computed.contents))
+        .eql(contents)
     })
 }
 

@@ -5,7 +5,7 @@ import VueSelector from 'testcafe-vue-selectors'
 let moment = require('moment')
 
 fixture('Organisation test')
-  .page(`${baseURL}/organisation`)
+  .page(`${baseURL}/organisation/c12393e9-ee1d-4b91-a6a9-a17508c055c9`)
 
 const dialog = Selector('#orgUnitMove')
 
@@ -14,6 +14,27 @@ const unitInput = dialog.find('input[data-vv-as="Enhed"]')
 const parentInput = dialog.find('.parentUnit input[data-vv-as="Enhed"]')
 
 const fromInput = dialog.find('.moveDate input.form-control')
+
+const tree = VueSelector('the-left-menu mo-tree-view')
+
+let currentUnitName = Selector('.orgunit .orgunit-name')
+
+
+test('Prerequisite: URL & tree', async t => {
+
+  await t.expect(currentUnitName.exists, {timeout: 1500})
+    .ok()
+    .expect(currentUnitName.innerText)
+    .eql('Ballerup Familiehus')
+    .expect(tree.getVue(({ computed }) => computed.contents))
+    .eql({
+      "Ballerup Kommune": [
+        "Ballerup Bibliotek",
+        "=+= Ballerup Familiehus =+=",
+        "Ballerup Idrætspark"
+      ]
+    })
+})
 
 test('Workflow: move unit', async t => {
   let today = moment()
@@ -68,4 +89,16 @@ test('Workflow: move unit', async t => {
     .click(Selector('.detail-future .card-header'))
     .expect(Selector('.detail-past ul.parent-name').textContent)
     .match(/Ballerup Kommune/)
+
+    .expect(tree.getVue(({ computed }) => computed.contents))
+    .eql({
+      "Ballerup Kommune": [
+        {
+          "Ballerup Bibliotek": [
+            "=+= Ballerup Familiehus =+="
+          ]
+        },
+        "Ballerup Idrætspark"
+      ]
+    })
 })

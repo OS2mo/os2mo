@@ -65,6 +65,7 @@
     },
     mounted () {
       EventBus.$on('organisation-unit-changed', () => {
+        this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
         this.loadContent(this.latestEvent)
       })
     },
