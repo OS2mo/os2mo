@@ -269,27 +269,17 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
 
 
 def update_config(mapping, config_path, allow_environment=True):
-    '''load the JSON configuration at the given path
-
-    We disregard all entries in the configuration that lack a default
-    within the mapping.
-
-    '''
-
-    keys = {
-        k
-        for k, v in mapping.items()
-        if not k.startswith('_')
-    }
+    """load the JSON configuration at the given path """
 
     try:
         with open(config_path) as fp:
             overrides = json.load(fp)
 
-        for key in keys & overrides.keys():
+        for key in overrides.keys():
             mapping[key] = overrides[key]
 
     except IOError:
+        print('Unable to read config {}'.format(config_path))
         pass
 
     if allow_environment:
@@ -299,7 +289,7 @@ def update_config(mapping, config_path, allow_environment=True):
             if k.startswith('MORA_')
         }
 
-        for key in keys & overrides.keys():
+        for key in overrides.keys():
             print(' * Using override MORA_{}={!r}'.format(key, overrides[key]),
                   file=sys.stderr)
             mapping[key] = overrides[key]
