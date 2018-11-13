@@ -29,9 +29,12 @@ the SP with correct configuration.
 Configuration
 """""""""""""
 
-Configuration of SAML SSO is documented in the readme for Flask SAML SSO.
+Configuration and general use of SAML SSO is documented in
+the `readme`_ for Flask SAML SSO.
 
 The following additional configuration entries exist for auth in OS2MO.
 
 * ``"SAML_USERNAME_ATTR"``: The name of the attribute in the SAML assertion
   containing the username.
+
+.. _readme: https://github.com/magenta-aps/flask_saml_sso/blob/master/README.rst
