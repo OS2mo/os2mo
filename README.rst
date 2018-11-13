@@ -205,6 +205,9 @@ Indstillinger gemmes i ``setup/mora.json``. Den vigtiste er
 
   MORA_LORA_URL=http://localhost:5000 ./flask.sh run
 
+Alternativt kan stien til konfigurationsfilen angives med miljøvariablen
+``OS2MO_CONFIG_FILE``.
+
 
 Testsuiten
 -----------

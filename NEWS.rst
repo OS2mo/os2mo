@@ -10,8 +10,7 @@ New features
 Internal changes
 ----------------
 
-
-* TBD
+* 25193: Improved handling of external configuration files for OS2MO
 
 API changes
 -----------
