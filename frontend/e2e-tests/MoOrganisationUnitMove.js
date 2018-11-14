@@ -22,10 +22,11 @@ let currentUnitName = Selector('.orgunit .orgunit-name')
 
 test('Prerequisite: URL & tree', async t => {
 
-  await t.expect(currentUnitName.exists, {timeout: 1500})
-    .ok()
+  await t
     .expect(currentUnitName.innerText)
     .eql('Ballerup Familiehus')
+    .expect(tree.find('.selected').exists)
+    .ok()
     .expect(tree.getVue(({ computed }) => computed.contents))
     .eql({
       "Ballerup Kommune": [

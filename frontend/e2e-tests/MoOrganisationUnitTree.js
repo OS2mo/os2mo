@@ -37,12 +37,14 @@ for (const [selection, contents] of trees.entries()) {
     .page `${baseURL}/organisation/${selection}`
     (`Load of '${selection}'`, async t => {
       await t
-        .expect(treeNode.exists, {timeout: 1500})
-        .notOk()
-        .expect(rootNode.exists)
-        .eql(selection.length > 0, {timeout: 1500})
-        .expect(VueSelector('mo-tree-view').exists)
+        .expect(tree.exists)
         .ok()
+        .expect(rootNode.exists)
+        .ok()
+        .expect(VueSelector('the-left-menu mo-tree-view').exists)
+        .ok()
+        .expect(selected.exists)
+        .eql(selection.length > 0, {timeout: 1500})
         .expect(VueSelector('the-left-menu mo-tree-view')
                 .getVue(({ computed }) => computed.contents))
         .eql(contents)
@@ -51,10 +53,10 @@ for (const [selection, contents] of trees.entries()) {
 
 test
   .page `${baseURL}/organisation/`
-  ('Reload', async t => {
+  ('Path changes', async t => {
     await t
       .expect(treeNode.exists)
-      .notOk()
+      .ok()
       .expect(rootNode.exists)
       .ok()
       .expect(currentUnitName.exists)
@@ -71,17 +73,7 @@ test
       .click(treeAnchor.withText('Ballerup Idrætspark'))
       .expect(currentUnitName.innerText)
       .eql('Ballerup Idrætspark')
-
-    // okay, verify that the state crosses a reload
-    await t.eval(() => location.reload(true))
-
-    await t.expect(currentUnitName.exists, {timeout: 1000})
-      .notOk()
-      .expect(currentUnitName.exists)
-      .ok()
-      .expect(currentUnitName.innerText)
-      .eql('Ballerup Idrætspark')
-      .expect(selected.innerText)
-      .eql('Ballerup Idrætspark')
+      .expect(t.eval(() => location.pathname))
+      .eql("/organisation/ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc")
   })
 
