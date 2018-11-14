@@ -10,7 +10,8 @@ import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
 import store from './store'
 
-import 'vue-awesome/icons'
+import './icons'
+
 import Icon from 'vue-awesome/components/Icon'
 
 import 'bootstrap/dist/css/bootstrap.css'

@@ -1,10 +1,16 @@
 const webpack = require('webpack')
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 module.exports = {
   lintOnSave: true,
   configureWebpack: {
     plugins: [
-      new webpack.HashedModuleIdsPlugin() // so that file hashes don't change unexpectedly
+      new webpack.HashedModuleIdsPlugin(), // so that file hashes don't change unexpectedly
+      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // ignore locales and import in main.js instead
+      new BundleAnalyzerPlugin({
+        analyzerMode: 'static',
+        openAnalyzer: false
+      })
     ],
     optimization: {
       splitChunks: {
@@ -20,6 +26,9 @@ module.exports = {
       }
     }
   },
+  transpileDependencies: [
+    /\bvue-awesome\b/
+  ],
   pluginOptions: {
     i18n: {
       locale: 'da',
