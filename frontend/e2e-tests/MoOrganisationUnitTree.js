@@ -30,7 +30,7 @@ let selected = treeNode.filter('.selected')
 
 let currentUnitName = Selector('.orgunit .orgunit-name')
 
-fixture('Tree Tests')
+fixture('MoOrganisationUnitTree')
 
 for (const [selection, contents] of trees.entries()) {
   test

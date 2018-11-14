@@ -71,7 +71,7 @@ const levelManagerOption = levelManagerSelect.find('option')
 const responsibilityManagerSelect = dialog.find('.responsibility-manager select[data-vv-as="Lederansvar"]')
 const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
-fixture('Employee test')
+fixture('MoEmployeeCreate')
   .page(`${baseURL}/medarbejder/liste`)
 
 test('Workflow: create employee', async t => {

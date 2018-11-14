@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Organisation test')
+fixture('MoOrganisationUnitRename')
   .page(`${baseURL}/organisation`)
 
 const dialog = Selector('#orgUnitRename')
