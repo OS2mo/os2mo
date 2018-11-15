@@ -280,7 +280,6 @@ def update_config(mapping, config_path, allow_environment=True):
 
     except IOError:
         print('Unable to read config {}'.format(config_path))
-        pass
 
     if allow_environment:
         overrides = {
