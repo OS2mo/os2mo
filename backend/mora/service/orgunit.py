@@ -487,32 +487,50 @@ def get_tree(c, unitid):
 @blueprint.route('/ou/<uuid:unitid>/tree')
 @util.restrictargs('at')
 def get_unit_tree(unitid):
+    '''Obtain the unit hierarchy up to and including the given unit.
 
-    '''Obtain the list of nested units within an organisation or an
-    organisational unit.
+    .. :quickref: Unit; Tree
 
-    .. :quickref: Unit; Children
+    :param unitid: The UUID of the organisational unit to be terminated.
 
-    :param type: 'o' if the parent is an organistion, and 'ou' if it's a unit.
-    :param uuid parentid: The UUID of the parent.
-
-    :queryparam date at: Show the children valid at this point in time,
-        in ISO-8601 format.
-
-    :>jsonarr string name: Human-readable name of the unit.
-    :>jsonarr string user_key: Short, unique key identifying the unit.
-    :>jsonarr object validity: Validity range of the organisational unit.
-    :>jsonarr uuid uuid: Machine-friendly UUID of the unit.
-    :>jsonarr int child_count: Number of org. units nested immediately beneath
-                               the organisation.
-
-    :status 200: Whenever the organisation or unit exists and is readable.
-    :status 404: When no such organisation or unit exists, or the
-                 parent was of the wrong type.
+    :param see: http:get:`/service/ou/(uuid:unitid)/`.
 
     **Example Response**:
 
-    TODO
+    .. sourcecode:: json
+
+     {
+        "children": [
+          {
+            "child_count": 2,
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "validity": {
+              "from": "2016-01-01",
+              "to": null
+            }
+          },
+          {
+            "child_count": 0,
+            "name": "Samfundsvidenskabelige fakultet",
+            "user_key": "samf",
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "validity": {
+              "from": "2017-01-01",
+              "to": null
+            }
+          }
+        ],
+        "name": "Overordnet Enhed",
+        "user_key": "root",
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      }
+
     '''
     c = common.get_connector()
 
