@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Employee test')
+fixture('MoEmployeeMoveMany')
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeMoveMany')
@@ -21,7 +21,6 @@ test('Workflow: moveMany employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', {offsetX: 10, offsetY: 140})
     .click('.btn-employee-moveMany')
 
@@ -35,11 +34,14 @@ test('Workflow: moveMany employee', async t => {
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(parentFromInput)
-    .click(dialog.find('.from-unit .item .link-color')
+    .click(dialog.find('.from-unit span.tree-anchor')
            .withText('Ballerup Kommune'))
 
     .click(parentToInput)
-    .click(dialog.find('.to-unit .item .link-color')
+    .click(dialog.find('.to-unit .tree-node')
+           .withText('Ballerup Kommune')
+           .find('.tree-arrow'))
+    .click(dialog.find('.to-unit span.tree-anchor')
            .withText('Ballerup Bibliotek'))
 
     .click(checkboxInput)

@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Employee test')
+fixture('MoEmployeeLeave')
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeLeave')

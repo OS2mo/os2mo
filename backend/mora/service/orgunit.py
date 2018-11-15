@@ -17,8 +17,10 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
+import collections
 import enum
 import functools
+import locale
 import operator
 import uuid
 
@@ -418,6 +420,103 @@ def get_children(type, parentid):
     children.sort(key=operator.itemgetter('name'))
 
     return flask.jsonify(children)
+
+
+def get_tree(c, unitid):
+    '''Return a tree, bounded by the given unitid.
+
+    The tree includes siblings of ancestors, with their child counts.
+
+    '''
+
+    def get_parent(objid):
+        return mapping.PARENT_FIELD(unitcache[objid])[0]['uuid']
+
+    unitcache = common.cache(c.organisationenhed.get)
+    id_path = collections.deque([unitid])
+
+    orgid = mapping.BELONGS_TO_FIELD(unitcache[unitid])[0]['uuid']
+
+    # first, get the path to the unit
+    while get_parent(id_path[0]) != orgid:
+        id_path.appendleft(get_parent(id_path[0]))
+
+    # bail if we're the root unit; that's simpler than handling it in
+    # the other logic
+    if len(id_path) == 1:
+        return get_one_orgunit(c, unitid, unitcache[unitid],
+                               details=UnitDetails.NCHILDREN)
+
+    # then, fetch all the ancestors
+    ancestors = {
+        ancestorid: get_one_orgunit(c, ancestorid, unitcache[ancestorid],
+                                    details=UnitDetails.MINIMAL)
+        for ancestorid in id_path
+        if ancestorid != unitid
+    }
+
+    # now, inject the children, and link them up
+    for ancestor in ancestors.values():
+        if ancestor is None:
+            continue
+
+        # please note that the code below actually re-fetches the
+        # ancestor itself -- however, that's unlikely to be what makes
+        # this function slow
+        ancestor['children'] = sorted(
+            (
+                (
+                    get_one_orgunit(c, siblingid, sibling,
+                                    details=UnitDetails.NCHILDREN)
+                    if siblingid not in ancestors
+                    else
+                    ancestors[siblingid]
+                )
+                for siblingid, sibling in c.organisationenhed.get_all(
+                    overordnet=ancestor[mapping.UUID],
+                    gyldighed='Aktiv',
+                )
+            ),
+            key=lambda u: locale.strxfrm(u[mapping.NAME]),
+        )
+
+    # finally, return the root unit
+    return ancestors[id_path[0]]
+
+
+@blueprint.route('/ou/<uuid:unitid>/tree')
+@util.restrictargs('at')
+def get_unit_tree(unitid):
+
+    '''Obtain the list of nested units within an organisation or an
+    organisational unit.
+
+    .. :quickref: Unit; Children
+
+    :param type: 'o' if the parent is an organistion, and 'ou' if it's a unit.
+    :param uuid parentid: The UUID of the parent.
+
+    :queryparam date at: Show the children valid at this point in time,
+        in ISO-8601 format.
+
+    :>jsonarr string name: Human-readable name of the unit.
+    :>jsonarr string user_key: Short, unique key identifying the unit.
+    :>jsonarr object validity: Validity range of the organisational unit.
+    :>jsonarr uuid uuid: Machine-friendly UUID of the unit.
+    :>jsonarr int child_count: Number of org. units nested immediately beneath
+                               the organisation.
+
+    :status 200: Whenever the organisation or unit exists and is readable.
+    :status 404: When no such organisation or unit exists, or the
+                 parent was of the wrong type.
+
+    **Example Response**:
+
+    TODO
+    '''
+    c = common.get_connector()
+
+    return flask.jsonify(get_tree(c, str(unitid)))
 
 
 @blueprint.route('/ou/<uuid:unitid>/')

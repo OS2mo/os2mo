@@ -25,13 +25,23 @@ SKIP_FILES = {
 }
 
 
+TEST_DIR = os.path.join(util.FRONTEND_DIR, "e2e-tests")
+
+TESTCAFE_COMMAND = os.path.join(util.FRONTEND_DIR,
+                                "node_modules", ".bin", "testcafe")
+
+TEST_FILES = sorted(
+    os.path.join(dirpath, file_name)
+    for dirpath, dirs, file_names in os.walk(TEST_DIR)
+    for file_name in file_names
+    if (file_name.endswith('.js') and
+        not file_name.startswith('.') and
+        file_name not in SKIP_FILES)
+)
+
+
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
-
-    TEST_DIR = os.path.join(util.FRONTEND_DIR, "e2e-tests")
-
-    TESTCAFE_COMMAND = os.path.join(util.FRONTEND_DIR,
-                                    "node_modules", ".bin", "testcafe")
 
     @unittest.skipUnless(
         util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
@@ -41,7 +51,7 @@ class TestCafeTests(util.LiveLoRATestCase):
         'SKIP_TESTCAFE' in os.environ,
         'TestCafé disabled by $SKIP_TESTCAFE!',
     )
-    def test_with_testcafe(self):
+    def _test_with_testcafe(self, test_file, test_name):
         # Start the testing process
         print("----------------------")
         print("Running testcafe tests")
@@ -60,65 +70,61 @@ class TestCafeTests(util.LiveLoRATestCase):
                                  'safari' if platform.system() == 'Darwin'
                                  else 'chromium:headless --no-sandbox')
 
-        test_files = sorted(
-            os.path.join(dirpath, file_name)
-            for dirpath, dirs, file_names in os.walk(self.TEST_DIR)
-            for file_name in file_names
-            if file_name.endswith('.js') and file_name not in SKIP_FILES
+        with util.mock('dawa-ballerup.json', allow_mox=True):
+            util.import_fixture('BALLERUP.csv')
+
+        xml_report_file = os.path.join(util.REPORTS_DIR,
+                                       test_name + ".xml")
+        json_report_file = os.path.join(util.REPORTS_DIR,
+                                        test_name + ".json")
+
+        process = subprocess.run(
+            [
+                TESTCAFE_COMMAND,
+                "'{} --no-sandbox'".format(browser),
+                test_file,
+                "-r", ','.join(["spec",
+                                "xunit:" + xml_report_file,
+                                "json:" + json_report_file]),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
+            cwd=util.BASE_DIR,
+            env=env,
         )
 
-        for test_file in test_files:
-            test_name = os.path.splitext(os.path.basename(test_file))[0]
+        print(process.stdout.decode(), end='')
 
-            with self.subTest(test_name):
-                # TODO: reset_db shouldn't be private
-                self._TestCaseMixin__reset_db()
+        try:
+            with open(json_report_file, 'rt') as fp:
+                res = json.load(fp)
+        except IOError:
+            print('FAILED TO GATHER REPORT')
+            traceback.print_exc()
 
-                with util.mock('dawa-ballerup.json', allow_mox=True):
-                    util.import_fixture('BALLERUP.csv')
+            res = None
 
-                xml_report_file = os.path.join(util.REPORTS_DIR,
-                                               test_name + ".xml")
-                json_report_file = os.path.join(util.REPORTS_DIR,
-                                                test_name + ".json")
+        if res is not None:
+            duration = (
+                mora_util.from_iso_time(res['endTime']) -
+                mora_util.from_iso_time(res['startTime'])
+            )
 
-                process = subprocess.run(
-                    [
-                        self.TESTCAFE_COMMAND,
-                        "'{} --no-sandbox'".format(browser),
-                        test_file,
-                        "-r", ','.join(["spec",
-                                        "xunit:" + xml_report_file,
-                                        "json:" + json_report_file]),
-                    ],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    cwd=util.BASE_DIR,
-                    env=env,
-                )
+            print("")
+            print("Status:")
+            print("ran {} tests in {}".format(res['total'], duration))
+            print("{} tests passed".format(res['passed']))
+            print("{} tests skipped".format(res['skipped']))
 
-                print(process.stdout.decode(), end='')
+        self.assertEqual(process.returncode, 0, "Test run failed!")
 
-                try:
-                    with open(json_report_file, 'rt') as fp:
-                        res = json.load(fp)
-                except IOError:
-                    print('FAILED TO GATHER REPORT')
-                    traceback.print_exc()
+    for test_file in TEST_FILES:
+        test_name = os.path.splitext(os.path.basename(test_file))[0]
 
-                    res = None
+        def test_with_testcafe(self, test_file=test_file, test_name=test_name):
+            self._test_with_testcafe(test_file, test_name)
 
-                if res is not None:
-                    duration = (
-                        mora_util.from_iso_time(res['endTime']) -
-                        mora_util.from_iso_time(res['startTime'])
-                    )
+        locals()['test_' + test_name] = test_with_testcafe
 
-                    print("")
-                    print("Status:")
-                    print("ran {} tests in {}".format(res['total'], duration))
-                    print("{} tests passed".format(res['passed']))
-                    print("{} tests skipped".format(res['skipped']))
-
-                self.assertEqual(process.returncode, 0, "Test run failed!")
+        del test_file, test_name, test_with_testcafe

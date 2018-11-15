@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Organisation test')
+fixture('MoOrganisationUnitTerminate')
   .page(`${baseURL}/organisation`)
 
 const dialog = Selector('#orgUnitTerminate')
@@ -13,18 +13,20 @@ const parentInput = dialog.find('input[data-vv-as="Enhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-test('Workflow: terminate employee', async t => {
+test('Workflow: terminate org unit', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', {offsetX: 10, offsetY: 130})
     .click('.btn-unit-terminate')
 
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(parentInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('.tree-node')
+           .withText('Ballerup Kommune')
+           .find('.tree-arrow'))
+    .click(dialog.find('.tree-anchor').withText('Ballerup Bibliotek'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

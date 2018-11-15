@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Organisation test')
+fixture('MoOrganisationUnitCreate')
   .page(`${baseURL}/organisation/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4`)
 
 const dialog = Selector('#orgUnitCreate')
@@ -57,7 +57,7 @@ test('Workflow: create unit', async t => {
     .click(unitOption.withText('Supportcenter'))
 
     .click(parentInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

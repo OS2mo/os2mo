@@ -1,30 +1,75 @@
 <template>
-  <div>    
-    <liquor-tree :data="treeData" :options="treeOptions" ref="tree"/>
+  <div class="orgunit-tree">
+    <liquor-tree
+      :ref="nameId"
+      :data="treeData"
+      :options="treeOptions"/>
   </div>
 </template>
 
 <script>
+  import { EventBus } from '@/EventBus'
+  import { mapGetters } from 'vuex'
   import Organisation from '@/api/Organisation'
   import OrganisationUnit from '@/api/OrganisationUnit'
   import LiquorTree from 'liquor-tree'
-  import treeStore from './_store'
-  import { mapGetters } from 'vuex'
-
-  // import Store from '@/vuex/store'
 
   export default {
     components: {
       LiquorTree
     },
 
+    props: {
+      /**
+       * Defines a orgUuid.
+       */
+      unitUuid: String,
+
+      /**
+       * Defines a atDate.
+       */
+      atDate: [Date, String]
+    },
+
     computed: {
       ...mapGetters({
-        currentUnit: 'organisationUnit/GET_ORG_UNIT'
-      }),
-      ...mapGetters({
         orgUuid: 'organisation/getUuid'
-      })
+      }),
+
+      nameId () {
+        return 'moTreeView' + this._uid
+      },
+
+      tree () {
+        return this.$refs[this.nameId]
+      },
+
+      contents () {
+        function visitNode (node, level) {
+          if (!node) {
+            return null
+          }
+
+          let text = node.selected() ? `=+= ${node.text} =+=` : node.text
+
+          if (node.expanded()) {
+            const children = node.children
+                  .filter(c => c.visible())
+                  .map(c => visitNode(c, level + 1))
+            const r = {}
+
+            r[text] = children
+
+            return r
+          } else if (node.hasChildren()) {
+            return '> ' + text
+          } else {
+            return text
+          }
+        }
+
+        return visitNode(this.tree.getRootNode(), 0)
+      }
     },
 
     data () {
@@ -32,130 +77,188 @@
 
       return {
         treeData: [],
+        units: {},
+
         treeOptions: {
-          minFetchDelay: 1,
-          propertyNames: {
-            text: 'name',
-            isBatch: 'child_count',
-            id: 'uuid'
-          },
+          minFetchDelay: 0,
+          parentSelect: true,
+
           fetchData (node) {
             return vm.fetch(node)
           }
-
-          // store: {
-          //   store: Store,
-          //   getter: () => {
-          //     return this.$store.getters['liquorTree/getTreeData']
-          //   },
-          //   dispatcher (tree) {
-          //     this.$store.dispatch('liquorTree/updateTree', tree)
-          //   }
-          // }
         }
       }
     },
 
-    created () {
-      this.$store.registerModule('liquorTree', treeStore)
-    },
-
     mounted () {
-      this.renderTree()
+      const vm = this
 
-      this.$refs.tree.$on('node:expanded', node => {
-        console.log('expanded', node.text)
+      this.tree.$on('node:selected', node => {
+        vm.$emit('input', vm.units[node.id])
       })
 
-      this.$refs.tree.$on('node:selected', (node) => {
-        console.log('selected', node.text)
-      })
+      EventBus.$on('update-tree-view', () => vm.updateTree())
 
-      this.$refs.tree.$on('tree:data:fetch', node => {
-        console.log('fetching', node.text)
-      })
+      EventBus.$on('organisation-unit-changed', () => vm.updateTree())
 
-      this.$refs.tree.$on('node:selected', node => {
-        if (node.id !== this.currentUnit.uuid) {
-          this.$router.push({
-            name: 'OrganisationDetail',
-            params: { uuid: node.id }
-          })
-        }
-      })
+      // this.tree.$on('node:expanded', node => {
+      //   console.log('expanded', node.text, node.id)
+      // })
+
+      // this.tree.$on('node:unselected', node => {
+      //   console.log('deselected', node.text)
+      // })
+
+      // this.tree.$on('tree:data:fetch', node => {
+      //   console.log('fetching', node.text, node.id)
+      // })
+
+      // this.tree.$on('tree:data:received', node => {
+      //   console.log('received', node.text, node.children)
+      // })
+
+      this.updateTree()
     },
 
     watch: {
-      orgUuid () {
-        this.renderTree()
+      unitUuid (newVal, oldVal) {
+        this.log(`changing unit from ${oldVal} to ${newVal} (org=${this.orgUuid})`)
+
+        if (this.units && this.units[newVal]) {
+          this.setSelection(newVal)
+        } else if (newVal !== oldVal) {
+          this.updateTree()
+        }
       },
 
-      currentUnit: {
-        handler (val) {
-          let node = this.$refs.tree.find({id: val.uuid})
+      orgUuid (newVal, oldVal) {
+        let vm = this
 
-          if (node) {
-            node.select()
+        this.log(`changing organisation from ${oldVal} to ${newVal}`)
+
+        // in order to avoid updating twice, only do so when no unit
+        // is configured; otherwise, we'll update when the unit clears
+        //
+        // however, as we invariably get the org notification *before*
+        // the unit notification, delay the check by 100ms -- or 0.1s
+        // -- so that we still update when we don't get a unit
+        //
+        // yes, this is a bit of a hack :(
+        setTimeout(() => {
+          if (oldVal || !vm.unitUuid) {
+            vm.updateTree()
           }
-        },
-        deep: true
+        }, 100)
+      },
+
+      atDate () {
+        this.updateTree()
       }
     },
 
     methods: {
-      renderTree () {
+      log (s, ...args) {
+        console.log('TREE: ' + s, ...args)
+      },
+
+      /**
+       * Select the unit corresponding to the given ID, assuming it's present.
+       */
+      setSelection (unitid) {
+        if (!unitid) {
+          unitid = this.unitUuid
+        }
+
+        this.log(`selecting ${unitid}`)
+        this.tree.tree.unselectAll()
+
+        for (let n of this.tree.tree.find({id: unitid})) {
+          n.expandTop()
+          n.select()
+        }
+      },
+
+      /**
+       * Convert a unit object into a node suitable for adding to the
+       * tree.
+       *
+       * This method handles both eager and lazy loading of child nodes.
+       */
+      toNode (unit) {
+        this.units[unit.uuid] = unit
+
+        return {
+          text: unit.name,
+          isBatch: unit.children ? false : unit.child_count > 0,
+          id: unit.uuid,
+          children: unit.children
+            ? unit.children.map(this.toNode.bind(this)) : null
+        }
+      },
+
+      /**
+       * Reset and re-fetch the tree.
+       */
+      updateTree () {
         let vm = this
-        let tree = this.$refs.tree
 
         if (!this.orgUuid) {
           return
         }
 
-        Organisation.getChildren(this.orgUuid, this.atDate)
-          .then(response => {
-            vm.treeData.length = 0
-            vm.treeData.push.apply(vm.treeData, response)
-            tree.remove({})
+        if (!this.tree) {
+          console.warn(`no tree!!!`)
+          return
+        }
 
-            this.addNodes(tree, response)
-          })
-      },
+        this.log(`updating tree org=${this.orgUuid} unit=${this.unitUuid}`)
 
-      addNodes (parent, units) {
-        units.forEach(this.addNode.bind(this, parent))
-      },
+        if (this.unitUuid) {
+          OrganisationUnit.getTree(this.unitUuid, this.atDate)
+            .then(response => {
+              vm.log('injecting unit tree')
 
-      addNode (parent, unit) {
-        parent.append({
-          text: unit.name,
-          isBatch: unit.child_count,
-          id: unit.uuid
-        })
+              vm.units = {}
+              vm.tree.remove({})
+              vm.tree.append(vm.toNode(response))
 
-        let node = this.$refs.tree.find({id: unit.uuid})
-        let isCurrent = (unit.uuid === this.currentUnit.uuid)
-        let isParent = (this.currentUnit.parents.indexOf(unit.uuid) !== -1)
+              vm.setSelection()
+            })
+        } else {
+          Organisation.getChildren(this.orgUuid, this.atDate)
+            .then(response => {
+              vm.log('injecting org tree')
 
-        if (isCurrent) {
-          setTimeout(node.select.bind(node), 0)
-        } else if (isParent) {
-          setTimeout(node.expand.bind(node), 0)
+              vm.units = {}
+              vm.tree.remove({})
+
+              for (let unit of response) {
+                vm.tree.append(vm.toNode(unit))
+              }
+            })
         }
       },
 
       fetch (node) {
+        let vm = this
+
+        this.log(`fetching ${node.text}`)
+
         if (!this.orgUuid || node.fetching) {
-          // return something that does nothing
+          // nothing to do, so return something that does nothing
           return new Promise(() => [])
         }
 
+        // ensure that we only ever have a single outstanding fetch
+        // per node; otherwise, double-clicking to expand leads to
+        // duplicates
         node.fetching = true
 
         return OrganisationUnit.getChildren(node.id, this.atDate)
           .then(response => {
-            this.addNodes(node, response)
-
             node.fetching = false
+
+            return response.map(vm.toNode.bind(vm))
           }).catch(error => {
             console.error('fetch failed', error)
 

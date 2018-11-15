@@ -7,15 +7,20 @@
 #
 
 from . import address
+from . import association  # noqa
 from . import cpr
-from . import employee
 from . import detail_reading
 from . import detail_writing
+from . import employee
+from . import engagement  # noqa
+from . import exports
 from . import facet
 from . import itsystem
+from . import leave  # noqa
+from . import manager  # noqa
 from . import org
 from . import orgunit
-from . import exports
+from . import role  # noqa
 
 blueprints = (
     address.blueprint,

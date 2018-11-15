@@ -4,7 +4,7 @@ import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
 import { baseURL } from './support'
 
-fixture('Employee IT system test')
+fixture('MoEmployeeITSystem')
   .page(`${baseURL}/medarbejder/1ce40e25-6238-4202-9e93-526b348ec745`)
 
 test('Read IT System', async t => {
