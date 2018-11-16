@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import BootstrapVue from 'bootstrap-vue'
+import { Modal, Tabs, FormInput, FormCheckbox } from 'bootstrap-vue/es/components'
 import App from './App'
 import router from './router'
 import VueI18n from 'vue-i18n'
@@ -15,7 +15,7 @@ import './icons'
 import Icon from 'vue-awesome/components/Icon'
 
 import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue'
+// import 'bootstrap-vue/dist/bootstrap-vue'
 
 import './assets/css/global.css'
 import 'moment/locale/da'
@@ -33,7 +33,10 @@ Validator.localize('da', messagesDA)
 
 Validator.extend('date_in_range', DateInRange)
 
-Vue.use(BootstrapVue)
+Vue.use(Modal)
+Vue.use(Tabs)
+Vue.use(FormInput)
+Vue.use(FormCheckbox)
 Vue.use(VueI18n)
 Vue.use(VeeValidate, veeConfig)
 Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
