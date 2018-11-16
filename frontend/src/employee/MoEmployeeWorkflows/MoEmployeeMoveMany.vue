@@ -7,7 +7,7 @@
     hide-footer 
     lazy
     no-close-on-backdrop
-    @hidden="resetData"
+    @hidden="$store.dispatch(`employeeMoveMany/resetFields`)"
   >
     <form @submit.stop.prevent="moveMany">
       <div class="form-row">
@@ -36,25 +36,21 @@
       </div>
 
       <mo-table
-        v-if="sourceSelected"
+        v-model="selected"
+        v-if="orgUnitSource"
         :content="employees" 
         :columns="columns"
         type="EMPLOYEE"
         multi-select 
-        @selected-changed="selectedEmployees"
       />
 
-      <input type="hidden"
-        v-if="sourceSelected"
-        v-model="selected.length"
-        :name="nameId"
-        v-validate="{min_value: 1}" 
-        data-vv-as="Valg af engagementer"
+      <input 
+        type="hidden"
+        v-if="orgUnitSource"
+        name="selected-employees-count"
+        :value="selected.length"
+        v-validate="{min_value: 1, required: true}" 
       >
-
-      <span v-show="errors.has(nameId)" class="text-danger">
-        {{ errors.first(nameId) }}
-      </span>
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError)}}
@@ -68,21 +64,21 @@
 </template>
 
 <script>
-/**
+  /**
    * A employee move many component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import Employee from '@/api/Employee'
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import { mapFields } from 'vuex-map-fields'
+  import { mapGetters } from 'vuex'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
+    /**
+     * Requesting a new validator scope to its children.
+     */
     $_veeValidate: {
       validator: 'new'
     },
@@ -96,27 +92,27 @@
 
     data () {
       return {
-        /**
-         * The employees, selected, moveDate, orgUnitSource, orgUnitDestination,
-         * isLoading, backendValidationError, columns component value.
-         * Used to detect changes and restore the value.
-         */
-        employees: [],
-        selected: [],
-        moveDate: null,
-        orgUnitSource: null,
-        orgUnitDestination: null,
-        isLoading: false,
-        backendValidationError: null,
-        columns: [
-          {label: 'person', data: 'person'},
-          {label: 'engagement_type', data: 'engagement_type'},
-          {label: 'job_function', data: 'job_function'}
-        ]
+        orgUnitSource: undefined
       }
     },
 
     computed: {
+      /**
+       * generate getter/setters from store
+       */
+      ...mapFields('employeeMoveMany', [
+        'selected',
+        'moveDate',
+        'orgUnitDestination',
+        'columns',
+        'backendValidationError',
+        'isLoading'
+      ]),
+
+      ...mapGetters('employeeMoveMany', [
+        'employees'
+      ]),
+
       /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
@@ -131,93 +127,41 @@
        */
       dateSelected () {
         return !this.moveDate
-      },
-
-      /**
-       * When sourceSelected is selected, return orgUnitSource.
-       */
-      sourceSelected () {
-        if (this.orgUnitSource) return this.orgUnitSource.uuid
-      },
-
-      /**
-       * Get name `engagement-picker`.
-       */
-      nameId () {
-        return 'engagement-picker-' + this._uid
       }
     },
 
     watch: {
       /**
        * Whenever orgUnitSource changes, get employees.
+       * @todo this could probably be improved. right now we need to reset orgUnitSource in the moveMany response.
        */
       orgUnitSource: {
         handler (newVal) {
-          if (newVal) this.getEmployees(newVal.uuid)
+          this.$store.commit(`employeeMoveMany/updateOrgUnitSource`, newVal)
+          this.$store.dispatch(`employeeMoveMany/getEmployees`)
         },
         deep: true
+      },
+
+      selected (val) {
+        if (this.fields['selected-employees-count']) {
+          this.$validator.validate('selected-employees-count', val.length)
+        }
       }
     },
 
     methods: {
       /**
-       * Resets the data fields.
+       * Check if fields are valid, and move employees if they are.
+       * Otherwise validate the fields.
        */
-      resetData () {
-        Object.assign(this.$data, this.$options.data())
-      },
-
-      /**
-       * Selected employees.
-       */
-      selectedEmployees (val) {
-        this.selected = val
-      },
-
-      /**
-       * Get employees detail.
-       */
-      getEmployees (orgUnitUuid) {
+      moveMany () {
         let vm = this
-        OrganisationUnit.getDetail(orgUnitUuid, 'engagement')
-          .then(response => {
-            vm.employees = response
-          })
-      },
-
-      /**
-       * Move many employees and check if the data fields are valid.
-       * Then throw a error if not.
-       */
-      moveMany (evt) {
-        evt.preventDefault()
         if (this.formValid) {
-          let vm = this
-          vm.isLoading = true
-
-          let moves = vm.selected.map(engagement => {
-            return {
-              type: 'engagement',
-              uuid: engagement.uuid,
-              data: {
-                // NB: we only need to write the changed values!
-                org_unit: vm.orgUnitDestination,
-                validity: {
-                  from: vm.moveDate
-                }
-              }
-            }
-          })
-
-          Employee.move(moves)
-            .then(response => {
-              vm.isLoading = false
-              if (response.error) {
-                vm.backendValidationError = response.error_key
-              } else {
-                vm.$refs.employeeMoveMany.hide()
-              }
+          this.$store.dispatch(`employeeMoveMany/moveManyEmployees`)
+            .then(() => {
+              vm.orgUnitSource = undefined
+              vm.$refs.employeeMoveMany.hide()
             })
         } else {
           this.$validator.validateAll()

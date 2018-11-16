@@ -3,9 +3,15 @@ Authentication
 
 OS2MO supports SAML based single sign-on for authentication
 
+Support for this is implemented through the module `Flask SAML SSO`_.
+
 This currently requires a LoRa backend setup to have
-authentication enabled as well, as LoRa is in charge of verifying
-the validity of the authentication token.
+authentication enabled as well, using the same module.
+
+Once logged in a session is created which is shared between OS2MO and LoRa,
+containing the claims given to us from the IdP.
+
+.. _Flask SAML SSO: https://github.com/magenta-aps/flask_saml_sso
 
 SAML based single sign-on (SSO)
 -------------------------------
@@ -23,31 +29,12 @@ the SP with correct configuration.
 Configuration
 """""""""""""
 
-The following configuration entries are relevant for SAML SSO:
+Configuration and general use of SAML SSO is documented in
+the `readme`_ for Flask SAML SSO.
 
-* ``"SAML_IDP_METADATA_URL"``: The URL to the IdPs metadata
-* ``"SAML_IDP_METADATA_FILE"``: The path to a file containing IdP metadata.
-  This parameter will override the URL parameter.
+The following additional configuration entries exist for auth in OS2MO.
+
 * ``"SAML_USERNAME_ATTR"``: The name of the attribute in the SAML assertion
   containing the username.
-* ``"SAML_IDP_INSECURE"``: Whether or not the IdP metadata endpoint should be
-  accessed insecurely (useful is testing setups where the IdP uses self-signed
-  certificates).
-* ``"SAML_REQUESTS_SIGNED"``: Whether requests towards the
-  IdP should be signed.
-* ``"SAML_KEY_FILE"``: Path to private key file, used for signing requests.
-* ``"SAML_CERT_FILE"``: Path to a public certificate file, used for signing
-  requests.
 
-Example configuration entries::
-
-  {
-    ...
-    "SAML_IDP_METADATA_URL": "https://192.168.1.212/simplesaml/saml2/idp/metadata.php",
-    "SAML_USERNAME_ATTR": "urn:oid:2.5.4.41",
-    "SAML_IDP_INSECURE": true,
-    "SAML_AUTHN_REQUESTS_SIGNED": true,
-    "SAML_KEY_FILE": "/etc/ssl/server.key",
-    "SAML_CERT_FILE": "/etc/ssl/server.crt"
-    ...
-  }
+.. _readme: https://github.com/magenta-aps/flask_saml_sso/blob/master/README.rst

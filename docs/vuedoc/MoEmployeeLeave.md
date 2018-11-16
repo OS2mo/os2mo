@@ -6,11 +6,10 @@ A employee create leave component.
 
 - `isLoading` 
 
+  The isLoading component value.
+  Used to detect changes and restore the value. 
+
 **initial value:** `false` 
-
-- `backendValidationError` 
-
-**initial value:** `null` 
 
 ## computed properties 
 
