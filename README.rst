@@ -52,7 +52,7 @@ LoRa (Backend / Model)
 En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
-Lora anvender OIO-standarderne for sag, dokument, organisation og klassifikation
+LoRa anvender OIO-standarderne for sag, dokument, organisation og klassifikation
 
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
