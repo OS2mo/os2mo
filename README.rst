@@ -251,6 +251,13 @@ Kør nedenstående kommando for at autogenerere dokumentationen::
 Dokumentation kan nu findes ved at åbne filen
 ``/sti/til/mora/docs/out/index.html``.
 
+Kodestandarder
+--------------
+
+Der anvendes overalt i python-koden styleguiden pep8.
+
+
+
 Licens og Copyright
 -------------------
 
