@@ -1,4 +1,4 @@
-Version 0.12.0 (in development)
+Version 0.12.0, 2018-11-16
 ===============================
 
 New features
@@ -14,19 +14,9 @@ Internal changes
 * 25193: Improved handling of external configuration files for OS2MO.
   A warning is no longer triggered on unknown settings.
 
-API changes
------------
-
-
-* TBD
-
 Bug fixes
 ---------
 * #24738: Removed sorting and icons for some columns.
-
-
-Known bugs
-----------
 
 
 Version 0.11.1 2018-11-02
