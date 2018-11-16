@@ -1,0 +1,17 @@
+{
+  "past": "Fortid",
+  "present": "Nutid",
+  "future": "Fremtid",
+  "time_machine": "Tidsmaskine | Tidsmaskinen",
+  "help": "Hjælp",
+  "sign_in": "Log ind",
+  "sign_out": "Log ud",
+  "search": "Søg",
+  "welcome_message": "Velkommen til MO",
+  "welcome_tagline": "Medarbejder | Organisation",
+  "overview": "Overblik",
+  "work_log": "Arbejdslog",
+  "username": "Brugernavn",
+  "password": "Kodeord",
+  "remember_me": "Husk mig"
+}

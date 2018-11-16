@@ -13,7 +13,7 @@
       @update-items="updateItems"
       :auto-select-one-item="false"
       :min-len="2"
-      placeholder="Søg"
+      :placeholder="$t('common.search')"
     />
   </div>
 </template>

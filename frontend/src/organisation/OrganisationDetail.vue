@@ -22,6 +22,7 @@
 
       <organisation-detail-tabs 
         :uuid="$route.params.uuid" 
+        :org-unit-info="orgUnit"
         :content="$store.getters['organisationUnit/GET_DETAILS']" 
         @show="loadContent($event)"/>
     </div>

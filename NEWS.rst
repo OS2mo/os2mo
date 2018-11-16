@@ -3,13 +3,16 @@ Version 0.12.0 (in development)
 
 New features
 ------------
-* #24652: Best practices added for implementation in organization
+
+* 24652: Best practices added for implementation in organization
+* 23928: Updated auth to use Flask SAML SSO module.
+  Session is now shared between OS2MO and LoRa.
 
 Internal changes
 ----------------
 
-
-* TBD
+* 25193: Improved handling of external configuration files for OS2MO.
+  A warning is no longer triggered on unknown settings.
 
 API changes
 -----------
@@ -24,6 +27,16 @@ Bug fixes
 
 Known bugs
 ----------
+
+
+Version 0.11.1 2018-11-02
+==========================
+
+Bug fixes
+---------
+
+* #25028: Timemachine now shows and updates the organisation unit 
+  view when changing organisation unit
 
 
 Version 0.11.0, 2018-10-30
