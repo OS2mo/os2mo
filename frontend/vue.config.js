@@ -4,6 +4,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 module.exports = {
   assetsDir: 'static',
   lintOnSave: true,
+  runtimeCompiler: true, // allows the template option in components
   configureWebpack: {
     plugins: [
       new webpack.HashedModuleIdsPlugin(), // so that file hashes don't change unexpectedly
