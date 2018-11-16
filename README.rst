@@ -52,6 +52,7 @@ LoRa (Backend / Model)
 En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
+Lora anvender OIO-standarderne for sag, dokument, organisation og klassifikation
 
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -258,6 +259,8 @@ Copyright (c) 2017-2018, Magenta ApS.
 Dette værk er frigivet under `Mozilla Public License, version 2.0 <https://www.mozilla.org/en-US/MPL/>`_, som gengivet i ``LICENSE``. 
 Dette er et OS2 projekt. Ophavsretten tilhører de individuelle bidragydere.
 
+Der findes en version af core-koden, og den er placeret her: `https://github.com/OS2mo <https://github.com/OS2mo>`_
+
 Værket anvender følgende Open Source software-komponenter:
 
 * `Flask <https://www.palletsprojects.com/p/flask/>`_, BSD License
@@ -272,4 +275,4 @@ Værket anvender følgende Open Source software-komponenter:
 * `python-dateutil <https://dateutil.readthedocs.io>`_, BSD License, Apache Software License
 * `python3-saml <https://github.com/onelogin/python3-saml>`_, MIT License
 * `requests <http://python-requests.org>`_, Apache Software License
-
+* `vue.js <https://vuejs.org/>`_, MIT License
