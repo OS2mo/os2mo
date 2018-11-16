@@ -2,13 +2,13 @@
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
     <router-link class="logo col-1" :to="{ name: 'Landing'}"></router-link>
 
-    <button 
-      class="navbar-toggler" 
-      type="button" 
-      data-toggle="collapse" 
-      data-target="#navbarSupportedContent" 
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent"
-      aria-expanded="false" 
+      aria-expanded="false"
       aria-label="Toggle navigation"
     >
       <span class="navbar-toggler-icon"></span>

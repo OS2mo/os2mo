@@ -84,7 +84,7 @@ export default {
   .wrapper {
     margin-top: 1em;
   }
-  
+
   .card-header {
     border-bottom: none;
     padding: 0.25rem 1.25rem;
