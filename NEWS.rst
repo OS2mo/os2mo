@@ -4,19 +4,49 @@ Version 0.12.0, 2018-11-16
 New features
 ------------
 
-* 24652: Best practices added for implementation in organization
-* 23928: Updated auth to use Flask SAML SSO module.
+* #23928: We now use our `Flask SAML SSO
+  <https://github.com/magenta-aps/flask_saml_sso/>`_ module for
+  authentication.
   Session is now shared between OS2MO and LoRa.
+* #22382: Manager hierarchy - the service returns all managers in a
+  hierarchical order
+* #24077: We now support access addresses in addition to regular 
+  addresses from Dansk Adresseregister, with combined autocompletion 
+  of the two.
+
 
 Internal changes
 ----------------
 
-* 25193: Improved handling of external configuration files for OS2MO.
+* #25193: Improved handling of external configuration files for OS2MO.
   A warning is no longer triggered on unknown settings.
+* #24545: OS2MO 2.0 as an OS2 Level 3 Product
+* #24664: Meet the requirements of the standard or explain why you do not
+  https://mora.readthedocs.io/en/master/README.html?highlight=sag#lora-backend-model
+* #24656: Documentation of the requirements for operating the solution
+  https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
+* #24659: Only one version of the core code: https://github.com/OS2mo
+* #24662: Best practice for implementing the solution in your organization
+  https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
+* #24661: Presentation material
+  https://www.magenta.dk/?service=rammearkitektur &
+  https://os2.eu/projekt/os2mo
+* #24663: Codestandards
+  https://mora.readthedocs.io/en/master/README.html#kodestandarder
+* #24665: Process plan for the implementation of the solution
+  https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
+* #24655: Open Source license criteria are met 
+  https://mora.readthedocs.io/en/master/README.html#licens-og-copyright
+
 
 Bug fixes
 ---------
 * #24738: Removed sorting and icons for some columns.
+
+Known bugs
+----------
+* #25405: Validation errors when creating org unit relations outside of the
+  parent org unit range are not properly shown in UI
 
 
 Version 0.11.1 2018-11-02
