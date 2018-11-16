@@ -254,9 +254,7 @@ Dokumentation kan nu findes ved at åbne filen
 Kodestandarder
 --------------
 
-Der anvendes overalt i python-koden styleguiden pep8.
-
-
+Der anvendes overalt i python-koden styleguiden `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
 
 Licens og Copyright
 -------------------
