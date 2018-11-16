@@ -5,12 +5,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from os import path as _path
+from os import path as _path, getenv
 
 from . import util as _util
 
 BASE_DIR = _path.dirname(_path.dirname(_path.abspath(__file__)))
-CONFIG_FILE = _path.join(BASE_DIR, '..', 'setup', 'mora.json')
+CONFIG_FILE = getenv('OS2MO_CONFIG_FILE',
+                     _path.join(BASE_DIR, '..', 'setup', 'mora.json'))
 
 MAX_REQUEST_LENGTH = 4096
 DEFAULT_PAGE_SIZE = 2000
