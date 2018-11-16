@@ -214,7 +214,7 @@
         this.log(`updating tree org=${this.orgUuid} unit=${this.unitUuid}`)
 
         if (this.unitUuid) {
-          OrganisationUnit.getTree(this.unitUuid, this.atDate)
+          OrganisationUnit.getAncestorTree(this.unitUuid, this.atDate)
             .then(response => {
               vm.log('injecting unit tree')
 

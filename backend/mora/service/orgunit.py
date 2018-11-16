@@ -484,16 +484,24 @@ def get_tree(c, unitid):
     return ancestors[id_path[0]]
 
 
-@blueprint.route('/ou/<uuid:unitid>/tree')
+@blueprint.route('/ou/<uuid:unitid>/ancestor-tree')
 @util.restrictargs('at')
 def get_unit_tree(unitid):
-    '''Obtain the unit hierarchy up to and including the given unit.
+    '''Obtain the tree of ancestors for a given unit.
 
-    .. :quickref: Unit; Tree
+    The tree includes the following:
 
-    :param unitid: The UUID of the organisational unit to be terminated.
+    * Every ancestor of the unit.
+    * Every sibling of every ancestor, with a child count.
 
-    :param see: http:get:`/service/ou/(uuid:unitid)/`.
+    The intent of this routine is to enable easily showing the tree
+    _up to and including_ a given unit in a UI.
+
+    .. :quickref: Unit; Ancestor tree
+
+    :param unitid: The UUID of the organisational unit.
+
+    :see: http:get:`/service/ou/(uuid:unitid)/`.
 
     **Example Response**:
 
