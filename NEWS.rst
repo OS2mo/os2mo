@@ -1,3 +1,12 @@
+Version 0.13.0 (in development)
+===============================
+
+Internal changes
+----------------
+
+* 23799: Added custom UUID url converter, stringifying UUID parameters in
+  order to standardise our use of UUIDs internally.
+
 Version 0.12.0 (in development)
 ===============================
 
