@@ -36,6 +36,7 @@ import uuid
 import flask
 import dateutil.parser
 import dateutil.tz
+from werkzeug.routing import UUIDConverter
 
 from . import exceptions
 from . import mapping
@@ -792,3 +793,9 @@ def get_args_flag(name: str):
         return False
     else:
         return bool(v)
+
+
+class StrUUIDConverter(UUIDConverter):
+    """Custom URL converter returning UUIDs as strings rather than UUIDs"""
+    def to_python(self, value):
+        return str(value)
