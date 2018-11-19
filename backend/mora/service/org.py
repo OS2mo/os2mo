@@ -136,7 +136,6 @@ def get_organisation(orgid):
 
     '''
 
-    orgid = str(orgid)
     c = common.get_connector()
 
     org = c.organisation.get(orgid)

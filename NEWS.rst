@@ -1,17 +1,27 @@
+Version 0.13.0 (in development)
+===============================
+
+Internal changes
+----------------
+
+* 23799: Added custom UUID url converter, stringifying UUID parameters in
+  order to standardise our use of UUIDs internally.
+
 Version 0.12.0 (in development)
 ===============================
 
 New features
 ------------
 
+* 24652: Best practices added for implementation in organization
 * 23928: Updated auth to use Flask SAML SSO module.
   Session is now shared between OS2MO and LoRa.
 
 Internal changes
 ----------------
 
-
-* TBD
+* 25193: Improved handling of external configuration files for OS2MO.
+  A warning is no longer triggered on unknown settings.
 
 API changes
 -----------
