@@ -12,7 +12,7 @@ const dialog = Selector('#orgUnitCreate')
 const unitSelect = dialog.find('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
 
-const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
+const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
 const parentInput = dialog.find('input[data-vv-as="Enhed"]')
@@ -51,10 +51,10 @@ test('Workflow: create unit', async t => {
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Ballerup VM 2018')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
 
     .click(unitSelect)
-    .click(unitOption.withText('Supportcenter'))
+    .click(unitOption.withText('Fagligt center'))
 
     .click(parentInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))
@@ -67,10 +67,11 @@ test('Workflow: create unit', async t => {
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(addressInput)
-    .typeText(addressInput.find('input'), 'Hold-An')
-    .expect(addressItem.withText('Hold-An Vej').visible).ok()
+    .typeText(addressInput.find('input'), 'hovedvejen 2')
+    .expect(addressItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(addressInput.find('input').value).contains('Hold-An Vej')
+    .expect(addressInput.find('input').value)
+    .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
 
     // .click(newDate)
     // .click(newDateInput)
@@ -80,7 +81,7 @@ test('Workflow: create unit', async t => {
     //        .withText(today.date().toString()))
     // .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
 
-    .typeText(dialog.find('input[data-vv-as="Telefonnummer"]'), '44772000')
+    .typeText(dialog.find('input[data-vv-as="Tlf"]'), '44772000')
 
     .click(dialog.find('.btn-primary'))
 

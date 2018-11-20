@@ -5,7 +5,7 @@ import VueSelector from 'testcafe-vue-selectors'
 let moment = require('moment')
 
 fixture('MoOrganisationUnitMove')
-  .page(`${baseURL}/organisation/c12393e9-ee1d-4b91-a6a9-a17508c055c9`)
+  .page(`${baseURL}/organisation/fb816fdf-bef3-4d49-89cb-3d3bde3e5b54`)
 
 const dialog = Selector('#orgUnitMove')
 
@@ -20,27 +20,26 @@ const tree = VueSelector('the-left-menu mo-tree-view')
 let currentUnitName = Selector('.orgunit .orgunit-name')
 
 
-test('Prerequisite: URL & tree', async t => {
-
-  await t
-    .expect(currentUnitName.innerText)
-    .eql('Ballerup Familiehus')
-    .expect(tree.find('.selected').exists)
-    .ok()
-    .expect(tree.getVue(({ computed }) => computed.contents))
-    .eql({
-      "Ballerup Kommune": [
-        "Ballerup Bibliotek",
-        "=+= Ballerup Familiehus =+=",
-        "Ballerup Idrætspark"
-      ]
-    })
-})
-
 test('Workflow: move unit', async t => {
   let today = moment()
 
   await t
+    .expect(currentUnitName.visible)
+    .ok()
+    .expect(currentUnitName.innerText)
+    .eql('Social og sundhed')
+    .expect(tree.find('.selected').exists)
+    .ok()
+    .expect(tree.getVue(({ computed }) => computed.contents))
+    .eql({
+      "Hjørring": [
+        "> Borgmesterens Afdeling",
+        "> Skole og Børn",
+        "=+= Social og sundhed =+=",
+        "> Teknik og Miljø"
+      ]
+    })
+
     .hover('#mo-workflow', {offsetX: 10, offsetY: 90})
     .click('.btn-unit-move')
 
@@ -48,16 +47,20 @@ test('Workflow: move unit', async t => {
 
     .click(unitInput)
     .click(dialog.find('.currentUnit .tree-node')
-           .withText('Ballerup Kommune').find('.tree-arrow'))
-    .click(dialog.find('.currentUnit .tree-node')
-           .withText('Ballerup Familiehus'))
+           .withText('Hjørring').find('.tree-arrow'))
+    .click(dialog.find('.currentUnit .tree-anchor')
+           .withText('Social og sundhed'))
+    .expect(dialog.find('.currentUnit input[data-vv-as="Enhed"]').value)
+    .eql('Social og sundhed')
 
     .click(parentInput)
     .click(dialog.find('.parentUnit .tree-node')
-           .withText('Ballerup Kommune')
+           .withText('Hjørring')
            .find('.tree-arrow'))
     .click(dialog.find('.parentUnit .tree-anchor')
-           .withText('Ballerup Bibliotek'))
+           .withText('Borgmesterens Afdeling'))
+    .expect(dialog.find('.parentUnit input[data-vv-as="Enhed"]').value)
+    .eql('Borgmesterens Afdeling')
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -76,30 +79,36 @@ test('Workflow: move unit', async t => {
       /Organisationsenheden med UUID [-0-9a-f]* er blevet flyttet/
     )
 
+    .expect(tree.getVue(({ computed }) => computed.contents))
+    .eql({
+      "Hjørring": [
+        {
+          "Borgmesterens Afdeling": [
+            "Budget og Planlægning",
+            "Byudvikling",
+            "Erhverv",
+            "HR og organisation",
+            "IT-Support",
+            "=+= Social og sundhed =+="
+          ]
+        },
+        "> Skole og Børn",
+        "> Teknik og Miljø"
+      ]
+    })
+
     .expect(Selector('.orgunit-name').textContent)
-    .eql('Ballerup Familiehus')
-    .expect(Selector('.orgunit-location').textContent)
-    .eql('Ballerup Kommune/Ballerup Bibliotek')
+    .eql('Social og sundhed')
+    .expect(Selector('.orgunit-location').textContent, {timeout: 1500})
+    .eql('Hjørring/Borgmesterens Afdeling')
     .expect(Selector('.detail-present ul.parent-name').textContent)
-    .match(/Ballerup Bibliotek/)
+    .match(/Borgmesterens Afdeling/)
 
     .click(Selector('.detail-past .card-header'))
     .expect(Selector('.detail-past ul.parent-name').textContent)
-    .match(/Ballerup Kommune/)
+    .match(/Hjørring/)
 
     .click(Selector('.detail-future .card-header'))
     .expect(Selector('.detail-past ul.parent-name').textContent)
-    .match(/Ballerup Kommune/)
-
-    .expect(tree.getVue(({ computed }) => computed.contents))
-    .eql({
-      "Ballerup Kommune": [
-        {
-          "Ballerup Bibliotek": [
-            "=+= Ballerup Familiehus =+="
-          ]
-        },
-        "Ballerup Idrætspark"
-      ]
-    })
+    .match(/Hjørring/)
 })

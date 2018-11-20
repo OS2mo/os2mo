@@ -32,13 +32,13 @@ test('Workflow: move employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeInput)
-    .typeText(searchEmployeeInput.find('input'), 'sune')
-    .expect(searchEmployeeItem.withText('Sune Skriver').visible).ok()
+    .typeText(searchEmployeeInput.find('input'), 'carlo')
+    .expect(searchEmployeeItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(searchEmployeeInput.find('input').value).eql('Sune Skriver')
+    .expect(searchEmployeeInput.find('input').value).eql('Carlo  Kryger')
 
     .click(engagementSelect)
-    .click(engagementOption.withText('Ansat, Ballerup Kommune'))
+    .click(engagementOption.withText('Ansat, Social og sundhed'))
 
     .click(unitInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))

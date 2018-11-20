@@ -16,6 +16,8 @@ import subprocess
 import traceback
 import unittest
 
+import psycopg2
+
 from mora import util as mora_util
 
 from . import util
@@ -66,12 +68,14 @@ class TestCafeTests(util.LiveLoRATestCase):
             'BASE_URL': self.get_server_url(),
         }
 
+        with psycopg2.connect(self.db_url) as conn, conn.cursor() as curs:
+            conn.autocommit = True
+
+            curs.execute(util.get_mock_text('../fixtures/dummy.sql'))
+
         browser = os.environ.get('BROWSER',
                                  'safari' if platform.system() == 'Darwin'
                                  else 'chromium:headless --no-sandbox')
-
-        with util.mock('dawa-ballerup.json', allow_mox=True):
-            util.import_fixture('BALLERUP.csv')
 
         xml_report_file = os.path.join(util.REPORTS_DIR,
                                        test_name + ".xml")

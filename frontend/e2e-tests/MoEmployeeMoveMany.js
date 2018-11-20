@@ -35,14 +35,14 @@ test('Workflow: moveMany employee', async t => {
 
     .click(parentFromInput)
     .click(dialog.find('.from-unit span.tree-anchor')
-           .withText('Ballerup Kommune'))
+           .withText('Hjørring'))
 
     .click(parentToInput)
     .click(dialog.find('.to-unit .tree-node')
-           .withText('Ballerup Kommune')
+           .withText('Hjørring')
            .find('.tree-arrow'))
     .click(dialog.find('.to-unit span.tree-anchor')
-           .withText('Ballerup Bibliotek'))
+           .withText('Social og sundhed'))
 
     .click(checkboxInput)
 
