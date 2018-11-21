@@ -60,12 +60,6 @@ test('Workflow: move employee', async t => {
     .expect(VueSelector('MoLog MoWorklog')
             .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet redigeret/
-    )
-
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-2).innerText)
-    .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet flyttet/
     )
 })
