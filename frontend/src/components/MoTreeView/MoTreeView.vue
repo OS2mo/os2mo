@@ -93,29 +93,27 @@
     mounted () {
       const vm = this
 
+      this.tree.$on('node:added', node => {
+        console.log(`TREE: adding node ${node.id}`)
+      })
+
+      this.tree.$on('node:removed', node => {
+        console.log(`TREE: removing node ${node.id}`)
+        delete vm.units[node.id]
+      })
+
       this.tree.$on('node:selected', node => {
         vm.$emit('input', vm.units[node.id])
       })
 
-      EventBus.$on('update-tree-view', () => vm.updateTree())
+      this.tree.$on('node:expanded', node => {
+        console.log('expanded', node.text, node.id)
+      })
 
-      EventBus.$on('organisation-unit-changed', () => vm.updateTree())
+      EventBus.$on('update-tree-view', () => vm.updateTree(true))
 
-      // this.tree.$on('node:expanded', node => {
-      //   console.log('expanded', node.text, node.id)
-      // })
-
-      // this.tree.$on('node:unselected', node => {
-      //   console.log('deselected', node.text)
-      // })
-
-      // this.tree.$on('tree:data:fetch', node => {
-      //   console.log('fetching', node.text, node.id)
-      // })
-
-      // this.tree.$on('tree:data:received', node => {
-      //   console.log('received', node.text, node.children)
-      // })
+      EventBus.$on('organisation-unit-changed', () =>
+                   vm.updateTree(true))
 
       this.updateTree()
     },
@@ -172,12 +170,32 @@
         this.log(`selecting ${unitid}`)
         this.tree.tree.unselectAll()
 
-        for (let n of this.tree.tree.find({id: unitid})) {
+        let n = this.tree.tree.getNodeById(unitid)
+
+        if (n) {
           n.expandTop()
           n.select()
         }
       },
 
+      addNode (unit, parent) {
+        let preexisting = this.tree.tree.getNodeById(unit.uuid)
+
+        if (preexisting) {
+          if (unit.children) {
+            for (let child of unit.children) {
+              this.addNode(child, preexisting)
+            }
+          }
+
+          preexisting.text = unit.name
+          preexisting.isBatch = unit.children ? false : unit.child_count > 0
+        } else if (parent) {
+          parent.append(this.toNode(unit))
+        } else {
+          this.tree.append(this.toNode(unit))
+        }
+      },
       /**
        * Convert a unit object into a node suitable for adding to the
        * tree.
@@ -191,36 +209,32 @@
           text: unit.name,
           isBatch: unit.children ? false : unit.child_count > 0,
           id: unit.uuid,
-          children: unit.children
-            ? unit.children.map(this.toNode.bind(this)) : null
+          children: unit.children ? unit.children.map(this.toNode.bind(this)) : null
         }
       },
 
       /**
        * Reset and re-fetch the tree.
        */
-      updateTree () {
+      updateTree (force) {
         let vm = this
 
-        if (!this.orgUuid) {
+        if (!this.orgUuid || !this.tree) {
           return
         }
 
-        if (!this.tree) {
-          console.warn(`no tree!!!`)
-          return
+        if (force) {
+          this.tree.remove({}, true)
+          this.units = {}
         }
-
-        this.log(`updating tree org=${this.orgUuid} unit=${this.unitUuid}`)
 
         if (this.unitUuid) {
           OrganisationUnit.getAncestorTree(this.unitUuid, this.atDate)
             .then(response => {
-              vm.log('injecting unit tree')
+              vm.log('injecting unit tree', response.uuid)
 
-              vm.units = {}
-              vm.tree.remove({})
-              vm.tree.append(vm.toNode(response))
+              vm.addNode(response, null)
+              vm.tree.sort()
 
               vm.setSelection()
             })
@@ -230,11 +244,12 @@
               vm.log('injecting org tree')
 
               vm.units = {}
-              vm.tree.remove({})
 
               for (let unit of response) {
-                vm.tree.append(vm.toNode(unit))
+                vm.addNode(unit, null)
               }
+
+              vm.tree.sort()
             })
         }
       },
