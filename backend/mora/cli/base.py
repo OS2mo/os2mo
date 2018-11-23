@@ -273,11 +273,7 @@ def full_run(**kwargs):
             mock.patch('oio_rest.db.pool',
                        psycopg2.pool.PersistentConnectionPool(
                            0, 100,
-                           database=lora_settings.DATABASE,
-                           user=psql.dsn()['user'],
-                           password=psql.dsn().get('password'),
-                           host=psql.dsn()['host'],
-                           port=psql.dsn()['port'],
+                           **psql.dsn(database=lora_settings.DATABASE),
                        )), \
             mock.patch('mora.settings.LORA_URL',
                        'http://localhost:{}/'.format(lora_port)):
