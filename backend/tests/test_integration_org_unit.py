@@ -2786,3 +2786,10 @@ class Tests(util.LoRATestCase):
             '/details/org_unit?validity=future',
             [],
         )
+
+    def test_tree(self):
+        self.load_sql_fixture()
+
+        for path, expected in util.get_fixture('test_trees.json').items():
+            with self.subTest(path):
+                self.assertRequestResponse(path, expected)

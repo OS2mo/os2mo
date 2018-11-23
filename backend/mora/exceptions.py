@@ -88,6 +88,7 @@ class ErrorCodes(Enum):
     E_ORIGINAL_ENTRY_NOT_FOUND = 400, "Original entry not found."
     E_NO_LOCAL_MUNICIPALITY = 400, "No local municipality found."
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
+    E_TOO_MANY_RESULTS = 400, "Amount of results exceeds limit."
 
     # Misc
     E_INVALID_INPUT = 400, "Invalid input."
