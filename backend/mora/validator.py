@@ -115,17 +115,13 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     org_unit = scope.get(org_unit_uuid)
 
     if not org_unit:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=org_unit_uuid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=org_unit_uuid)
 
     gyldighed_key = "organisationenhedgyldighed"
 
     if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
                                 gyldighed_key):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
+        exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
             org_unit_uuid=org_unit_uuid,
             wanted_valid_from=util.to_iso_date(valid_from),
             wanted_valid_to=util.to_iso_date(valid_to, is_end=True),
@@ -144,9 +140,8 @@ def is_distinct_responsibility(
     duplicates = sorted(v for v, c in uuid_counts.items() if c > 1)
 
     if duplicates:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_DUPLICATED_RESPONSIBILITY,
-            duplicates=duplicates
+        exceptions.ErrorCodes.V_DUPLICATED_RESPONSIBILITY(
+            duplicates=duplicates,
         )
 
 
@@ -167,17 +162,13 @@ def is_date_range_in_employee_range(employee_obj: dict,
         employee = scope.get(employee_uuid)
 
         if not employee:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_USER_NOT_FOUND,
-                employee_uuid=employee_uuid,
-            )
+            exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
 
         gyldighed_key = "brugergyldighed"
 
         if not _is_date_range_valid(employee, valid_from, valid_to, scope,
                                     gyldighed_key):
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
                 employee_uuid=employee_uuid,
                 **_get_active_validity(employee),
             )
@@ -185,8 +176,7 @@ def is_date_range_in_employee_range(employee_obj: dict,
 
 def is_contained_in_employee_range(empl_from, empl_to, valid_from, valid_to):
     if valid_from < empl_from or empl_to < valid_to:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE,
+        exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
             valid_from=util.to_iso_date(empl_from),
             valid_to=util.to_iso_date(empl_to),
             wanted_valid_from=util.to_iso_date(valid_from),
@@ -215,12 +205,10 @@ def is_candidate_parent_valid(unitid: str, parent: str,
     orgid = org_unit_relations['tilhoerer'][0]['uuid']
 
     if org_unit_relations['overordnet'][0]['uuid'] == orgid:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT)
+        exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT()
 
     if parent == orgid:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL)
+        exceptions.ErrorCodes.V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL()
 
     # Use for checking that the candidate parent is not the units own subtree
     seen = {unitid}
@@ -230,8 +218,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
     while True:
         # this captures moving to a child as well as moving into a loop
         if parent in seen:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD,
+            exceptions.ErrorCodes.V_ORG_UNIT_MOVE_TO_CHILD(
                 org_unit_uuid=parent,
             )
 
@@ -240,15 +227,13 @@ def is_candidate_parent_valid(unitid: str, parent: str,
         parentobj = c.organisationenhed.get(uuid=parent)
 
         if not parentobj:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
                 org_unit_uuid=parent,
             )
 
         # ensure the parent is active
         if not util.is_reg_valid(parentobj):
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE,
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
                 org_unit_uuid=parent,
             )
 
@@ -256,8 +241,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
 
         # ensure it's in the same organisation
         if parentorg != orgid:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_UNIT_OUTSIDE_ORG,
+            exceptions.ErrorCodes.V_UNIT_OUTSIDE_ORG(
                 org_unit_uuid=parent,
                 current_org_uuid=orgid,
                 target_org_uuid=parentorg,
@@ -295,10 +279,7 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
         if association_uuid and existing == association_uuid:
             return
 
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
-            existing=existing
-        )
+        exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION(existing=existing)
 
 
 def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
@@ -330,7 +311,4 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
     ]
 
     if not valid_effects:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT,
-            employee=employee_uuid
-        )
+        exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT(employee=employee_uuid)

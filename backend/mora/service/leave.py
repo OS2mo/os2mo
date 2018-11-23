@@ -39,10 +39,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         userobj = c.bruger.get(employee_uuid)
 
         if not userobj:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_USER_NOT_FOUND,
-                employee_uuid=employee_uuid,
-            )
+            exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
 
         org_uuid = userobj['relationer']['tilhoerer'][0]['uuid']
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,

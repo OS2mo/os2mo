@@ -447,10 +447,7 @@ def get_detail(type, id, function):
 
     # ensure that we report an error correctly
     if function not in handlers.FUNCTION_KEYS:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-            type=function,
-        )
+        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=function)
 
     search.update(
         limit=int(flask.request.args.get('limit', 0)) or

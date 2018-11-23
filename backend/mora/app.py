@@ -74,8 +74,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     @app.route('/<path:path>')
     def root(path=''):
         if path.split('/', 1)[0] == 'service':
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
+            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
         return flask.send_file('index.html')
 

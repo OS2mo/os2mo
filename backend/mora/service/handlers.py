@@ -233,10 +233,7 @@ def get_handler_for_role_type(role_type: str):
     try:
         return HANDLERS_BY_ROLE_TYPE[role_type]
     except LookupError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
-            type=role_type,
-        )
+        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
 def generate_requests(
@@ -246,8 +243,7 @@ def generate_requests(
     operations = {req.get('type') for req in requests}
 
     if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE,
+        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(
             types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
         )
 

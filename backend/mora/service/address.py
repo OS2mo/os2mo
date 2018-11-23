@@ -331,9 +331,8 @@ def get_relation_for(addrobj, fallback=None):
         r['objekttype'] = util.get_uuid(typeobj)
 
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            'unknown address scope {!r}!'.format(scope)
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            'unknown address scope {!r}!'.format(scope),
         )
 
     return r
@@ -426,9 +425,8 @@ def get_one_address(c, addrrel, class_cache=None):
         urn = addrrel['urn']
 
         if not urn.startswith(prefix):
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
-                'invalid urn {!r}'.format(addrrel['urn'])
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                'invalid urn {!r}'.format(addrrel['urn']),
             )
 
         name = urn[len(prefix):]
@@ -453,8 +451,7 @@ def get_one_address(c, addrrel, class_cache=None):
         }
 
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
+        exceptions.ErrorCodes.E_INVALID_INPUT(
             'invalid address scope {!r}'.format(scope),
         )
 
@@ -517,8 +514,7 @@ class AddressRequestHandler(handlers.ReadingRequestHandler):
         try:
             addresses = original['relationer']['adresser']
         except KeyError:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
+            exceptions.ErrorCodes.E_INVALID_INPUT(
                 'no addresses to edit!',
             )
 
@@ -608,8 +604,7 @@ def get_id_and_type(req: dict):
 
     # this is logical xor, negated
     if (employee_uuid is not None) == (org_unit_uuid is not None):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
+        exceptions.ErrorCodes.E_INVALID_INPUT(
             'must specify only one of {} and {}!'.format(
                 mapping.PERSON,
                 mapping.ORG_UNIT,
@@ -643,15 +638,9 @@ def get_scope_and_original(obj_uuid, obj_type):
 
     if not obj:
         if obj_type == 'e':
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_USER_NOT_FOUND,
-                uuid=obj_uuid,
-            )
+            exceptions.ErrorCodes.E_USER_NOT_FOUND(uuid=obj_uuid)
         else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-                uuid=obj_uuid,
-            )
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(uuid=obj_uuid)
 
     return scope, obj
 
@@ -701,8 +690,7 @@ def address_autocomplete(orgid):
         org = lora.Connector().organisation.get(orgid)
 
         if not org:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY)
+            exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
 
         for myndighed in org.get('relationer', {}).get('myndighed', []):
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get('urn'))
@@ -711,8 +699,7 @@ def address_autocomplete(orgid):
                 code = int(m.group(1))
                 break
         else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY)
+            exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
     else:
         code = None
 

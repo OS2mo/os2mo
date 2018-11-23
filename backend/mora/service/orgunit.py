@@ -69,9 +69,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     @classmethod
     def get(cls, scope, objid):
         if scope.path != 'organisation/organisationenhed':
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
-            )
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
         c = scope.connector
 
@@ -128,8 +126,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             if organisation_get:
                 org_uuid = parent_uuid
             else:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
+                exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
                     parent_uuid=parent_uuid,
                     org_unit_uuid=unitid,
                 )
@@ -173,10 +170,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         original = c.organisationenhed.get(uuid=unitid)
 
         if not original:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-                org_unit_uuid=unitid,
-            )
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
 
@@ -202,8 +196,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                   mapping.ORG_UNIT)
 
             if original_uuid and original_uuid != unitid:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                exceptions.ErrorCodes.E_INVALID_INPUT(
                     'cannot change unit uuid!',
                 )
 
@@ -405,10 +398,7 @@ def get_children(type, parentid):
     obj = scope.get(parentid)
 
     if not obj or not obj.get('attributter'):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=parentid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
 
     children = [
         get_one_orgunit(c, childid, child)
@@ -610,10 +600,7 @@ def get_orgunit(unitid):
     r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
 
     if not r:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=unitid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
     return flask.jsonify(r)
 
@@ -828,8 +815,7 @@ def terminate_org_unit(unitid):
     )
 
     if children['total'] or roles:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
             child_units=children['items'],
             child_count=children['total'],
             role_count=len(roles),
@@ -909,10 +895,7 @@ def get_org_unit_history(unitid):
                                                  registrerettil='infinity')
 
     if not unit_registrations:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=unitid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))

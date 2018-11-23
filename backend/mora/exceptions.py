@@ -40,6 +40,10 @@ class ErrorCodes(Enum):
     def code(self):
         return self.value[0]
 
+    def __call__(self, *args, **kwargs):
+        '''Raise an :py:class:`HTTPException` for this error code'''
+        raise HTTPException(self, *args, **kwargs)
+
     # Validation errors
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
     V_INVALID_VALIDITY = 400, "Invalid validity."
