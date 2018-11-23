@@ -257,7 +257,6 @@ def full_run(**kwargs):
     import settings as lora_settings
 
     from mora import app
-    from mora.importing import spreadsheets
 
     lora_server = werkzeug.serving.make_server(
         'localhost', 0, lora_app.app,
