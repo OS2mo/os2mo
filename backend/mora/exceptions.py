@@ -129,7 +129,7 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         # this aids debugging
         if flask.current_app.debug:
             if cause is None:
-                self.__cause__ or sys.exc_info()[1]
+                cause = self.__cause__ or self
 
             if isinstance(cause, Exception):
                 body.update(
