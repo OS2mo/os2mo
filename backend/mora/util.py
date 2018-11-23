@@ -767,13 +767,13 @@ def get_args_flag(name: str):
     '''Get an argument from the Flask request as a boolean flag.
 
     A 'flag' argument is false either when not set or one of the
-    values '0', 'false' and 'False'. Anything else is true.
+    values '0', 'false', 'no' or 'n'. Anything else is true.
 
     '''
 
-    v = flask.request.args.get(name, False)
+    v = flask.request.args.get(name, '')
 
-    if v in ('0', 'false', 'False'):
+    if v.lower() in ('', '0', 'no', 'n', 'false'):
         return False
     else:
         return bool(v)
