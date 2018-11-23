@@ -12,61 +12,13 @@ import uuid
 
 import requests_mock
 
-from mora.importing import processors, spreadsheets
+from mora.importing import processors
 
 from . import util
 
 
 class MockTests(util.TestCase):
     maxDiff = None
-
-    @util.mock('importing.json')
-    def test_load(self, m):
-        expected = util.get_fixture('MAGENTA_01.json')
-
-        self.assertEqual(expected, dict(spreadsheets.load_data([
-            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
-        ])))
-
-        self.assertEqual(expected, dict(spreadsheets.load_data([
-            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
-        ], exact=True)))
-
-        self.assertEqual(expected, dict(spreadsheets.load_data([
-            os.path.join(util.IMPORTING_DIR, 'MAGENTA_01.csv'),
-        ])))
-
-    @util.mock()
-    def test_convert(self, m):
-        def keyfunc(val):
-            fromdates = {
-                f['virkning']['from']
-                for group in val[2].values()
-                if isinstance(group, dict)
-                for effects in group.values()
-                for f in effects
-            }
-            return val[0], val[1], fromdates
-
-        # JSON converts tuples to lists - the map() converts them back
-        expected = sorted(
-            map(
-                tuple,
-                util.get_fixture('MAGENTA_01-expected.json'),
-            ),
-            key=keyfunc,
-        )
-
-        actual = sorted(spreadsheets.convert([
-            os.path.join(util.FIXTURE_DIR, 'MAGENTA_01.json'),
-        ]), key=keyfunc)
-        actual_path = os.path.join(util.FIXTURE_DIR, 'MAGENTA_01-actual.json')
-
-        # for resetting the test
-        with open(actual_path, 'w') as fp:
-            json.dump(actual, fp, indent=2, sort_keys=True)
-
-        self.assertEqual(expected, actual)
 
     @util.mock('importing-wash.json')
     def test_addr_wash(self, m):
