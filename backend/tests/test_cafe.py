@@ -54,6 +54,8 @@ class TestCafeTests(util.LiveLoRATestCase):
         'TestCafé disabled by $SKIP_TESTCAFE!',
     )
     def _test_with_testcafe(self, test_file, test_name):
+        self.load_sql_fixture()
+
         # Start the testing process
         print("----------------------")
         print("Running testcafe tests")
@@ -67,11 +69,6 @@ class TestCafeTests(util.LiveLoRATestCase):
             **os.environ,
             'BASE_URL': self.get_server_url(),
         }
-
-        with psycopg2.connect(self.db_url) as conn, conn.cursor() as curs:
-            conn.autocommit = True
-
-            curs.execute(util.get_mock_text('../fixtures/dummy.sql'))
 
         browser = os.environ.get('BROWSER',
                                  'safari' if platform.system() == 'Darwin'
