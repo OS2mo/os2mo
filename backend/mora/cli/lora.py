@@ -38,7 +38,7 @@ def requires_auth(func):
                   help="API token")
     @flask.cli.with_appcontext
     def wrapper(*args, **options):
-        lora.session.auth = flask_saml_sso.SAMLAuth(options['token'])
+        lora.session.auth = flask_saml_sso.SAMLAuth(options.pop('token'))
 
         return func(*args, **options)
 
