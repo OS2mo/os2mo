@@ -664,6 +664,10 @@ def list_orgunits(orgid):
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
+    :queryparam bool tree: Return the results as a tree -- please note
+                           that this changes the output, and does not
+                           support paging.
+
     :>json string items: The returned items.
     :>json string offset: Pagination offset.
     :>json string total: Total number of items available on this query.
@@ -677,10 +681,25 @@ def list_orgunits(orgid):
 
     **Example Response**:
 
+    Regular formatting:
+
+    .. sourcecode:: http
+
+      GET /service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak HTTP/1.1
+
     .. sourcecode:: json
 
       {
         "items": [
+          {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "validity": {
+              "from": "2016-01-01",
+              "to": null
+            }
+          },
           {
             "name": "Samfundsvidenskabelige fakultet",
             "user_key": "samf",
@@ -692,8 +711,44 @@ def list_orgunits(orgid):
           }
         ],
         "offset": 0,
-        "total": 1
+        "total": 2
       }
+
+    Formatted as a tree:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "children": [
+            {
+              "name": "Humanistisk fakultet",
+              "user_key": "hum",
+              "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+              "validity": {
+                "from": "2016-01-01",
+                "to": null
+              }
+            },
+            {
+              "name": "Samfundsvidenskabelige fakultet",
+              "user_key": "samf",
+              "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+              "validity": {
+                "from": "2017-01-01",
+                "to": null
+              }
+            }
+          ],
+          "name": "Overordnet Enhed",
+          "user_key": "root",
+          "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+          "validity": {
+            "from": "2016-01-01",
+            "to": null
+          }
+        }
+      ]
 
     '''
     c = common.get_connector()
