@@ -3,7 +3,6 @@ pipeline {
 
   environment {
     BROWSER = 'chromium:headless'
-    NODE_ENV = 'testing'
     PYTEST_ADDOPTS = '--color=yes'
   }
 
