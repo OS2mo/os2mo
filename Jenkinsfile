@@ -3,7 +3,6 @@ pipeline {
 
   environment {
     BROWSER = 'chromium:headless'
-    VENV = "${env.WORKSPACE}/venv"
     NODE_ENV = 'testing'
     PYTEST_ADDOPTS = '--color=yes'
   }
@@ -25,37 +24,19 @@ pipeline {
           dir("backend") {
             sh './.jenkins/0-clean.sh'
           }
-
-          dir("frontend") {
-            sh './.jenkins/0-clean.sh'
-          }
         }
       }
     }
 
     stage('Build') {
       steps {
-        parallel(
-          Backend: {
-            timeout(4) {
-              ansiColor('xterm') {
-                dir("backend") {
-                  sh './.jenkins/1-build.sh'
-                }
-              }
-            }
-          },
-
-          Frontend: {
-            timeout(4) {
-              ansiColor('xterm') {
-                dir("frontend") {
-                  sh './.jenkins/1-build.sh'
-                }
-              }
+        timeout(5) {
+          ansiColor('xterm') {
+            dir("backend") {
+              sh './.jenkins/1-build.sh'
             }
           }
-        )
+        }
       }
     }
 
