@@ -531,7 +531,7 @@ def get_unit_ancestor_tree(unitid):
     return flask.jsonify(ancestors[id_path[0]])
 
 
-def get_unit_tree(c, orgid, unitids, with_siblings=False):
+def get_unit_tree(c, orgid, unitids):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
