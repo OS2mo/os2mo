@@ -383,3 +383,27 @@ def is_edit_from_date_before_today(from_date: datetime.datetime):
         raise exceptions.ErrorCodes.V_CHANGING_THE_PAST(
             date=util.to_iso_time(from_date)
         )
+
+
+@forceable
+def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
+                                         user_id):
+    """
+    Check whether we're able to find an existing user with the given CPR,
+    and raise a validation error accordingly
+    """
+    c = lora.Connector(
+        virkningfra=util.to_lora_time(valid_from),
+        virkningtil=util.to_lora_time(valid_to)
+    )
+
+    user_ids = c.bruger.fetch(
+        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
+        tilhoerer=org_uuid
+    )
+
+    if user_ids and user_id not in user_ids:
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_EXISTING_CPR,
+            cpr=cpr,
+        )
