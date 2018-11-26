@@ -683,10 +683,6 @@ def list_orgunits(orgid):
 
     Regular formatting:
 
-    .. sourcecode:: http
-
-      GET /service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak HTTP/1.1
-
     .. sourcecode:: json
 
       {
