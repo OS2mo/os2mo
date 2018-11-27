@@ -3,7 +3,18 @@
     <liquor-tree
       :ref="nameId"
       :data="treeData"
-      :options="treeOptions"/>
+      :options="treeOptions">
+
+      <div class="tree-scope" slot-scope="{ node }">
+        <template>
+          <icon name="users"/>
+
+          <span class="text">
+            {{ node.text }}
+          </span>
+        </template>
+      </div>
+    </liquor-tree>
   </div>
 </template>
 
@@ -54,8 +65,8 @@
 
           if (node.expanded()) {
             const children = node.children
-                  .filter(c => c.visible())
-                  .map(c => visitNode(c, level + 1))
+              .filter(c => c.visible())
+              .map(c => visitNode(c, level + 1))
             const r = {}
 
             r[text] = children
@@ -112,8 +123,9 @@
 
       EventBus.$on('update-tree-view', () => vm.updateTree(true))
 
-      EventBus.$on('organisation-unit-changed', () =>
-                   vm.updateTree(true))
+      EventBus.$on('organisation-unit-changed', () => {
+        vm.updateTree(true)
+      })
 
       this.updateTree()
     },
@@ -286,11 +298,22 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
+<!-- this particular styling is not scoped, otherwise liqour tree cannot detect the overwrites -->
+<style>
+  .tree > .tree-root, .tree-content {
+     padding: 0;
+   }
+
+   .tree-children {
+     transition-timing-function: ease-in-out;
+     transition-duration: 150ms;
+   }
+
+  .tree-node.selected > .tree-content {
+    background: #007bff;
+  }
+
+  .tree-node.selected > .tree-content > .tree-anchor {
+    color: #fff;
+  }
 </style>
