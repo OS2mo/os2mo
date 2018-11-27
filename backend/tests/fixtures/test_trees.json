@@ -14,54 +14,6 @@
     "offset": 0,
     "total": 1
   },
-  "/service/o/293089ba-a1d7-4fff-a9d0-79bd8bab4e5b/ou/?tree=0&query=skoler": {
-    "items": [
-      {
-        "name": "Skoler og b\u00f8rnehaver",
-        "user_key": "Skoler og b\u00f8rnehaver 9a1b54c0-f5d0-47be-a5d1-13289a1bb2fb",
-        "uuid": "3d3a73c3-7897-4bfb-bed4-fac6d6e19519",
-        "validity": {
-          "from": "1960-01-01",
-          "to": null
-        }
-      }
-    ],
-    "offset": 0,
-    "total": 1
-  },
-  "/service/o/293089ba-a1d7-4fff-a9d0-79bd8bab4e5b/ou/?tree=1&query=skoler": [
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "name": "Skoler og b\u00f8rnehaver",
-              "user_key": "Skoler og b\u00f8rnehaver 9a1b54c0-f5d0-47be-a5d1-13289a1bb2fb",
-              "uuid": "3d3a73c3-7897-4bfb-bed4-fac6d6e19519",
-              "validity": {
-                "from": "1960-01-01",
-                "to": null
-              }
-            }
-          ],
-          "name": "Skole og B\u00f8rn",
-          "user_key": "Skole og B\u00f8rn c142ebe1-ba69-413f-bfaf-352019af4902",
-          "uuid": "18e62646-aee3-4c9e-807c-60c160821c22",
-          "validity": {
-            "from": "1960-01-01",
-            "to": null
-          }
-        }
-      ],
-      "name": "Hj\u00f8rring",
-      "user_key": "Hj\u00f8rring 6305b76d-1b21-4cce-b9c4-4348b7c0c226",
-      "uuid": "97337de5-6096-41f9-921e-5bed7a140d85",
-      "validity": {
-        "from": "1960-01-01",
-        "to": null
-      }
-    }
-  ],
   "/service/ou/0aa9f102-e79b-499f-a1e5-51fbd00115a0/ancestor-tree": {
     "children": [
       {
