@@ -156,7 +156,7 @@
         // yes, this is a bit of a hack :(
         setTimeout(() => {
           if (oldVal || !vm.unitUuid) {
-            vm.updateTree()
+            vm.updateTree(true)
           }
         }, 100)
       },
