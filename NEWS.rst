@@ -15,11 +15,6 @@ Internal changes
 * #23799: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
 
-Known bugs
-----------
-
-* #25546: The styling of the unit tree widget has regressed slightly.
-
 Version 0.12.0, 2018-11-16
 ==========================
 
