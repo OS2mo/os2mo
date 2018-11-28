@@ -18,9 +18,9 @@ blueprint = flask.Blueprint('validate', __name__, static_url_path='',
 
 
 @blueprint.route('/org-unit/', methods=['POST'])
-def candidate_org_unit():
+def org_unit_validity():
     """
-    Verify that an org unit and a set of start/end dates are compatible
+    Verify that an org unit is valid within a given set of start/end dates
     """
     req = flask.request.get_json()
 
@@ -34,9 +34,9 @@ def candidate_org_unit():
 
 
 @blueprint.route('/employee/', methods=['POST'])
-def candidate_employee():
+def employee_validity():
     """
-    Verify that an employee and a set of start/end dates are compatible
+    Verify that an employee is valid within a given set of start/end dates
     """
     req = flask.request.get_json()
 
@@ -48,11 +48,10 @@ def candidate_employee():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/cpr/')
+@blueprint.route('/cpr/', methods=['POST'])
 def check_cpr():
     """
     Verify that an employee with the given CPR no. does not already exist
-    in the database
     """
     req = flask.request.get_json()
 
@@ -66,7 +65,7 @@ def check_cpr():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/active-engagements/')
+@blueprint.route('/active-engagements/', methods=['POST'])
 def employee_engagements():
     """
     Verify that an employee has active engagements
@@ -82,10 +81,11 @@ def employee_engagements():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/existing-associations/')
+@blueprint.route('/existing-associations/', methods=['POST'])
 def employee_existing_associations():
     """
-    Verify that an employee does not have active associations
+    Verify that an employee does not have existing associations for a given
+    org unit
     """
     req = flask.request.get_json()
 
@@ -95,5 +95,19 @@ def employee_existing_associations():
 
     validator.does_employee_have_existing_association(
         employee_uuid, org_unit_uuid, valid_from, valid_to)
+
+    return flask.jsonify(success=True)
+
+
+@blueprint.route('/parent-org-unit/', methods=['POST'])
+def parent_org_unit():
+    req = flask.request.get_json()
+
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
+    parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
+    valid_from = util.get_valid_from(req)
+
+    validator.is_candidate_parent_valid(
+        org_unit_uuid, parent_uuid, valid_from)
 
     return flask.jsonify(success=True)
