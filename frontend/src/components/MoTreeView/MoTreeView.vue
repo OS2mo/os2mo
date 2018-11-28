@@ -2,6 +2,7 @@
   <div class="orgunit-tree">
     <liquor-tree
       :ref="nameId"
+      :v-model="selected"
       :data="treeData"
       :options="treeOptions">
 
@@ -88,10 +89,11 @@
 
       return {
         treeData: [],
+        selected: undefined,
         units: {},
 
         treeOptions: {
-          minFetchDelay: 0,
+          minFetchDelay: 1,
           parentSelect: true,
 
           fetchData (node) {
@@ -128,11 +130,6 @@
         vm.updateTree(true)
       })
 
-      EventBus.$on('organisation-unit-changed', () => {
-        console.log(`TREE: update tree view!`)
-        vm.updateTree(true)
-      })
-
       this.updateTree()
     },
 
@@ -145,6 +142,20 @@
         } else if (newVal !== oldVal) {
           this.updateTree()
         }
+      },
+
+      selected: {
+        handler (newVal, oldVal) {
+          console.log(`TREE: selected changed to ${newVal}`)
+        },
+        deep: true
+      },
+
+      treeData: {
+        handler (newVal, oldVal) {
+          console.log(`TREE: treeData changed to ${newVal}`)
+        },
+        deep: true
       },
 
       orgUuid (newVal, oldVal) {
