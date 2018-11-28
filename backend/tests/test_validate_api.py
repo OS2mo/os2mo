@@ -6,17 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
-import unittest
-
-import freezegun
-import requests_mock
-from mock import patch, MagicMock
-
-from mora import lora
-from mora import settings
-from mora import validator
-from mora import util as mora_util
+from mock import patch
 
 from . import util
 
@@ -125,6 +115,6 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/parent-org-unit/', json=payload)
+        self.client.post('/validate/candidate-parent-org-unit/', json=payload)
 
         mock.assert_called_once()
