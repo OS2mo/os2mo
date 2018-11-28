@@ -114,16 +114,22 @@
       })
 
       this.tree.$on('node:selected', node => {
+        console.log(`TREE: selected node ${node.id}`)
+
         vm.$emit('input', vm.units[node.id])
       })
 
       this.tree.$on('node:expanded', node => {
-        console.log('expanded', node.text, node.id)
+        console.log('TREE: expanded', node.text, node.id)
       })
 
-      EventBus.$on('update-tree-view', () => vm.updateTree(true))
+      EventBus.$on('update-tree-view', () => {
+        console.log(`TREE: update tree view!`)
+        vm.updateTree(true)
+      })
 
       EventBus.$on('organisation-unit-changed', () => {
+        console.log(`TREE: update tree view!`)
         vm.updateTree(true)
       })
 
@@ -132,7 +138,7 @@
 
     watch: {
       unitUuid (newVal, oldVal) {
-        this.log(`changing unit from ${oldVal} to ${newVal} (org=${this.orgUuid})`)
+        console.log(`TREE: changing unit from ${oldVal} to ${newVal} (org=${this.orgUuid})`)
 
         if (this.units && this.units[newVal]) {
           this.setSelection(newVal)
@@ -144,7 +150,7 @@
       orgUuid (newVal, oldVal) {
         let vm = this
 
-        this.log(`changing organisation from ${oldVal} to ${newVal}`)
+        console.log(`TREE: changing organisation from ${oldVal} to ${newVal}`)
 
         // in order to avoid updating twice, only do so when no unit
         // is configured; otherwise, we'll update when the unit clears
@@ -167,10 +173,6 @@
     },
 
     methods: {
-      log (s, ...args) {
-        console.log('TREE: ' + s, ...args)
-      },
-
       /**
        * Select the unit corresponding to the given ID, assuming it's present.
        */
@@ -179,7 +181,7 @@
           unitid = this.unitUuid
         }
 
-        this.log(`selecting ${unitid}`)
+        console.log(`TREE: selecting ${unitid}`)
         this.tree.tree.unselectAll()
 
         let n = this.tree.tree.getNodeById(unitid)
@@ -243,7 +245,7 @@
         if (this.unitUuid) {
           OrganisationUnit.getAncestorTree(this.unitUuid, this.atDate)
             .then(response => {
-              vm.log('injecting unit tree', response.uuid)
+              console.log('TREE: injecting unit tree', response.uuid)
 
               vm.addNode(response, null)
               vm.tree.sort()
@@ -253,7 +255,7 @@
         } else {
           Organisation.getChildren(this.orgUuid, this.atDate)
             .then(response => {
-              vm.log('injecting org tree')
+              console.log('TREE: injecting org tree')
 
               vm.units = {}
 
@@ -269,7 +271,7 @@
       fetch (node) {
         let vm = this
 
-        this.log(`fetching ${node.text}`)
+        console.log(`TREE: fetching ${node.text}`)
 
         if (!this.orgUuid || node.fetching) {
           // nothing to do, so return something that does nothing
