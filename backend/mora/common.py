@@ -301,7 +301,7 @@ def create_organisationsfunktion_payload(
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
     opgaver: typing.List[dict] = None,
-    adresser: typing.List[str] = None
+    adresser: typing.List[dict] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
