@@ -1,0 +1,67 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "5798000420526",
+        "funktionsnavn": "Adresse",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "tilknyttedeenheder": [
+      {
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "organisatoriskfunktionstype": [
+      {
+        "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "adresser": [
+      {
+        "objekttype": "EAN",
+        "urn": "urn:magenta.dk:ean:5798000420526",
+        "virkning": {
+          "from": "2016-01-01T00:00:00+01:00",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}

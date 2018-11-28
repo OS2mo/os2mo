@@ -14,39 +14,6 @@
         ]
     },
     "relationer": {
-        "adresser": [
-            {
-                "objekttype": "DAR",
-                "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
-                "virkning": {
-                    "from": "1932-05-12T00:00:00+01:00",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
-                }
-            },
-            {
-                "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                "urn": "urn:mailto:goofy@example.com",
-                "virkning": {
-                    "from": "1932-05-12T00:00:00+01:00",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
-                }
-            },
-            {
-                "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                "urn": "urn:mailto:goofy@example.com",
-                "virkning": {
-                    "from": "1932-05-12T00:00:00+01:00",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
-                }
-            }
-
-        ],
         "brugertyper": [
             {
                 "urn": "urn:email",

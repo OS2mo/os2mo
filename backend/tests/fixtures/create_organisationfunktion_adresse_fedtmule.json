@@ -1,0 +1,67 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "Christiansborg Slotsplads 1, 1218 København K",
+        "funktionsnavn": "Adresse",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "tilknyttedebrugere": [
+      {
+        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "organisatoriskfunktionstype": [
+      {
+        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "adresser": [
+      {
+        "objekttype": "DAR",
+        "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
+        "virkning": {
+          "from": "1932-05-12T00:00:00+01:00",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}

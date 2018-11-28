@@ -197,6 +197,16 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
             'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
         })
 
+        functions.update({
+            'email_andersand': 'fba61e38-b553-47cc-94bf-8c7c3c2a6887',
+            'email_fedtmule': '64ea02e2-8469-4c54-a523-3d46729e86a7',
+            'adresse_fedtmule': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
+            'adresse_root': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+            'adresse_hum': 'e1a9cede-8c9b-4367-b628-113834361871',
+            'tlf_hum': '55848eca-4e9e-4f30-954b-78d55eec0473',
+            'ean_hum': 'a0fe7d43-1e0d-4232-a220-87098024b34d',
+        })
+
     for facetkey, facetid in facets.items():
         fixtures.append((
             'klassifikation/facet',

@@ -459,17 +459,10 @@ def get_detail(type, id, function):
 
     # TODO: the logic encoded in the functions below belong in the
     # 'mapping' module, as part of e.g. FieldTuples
-
     def get_address(effect):
         return [
-            address.get_one_address(c, addr, class_cache)
-            for addr in mapping.ADDRESSES_FIELD(effect)
-        ]
-
-    def get_address_type(effect):
-        return [
-            addr['objekttype']
-            for addr in mapping.ADDRESSES_FIELD(effect)
+            address.get_one_address(addr)
+            for addr in mapping.SINGLE_ADDRESS_FIELD(effect)
         ]
 
     def get_user_key(effect):
@@ -489,7 +482,9 @@ def get_detail(type, id, function):
     class_cache = {}
     user_cache = {}
     unit_cache = {}
+    function_cache = {}
     itsystem_cache = {}
+    address_type_cache = {}
 
     # the values are cache, getter, cachegetter, aslist
     #
@@ -500,6 +495,20 @@ def get_detail(type, id, function):
     # return them as a list rather than a single object; otherwise, we
     # just return the first hit
     converters = {
+        'address': {
+            mapping.PERSON: (
+                user_cache, mapping.USER_FIELD, None, False,
+            ),
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
+            ),
+            mapping.ADDRESS_TYPE: (
+                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
+            mapping.ADDRESS: (
+                None, get_address, None, False,
+            ),
+        },
         'engagement': {
             mapping.PERSON: (
                 user_cache, mapping.USER_FIELD, None, False,
@@ -533,7 +542,10 @@ def get_detail(type, id, function):
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
             mapping.ADDRESS: (
-                class_cache, get_address, get_address_type, False,
+                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
+            ),
+            mapping.ADDRESS_TYPE: (
+                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
             ),
         },
         'role': {
@@ -572,8 +584,10 @@ def get_detail(type, id, function):
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
             mapping.ADDRESS: (
-                class_cache, get_address,
-                get_address_type, True,
+                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
+            ),
+            mapping.ADDRESS_TYPE: (
+                address_type_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
             ),
         },
         'it': {
@@ -642,11 +656,41 @@ def get_detail(type, id, function):
                     cache[v] = None
 
     # fetch and convert each object once, rather than multiple times
+    #
+
+    # handle cross-function links first, the only instance being this
+    # detail referring to an address
+    address_functions = collections.OrderedDict(
+        c.organisationfunktion.get_all(uuid=function_cache)
+    )
+
+    function_cache.update({
+        funcid: address.get_one_address(addrrel)
+        for funcid, funcobj in address_functions.items()
+        for addrrel in mapping.SINGLE_ADDRESS_FIELD(funcobj)
+    })
+
+    # extract address type ids from address functions
+    class_cache.update({
+        typerel['uuid']: None
+        for funcid, funcobj in address_functions.items()
+        for typerel in mapping.ADDRESS_TYPE_FIELD(funcobj)
+    })
+
+    # fetch all classes
     class_cache.update({
         classid: facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(uuid=class_cache)
     })
 
+    # inject the classes back into the address type cache
+    address_type_cache.update({
+        funcid: class_cache[typerel['uuid']]
+        for funcid, funcobj in address_functions.items()
+        for typerel in mapping.ADDRESS_TYPE_FIELD(funcobj)
+    })
+
+    # fetch everything else
     user_cache.update({
         userid: employee.get_one_employee(c, userid, user)
         for userid, user in
@@ -668,6 +712,8 @@ def get_detail(type, id, function):
         for systemid, system in
         c.itsystem.get_all(uuid=itsystem_cache)
     })
+
+    # fetch and convert each object once, rather than multiple times
 
     def get_one(effect, cache, getter, cachegetter, aslist):
         values = getter(effect)

@@ -143,7 +143,7 @@ export default {
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
-        { label: 'address', data: null }
+        { label: 'address', data: 'address' }
       ],
       engagement: [
         { label: 'person', data: 'person' },
