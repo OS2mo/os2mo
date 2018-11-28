@@ -9,9 +9,9 @@ fixture('Organisation test')
 
 const dialog = Selector('#orgUnitMove')
 
-const unitInput = dialog.find('input[data-vv-as="Enhed"]')
+const unitInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
-const parentInput = dialog.find('.parentUnit input[data-vv-as="Enhed"]')
+const parentInput = dialog.find('.parentUnit input[data-vv-as="Angiv ny overenhed"]')
 
 const fromInput = dialog.find('.moveDate input.form-control')
 

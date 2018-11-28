@@ -9,7 +9,7 @@ fixture('Organisation test')
 
 const dialog = Selector('#orgUnitRename')
 
-const parentInput = dialog.find('input[data-vv-as="Enhed"]')
+const parentInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 

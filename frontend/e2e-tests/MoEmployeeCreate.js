@@ -10,7 +10,7 @@ const dialog = Selector('#employeeCreate')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 // Engagement
-const parentEngagementInput = dialog.find('input[data-vv-as="Enhed"]')
+const parentEngagementInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
 const jobFunctionEngagementOption = jobFunctionEngagementSelect.find('option')
@@ -28,7 +28,7 @@ const addressInput = dialog.find('.v-autocomplete[data-vv-as="Lokation"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
 // Association
-const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Enhed"]')
+const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
 
 const addressAssociationSelect = dialog.find('.address-association select[data-vv-as="Adresser"]')
 
@@ -39,7 +39,7 @@ const associationTypeSelect = dialog.find('.select-association select[data-vv-as
 const associationTypeOption = associationTypeSelect.find('option')
 
 // Role
-const parentRoleInput = dialog.find('.unit-role input[data-vv-as="Enhed"]')
+const parentRoleInput = dialog.find('.unit-role input[data-vv-as="Angiv enhed"]')
 
 const roleTypeSelect = dialog.find('.select-role select[data-vv-as="Rolletype"]')
 const roleTypeOption = roleTypeSelect.find('option')
@@ -50,7 +50,7 @@ const itSystemOption = itSystemSelect.find('option')
 const itSystemInput = dialog.find('.input-itSystem input[data-vv-as="Kontonavn"]')
 
 // Manager
-const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Enhed"]')
+const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Angiv enhed"]')
 
 const addressManagerTypeSelect = dialog.find('.address-manager select[data-vv-as="Lederadressetype"]')
 const addressManagerTypeOption = addressManagerTypeSelect.find('option')

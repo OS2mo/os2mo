@@ -11,9 +11,9 @@ const dialog = Selector('#employeeMoveMany')
 
 const fromInput = dialog.find('input.form-control')
 
-const parentFromInput = dialog.find('.from-unit input[data-vv-as="Enhed"]')
+const parentFromInput = dialog.find('.from-unit input[data-vv-as="Flyt fra"]')
 
-const parentToInput = dialog.find('.to-unit input[data-vv-as="Enhed"]')
+const parentToInput = dialog.find('.to-unit input[data-vv-as="Flyt til"]')
 
 const checkboxInput = dialog.find('.checkbox-employee[data-vv-as="checkbox"]')
 

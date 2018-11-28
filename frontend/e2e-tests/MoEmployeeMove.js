@@ -15,7 +15,7 @@ const searchEmployeeItem = searchEmployeeInput.find('.v-autocomplete-list-item')
 const engagementSelect = dialog.find('select[data-vv-as="Engagementer"]')
 const engagementOption = engagementSelect.find('option')
 
-const unitInput = dialog.find('input[data-vv-as="Enhed"]')
+const unitInput = dialog.find('input[data-vv-as="Flyt til"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 

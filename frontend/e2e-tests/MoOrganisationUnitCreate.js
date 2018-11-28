@@ -15,7 +15,7 @@ const unitOption = unitSelect.find('option')
 const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
-const parentInput = dialog.find('input[data-vv-as="Enhed"]')
+const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 

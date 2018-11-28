@@ -22,7 +22,7 @@
         class="address-manager"
         v-model="entry.address"
         :entry-component="managerAddressPicker"
-        :label="$('input_fields.manager_address_type')"
+        :label="$t('input_fields.manager_address_type')"
         has-initial-entry 
         small-buttons
       />
