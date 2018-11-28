@@ -15,21 +15,21 @@
 </template>
 
 <script>
-  /**
+/**
    * A organisation component.
    */
 
-  import TheLeftMenu from '@/components/TheLeftMenu'
-  import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
-  import MoLog from '@/components/MoLog/MoLog'
+import TheLeftMenu from '@/components/TheLeftMenu'
+import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
+import MoLog from '@/components/MoLog/MoLog'
 
-  export default {
-    components: {
-      TheLeftMenu,
-      MoOrganisationUnitWorkflows,
-      MoLog
-    }
+export default {
+  components: {
+    TheLeftMenu,
+    MoOrganisationUnitWorkflows,
+    MoLog
   }
+}
 </script>
 
 <style scoped>

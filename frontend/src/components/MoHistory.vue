@@ -4,12 +4,12 @@
       <icon name="book" />
     </button>
 
-    <b-modal 
-      id="theHistory" 
-      size="lg" 
+    <b-modal
+      id="theHistory"
+      size="lg"
       title="Historik"
       @change="reloadHistory"
-      hide-footer 
+      hide-footer
       lazy
     >
       <table class="table table-striped">
@@ -36,91 +36,91 @@
 </template>
 
 <script>
-  /**
+/**
    * A history component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import Employee from '@/api/Employee'
-  import '@/filters/Date'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import Employee from '@/api/Employee'
+import '@/filters/Date'
 
-  export default {
-    props: {
-      /**
+export default {
+  props: {
+    /**
        * Defines a required uuid.
        */
-      uuid: {
-        type: String,
-        required: true
-      },
-
-      /**
-       * Defines a required type - employee or organisation unit.
-       */
-      type: {
-        type: String,
-        required: true,
-        validator (value) {
-          if (value === 'ORG_UNIT' || value === 'EMPLOYEE') return true
-          console.warn('Type must be either ORG_UNIT or EMPLOYEE')
-          return false
-        }
-      }
+    uuid: {
+      type: String,
+      required: true
     },
 
-    data () {
-      return {
+    /**
+       * Defines a required type - employee or organisation unit.
+       */
+    type: {
+      type: String,
+      required: true,
+      validator (value) {
+        if (value === 'ORG_UNIT' || value === 'EMPLOYEE') return true
+        console.warn('Type must be either ORG_UNIT or EMPLOYEE')
+        return false
+      }
+    }
+  },
+
+  data () {
+    return {
       /**
        * The history component value.
        * Used to detect changes and restore the value.
        */
-        history: []
+      history: []
+    }
+  },
+
+  methods: {
+    /**
+       * Reload history.
+       */
+    reloadHistory (val) {
+      if (val) this.getHistory()
+    },
+
+    /**
+       * Switch between organisation and employee getHistory.
+       */
+    getHistory () {
+      switch (this.type) {
+        case 'ORG_UNIT':
+          this.getOrgUnitHistory(this.uuid)
+          break
+        case 'EMPLOYEE':
+          this.getEmployeeHistory(this.uuid)
+          break
       }
     },
 
-    methods: {
-      /**
-       * Reload history.
-       */
-      reloadHistory (val) {
-        if (val) this.getHistory()
-      },
-
-      /**
-       * Switch between organisation and employee getHistory.
-       */
-      getHistory () {
-        switch (this.type) {
-          case 'ORG_UNIT':
-            this.getOrgUnitHistory(this.uuid)
-            break
-          case 'EMPLOYEE':
-            this.getEmployeeHistory(this.uuid)
-            break
-        }
-      },
-
-      /**
+    /**
        * Get organisation unit history.
        */
-      getOrgUnitHistory (uuid) {
-        let vm = this
-        OrganisationUnit.history(uuid)
-          .then(response => {
-            vm.history = response
-          })
-      },
+    getOrgUnitHistory (uuid) {
+      let vm = this
+      OrganisationUnit.history(uuid)
+        .then(response => {
+          vm.history = response
+        })
+    },
 
-      /**
+    /**
        * Get employee history.
        */
-      getEmployeeHistory (uuid) {
-        let vm = this
-        Employee.history(uuid)
-          .then(response => {
-            vm.history = response
-          })
-      }
+    getEmployeeHistory (uuid) {
+      let vm = this
+      Employee.history(uuid)
+        .then(response => {
+          vm.history = response
+        })
     }
   }
+}
 </script>

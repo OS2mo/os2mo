@@ -5,16 +5,16 @@
 </template>
 
 <script>
-  /**
+/**
    * A organisation unit search template component.
    */
 
-  export default {
-    props: {
-      /**
-       * Defines a required item.      
+export default {
+  props: {
+    /**
+       * Defines a required item.
        */
-      item: { required: true }
-    }
+    item: { required: true }
   }
+}
 </script>

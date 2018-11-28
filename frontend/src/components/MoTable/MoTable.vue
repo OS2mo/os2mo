@@ -17,9 +17,9 @@
       <thead>
         <tr>
           <th v-if="multiSelect"></th>
-          <th 
-            scope="col" 
-            v-for="(col, index) in columns" 
+          <th
+            scope="col"
+            v-for="(col, index) in columns"
             :key="index"
           >
             <span class="link" @click="sortData(col.label, open)" v-if="hasSorting(col)">
@@ -49,23 +49,23 @@
       <tbody>
         <tr v-for="(c, index) in content" :key="index">
           <td v-if="multiSelect">
-            <b-form-checkbox 
-              class="checkbox-employee" 
-              data-vv-as="checkbox" 
+            <b-form-checkbox
+              class="checkbox-employee"
+              data-vv-as="checkbox"
               :value="c"
             />
           </td>
           <td v-for="(col, index) in columns" :key="index">
-            <mo-link 
-              :value="c" 
-              :column="col.data" 
+            <mo-link
+              :value="c"
+              :column="col.data"
               :field="col.field"
             />
           </td>
           <td>{{c.validity.from | date}}</td>
           <td>{{c.validity.to | date}}</td>
-          <td>         
-            <mo-entry-edit-modal 
+          <td>
+            <mo-entry-edit-modal
               :type="type"
               :uuid="editUuid"
               :entry-component="editComponent"
@@ -82,188 +82,188 @@
 </template>
 
 <script>
-  /**
+/**
    * A table component.
    */
 
-  import '@/filters/GetProperty'
-  import '@/filters/Date'
-  import MoLoader from '@/components/atoms/MoLoader'
-  import MoEntryEditModal from '@/components/MoEntryEditModal'
-  import MoLink from '@/components/MoLink'
+import '@/filters/GetProperty'
+import '@/filters/Date'
+import MoLoader from '@/components/atoms/MoLoader'
+import MoEntryEditModal from '@/components/MoEntryEditModal'
+import MoLink from '@/components/MoLink'
 
-  export default {
-    components: {
-      MoLoader,
-      MoLink,
-      MoEntryEditModal
-    },
+export default {
+  components: {
+    MoLoader,
+    MoLink,
+    MoEntryEditModal
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * @model
        */
-      value: Array,
-      /**
+    value: Array,
+    /**
        * Defines a content.
        */
-      content: Array,
+    content: Array,
 
-      /**
+    /**
        * Defines a contentType.
        */
-      contentType: String,
+    contentType: String,
 
-      /**
+    /**
        * Defines columns.
        */
-      columns: Array,
+    columns: Array,
 
-      /**
+    /**
        * This boolean property defines the loading.
        */
-      isLoading: Boolean,
+    isLoading: Boolean,
 
-      /**
+    /**
        * Defines the editComponent.
        */
-      editComponent: Object,
+    editComponent: Object,
 
-      /**
+    /**
        * Defines the editUuid.
        */
-      editUuid: String,
+    editUuid: String,
 
-      /**
+    /**
        * This boolean property defines the multiSelect
        */
-      multiSelect: Boolean,
+    multiSelect: Boolean,
 
-      /**
+    /**
        * Defines a required type.
        */
-      type: {
-        type: String,
-        required: true
-      }
-    },
+    type: {
+      type: String,
+      required: true
+    }
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The selectAll, selected, open, sortableContent component value.
        * Used to detect changes and restore the value.
        */
-        selectAll: false,
-        selected: [],
-        open: {},
-        sortableContent: null
-      }
-    },
+      selectAll: false,
+      selected: [],
+      open: {},
+      sortableContent: null
+    }
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * If content is available, get content.
        */
-      contentAvailable () {
-        return this.content ? this.content.length > 0 : false
+    contentAvailable () {
+      return this.content ? this.content.length > 0 : false
+    }
+  },
+
+  watch: {
+    /**
+       * Whenever selected change, update newVal.
+       */
+    selected (newVal) {
+      this.$emit('input', newVal)
+    },
+
+    /**
+       * Whenever contentAvailable change, set sortableContent to content.
+       */
+    contentAvailable: function () {
+      if (!this.sortableContent) {
+        this.sortableContent = this.content
       }
     },
 
-    watch: {
-      /**
-       * Whenever selected change, update newVal.
-       */
-      selected (newVal) {
-        this.$emit('input', newVal)
-      },
-
-      /**
-       * Whenever contentAvailable change, set sortableContent to content.
-       */
-      contentAvailable: function () {
-        if (!this.sortableContent) {
-          this.sortableContent = this.content
-        }
-      },
-
-      /**
+    /**
        * Whenever content change, set sortableContent to content.
        */
-      content () {
-        this.sortableContent = this.content
-      },
-      deep: true
+    content () {
+      this.sortableContent = this.content
     },
+    deep: true
+  },
 
-    methods: {
-      /**
+  methods: {
+    /**
        * Columns that not contain sorting.
        */
-      hasSorting (col) {
-        if (this.contentType === 'address') {
-          return col.data === 'address_type'
-        }
-        if (this.contentType === 'it') {
-          return false
-        }
-        if (this.contentType === 'engagement' && this.type === 'ORG_UNIT') {
-          return col.data !== 'org_unit'
-        }
-        if (this.contentType === 'association' && this.type === 'ORG_UNIT') {
-          return col.data !== 'org_unit' &&
+    hasSorting (col) {
+      if (this.contentType === 'address') {
+        return col.data === 'address_type'
+      }
+      if (this.contentType === 'it') {
+        return false
+      }
+      if (this.contentType === 'engagement' && this.type === 'ORG_UNIT') {
+        return col.data !== 'org_unit'
+      }
+      if (this.contentType === 'association' && this.type === 'ORG_UNIT') {
+        return col.data !== 'org_unit' &&
           col.data !== 'address' &&
           col.data !== 'address_type'
-        }
-        if (this.contentType === 'manager') {
-          return col.data !== 'responsibility' &&
+      }
+      if (this.contentType === 'manager') {
+        return col.data !== 'responsibility' &&
           col.data !== 'address' &&
           col.data !== 'address_type' &&
           col.data !== 'person'
-        }
-        return (col.data || col.label === 'org_unit') &&
+      }
+      return (col.data || col.label === 'org_unit') &&
         col.data !== 'address' &&
         col.data !== 'address_type'
-      },
+    },
 
-      /**
+    /**
        * Sort data in columns.
        */
-      sortData (colName, toggleIcon) {
-        if (toggleIcon[colName] === undefined) {
-          toggleIcon[colName] = true
+    sortData (colName, toggleIcon) {
+      if (toggleIcon[colName] === undefined) {
+        toggleIcon[colName] = true
+      }
+      this.sortableContent.sort(function (a, b) {
+        let strA = a[colName].name
+        let strB = b[colName].name
+
+        if (toggleIcon[colName]) {
+          return (strA < strB) ? -1 : (strA > strB) ? 1 : 0
+        } else {
+          return (strA < strB) ? 1 : (strA > strB) ? -1 : 0
         }
-        this.sortableContent.sort(function (a, b) {
-          let strA = a[colName].name
-          let strB = b[colName].name
+      })
+      this.open[colName] = !this.open[colName]
+    },
 
-          if (toggleIcon[colName]) {
-            return (strA < strB) ? -1 : (strA > strB) ? 1 : 0
-          } else {
-            return (strA < strB) ? 1 : (strA > strB) ? -1 : 0
-          }
-        })
-        this.open[colName] = !this.open[colName]
-      },
-
-      /**
+    /**
        * Sort dates in columns.
        */
-      sortDate (toggleIcon, date) {
-        this.sortableContent.sort(function (a, b) {
-          let dateA = new Date(a.validity[date])
-          let dateB = new Date(b.validity[date])
+    sortDate (toggleIcon, date) {
+      this.sortableContent.sort(function (a, b) {
+        let dateA = new Date(a.validity[date])
+        let dateB = new Date(b.validity[date])
 
-          if (toggleIcon) {
-            return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0
-          } else {
-            return (dateA < dateB) ? 1 : (dateA > dateB) ? -1 : 0
-          }
-        })
-        this.open[date] = !this.open[date]
-      }
+        if (toggleIcon) {
+          return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0
+        } else {
+          return (dateA < dateB) ? 1 : (dateA > dateB) ? -1 : 0
+        }
+      })
+      this.open[date] = !this.open[date]
     }
   }
+}
 </script>
 
 <style scoped>

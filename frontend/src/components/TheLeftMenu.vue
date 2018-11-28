@@ -14,27 +14,27 @@
 </template>
 
 <script>
-  /**
+/**
    * A the left menu component.
    */
 
-  import { mapGetters } from 'vuex'
-  import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import { mapGetters } from 'vuex'
+import MoTreeView from '@/components/MoTreeView/MoTreeView'
 
-  export default {
-    components: {
-      MoTreeView
-    },
+export default {
+  components: {
+    MoTreeView
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get organisation uuid.
        */
-      ...mapGetters({
-        orgUuid: 'organisation/getUuid'
-      })
-    }
+    ...mapGetters({
+      orgUuid: 'organisation/getUuid'
+    })
   }
+}
 </script>
 
 <style scoped>

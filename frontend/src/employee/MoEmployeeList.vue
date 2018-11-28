@@ -13,21 +13,17 @@
 </template>
 
 <script>
-  /**
-   * A employee list component.
-   */
+/**
+ * A employee list component.
+ */
 
-  import MoLoader from '@/components/atoms/MoLoader'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
+import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
 
-  export default {
-    components: {
-      MoLoader,
-      MoEmployeePicker,
-      MoSearchBar
-    }
+export default {
+  components: {
+    MoSearchBar
   }
+}
 </script>
 
 <style scoped>

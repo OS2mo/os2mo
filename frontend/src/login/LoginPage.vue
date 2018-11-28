@@ -44,58 +44,58 @@
 </template>
 
 <script>
-  /**
+/**
    * A login page component.
    */
 
-  import {mapGetters} from 'vuex'
-  import Service from '@/api/HttpCommon'
+import { mapGetters } from 'vuex'
+import Service from '@/api/HttpCommon'
 
-  export default {
-    name: 'login-page',
+export default {
+  name: 'login-page',
 
-    props: {
-      /**
+  props: {
+    /**
        * Defines a required destination.
        */
-      destination: {type: String, required: true}
-    },
+    destination: { type: String, required: true }
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The user component value.
        * Used to detect changes and restore the value.
        */
-        user: {
-          username: null,
-          password: null
-        }
-      }
-    },
-
-    computed: {
-      /**
-       * Get status.
-       */
-      ...mapGetters({
-        status: 'status'
-      })
-    },
-
-    methods: {
-      /**
-       * Go to MO after post user request.
-       */
-      gotoMo () {
-        Service.post('/user/login', this.user)
-          .then(response => {
-            let redirect = this.$route.query.redirect || '/'
-            window.location.replace(redirect)
-          })
+      user: {
+        username: null,
+        password: null
       }
     }
+  },
+
+  computed: {
+    /**
+       * Get status.
+       */
+    ...mapGetters({
+      status: 'status'
+    })
+  },
+
+  methods: {
+    /**
+       * Go to MO after post user request.
+       */
+    gotoMo () {
+      Service.post('/user/login', this.user)
+        .then(response => {
+          let redirect = this.$route.query.redirect || '/'
+          window.location.replace(redirect)
+        })
+    }
   }
+}
 </script>
 
 <style scoped>

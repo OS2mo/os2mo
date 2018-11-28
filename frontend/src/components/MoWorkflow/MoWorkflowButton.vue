@@ -6,25 +6,25 @@
 </template>
 
 <script>
-  /**
+/**
    * A workflow button component.
    */
 
-  export default {
-    name: 'MoWorkflowButton',
+export default {
+  name: 'MoWorkflowButton',
 
-    props: {
-      /**
+  props: {
+    /**
        * Defines a required label.
        */
-      label: {type: String, required: true},
+    label: { type: String, required: true },
 
-      /**
+    /**
        * Defines a required icon.
        */
-      icon: {type: String, required: true}
-    }
+    icon: { type: String, required: true }
   }
+}
 </script>
 
 <style lang="scss" scoped>

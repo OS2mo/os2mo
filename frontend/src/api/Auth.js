@@ -22,8 +22,8 @@ export default {
 
   logout (user) {
     return Service.post('/user/logout', user)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   }
 }

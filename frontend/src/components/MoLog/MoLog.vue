@@ -8,31 +8,29 @@
 </template>
 
 <script>
-  /**
-   * A log component.
-   */
+/**
+ * A log component.
+ */
 
-  import MoWorklog from './MoWorklog'
-  import MoErrors from './MoErrors'
+import MoWorklog from './MoWorklog'
 
-  export default {
-    name: 'MoLog',
+export default {
+  name: 'MoLog',
 
-    components: {
-      MoWorklog,
-      MoErrors
-    },
+  components: {
+    MoWorklog
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
         * The label component value.
         * Used to set a default value.
         */
-        label: 'Arbejdslog'
-      }
+      label: 'Arbejdslog'
     }
   }
+}
 </script>
 
 <style scoped>

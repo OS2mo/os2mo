@@ -13,7 +13,7 @@ const state = {
 }
 
 const actions = {
-  CREATE_EMPLOYEE ({commit, state}) {
+  CREATE_EMPLOYEE ({ commit, state }) {
     let create = [].concat(state.engagement, state.address, state.association, state.role, state.itSystem, state.manager)
 
     create.forEach(e => {

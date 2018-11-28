@@ -1,9 +1,9 @@
 <template>
   <div class="wrapper">
-    <div 
-      class="alert alert-success mt-2" 
-      v-for="(log, index) in reverse(worklogs)" 
-      :key="index" 
+    <div
+      class="alert alert-success mt-2"
+      v-for="(log, index) in reverse(worklogs)"
+      :key="index"
       role="alert"
     >
       {{$t('alerts.success.' + log.type, {uuid: log.value})}}
@@ -12,33 +12,33 @@
 </template>
 
 <script>
-  /**
+/**
    * A worklog component.
    */
 
-  import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 
-  export default {
-    name: 'MoWorklog',
+export default {
+  name: 'MoWorklog',
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get worklog message.
        */
-      ...mapGetters({
-        worklogs: 'log/getWorkLog'
-      })
-    },
+    ...mapGetters({
+      worklogs: 'log/getWorkLog'
+    })
+  },
 
-    methods: {
-      /**
+  methods: {
+    /**
        * Reverse message.
        */
-      reverse (array) {
-        return array.length ? array.slice().reverse() : array
-      }
+    reverse (array) {
+      return array.length ? array.slice().reverse() : array
     }
   }
+}
 </script>
 
 <style scoped>

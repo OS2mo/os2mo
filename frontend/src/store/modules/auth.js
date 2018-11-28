@@ -25,11 +25,11 @@ const mutations = {
 }
 
 const actions = {
-  [AUTH_REQUEST]: ({commit}, user) => {
+  [AUTH_REQUEST]: ({ commit }, user) => {
     window.location.href = '/saml/sso/?next=' + window.location
   },
 
-  [AUTH_LOGOUT]: ({commit}, user) => {
+  [AUTH_LOGOUT]: ({ commit }, user) => {
     window.location.href = '/saml/slo/'
   }
 }

@@ -16,105 +16,105 @@
 </template>
 
 <script>
-  /**
+/**
    * A tree view component.
    */
 
-  import { EventBus } from '@/EventBus'
-  import Organisation from '@/api/Organisation'
-  import MoTreeViewItem from './MoTreeViewItem'
-  import MoLoader from '@/components/atoms/MoLoader'
+import { EventBus } from '@/EventBus'
+import Organisation from '@/api/Organisation'
+import MoTreeViewItem from './MoTreeViewItem'
+import MoLoader from '@/components/atoms/MoLoader'
 
-  export default {
-    components: {
-      MoTreeViewItem,
-      MoLoader
-    },
+export default {
+  components: {
+    MoTreeViewItem,
+    MoLoader
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * Create two-way data bindings with the component.
        */
-      value: Object,
+    value: Object,
 
-      /**
+    /**
        * Defines a orgUuid.
        */
-      orgUuid: String,
+    orgUuid: String,
 
-      /**
+    /**
        * This boolean property defines a able link.
        */
-      linkable: Boolean,
+    linkable: Boolean,
 
-      /**
+    /**
        * Defines a atDate.
        */
-      atDate: [Date, String]
-    },
+    atDate: [Date, String]
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The children, selectedOrgUnit, isLoading component value.
        * Used to detect changes and restore the value.
        */
-        children: [],
-        selectedOrgUnit: {},
-        isLoading: false
-      }
-    },
+      children: [],
+      selectedOrgUnit: {},
+      isLoading: false
+    }
+  },
 
-    watch: {
-      /**
+  watch: {
+    /**
        * When orgUnit change, get children.
        */
-      orgUuid () {
-        this.getChildren()
-      },
+    orgUuid () {
+      this.getChildren()
+    },
 
-      /**
+    /**
        * When atDate change, get children.
        */
-      atDate () {
-        this.getChildren()
-      },
+    atDate () {
+      this.getChildren()
+    },
 
-      /**
+    /**
        * Whenever selectedOrgUnit change, update val.
        */
-      selectedOrgUnit (val) {
-        this.$emit('input', val)
-      }
-    },
+    selectedOrgUnit (val) {
+      this.$emit('input', val)
+    }
+  },
 
-    mounted () {
-      /**
+  mounted () {
+    /**
        * Whenever tree view change, update children.
        */
+    this.getChildren()
+
+    EventBus.$on('update-tree-view', () => {
       this.getChildren()
+    })
+  },
 
-      EventBus.$on('update-tree-view', () => {
-        this.getChildren()
-      })
-    },
-
-    methods: {
-      /**
+  methods: {
+    /**
        * Get organisation children.
        */
-      getChildren () {
-        if (this.orgUuid === undefined) return
-        let vm = this
-        vm.isLoading = true
-        Organisation.getChildren(this.orgUuid, this.atDate)
-          .then(response => {
-            vm.isLoading = false
-            vm.children = response
-          })
-      }
+    getChildren () {
+      if (this.orgUuid === undefined) return
+      let vm = this
+      vm.isLoading = true
+      Organisation.getChildren(this.orgUuid, this.atDate)
+        .then(response => {
+          vm.isLoading = false
+          vm.children = response
+        })
     }
   }
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

@@ -2,8 +2,8 @@
   <div>
     <div class="form-row">
       <mo-organisation-unit-picker
-        v-model="entry.org_unit" 
-        label="Angiv enhed" 
+        v-model="entry.org_unit"
+        label="Angiv enhed"
         class="col unit-manager"
         required
         v-if="!hideOrgPicker"
@@ -23,19 +23,19 @@
         v-model="entry.address"
         :entry-component="managerAddressPicker"
         label="Lederadressetype"
-        has-initial-entry 
+        has-initial-entry
         small-buttons
       />
 
     <div class="form-row select-manager">
-      <mo-facet-picker 
-        facet="manager_type" 
-        v-model="entry.manager_type" 
+      <mo-facet-picker
+        facet="manager_type"
+        v-model="entry.manager_type"
         required
       />
 
-      <mo-facet-picker 
-        facet="manager_level" 
+      <mo-facet-picker
+        facet="manager_level"
         v-model="entry.manager_level"
         required
       />
@@ -43,170 +43,165 @@
 
     <mo-add-many
       class="responsibility-manager"
-      v-model="entry.responsibility" 
-      :entry-component="facetPicker" 
-      label="Lederansvar" 
-      has-initial-entry 
+      v-model="entry.responsibility"
+      :entry-component="facetPicker"
+      label="Lederansvar"
+      has-initial-entry
       small-buttons
     />
-    
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/> 
+
+    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
   </div>
 </template>
 
 <script>
-  /**
+/**
    * A manager entry component.
    */
 
-  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-  import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
-  import MoAddMany from '@/components/MoAddMany/MoAddMany'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
-  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
 
-  export default {
-    components: {
-      MoDatePickerRange,
-      MoOrganisationUnitPicker,
-      MoFacetPicker,
-      MoAddressPicker,
-      MoAddMany,
-      MoEmployeePicker,
-      MoManagerAddressPicker,
-      MoAddressEntry
-    },
+export default {
+  components: {
+    MoDatePickerRange,
+    MoOrganisationUnitPicker,
+    MoFacetPicker,
+    MoAddMany,
+    MoEmployeePicker
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * Create two-way data bindings with the component.
        */
-      value: Object,
+    value: Object,
 
-      /**
+    /**
        * This boolean property hides validity.
        */
-      validityHidden: Boolean,
+    validityHidden: Boolean,
 
-      /**
+    /**
        * This boolean property hide the org picker.
        */
-      hideOrgPicker: Boolean,
+    hideOrgPicker: Boolean,
 
-      /**
+    /**
        * This boolean property hide the employee picker.
        */
-      hideEmployeePicker: Boolean
-    },
+    hideEmployeePicker: Boolean
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
         * The entry component value.
         * Used to detect changes and restore the value.
         */
-        entry: {}
+      entry: {}
+    }
+  },
+
+  computed: {
+    /**
+     * Hides the validity.
+     */
+    datePickerHidden () {
+      return this.validity != null
+    },
+
+    /**
+     * Adds the facetPicker template to the add many component.
+     */
+    facetPicker () {
+      return {
+        components: {
+          MoFacetPicker
+        },
+
+        props: {
+          value: Object
+        },
+
+        data () {
+          return {
+            val: this.value
+          }
+        },
+
+        watch: {
+          val (newVal) {
+            this.$emit('input', newVal)
+          }
+        },
+
+        created () {
+          this.val = this.value
+        },
+
+        template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
       }
     },
 
-    computed: {
-      /**
-       * Hides the validity.
-       */
-      datePickerHidden () {
-        return this.validity != null
-      },
+    /**
+     * Adds the managerAddressPicker template to the add many component.
+     */
+    managerAddressPicker () {
+      return {
+        components: {
+          MoManagerAddressPicker
+        },
 
-      /**
-       * Adds the facetPicker template to the add many component.
-       */
-      facetPicker () {
-        return {
-          components: {
-            MoFacetPicker
-          },
+        props: {
+          value: [Object, Array]
+        },
 
-          props: {
-            value: Object
-          },
+        data () {
+          return {
+            val: this.value
+          }
+        },
 
-          data () {
-            return {
-              val: null
-            }
-          },
+        watch: {
+          val (newVal) {
+            this.val = this.value instanceof Array ? this.value[0] : this.value
+            this.$emit('input', newVal)
+          }
+        },
 
-          watch: {
-            val (newVal) {
-              this.$emit('input', newVal)
-            }
-          },
+        created () {
+          this.val = this.value
+        },
 
-          created () {
-            this.val = this.value
-          },
-
-          template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
-        }
-      },
-
-      /**
-       * Adds the managerAddressPicker template to the add many component.
-       */
-      managerAddressPicker () {
-        return {
-          components: {
-            MoManagerAddressPicker
-          },
-
-          props: {
-            value: [Object, Array]
-          },
-
-          data () {
-            return {
-              val: this.value
-            }
-          },
-
-          watch: {
-            val (newVal) {
-              this.val = this.value instanceof Array ? this.value[0] : this.value
-              this.$emit('input', newVal)
-            }
-          },
-
-          created () {
-            this.val = this.value
-          },
-
-          template: `<mo-manager-address-picker v-model="val" required/>`
-        }
+        template: `<mo-manager-address-picker v-model="val" required/>`
       }
-    },
+    }
+  },
 
-    watch: {
-      /**
+  watch: {
+    /**
        * Whenever entry change, update newVal.
        */
-      entry: {
-        handler (newVal) {
-          newVal.type = 'manager'
-          this.$emit('input', newVal)
-        },
-        deep: true
-      }
-    },
+    entry: {
+      handler (newVal) {
+        newVal.type = 'manager'
+        this.$emit('input', newVal)
+      },
+      deep: true
+    }
+  },
 
-    created () {
-      /**
+  created () {
+    /**
        * Called synchronously after the instance is created.
        * Set entry to value.
        */
-      this.entry = this.value
-    }
+    this.entry = this.value
   }
+}
 </script>

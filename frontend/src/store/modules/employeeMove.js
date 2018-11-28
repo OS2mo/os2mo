@@ -17,19 +17,19 @@ const state = {
 }
 
 const actions = {
-  MOVE_EMPLOYEE ({commit}) {
+  MOVE_EMPLOYEE ({ commit }) {
     state.move.uuid = state.original.uuid
 
     return Service.post('/details/edit', [state.move])
-    .then(response => {
-      EventBus.$emit('employee-changed')
-      commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
-      return response.data
-    })
-    .catch(error => {
-      commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
-      return error.response.data
-    })
+      .then(response => {
+        EventBus.$emit('employee-changed')
+        commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
+        return response.data
+      })
+      .catch(error => {
+        commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
+        return error.response.data
+      })
   },
 
   resetFields ({ commit }) {

@@ -1,8 +1,8 @@
 <template>
   <div v-if="hasEntryComponent">
-    <button 
-      class="btn btn-outline-primary" 
-      v-b-modal="nameId" 
+    <button
+      class="btn btn-outline-primary"
+      v-b-modal="nameId"
     >
       <icon name="plus" />
       {{$t('buttons.create_new')}}
@@ -11,14 +11,14 @@
     <b-modal
       :id="nameId"
       size="lg"
-      hide-footer 
+      hide-footer
       title="Opret"
       :ref="nameId"
       lazy
     >
     <form @submit.stop.prevent="create">
-      <component 
-        :is="entryComponent" 
+      <component
+        :is="entryComponent"
         v-model="entry"
         :hide-org-picker="hideOrgPicker"
         :hide-employee-picker="hideEmployeePicker"
@@ -37,170 +37,170 @@
 </template>
 
 <script>
-  /**
+/**
    * A entry create modal component.
    */
 
-  import Employee from '@/api/Employee'
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import ButtonSubmit from '@/components/ButtonSubmit'
+import Employee from '@/api/Employee'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import ButtonSubmit from '@/components/ButtonSubmit'
 
-  export default {
-      /**
+export default {
+  /**
        * Requesting a new validator scope to its children.
        */
-    $_veeValidate: {
-      validator: 'new'
-    },
+  $_veeValidate: {
+    validator: 'new'
+  },
 
-    components: {
-      ButtonSubmit
-    },
+  components: {
+    ButtonSubmit
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * Defines a uuid.
        */
-      uuid: String,
+    uuid: String,
 
-      /**
+    /**
        * Defines a entryComponent.
        */
-      entryComponent: Object,
+    entryComponent: Object,
 
-      /**
+    /**
        * Defines a required type - employee or organisation unit.
        */
-      type: {
-        type: String,
-        required: true,
-        validator (value) {
-          if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
-          console.warn('Action must be either EMPLOYEE or ORG_UNIT')
-          return false
-        }
+    type: {
+      type: String,
+      required: true,
+      validator (value) {
+        if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
+        console.warn('Action must be either EMPLOYEE or ORG_UNIT')
+        return false
       }
-    },
+    }
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The entry, isLoading, backendValidationError component value.
        * Used to detect changes and restore the value.
        */
-        entry: {},
-        isLoading: false,
-        backendValidationError: null
-      }
-    },
+      entry: {},
+      isLoading: false,
+      backendValidationError: null
+    }
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get name `moCreate`.
        */
-      nameId () {
-        return 'moCreate' + this._uid
-      },
-  
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      },
-
-      /**
-       * If it has a entry component.
-       */
-      hasEntryComponent () {
-        return this.entryComponent !== undefined
-      },
-
-      /**
-       * Get hideOrgPicker type.
-       */
-      hideOrgPicker () {
-        return this.type === 'ORG_UNIT'
-      },
-
-      /**
-       * Get hideEmployeePicker type.
-       */
-      hideEmployeePicker () {
-        return this.type === 'EMPLOYEE'
-      }
+    nameId () {
+      return 'moCreate' + this._uid
     },
 
-    mounted () {
-      /**
-       * Whenever it changes, reset data.
+    /**
+       * Loop over all contents of the fields object and check if they exist and valid.
        */
-      this.$root.$on('bv::modal::hidden', () => {
-        Object.assign(this.$data, this.$options.data())
+    formValid () {
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
       })
     },
 
-    beforeDestroy () {
-      /**
-       * Called right before a instance is destroyed.
+    /**
+       * If it has a entry component.
        */
-      this.$root.$off(['bv::modal::hidden'])
+    hasEntryComponent () {
+      return this.entryComponent !== undefined
     },
 
-    methods: {
-      /**
+    /**
+       * Get hideOrgPicker type.
+       */
+    hideOrgPicker () {
+      return this.type === 'ORG_UNIT'
+    },
+
+    /**
+       * Get hideEmployeePicker type.
+       */
+    hideEmployeePicker () {
+      return this.type === 'EMPLOYEE'
+    }
+  },
+
+  mounted () {
+    /**
+       * Whenever it changes, reset data.
+       */
+    this.$root.$on('bv::modal::hidden', () => {
+      Object.assign(this.$data, this.$options.data())
+    })
+  },
+
+  beforeDestroy () {
+    /**
+       * Called right before a instance is destroyed.
+       */
+    this.$root.$off(['bv::modal::hidden'])
+  },
+
+  methods: {
+    /**
        * Create a employee or organisation entry.
        */
-      create () {
-        this.isLoading = true
+    create () {
+      this.isLoading = true
 
-        switch (this.type) {
-          case 'EMPLOYEE':
-            this.entry.person = {uuid: this.uuid}
-            this.createEmployee(this.entry)
-            break
-          case 'ORG_UNIT':
-            this.entry.org_unit = {uuid: this.uuid}
-            this.createOrganisationUnit(this.entry)
-            break
-        }
-      },
+      switch (this.type) {
+        case 'EMPLOYEE':
+          this.entry.person = { uuid: this.uuid }
+          this.createEmployee(this.entry)
+          break
+        case 'ORG_UNIT':
+          this.entry.org_unit = { uuid: this.uuid }
+          this.createOrganisationUnit(this.entry)
+          break
+      }
+    },
 
-      /**
+    /**
        * Create a employee and check if the data fields are valid.
        * Then throw a error if not.
        */
-      createEmployee (data) {
-        let vm = this
-        Employee.create([data])
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response.error_key
-            } else {
-              vm.$refs[this.nameId].hide()
-            }
-          })
-      },
+    createEmployee (data) {
+      let vm = this
+      Employee.create([data])
+        .then(response => {
+          vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response.error_key
+          } else {
+            vm.$refs[this.nameId].hide()
+          }
+        })
+    },
 
-      /**
+    /**
        * Create a organisation unit and check if the data fields are valid.
        * Then throw a error if not.
        */
-      createOrganisationUnit (data) {
-        let vm = this
-        return OrganisationUnit.createEntry(data)
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response.error_key
-            } else {
-              vm.$refs[this.nameId].hide()
-            }
-          })
-      }
+    createOrganisationUnit (data) {
+      let vm = this
+      return OrganisationUnit.createEntry(data)
+        .then(response => {
+          vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response.error_key
+          } else {
+            vm.$refs[this.nameId].hide()
+          }
+        })
     }
   }
+}
 </script>

@@ -1,25 +1,25 @@
 <template>
-  <b-modal 
-    id="employeeMove" 
-    size="lg" 
+  <b-modal
+    id="employeeMove"
+    size="lg"
     :title="$t('workflows.employee.move_engagement')"
     ref="employeeMove"
-    hide-footer 
+    hide-footer
     lazy
     no-close-on-backdrop
     @hidden="$store.dispatch('employeeMove/resetFields')"
   >
     <form @submit.stop.prevent="moveEmployee">
-      <mo-employee-picker 
-        class="search-employee" 
-        v-model="person" 
+      <mo-employee-picker
+        class="search-employee"
+        v-model="person"
         required
       />
 
       <div class="form-row">
-        <mo-engagement-picker 
-          class="mt-3" 
-          v-model="original" 
+        <mo-engagement-picker
+          class="mt-3"
+          v-model="original"
           :employee="person"
           required
         />
@@ -27,17 +27,17 @@
 
       <div class="form-row">
         <mo-organisation-unit-picker
-          :label="$t('input_fields.move_to')" 
-          class="col" 
+          :label="$t('input_fields.move_to')"
+          class="col"
           v-model="org_unit"
           required
-        />       
+        />
       </div>
 
       <div class="form-row">
-        <mo-date-picker 
+        <mo-date-picker
           class="col from-date"
-          :label="$t('input_fields.move_date')" 
+          :label="$t('input_fields.move_date')"
           v-model="from"
           :valid-dates="validDates"
           required
@@ -48,7 +48,7 @@
         :entry-date="from"
         :entry-name="original.engagement_type.name"
         :entry-org-name="original.org_unit.name"
-        v-if="dateConflict" 
+        v-if="dateConflict"
         required
       />
 
@@ -64,129 +64,129 @@
 </template>
 
 <script>
-  /**
+/**
    * A employee move component.
    */
 
-  import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
-  import { mapFields } from 'vuex-map-fields'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
+import { mapFields } from 'vuex-map-fields'
 
-  export default {
-      /**
+export default {
+  /**
        * Requesting a new validator scope to its children.
        */
-    $_veeValidate: {
-      validator: 'new'
-    },
+  $_veeValidate: {
+    validator: 'new'
+  },
 
-    components: {
-      MoDatePicker,
-      MoOrganisationUnitPicker,
-      MoEngagementPicker,
-      MoEmployeePicker,
-      ButtonSubmit,
-      MoConfirmCheckbox
-    },
+  components: {
+    MoDatePicker,
+    MoOrganisationUnitPicker,
+    MoEngagementPicker,
+    MoEmployeePicker,
+    ButtonSubmit,
+    MoConfirmCheckbox
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * Defines a engagement type name.
        */
-      entryName: String,
+    entryName: String,
 
-      /**
+    /**
        * Defines a from date.
        */
-      entryDate: Date,
+    entryDate: Date,
 
-      /**
+    /**
        * Defines a orgName.
        */
-      entryOrgName: String
-    },
+    entryOrgName: String
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
         * The isLoading component value.
         * Used to detect changes and restore the value.
         */
-        isLoading: false
-      }
-    },
+      isLoading: false
+    }
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get mapFields from vuex store.
        */
-      ...mapFields('employeeMove', [
-        'move',
-        'move.data.person',
-        'move.data.org_unit',
-        'move.data.validity.from',
-        'original',
-        'backendValidationError'
-      ]),
+    ...mapFields('employeeMove', [
+      'move',
+      'move.data.person',
+      'move.data.org_unit',
+      'move.data.validity.from',
+      'original',
+      'backendValidationError'
+    ]),
 
-      /**
+    /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      },
-
-      /**
-       * Check if the dates are valid.
-       */
-      dateConflict () {
-        if (this.from && this.original) {
-          if (this.original.validity.to == null) return true
-          const newFrom = new Date(this.from)
-          const originalTo = new Date(this.original.validity.to)
-          if (newFrom <= originalTo) return true
-        }
-        return false
-      },
-
-      /**
-       * Check if the organisation date are valid.
-       */
-      validDates () {
-        return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
-      }
+    formValid () {
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
     },
 
-    methods: {
-      /**
+    /**
+       * Check if the dates are valid.
+       */
+    dateConflict () {
+      if (this.from && this.original) {
+        if (this.original.validity.to == null) return true
+        const newFrom = new Date(this.from)
+        const originalTo = new Date(this.original.validity.to)
+        if (newFrom <= originalTo) return true
+      }
+      return false
+    },
+
+    /**
+       * Check if the organisation date are valid.
+       */
+    validDates () {
+      return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
+    }
+  },
+
+  methods: {
+    /**
        * Move a employee and check if the data fields are valid.
        * Then throw a error if not.
        */
-      moveEmployee (evt) {
-        evt.preventDefault()
-        if (this.formValid) {
-          let vm = this
-          vm.isLoading = true
+    moveEmployee (evt) {
+      evt.preventDefault()
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
 
-          this.$store.dispatch('employeeMove/MOVE_EMPLOYEE')
-            .then(response => {
-              vm.isLoading = false
-              if (response.error) {
-                vm.backendValidationError = response.error_key
-              } else {
-                vm.$refs.employeeMove.hide()
-              }
-            })
-        } else {
-          this.$validator.validateAll()
-        }
+        this.$store.dispatch('employeeMove/MOVE_EMPLOYEE')
+          .then(response => {
+            vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs.employeeMove.hide()
+            }
+          })
+      } else {
+        this.$validator.validateAll()
       }
     }
   }
+}
 </script>

@@ -7,34 +7,34 @@
 </template>
 
 <script>
-  /**
+/**
    * A infobox component.
    */
 
-  export default {
-    props: {
-      /**
+export default {
+  props: {
+    /**
        * Defines a required icon.
        */
-      icon: {
-        type: String,
-        required: true
-      },
+    icon: {
+      type: String,
+      required: true
+    },
 
-      /**
+    /**
        * Defines a required label.
        */
-      label: {
-        type: String,
-        required: true
-      },
+    label: {
+      type: String,
+      required: true
+    },
 
-      /**
+    /**
        * Defines a info number.
        */
-      info: Number
-    }
+    info: Number
   }
+}
 </script>
 
 <style scoped>

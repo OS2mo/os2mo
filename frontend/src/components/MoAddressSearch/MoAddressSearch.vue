@@ -2,9 +2,9 @@
   <div>
     <div class="form-row">
       <mo-address-search-field class="mb-0" v-model="address" :label="label" :global="global"/>
-      
+
       <label class="form-check-label">
-        <input class="form-check-input" type="checkbox" v-model="global"/> 
+        <input class="form-check-input" type="checkbox" v-model="global"/>
         Søg i hele landet
       </label>
     </div>
@@ -12,55 +12,55 @@
 </template>
 
 <script>
-  /**
+/**
    * A address search component.
    */
 
-  import MoAddressSearchField from './MoAddressSearchField'
+import MoAddressSearchField from './MoAddressSearchField'
 
-  export default {
-    components: {
-      MoAddressSearchField
-    },
+export default {
+  components: {
+    MoAddressSearchField
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * Create two-way data bindings with the component.
        */
-      value: Object,
+    value: Object,
 
-      /**
+    /**
        * Defines a label.
        */
-      label: String
-    },
+    label: String
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
         * The address, global component value.
         * Used to detect changes and restore the value.
         */
-        address: {},
-        global: false
-      }
-    },
+      address: {},
+      global: false
+    }
+  },
 
-    watch: {
-      /**
+  watch: {
+    /**
        * Whenever address change update val.
        */
-      address (val) {
-        this.$emit('input', val)
-      }
-    },
+    address (val) {
+      this.$emit('input', val)
+    }
+  },
 
-    created () {
-      /**
+  created () {
+    /**
        * Called synchronously after the instance is created.
        * Set address to value.
        */
-      this.address = this.value
-    }
+    this.address = this.value
   }
+}
 </script>

@@ -5,25 +5,25 @@
 
       <mo-log/>
     </div>
-    
+
     <mo-employee-workflows/>
   </div>
 </template>
 
 <script>
-  /**
+/**
    * A employee component.
    */
 
-  import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
-  import MoLog from '@/components/MoLog/MoLog'
+import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
+import MoLog from '@/components/MoLog/MoLog'
 
-  export default {
-    components: {
-      MoEmployeeWorkflows,
-      MoLog
-    }
+export default {
+  components: {
+    MoEmployeeWorkflows,
+    MoLog
   }
+}
 </script>
 
 <style scoped>

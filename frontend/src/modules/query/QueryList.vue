@@ -14,23 +14,23 @@
 </template>
 
 <script>
-  import store from './_store'
-  import { mapGetters } from 'vuex'
-  
-  export default {
-    computed: {
-      ...mapGetters({
-        queries: '$_queryList/getQueries'
-      })
-    },
-    created () {
-      const STORE_KEY = '$_queryList'
-      if (!(STORE_KEY in this.$store._modules.root._children)) {
-        this.$store.registerModule(STORE_KEY, store)
-      }
-    },
-    mounted () {
-      this.$store.dispatch('$_queryList/getQueries')
+import store from './_store'
+import { mapGetters } from 'vuex'
+
+export default {
+  computed: {
+    ...mapGetters({
+      queries: '$_queryList/getQueries'
+    })
+  },
+  created () {
+    const STORE_KEY = '$_queryList'
+    if (!(STORE_KEY in this.$store._modules.root._children)) {
+      this.$store.registerModule(STORE_KEY, store)
     }
+  },
+  mounted () {
+    this.$store.dispatch('$_queryList/getQueries')
   }
+}
 </script>

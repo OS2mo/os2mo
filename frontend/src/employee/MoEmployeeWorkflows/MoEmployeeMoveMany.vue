@@ -1,55 +1,55 @@
 <template>
-  <b-modal 
-    id="employeeMoveMany" 
-    size="lg" 
+  <b-modal
+    id="employeeMoveMany"
+    size="lg"
     :title="$t('workflows.employee.move_many_engagements')"
     ref="employeeMoveMany"
-    hide-footer 
+    hide-footer
     lazy
     no-close-on-backdrop
     @hidden="$store.dispatch(`employeeMoveMany/resetFields`)"
   >
     <form @submit.stop.prevent="moveMany">
       <div class="form-row">
-        <mo-date-picker 
-          class="col" 
+        <mo-date-picker
+          class="col"
           :label="$t('input_fields.move_date')"
-          v-model="moveDate" 
+          v-model="moveDate"
           required
         />
 
         <mo-organisation-unit-picker
-          :is-disabled="dateSelected" 
+          :is-disabled="dateSelected"
           :label="$t('input_fields.move_from')"
-          v-model="orgUnitSource" 
-          class="col from-unit" 
+          v-model="orgUnitSource"
+          class="col from-unit"
           required
         />
-        
+
         <mo-organisation-unit-picker
-          :is-disabled="dateSelected" 
+          :is-disabled="dateSelected"
           :label="$t('input_fields.move_to')"
-          v-model="orgUnitDestination" 
+          v-model="orgUnitDestination"
           class="col to-unit"
           required
-        />       
+        />
       </div>
 
       <mo-table
         v-model="selected"
         v-if="orgUnitSource"
-        :content="employees" 
+        :content="employees"
         :columns="columns"
         type="EMPLOYEE"
-        multi-select 
+        multi-select
       />
 
-      <input 
+      <input
         type="hidden"
         v-if="orgUnitSource"
         name="selected-employees-count"
         :value="selected.length"
-        v-validate="{min_value: 1, required: true}" 
+        v-validate="{min_value: 1, required: true}"
       >
 
       <div class="alert alert-danger" v-if="backendValidationError">
@@ -64,109 +64,109 @@
 </template>
 
 <script>
-  /**
+/**
    * A employee move many component.
    */
 
-  import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoTable from '@/components/MoTable/MoTable'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import { mapFields } from 'vuex-map-fields'
-  import { mapGetters } from 'vuex'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoTable from '@/components/MoTable/MoTable'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import { mapFields } from 'vuex-map-fields'
+import { mapGetters } from 'vuex'
 
-  export default {
-    /**
+export default {
+  /**
      * Requesting a new validator scope to its children.
      */
-    $_veeValidate: {
-      validator: 'new'
-    },
+  $_veeValidate: {
+    validator: 'new'
+  },
 
-    components: {
-      MoDatePicker,
-      MoOrganisationUnitPicker,
-      MoTable,
-      ButtonSubmit
-    },
+  components: {
+    MoDatePicker,
+    MoOrganisationUnitPicker,
+    MoTable,
+    ButtonSubmit
+  },
 
-    data () {
-      return {
-        orgUnitSource: undefined
-      }
-    },
+  data () {
+    return {
+      orgUnitSource: undefined
+    }
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * generate getter/setters from store
        */
-      ...mapFields('employeeMoveMany', [
-        'selected',
-        'moveDate',
-        'orgUnitDestination',
-        'columns',
-        'backendValidationError',
-        'isLoading'
-      ]),
+    ...mapFields('employeeMoveMany', [
+      'selected',
+      'moveDate',
+      'orgUnitDestination',
+      'columns',
+      'backendValidationError',
+      'isLoading'
+    ]),
 
-      ...mapGetters('employeeMoveMany', [
-        'employees'
-      ]),
+    ...mapGetters('employeeMoveMany', [
+      'employees'
+    ]),
 
-      /**
+    /**
        * Loop over all contents of the fields object and check if they exist and valid.
        */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      },
-
-      /**
-       * Set dateSelected to disable if moveDate is selected.
-       */
-      dateSelected () {
-        return !this.moveDate
-      }
+    formValid () {
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
     },
 
-    watch: {
-      /**
+    /**
+       * Set dateSelected to disable if moveDate is selected.
+       */
+    dateSelected () {
+      return !this.moveDate
+    }
+  },
+
+  watch: {
+    /**
        * Whenever orgUnitSource changes, get employees.
        * @todo this could probably be improved. right now we need to reset orgUnitSource in the moveMany response.
        */
-      orgUnitSource: {
-        handler (newVal) {
-          this.$store.commit(`employeeMoveMany/updateOrgUnitSource`, newVal)
-          this.$store.dispatch(`employeeMoveMany/getEmployees`)
-        },
-        deep: true
+    orgUnitSource: {
+      handler (newVal) {
+        this.$store.commit(`employeeMoveMany/updateOrgUnitSource`, newVal)
+        this.$store.dispatch(`employeeMoveMany/getEmployees`)
       },
-
-      selected (val) {
-        if (this.fields['selected-employees-count']) {
-          this.$validator.validate('selected-employees-count', val.length)
-        }
-      }
+      deep: true
     },
 
-    methods: {
-      /**
+    selected (val) {
+      if (this.fields['selected-employees-count']) {
+        this.$validator.validate('selected-employees-count', val.length)
+      }
+    }
+  },
+
+  methods: {
+    /**
        * Check if fields are valid, and move employees if they are.
        * Otherwise validate the fields.
        */
-      moveMany () {
-        let vm = this
-        if (this.formValid) {
-          this.$store.dispatch(`employeeMoveMany/moveManyEmployees`)
-            .then(() => {
-              vm.orgUnitSource = undefined
-              vm.$refs.employeeMoveMany.hide()
-            })
-        } else {
-          this.$validator.validateAll()
-        }
+    moveMany () {
+      let vm = this
+      if (this.formValid) {
+        this.$store.dispatch(`employeeMoveMany/moveManyEmployees`)
+          .then(() => {
+            vm.orgUnitSource = undefined
+            vm.$refs.employeeMoveMany.hide()
+          })
+      } else {
+        this.$validator.validateAll()
       }
     }
   }
+}
 </script>

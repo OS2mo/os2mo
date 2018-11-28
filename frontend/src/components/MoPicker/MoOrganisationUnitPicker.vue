@@ -1,13 +1,13 @@
 <template>
   <div class="form-group">
     <label :for="nameId">{{ label }}</label>
-    <input 
+    <input
       :name="nameId"
       :id="nameId"
-      data-vv-as="Enhed" 
+      data-vv-as="Enhed"
       :ref="nameId"
-      type="text" 
-      class="form-control" 
+      type="text"
+      class="form-control"
       autocomplete="off"
       :placeholder="$t('input_fields.choose_unit')"
       v-model="orgName"
@@ -16,9 +16,9 @@
     >
 
     <div class="mo-input-group" v-show="showTree">
-      <mo-tree-view 
+      <mo-tree-view
         v-model="selectedSuperUnit"
-        :org-uuid="orgUuid" 
+        :org-uuid="orgUuid"
       />
     </div>
 
@@ -29,127 +29,127 @@
 </template>
 
 <script>
-  /**
+/**
    * A organisation unit picker component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoTreeView from '@/components/MoTreeView/MoTreeView'
-  import { mapGetters } from 'vuex'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import { mapGetters } from 'vuex'
 
-  export default {
-    name: 'MoOrganisationUnitPicker',
+export default {
+  name: 'MoOrganisationUnitPicker',
 
-    components: {
-      MoTreeView
-    },
+  components: {
+    MoTreeView
+  },
 
-      /**
+  /**
        * Validator scope, sharing all errors and validation state.
        */
-    inject: {
-      $validator: '$validator'
-    },
+  inject: {
+    $validator: '$validator'
+  },
 
-    props: {
-      /**
+  props: {
+    /**
        * Create two-way data bindings with the component.
        */
-      value: Object,
+    value: Object,
 
-      /**
+    /**
        * Defines a default label name.
        */
-      label: {
-        default: 'Angiv overenhed',
-        type: String
-      },
-
-      /**
-       * This boolean property disable the value.
-       */
-      isDisabled: Boolean,
-
-      /**
-       * This boolean property requires a valid name.
-       */
-      required: Boolean
+    label: {
+      default: 'Angiv overenhed',
+      type: String
     },
 
-    data () {
-      return {
+    /**
+       * This boolean property disable the value.
+       */
+    isDisabled: Boolean,
+
+    /**
+       * This boolean property requires a valid name.
+       */
+    required: Boolean
+  },
+
+  data () {
+    return {
       /**
        * The selectedSuperUnit, showTree, orgName component value.
        * Used to detect changes and restore the value.
        */
-        selectedSuperUnit: null,
-        showTree: false,
-        orgName: null
-      }
-    },
+      selectedSuperUnit: null,
+      showTree: false,
+      orgName: null
+    }
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get organisation uuid.
        */
-      ...mapGetters({
-        orgUuid: 'organisation/getUuid'
-      }),
+    ...mapGetters({
+      orgUuid: 'organisation/getUuid'
+    }),
 
-      /**
+    /**
        * Get name `org-unit`.
        */
-      nameId () {
-        return 'org-unit-' + this._uid
-      },
+    nameId () {
+      return 'org-unit-' + this._uid
+    },
 
-      /**
+    /**
        * When its not disable, make it required.
        */
-      isRequired () {
-        if (this.isDisabled) return false
-        return this.required
-      }
-    },
+    isRequired () {
+      if (this.isDisabled) return false
+      return this.required
+    }
+  },
 
-    watch: {
-      /**
+  watch: {
+    /**
        * Whenever selectedSuperUnit change, update newVal.
        */
-      selectedSuperUnit (newVal) {
-        this.orgName = newVal.name
-        this.$validator.validate(this.nameId)
-        this.$refs[this.nameId].blur()
+    selectedSuperUnit (newVal) {
+      this.orgName = newVal.name
+      this.$validator.validate(this.nameId)
+      this.$refs[this.nameId].blur()
 
-        this.$emit('input', newVal)
-        this.showTree = false
-      }
-    },
+      this.$emit('input', newVal)
+      this.showTree = false
+    }
+  },
 
-    mounted () {
-      /**
+  mounted () {
+    /**
        * Called after the instance has been mounted.
        * Set selectedSuperUnit as value.
        */
-      this.selectedSuperUnit = this.value || this.selectedSuperUnit
-    },
+    this.selectedSuperUnit = this.value || this.selectedSuperUnit
+  },
 
-    methods: {
-      /**
+  methods: {
+    /**
        * Get selected oraganisation unit.
        */
-      getSelectedOrganistionUnit () {
-        this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
-      },
+    getSelectedOrganistionUnit () {
+      this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
+    },
 
-      /**
+    /**
        * Set showTree to not show.
        */
-      toggleTree () {
-        this.showTree = !this.showTree
-      }
+    toggleTree () {
+      this.showTree = !this.showTree
     }
   }
+}
 </script>
 
 <style scoped>

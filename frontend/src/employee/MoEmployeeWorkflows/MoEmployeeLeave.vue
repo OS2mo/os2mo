@@ -1,10 +1,10 @@
 <template>
-  <b-modal 
-    id="employeeLeave" 
-    size="lg" 
+  <b-modal
+    id="employeeLeave"
+    size="lg"
     :title="$t('workflows.employee.leave')"
     ref="employeeLeave"
-    hide-footer 
+    hide-footer
     lazy
     no-close-on-backdrop
     @hidden="$store.dispatch('employeeLeave/resetFields')"
@@ -26,81 +26,81 @@
 </template>
 
 <script>
-  /**
+/**
    * A employee create leave component.
    */
 
-  import { mapFields } from 'vuex-map-fields'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
-  import ButtonSubmit from '@/components/ButtonSubmit'
+import { mapFields } from 'vuex-map-fields'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+import ButtonSubmit from '@/components/ButtonSubmit'
 
-  export default {
-      /**
+export default {
+  /**
        * Requesting a new validator scope to its children.
        */
-    $_veeValidate: {
-      validator: 'new'
-    },
+  $_veeValidate: {
+    validator: 'new'
+  },
 
-    components: {
-      MoEmployeePicker,
-      MoLeaveEntry,
-      ButtonSubmit
-    },
+  components: {
+    MoEmployeePicker,
+    MoLeaveEntry,
+    ButtonSubmit
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
         * The isLoading component value.
         * Used to detect changes and restore the value.
         */
-        isLoading: false
-      }
-    },
+      isLoading: false
+    }
+  },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get mapFields from vuex store.
        */
-      ...mapFields('employeeLeave', [
-        'employee',
-        'leave',
-        'backendValidationError'
-      ]),
+    ...mapFields('employeeLeave', [
+      'employee',
+      'leave',
+      'backendValidationError'
+    ]),
 
-      /**
+    /**
        * Check validity of form. this.fields is a magic property created by vee-validate
        */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
-    },
+    formValid () {
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
+    }
+  },
 
-    methods: {
-      /**
+  methods: {
+    /**
        * Create leave and check if the data fields are valid.
        * Then throw a error if not.
        */
-      createLeave () {
-        if (this.formValid) {
-          let vm = this
-          vm.isLoading = true
-          this.$store.dispatch('employeeLeave/LEAVE_EMPLOYEE')
-            .then(response => {
-              vm.isLoading = false
-              if (response.error) {
-                vm.backendValidationError = response.error_key
-              } else {
-                vm.$refs.employeeLeave.hide()
-              }
-            })
-        } else {
-          this.$validator.validateAll()
-        }
+    createLeave () {
+      if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+        this.$store.dispatch('employeeLeave/LEAVE_EMPLOYEE')
+          .then(response => {
+            vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$refs.employeeLeave.hide()
+            }
+          })
+      } else {
+        this.$validator.validateAll()
       }
     }
   }
+}
 </script>

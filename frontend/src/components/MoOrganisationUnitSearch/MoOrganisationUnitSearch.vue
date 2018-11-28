@@ -2,14 +2,14 @@
   <div class="form-group">
     <label :for="nameId">{{ label }}</label>
     <div class="input-group">
-      <v-autocomplete 
+      <v-autocomplete
         :name="nameId"
         :id="nameId"
-        data-vv-as="Enhed" 
-        :items="items" 
-        v-model="selectedSuperUnit" 
+        data-vv-as="Enhed"
+        :items="items"
+        v-model="selectedSuperUnit"
         @item-selected="selected"
-        :get-label="getLabel" 
+        :get-label="getLabel"
         :component-item='template'
         @update-items="updateItems"
         :auto-select-one-item="false"
@@ -43,7 +43,7 @@ export default {
     VAutocomplete
   },
 
-    /**
+  /**
      * Validator scope, sharing all errors and validation state.
      */
   inject: {
@@ -84,17 +84,17 @@ export default {
       selectedSuperUnit: null,
       items: [],
 
-    /**
+      /**
       * The template component value.
       * Used to add MoOrganisationUnitSearchTemplate to the autocomplete search.
       */
       template: MoOrganisationUnitSearchTemplate,
 
-    /**
+      /**
      * The noItem component value.
      * Used to add a default noItem message.
      */
-      noItem: [{name: 'Ingen resultater matcher din søgning'}]
+      noItem: [{ name: 'Ingen resultater matcher din søgning' }]
     }
   },
 
