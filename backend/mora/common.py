@@ -374,7 +374,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     adresser: typing.List[dict] = None,
-    integrationdata: str = ""
+    integration_data: str = ""
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -417,14 +417,14 @@ def create_organisationsenhed_payload(
     if adresser:
         org_unit['relationer']['adresser'] = adresser
 
-    if integrationdata:
+    if integration_data:
         org_unit[
             'attributter'
         ][
             'organisationenhedegenskaber'
         ][0][
             'integrationsdata'
-        ] = integrationdata
+        ] = integration_data
 
     org_unit = _set_virkning(org_unit, virkning)
 
@@ -438,7 +438,7 @@ def create_bruger_payload(
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
-    integrationdata: str,
+    integration_data: str,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -475,14 +475,14 @@ def create_bruger_payload(
             },
         ]
 
-    if integrationdata:
+    if integration_data:
         user[
             'attributter'
         ][
             'brugeregenskaber'
         ][0][
             'integrationsdata'
-        ] = integrationdata
+        ] = integration_data
 
     user = _set_virkning(user, virkning)
 

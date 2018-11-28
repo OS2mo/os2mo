@@ -681,7 +681,7 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_get_integrationdata(self):
+    def test_get_integration_data(self):
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
         util.load_fixture('organisation/bruger',
@@ -691,7 +691,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/?employeedetails=INTEGRATION'.format(employee_uuid),
             {
-                'integrationdata': '{"von-and-løn-id": "2468"}',
+                'integration_data': '{"von-and-løn-id": "2468"}',
                 'name': 'Andersine And',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
@@ -719,7 +719,7 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_edit_integrationdata(self):
+    def test_edit_integration_data(self):
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
         util.load_fixture('organisation/bruger',
@@ -730,7 +730,7 @@ class Tests(util.LoRATestCase):
             "type": "employee",
             "data": {
                 "uuid": employee_uuid,
-                "integrationdata": '{"von-and-løn-id": "2468", '
+                "integration_data": '{"von-and-løn-id": "2468", '
                     '"bjørnebanden-hjælper-id": "sorte-slyngel"}',
                 "validity": {
                     "from": "2016-01-01",

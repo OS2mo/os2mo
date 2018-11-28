@@ -9,7 +9,7 @@
 import os
 import sys
 
-# cant do monkeypatching only because file is used as program
+# Can't do monkeypatching only because file is used as program
 try:
     # first file patching in case we have test module installed:
     import oio_common

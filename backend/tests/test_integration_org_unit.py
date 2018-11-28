@@ -283,7 +283,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "name": "Fake Corp",
-            "integrationdata": '{"fakekey":42}',
+            "integration_data": '{"fakekey":42}',
             "parent": {
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
             },
@@ -925,7 +925,7 @@ class Tests(util.LoRATestCase):
         """ Test setting the start date to something earlier (#23182)
 
             This test fails due to validity records being
-            fractioned in lora due to integrationdata added
+            fractioned in lora due to integration_data added
             the results are not wrong, just fractioned (#25200)
         """
 
@@ -1103,7 +1103,7 @@ class Tests(util.LoRATestCase):
     @util.mock('aabogade.json', allow_mox=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
         """ This test fails due to validity records being
-            fractioned in lora due to integrationdata added
+            fractioned in lora due to integration_data added
             the results are not wrong, just fractioned (#25200)
         """
         self.load_sample_structures()
@@ -1508,7 +1508,7 @@ class Tests(util.LoRATestCase):
     @unittest.expectedFailure
     def test_rename_org_unit_early(self):
         """ This test fails due to validity records being
-            fractioned in lora due to integrationdata added
+            fractioned in lora due to integration_data added
             the results are not wrong, just fractioned (#25200)
         """
         # Test that we can rename a unit to a date *earlier* than its
@@ -2725,14 +2725,14 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_get_integrationdata(self):
+    def test_get_integration_data(self):
         self.load_sample_structures()
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         self.assertRequestResponse(
             '/service/ou/{}/?unitdetails=INTEGRATION'.format(org_unit_uuid),
             {
-                'integrationdata': '{}',
+                'integration_data': '{}',
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -2761,7 +2761,7 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_edit_integrationdata(self):
+    def test_edit_integration_data(self):
         self.load_sample_structures()
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
@@ -2769,7 +2769,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "uuid": org_unit_uuid,
-                "integrationdata": '{"baywatchname": "Hasselhoff"}',
+                "integration_data": '{"baywatchname": "Hasselhoff"}',
                 "validity": {
                     "from": "2016-01-01",
                     "to": "2016-01-02",

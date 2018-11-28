@@ -51,7 +51,7 @@ class UnitDetails(enum.Enum):
     # with everything except child count
     FULL = 2
 
-    # minimal and integrationdata
+    # minimal and integration_data
     INTEGRATION = 3
 
 
@@ -110,9 +110,9 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
-        integrationdata = util.checked_get(
+        integration_data = util.checked_get(
             req,
-            mapping.INTEGRATIONDATA,
+            mapping.INTEGRATION_DATA,
             "",
             required=False
         )
@@ -158,7 +158,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             enhedstype=org_unit_type_uuid,
             overordnet=parent_uuid,
             adresser=addresses,
-            integrationdata=integrationdata,
+            integration_data=integration_data,
         )
 
         if org_uuid != parent_uuid:
@@ -221,14 +221,14 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data or mapping.INTEGRATIONDATA in data:
+        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
 
             if mapping.NAME in data:
                 attrs['enhedsnavn'] = data[mapping.NAME]
 
-            if mapping.INTEGRATIONDATA in data:
-                attrs['integrationsdata'] = data[mapping.INTEGRATIONDATA]
+            if mapping.INTEGRATION_DATA in data:
+                attrs['integrationsdata'] = data[mapping.INTEGRATION_DATA]
 
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
@@ -345,7 +345,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     elif details is UnitDetails.INTEGRATION:
-        r["integrationdata"] = attrs.get("integrationsdata", "")
+        r["integration_data"] = attrs.get("integrationsdata", "")
     else:
         assert False, 'enum is {}!?'.format(details)
 

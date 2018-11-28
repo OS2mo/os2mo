@@ -44,7 +44,7 @@ class EmployeeDetails(enum.Enum):
     # with everything except child count
     FULL = 1
 
-    # minimal and integrationdata
+    # minimal and integration_data
     INTEGRATION = 2
 
 
@@ -55,9 +55,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
         name = util.checked_get(req, mapping.NAME, "", required=True)
-        integrationdata = util.checked_get(
+        integration_data = util.checked_get(
             req,
-            mapping.INTEGRATIONDATA,
+            mapping.INTEGRATION_DATA,
             "",
             required=False
         )
@@ -98,7 +98,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
-            integrationdata=integrationdata,
+            integration_data=integration_data,
         )
 
         details = util.checked_get(req, 'details', [])
@@ -151,14 +151,14 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data or mapping.INTEGRATIONDATA in data:
+        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
             attrs = mapping.EMPLOYEE_EGENSKABER_FIELD.get(original)[-1].copy()
 
             if mapping.NAME in data:
                 attrs['brugernavn'] = data[mapping.NAME]
 
-            if mapping.INTEGRATIONDATA in data:
-                attrs['integrationsdata'] = data[mapping.INTEGRATIONDATA]
+            if mapping.INTEGRATION_DATA in data:
+                attrs['integrationsdata'] = data[mapping.INTEGRATION_DATA]
 
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
@@ -227,7 +227,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
-        r["integrationdata"] = props.get("integrationsdata", "")
+        r["integration_data"] = props.get("integrationsdata", "")
     return r
 
 
