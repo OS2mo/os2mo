@@ -1,3 +1,12 @@
+Version 0.15.0, in development
+==============================
+
+New features
+------------
+
+* 25396: Added backend validation API, for validating individual fields from
+  the front-end.
+
 Version 0.14.0, 2019-01-30
 ==========================
 
