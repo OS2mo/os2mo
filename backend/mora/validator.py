@@ -172,7 +172,8 @@ def is_distinct_responsibility(
 
 @forceable
 def is_date_range_in_employee_range(employee_obj: dict,
-                                    valid_from, valid_to):
+                                    valid_from: datetime.datetime,
+                                    valid_to: datetime.datetime):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
@@ -361,7 +362,7 @@ def is_edit_from_date_before_today(from_date: datetime.datetime):
 
 @forceable
 def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
-                                         user_id):
+                                         user_id=None):
     """
     Check whether we're able to find an existing user with the given CPR,
     and raise a validation error accordingly
