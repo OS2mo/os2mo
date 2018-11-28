@@ -287,7 +287,7 @@ def list_employees(orgid):
     kwargs = dict(
         limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
-        tilhoerer=str(orgid),
+        tilhoerer=orgid,
         gyldighed='Aktiv',
     )
 

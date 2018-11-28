@@ -103,7 +103,7 @@ def list_facets(orgid):
 
     r = []
 
-    for facetid, facet in c.facet.get_all(ansvarlig=str(orgid),
+    for facetid, facet in c.facet.get_all(ansvarlig=orgid,
                                           publiceret='Publiceret'):
         facet_name = FACET_NAMES.get(
             facet['attributter']['facetegenskaber'][0]['brugervendtnoegle'],
@@ -242,7 +242,7 @@ def get_classes(orgid: uuid.UUID, facet: str):
     limit = int(flask.request.args.get('limit') or settings.DEFAULT_PAGE_SIZE)
 
     facetids = c.facet(
-        bvn=facet_name, ansvarlig=str(orgid),
+        bvn=facet_name, ansvarlig=orgid,
         publiceret='Publiceret',
     )
 
@@ -256,7 +256,7 @@ def get_classes(orgid: uuid.UUID, facet: str):
             orgid,
             data=c.klasse.paged_get(get_one_class,
                                     facet=facetids,
-                                    ansvarlig=str(orgid),
+                                    ansvarlig=orgid,
                                     publiceret='Publiceret',
                                     start=start, limit=limit),
         ))

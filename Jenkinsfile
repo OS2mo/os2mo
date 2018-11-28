@@ -98,11 +98,6 @@ pipeline {
 
   post {
     always {
-      warnings canRunOnFailed: true, consoleParsers: [
-        [parserName: 'Sphinx-build'],
-        [parserName: 'Pep8']
-      ]
-
       cobertura coberturaReportFile: '*/build/coverage/*.xml',  \
         onlyStable: false,                                      \
         conditionalCoverageTargets: '90, 0, 0',                 \
@@ -119,6 +114,13 @@ pipeline {
 
       junit healthScaleFactor: 200.0,           \
         testResults: '*/build/reports/*.xml'
+
+      timeout (1) {
+        warnings canRunOnFailed: true, consoleParsers: [
+          [parserName: 'Sphinx-build'],
+          [parserName: 'Pep8']
+        ]
+      }
 
       cleanWs deleteDirs: true
 
