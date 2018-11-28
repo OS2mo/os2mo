@@ -1,6 +1,6 @@
-const Organisation = () => import('./')
-const OrganisationLandingPage = () => import('./OrganisationLandingPage')
-const OrganisationDetail = () => import('./OrganisationDetail')
+const Organisation = () => import(/* webpackChunkName: "organisation" */ './')
+const OrganisationLandingPage = () => import(/* webpackChunkName: "organisationLandingPage" */ './OrganisationLandingPage')
+const OrganisationDetail = () => import(/* webpackChunkName: "organisationDetail" */ './OrganisationDetail')
 
 export default {
   path: '/organisation',

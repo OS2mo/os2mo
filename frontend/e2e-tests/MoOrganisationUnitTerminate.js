@@ -13,8 +13,8 @@ const parentInput = dialog.find('input[data-vv-as="Enhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-test('Workflow: terminate employee', async t => {
-  let today = moment()
+test('Workflow: terminate unit', async t => {
+  let today = moment().add(1, 'days')
 
   await t
     .setTestSpeed(0.8)
@@ -24,7 +24,7 @@ test('Workflow: terminate employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(parentInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li .item .link-color').withText('Ballerup Idrætspark'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

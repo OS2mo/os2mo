@@ -10,5 +10,7 @@ WANT_VENV=0
 #
 rm -rf \
    "$VENV" \
+   "$TOPDIR"/frontend/dist \
+   "$TOPDIR"/frontend/node_modules \
    "$TOPDIR"/backend/build \
    "$TOPDIR"/docs/out
