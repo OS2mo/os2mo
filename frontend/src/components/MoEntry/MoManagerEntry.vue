@@ -140,10 +140,6 @@ export default {
           }
         },
 
-        created () {
-          this.val = this.value
-        },
-
         template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
       }
     },
@@ -165,17 +161,6 @@ export default {
           return {
             val: this.value
           }
-        },
-
-        watch: {
-          val (newVal) {
-            this.val = this.value instanceof Array ? this.value[0] : this.value
-            this.$emit('input', newVal)
-          }
-        },
-
-        created () {
-          this.val = this.value
         },
 
         template: `<mo-manager-address-picker v-model="val" required/>`
