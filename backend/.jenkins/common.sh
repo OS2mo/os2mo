@@ -6,7 +6,7 @@ TOPDIR=$(cd "$(dirname ${BASH_SOURCE[0]})"/../..; pwd)
 
 if test -z "$VENV"
 then
-    VENV="$TOPDIR/venv"
+    VENV="$TOPDIR/backend/venv"
 fi
 
 if test ${WANT_VENV:=1} != 0
