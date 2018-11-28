@@ -20,6 +20,11 @@ pip install \
     -e "$TOPDIR"/backend
 
 #
+# build the frontend
+#
+"$TOPDIR"/backend/flask.sh build
+
+#
 # build the documentation
 #
-make -C "$TOPDIR"/docs SPHINXBUILD="$TOPDIR"/venv/bin/sphinx-build html
+"$TOPDIR"/backend/flask.sh docs

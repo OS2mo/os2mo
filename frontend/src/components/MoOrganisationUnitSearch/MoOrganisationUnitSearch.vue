@@ -26,137 +26,138 @@
 </template>
 
 <script>
-  /**
-   * A organisation unit search component.
-   */
+/**
+ * A organisation unit search component.
+ */
 
-  import Search from '@/api/Search'
-  import VAutocomplete from 'v-autocomplete'
-  import 'v-autocomplete/dist/v-autocomplete.css'
-  import MoOrganisationUnitSearchTemplate from './MoOrganisationUnitSearchTemplate'
-  
-  export default {
-    name: 'MoOrganisationUnitSearch',
+import Search from '@/api/Search'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import MoOrganisationUnitSearchTemplate from './MoOrganisationUnitSearchTemplate'
+import moment from 'moment'
 
-    components: {
-      VAutocomplete
+export default {
+  name: 'MoOrganisationUnitSearch',
+
+  components: {
+    VAutocomplete
+  },
+
+    /**
+     * Validator scope, sharing all errors and validation state.
+     */
+  inject: {
+    $validator: '$validator'
+  },
+
+  props: {
+    /**
+     * Create two-way data bindings with the component.
+     */
+    value: Object,
+
+    /**
+     * Defines a date.
+     */
+    date: Date,
+
+    /**
+     * Defines a label with a default name.
+     */
+    label: {
+      default: 'Angiv overenhed',
+      type: String
     },
 
-      /**
-       * Validator scope, sharing all errors and validation state.
-       */
-    inject: {
-      $validator: '$validator'
-    },
+    /**
+     * This boolean property requires a valid unit name.
+     */
+    required: Boolean
+  },
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object,
+  data () {
+    return {
+    /**
+      * The selectedSuperUnit, items component value.
+      * Used to detect changes and restore the value.
+      */
+      selectedSuperUnit: null,
+      items: [],
 
-      /**
-       * Defines a date.
-       */
-      date: Date,
+    /**
+      * The template component value.
+      * Used to add MoOrganisationUnitSearchTemplate to the autocomplete search.
+      */
+      template: MoOrganisationUnitSearchTemplate,
 
-      /**
-       * Defines a label with a default name.
-       */
-      label: {
-        default: 'Angiv overenhed',
-        type: String
-      },
+    /**
+     * The noItem component value.
+     * Used to add a default noItem message.
+     */
+      noItem: [{name: 'Ingen resultater matcher din søgning'}]
+    }
+  },
 
-      /**
-       * This boolean property requires a valid unit name.
-       */
-      required: Boolean
-    },
+  computed: {
+    /**
+     * Get name `org-unit`.
+     */
+    nameId () {
+      return 'org-unit-' + this._uid
+    }
+  },
 
-    data () {
-      return {
-      /**
-        * The selectedSuperUnit, items component value.
-        * Used to detect changes and restore the value.
-        */
-        selectedSuperUnit: null,
-        items: [],
-
-      /**
-        * The template component value.
-        * Used to add MoOrganisationUnitSearchTemplate to the autocomplete search.
-        */
-        template: MoOrganisationUnitSearchTemplate,
-
-      /**
-       * The noItem component value.
-       * Used to add a default noItem message.
-       */
-        noItem: [{name: 'Ingen resultater matcher din søgning'}]
+  watch: {
+    /**
+     * Whenever selectedSuperUnit change, update newVal.
+     */
+    selectedSuperUnit (newVal) {
+      if (this.selectedSuperUnit == null) {
+        this.$emit('input', null)
+        return
       }
+      this.item = newVal.name
+      this.$emit('input', newVal)
+    }
+  },
+
+  created () {
+    /**
+     * Called synchronously after the instance is created.
+     * Set selectedSuperUnit to value.
+     */
+    if (this.value !== undefined) this.selectedSuperUnit = this.value
+  },
+
+  methods: {
+    /**
+     * Get organisation label name.
+     */
+    getLabel (item) {
+      return item ? item.name : null
     },
 
-    computed: {
-      /**
-       * Get name `org-unit`.
-       */
-      nameId () {
-        return 'org-unit-' + this._uid
-      }
+    /**
+     * Update organisation suggestions based on search query.
+     */
+    updateItems (query) {
+      let vm = this
+      vm.items = []
+      let atDate = moment(this.date).format('YYYY-MM-DD')
+      let org = this.$store.state.organisation
+      Search.organisations(org.uuid, query, atDate)
+        .then(response => {
+          vm.items = response.length > 0 ? response : vm.noItem
+        })
     },
 
-    watch: {
-      /**
-       * Whenever selectedSuperUnit change, update newVal.
-       */
-      selectedSuperUnit (newVal) {
-        if (this.selectedSuperUnit == null) {
-          this.$emit('input', null)
-          return
-        }
-        this.item = newVal.name
-        this.$emit('input', newVal)
-      }
-    },
-
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Set selectedSuperUnit to value.
-       */
-      if (this.value !== undefined) this.selectedSuperUnit = this.value
-    },
-
-    methods: {
-      /**
-       * Get organisation label name.
-       */
-      getLabel (item) {
-        return item ? item.name : null
-      },
-
-      /**
-       * Update organisation suggestions based on search query.
-       */
-      updateItems (query) {
-        let vm = this
-        vm.items = []
-        let atDate = this.$moment(this.date).format('YYYY-MM-DD')
-        let org = this.$store.state.organisation
-        Search.organisations(org.uuid, query, atDate)
-          .then(response => {
-            vm.items = response.length > 0 ? response : vm.noItem
-          })
-      },
-
-      /**
-       * Return blank items.
-       */
-      selected (item) {
-        if (item.uuid == null) return
-        this.items = []
-      }
+    /**
+     * Return blank items.
+     */
+    selected (item) {
+      if (item.uuid == null) return
+      this.items = []
     }
   }
+}
 </script>

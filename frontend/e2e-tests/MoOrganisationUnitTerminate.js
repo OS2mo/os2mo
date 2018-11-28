@@ -29,7 +29,7 @@ test('Workflow: terminate org unit', async t => {
   let today = moment()
 
   await t
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-unit-create')
 
     .expect(createDialog.exists).ok('Opened dialog')
@@ -61,7 +61,7 @@ test('Workflow: terminate org unit', async t => {
     .expect(createDialog.exists).notOk()
 
     .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+      .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet oprettet/
     )
@@ -73,15 +73,15 @@ test('Workflow: terminate org unit', async t => {
 
     .click(parentInput)
     .click(dialog.find('.tree-node')
-           .withText('Hjørring')
-           .find('.tree-arrow'))
+      .withText('Hjørring')
+      .find('.tree-arrow'))
     .click(dialog.find('.tree-anchor').withText('VM 2018'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(dialog.find('.btn-primary'))
@@ -89,7 +89,7 @@ test('Workflow: terminate org unit', async t => {
     .expect(dialog.exists).notOk()
 
     .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(0).innerText)
+      .find('.alert').nth(0).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet afsluttet/
     )
