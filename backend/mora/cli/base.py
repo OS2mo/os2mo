@@ -253,85 +253,77 @@ def full_run(**kwargs):
 
     from oio_rest import app as lora_app
     from oio_rest.utils import test_support
+    from oio_rest import db
     import settings as lora_settings
 
     from mora import app
-    from mora.importing import spreadsheets
+
+    lora_server = werkzeug.serving.make_server(
+        'localhost', 0, lora_app.app,
+        threaded=True,
+    )
+
+    lora_port = lora_server.socket.getsockname()[1]
 
     with \
             test_support.psql() as psql, \
             mock.patch('settings.LOG_AMQP_SERVER', None), \
             mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
-            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True):
+            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True), \
+            mock.patch('oio_rest.db.pool',
+                       psycopg2.pool.PersistentConnectionPool(
+                           0, 100,
+                           **psql.dsn(database=lora_settings.DATABASE),
+                       )), \
+            mock.patch('mora.settings.LORA_URL',
+                       'http://localhost:{}/'.format(lora_port)):
         test_support._initdb()
 
-        lora_server = werkzeug.serving.make_server(
-            'localhost', 0, lora_app.app,
-            threaded=True,
-        )
-
-        lora_port = lora_server.socket.getsockname()[1]
-
-        lora_thread = threading.Thread(
+        threading.Thread(
             target=lora_server.serve_forever,
             args=(),
             daemon=True,
+        ).start()
+
+        print(' * LoRA running at {}'.format(settings.LORA_URL))
+
+        conn = db.get_connection()
+
+        try:
+            with \
+                    conn.cursor() as curs, \
+                    open(os.path.join(backenddir, 'tests', 'fixtures',
+                                      'dummy.sql')) as fp:
+                curs.execute(fp.read())
+
+        finally:
+            db.pool.putconn(conn)
+
+        mora_server = werkzeug.serving.make_server(
+            'localhost', 0, app.create_app(),
+            threaded=True,
         )
 
-        lora_thread.start()
+        mora_port = mora_server.socket.getsockname()[1]
 
-        with \
-                mock.patch('oio_rest.db.pool',
-                           psycopg2.pool.PersistentConnectionPool(
-                               1, 100,
-                               database=lora_settings.DATABASE,
-                               user=psql.dsn()['user'],
-                               password=psql.dsn().get('password'),
-                               host=psql.dsn()['host'],
-                               port=psql.dsn()['port'],
-                           )), \
-                mock.patch('mora.settings.LORA_URL',
-                           'http://localhost:{}/'.format(lora_port)):
-            print(' * LoRA running at {}'.format(settings.LORA_URL))
+        print(' * Backend running at http://localhost:{}/'.format(mora_port))
 
-            spreadsheets.run(
-                target=settings.LORA_URL.rstrip('/'),
-                sheets=[
-                    os.path.join(
-                        backenddir,
-                        'tests/fixtures/importing/BALLERUP.csv',
-                    ),
-                ],
-                dry_run=False,
-                verbose=False,
-                jobs=1,
-                failfast=False,
-                include=None,
-                check=False,
-                exact=False,
-            )
+        threading.Thread(
+            target=mora_server.serve_forever,
+            args=(),
+            daemon=True,
+        ).start()
 
-            mora_server = werkzeug.serving.make_server(
-                'localhost', 0, app.create_app(),
-                threaded=True,
-            )
-
-            mora_port = mora_server.socket.getsockname()[1]
-
-            mora_thread = threading.Thread(
-                target=mora_server.serve_forever,
-                args=(),
-                daemon=True,
-            )
-
-            mora_thread.start()
-
-            with subprocess.Popen(
+        with subprocess.Popen(
                 get_yarn_cmd('dev'),
                 cwd=frontenddir,
                 env={
                     **os.environ,
                     'BASE_URL': 'http://localhost:{}'.format(mora_port),
                 },
-            ) as frontend:
+        ) as frontend:
                 pass
+
+        db.pool.closeall()
+        mora_server.shutdown()
+        lora_server.shutdown()

@@ -4,12 +4,12 @@ import employeeRouter from '@/employee/router'
 import organisationRouter from '@/organisation/router'
 import timeMachineRouter from '@/modules/timeMachine/router'
 
-const LoginPage = () => import('@/login/LoginPage')
-const Landing = () => import('@/landing/LandingPage')
+const LoginPage = () => import(/* webpackChunkName: "login" */ '@/login/LoginPage')
+const Landing = () => import(/* webpackChunkName: "landingPage" */ '@/landing/LandingPage')
 const MoBase = () => import('@/MoBase')
 const PageNotFound = () => import('@/components/PageNotFound')
-const TheHelp = () => import('@/help/TheHelp')
-const QueryList = () => import('@/modules/query/QueryList')
+const TheHelp = () => import(/* webpackChunkName: "Help" */ '@/help/TheHelp')
+const QueryList = () => import(/* webpackChunkName: "queryList" */ '@/modules/query/QueryList')
 
 Vue.use(Router)
 

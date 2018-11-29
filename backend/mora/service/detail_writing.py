@@ -40,10 +40,7 @@ def handle_requests(
     elif isinstance(reqs, list):
         is_single_request = False
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_INPUT,
-            request=reqs,
-        )
+        exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
 
     requests = handlers.generate_requests(reqs, request_type)
 

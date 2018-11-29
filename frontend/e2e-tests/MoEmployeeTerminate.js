@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Employee test')
+fixture('MoEmployeeTerminate')
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeTerminate')
@@ -25,10 +25,10 @@ test('Workflow: terminate employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeInput)
-    .typeText(searchEmployeeInput.find('input'), 'sune')
-    .expect(searchEmployeeItem.withText('Sune Skriver').visible).ok()
+    .typeText(searchEmployeeInput.find('input'), 'thejs')
+    .expect(searchEmployeeItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(searchEmployeeInput.find('input').value).eql('Sune Skriver')
+    .expect(searchEmployeeInput.find('input').value).eql('Thejs Hvid Larsen')
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

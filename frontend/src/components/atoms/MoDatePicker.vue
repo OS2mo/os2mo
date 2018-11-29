@@ -34,6 +34,7 @@
 
   import DateTimePicker from 'vuejs-datepicker'
   import { da } from 'vuejs-datepicker/dist/locale'
+  import moment from 'moment'
 
   export default {
     components: {
@@ -116,7 +117,7 @@
        * disregard timezones and the time-of-day.
        */
       selected (newVal) {
-        this.dateString = newVal ? this.$moment(new Date(newVal)).format('YYYY-MM-DD') : null
+        this.dateString = newVal ? moment(new Date(newVal)).format('YYYY-MM-DD') : null
       },
 
       /**

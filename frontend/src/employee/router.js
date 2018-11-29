@@ -1,6 +1,6 @@
-const Employee = () => import('./')
-const MoEmployeeList = () => import('./MoEmployeeList')
-const EmployeeDetail = () => import('./EmployeeDetail')
+const Employee = () => import(/* webpackChunkName: "employee" */ './')
+const MoEmployeeList = () => import(/* webpackChunkName: "employeeList" */ './MoEmployeeList')
+const EmployeeDetail = () => import(/* webpackChunkName: "employeeDetail" */ './EmployeeDetail')
 
 export default {
   path: '/medarbejder',

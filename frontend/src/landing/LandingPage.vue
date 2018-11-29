@@ -21,6 +21,13 @@
           <span class="btn-text">{{$tc('shared.organisation', 1)}}</span>
         </button>
       </div>
+
+      <div class="col">
+        <button class="btn btn-success btn-mapper mt-3" @click="setDestination('OrganisationMapper')">
+          <icon name="share-alt" scale="2"/>
+          <span class="btn-text">{{$t('shared.organisation_mapping')}}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -64,6 +71,11 @@
   .btn-org {
     cursor: pointer;
     max-width: 12em;
+  }
+
+  .btn-mapper {
+    /* FIXME: temporary fix to hide the button in development */
+    display: none;
   }
 
   .btn-employee:hover{

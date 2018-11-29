@@ -1,10 +1,18 @@
 Version 0.13.0 (in development)
 ===============================
 
+New features
+------------
+
+* #24880: Switch to a new implementation of the tree view which allows
+  rendering the tree view properly on load, keeps the selection
+  updated when changing units, and eventually enables rendering
+  filtered trees for to make searching easier.
+
 Internal changes
 ----------------
 
-* 23799: Added custom UUID url converter, stringifying UUID parameters in
+* #23799: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
 * #24797 Integration_data added to employee and org.unit
 
