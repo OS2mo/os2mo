@@ -41,7 +41,7 @@
    * A searchbar component.
    */
 
-  import _ from 'lodash'
+  import sortBy from 'lodash.sortby'
   import Search from '@/api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
@@ -80,7 +80,7 @@
 
     computed: {
       orderedListOptions () {
-        return _.sortBy(this.items, 'name')
+        return sortBy(this.items, 'name')
       }
     },
 

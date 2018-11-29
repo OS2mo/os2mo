@@ -13,7 +13,7 @@
    * A facet picker component.
    */
 
-  import _ from 'lodash'
+  import sortBy from 'lodash.sortby'
   import MoSelect from '@/components/atoms/MoSelect'
 
   export default {
@@ -42,7 +42,7 @@
       },
       sortedOptions () {
         let data = this.$store.getters['facet/GET_FACET'](this.facet)
-        return _.sortBy(data.classes, 'name')
+        return sortBy(data.classes, 'name')
       },
       isDisabled () {
         return this.preselectedUserKey !== undefined

@@ -23,7 +23,7 @@
    * A organisation picker component.
    */
 
-  import _ from 'lodash'
+  import sortBy from 'lodash.sortby'
   import Organisation from '@/api/Organisation'
   import { EventBus } from '@/EventBus'
 
@@ -72,7 +72,7 @@
 
     computed: {
       orderedListOptions () {
-        return _.sortBy(this.orgs, name)
+        return sortBy(this.orgs, name)
       }
     },
 

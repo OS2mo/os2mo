@@ -30,7 +30,7 @@
    * A it system component.
    */
 
-  import _ from 'lodash'
+  import sortBy from 'lodash.sortby'
   import Facet from '@/api/Facet'
   import { EventBus } from '@/EventBus'
 
@@ -76,7 +76,7 @@
       },
 
       orderedListOptions () {
-        return _.sortBy(this.itSystems, 'name')
+        return sortBy(this.itSystems, 'name')
       }
     },
 
