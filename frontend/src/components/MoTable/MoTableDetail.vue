@@ -1,7 +1,11 @@
 <template>
   <div>
-    <mo-collapse :title="$t('common.future')" @show="$emit('show', 'future')">
+    <mo-collapse
+      class="detail-future"
+      :title="$t('common.future')"
+      @show="$emit('show', 'future')">
       <mo-table 
+        class="detail-future"
         :columns="columns"
         :content="contentStore.future"
         :content-type="contentType"
@@ -11,8 +15,12 @@
       />
     </mo-collapse>
 
-    <mo-collapse :title="$t('common.present')" visible @show="$emit('show', 'present')">
-      <mo-table 
+    <mo-collapse
+      class="detail-present"
+      :title="$t('common.present')"
+      visible
+      @show="$emit('show', 'present')">
+      <mo-table
         :columns="columns"
         :content="contentStore.present"
         :content-type="contentType"
@@ -22,7 +30,10 @@
       />
     </mo-collapse>
 
-    <mo-collapse :title="$t('common.past')" @show="$emit('show', 'past')">
+    <mo-collapse
+      class="detail-past"
+      :title="$t('common.past')"
+      @show="$emit('show', 'past')">
       <mo-table 
         :columns="columns"
         :content="contentStore.past"

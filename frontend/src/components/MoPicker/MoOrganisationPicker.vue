@@ -26,6 +26,7 @@
   import sortBy from 'lodash.sortby'
   import Organisation from '@/api/Organisation'
   import { EventBus } from '@/EventBus'
+  import { mapGetters } from 'vuex'
 
   export default {
     name: 'MoOrganisationPicker',
@@ -71,6 +72,11 @@
     },
 
     computed: {
+      ...mapGetters({
+        currentUnit: 'organisationUnit/GET_ORG_UNIT',
+        currentEmployee: 'employee/GET_EMPLOYEE'
+      }),
+
       orderedListOptions () {
         return sortBy(this.orgs, name)
       }
@@ -95,6 +101,30 @@
         this.$emit('input', newVal)
       },
 
+      currentEmployee: {
+        handler (val) {
+          if (val.org) {
+            if (!this.selectedOrganisation ||
+                val.org_uuid !== this.selectedOrganisation.uuid) {
+              this.selectedOrganisation = val.org
+            }
+          }
+        },
+        deep: true
+      },
+
+      currentUnit: {
+        handler (val) {
+          if (val.org) {
+            if (!this.selectedOrganisation ||
+                val.org_uuid !== this.selectedOrganisation.uuid) {
+              this.selectedOrganisation = val.org
+            }
+          }
+        },
+        deep: true
+      },
+
       /**
        * Whenever atDate change, update.
        */
@@ -112,9 +142,12 @@
         Organisation.getAll(this.atDate)
           .then(response => {
             vm.orgs = response
-            if (!vm.selectedOrganisation) {
-              vm.selectedOrganisation = response[0]
-            }
+
+            let org = ((vm.currentUnit && vm.currentUnit.org) ||
+                       (vm.currentEmployee && vm.currentEmployee.org) ||
+                       response[0])
+
+            vm.selectedOrganisation = org
           })
       },
 

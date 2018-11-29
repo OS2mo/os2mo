@@ -13,6 +13,7 @@
       <div class="form-row">
         <div class="col">
           <mo-organisation-unit-picker
+            class="currentUnit"
             v-model="original" 
             :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"

@@ -24,7 +24,7 @@ const fromInput = dialog.find('.from-date input.form-control')
 const addressTypeSelect = dialog.find('select[data-vv-as="Adressetype"]')
 const addressTypeOption = addressTypeSelect.find('option')
 
-const addressInput = dialog.find('.v-autocomplete[data-vv-as="Lokation"]')
+const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
 // Association
@@ -55,7 +55,7 @@ const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Angiv en
 const addressManagerTypeSelect = dialog.find('.address-manager select[data-vv-as="Lederadressetype"]')
 const addressManagerTypeOption = addressManagerTypeSelect.find('option')
 
-const addressManagerInput = dialog.find('.v-autocomplete[data-vv-as="Fysisk adresse"]')
+const addressManagerInput = dialog.find('.address-manager .v-autocomplete[data-vv-as="Adresse"]')
 const addressManagerItem = addressManagerInput.find('.v-autocomplete-list-item label')
 
 const managerTypeSelect = dialog.find('.select-manager select[data-vv-as="Ledertyper"]')
@@ -63,7 +63,7 @@ const managerTypeOption = managerTypeSelect.find('option')
 
 const addressManagerMany = dialog.find('.address-manager button')
 
-const addressManagerInputContact = dialog.find('input[data-vv-as="Kontakttelefon"]')
+const addressManagerInputEmail = dialog.find('input[data-vv-as="Email"]')
 
 const levelManagerSelect = dialog.find('.select-manager select[data-vv-as="Lederniveau"]')
 const levelManagerOption = levelManagerSelect.find('option')
@@ -71,7 +71,7 @@ const levelManagerOption = levelManagerSelect.find('option')
 const responsibilityManagerSelect = dialog.find('.responsibility-manager select[data-vv-as="Lederansvar"]')
 const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
-fixture('Employee test')
+fixture('MoEmployeeCreate')
   .page(`${baseURL}/medarbejder/liste`)
 
 test('Workflow: create employee', async t => {
@@ -93,13 +93,13 @@ test('Workflow: create employee', async t => {
 
     // Engagement
     .click(parentEngagementInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('span.tree-anchor'))
 
     .click(jobFunctionEngagementSelect)
-    .click(jobFunctionEngagementOption.withText('Afdelingssygeplejerske'))
+    .click(jobFunctionEngagementOption.withText('Specialist'))
 
     .click(engagementTypeSelect)
-    .click(engagementTypeOption.withText('Frivillig'))
+    .click(engagementTypeOption.withText('Ansat'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -112,37 +112,38 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-address .btn-outline-success'))
 
     .click(addressTypeSelect)
-    .click(addressTypeOption.withText('Lokation'))
+    .click(addressTypeOption.nth(1))
 
     .click(addressInput)
     .typeText(addressInput.find('input'), 'baa')
-    .expect(addressItem.withText('Ved Bålpladsen 1').visible).ok()
-    .pressKey('down enter')
-    .expect(addressInput.find('input').value).contains('Ved Bålpladsen 1')
+    .expect(addressItem.withText('Bål').visible).ok()
+    .click(addressItem.withText('Bålvej'))
+    .expect(addressInput.find('input').value)
+    .eql('Bålvej 1, 9800 Hjørring')
 
     // Association
     .click(dialog.find('.btn-association .btn-outline-success'))
 
     .click(parentAssociationInput)
-    .doubleClick(dialog.find('.unit-association li .item'))
+    .click(dialog.find('.unit-association span.tree-anchor'))
 
     .click(addressAssociationSelect)
     .pressKey('down enter')
 
     .click(jobFunctionAssociationSelect)
-    .click(jobFunctionAssociationOption.withText('Afdelingschef'))
+    .click(jobFunctionAssociationOption.withText('Jurist'))
 
     .click(associationTypeSelect)
-    .click(associationTypeOption.withText('Ansat'))
+    .click(associationTypeOption.withText('Konsulent'))
 
     // Role
     .click(dialog.find('.btn-role .btn-outline-success'))
 
     .click(parentRoleInput)
-    .doubleClick(dialog.find('.unit-role li .item'))
+    .click(dialog.find('.unit-role span.tree-anchor'))
 
     .click(roleTypeSelect)
-    .click(roleTypeOption.withText('Tillidsmand'))
+    .click(roleTypeOption.withText('Tillidsrepræsentant'))
 
     // IT System
     .click(dialog.find('.btn-itSystem .btn-outline-success'))
@@ -156,22 +157,24 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-manager .btn-outline-success'))
 
     .click(parentManagerInput)
-    .click(dialog.find('.unit-manager .link-color'))
+    .click(dialog.find('.unit-manager .tree-anchor'))
 
     .click(addressManagerTypeSelect)
-    .click(addressManagerTypeOption.withText('Fysisk adresse'))
+    .click(addressManagerTypeOption.nth(1))
 
     .click(addressManagerInput)
     .typeText(addressManagerInput.find('input'), 'baa')
-    .expect(addressManagerItem.withText('Ved Bålpladsen 1').visible).ok()
-    .pressKey('down enter')
-    .expect(addressManagerInput.find('input').value).contains('Ved Bålpladsen 1')
+    .expect(addressManagerItem.withText('Bålvej').visible)
+    .ok()
+    .pressKey('down down down down down down enter')
+    .expect(addressManagerInput.find('input').value)
+    .eql('Bålvej 1, 9800 Hjørring')
 
     .click(addressManagerMany)
     .pressKey('tab tab tab tab tab down down enter')
 
-    .click(addressManagerInputContact)
-    .typeText(dialog.find('input[data-vv-as="Kontakttelefon"]'), '55905512')
+    .click(addressManagerInputEmail)
+    .typeText(dialog.find('input[data-vv-as="Email"]'), 'hest@test.dk')
 
     .click(managerTypeSelect)
     .click(managerTypeOption.withText('Direktør'))
@@ -180,7 +183,60 @@ test('Workflow: create employee', async t => {
     .click(levelManagerOption.withText('Niveau 90'))
 
     .click(responsibilityManagerSelect)
-    .click(responsibilityManagerOption.withText('IT ledelse'))
+    .click(responsibilityManagerOption.withText('Beredskabsledelse'))
+
+    // Submit button
+    .click(dialog.find('.btn-primary'))
+
+    .expect(dialog.exists).notOk()
+
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(0).innerText)
+    .match(
+      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+    )
+})
+
+test('Workflow: create employee with role only', async t => {
+  let today = moment()
+
+  await t
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
+    .click('.btn-employee-create')
+
+    .expect(dialog.exists).ok('Opened dialog')
+
+    // CPR Number
+    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920009')
+    .click(dialog.find('.btn-outline-primary'))
+    .click(checkbox)
+    .expect(checkbox.checked).ok()
+
+    // Engagement
+    .click(parentEngagementInput)
+    .click(dialog.find('span.tree-anchor'))
+
+    .click(jobFunctionEngagementSelect)
+    .click(jobFunctionEngagementOption.withText('Skolepsykolog'))
+
+    .click(engagementTypeSelect)
+    .click(engagementTypeOption.withText('Ansat'))
+
+    .click(fromInput)
+    .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
+      .withText(today.date().toString()))
+    .click(dialog.find('.vdp-datepicker .day:not(.blank)')
+      .withText(today.date().toString()))
+    .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    // Role
+    .click(dialog.find('.btn-role .btn-outline-success'))
+
+    .click(parentRoleInput)
+    .click(dialog.find('.unit-role span.tree-anchor'))
+
+    .click(roleTypeSelect)
+    .click(roleTypeOption.withText('Tillidsrepræsentant'))
 
     // Submit button
     .click(dialog.find('.btn-primary'))
@@ -192,4 +248,9 @@ test('Workflow: create employee', async t => {
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )
+    .expect(Selector('.card-title').textContent)
+    .match(/Oliver Jensen \(200392-0009\)/)
+    .click(VueSelector('bTabButtonHelper').withText('Roller'))
+    .expect(Selector('ul.role_type-name').textContent)
+    .match(/Tillidsrepræsentant/)
 })

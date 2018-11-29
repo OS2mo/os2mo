@@ -5991,6 +5991,11 @@ linux-platform-info@^0.0.3:
   dependencies:
     os-family "^1.0.0"
 
+liquor-tree@^0.2.39:
+  version "0.2.41"
+  resolved "https://registry.yarnpkg.com/liquor-tree/-/liquor-tree-0.2.41.tgz#f58002f69188e58dfb49903a6ac7c207201834e3"
+  integrity sha512-RbHGTXAVAgIsu1WFGGPCOMhWkO9103DADWEXmd08KnwYTE2IYQdP7M+fCkBt9FCkJZj5Gv+4rubVx0M5KlnJZA==
+
 load-json-file@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"

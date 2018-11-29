@@ -17,11 +17,14 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
+import collections
 import enum
 import functools
+import locale
 import operator
 import uuid
 
+import werkzeug
 import flask
 
 from . import address
@@ -49,7 +52,10 @@ class UnitDetails(enum.Enum):
     NCHILDREN = 1
 
     # with everything except child count
-    FULL = 2
+    SELF = 2
+
+    # same as above, but with all parents
+    FULL = 3
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
@@ -64,15 +70,13 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     @classmethod
     def get(cls, scope, objid):
         if scope.path != 'organisation/organisationenhed':
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_ROLE_TYPE,
-            )
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
         c = scope.connector
 
         return flask.jsonify([
             get_one_orgunit(
-                c, objid, effect, details=UnitDetails.FULL,
+                c, objid, effect, details=UnitDetails.SELF,
                 validity={
                     mapping.FROM: util.to_iso_date(start),
                     mapping.TO: util.to_iso_date(end, is_end=True),
@@ -123,8 +127,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             if organisation_get:
                 org_uuid = parent_uuid
             else:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.V_PARENT_NOT_FOUND,
+                exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
                     parent_uuid=parent_uuid,
                     org_unit_uuid=unitid,
                 )
@@ -168,10 +171,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         original = c.organisationenhed.get(uuid=unitid)
 
         if not original:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-                org_unit_uuid=unitid,
-            )
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
 
@@ -197,8 +197,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                   mapping.ORG_UNIT)
 
             if original_uuid and original_uuid != unitid:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                exceptions.ErrorCodes.E_INVALID_INPUT(
                     'cannot change unit uuid!',
                 )
 
@@ -274,6 +273,10 @@ def get_one_orgunit(c, unitid, unit=None,
     rels = unit['relationer']
     validities = unit['tilstande']['organisationenhedgyldighed']
 
+    unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+    parentid = rels['overordnet'][0]['uuid']
+    orgid = rels['tilhoerer'][0]['uuid']
+
     r = {
         'name': attrs['enhedsnavn'],
         'user_key': attrs['brugervendtnoegle'],
@@ -286,14 +289,13 @@ def get_one_orgunit(c, unitid, unit=None,
         r['child_count'] = len(children)
 
     elif details is UnitDetails.FULL:
-        unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+        parent = get_one_orgunit(c, parentid, details=UnitDetails.FULL)
 
-        if rels['overordnet'][0]['uuid'] is not None:
-            r[mapping.PARENT] = get_one_orgunit(c,
-                                                rels['overordnet'][0]['uuid'],
-                                                details=UnitDetails.FULL)
+        r[mapping.ORG] = org.get_one_organisation(
+            c, orgid,
+        )
 
-            parent = r[mapping.PARENT]
+        if parentid is not None:
             if parent and parent[mapping.LOCATION]:
                 r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
                                        parent[mapping.NAME])
@@ -311,19 +313,18 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.USER_SETTINGS] = settings.USER_SETTINGS
 
+        r[mapping.PARENT] = parent
+
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
         )
 
-        r[mapping.PARENT] = get_one_orgunit(
-            c,
-            rels['overordnet'][0]['uuid'],
-            details=UnitDetails.MINIMAL,
-        )
-
-        r[mapping.ORG] = org.get_one_organisation(
-            c,
-            rels['tilhoerer'][0]['uuid'],
+    elif details is UnitDetails.SELF:
+        r[mapping.ORG] = org.get_one_organisation(c, orgid)
+        r[mapping.PARENT] = get_one_orgunit(c, parentid,
+                                            details=UnitDetails.MINIMAL)
+        r[mapping.ORG_UNIT_TYPE] = (
+            facet.get_one_class(c, unittype) if unittype else None
         )
 
     else:
@@ -398,10 +399,7 @@ def get_children(type, parentid):
     obj = scope.get(parentid)
 
     if not obj or not obj.get('attributter'):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=parentid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
 
     children = [
         get_one_orgunit(c, childid, child)
@@ -413,6 +411,172 @@ def get_children(type, parentid):
     children.sort(key=operator.itemgetter('name'))
 
     return flask.jsonify(children)
+
+
+@blueprint.route('/ou/<uuid:unitid>/ancestor-tree')
+@util.restrictargs('at')
+def get_unit_ancestor_tree(unitid):
+    '''Obtain the tree of ancestors for a given unit.
+
+    The tree includes siblings of ancestors, with their child counts:
+
+    * Every ancestor of the unit.
+    * Every sibling of every ancestor, with a child count.
+
+    The intent of this routine is to enable easily showing the tree
+    _up to and including_ a given unit in a UI.
+
+    .. :quickref: Unit; Ancestor tree
+
+    :param unitid: The UUID of the organisational unit.
+
+    :see: http:get:`/service/ou/(uuid:unitid)/`.
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+     {
+        "children": [
+          {
+            "child_count": 2,
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "validity": {
+              "from": "2016-01-01",
+              "to": null
+            }
+          },
+          {
+            "child_count": 0,
+            "name": "Samfundsvidenskabelige fakultet",
+            "user_key": "samf",
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "validity": {
+              "from": "2017-01-01",
+              "to": null
+            }
+          }
+        ],
+        "name": "Overordnet Enhed",
+        "user_key": "root",
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      }
+
+    '''
+    c = common.get_connector()
+
+    def get_parent(objid):
+        return mapping.PARENT_FIELD(unitcache[objid])[0]['uuid']
+
+    unitcache = common.cache(c.organisationenhed.get)
+    id_path = collections.deque([unitid])
+
+    try:
+        orgid = mapping.BELONGS_TO_FIELD(unitcache[unitid])[0]['uuid']
+    except LookupError:
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND.raise_with(
+            org_unit_uuid=unitid,
+        )
+
+    # first, get the path to the unit
+    while get_parent(id_path[0]) != orgid:
+        id_path.appendleft(get_parent(id_path[0]))
+
+    # bail if we're the root unit; that's simpler than handling it in
+    # the other logic
+    if len(id_path) == 1:
+        return flask.jsonify(get_one_orgunit(c, unitid, unitcache[unitid],
+                                             details=UnitDetails.NCHILDREN))
+
+    # then, fetch all the ancestors
+    ancestors = {
+        ancestorid: get_one_orgunit(c, ancestorid, unitcache[ancestorid],
+                                    details=UnitDetails.MINIMAL)
+        for ancestorid in id_path
+        if ancestorid != unitid
+    }
+
+    # now, inject the children, and link them up
+    for ancestor in ancestors.values():
+        if ancestor is None:
+            continue
+
+        # please note that the code below actually re-fetches the
+        # ancestor itself -- however, that's unlikely to be what makes
+        # this function slow
+        ancestor['children'] = sorted(
+            (
+                (
+                    get_one_orgunit(c, siblingid, sibling,
+                                    details=UnitDetails.NCHILDREN)
+                    if siblingid not in ancestors
+                    else
+                    ancestors[siblingid]
+                )
+                for siblingid, sibling in c.organisationenhed.get_all(
+                    overordnet=ancestor[mapping.UUID],
+                    gyldighed='Aktiv',
+                )
+            ),
+            key=lambda u: locale.strxfrm(u[mapping.NAME]),
+        )
+
+    # finally, return the root unit
+    return flask.jsonify(ancestors[id_path[0]])
+
+
+def get_unit_tree(c, orgid, unitids):
+    '''Return a tree, bounded by the given unitid.
+
+    The tree includes siblings of ancestors, with their child counts.
+
+    '''
+
+    def get_parent(unitid):
+        try:
+            return mapping.PARENT_FIELD(units[unitid])[0]['uuid']
+        except LookupError:
+            return None
+
+    def get_unit(unitid):
+        r = get_one_orgunit(
+            c, unitid, units[unitid], details=UnitDetails.MINIMAL,
+        )
+
+        if unitid in children:
+            r['children'] = get_units(children.getlist(unitid))
+
+        return r
+
+    def get_units(unitids):
+        r = sorted(
+            map(get_unit, unitids),
+            key=lambda u: locale.strxfrm(u[mapping.NAME]),
+        )
+
+        return r
+
+    units = {}
+    children = werkzeug.datastructures.MultiDict()
+
+    leaves = set(unitids)
+
+    while any(leaves):
+        units.update(c.organisationenhed.get_all(uuid=leaves))
+
+        parentids = {leaf: get_parent(leaf) for leaf in leaves}
+
+        children.update(zip(parentids.values(), parentids.keys()))
+
+        leaves = set(parentids.values()) - units.keys()
+
+    return get_units(children.getlist(orgid))
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
@@ -480,10 +644,7 @@ def get_orgunit(unitid):
     r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
 
     if not r:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=unitid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
     return flask.jsonify(r)
 
@@ -521,6 +682,15 @@ def list_orgunits(orgid):
       {
         "items": [
           {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "validity": {
+              "from": "2016-01-01",
+              "to": null
+            }
+          },
+          {
             "name": "Samfundsvidenskabelige fakultet",
             "user_key": "samf",
             "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
@@ -531,7 +701,7 @@ def list_orgunits(orgid):
           }
         ],
         "offset": 0,
-        "total": 1
+        "total": 2
       }
 
     '''
@@ -539,9 +709,12 @@ def list_orgunits(orgid):
 
     args = flask.request.args
 
-    kwargs = dict(
+    limits = dict(
         limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
+    )
+
+    kwargs = dict(
         tilhoerer=orgid,
         gyldighed='Aktiv',
     )
@@ -552,7 +725,8 @@ def list_orgunits(orgid):
     return flask.jsonify(
         c.organisationenhed.paged_get(
             functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
-            **kwargs
+            **limits,
+            **kwargs,
         )
     )
 
@@ -698,8 +872,7 @@ def terminate_org_unit(unitid):
     )
 
     if children['total'] or roles:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES,
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
             child_units=children['items'],
             child_count=children['total'],
             role_count=len(roles),
@@ -779,10 +952,7 @@ def get_org_unit_history(unitid):
                                                  registrerettil='infinity')
 
     if not unit_registrations:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
-            org_unit_uuid=unitid,
-        )
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
     history_entries = list(map(common.convert_reg_to_history,
                                unit_registrations))

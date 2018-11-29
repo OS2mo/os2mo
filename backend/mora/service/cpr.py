@@ -52,15 +52,9 @@ def search_cpr():
     try:
         sp_data = get_citizen(cpr)
     except KeyError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR,
-            cpr=cpr,
-        )
+        exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR(cpr=cpr)
     except ValueError:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_CPR_NOT_VALID,
-            cpr=cpr,
-        )
+        exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
 
     return flask.jsonify(format_cpr_response(sp_data, cpr))
 
