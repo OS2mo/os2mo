@@ -7,7 +7,7 @@
       </h4>
 
       <div id="tree-wrapper">
-        <mo-tree-view :org-uuid="orgUuid" linkable/>
+        <mo-tree-view v-model="selected" :unit-uuid="currentUnit.uuid"/>
       </div>
     </div>
   </div>
@@ -25,14 +25,23 @@
     components: {
       MoTreeView
     },
-
+    data () {
+      return {
+        selected: undefined
+      }
+    },
     computed: {
       /**
        * Get organisation uuid.
        */
       ...mapGetters({
-        orgUuid: 'organisation/getUuid'
+        currentUnit: 'organisationUnit/GET_ORG_UNIT'
       })
+    },
+    watch: {
+      selected (val) {
+        this.$router.push({ name: 'OrganisationDetail', params: { uuid: val.uuid } })
+      }
     }
   }
 </script>

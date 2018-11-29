@@ -75,8 +75,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         original = c.organisationfunktion.get(uuid=role_uuid)
 
         if not original:
-            raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND,
-                                           uuid=role_uuid)
+            exceptions.ErrorCodes.E_NOT_FOUND(uuid=role_uuid)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)

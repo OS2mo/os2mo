@@ -17,6 +17,7 @@
     "@babel/polyfill": "^7.0.0",
     "bootstrap-vue": "^2.0.0-rc.11",
     "jquery": "^3.3.1",
+    "liquor-tree": "^0.2.39",
     "moment": "^2.22.2",
     "v-autocomplete": "git+https://github.com/magenta-aps/v-autocomplete.git",
     "vee-validate": "^2.1.2",

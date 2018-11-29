@@ -497,8 +497,7 @@ def replace_relation_value(relations: typing.List[dict],
             return new_rels
 
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND)
+        exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND()
 
 
 def add_history_entry(scope: lora.Scope, id: str, note: str):
@@ -519,11 +518,7 @@ def add_history_entry(scope: lora.Scope, id: str, note: str):
 
     obj = scope.get(id)
     if not obj:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_NOT_FOUND,
-            path=scope.path,
-            uuid=id,
-        )
+        exceptions.ErrorCodes.E_NOT_FOUND(path=scope.path, uuid=id)
 
     unique_string = str(uuid.uuid4())
 

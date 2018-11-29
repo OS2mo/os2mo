@@ -40,6 +40,10 @@ class ErrorCodes(Enum):
     def code(self):
         return self.value[0]
 
+    def __call__(self, *args, **kwargs):
+        '''Raise an :py:class:`HTTPException` for this error code'''
+        raise HTTPException(self, *args, **kwargs)
+
     # Validation errors
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
     V_INVALID_VALIDITY = 400, "Invalid validity."
@@ -84,6 +88,7 @@ class ErrorCodes(Enum):
     E_ORIGINAL_ENTRY_NOT_FOUND = 400, "Original entry not found."
     E_NO_LOCAL_MUNICIPALITY = 400, "No local municipality found."
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
+    E_TOO_MANY_RESULTS = 400, "Amount of results exceeds limit."
 
     # Misc
     E_INVALID_INPUT = 400, "Invalid input."
@@ -125,7 +130,7 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         # this aids debugging
         if flask.current_app.debug:
             if cause is None:
-                self.__cause__ or sys.exc_info()[1]
+                cause = self.__cause__ or self
 
             if isinstance(cause, Exception):
                 body.update(

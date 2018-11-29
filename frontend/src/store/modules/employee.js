@@ -6,6 +6,7 @@ const state = {
   name: undefined,
   user_key: undefined,
   uuid: undefined,
+  org: undefined,
   details: {}
 }
 
@@ -46,6 +47,7 @@ const mutations = {
     state.name = payload.name
     state.user_key = payload.user_key
     state.uuid = payload.uuid
+    state.org = payload.org
   },
 
   RESET_EMPLOYEE (state) {
@@ -53,6 +55,7 @@ const mutations = {
     state.name = undefined
     state.user_key = undefined
     state.uuid = undefined
+    state.org = undefined
     state.details = {}
   },
 
