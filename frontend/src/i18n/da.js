@@ -10,7 +10,6 @@ import table_headers from './da/table_headers.json'
 import workflows from './da/workflows.json'
 
 export const da = {
-  common,
   alerts,
   buttons,
   common,
