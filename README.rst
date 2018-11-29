@@ -60,7 +60,7 @@ med MO skal disse tilretninger afspejles i databasen.
 MO-tilretninger af datamodellen i LoRa
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For at få datamodellen i LoRa til at afspejle datamodellen i MO skal man 
-inden systemet tages i brug kopiere MO's: *os2mo/setup/db_structure.py* til
+inden systemet tages i brug kopiere MO's: os2mo/setup/db_structure.py* til
 Loras: *oio_rest/oio_common/db_structure.py* og afvikle recreatedb.sh
 
 MO (Middleend / Control)
@@ -235,9 +235,9 @@ feature kræver det følgende afhængigheder::
 
   $ sudo apt install libxmlsec1-dev libxmlsec1-openssl postgresql-contrib
 
-For at få datamodellen i Loras testinstans til at afspejle datamodellen i MO 
-vil MO's: *os2mo/setup/db_structure.py* overskrive oio_rests: *oio_common/db_structure.py*
-i det aktuelle python-environment
+For at få datamodellen i LoRas testinstans til at afspejle datamodellen i MO 
+vil MO's: ``os2mo/setup/db_structure.py`` overskrive oio_rests: ``oio_common/db_structure.py``
+i det aktuelle python-environment.
 
 Testsuiten kan køres med kommandoen::
 
