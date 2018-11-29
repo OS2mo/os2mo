@@ -61,10 +61,11 @@
   import MoAddMany from '@/components/MoAddMany/MoAddMany'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
   export default {
     name: 'OrganisationUnitCreate',
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       ButtonSubmit,

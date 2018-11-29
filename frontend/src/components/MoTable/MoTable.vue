@@ -91,12 +91,16 @@
   import MoLoader from '@/components/atoms/MoLoader'
   import MoEntryEditModal from '@/components/MoEntryEditModal'
   import MoLink from '@/components/MoLink'
+  import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
+  import bFormCheckboxGroup from 'bootstrap-vue/es/components/form-checkbox/form-checkbox-group'
 
   export default {
     components: {
       MoLoader,
       MoLink,
-      MoEntryEditModal
+      MoEntryEditModal,
+      'b-form-checkbox': bFormCheckbox,
+      'b-form-checkbox-group': bFormCheckboxGroup
     },
 
     props: {

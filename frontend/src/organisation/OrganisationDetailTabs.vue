@@ -95,10 +95,14 @@
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
   import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+  import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
+  import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
   export default {
     components: {
-      MoTableDetail
+      MoTableDetail,
+      'b-tabs': bTabs,
+      'b-tab': bTab
     },
 
     props: {

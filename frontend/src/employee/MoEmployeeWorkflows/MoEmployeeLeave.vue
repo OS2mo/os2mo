@@ -35,9 +35,10 @@
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoEmployeePicker,

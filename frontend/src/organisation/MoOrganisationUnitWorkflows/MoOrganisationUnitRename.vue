@@ -56,10 +56,11 @@
   import MoInput from '@/components/atoms/MoInput'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import { mapGetters } from 'vuex'
   
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoDatePickerRange,

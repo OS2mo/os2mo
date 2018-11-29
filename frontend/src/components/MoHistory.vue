@@ -43,8 +43,11 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import Employee from '@/api/Employee'
   import '@/filters/Date'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+  import ModalBase from '@/mixins/ModalBase'
 
   export default {
+    mixins: [ModalBase],
     props: {
       /**
        * Defines a required uuid.
@@ -66,6 +69,10 @@
           return false
         }
       }
+    },
+
+    directives: {
+      'b-modal': bModalDirective
     },
 
     data () {

@@ -69,6 +69,7 @@
   import MoEmployeeMove from './MoEmployeeMove'
   import MoEmployeeMoveMany from './MoEmployeeMoveMany'
   import MoEmployeeTerminate from './MoEmployeeTerminate'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
   export default {
     components: {
@@ -79,6 +80,9 @@
       MoEmployeeMove,
       MoEmployeeMoveMany,
       MoEmployeeTerminate
+    },
+    directives: {
+      'b-modal': bModalDirective
     },
 
     methods: {

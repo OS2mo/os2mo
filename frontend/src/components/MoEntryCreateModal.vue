@@ -45,12 +45,17 @@
   import OrganisationUnit from '@/api/OrganisationUnit'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       ButtonSubmit
+    },
+    directives: {
+      'b-modal': bModalDirective
     },
 
     props: {

@@ -75,10 +75,11 @@
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import { mapFields } from 'vuex-map-fields'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoDatePicker,

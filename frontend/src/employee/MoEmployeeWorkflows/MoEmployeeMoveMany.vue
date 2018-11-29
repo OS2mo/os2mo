@@ -73,11 +73,12 @@
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import { mapFields } from 'vuex-map-fields'
   import { mapGetters } from 'vuex'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoDatePicker,

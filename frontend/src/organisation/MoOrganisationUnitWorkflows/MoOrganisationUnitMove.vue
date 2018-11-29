@@ -69,10 +69,11 @@
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import '@/filters/GetProperty'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoOrganisationUnitPicker,

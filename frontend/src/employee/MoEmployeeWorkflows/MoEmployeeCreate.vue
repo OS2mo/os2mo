@@ -82,9 +82,10 @@
   import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
   import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       ButtonSubmit,

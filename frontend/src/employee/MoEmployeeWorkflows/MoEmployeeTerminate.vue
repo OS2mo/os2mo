@@ -57,10 +57,11 @@
   import MoDatePicker from '@/components/atoms/MoDatePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoEmployeePicker,

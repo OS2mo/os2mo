@@ -57,9 +57,10 @@
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
   import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
   export default {
-    mixins: [ValidateForm],
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoDatePicker,
