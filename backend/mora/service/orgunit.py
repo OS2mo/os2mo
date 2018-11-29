@@ -58,7 +58,7 @@ class UnitDetails(enum.Enum):
     FULL = 3
 
     # minimal and integration_data
-    INTEGRATION = 3
+    INTEGRATION = 4
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
