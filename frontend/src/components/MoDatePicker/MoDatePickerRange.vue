@@ -148,6 +148,6 @@ export default {
       }
       this.$emit('input', obj)
     }
-  }å
+  }
 }
 </script>
