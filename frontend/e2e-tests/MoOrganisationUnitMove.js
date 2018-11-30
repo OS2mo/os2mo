@@ -49,7 +49,7 @@ test('Workflow: move unit', async t => {
       .withText('Hjørring').find('.tree-arrow'))
     .click(dialog.find('.currentUnit .tree-anchor')
       .withText('Social og sundhed'))
-    .expect(dialog.find('.currentUnit input[data-vv-as="Enhed"]').value)
+    .expect(dialog.find('.currentUnit input[data-vv-as="Angiv enhed"]').value)
     .eql('Social og sundhed')
 
     .click(parentInput)
@@ -58,7 +58,7 @@ test('Workflow: move unit', async t => {
       .find('.tree-arrow'))
     .click(dialog.find('.parentUnit .tree-anchor')
       .withText('Borgmesterens Afdeling'))
-    .expect(dialog.find('.parentUnit input[data-vv-as="Enhed"]').value)
+    .expect(dialog.find('.parentUnit input[data-vv-as="Angiv ny overenhed"]').value)
     .eql('Borgmesterens Afdeling')
 
     .click(fromInput)
