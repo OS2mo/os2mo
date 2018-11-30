@@ -15,13 +15,13 @@ const createUnitOption = createUnitSelect.find('option')
 const createAddressInput = createDialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const createAddressItem = createAddressInput.find('.v-autocomplete-list-item label')
 
-const createParentInput = createDialog.find('input[data-vv-as="Enhed"]')
+const createParentInput = createDialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const createFromInput = createDialog.find('.from-date input.form-control')
 
 const dialog = Selector('#orgUnitTerminate')
 
-const parentInput = dialog.find('input[data-vv-as="Enhed"]')
+const parentInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
@@ -60,13 +60,13 @@ test('Workflow: terminate org unit', async t => {
 
     .expect(createDialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
+    .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet oprettet/
     )
 
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 130})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 130 })
     .click('.btn-unit-terminate')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -88,7 +88,7 @@ test('Workflow: terminate org unit', async t => {
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
+    .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet afsluttet/

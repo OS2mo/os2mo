@@ -13,5 +13,15 @@
   "work_log": "Arbejdslog",
   "username": "Brugernavn",
   "password": "Kodeord",
-  "remember_me": "Husk mig"
+  "remember_me": "Husk mig",
+  "nothing_to_show": "Intet at vise",
+  "create": "Opret",
+  "edit": "Rediger",
+  "date": "Dato",
+  "section": "Sektion",
+  "action": "Handling",
+  "action_by": "Udført af",
+  "history": "Historik",
+  "placement": "Placering",
+  "unit_number": "Enhedsnr."
 }

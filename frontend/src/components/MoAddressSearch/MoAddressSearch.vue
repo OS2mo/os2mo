@@ -5,7 +5,7 @@
       
       <label class="form-check-label">
         <input class="form-check-input" type="checkbox" v-model="global"/> 
-        Søg i hele landet
+        {{$t('input_fields.search_entire_country')}}
       </label>
     </div>
   </div>
@@ -25,7 +25,7 @@
 
     props: {
       /**
-       * Create two-way data bindings with the component.
+       * @model
        */
       value: Object,
 

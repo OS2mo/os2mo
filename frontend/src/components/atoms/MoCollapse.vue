@@ -13,9 +13,7 @@
     </div>
 
     <b-collapse :id="nameId" :visible="open" @show="$emit('show')">
-      <slot>
-        Put some content here
-      </slot>
+      <slot></slot>
     </b-collapse>
   </div>
 </template>

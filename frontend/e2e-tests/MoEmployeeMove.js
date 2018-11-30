@@ -15,7 +15,7 @@ const searchEmployeeItem = searchEmployeeInput.find('.v-autocomplete-list-item')
 const engagementSelect = dialog.find('select[data-vv-as="Engagementer"]')
 const engagementOption = engagementSelect.find('option')
 
-const unitInput = dialog.find('input[data-vv-as="Enhed"]')
+const unitInput = dialog.find('input[data-vv-as="Flyt til"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
@@ -26,7 +26,7 @@ test('Workflow: move employee', async t => {
 
   await t
     .setTestSpeed(0.8)
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 100})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 100 })
     .click('.btn-employee-move')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -45,9 +45,9 @@ test('Workflow: move employee', async t => {
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(checkbox)
@@ -57,8 +57,8 @@ test('Workflow: move employee', async t => {
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet flyttet/
     )

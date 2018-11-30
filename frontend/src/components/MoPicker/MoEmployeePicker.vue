@@ -27,6 +27,7 @@
    * A employee picker component.
    */
 
+  import sortBy from 'lodash.sortby'
   import Search from '@/api/Search'
   import VAutocomplete from 'v-autocomplete'
   import 'v-autocomplete/dist/v-autocomplete.css'
@@ -62,11 +63,7 @@
 
     computed: {
       orderedListOptions () {
-        return this.items.slice().sort((a, b) => {
-          if (a.name < b.name) return -1
-          if (a.name > b.name) return 1
-          return 0
-        })
+        return sortBy(this.items, 'name')
       }
     },
 

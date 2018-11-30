@@ -2,12 +2,9 @@
   <span>
     <mo-loader v-show="isLoading"/>
 
-    <div 
-      class="col no-address" 
-      v-show="!isLoading && noAddresses && orgUnit"
-    >
-      Ingen adresser er tilknyttet til enheden
-    </div>
+    <p class="col no-address" v-show="!isLoading && noAddresses && orgUnit">
+      {{$t('input_fields.no_addresses_associated_to_org_unit')}}
+    </p>
 
     <div class="form-group" v-show="!isLoading && !noAddresses">
       <label :for="nameId">{{label}}</label>
@@ -38,7 +35,7 @@
   /**
    * A address picker component.
    */
-
+  import sortBy from 'lodash.sortby'
   import OrganisationUnit from '@/api/OrganisationUnit'
   import MoLoader from '@/components/atoms/MoLoader'
 
@@ -111,15 +108,7 @@
       },
 
       orderedListOptions () {
-        return this.addresses.slice().sort((a, b) => {
-          if (a.address_type.name < b.address_type.name) {
-            return -1
-          }
-          if (a.address_type.name > b.address_type.name) {
-            return 1
-          }
-          return 0
-        })
+        return sortBy(this.addresses, 'address_type.name')
       }
     },
 

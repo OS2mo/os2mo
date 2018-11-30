@@ -11,7 +11,7 @@
       :id="nameId"
       size="lg"
       hide-footer 
-      title="Rediger"
+      :title="$t('common.edit')"
       :ref="nameId"
       lazy
     >
@@ -44,17 +44,17 @@
   import Employee from '@/api/Employee'
   import OrganisationUnit from '@/api/OrganisationUnit'
   import ButtonSubmit from './ButtonSubmit'
-
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       ButtonSubmit
+    },
+    directives: {
+      'b-modal': bModalDirective
     },
 
     props: {
@@ -144,15 +144,6 @@
        */
       hasEntryComponent () {
         return this.entryComponent !== undefined
-      },
-
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
       }
     },
 
@@ -249,8 +240,7 @@
             messages.alerts.error[response.error_key]
 
           if (!this.backendValidationMessage) {
-            this.backendValidationMessage = this.$t('alerts.fallback',
-                                                    response)
+            this.backendValidationMessage = this.$t('alerts.fallback', response)
           }
         } else {
           this.$refs[this.nameId].hide()

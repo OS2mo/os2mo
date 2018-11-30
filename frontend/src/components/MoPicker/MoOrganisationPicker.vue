@@ -6,7 +6,7 @@
       v-model="selectedOrganisation"
       @change="resetToBaseRoute"
     >
-      <option disabled>Vælg organisation</option>
+      <option disabled>{{$t('input_fields.choose_organisation')}}</option>
       <option 
         v-for="org in orderedListOptions" 
         :key="org.uuid"
@@ -23,6 +23,7 @@
    * A organisation picker component.
    */
 
+  import sortBy from 'lodash.sortby'
   import Organisation from '@/api/Organisation'
   import { EventBus } from '@/EventBus'
   import { mapGetters } from 'vuex'
@@ -39,7 +40,7 @@
 
     props: {
       /**
-       * Create two-way data bindings with the component.
+       * @model
        */
       value: Object,
 
@@ -77,15 +78,7 @@
       }),
 
       orderedListOptions () {
-        return this.orgs.slice().sort((a, b) => {
-          if (a.name < b.name) {
-            return -1
-          }
-          if (a.name > b.name) {
-            return 1
-          }
-          return 0
-        })
+        return sortBy(this.orgs, name)
       }
     },
 
@@ -105,7 +98,6 @@
        */
       selectedOrganisation (newVal) {
         this.$store.commit(`organisation/setOrg`, newVal)
-        Organisation.setSelectedOrganisation(newVal)
         this.$emit('input', newVal)
       },
 

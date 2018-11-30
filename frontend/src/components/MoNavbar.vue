@@ -67,48 +67,47 @@
 </template>
 
 <script>
-import { AUTH_LOGOUT } from '@/store/actions/auth'
-import MoSearchBar from './MoSearchBar/MoSearchBar'
-import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
-import Service from '@/api/HttpCommon'
-import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
-import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
+  import MoSearchBar from './MoSearchBar/MoSearchBar'
+  import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
+  import Service from '@/api/HttpCommon'
+  import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
+  import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
 
-export default {
-  components: {
-    MoSearchBar,
-    MoOrganisationPicker,
-    'b-dropdown': bDropdown,
-    'b-dropdown-item': bDropdownItem
-  },
+  export default {
+    components: {
+      MoSearchBar,
+      MoOrganisationPicker,
+      'b-dropdown': bDropdown,
+      'b-dropdown-item': bDropdownItem
+    },
 
-  data () {
-    return {
-      user: {},
-      username: 'N/A'
-    }
-  },
+    data () {
+      return {
+        user: {},
+        username: 'N/A'
+      }
+    },
 
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Get user and then response data.
-     */
-    Service.get('/user').then(response => {
-      this.username = response.data || 'N/A'
-    })
-  },
+    created () {
+      /**
+       * Called synchronously after the instance is created.
+       * Get user and then response data.
+       */
+      Service.get('/user').then(response => {
+        this.username = response.data || 'N/A'
+      })
+    },
 
-  methods: {
-    /**
-     * Get the logout and redirect.
-     */
-    logout () {
-      let vm = this
-      this.$store.dispatch(AUTH_LOGOUT, vm.user)
+    methods: {
+      /**
+       * Get the logout and redirect.
+       */
+      logout () {
+        let vm = this
+        this.$store.dispatch('AUTH_LOGOUT', vm.user)
+      }
     }
   }
-}
 </script>
 
 <style lang="scss" scoped>
