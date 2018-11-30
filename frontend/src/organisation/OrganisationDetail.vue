@@ -54,8 +54,8 @@ export default {
   },
   computed: {
     /**
-       * Get organisation uuid.
-       */
+     * Get organisation uuid.
+     */
     ...mapGetters({
       orgUnit: 'organisationUnit/GET_ORG_UNIT'
     })
