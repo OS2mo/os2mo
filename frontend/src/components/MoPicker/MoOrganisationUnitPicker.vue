@@ -4,7 +4,7 @@
     <input
       :name="nameId"
       :id="nameId"
-      :data-vv-as="label" 
+      :data-vv-as="label"
       :ref="nameId"
       type="text"
       class="form-control"
@@ -60,7 +60,7 @@ export default {
     /**
        * Defines a default label name.
        */
-      label: String,
+    label: String,
 
     /**
        * This boolean property disable the value.

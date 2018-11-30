@@ -11,9 +11,9 @@
   >
     <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
-        <mo-organisation-unit-picker 
+        <mo-organisation-unit-picker
           :label="$t('input_fields.select_unit')"
-          class="col" 
+          class="col"
           v-model="org_unit"
           required
         />
@@ -29,8 +29,8 @@
 
       <div class="mb-3" v-if="org_unit">
         <p>{{$t('workflows.organisation.messages.following_will_be_terminated')}}</p>
-        <mo-organisation-detail-tabs 
-          :uuid="org_unit.uuid" 
+        <mo-organisation-detail-tabs
+          :uuid="org_unit.uuid"
           timemachine-friendly
         />
       </div>
@@ -51,16 +51,16 @@
    * A organisation unit terminate component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoDatePicker,
@@ -88,10 +88,10 @@
     /**
        * Check if the organisation date are valid.
        */
-      validDates () {
-        return this.org_unit ? this.org_unit.validity : {}
-      }
-    },
+    validDates () {
+      return this.org_unit ? this.org_unit.validity : {}
+    }
+  },
 
   methods: {
     /**

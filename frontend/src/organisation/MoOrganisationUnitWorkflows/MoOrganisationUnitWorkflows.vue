@@ -52,26 +52,26 @@
    * A Organisation workflow component.
    */
 
-  import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
-  import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
-  import MoOrganisationUnitCreate from './MoOrganisationUnitCreate'
-  import MoOrganisationUnitRename from './MoOrganisationUnitRename'
-  import MoOrganisationUnitMove from './MoOrganisationUnitMove'
-  import MoOrganisationUnitTerminate from './MoOrganisationUnitTerminate'
-  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
+import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
+import MoOrganisationUnitCreate from './MoOrganisationUnitCreate'
+import MoOrganisationUnitRename from './MoOrganisationUnitRename'
+import MoOrganisationUnitMove from './MoOrganisationUnitMove'
+import MoOrganisationUnitTerminate from './MoOrganisationUnitTerminate'
+import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
-  export default {
-    components: {
-      MoWorkflowButton,
-      MoWorkflow,
-      MoOrganisationUnitCreate,
-      MoOrganisationUnitRename,
-      MoOrganisationUnitMove,
-      MoOrganisationUnitTerminate
-    },
-    directives: {
-      'b-modal': bModalDirective
-    },
+export default {
+  components: {
+    MoWorkflowButton,
+    MoWorkflow,
+    MoOrganisationUnitCreate,
+    MoOrganisationUnitRename,
+    MoOrganisationUnitMove,
+    MoOrganisationUnitTerminate
+  },
+  directives: {
+    'b-modal': bModalDirective
+  },
 
   methods: {
     /**

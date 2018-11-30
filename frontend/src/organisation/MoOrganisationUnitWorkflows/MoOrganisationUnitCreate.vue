@@ -55,17 +55,17 @@
    * A organisation unit create component
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
-  import MoAddMany from '@/components/MoAddMany/MoAddMany'
-  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
 
-  export default {
-    name: 'OrganisationUnitCreate',
-    mixins: [ValidateForm, ModalBase],
+export default {
+  name: 'OrganisationUnitCreate',
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     ButtonSubmit,
@@ -97,8 +97,8 @@
     }
   },
 
-    methods: {
-      /**
+  methods: {
+    /**
        * Resets the data fields.
        */
     resetData () {

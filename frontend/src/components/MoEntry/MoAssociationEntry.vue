@@ -2,8 +2,8 @@
   <div>
     <div class="form-row">
       <mo-organisation-unit-picker
-        class="col unit-association" 
-        :label="$t('input_fields.select_unit')" 
+        class="col unit-association"
+        :label="$t('input_fields.select_unit')"
         v-model="entry.org_unit"
         required
       />

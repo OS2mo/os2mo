@@ -11,7 +11,7 @@
     <b-modal
       :id="nameId"
       size="lg"
-      hide-footer 
+      hide-footer
       :title="$t('common.create')"
       :ref="nameId"
       lazy
@@ -41,22 +41,22 @@
    * A entry create modal component.
    */
 
-  import Employee from '@/api/Employee'
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
-  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import Employee from '@/api/Employee'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
+import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
-    components: {
-      ButtonSubmit
-    },
-    directives: {
-      'b-modal': bModalDirective
-    },
+  components: {
+    ButtonSubmit
+  },
+  directives: {
+    'b-modal': bModalDirective
+  },
 
   props: {
     /**
@@ -99,9 +99,9 @@
     /**
        * Get name `moCreate`.
        */
-      nameId () {
-        return 'moCreate' + this._uid
-      },
+    nameId () {
+      return 'moCreate' + this._uid
+    },
 
     /**
        * If it has a entry component.

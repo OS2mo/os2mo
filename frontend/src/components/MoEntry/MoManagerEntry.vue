@@ -2,8 +2,8 @@
   <div>
     <div class="form-row">
       <mo-organisation-unit-picker
-        v-model="entry.org_unit" 
-        :label="$t('input_fields.select_unit')" 
+        v-model="entry.org_unit"
+        :label="$t('input_fields.select_unit')"
         class="col unit-manager"
         required
         v-if="!hideOrgPicker"
@@ -23,7 +23,7 @@
         v-model="entry.address"
         :entry-component="managerAddressPicker"
         :label="$t('input_fields.manager_address_type')"
-        has-initial-entry 
+        has-initial-entry
         small-buttons
       />
 
@@ -43,10 +43,10 @@
 
     <mo-add-many
       class="responsibility-manager"
-      v-model="entry.responsibility" 
-      :entry-component="facetPicker" 
-      :label="$t('input_fields.manager_responsibility')" 
-      has-initial-entry 
+      v-model="entry.responsibility"
+      :entry-component="facetPicker"
+      :label="$t('input_fields.manager_responsibility')"
+      has-initial-entry
       small-buttons
     />
 

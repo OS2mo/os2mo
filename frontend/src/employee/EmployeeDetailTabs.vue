@@ -93,25 +93,25 @@
  * A employee detail tabs component.
  */
 
-  import MoLoader from '@/components/atoms/MoLoader'
-  import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
-  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
-  import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
-  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
-  import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
-  import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
-  import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
-  import MoTableDetail from '@/components/MoTable/MoTableDetail'
-  import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
-  import bTab from 'bootstrap-vue/es/components/tabs/tab'
+import MoLoader from '@/components/atoms/MoLoader'
+import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+import MoTableDetail from '@/components/MoTable/MoTableDetail'
+import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
+import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
-  export default {
-    components: {
-      MoLoader,
-      MoTableDetail,
-      'b-tabs': bTabs,
-      'b-tab': bTab
-    },
+export default {
+  components: {
+    MoLoader,
+    MoTableDetail,
+    'b-tabs': bTabs,
+    'b-tab': bTab
+  },
 
   props: {
     /**

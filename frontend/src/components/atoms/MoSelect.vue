@@ -38,8 +38,8 @@ export default {
     $validator: '$validator'
   },
 
-    props: {
-      /**
+  props: {
+    /**
        * @model
        */
     value: Object,

@@ -71,36 +71,36 @@
    * A employee create component.
    */
 
-  import { mapFields } from 'vuex-map-fields'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import MoCpr from '@/components/MoCpr/MoCpr'
-  import MoAddMany from '@/components/MoAddMany/MoAddMany'
-  import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
-  import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
-  import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
-  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
-  import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
-  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
+import { mapFields } from 'vuex-map-fields'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import MoCpr from '@/components/MoCpr/MoCpr'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
-    components: {
-      ButtonSubmit,
-      MoCpr,
-      MoAddMany,
-      MoAddressEntry,
-      MoAssociationEntry,
-      MoEngagementEntry,
-      MoRoleEntry,
-      MoItSystemEntry,
-      MoManagerEntry
-    },
+  components: {
+    ButtonSubmit,
+    MoCpr,
+    MoAddMany,
+    MoAddressEntry,
+    MoAssociationEntry,
+    MoEngagementEntry,
+    MoRoleEntry,
+    MoItSystemEntry,
+    MoManagerEntry
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
         * The isLoading component value.
         * Used to detect changes and restore the value.
@@ -126,17 +126,17 @@
     /**
        * Get mapFields from vuex store.
        */
-      ...mapFields('employeeCreate', [
-        'employee',
-        'engagement',
-        'address',
-        'association',
-        'role',
-        'itSystem',
-        'manager',
-        'backendValidationError'
-      ])
-    },
+    ...mapFields('employeeCreate', [
+      'employee',
+      'engagement',
+      'address',
+      'association',
+      'role',
+      'itSystem',
+      'manager',
+      'backendValidationError'
+    ])
+  },
 
   methods: {
     /**

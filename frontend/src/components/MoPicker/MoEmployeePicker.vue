@@ -27,11 +27,11 @@
    * A employee picker component.
    */
 
-  import sortBy from 'lodash.sortby'
-  import Search from '@/api/Search'
-  import VAutocomplete from 'v-autocomplete'
-  import 'v-autocomplete/dist/v-autocomplete.css'
-  import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
+import sortBy from 'lodash.sortby'
+import Search from '@/api/Search'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
 
 export default {
   name: 'MoEmployeePicker',
@@ -61,11 +61,11 @@ export default {
     }
   },
 
-    computed: {
-      orderedListOptions () {
-        return sortBy(this.items, 'name')
-      }
-    },
+  computed: {
+    orderedListOptions () {
+      return sortBy(this.items, 'name')
+    }
+  },
 
   created () {
     this.item = this.value

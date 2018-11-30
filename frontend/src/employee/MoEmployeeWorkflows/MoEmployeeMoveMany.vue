@@ -68,49 +68,49 @@
    * A employee move many component.
    */
 
-  import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoTable from '@/components/MoTable/MoTable'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
-  import { mapFields } from 'vuex-map-fields'
-  import { mapGetters } from 'vuex'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoTable from '@/components/MoTable/MoTable'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
+import { mapFields } from 'vuex-map-fields'
+import { mapGetters } from 'vuex'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
-    components: {
-      MoDatePicker,
-      MoOrganisationUnitPicker,
-      MoTable,
-      ButtonSubmit
-    },
+  components: {
+    MoDatePicker,
+    MoOrganisationUnitPicker,
+    MoTable,
+    ButtonSubmit
+  },
 
-    data () {
-      return {
-        orgUnitSource: undefined
-      }
-    },
+  data () {
+    return {
+      orgUnitSource: undefined
+    }
+  },
 
   computed: {
     /**
        * generate getter/setters from store
        */
-      ...mapFields('employeeMoveMany', [
-        'selected',
-        'moveDate',
-        'orgUnitDestination',
-        'columns',
-        'backendValidationError',
-        'isLoading'
-      ]),
+    ...mapFields('employeeMoveMany', [
+      'selected',
+      'moveDate',
+      'orgUnitDestination',
+      'columns',
+      'backendValidationError',
+      'isLoading'
+    ]),
 
-      ...mapGetters('employeeMoveMany', [
-        'employees'
-      ]),
+    ...mapGetters('employeeMoveMany', [
+      'employees'
+    ]),
 
-      /**
+    /**
        * Set dateSelected to disable if moveDate is selected.
        */
     dateSelected () {

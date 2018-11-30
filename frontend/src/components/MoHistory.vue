@@ -4,9 +4,9 @@
       <icon name="book" />
     </button>
 
-    <b-modal 
-      id="theHistory" 
-      size="lg" 
+    <b-modal
+      id="theHistory"
+      size="lg"
       :title="$t('common.history')"
       @change="reloadHistory"
       hide-footer
@@ -40,16 +40,16 @@
    * A history component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import Employee from '@/api/Employee'
-  import '@/filters/Date'
-  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
-  import ModalBase from '@/mixins/ModalBase'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import Employee from '@/api/Employee'
+import '@/filters/Date'
+import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import ModalBase from '@/mixins/ModalBase'
 
-  export default {
-    mixins: [ModalBase],
-    props: {
-      /**
+export default {
+  mixins: [ModalBase],
+  props: {
+    /**
        * Defines a required uuid.
        */
     uuid: {
@@ -71,12 +71,12 @@
     }
   },
 
-    directives: {
-      'b-modal': bModalDirective
-    },
+  directives: {
+    'b-modal': bModalDirective
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The history component value.
        * Used to detect changes and restore the value.

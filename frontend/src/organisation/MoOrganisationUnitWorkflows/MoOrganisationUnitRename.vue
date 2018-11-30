@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
         <mo-organisation-unit-picker
-          :label="$t('input_fields.select_unit')" 
+          :label="$t('input_fields.select_unit')"
           class="col"
           v-model="original"
           required
@@ -50,17 +50,17 @@
    * A organisation unit rename component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoInput from '@/components/atoms/MoInput'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
-  import { mapGetters } from 'vuex'
-  
-  export default {
-    mixins: [ValidateForm, ModalBase],
+import OrganisationUnit from '@/api/OrganisationUnit'
+import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoInput from '@/components/atoms/MoInput'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
+import { mapGetters } from 'vuex'
+
+export default {
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoDatePickerRange,
@@ -96,7 +96,7 @@
       orgUnit: 'organisationUnit/GET_ORG_UNIT'
     }),
 
-      /**
+    /**
        * Compare if the unit names are identical.
        * If then return false.
        */

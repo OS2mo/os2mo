@@ -14,7 +14,7 @@
         <div class="col">
           <mo-organisation-unit-picker
             class="currentUnit"
-            v-model="original" 
+            v-model="original"
             :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"
             required
@@ -65,16 +65,16 @@
    * A organisation unit move component.
    */
 
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
-  import '@/filters/GetProperty'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
+import '@/filters/GetProperty'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoOrganisationUnitPicker,
@@ -102,8 +102,8 @@
     }
   },
 
-    watch: {
-      /**
+  watch: {
+    /**
        * If original exist show its parent.
        */
     original: {

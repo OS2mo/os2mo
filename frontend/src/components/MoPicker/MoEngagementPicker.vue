@@ -8,8 +8,8 @@
       :id="nameId"
       :ref="nameId"
       :data-vv-as="$tc('shared.engagement', 2)"
-      v-show="!isLoading" 
-      class="form-control col" 
+      v-show="!isLoading"
+      class="form-control col"
       v-model="selected"
       @change="updateSelectedEngagement()"
       :disabled="!employeeDefined"
@@ -69,17 +69,17 @@ export default {
     required: Boolean
   },
 
-    data () {
-      return {
-        /**
+  data () {
+    return {
+      /**
          * The selected, engagements, isLoading component value.
          * Used to detect changes and restore the value.
          */
-        selected: null,
-        engagements: [],
-        isLoading: false
-      }
-    },
+      selected: null,
+      engagements: [],
+      isLoading: false
+    }
+  },
 
   computed: {
     /**
