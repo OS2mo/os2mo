@@ -151,6 +151,8 @@ export default {
           return 'plus'
         case 'EDIT':
           return 'edit'
+        default:
+          return ''
       }
     },
 
@@ -163,6 +165,8 @@ export default {
           return 'Opret'
         case 'EDIT':
           return 'Rediger'
+        default:
+          return ''
       }
     },
 

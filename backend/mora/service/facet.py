@@ -144,8 +144,7 @@ def get_one_class(c, classid, clazz=None):
         clazz = c.klasse.get(classid)
 
         if not clazz:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
+            exceptions.ErrorCodes.E_INVALID_INPUT(
                 'no such class {!r}'.format(classid),
             )
 

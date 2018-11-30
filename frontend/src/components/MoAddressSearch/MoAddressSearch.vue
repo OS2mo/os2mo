@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="mo-address-search">
     <div class="form-row">
       <mo-address-search-field class="mb-0" v-model="address" :label="label" :global="global"/>
 

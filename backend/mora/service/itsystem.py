@@ -45,7 +45,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         system = c.itsystem.get(systemid)
 
         if not system:
-            raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
+            exceptions.ErrorCodes.E_NOT_FOUND()
 
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                               required=False)
@@ -94,7 +94,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         original = c.organisationfunktion.get(uuid=function_uuid)
 
         if not original:
-            raise exceptions.HTTPException(exceptions.ErrorCodes.E_NOT_FOUND)
+            exceptions.ErrorCodes.E_NOT_FOUND()
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)

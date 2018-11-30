@@ -1740,38 +1740,63 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/'.format(unitid),
             {
-                'name': 'Fake Corp',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                "location": "Overordnet Enhed",
+                "name": "Fake Corp",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
-                'org_unit_type': {
-                    'example': None,
-                    'name': 'Institut',
-                    'scope': None,
-                    'user_key': 'inst',
-                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Institut",
+                    "scope": None,
+                    "user_key": "inst",
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
-                'parent': {
-                    'name': 'Overordnet Enhed',
-                    'user_key': 'root',
-                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'validity': {
-                        'from': '2016-01-01',
-                        'to': None,
+                "parent": {
+                    "location": "",
+                    "name": "Overordnet Enhed",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    "org_unit_type": {
+                        "example": None,
+                        "name": "Afdeling",
+                        "scope": None,
+                        "user_key": "afd",
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                    },
+                    "parent": None,
+                    "user_key": "root",
+                    "user_settings": {
+                        "orgunit": {
+                            "show_location": True,
+                            "show_roles": True,
+                            "show_user_key": False
+                        }
+                    },
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "validity": {
+                        "from": "2016-01-01",
+                        "to": None
+                    }
                 },
-                'location': 'Overordnet Enhed',
-                'user_key': 'Fake Corp 00000000-0000-0000-0000-000000000000',
-                'user_settings': {'orgunit': {'show_user_key': False,
-                                              'show_location': True,
-                                              'show_roles': True}},
-                'uuid': unitid,
-                'validity': {
-                    'from': '2016-02-04',
-                    'to': '2017-10-21',
+                "user_key": "Fake Corp 00000000-0000-0000-0000-000000000000",
+                "user_settings": {
+                    "orgunit": {
+                        "show_location": True,
+                        "show_roles": True,
+                        "show_user_key": False
+                    }
                 },
+                "uuid": unitid,
+                "validity": {
+                    "from": "2016-02-04",
+                    "to": "2017-10-21"
+                }
             },
         )
 

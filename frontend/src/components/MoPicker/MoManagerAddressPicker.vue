@@ -138,7 +138,7 @@ export default {
       if (this.entry.address_type.scope === 'TEXT') return { required: true }
       if (this.entry.address_type.scope === 'WWW') return { required: true, url: true }
       if (this.entry.address_type.scope === 'PNUMBER') return { required: true, numeric: true, min: 5 }
-      if (this.entry.address_type.scope == null) return {}
+      return {}
     }
   },
 

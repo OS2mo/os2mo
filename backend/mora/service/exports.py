@@ -37,9 +37,7 @@ def list_export_files():
     """
     export_dir = flask.current_app.config['QUERY_EXPORT_DIR']
     if not os.path.isdir(export_dir):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_DIR_NOT_FOUND,
-        )
+        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
     dir_contents = os.listdir(export_dir)
     files = [
         file for file in dir_contents if
@@ -62,15 +60,10 @@ def get_export_file(file_name: str):
     """
     export_dir = flask.current_app.config['QUERY_EXPORT_DIR']
     if not os.path.isdir(export_dir):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_DIR_NOT_FOUND,
-        )
+        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
 
     file_path = os.path.join(export_dir, file_name)
     if not os.path.isfile(file_path):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_NOT_FOUND,
-            filename=file_name
-        )
+        exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
 
     return flask.send_file(file_path)

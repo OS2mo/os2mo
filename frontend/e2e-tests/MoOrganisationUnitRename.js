@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Organisation test')
+fixture('MoOrganisationUnitRename')
   .page(`${baseURL}/organisation`)
 
 const dialog = Selector('#orgUnitRename')
@@ -25,7 +25,7 @@ test('Workflow: rename unit', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(parentInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .typeText(dialog.find('input[data-vv-as="Nyt navn"]'), 'Ballerup Hovedbibliotek')
 
