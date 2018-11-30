@@ -1,9 +1,9 @@
 <template>
-  <mo-select 
-    v-model="selected" 
-    :label="facetData.user_key" 
-    :options="sortedOptions" 
-    :required="required" 
+  <mo-select
+    v-model="selected"
+    :label="facetData.user_key"
+    :options="sortedOptions"
+    :required="required"
     :disabled="isDisabled"
   />
 </template>
@@ -13,8 +13,8 @@
    * A facet picker component.
    */
 
-  import sortBy from 'lodash.sortby'
-  import MoSelect from '@/components/atoms/MoSelect'
+import sortBy from 'lodash.sortby'
+import MoSelect from '@/components/atoms/MoSelect'
 
 export default {
   name: 'MoFacetPicker',
@@ -36,17 +36,13 @@ export default {
     }
   },
 
-    computed: {
-      facetData () {
-        return this.$store.getters['facet/GET_FACET'](this.facet)
-      },
-      sortedOptions () {
-        let data = this.$store.getters['facet/GET_FACET'](this.facet)
-        return sortBy(data.classes, 'name')
-      },
-      isDisabled () {
-        return this.preselectedUserKey !== undefined
-      }
+  computed: {
+    facetData () {
+      return this.$store.getters['facet/GET_FACET'](this.facet)
+    },
+    sortedOptions () {
+      let data = this.$store.getters['facet/GET_FACET'](this.facet)
+      return sortBy(data.classes, 'name')
     },
     isDisabled () {
       return this.preselectedUserKey !== undefined

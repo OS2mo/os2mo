@@ -30,15 +30,15 @@
    * A employee create leave component.
    */
 
-  import { mapFields } from 'vuex-map-fields'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
+import { mapFields } from 'vuex-map-fields'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoEmployeePicker,
@@ -46,33 +46,32 @@
     ButtonSubmit
   },
 
-    computed: {
-      /**
+  computed: {
+    /**
        * Get mapFields from vuex store.
        */
-      ...mapFields('employeeLeave', [
-        'employee',
-        'leave',
-        'isLoading',
-        'backendValidationError'
-      ])
-    },
+    ...mapFields('employeeLeave', [
+      'employee',
+      'leave',
+      'isLoading',
+      'backendValidationError'
+    ])
+  },
 
   methods: {
     /**
        * Create leave and check if the data fields are valid.
        * Then throw a error if not.
        */
-      createLeave () {
-        let vm = this
-        if (this.formValid) {
-          this.$store.dispatch(`employeeLeave/leaveEmployee`)
-            .then(() => {
-              vm.$refs.employeeLeave.hide()
-            })
-        } else {
-          this.$validator.validateAll()
-        }
+    createLeave () {
+      let vm = this
+      if (this.formValid) {
+        this.$store.dispatch(`employeeLeave/leaveEmployee`)
+          .then(() => {
+            vm.$refs.employeeLeave.hide()
+          })
+      } else {
+        this.$validator.validateAll()
       }
     }
   }

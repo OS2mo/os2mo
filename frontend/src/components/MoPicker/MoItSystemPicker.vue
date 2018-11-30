@@ -30,9 +30,9 @@
    * A it system component.
    */
 
-  import sortBy from 'lodash.sortby'
-  import Facet from '@/api/Facet'
-  import { EventBus } from '@/EventBus'
+import sortBy from 'lodash.sortby'
+import Facet from '@/api/Facet'
+import { EventBus } from '@/EventBus'
 
 export default {
   name: 'MoItSystemPicker',
@@ -71,25 +71,12 @@ export default {
     /**
        * Get name `it-system-picker`.
        */
-      nameId () {
-        return 'it-system-picker-' + this._uid
-      },
-
-      orderedListOptions () {
-        return sortBy(this.itSystems, 'name')
-      }
+    nameId () {
+      return 'it-system-picker-' + this._uid
     },
 
     orderedListOptions () {
-      return this.itSystems.slice().sort((a, b) => {
-        if (a.name < b.name) {
-          return -1
-        }
-        if (a.name > b.name) {
-          return 1
-        }
-        return 0
-      })
+      return sortBy(this.itSystems, 'name')
     }
   },
 

@@ -51,43 +51,43 @@
    * A employee terminate component.
    */
 
-  import { mapFields } from 'vuex-map-fields'
-  import { mapGetters } from 'vuex'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import MoDatePicker from '@/components/atoms/MoDatePicker'
-  import ButtonSubmit from '@/components/ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
-  import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
+import { mapFields } from 'vuex-map-fields'
+import { mapGetters } from 'vuex'
+import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+import MoDatePicker from '@/components/atoms/MoDatePicker'
+import ButtonSubmit from '@/components/ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
+import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
-  export default {
-    mixins: [ValidateForm, ModalBase],
+export default {
+  mixins: [ValidateForm, ModalBase],
 
-    components: {
-      MoEmployeePicker,
-      MoDatePicker,
-      ButtonSubmit,
-      EmployeeDetailTabs
-    },
-  
-    computed: {
-      /**
+  components: {
+    MoEmployeePicker,
+    MoDatePicker,
+    ButtonSubmit,
+    EmployeeDetailTabs
+  },
+
+  computed: {
+    /**
        * Get mapFields from vuex store.
        */
-      ...mapFields('employeeTerminate', [
-        'employee',
-        'endDate',
-        'isLoading',
-        'backendValidationError'
-      ]),
+    ...mapFields('employeeTerminate', [
+      'employee',
+      'endDate',
+      'isLoading',
+      'backendValidationError'
+    ]),
 
     /**
        * Get mapGetters from vuex store.
        */
-      ...mapGetters({
-        details: 'employeeTerminate/getDetails'
-      })
-    },
+    ...mapGetters({
+      details: 'employeeTerminate/getDetails'
+    })
+  },
 
   methods: {
     loadContent (event) {
@@ -98,16 +98,15 @@
        * Terminate employee and check if the data fields are valid.
        * Then throw a error if not.
        */
-      terminateEmployee () {
-        let vm = this
-        if (this.formValid) {
-          this.$store.dispatch(`employeeTerminate/terminateEmployee`)
-            .then(() => {
-              vm.$refs.employeeTerminate.hide()
-            })
-        } else {
-          this.$validator.validateAll()
-        }
+    terminateEmployee () {
+      let vm = this
+      if (this.formValid) {
+        this.$store.dispatch(`employeeTerminate/terminateEmployee`)
+          .then(() => {
+            vm.$refs.employeeTerminate.hide()
+          })
+      } else {
+        this.$validator.validateAll()
       }
     }
   }

@@ -93,7 +93,6 @@
  * A employee detail tabs component.
  */
 
-import MoLoader from '@/components/atoms/MoLoader'
 import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
 import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
@@ -107,7 +106,6 @@ import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
 export default {
   components: {
-    MoLoader,
     MoTableDetail,
     'b-tabs': bTabs,
     'b-tab': bTab

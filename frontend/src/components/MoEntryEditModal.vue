@@ -10,7 +10,7 @@
     <b-modal
       :id="nameId"
       size="lg"
-      hide-footer 
+      hide-footer
       :title="$t('common.edit')"
       :ref="nameId"
       lazy
@@ -41,21 +41,21 @@
    * A entry edit modal component.
    */
 
-  import Employee from '@/api/Employee'
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import ButtonSubmit from './ButtonSubmit'
-  import ValidateForm from '@/mixins/ValidateForm'
-  import ModalBase from '@/mixins/ModalBase'
-  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
-  export default {
-    mixins: [ValidateForm, ModalBase],
+import Employee from '@/api/Employee'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import ButtonSubmit from './ButtonSubmit'
+import ValidateForm from '@/mixins/ValidateForm'
+import ModalBase from '@/mixins/ModalBase'
+import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+export default {
+  mixins: [ValidateForm, ModalBase],
 
-    components: {
-      ButtonSubmit
-    },
-    directives: {
-      'b-modal': bModalDirective
-    },
+  components: {
+    ButtonSubmit
+  },
+  directives: {
+    'b-modal': bModalDirective
+  },
 
   props: {
     /**
@@ -142,10 +142,10 @@
     /**
        * If it has a entry component.
        */
-      hasEntryComponent () {
-        return this.entryComponent !== undefined
-      }
-    },
+    hasEntryComponent () {
+      return this.entryComponent !== undefined
+    }
+  },
 
   watch: {
     /**
@@ -239,11 +239,8 @@
         this.backendValidationMessage =
             messages.alerts.error[response.error_key]
 
-          if (!this.backendValidationMessage) {
-            this.backendValidationMessage = this.$t('alerts.fallback', response)
-          }
-        } else {
-          this.$refs[this.nameId].hide()
+        if (!this.backendValidationMessage) {
+          this.backendValidationMessage = this.$t('alerts.fallback', response)
         }
       } else {
         this.$refs[this.nameId].hide()

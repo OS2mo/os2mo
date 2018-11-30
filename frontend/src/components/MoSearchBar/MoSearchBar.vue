@@ -84,48 +84,6 @@ export default {
     }
   },
 
-  components: {
-    VAutocomplete
-  },
-
-  data () {
-    return {
-    /**
-     * The item, items, routeName component value.
-     * Used to detect changes and restore the value.
-     */
-      item: null,
-      items: [],
-      routeName: '',
-
-      /**
-       * The template component value.
-       * Used to add MoSearchBarTemplate to the v-autocomplete.
-       */
-      template: MoSearchBarTemplate,
-
-      /**
-       * The noItem component value.
-       * Used to give a default name.
-       */
-      noItem: [{ name: 'Ingen resultater matcher din søgning' }]
-    }
-  },
-
-  computed: {
-    orderedListOptions () {
-      return this.items.slice().sort((a, b) => {
-        if (a.name < b.name) {
-          return -1
-        }
-        if (a.name > b.name) {
-          return 1
-        }
-        return 0
-      })
-    }
-  },
-
   watch: {
     /**
      * Whenever route change update.

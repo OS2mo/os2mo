@@ -35,9 +35,9 @@
 /**
    * A address picker component.
    */
-  import sortBy from 'lodash.sortby'
-  import OrganisationUnit from '@/api/OrganisationUnit'
-  import MoLoader from '@/components/atoms/MoLoader'
+import sortBy from 'lodash.sortby'
+import OrganisationUnit from '@/api/OrganisationUnit'
+import MoLoader from '@/components/atoms/MoLoader'
 
 export default {
   name: 'AddressPicker',
@@ -103,25 +103,12 @@ export default {
     /**
        * Return blank address.
        */
-      noAddresses () {
-        return this.addresses.length === 0
-      },
-
-      orderedListOptions () {
-        return sortBy(this.addresses, 'address_type.name')
-      }
+    noAddresses () {
+      return this.addresses.length === 0
     },
 
     orderedListOptions () {
-      return this.addresses.slice().sort((a, b) => {
-        if (a.address_type.name < b.address_type.name) {
-          return -1
-        }
-        if (a.address_type.name > b.address_type.name) {
-          return 1
-        }
-        return 0
-      })
+      return sortBy(this.addresses, 'address_type.name')
     }
   },
 

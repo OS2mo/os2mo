@@ -9,13 +9,13 @@
       <div class="row">
           <div class="col" v-if="orgUnit.user_settings.orgunit">
             <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
-	      {{$t('common.placement')}}:
-	      <span class="orgunit-location">{{orgUnit.location}}</span>
-	    </p>
-          <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">
-	    {{$t('common.unit_number')}}:
-	    <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
-	  </p>
+              {{$t('common.placement')}}:
+              <span class="orgunit-location">{{orgUnit.location}}</span>
+            </p>
+            <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">
+              {{$t('common.unit_number')}}:
+              <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
+            </p>
         </div>
 
         <div class="mr-3">

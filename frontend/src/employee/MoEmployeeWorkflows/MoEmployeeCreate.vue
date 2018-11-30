@@ -91,12 +91,7 @@ export default {
     ButtonSubmit,
     MoCpr,
     MoAddMany,
-    MoAddressEntry,
-    MoAssociationEntry,
-    MoEngagementEntry,
-    MoRoleEntry,
-    MoItSystemEntry,
-    MoManagerEntry
+    MoEngagementEntry
   },
 
   data () {
