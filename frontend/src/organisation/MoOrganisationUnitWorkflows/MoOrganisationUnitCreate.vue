@@ -55,21 +55,17 @@
    * A organisation unit create component
    */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
+  import MoAddMany from '@/components/MoAddMany/MoAddMany'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
-export default {
-  /**
-       * Requesting a new validator scope to its children
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
-
-  name: 'OrganisationUnitCreate',
+  export default {
+    name: 'OrganisationUnitCreate',
+    mixins: [ValidateForm, ModalBase],
 
   components: {
     ButtonSubmit,
@@ -101,19 +97,8 @@ export default {
     }
   },
 
-  computed: {
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    }
-  },
-
-  methods: {
-    /**
+    methods: {
+      /**
        * Resets the data fields.
        */
     resetData () {

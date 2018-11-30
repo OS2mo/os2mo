@@ -48,11 +48,17 @@
    * A login page component.
    */
 
-import { mapGetters } from 'vuex'
-import Service from '@/api/HttpCommon'
+  import {mapGetters} from 'vuex'
+  import Service from '@/api/HttpCommon'
+  import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
+  import bFormInput from 'bootstrap-vue/es/components/form-input/form-input'
 
-export default {
-  name: 'login-page',
+  export default {
+    name: 'login-page',
+    components: {
+      'b-form-checkbox': bFormCheckbox,
+      'b-form-input': bFormInput
+    },
 
   props: {
     /**

@@ -71,34 +71,36 @@
    * A employee create component.
    */
 
-import { mapFields } from 'vuex-map-fields'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import MoCpr from '@/components/MoCpr/MoCpr'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
-import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
-import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
-import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
-import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import { mapFields } from 'vuex-map-fields'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import MoCpr from '@/components/MoCpr/MoCpr'
+  import MoAddMany from '@/components/MoAddMany/MoAddMany'
+  import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
+  import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
+  import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
+  import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
+  import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+  import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
-  components: {
-    ButtonSubmit,
-    MoCpr,
-    MoAddMany,
-    MoEngagementEntry
-  },
+    components: {
+      ButtonSubmit,
+      MoCpr,
+      MoAddMany,
+      MoAddressEntry,
+      MoAssociationEntry,
+      MoEngagementEntry,
+      MoRoleEntry,
+      MoItSystemEntry,
+      MoManagerEntry
+    },
 
-  data () {
-    return {
+    data () {
+      return {
       /**
         * The isLoading component value.
         * Used to detect changes and restore the value.
@@ -124,26 +126,17 @@ export default {
     /**
        * Get mapFields from vuex store.
        */
-    ...mapFields('employeeCreate', [
-      'employee',
-      'engagement',
-      'address',
-      'association',
-      'role',
-      'itSystem',
-      'manager',
-      'backendValidationError'
-    ]),
-
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    }
-  },
+      ...mapFields('employeeCreate', [
+        'employee',
+        'engagement',
+        'address',
+        'association',
+        'role',
+        'itSystem',
+        'manager',
+        'backendValidationError'
+      ])
+    },
 
   methods: {
     /**

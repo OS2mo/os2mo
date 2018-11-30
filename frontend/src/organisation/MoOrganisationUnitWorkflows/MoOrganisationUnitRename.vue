@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
         <mo-organisation-unit-picker
-          label="Enhed"
+          :label="$t('input_fields.select_unit')" 
           class="col"
           v-model="original"
           required
@@ -50,20 +50,17 @@
    * A organisation unit rename component.
    */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoInput from '@/components/atoms/MoInput'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import { mapGetters } from 'vuex'
-
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoInput from '@/components/atoms/MoInput'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import { mapGetters } from 'vuex'
+  
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
   components: {
     MoDatePickerRange,
@@ -99,16 +96,7 @@ export default {
       orgUnit: 'organisationUnit/GET_ORG_UNIT'
     }),
 
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    },
-
-    /**
+      /**
        * Compare if the unit names are identical.
        * If then return false.
        */

@@ -4,10 +4,10 @@
       <icon name="book" />
     </button>
 
-    <b-modal
-      id="theHistory"
-      size="lg"
-      title="Historik"
+    <b-modal 
+      id="theHistory" 
+      size="lg" 
+      :title="$t('common.history')"
       @change="reloadHistory"
       hide-footer
       lazy
@@ -15,10 +15,10 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th scope="col">Dato</th>
-            <th scope="col">Sektion</th>
-            <th scope="col">Handling</th>
-            <th scope="col">Udført af</th>
+            <th scope="col">{{$t('common.date')}}</th>
+            <th scope="col">{{$t('common.section')}}</th>
+            <th scope="col">{{$t('common.action')}}</th>
+            <th scope="col">{{$t('common.action_by')}}</th>
           </tr>
         </thead>
 
@@ -40,13 +40,16 @@
    * A history component.
    */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import Employee from '@/api/Employee'
-import '@/filters/Date'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import Employee from '@/api/Employee'
+  import '@/filters/Date'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+  import ModalBase from '@/mixins/ModalBase'
 
-export default {
-  props: {
-    /**
+  export default {
+    mixins: [ModalBase],
+    props: {
+      /**
        * Defines a required uuid.
        */
     uuid: {
@@ -68,8 +71,12 @@ export default {
     }
   },
 
-  data () {
-    return {
+    directives: {
+      'b-modal': bModalDirective
+    },
+
+    data () {
+      return {
       /**
        * The history component value.
        * Used to detect changes and restore the value.

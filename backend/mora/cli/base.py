@@ -31,6 +31,7 @@ import doctest
 import json
 import os
 import random
+import socket
 import subprocess
 import sys
 import threading
@@ -258,12 +259,24 @@ def full_run(**kwargs):
 
     from mora import app
 
-    lora_server = werkzeug.serving.make_server(
-        'localhost', 0, lora_app.app,
-        threaded=True,
-    )
+    def make_server(app, startport=5000):
+        '''create a server at the first available port after startport'''
+        for port in range(startport, 65536):
+            try:
+                return (
+                    werkzeug.serving.make_server(
+                        'localhost', port, app,
+                        threaded=True,
+                    ),
+                    port,
+                )
+            except OSError as exc:
+                pass
 
-    lora_port = lora_server.socket.getsockname()[1]
+        raise exc
+
+    lora_server, lora_port = make_server(lora_app.app, 6000)
+    mora_server, mora_port = make_server(app.create_app(), 5000)
 
     with \
             test_support.psql() as psql, \
@@ -298,13 +311,6 @@ def full_run(**kwargs):
 
         finally:
             db.pool.putconn(conn)
-
-        mora_server = werkzeug.serving.make_server(
-            'localhost', 0, app.create_app(),
-            threaded=True,
-        )
-
-        mora_port = mora_server.socket.getsockname()[1]
 
         print(' * Backend running at http://localhost:{}/'.format(mora_port))
 

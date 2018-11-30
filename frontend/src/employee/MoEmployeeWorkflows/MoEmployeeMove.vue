@@ -68,33 +68,30 @@
    * A employee move component.
    */
 
-import MoDatePicker from '@/components/atoms/MoDatePicker'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
-import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
-import { mapFields } from 'vuex-map-fields'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
+  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import { mapFields } from 'vuex-map-fields'
 
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
-  components: {
-    MoDatePicker,
-    MoOrganisationUnitPicker,
-    MoEngagementPicker,
-    MoEmployeePicker,
-    ButtonSubmit,
-    MoConfirmCheckbox
-  },
+    components: {
+      MoDatePicker,
+      MoOrganisationUnitPicker,
+      MoEngagementPicker,
+      MoEmployeePicker,
+      ButtonSubmit,
+      MoConfirmCheckbox
+    },
 
-  props: {
-    /**
+    props: {
+      /**
        * Defines a engagement type name.
        */
     entryName: String,
@@ -124,25 +121,16 @@ export default {
     /**
        * Get mapFields from vuex store.
        */
-    ...mapFields('employeeMove', [
-      'move',
-      'move.data.person',
-      'move.data.org_unit',
-      'move.data.validity.from',
-      'original',
-      'backendValidationError'
-    ]),
+      ...mapFields('employeeMove', [
+        'move',
+        'move.data.person',
+        'move.data.org_unit',
+        'move.data.validity.from',
+        'original',
+        'backendValidationError'
+      ]),
 
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    },
-
-    /**
+      /**
        * Check if the dates are valid.
        */
     dateConflict () {

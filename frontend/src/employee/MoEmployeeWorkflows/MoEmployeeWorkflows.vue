@@ -62,24 +62,28 @@
    * A Employee workflow component.
    */
 
-import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
-import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
-import MoEmployeeCreate from './MoEmployeeCreate'
-import MoEmployeeLeave from './MoEmployeeLeave'
-import MoEmployeeMove from './MoEmployeeMove'
-import MoEmployeeMoveMany from './MoEmployeeMoveMany'
-import MoEmployeeTerminate from './MoEmployeeTerminate'
+  import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
+  import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
+  import MoEmployeeCreate from './MoEmployeeCreate'
+  import MoEmployeeLeave from './MoEmployeeLeave'
+  import MoEmployeeMove from './MoEmployeeMove'
+  import MoEmployeeMoveMany from './MoEmployeeMoveMany'
+  import MoEmployeeTerminate from './MoEmployeeTerminate'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
-export default {
-  components: {
-    MoWorkflow,
-    MoWorkflowButton,
-    MoEmployeeCreate,
-    MoEmployeeLeave,
-    MoEmployeeMove,
-    MoEmployeeMoveMany,
-    MoEmployeeTerminate
-  },
+  export default {
+    components: {
+      MoWorkflow,
+      MoWorkflowButton,
+      MoEmployeeCreate,
+      MoEmployeeLeave,
+      MoEmployeeMove,
+      MoEmployeeMoveMany,
+      MoEmployeeTerminate
+    },
+    directives: {
+      'b-modal': bModalDirective
+    },
 
   methods: {
     /**

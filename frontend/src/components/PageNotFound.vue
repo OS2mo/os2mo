@@ -1,6 +1,6 @@
 <template>
   <div id="not-found">
-    <h1>Siden blev ikke fundet</h1>
+    <h1>{{$t('alerts.page_not_found')}}</h1>
   </div>
 </template>
 

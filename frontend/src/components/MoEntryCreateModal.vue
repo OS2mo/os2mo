@@ -11,8 +11,8 @@
     <b-modal
       :id="nameId"
       size="lg"
-      hide-footer
-      title="Opret"
+      hide-footer 
+      :title="$t('common.create')"
       :ref="nameId"
       lazy
     >
@@ -41,21 +41,22 @@
    * A entry create modal component.
    */
 
-import Employee from '@/api/Employee'
-import OrganisationUnit from '@/api/OrganisationUnit'
-import ButtonSubmit from '@/components/ButtonSubmit'
+  import Employee from '@/api/Employee'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
-  components: {
-    ButtonSubmit
-  },
+    components: {
+      ButtonSubmit
+    },
+    directives: {
+      'b-modal': bModalDirective
+    },
 
   props: {
     /**
@@ -98,18 +99,9 @@ export default {
     /**
        * Get name `moCreate`.
        */
-    nameId () {
-      return 'moCreate' + this._uid
-    },
-
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    },
+      nameId () {
+        return 'moCreate' + this._uid
+      },
 
     /**
        * If it has a entry component.

@@ -10,8 +10,8 @@
     <b-modal
       :id="nameId"
       size="lg"
-      hide-footer
-      title="Rediger"
+      hide-footer 
+      :title="$t('common.edit')"
       :ref="nameId"
       lazy
     >
@@ -41,21 +41,21 @@
    * A entry edit modal component.
    */
 
-import Employee from '@/api/Employee'
-import OrganisationUnit from '@/api/OrganisationUnit'
-import ButtonSubmit from './ButtonSubmit'
+  import Employee from '@/api/Employee'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import ButtonSubmit from './ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
-
-  components: {
-    ButtonSubmit
-  },
+    components: {
+      ButtonSubmit
+    },
+    directives: {
+      'b-modal': bModalDirective
+    },
 
   props: {
     /**
@@ -142,19 +142,10 @@ export default {
     /**
        * If it has a entry component.
        */
-    hasEntryComponent () {
-      return this.entryComponent !== undefined
+      hasEntryComponent () {
+        return this.entryComponent !== undefined
+      }
     },
-
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    }
-  },
 
   watch: {
     /**
@@ -248,9 +239,11 @@ export default {
         this.backendValidationMessage =
             messages.alerts.error[response.error_key]
 
-        if (!this.backendValidationMessage) {
-          this.backendValidationMessage = this.$t('alerts.fallback',
-            response)
+          if (!this.backendValidationMessage) {
+            this.backendValidationMessage = this.$t('alerts.fallback', response)
+          }
+        } else {
+          this.$refs[this.nameId].hide()
         }
       } else {
         this.$refs[this.nameId].hide()

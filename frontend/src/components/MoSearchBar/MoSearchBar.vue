@@ -37,17 +37,52 @@
 </template>
 
 <script>
-/**
- * A searchbar component.
- */
+  /**
+   * A searchbar component.
+   */
 
-import Search from '@/api/Search'
-import VAutocomplete from 'v-autocomplete'
-import 'v-autocomplete/dist/v-autocomplete.css'
-import MoSearchBarTemplate from './MoSearchBarTemplate'
+  import sortBy from 'lodash.sortby'
+  import Search from '@/api/Search'
+  import VAutocomplete from 'v-autocomplete'
+  import 'v-autocomplete/dist/v-autocomplete.css'
+  import MoSearchBarTemplate from './MoSearchBarTemplate'
+  
+  export default {
+    name: 'MoSearchBar',
 
-export default {
-  name: 'MoSearchBar',
+    components: {
+      VAutocomplete
+    },
+
+    data () {
+      return {
+      /**
+       * The item, items, routeName component value.
+       * Used to detect changes and restore the value.
+       */
+        item: null,
+        items: [],
+        routeName: '',
+
+        /**
+         * The template component value.
+         * Used to add MoSearchBarTemplate to the v-autocomplete.
+         */
+        template: MoSearchBarTemplate,
+
+        /**
+         * The noItem component value.
+         * Used to give a default name.
+         */
+        noItem: [{name: this.$t('alerts.no_search_results')}]
+      }
+    },
+
+    computed: {
+      orderedListOptions () {
+        return sortBy(this.items, 'name')
+      }
+    },
 
   components: {
     VAutocomplete

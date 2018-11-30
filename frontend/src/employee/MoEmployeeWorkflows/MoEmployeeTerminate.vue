@@ -51,60 +51,43 @@
    * A employee terminate component.
    */
 
-import { mapFields } from 'vuex-map-fields'
-import { mapGetters } from 'vuex'
-import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoDatePicker from '@/components/atoms/MoDatePicker'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
+  import { mapFields } from 'vuex-map-fields'
+  import { mapGetters } from 'vuex'
+  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
 
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
-  components: {
-    MoEmployeePicker,
-    MoDatePicker,
-    ButtonSubmit,
-    EmployeeDetailTabs
-  },
-
-  data () {
-    return {
-      isLoading: false
-    }
-  },
-
-  computed: {
-    /**
+    components: {
+      MoEmployeePicker,
+      MoDatePicker,
+      ButtonSubmit,
+      EmployeeDetailTabs
+    },
+  
+    computed: {
+      /**
        * Get mapFields from vuex store.
        */
-    ...mapFields('employeeTerminate', [
-      'employee',
-      'endDate',
-      'backendValidationError'
-    ]),
+      ...mapFields('employeeTerminate', [
+        'employee',
+        'endDate',
+        'isLoading',
+        'backendValidationError'
+      ]),
 
     /**
        * Get mapGetters from vuex store.
        */
-    ...mapGetters({
-      details: 'employeeTerminate/getDetails'
-    }),
-
-    /**
-       * Check validity of form. this.fields is a magic property created by vee-validate
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
+      ...mapGetters({
+        details: 'employeeTerminate/getDetails'
       })
-    }
-  },
+    },
 
   methods: {
     loadContent (event) {
@@ -115,21 +98,16 @@ export default {
        * Terminate employee and check if the data fields are valid.
        * Then throw a error if not.
        */
-    terminateEmployee () {
-      if (this.formValid) {
+      terminateEmployee () {
         let vm = this
-        vm.isLoading = true
-        this.$store.dispatch('employeeTerminate/TERMINATE_EMPLOYEE')
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response.error_key
-            } else {
+        if (this.formValid) {
+          this.$store.dispatch(`employeeTerminate/terminateEmployee`)
+            .then(() => {
               vm.$refs.employeeTerminate.hide()
-            }
-          })
-      } else {
-        this.$validator.validateAll()
+            })
+        } else {
+          this.$validator.validateAll()
+        }
       }
     }
   }

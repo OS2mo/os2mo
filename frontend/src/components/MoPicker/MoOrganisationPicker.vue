@@ -6,9 +6,9 @@
       v-model="selectedOrganisation"
       @change="resetToBaseRoute"
     >
-      <option disabled>Vælg organisation</option>
-      <option
-        v-for="org in orderedListOptions"
+      <option disabled>{{$t('input_fields.choose_organisation')}}</option>
+      <option 
+        v-for="org in orderedListOptions" 
         :key="org.uuid"
         :value="org"
       >
@@ -23,9 +23,10 @@
    * A organisation picker component.
    */
 
-import Organisation from '@/api/Organisation'
-import { EventBus } from '@/EventBus'
-import { mapGetters } from 'vuex'
+  import sortBy from 'lodash.sortby'
+  import Organisation from '@/api/Organisation'
+  import { EventBus } from '@/EventBus'
+  import { mapGetters } from 'vuex'
 
 export default {
   name: 'MoOrganisationPicker',
@@ -37,9 +38,9 @@ export default {
     $validator: '$validator'
   },
 
-  props: {
-    /**
-       * Create two-way data bindings with the component.
+    props: {
+      /**
+       * @model
        */
     value: Object,
 
@@ -65,29 +66,21 @@ export default {
        * The selectedOrganisation, orgs component value.
        * Used to detect changes and restore the value.
        */
-      selectedOrganisation: null,
-      orgs: []
-    }
-  },
+        selectedOrganisation: null,
+        orgs: []
+      }
+    },
 
-  computed: {
-    ...mapGetters({
-      currentUnit: 'organisationUnit/GET_ORG_UNIT',
-      currentEmployee: 'employee/GET_EMPLOYEE'
-    }),
+    computed: {
+      ...mapGetters({
+        currentUnit: 'organisationUnit/GET_ORG_UNIT',
+        currentEmployee: 'employee/GET_EMPLOYEE'
+      }),
 
-    orderedListOptions () {
-      return this.orgs.slice().sort((a, b) => {
-        if (a.name < b.name) {
-          return -1
-        }
-        if (a.name > b.name) {
-          return 1
-        }
-        return 0
-      })
-    }
-  },
+      orderedListOptions () {
+        return sortBy(this.orgs, name)
+      }
+    },
 
   mounted () {
     /**
@@ -103,11 +96,10 @@ export default {
     /**
        * Whenever selected organisation change, update newVal.
        */
-    selectedOrganisation (newVal) {
-      this.$store.commit(`organisation/setOrg`, newVal)
-      Organisation.setSelectedOrganisation(newVal)
-      this.$emit('input', newVal)
-    },
+      selectedOrganisation (newVal) {
+        this.$store.commit(`organisation/setOrg`, newVal)
+        this.$emit('input', newVal)
+      },
 
     currentEmployee: {
       handler (val) {

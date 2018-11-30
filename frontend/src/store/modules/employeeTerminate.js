@@ -7,26 +7,32 @@ const state = {
   employee: {},
   endDate: '',
   details: {},
+  isLoading: false,
   backendValidationError: null
 }
 
 const actions = {
-  TERMINATE_EMPLOYEE ({ state, commit, dispatch }) {
+  terminateEmployee ({ state, commit }) {
     let payload = {
       validity: {
         to: state.endDate
       }
     }
+
+    commit('updateIsLoading', true)
+
     return Service.post(`/e/${state.employee.uuid}/terminate`, payload)
       .then(response => {
         EventBus.$emit('employee-changed')
         commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: response.data }, { root: true })
-        dispatch('resetFields')
+        commit('resetFields')
         return response.data
       })
       .catch(error => {
+        commit('updateIsLoading', false)
+        commit('updateError', error.response.data)
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
-        return error.response.data
+        return error
       })
   },
 
@@ -56,10 +62,19 @@ const actions = {
 const mutations = {
   updateField,
 
+  updateError (state, error) {
+    state.backendValidationError = error
+  },
+
+  updateIsLoading (state, isLoading) {
+    state.isLoading = isLoading
+  },
+
   resetFields (state) {
     state.employee = {}
     state.endDate = ''
     state.details = {}
+    state.isLoading = false
     state.backendValidationError = null
   },
 

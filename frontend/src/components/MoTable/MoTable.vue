@@ -6,7 +6,7 @@
       <tbody>
       <tr>
         <td>
-          <span>Intet at vise</span>
+          <span>{{$t('common.nothing_to_show')}}</span>
         </td>
       </tr>
       </tbody>
@@ -86,18 +86,22 @@
    * A table component.
    */
 
-import '@/filters/GetProperty'
-import '@/filters/Date'
-import MoLoader from '@/components/atoms/MoLoader'
-import MoEntryEditModal from '@/components/MoEntryEditModal'
-import MoLink from '@/components/MoLink'
+  import '@/filters/GetProperty'
+  import '@/filters/Date'
+  import MoLoader from '@/components/atoms/MoLoader'
+  import MoEntryEditModal from '@/components/MoEntryEditModal'
+  import MoLink from '@/components/MoLink'
+  import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
+  import bFormCheckboxGroup from 'bootstrap-vue/es/components/form-checkbox/form-checkbox-group'
 
-export default {
-  components: {
-    MoLoader,
-    MoLink,
-    MoEntryEditModal
-  },
+  export default {
+    components: {
+      MoLoader,
+      MoLink,
+      MoEntryEditModal,
+      'b-form-checkbox': bFormCheckbox,
+      'b-form-checkbox-group': bFormCheckboxGroup
+    },
 
   props: {
     /**

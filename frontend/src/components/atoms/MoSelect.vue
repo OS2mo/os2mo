@@ -38,9 +38,9 @@ export default {
     $validator: '$validator'
   },
 
-  props: {
-    /**
-       * Create two-way data bindings with the component.
+    props: {
+      /**
+       * @model
        */
     value: Object,
 

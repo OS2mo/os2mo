@@ -14,8 +14,8 @@
         <div class="col">
           <mo-organisation-unit-picker
             class="currentUnit"
-            v-model="original"
-            :label="$t('input_fields.choose_unit')"
+            v-model="original" 
+            :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"
             required
           />
@@ -65,19 +65,16 @@
    * A organisation unit move component.
    */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoDatePicker from '@/components/atoms/MoDatePicker'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import '@/filters/GetProperty'
+  import OrganisationUnit from '@/api/OrganisationUnit'
+  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+  import MoDatePicker from '@/components/atoms/MoDatePicker'
+  import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
+  import '@/filters/GetProperty'
 
-export default {
-  /**
-       * Requesting a new validator scope to its children.
-       */
-  $_veeValidate: {
-    validator: 'new'
-  },
+  export default {
+    mixins: [ValidateForm, ModalBase],
 
   components: {
     MoOrganisationUnitPicker,
@@ -105,19 +102,8 @@ export default {
     }
   },
 
-  computed: {
-    /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-    formValid () {
-      return Object.keys(this.fields).every(field => {
-        return this.fields[field] && this.fields[field].valid
-      })
-    }
-  },
-
-  watch: {
-    /**
+    watch: {
+      /**
        * If original exist show its parent.
        */
     original: {

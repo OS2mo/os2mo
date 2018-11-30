@@ -55,6 +55,14 @@ const actions = {
 const mutations = {
   updateField,
 
+  updateError (state, error) {
+    state.backendValidationError = error
+  },
+
+  updateIsLoading (state, isLoading) {
+    state.isLoading = isLoading
+  },
+
   resetFields (state) {
     state.employee = {}
     state.engagement = {}

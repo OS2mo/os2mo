@@ -56,21 +56,22 @@ export default {
       return this.$refs[this.nameId]
     },
 
-    contents () {
-      function visitNode (node, level) {
-        if (!node) {
-          return null
-        }
+      contents () {
+        function visitNode (node, level) {
+          if (!node) {
+            return null
+          } else if (node instanceof Array) {
+            return node
+              .filter(c => c.visible())
+              .map(c => visitNode(c, level))
+          }
 
         let text = node.selected() ? `=+= ${node.text} =+=` : node.text
 
-        if (node.expanded()) {
-          const children = node.children
-            .filter(c => c.visible())
-            .map(c => visitNode(c, level + 1))
-          const r = {}
+          if (node.expanded()) {
+            const r = {}
 
-          r[text] = children
+            r[text] = visitNode(node.children, level + 1)
 
           return r
         } else if (node.hasChildren()) {
