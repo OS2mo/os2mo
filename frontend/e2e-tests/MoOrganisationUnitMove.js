@@ -78,6 +78,8 @@ test('Workflow: move unit', async t => {
       /Organisationsenheden med UUID [-0-9a-f]* er blevet flyttet/
     )
 
+    .expect(tree.find('.selected').exists)
+    .ok()
     .expect(tree.getVue(({ computed }) => computed.contents))
     .eql({
       'Hjørring': [
