@@ -1,5 +1,5 @@
-Version 0.13.0 (in development)
-===============================
+Version 0.13.0, 2018-11-30
+==========================
 
 New features
 ------------
@@ -8,12 +8,22 @@ New features
   rendering the tree view properly on load, keeps the selection
   updated when changing units, and eventually enables rendering
   filtered trees for to make searching easier.
+* #24880: Implement LiquorTree in order to underpin the ability to
+  map between Organizational units
 
 Internal changes
 ----------------
 
-* #23799: Added custom UUID url converter, stringifying UUID parameters in
+* #23779: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
+* #25136: Refactored front end code.
+* #24700: Backend ready for the Phonebook
+
+Known bugs
+----------
+
+* #25579: Quickly switching between org units in the tree causes a race condition.
+* #25671: Newly created employees can not be found using the search function.
 
 Version 0.12.0, 2018-11-16
 ==========================
