@@ -52,15 +52,23 @@ def set_org_unit_configuration(unitid):
     :returns: True
     """
 
-    query = ("SELECT setting, value FROM " +
-             "orgunit_settings WHERE object = '{}'").format(unitid)
+    configuration = flask.request.get_json()
+    for key, value in configuration.items():
+        query = ("SELECT id FROM orgunit_settings WHERE setting = '{}' " +
+                 "AND object='{}'").format(key, unitid)
+        cur.execute(query)
+        rows = cur.fetchall()
+        if len(rows) == 0:
+            query = ("INSERT INTO orgunit_settings (object, setting, value) " +
+                     "values ('{}', '{}', '{}')")
+            cur.execute(query.format(unitid, key, value))
+        elif len(rows) == 1:
+            query = "UPDATE orgunit_settings set value='{}' where id={}"
+            cur.execute(query.format(value, rows[0][0]))
+        else:
+            raise('Non-consistent settings for {}'.format(unitid))
+        conn.commit()
 
-    cur.execute(query)
-    rows = cur.fetchall()
-    configuration = flask.request.data
-    #configuration = flask.request.get_json()
-    print(configuration)
-    
     return flask.jsonify(True)
 
 @blueprint.route('/ou/<uuid:unitid>/get_configuration', methods=['GET'])

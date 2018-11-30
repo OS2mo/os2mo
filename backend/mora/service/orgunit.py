@@ -46,6 +46,34 @@ from .. import validator
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
+conn = psycopg2.connect(settings.USER_SETTINGS_CONN_STRING)
+cur = conn.cursor()
+
+def _read_local_settings(unitid=None):
+    """ Read a set of settings from the database
+    :param query: The query
+    """
+    query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
+    if unitid is None:
+        query = query_start + "is Null"
+    else:
+        query = query_start + "= '{}'".format(unitid)
+
+    settings = {}
+    cur.execute(query)
+
+    rows = cur.fetchall()
+    for row in rows:
+        setting = row[0]
+        if row[1] == 'True':
+            value = True
+        elif row[1] == 'False':
+            value = False
+        else:
+            value = row[1]
+        settings[setting] = value
+    return settings
+
 
 @enum.unique
 class UnitDetails(enum.Enum):
@@ -353,49 +381,14 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.LOCATION] = ''
 
-            print('! Do not initialise on every request!')
-            conn = psycopg2.connect(settings.USER_SETTINGS_CONN_STRING)
-            cur = conn.cursor()
-
-            global_settings = {}
-            query = ("SELECT setting, value FROM " +
-                     "orgunit_settings WHERE object IS Null")
-            cur.execute(query)
-
-            rows = cur.fetchall()
-            for row in rows:
-                setting = row[0]
-                if row[1] == 'True':
-                    value = True
-                elif row[1] == 'False':
-                    value = False
-                else:
-                    value = row[1]
-                global_settings[setting] = value
-
-            query = ("SELECT setting, value FROM " +
-                     "orgunit_settings WHERE object = '{}'").format(unitid)
-            cur.execute(query)
-
-            orgunit = {}
-            if cur.rowcount > 0:
-                rows = cur.fetchall()
-                for row in rows:
-                    setting = row[0]
-                    if row[1] == 'True':
-                        value = True
-                    elif row[1] == 'False':
-                        value = False
-                    else:
-                        value = row[1]
-                    orgunit[setting] = value
-
+            orgunit = _read_local_settings(unitid)
             if len(orgunit) > 0:
                 org_settings = {'orgunit': orgunit}
                 r[mapping.USER_SETTINGS] = org_settings
             elif parent and mapping.USER_SETTINGS in parent:
                 r[mapping.USER_SETTINGS] = parent[mapping.USER_SETTINGS]
             else:
+                global_settings = _read_local_settings()
                 r[mapping.USER_SETTINGS] = {'orgunit': global_settings}
 
         r[mapping.PARENT] = parent
