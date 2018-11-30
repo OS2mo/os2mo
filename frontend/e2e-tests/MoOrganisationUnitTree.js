@@ -72,3 +72,35 @@ test
     .expect(t.eval(() => location.pathname))
     .eql('/organisation/fb816fdf-bef3-4d49-89cb-3d3bde3e5b54')
 })
+
+test
+  .page `${baseURL}/organisation/40644200-b3f1-42d4-8752-8dab581d5b23`
+  ('Changing units quickly', async t => {
+    await t
+      .wait(500)
+      .expect(treeNode.exists)
+      .ok()
+      .expect(rootNode.exists)
+      .ok()
+      .expect(currentUnitName.innerText)
+      .eql('Borgmesterens Afdeling')
+
+      .click(treeAnchor.withText('Social og sundhed'))
+      .expect(selected.innerText)
+      .match(/Social og sundhed/)
+      .click(treeAnchor.withText('Skole og Børn'))
+      .expect(selected.innerText)
+      .match(/Skole og Børn/)
+      .click(treeAnchor.withText('Skole og Børn'))
+      .click(treeAnchor.withText('Social og sundhed'))
+      .click(treeAnchor.withText('Skole og Børn'))
+      .click(treeAnchor.withText('Social og sundhed'))
+      .click(treeAnchor.withText('Skole og Børn'))
+
+    for (let i = 0; i <= 10; i += 1) {
+      await t
+        .wait(500)
+        .expect(currentUnitName.innerText)
+        .eql('Skole og Børn')
+    }
+  })

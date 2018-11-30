@@ -39,8 +39,13 @@
       })
     },
     watch: {
-      selected (val) {
-        this.$router.push({ name: 'OrganisationDetail', params: { uuid: val.uuid } })
+      selected (newUnit) {
+        if (newUnit.uuid !== this.currentUnit.uuid) {
+          this.$router.push({
+            name: 'OrganisationDetail',
+            params: { uuid: newUnit.uuid }
+          })
+        }
       }
     }
   }
