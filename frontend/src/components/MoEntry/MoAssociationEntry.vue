@@ -38,8 +38,8 @@
 
 <script>
 /**
-   * A association entry component.
-   */
+ * A association entry component.
+ */
 
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -56,22 +56,22 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * This boolean property hides the validity.
-       */
+     * This boolean property hides the validity.
+     */
     validityHidden: Boolean
   },
 
   data () {
     return {
       /**
-        * The entry component value.
-        * Used to detect changes and restore the value.
-        */
+       * The entry component value.
+       * Used to detect changes and restore the value.
+       */
       entry: {
         validity: {}
       }
@@ -80,8 +80,8 @@ export default {
 
   watch: {
     /**
-       * Whenever entry change, update newVal.
-       */
+     * Whenever entry change, update newVal.
+     */
     entry: {
       handler (newVal) {
         newVal.type = 'association'
@@ -93,9 +93,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set entry to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set entry to value.
+     */
     this.entry = this.value
   }
 }

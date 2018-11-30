@@ -38,8 +38,8 @@
 
 <script>
 /**
-   * A address entry component.
-   */
+ * A address entry component.
+ */
 
 import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -49,8 +49,8 @@ export default {
   name: 'MoAddressEntry',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
@@ -63,37 +63,37 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * This boolean property hides the validity dates.
-       */
+     * This boolean property hides the validity dates.
+     */
     validityHidden: Boolean,
 
     /**
-       * This boolean property requires a selected address type.
-       */
+     * This boolean property requires a selected address type.
+     */
     required: Boolean,
 
     /**
-       * Defines a label.
-       */
+     * Defines a label.
+     */
     label: String,
 
     /**
-       * Defines a preselectedType.
-       */
+     * Defines a preselectedType.
+     */
     preselectedType: String
   },
 
   data () {
     return {
       /**
-        * The contactInfo, entry, address, addressScope component value.
-        * Used to detect changes and restore the value.
-        */
+       * The contactInfo, entry, address, addressScope component value.
+       * Used to detect changes and restore the value.
+       */
       contactInfo: '',
       entry: {
         validity: {},
@@ -108,37 +108,37 @@ export default {
 
   computed: {
     /**
-       * If the address is a DAR.
-       */
+     * If the address is a DAR.
+     */
     isDarAddress () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
       return false
     },
 
     /**
-       * Disable address type.
-       */
+     * Disable address type.
+     */
     isDisabled () {
       return this.entry.address_type == null
     },
 
     /**
-       * If it has not a preselectedType.
-       */
+     * If it has not a preselectedType.
+     */
     noPreselectedType () {
       return this.preselectedType == null
     },
 
     /**
-       * Get name `scope-type`.
-       */
+     * Get name `scope-type`.
+     */
     nameId () {
       return 'scope-type-' + this._uid
     },
 
     /**
-       * Every scopes validity rules.
-       */
+     * Every scopes validity rules.
+     */
     validityRules () {
       if (this.entry.address_type.scope === 'PHONE') return { required: true, digits: 8 }
       if (this.entry.address_type.scope === 'EMAIL') return { required: true, email: true }
@@ -152,8 +152,8 @@ export default {
 
   watch: {
     /**
-       * Whenever contactInfo change, update entry with a Array.
-       */
+     * Whenever contactInfo change, update entry with a Array.
+     */
     contactInfo: {
       handler (newValue) {
         this.entry.type = 'address'
@@ -163,8 +163,8 @@ export default {
     },
 
     /**
-       * When entry change, update the newVal.
-       */
+     * When entry change, update the newVal.
+     */
     entry: {
       handler (newVal) {
         newVal.type = 'address'
@@ -174,8 +174,8 @@ export default {
     },
 
     /**
-       * Whenever address change, update.
-       */
+     * Whenever address change, update.
+     */
     address: {
       handler (val) {
         if (val == null) return
@@ -191,9 +191,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set entry and contactInfo to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set entry and contactInfo to value.
+     */
     if (this.value.uuid) {
       this.address = {
         location: {

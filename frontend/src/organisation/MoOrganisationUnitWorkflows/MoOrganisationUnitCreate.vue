@@ -52,8 +52,8 @@
 
 <script>
 /**
-   * A organisation unit create component
-   */
+ * A organisation unit create component
+ */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import ButtonSubmit from '@/components/ButtonSubmit'
@@ -77,9 +77,9 @@ export default {
   data () {
     return {
       /**
-         * The entry, postAddress, phone, addresses, isLoading, backendValidationError component value.
-         * Used to detect changes and restore the value.
-         */
+       * The entry, postAddress, phone, addresses, isLoading, backendValidationError component value.
+       * Used to detect changes and restore the value.
+       */
       entry: {
         validity: {}
       },
@@ -90,25 +90,25 @@ export default {
       backendValidationError: null,
 
       /**
-         * The addressEntry component.
-         * Used to add MoAddressEntry component in `<mo-add-many/>`.
-         */
+       * The addressEntry component.
+       * Used to add MoAddressEntry component in `<mo-add-many/>`.
+       */
       addressEntry: MoAddressEntry
     }
   },
 
   methods: {
     /**
-       * Resets the data fields.
-       */
+     * Resets the data fields.
+     */
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
 
     /**
-       * Create a organisation unit and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Create a organisation unit and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     createOrganisationUnit (evt) {
       evt.preventDefault()
       if (this.formValid) {

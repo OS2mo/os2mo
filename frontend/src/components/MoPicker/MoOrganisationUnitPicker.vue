@@ -30,8 +30,8 @@
 
 <script>
 /**
-   * A organisation unit picker component.
-   */
+ * A organisation unit picker component.
+ */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
@@ -45,31 +45,31 @@ export default {
   },
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * Defines a default label name.
-       */
+     * Defines a default label name.
+     */
     label: String,
 
     /**
-       * This boolean property disable the value.
-       */
+     * This boolean property disable the value.
+     */
     isDisabled: Boolean,
 
     /**
-       * This boolean property requires a valid name.
-       */
+     * This boolean property requires a valid name.
+     */
     required: Boolean
   },
 
@@ -87,22 +87,22 @@ export default {
 
   computed: {
     /**
-       * Get organisation uuid.
-       */
+     * Get organisation uuid.
+     */
     ...mapGetters({
       orgUuid: 'organisation/getUuid'
     }),
 
     /**
-       * Get name `org-unit`.
-       */
+     * Get name `org-unit`.
+     */
     nameId () {
       return 'org-unit-' + this._uid
     },
 
     /**
-       * When its not disable, make it required.
-       */
+     * When its not disable, make it required.
+     */
     isRequired () {
       if (this.isDisabled) return false
       return this.required
@@ -111,8 +111,8 @@ export default {
 
   watch: {
     /**
-       * Whenever selectedSuperUnit change, update newVal.
-       */
+     * Whenever selectedSuperUnit change, update newVal.
+     */
     selectedSuperUnit (newVal) {
       this.orgName = newVal.name
       this.$validator.validate(this.nameId)
@@ -125,23 +125,23 @@ export default {
 
   mounted () {
     /**
-       * Called after the instance has been mounted.
-       * Set selectedSuperUnit as value.
-       */
+     * Called after the instance has been mounted.
+     * Set selectedSuperUnit as value.
+     */
     this.selectedSuperUnit = this.value || this.selectedSuperUnit
   },
 
   methods: {
     /**
-       * Get selected oraganisation unit.
-       */
+     * Get selected oraganisation unit.
+     */
     getSelectedOrganistionUnit () {
       this.orgUnit = OrganisationUnit.getSelectedOrganistionUnit()
     },
 
     /**
-       * Set showTree to not show.
-       */
+     * Set showTree to not show.
+     */
     toggleTree () {
       this.showTree = !this.showTree
     }

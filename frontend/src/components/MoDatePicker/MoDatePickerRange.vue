@@ -30,8 +30,8 @@
 
 <script>
 /**
-   * A date picker range component.
-   */
+ * A date picker range component.
+ */
 
 import MoDatePicker from '@/components/atoms/MoDatePicker'
 
@@ -42,32 +42,32 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * This boolean property hides the date.
-       */
+     * This boolean property hides the date.
+     */
     initiallyHidden: Boolean,
 
     /**
-       * This boolean property disable the to date.
-       */
+     * This boolean property disable the to date.
+     */
     disableToDate: Boolean,
 
     /**
-       * Defines disable dates.
-       */
+     * Defines disable dates.
+     */
     disabledDates: Object
   },
 
   data () {
     return {
       /**
-        * The validFrom, validTo, hidden component value.
-        * Used to detect changes and restore the value.
-        */
+       * The validFrom, validTo, hidden component value.
+       * Used to detect changes and restore the value.
+       */
       validFrom: null,
       validTo: null,
       hidden: false
@@ -76,8 +76,8 @@ export default {
 
   computed: {
     /**
-       * Disable the dates before the choosen start date.
-       */
+     * Disable the dates before the choosen start date.
+     */
     validStartDateRange () {
       let range = {
         from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
@@ -90,8 +90,8 @@ export default {
     },
 
     /**
-       * Disable the dates after the choosen end date.
-       */
+     * Disable the dates after the choosen end date.
+     */
     validEndDateRange () {
       let range = {
         from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
@@ -106,8 +106,8 @@ export default {
 
   watch: {
     /**
-       * Whenever value change, update the from and to date.
-       */
+     * Whenever value change, update the from and to date.
+     */
     value: {
       handler (newVal) {
         if (this.hidden) {
@@ -121,9 +121,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set the from and to date to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set the from and to date to value.
+     */
     this.hidden = this.initiallyHidden
     if (this.value !== undefined) {
       this.validFrom = this.value.from
@@ -133,8 +133,8 @@ export default {
 
   methods: {
     /**
-       * Update the from and to date.
-       */
+     * Update the from and to date.
+     */
     updateDate () {
       let obj = {
         from: null,
@@ -148,6 +148,6 @@ export default {
       }
       this.$emit('input', obj)
     }
-  }
+  }å
 }
 </script>

@@ -56,8 +56,8 @@
 
 <script>
 /**
-   * A manager entry component.
-   */
+ * A manager entry component.
+ */
 
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -77,32 +77,32 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * This boolean property hides validity.
-       */
+     * This boolean property hides validity.
+     */
     validityHidden: Boolean,
 
     /**
-       * This boolean property hide the org picker.
-       */
+     * This boolean property hide the org picker.
+     */
     hideOrgPicker: Boolean,
 
     /**
-       * This boolean property hide the employee picker.
-       */
+     * This boolean property hide the employee picker.
+     */
     hideEmployeePicker: Boolean
   },
 
   data () {
     return {
       /**
-        * The entry component value.
-        * Used to detect changes and restore the value.
-        */
+       * The entry component value.
+       * Used to detect changes and restore the value.
+       */
       entry: {}
     }
   },
@@ -170,8 +170,8 @@ export default {
 
   watch: {
     /**
-       * Whenever entry change, update newVal.
-       */
+     * Whenever entry change, update newVal.
+     */
     entry: {
       handler (newVal) {
         newVal.type = 'manager'
@@ -183,9 +183,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set entry to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set entry to value.
+     */
     this.entry = this.value
   }
 }

@@ -12,8 +12,8 @@
 
 <script>
 /**
-   * A employee component.
-   */
+ * A employee component.
+ */
 
 import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
 import MoLog from '@/components/MoLog/MoLog'

@@ -27,8 +27,8 @@
 
 <script>
 /**
-   * A organisation component.
-   */
+ * A organisation component.
+ */
 import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
 import MoLog from '@/components/MoLog/MoLog'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
@@ -48,8 +48,8 @@ export default {
 
   computed: {
     /**
-       * Get organisation uuid.
-       */
+     * Get organisation uuid.
+     */
     ...mapGetters({
       currentUnit: 'organisationUnit/GET_ORG_UNIT'
     })

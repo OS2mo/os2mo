@@ -6,14 +6,14 @@
 
 <script>
 /**
-   * A searchbar template component.
-   */
+ * A searchbar template component.
+ */
 
 export default {
   props: {
     /**
-       * Defines a required item name.
-       */
+     * Defines a required item name.
+     */
     item: { required: true }
   }
 }

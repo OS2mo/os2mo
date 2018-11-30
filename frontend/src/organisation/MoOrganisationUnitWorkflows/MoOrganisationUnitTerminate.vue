@@ -48,8 +48,8 @@
 
 <script>
 /**
-   * A organisation unit terminate component.
-   */
+ * A organisation unit terminate component.
+ */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoDatePicker from '@/components/atoms/MoDatePicker'
@@ -72,9 +72,9 @@ export default {
   data () {
     return {
       /**
-         * The terminate, org_unit, isLoading, backendValidationError component value.
-         * Used to detect changes and restore the value.
-         */
+       * The terminate, org_unit, isLoading, backendValidationError component value.
+       * Used to detect changes and restore the value.
+       */
       org_unit: null,
       terminate: {
         validity: {}
@@ -86,8 +86,8 @@ export default {
 
   computed: {
     /**
-       * Check if the organisation date are valid.
-       */
+     * Check if the organisation date are valid.
+     */
     validDates () {
       return this.org_unit ? this.org_unit.validity : {}
     }
@@ -95,16 +95,16 @@ export default {
 
   methods: {
     /**
-       * Resets the data fields.
-       */
+     * Resets the data fields.
+     */
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
 
     /**
-       * Terminate a organisation unit and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Terminate a organisation unit and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     endOrganisationUnit (evt) {
       evt.preventDefault()
       if (this.formValid) {

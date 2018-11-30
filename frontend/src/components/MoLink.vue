@@ -19,27 +19,27 @@
 
 <script>
 /**
-   * A link component.
-   */
+ * A link component.
+ */
 
 export default {
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * Defines a default field name.
-       */
+     * Defines a default field name.
+     */
     field: {
       type: String,
       default: 'name'
     },
 
     /**
-       * Defines a default column.
-       */
+     * Defines a default column.
+     */
     column: {
       type: String,
       default: null
@@ -62,8 +62,8 @@ export default {
 
   computed: {
     /**
-       * Returns columns and fields.
-       */
+     * Returns columns and fields.
+     */
     classes () {
       if (this.column && this.field) {
         return [this.column + '-' + this.field]
@@ -77,8 +77,8 @@ export default {
     },
 
     /**
-       * Defines contents, columns and value.
-       */
+     * Defines contents, columns and value.
+     */
     parts () {
       let contents = this.column ? this.value[this.column] : this.value
 

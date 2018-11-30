@@ -37,8 +37,8 @@
 
 <script>
 /**
-   * A history component.
-   */
+ * A history component.
+ */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import Employee from '@/api/Employee'
@@ -50,16 +50,16 @@ export default {
   mixins: [ModalBase],
   props: {
     /**
-       * Defines a required uuid.
-       */
+     * Defines a required uuid.
+     */
     uuid: {
       type: String,
       required: true
     },
 
     /**
-       * Defines a required type - employee or organisation unit.
-       */
+     * Defines a required type - employee or organisation unit.
+     */
     type: {
       type: String,
       required: true,
@@ -87,15 +87,15 @@ export default {
 
   methods: {
     /**
-       * Reload history.
-       */
+     * Reload history.
+     */
     reloadHistory (val) {
       if (val) this.getHistory()
     },
 
     /**
-       * Switch between organisation and employee getHistory.
-       */
+     * Switch between organisation and employee getHistory.
+     */
     getHistory () {
       switch (this.type) {
         case 'ORG_UNIT':
@@ -108,8 +108,8 @@ export default {
     },
 
     /**
-       * Get organisation unit history.
-       */
+     * Get organisation unit history.
+     */
     getOrgUnitHistory (uuid) {
       let vm = this
       OrganisationUnit.history(uuid)
@@ -119,8 +119,8 @@ export default {
     },
 
     /**
-       * Get employee history.
-       */
+     * Get employee history.
+     */
     getEmployeeHistory (uuid) {
       let vm = this
       Employee.history(uuid)

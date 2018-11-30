@@ -31,8 +31,8 @@
 
 <script>
 /**
-   * A engagement entry component.
-   */
+ * A engagement entry component.
+ */
 
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -47,37 +47,37 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * Defines the validity.
-       */
+     * Defines the validity.
+     */
     validity: Object
   },
 
   data () {
     return {
       /**
-        * The entry component value.
-        * Used to detect changes and restore the value.
-        */
+       * The entry component value.
+       * Used to detect changes and restore the value.
+       */
       entry: {}
     }
   },
 
   computed: {
     /**
-       * Hide the dates.
-       */
+     * Hide the dates.
+     */
     datePickerHidden () {
       return this.validity != null
     },
 
     /**
-       * Disabled organisation dates.
-       */
+     * Disabled organisation dates.
+     */
     orgUnitValidity () {
       if (this.entry.org_unit) {
         return this.entry.org_unit.validity
@@ -88,8 +88,8 @@ export default {
 
   watch: {
     /**
-       * Whenever entry change update.
-       */
+     * Whenever entry change update.
+     */
     entry: {
       handler (newVal) {
         newVal.type = 'engagement'
@@ -99,8 +99,8 @@ export default {
     },
 
     /**
-       * When validity change update newVal.
-       */
+     * When validity change update newVal.
+     */
     validity (newVal) {
       this.entry.validity = newVal
     }
@@ -108,9 +108,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set entry to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set entry to value.
+     */
     this.entry = this.value
   }
 }

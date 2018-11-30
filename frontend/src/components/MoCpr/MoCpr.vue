@@ -8,8 +8,8 @@
 
 <script>
 /**
-   * A cpr component.
-   */
+ * A cpr component.
+ */
 
 import MoCprSearch from './MoCprSearch'
 import MoCprResult from './MoCprResult'
@@ -25,17 +25,17 @@ export default {
   data () {
     return {
       /**
-        * The result component value.
-        * Used to detect changes and restore the value.
-        */
+       * The result component value.
+       * Used to detect changes and restore the value.
+       */
       result: {}
     }
   },
 
   watch: {
     /**
-       * Whenever result change update val.
-       */
+     * Whenever result change update val.
+     */
     result (val) {
       this.$emit('input', val)
     }

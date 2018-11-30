@@ -17,8 +17,8 @@
 
 <script>
 /**
-   * A leave entry component.
-   */
+ * A leave entry component.
+ */
 
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -31,22 +31,22 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * Defines the validity.
-       */
+     * Defines the validity.
+     */
     validity: Object
   },
 
   data () {
     return {
       /**
-        * The entry component value.
-        * Used to detect changes and restore the value.
-        */
+       * The entry component value.
+       * Used to detect changes and restore the value.
+       */
       entry: {
         validity: {}
       }
@@ -55,8 +55,8 @@ export default {
 
   computed: {
     /**
-       * Hides the validity.
-       */
+     * Hides the validity.
+     */
     datePickerHidden () {
       return this.validity != null
     }
@@ -64,8 +64,8 @@ export default {
 
   watch: {
     /**
-       * Whenever entry change, update newVal.
-       */
+     * Whenever entry change, update newVal.
+     */
     entry: {
       handler (newVal) {
         newVal.type = 'leave'
@@ -75,8 +75,8 @@ export default {
     },
 
     /**
-       * When validity change, update newVal.
-       */
+     * When validity change, update newVal.
+     */
     validity (newVal) {
       this.entry.validity = newVal
     }
@@ -84,9 +84,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set entry to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set entry to value.
+     */
     this.entry = this.value
   }
 }

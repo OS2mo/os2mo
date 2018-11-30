@@ -27,8 +27,8 @@
 
 <script>
 /**
-   * A employee detail component.
-   */
+ * A employee detail component.
+ */
 
 import '@/filters/CPRNumber'
 import { EventBus } from '@/EventBus'
@@ -45,9 +45,9 @@ export default {
 
   data () {
     /**
-        * The employee, isLoading component value.
-        * Used to detect changes and restore the value for columns.
-        */
+     * The employee, isLoading component value.
+     * Used to detect changes and restore the value for columns.
+     */
     return {
       isLoading: false,
       latestEvent: undefined

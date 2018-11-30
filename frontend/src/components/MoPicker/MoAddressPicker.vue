@@ -33,8 +33,8 @@
 
 <script>
 /**
-   * A address picker component.
-   */
+ * A address picker component.
+ */
 import sortBy from 'lodash.sortby'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoLoader from '@/components/atoms/MoLoader'
@@ -43,8 +43,8 @@ export default {
   name: 'AddressPicker',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
@@ -55,13 +55,13 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * Defines a orgUnit.
-       */
+     * Defines a orgUnit.
+     */
     orgUnit: {
       type: Object
     }
@@ -70,15 +70,15 @@ export default {
   data () {
     return {
       /**
-         * The label component value.
-         * Used to set a default value.
-         */
+       * The label component value.
+       * Used to set a default value.
+       */
       label: 'Adresser',
 
       /**
-         * The selected, addresses, isLoading component value.
-         * Used to detect changes and restore the value.
-         */
+       * The selected, addresses, isLoading component value.
+       * Used to detect changes and restore the value.
+       */
       selected: {},
       addresses: [],
       isLoading: false
@@ -87,22 +87,22 @@ export default {
 
   computed: {
     /**
-       * Get name `mo-address-picker`.
-       */
+     * Get name `mo-address-picker`.
+     */
     nameId () {
       return 'mo-address-picker-' + this._uid
     },
 
     /**
-       * Disable orgUnit.
-       */
+     * Disable orgUnit.
+     */
     isDisabled () {
       return this.orgUnit == null
     },
 
     /**
-       * Return blank address.
-       */
+     * Return blank address.
+     */
     noAddresses () {
       return this.addresses.length === 0
     },
@@ -114,17 +114,17 @@ export default {
 
   watch: {
     /**
-       * Whenever orgUnit change, get addresses.
-       */
+     * Whenever orgUnit change, get addresses.
+     */
     orgUnit () {
       this.getAddresses()
     }
   },
 
   /**
-     * Called after the instance has been mounted.
-     * Get addresses and set selected as value.
-     */
+   * Called after the instance has been mounted.
+   * Get addresses and set selected as value.
+   */
   mounted () {
     this.getAddresses()
     this.selected = this.value
@@ -132,8 +132,8 @@ export default {
 
   methods: {
     /**
-       * Get organisation unit address details.
-       */
+     * Get organisation unit address details.
+     */
     getAddresses () {
       if (this.orgUnit == null) return
       let vm = this
@@ -146,8 +146,8 @@ export default {
     },
 
     /**
-       * Update selected address.
-       */
+     * Update selected address.
+     */
     updateSelectedAddress () {
       this.$emit('input', this.selected)
     }

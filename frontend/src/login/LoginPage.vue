@@ -45,8 +45,8 @@
 
 <script>
 /**
-   * A login page component.
-   */
+ * A login page component.
+ */
 
 import { mapGetters } from 'vuex'
 import Service from '@/api/HttpCommon'
@@ -62,8 +62,8 @@ export default {
 
   props: {
     /**
-       * Defines a required destination.
-       */
+     * Defines a required destination.
+     */
     destination: { type: String, required: true }
   },
 
@@ -82,8 +82,8 @@ export default {
 
   computed: {
     /**
-       * Get status.
-       */
+     * Get status.
+     */
     ...mapGetters({
       status: 'status'
     })
@@ -91,8 +91,8 @@ export default {
 
   methods: {
     /**
-       * Go to MO after post user request.
-       */
+     * Go to MO after post user request.
+     */
     gotoMo () {
       Service.post('/user/login', this.user)
         .then(response => {

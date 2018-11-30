@@ -10,8 +10,8 @@
 
 <script>
 /**
-   * A facet picker component.
-   */
+ * A facet picker component.
+ */
 
 import sortBy from 'lodash.sortby'
 import MoSelect from '@/components/atoms/MoSelect'
@@ -51,8 +51,8 @@ export default {
 
   watch: {
     /**
-       * Whenever selected change, update val.
-       */
+     * Whenever selected change, update val.
+     */
     selected (val) {
       this.$emit('input', val)
     },

@@ -56,8 +56,8 @@
 
 <script>
 /**
-   * A organisation landing page component.
-   */
+ * A organisation landing page component.
+ */
 
 import Organisation from '@/api/Organisation'
 import InfoBox from '@/components/InfoBox'
@@ -73,9 +73,9 @@ export default {
   data () {
     return {
       /**
-        * The info, isLoading component value.
-        * Used to detect changes and restore the value.
-        */
+       * The info, isLoading component value.
+       * Used to detect changes and restore the value.
+       */
       info: {},
       isLoading: false
     }
@@ -83,8 +83,8 @@ export default {
 
   computed: {
     /**
-       * Get organisation.
-       */
+     * Get organisation.
+     */
     ...mapGetters({
       org: 'organisation/get'
     })
@@ -92,8 +92,8 @@ export default {
 
   watch: {
     /**
-       * Whenever organisation details change, this function will run.
-       */
+     * Whenever organisation details change, this function will run.
+     */
     org: {
       handler () {
         this.getOrganisationDetails()
@@ -104,15 +104,15 @@ export default {
 
   mounted () {
     /**
-       * Whenever organisation details change update.
-       */
+     * Whenever organisation details change update.
+     */
     this.getOrganisationDetails()
   },
 
   methods: {
     /**
-       * Get organisation details.
-       */
+     * Get organisation details.
+     */
     getOrganisationDetails () {
       if (this.org.uuid == null) return
       let vm = this

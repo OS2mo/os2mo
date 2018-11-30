@@ -19,33 +19,33 @@
 
 <script>
 /**
-   * A input component.
-   */
+ * A input component.
+ */
 
 export default {
   name: 'MoInput',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: String,
 
     /**
-       * Defines the label.
-       */
+     * Defines the label.
+     */
     label: String,
 
     /**
-       * This boolean property requries input data.
-       */
+     * This boolean property requries input data.
+     */
     required: Boolean
   },
 
@@ -61,8 +61,8 @@ export default {
 
   computed: {
     /**
-       * Get name `mo-input`.
-       */
+     * Get name `mo-input`.
+     */
     nameId () {
       return 'mo-input-' + this._uid
     }
@@ -70,8 +70,8 @@ export default {
 
   watch: {
     /**
-       * Whenever selected change update val.
-       */
+     * Whenever selected change update val.
+     */
     selected (val) {
       this.$emit('input', val)
     }
@@ -79,9 +79,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set selected to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set selected to value.
+     */
     this.selected = this.value
   }
 }

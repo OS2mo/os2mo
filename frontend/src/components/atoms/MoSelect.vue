@@ -26,66 +26,66 @@
 
 <script>
 /**
-   * A select component.
-   */
+ * A select component.
+ */
 export default {
   name: 'MoSelect',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
 
   props: {
     /**
-       * @model
-       */
+     * @model
+     */
     value: Object,
 
     /**
-       * Defines options value.
-       */
+     * Defines options value.
+     */
     options: Array,
 
     /**
-       * Defines the label.
-       */
+     * Defines the label.
+     */
     label: String,
 
     /**
-       * This boolean property requires a selected name.
-       */
+     * This boolean property requires a selected name.
+     */
     required: Boolean,
 
     /**
-       * This boolean property disable the label.
-       */
+     * This boolean property disable the label.
+     */
     disabled: Boolean
   },
 
   data () {
     return {
       /**
-        * The selected component value.
-        * Used to detect changes and restore the value.
-        */
+       * The selected component value.
+       * Used to detect changes and restore the value.
+       */
       selected: null
     }
   },
 
   computed: {
     /**
-       * Get name `mo-select`.
-       */
+     * Get name `mo-select`.
+     */
     nameId () {
       return 'mo-select-' + this._uid
     },
 
     /**
-       * If its not disable, change it to required.
-       */
+     * If its not disable, change it to required.
+     */
     isRequired () {
       if (this.disabled) return false
       return this.required
@@ -94,8 +94,8 @@ export default {
 
   watch: {
     /**
-       * Whenever value change, set selected to the new val and validate the name.
-       */
+     * Whenever value change, set selected to the new val and validate the name.
+     */
     value (val) {
       this.selected = val
       this.$validator.validate(this.nameId)

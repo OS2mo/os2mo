@@ -65,8 +65,8 @@
 
 <script>
 /**
-   * A employee move many component.
-   */
+ * A employee move many component.
+ */
 
 import MoDatePicker from '@/components/atoms/MoDatePicker'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -95,8 +95,8 @@ export default {
 
   computed: {
     /**
-       * generate getter/setters from store
-       */
+     * generate getter/setters from store
+     */
     ...mapFields('employeeMoveMany', [
       'selected',
       'moveDate',
@@ -111,8 +111,8 @@ export default {
     ]),
 
     /**
-       * Set dateSelected to disable if moveDate is selected.
-       */
+     * Set dateSelected to disable if moveDate is selected.
+     */
     dateSelected () {
       return !this.moveDate
     }
@@ -120,9 +120,9 @@ export default {
 
   watch: {
     /**
-       * Whenever orgUnitSource changes, get employees.
-       * @todo this could probably be improved. right now we need to reset orgUnitSource in the moveMany response.
-       */
+     * Whenever orgUnitSource changes, get employees.
+     * @todo this could probably be improved. right now we need to reset orgUnitSource in the moveMany response.
+     */
     orgUnitSource: {
       handler (newVal) {
         this.$store.commit(`employeeMoveMany/updateOrgUnitSource`, newVal)
@@ -140,9 +140,9 @@ export default {
 
   methods: {
     /**
-       * Check if fields are valid, and move employees if they are.
-       * Otherwise validate the fields.
-       */
+     * Check if fields are valid, and move employees if they are.
+     * Otherwise validate the fields.
+     */
     moveMany () {
       let vm = this
       if (this.formValid) {

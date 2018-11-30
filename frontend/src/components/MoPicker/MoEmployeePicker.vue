@@ -24,8 +24,8 @@
 
 <script>
 /**
-   * A employee picker component.
-   */
+ * A employee picker component.
+ */
 
 import sortBy from 'lodash.sortby'
 import Search from '@/api/Search'
@@ -41,8 +41,8 @@ export default {
   },
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
@@ -73,15 +73,15 @@ export default {
 
   methods: {
     /**
-       * Get employee name.
-       */
+     * Get employee name.
+     */
     getLabel (item) {
       return item ? item.name : null
     },
 
     /**
-       * Update employees suggestions based on search query.
-       */
+     * Update employees suggestions based on search query.
+     */
     updateItems (query) {
       let vm = this
       let org = this.$store.state.organisation

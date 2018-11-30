@@ -11,8 +11,8 @@
 
 <script>
 /**
-   * A loader component.
-   */
+ * A loader component.
+ */
 export default {
   name: 'MoLoader'
 }

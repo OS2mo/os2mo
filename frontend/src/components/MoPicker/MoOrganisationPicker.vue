@@ -20,8 +20,8 @@
 
 <script>
 /**
-   * A organisation picker component.
-   */
+ * A organisation picker component.
+ */
 
 import sortBy from 'lodash.sortby'
 import Organisation from '@/api/Organisation'
@@ -32,31 +32,31 @@ export default {
   name: 'MoOrganisationPicker',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
 
   props: {
     /**
-       * @model
-       */
+     * @model
+     */
     value: Object,
 
     /**
-       * Defines a atDate.
-       */
+     * Defines a atDate.
+     */
     atDate: [Date, String],
 
     /**
-       * This boolean property resets the route.
-       */
+     * This boolean property resets the route.
+     */
     resetRoute: Boolean,
 
     /**
-       * This boolean property igonores a event.
-       */
+     * This boolean property igonores a event.
+     */
     ignoreEvent: Boolean
   },
 
@@ -84,8 +84,8 @@ export default {
 
   mounted () {
     /**
-       * Whenever organisation change update.
-       */
+     * Whenever organisation change update.
+     */
     this.getAll()
     EventBus.$on('organisation-changed', newOrg => {
       if (!this.ignoreEvent) this.selectedOrganisation = newOrg
@@ -94,8 +94,8 @@ export default {
 
   watch: {
     /**
-       * Whenever selected organisation change, update newVal.
-       */
+     * Whenever selected organisation change, update newVal.
+     */
     selectedOrganisation (newVal) {
       this.$store.commit(`organisation/setOrg`, newVal)
       this.$emit('input', newVal)
@@ -126,8 +126,8 @@ export default {
     },
 
     /**
-       * Whenever atDate change, update.
-       */
+     * Whenever atDate change, update.
+     */
     atDate () {
       this.getAll()
     }
@@ -135,8 +135,8 @@ export default {
 
   methods: {
     /**
-       * Get all organisations for this atDate.
-       */
+     * Get all organisations for this atDate.
+     */
     getAll () {
       let vm = this
       Organisation.getAll(this.atDate)
@@ -152,9 +152,9 @@ export default {
     },
 
     /**
-       * Resets the route back to base.
-       * So if we're viewing an employee, it goes back to the employee list.
-       */
+     * Resets the route back to base.
+     * So if we're viewing an employee, it goes back to the employee list.
+     */
     resetToBaseRoute () {
       if (this.resetRoute) {
         if (this.$route.name.indexOf('Organisation') > -1) {

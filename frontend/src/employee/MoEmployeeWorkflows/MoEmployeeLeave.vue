@@ -27,8 +27,8 @@
 
 <script>
 /**
-   * A employee create leave component.
-   */
+ * A employee create leave component.
+ */
 
 import { mapFields } from 'vuex-map-fields'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
@@ -48,8 +48,8 @@ export default {
 
   computed: {
     /**
-       * Get mapFields from vuex store.
-       */
+     * Get mapFields from vuex store.
+     */
     ...mapFields('employeeLeave', [
       'employee',
       'leave',
@@ -60,9 +60,9 @@ export default {
 
   methods: {
     /**
-       * Create leave and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Create leave and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     createLeave () {
       let vm = this
       if (this.formValid) {

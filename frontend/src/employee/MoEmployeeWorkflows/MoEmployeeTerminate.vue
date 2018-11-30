@@ -48,8 +48,8 @@
 
 <script>
 /**
-   * A employee terminate component.
-   */
+ * A employee terminate component.
+ */
 
 import { mapFields } from 'vuex-map-fields'
 import { mapGetters } from 'vuex'
@@ -72,8 +72,8 @@ export default {
 
   computed: {
     /**
-       * Get mapFields from vuex store.
-       */
+     * Get mapFields from vuex store.
+     */
     ...mapFields('employeeTerminate', [
       'employee',
       'endDate',
@@ -82,8 +82,8 @@ export default {
     ]),
 
     /**
-       * Get mapGetters from vuex store.
-       */
+     * Get mapGetters from vuex store.
+     */
     ...mapGetters({
       details: 'employeeTerminate/getDetails'
     })
@@ -95,9 +95,9 @@ export default {
     },
 
     /**
-       * Terminate employee and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Terminate employee and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     terminateEmployee () {
       let vm = this
       if (this.formValid) {

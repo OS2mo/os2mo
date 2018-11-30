@@ -68,8 +68,8 @@
 
 <script>
 /**
-   * A employee create component.
-   */
+ * A employee create component.
+ */
 
 import { mapFields } from 'vuex-map-fields'
 import ButtonSubmit from '@/components/ButtonSubmit'
@@ -97,16 +97,16 @@ export default {
   data () {
     return {
       /**
-        * The isLoading component value.
-        * Used to detect changes and restore the value.
-        */
+       * The isLoading component value.
+       * Used to detect changes and restore the value.
+       */
       isLoading: false,
 
       /**
-        * The entry - address, association, role, it, manager component.
-        * Used to add MoAddressEntry, MoAssociationEntry, MoRoleEntry,
-        * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
-        */
+       * The entry - address, association, role, it, manager component.
+       * Used to add MoAddressEntry, MoAssociationEntry, MoRoleEntry,
+       * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
+       */
       entry: {
         address: MoAddressEntry,
         association: MoAssociationEntry,
@@ -119,8 +119,8 @@ export default {
 
   computed: {
     /**
-       * Get mapFields from vuex store.
-       */
+     * Get mapFields from vuex store.
+     */
     ...mapFields('employeeCreate', [
       'employee',
       'engagement',
@@ -135,9 +135,9 @@ export default {
 
   methods: {
     /**
-       * Create a employee and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Create a employee and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     createEmployee (evt) {
       evt.preventDefault()
       if (this.formValid) {

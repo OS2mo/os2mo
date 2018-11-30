@@ -27,8 +27,8 @@
 
 <script>
 /**
-   * A it system component.
-   */
+ * A it system component.
+ */
 
 import sortBy from 'lodash.sortby'
 import Facet from '@/api/Facet'
@@ -39,19 +39,19 @@ export default {
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object,
 
     /**
-       * Defines a preselected value.
-       */
+     * Defines a preselected value.
+     */
     preselected: String
   },
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
@@ -59,9 +59,9 @@ export default {
   data () {
     return {
       /**
-         * The selected, itSystems component value.
-         * Used to detect changes and restore the value.
-         */
+       * The selected, itSystems component value.
+       * Used to detect changes and restore the value.
+       */
       selected: {},
       itSystems: []
     }
@@ -69,8 +69,8 @@ export default {
 
   computed: {
     /**
-       * Get name `it-system-picker`.
-       */
+     * Get name `it-system-picker`.
+     */
     nameId () {
       return 'it-system-picker-' + this._uid
     },
@@ -82,8 +82,8 @@ export default {
 
   mounted () {
     /**
-       * Whenever organisation change update.
-       */
+     * Whenever organisation change update.
+     */
     EventBus.$on('organisation-changed', () => {
       this.getItSystems()
     })
@@ -91,24 +91,24 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set selected to preselected.
-       */
+     * Called synchronously after the instance is created.
+     * Set selected to preselected.
+     */
     this.selected = this.preselected
     this.getItSystems()
   },
 
   beforeDestroy () {
     /**
-       * Stops receiving update event.
-       */
+     * Stops receiving update event.
+     */
     EventBus.$off(['organisation-changed'])
   },
 
   methods: {
     /**
-       * Get it systems.
-       */
+     * Get it systems.
+     */
     getItSystems () {
       var vm = this
       let org = this.$store.state.organisation
@@ -120,8 +120,8 @@ export default {
     },
 
     /**
-       * Update selected it system data.
-       */
+     * Update selected it system data.
+     */
     updateSelectedItSystem () {
       let data = {
         uuid: this.selected

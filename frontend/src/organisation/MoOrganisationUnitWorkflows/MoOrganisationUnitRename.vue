@@ -47,8 +47,8 @@
 
 <script>
 /**
-   * A organisation unit rename component.
-   */
+ * A organisation unit rename component.
+ */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
@@ -72,9 +72,9 @@ export default {
   data () {
     return {
       /**
-         * The rename, original, isLoading component value.
-         * Used to detect changes and restore the value.
-         */
+       * The rename, original, isLoading component value.
+       * Used to detect changes and restore the value.
+       */
       original: this.orgUnit,
       rename: {
         type: 'org_unit',
@@ -90,16 +90,16 @@ export default {
 
   computed: {
     /**
-       * Get organisation unit
-       */
+     * Get organisation unit
+     */
     ...mapGetters({
       orgUnit: 'organisationUnit/GET_ORG_UNIT'
     }),
 
     /**
-       * Compare if the unit names are identical.
-       * If then return false.
-       */
+     * Compare if the unit names are identical.
+     * If then return false.
+     */
     compareName () {
       if (this.rename.data.name && this.original.name) {
         if (this.original.name == null) return true
@@ -111,8 +111,8 @@ export default {
 
   watch: {
     /**
-       * Whenever orgUnit changes, this function will run.
-       */
+     * Whenever orgUnit changes, this function will run.
+     */
     orgUnit: {
       handler (val) {
         this.original = val
@@ -129,16 +129,16 @@ export default {
 
   mounted () {
     /**
-       * After the entire view has been rendered.
-       * Set original to orgUnit.
-       */
+     * After the entire view has been rendered.
+     * Set original to orgUnit.
+     */
     this.original = this.orgUnit
   },
 
   methods: {
     /**
-       * Resets the data fields name and validity.
-       */
+     * Resets the data fields name and validity.
+     */
     resetData () {
       this.rename.data.name = ''
       this.rename.data.uuid = this.original && this.original.uuid
@@ -146,9 +146,9 @@ export default {
     },
 
     /**
-       * Rename a organisation unit and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Rename a organisation unit and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     renameOrganisationUnit (evt) {
       evt.preventDefault()
       if (this.formValid) {

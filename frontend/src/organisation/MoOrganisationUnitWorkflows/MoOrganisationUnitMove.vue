@@ -62,8 +62,8 @@
 
 <script>
 /**
-   * A organisation unit move component.
-   */
+ * A organisation unit move component.
+ */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -85,9 +85,9 @@ export default {
   data () {
     return {
       /**
-         * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
-         * Used to detect changes and restore the value.
-         */
+       * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
+       * Used to detect changes and restore the value.
+       */
       parentUnit: '',
       original: null,
       move: {
@@ -104,8 +104,8 @@ export default {
 
   watch: {
     /**
-       * If original exist show its parent.
-       */
+     * If original exist show its parent.
+     */
     original: {
       handler (newVal) {
         if (this.original) {
@@ -119,16 +119,16 @@ export default {
 
   methods: {
     /**
-       * Resets the data fields.
-       */
+     * Resets the data fields.
+     */
     resetData () {
       Object.assign(this.$data, this.$options.data())
     },
 
     /**
-       * Move a organisation unit and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Move a organisation unit and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     moveOrganisationUnit (evt) {
       evt.preventDefault()
       if (this.formValid) {
@@ -150,8 +150,8 @@ export default {
     },
 
     /**
-       * Get current organisation unit.
-       */
+     * Get current organisation unit.
+     */
     getCurrentUnit (unitUuid) {
       let vm = this
       if (!unitUuid) return

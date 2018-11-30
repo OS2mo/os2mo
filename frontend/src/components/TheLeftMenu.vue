@@ -15,8 +15,8 @@
 
 <script>
 /**
-   * A the left menu component.
-   */
+ * A the left menu component.
+ */
 
 import { mapGetters } from 'vuex'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
@@ -32,8 +32,8 @@ export default {
   },
   computed: {
     /**
-       * Get organisation uuid.
-       */
+     * Get organisation uuid.
+     */
     ...mapGetters({
       currentUnit: 'organisationUnit/GET_ORG_UNIT'
     })

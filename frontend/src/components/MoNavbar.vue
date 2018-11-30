@@ -90,9 +90,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Get user and then response data.
-       */
+     * Called synchronously after the instance is created.
+     * Get user and then response data.
+     */
     Service.get('/user').then(response => {
       this.username = response.data || 'N/A'
     })
@@ -100,8 +100,8 @@ export default {
 
   methods: {
     /**
-       * Get the logout and redirect.
-       */
+     * Get the logout and redirect.
+     */
     logout () {
       let vm = this
       this.$store.dispatch('AUTH_LOGOUT', vm.user)

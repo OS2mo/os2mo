@@ -32,8 +32,8 @@
 
 <script>
 /**
-   * A timemachine column component.
-   */
+ * A timemachine column component.
+ */
 
 import MoDatePicker from '@/components/atoms/MoDatePicker'
 import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
@@ -62,8 +62,8 @@ export default {
 
   watch: {
     /**
-       * Whenever org change, update.
-       */
+     * Whenever org change, update.
+     */
     org () {
       this.orgUnit = null
     }

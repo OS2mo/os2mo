@@ -1,10 +1,7 @@
 export default {
   /**
- * Requesting a new validator scope to its children
- */
-  // $_veeValidate: {
-  //   validator: 'new'
-  // },
+   * Requesting a new validator scope to its children
+   */
   inject: {
     $validator: '$validator'
   },

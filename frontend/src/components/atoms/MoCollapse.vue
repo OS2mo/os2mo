@@ -50,10 +50,10 @@ export default {
 
   data () {
     return {
-    /**
-      * The open component value.
-      * Used to detect changes and restore the value.
-      */
+      /**
+       * The open component value.
+       * Used to detect changes and restore the value.
+       */
       open: false
     }
   },

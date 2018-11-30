@@ -16,8 +16,8 @@
 
 <script>
 /**
-   * A timemachine component.
-   */
+ * A timemachine component.
+ */
 
 import MoTimeMachineColumn from './_components/MoTimeMachineColumn'
 

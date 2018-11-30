@@ -33,13 +33,13 @@ export default {
 
   props: {
     /**
-       * Defines a orgUuid.
-       */
+     * Defines a orgUuid.
+     */
     unitUuid: String,
 
     /**
-       * Defines a atDate.
-       */
+     * Defines a atDate.
+     */
     atDate: [Date, String]
   },
 
@@ -186,8 +186,8 @@ export default {
 
   methods: {
     /**
-       * Select the unit corresponding to the given ID, assuming it's present.
-       */
+     * Select the unit corresponding to the given ID, assuming it's present.
+     */
     setSelection (unitid) {
       if (!unitid) {
         unitid = this.unitUuid
@@ -223,11 +223,11 @@ export default {
       }
     },
     /**
-       * Convert a unit object into a node suitable for adding to the
-       * tree.
-       *
-       * This method handles both eager and lazy loading of child nodes.
-       */
+     * Convert a unit object into a node suitable for adding to the
+     * tree.
+     *
+     * This method handles both eager and lazy loading of child nodes.
+     */
     toNode (unit) {
       this.units[unit.uuid] = unit
 
@@ -240,8 +240,8 @@ export default {
     },
 
     /**
-       * Reset and re-fetch the tree.
-       */
+     * Reset and re-fetch the tree.
+     */
     updateTree (force) {
       let vm = this
 

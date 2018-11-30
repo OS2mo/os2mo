@@ -8,30 +8,30 @@
 
 <script>
 /**
-   * A infobox component.
-   */
+ * A infobox component.
+ */
 
 export default {
   props: {
     /**
-       * Defines a required icon.
-       */
+     * Defines a required icon.
+     */
     icon: {
       type: String,
       required: true
     },
 
     /**
-       * Defines a required label.
-       */
+     * Defines a required label.
+     */
     label: {
       type: String,
       required: true
     },
 
     /**
-       * Defines a info number.
-       */
+     * Defines a info number.
+     */
     info: Number
   }
 }

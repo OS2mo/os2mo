@@ -12,32 +12,32 @@
 
 <script>
 /**
-   * A cpr result component.
-   */
+ * A cpr result component.
+ */
 
 export default {
   name: 'MoCprResult',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: Object
   },
 
   data () {
     return {
       /**
-        * The cprApproved component value.
-        * Used to detect changes and restore the value.
-        */
+       * The cprApproved component value.
+       * Used to detect changes and restore the value.
+       */
       cprApproved: false
     }
   },
@@ -48,15 +48,15 @@ export default {
 
   computed: {
     /**
-       * Get name `cpr-result`.
-       */
+     * Get name `cpr-result`.
+     */
     nameId () {
       return 'cpr-result'
     },
 
     /**
-       * Show cpr alert.
-       */
+     * Show cpr alert.
+     */
     showAlert () {
       return Object.keys(this.value).length > 0
     }
@@ -64,8 +64,8 @@ export default {
 
   watch: {
     /**
-       * Whenever value change, validate name and cpr alert.
-       */
+     * Whenever value change, validate name and cpr alert.
+     */
     value () {
       this.cprApproved = false
       this.$validator.validate(this.nameId)

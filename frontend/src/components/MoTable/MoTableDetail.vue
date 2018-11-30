@@ -56,8 +56,8 @@
 
 <script>
 /**
-   * A employeedetail component.
-   */
+ * A employeedetail component.
+ */
 
 import MoTable from '@/components/MoTable/MoTable'
 import MoCollapse from '@/components/atoms/MoCollapse'
@@ -72,41 +72,41 @@ export default {
 
   props: {
     /**
-       * Defines columns.
-       */
+     * Defines columns.
+     */
     columns: Array,
 
     /**
-       * Defines the loading.
-       */
+     * Defines the loading.
+     */
     loading: Object,
 
     /**
-       * Defines the editComponent.
-       */
+     * Defines the editComponent.
+     */
     entryComponent: Object,
 
     /**
-       * Defines the content.
-       */
+     * Defines the content.
+     */
     content: Object,
 
     /**
-       * Defines the contentType.
-       */
+     * Defines the contentType.
+     */
     contentType: String,
 
     /**
-       * Defines a required uuid.
-       */
+     * Defines a required uuid.
+     */
     uuid: {
       type: String,
       required: true
     },
 
     /**
-       * Defines a required type.
-       */
+     * Defines a required type.
+     */
     type: {
       type: String,
       required: true

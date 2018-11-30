@@ -18,8 +18,8 @@
 
 <script>
 /**
-   * A log component.
-   */
+ * A log component.
+ */
 import { mapGetters } from 'vuex'
 
 export default {
@@ -27,8 +27,8 @@ export default {
 
   computed: {
     /**
-       * Get worklog message.
-       */
+     * Get worklog message.
+     */
     ...mapGetters({
       worklogs: 'log/getWorkLog'
     })
@@ -36,8 +36,8 @@ export default {
 
   methods: {
     /**
-       * Reverse message.
-       */
+     * Reverse message.
+     */
     reverse (array) {
       return array.length ? array.slice().reverse() : array
     }

@@ -13,8 +13,8 @@
 
 <script>
 /**
-   * A address search component.
-   */
+ * A address search component.
+ */
 
 import MoAddressSearchField from './MoAddressSearchField'
 
@@ -25,22 +25,22 @@ export default {
 
   props: {
     /**
-       * @model
-       */
+     * @model
+     */
     value: Object,
 
     /**
-       * Defines a label.
-       */
+     * Defines a label.
+     */
     label: String
   },
 
   data () {
     return {
       /**
-        * The address, global component value.
-        * Used to detect changes and restore the value.
-        */
+       * The address, global component value.
+       * Used to detect changes and restore the value.
+       */
       address: {},
       global: false
     }
@@ -48,8 +48,8 @@ export default {
 
   watch: {
     /**
-       * Whenever address change update val.
-       */
+     * Whenever address change update val.
+     */
     address (val) {
       this.$emit('input', val)
     }
@@ -57,9 +57,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set address to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set address to value.
+     */
     this.address = this.value
   }
 }

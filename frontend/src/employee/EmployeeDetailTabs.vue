@@ -128,9 +128,9 @@ export default {
   data () {
     return {
       /**
-        * The leave, it, address, engagement, association, role, manager component value.
-        * Used to detect changes and restore the value for columns.
-        */
+       * The leave, it, address, engagement, association, role, manager component value.
+       * Used to detect changes and restore the value for columns.
+       */
       engagement: [
         { label: 'org_unit', data: 'org_unit' },
         { label: 'job_function', data: 'job_function' },
@@ -168,10 +168,10 @@ export default {
       ],
 
       /**
-         * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
-         * MoAssociationEntry, MoLeaveEntry, MoManagerEntry component.
-         * Used to add the components in the tabs.
-         */
+       * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
+       * MoAssociationEntry, MoLeaveEntry, MoManagerEntry component.
+       * Used to add the components in the tabs.
+       */
       components: {
         engagement: MoEngagementEntry,
         address: MoAddressEntry,

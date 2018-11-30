@@ -88,8 +88,8 @@
 
 <script>
 /**
-   * A organisation detail tabs component.
-   */
+ * A organisation detail tabs component.
+ */
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
 import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
@@ -107,16 +107,16 @@ export default {
 
   props: {
     /**
-       * Defines a unique identifier which must be unique.
-       */
+     * Defines a unique identifier which must be unique.
+     */
     uuid: { type: String, required: true },
     orgUnitInfo: Object,
 
     content: Object,
 
     /**
-       * This Boolean property indicates the timemachine output.
-       */
+     * This Boolean property indicates the timemachine output.
+     */
     timemachineFriendly: Boolean
   },
 
@@ -125,9 +125,9 @@ export default {
       // keep track of the latest tap shown
       latestTab: [],
       /**
-        * The org_unit, address, engagement, association, role, manager component value.
-        * Used to detect changes and restore the value for columns.
-        */
+       * The org_unit, address, engagement, association, role, manager component value.
+       * Used to detect changes and restore the value for columns.
+       */
       org_unit: [
         { label: 'org_unit', data: null },
         { label: 'org_unit_type', data: 'org_unit_type' },
@@ -169,9 +169,9 @@ export default {
       ],
 
       /**
-         * The MoOrganisationUnitEntry, MoAddressEntry component.
-         * Used to add edit and create for orgUnit and address.
-         */
+       * The MoOrganisationUnitEntry, MoAddressEntry component.
+       * Used to add edit and create for orgUnit and address.
+       */
       components: {
         orgUnit: MoOrganisationUnitEntry,
         address: MoAddressEntry,
@@ -182,9 +182,9 @@ export default {
   },
   watch: {
     /**
-       * update content when uuid changes.
-       * This part is needed for the timemachine, for some reason
-       */
+     * update content when uuid changes.
+     * This part is needed for the timemachine, for some reason
+     */
     uuid () {
       this.loadContent(this.latestTab.detail, this.latestTab.validity)
     }

@@ -38,8 +38,8 @@
 
 <script>
 /**
-   * A entry create modal component.
-   */
+ * A entry create modal component.
+ */
 
 import Employee from '@/api/Employee'
 import OrganisationUnit from '@/api/OrganisationUnit'
@@ -60,18 +60,18 @@ export default {
 
   props: {
     /**
-       * Defines a uuid.
-       */
+     * Defines a uuid.
+     */
     uuid: String,
 
     /**
-       * Defines a entryComponent.
-       */
+     * Defines a entryComponent.
+     */
     entryComponent: Object,
 
     /**
-       * Defines a required type - employee or organisation unit.
-       */
+     * Defines a required type - employee or organisation unit.
+     */
     type: {
       type: String,
       required: true,
@@ -97,29 +97,29 @@ export default {
 
   computed: {
     /**
-       * Get name `moCreate`.
-       */
+     * Get name `moCreate`.
+     */
     nameId () {
       return 'moCreate' + this._uid
     },
 
     /**
-       * If it has a entry component.
-       */
+     * If it has a entry component.
+     */
     hasEntryComponent () {
       return this.entryComponent !== undefined
     },
 
     /**
-       * Get hideOrgPicker type.
-       */
+     * Get hideOrgPicker type.
+     */
     hideOrgPicker () {
       return this.type === 'ORG_UNIT'
     },
 
     /**
-       * Get hideEmployeePicker type.
-       */
+     * Get hideEmployeePicker type.
+     */
     hideEmployeePicker () {
       return this.type === 'EMPLOYEE'
     }
@@ -127,8 +127,8 @@ export default {
 
   mounted () {
     /**
-       * Whenever it changes, reset data.
-       */
+     * Whenever it changes, reset data.
+     */
     this.$root.$on('bv::modal::hidden', () => {
       Object.assign(this.$data, this.$options.data())
     })
@@ -136,15 +136,15 @@ export default {
 
   beforeDestroy () {
     /**
-       * Called right before a instance is destroyed.
-       */
+     * Called right before a instance is destroyed.
+     */
     this.$root.$off(['bv::modal::hidden'])
   },
 
   methods: {
     /**
-       * Create a employee or organisation entry.
-       */
+     * Create a employee or organisation entry.
+     */
     create () {
       this.isLoading = true
 
@@ -161,9 +161,9 @@ export default {
     },
 
     /**
-       * Create a employee and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Create a employee and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     createEmployee (data) {
       let vm = this
       Employee.create([data])
@@ -178,9 +178,9 @@ export default {
     },
 
     /**
-       * Create a organisation unit and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Create a organisation unit and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     createOrganisationUnit (data) {
       let vm = this
       return OrganisationUnit.createEntry(data)

@@ -15,8 +15,8 @@
 
 <script>
 /**
-   * A button submit component.
-   */
+ * A button submit component.
+ */
 
 import MoLoader from '@/components/atoms/MoLoader'
 export default {
@@ -26,18 +26,18 @@ export default {
 
   props: {
     /**
-       * This boolean property disable the button.
-       */
+     * This boolean property disable the button.
+     */
     isDisabled: Boolean,
 
     /**
-       * This boolean property defines the loading.
-       */
+     * This boolean property defines the loading.
+     */
     isLoading: Boolean,
 
     /**
-       * This Function defines a click action.
-       */
+     * This Function defines a click action.
+     */
     onClickAction: Function
   }
 }

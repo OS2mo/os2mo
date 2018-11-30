@@ -37,8 +37,8 @@
 
 <script>
 /**
-   * cpr search component.
-   */
+ * cpr search component.
+ */
 
 import Search from '@/api/Search'
 import MoLoader from '@/components/atoms/MoLoader'
@@ -47,8 +47,8 @@ export default {
   name: 'MoCprSearch',
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
@@ -59,27 +59,27 @@ export default {
 
   props: {
     /**
-       * This boolean property defines a label if it does not have one.
-       */
+     * This boolean property defines a label if it does not have one.
+     */
     noLabel: Boolean,
 
     /**
-       * Defines a default label name.
-       */
+     * Defines a default label name.
+     */
     label: { type: String, default: 'CPR nummer' },
 
     /**
-       * This boolean property requires a valid cpr number.
-       */
+     * This boolean property requires a valid cpr number.
+     */
     required: Boolean
   },
 
   data () {
     return {
       /**
-        * The nameId, cprNo, isloading, backendValidationError component value.
-        * Used to detect changes and restore the value.
-        */
+       * The nameId, cprNo, isloading, backendValidationError component value.
+       * Used to detect changes and restore the value.
+       */
       nameId: 'cpr-search',
       cprNo: '',
       isLoading: false,
@@ -89,8 +89,8 @@ export default {
 
   watch: {
     /**
-       * Whenever cprNo change update.
-       */
+     * Whenever cprNo change update.
+     */
     cprNo () {
       this.$emit('input', {})
     }
@@ -98,9 +98,9 @@ export default {
 
   methods: {
     /**
-       * Lookup cpr number and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Lookup cpr number and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     cprLookup () {
       let vm = this
       vm.isLoading = true

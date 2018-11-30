@@ -29,8 +29,8 @@
 
 <script>
 /**
-   * A date picker component.
-   */
+ * A date picker component.
+ */
 
 import DateTimePicker from 'vuejs-datepicker'
 import { da } from 'vuejs-datepicker/dist/locale'
@@ -42,50 +42,50 @@ export default {
   },
 
   /**
-       * Validator scope, sharing all errors and validation state.
-       */
+   * Validator scope, sharing all errors and validation state.
+   */
   inject: {
     $validator: '$validator'
   },
 
   props: {
     /**
-       * Create two-way data bindings with the component.
-       */
+     * Create two-way data bindings with the component.
+     */
     value: [Date, String],
 
     /**
-       * This boolean property requires a date.
-       */
+     * This boolean property requires a date.
+     */
     required: Boolean,
 
     /**
-       * This boolean property hides the label.
-       */
+     * This boolean property hides the label.
+     */
     noLabel: Boolean,
 
     /**
-       * Defines the label.
-       */
+     * Defines the label.
+     */
     label: { default: 'Dato', type: String },
 
     /**
-       * Defines valid dates.
-       */
+     * Defines valid dates.
+     */
     validDates: Object,
 
     /**
-       * This boolean disable the dates.
-       */
+     * This boolean disable the dates.
+     */
     disabled: Boolean
   },
 
   data () {
     return {
       /**
-        * The selected, dateString, da component value.
-        * Used to detect changes and restore the value.
-        */
+       * The selected, dateString, da component value.
+       * Used to detect changes and restore the value.
+       */
       selected: null,
       dateString: null,
       da: da
@@ -94,15 +94,15 @@ export default {
 
   computed: {
     /**
-       * Get name `date-picker`.
-       */
+     * Get name `date-picker`.
+     */
     nameId () {
       return 'date-picker-' + this._uid
     },
 
     /**
-       * Disable the choosen from date and the to date.
-       */
+     * Disable the choosen from date and the to date.
+     */
     disabledDates () {
       return {
         from: this.validDates && this.validDates.to ? new Date(this.validDates.to) : null,
@@ -113,23 +113,23 @@ export default {
 
   watch: {
     /**
-       * Send on a date-only string in ISO format, so that we
-       * disregard timezones and the time-of-day.
-       */
+     * Send on a date-only string in ISO format, so that we
+     * disregard timezones and the time-of-day.
+     */
     selected (newVal) {
       this.dateString = newVal ? moment(new Date(newVal)).format('YYYY-MM-DD') : null
     },
 
     /**
-       * Whenever dateString change, update newVal.
-       */
+     * Whenever dateString change, update newVal.
+     */
     dateString (newVal) {
       this.$emit('input', newVal)
     },
 
     /**
-       * When value change update selected to newVal.
-       */
+     * When value change update selected to newVal.
+     */
     value (newVal) {
       this.selected = newVal
     }
@@ -137,9 +137,9 @@ export default {
 
   created () {
     /**
-       * Called synchronously after the instance is created.
-       * Set selected and dateString to value.
-       */
+     * Called synchronously after the instance is created.
+     * Set selected and dateString to value.
+     */
     this.selected = this.value
     this.dateString = this.value
   }

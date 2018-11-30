@@ -83,8 +83,8 @@
 
 <script>
 /**
-   * A table component.
-   */
+ * A table component.
+ */
 
 import '@/filters/GetProperty'
 import '@/filters/Date'
@@ -105,47 +105,47 @@ export default {
 
   props: {
     /**
-       * @model
-       */
+     * @model
+     */
     value: Array,
     /**
-       * Defines a content.
-       */
+     * Defines a content.
+     */
     content: Array,
 
     /**
-       * Defines a contentType.
-       */
+     * Defines a contentType.
+     */
     contentType: String,
 
     /**
-       * Defines columns.
-       */
+     * Defines columns.
+     */
     columns: Array,
 
     /**
-       * This boolean property defines the loading.
-       */
+     * This boolean property defines the loading.
+     */
     isLoading: Boolean,
 
     /**
-       * Defines the editComponent.
-       */
+     * Defines the editComponent.
+     */
     editComponent: Object,
 
     /**
-       * Defines the editUuid.
-       */
+     * Defines the editUuid.
+     */
     editUuid: String,
 
     /**
-       * This boolean property defines the multiSelect
-       */
+     * This boolean property defines the multiSelect
+     */
     multiSelect: Boolean,
 
     /**
-       * Defines a required type.
-       */
+     * Defines a required type.
+     */
     type: {
       type: String,
       required: true
@@ -167,8 +167,8 @@ export default {
 
   computed: {
     /**
-       * If content is available, get content.
-       */
+     * If content is available, get content.
+     */
     contentAvailable () {
       return this.content ? this.content.length > 0 : false
     }
@@ -176,15 +176,15 @@ export default {
 
   watch: {
     /**
-       * Whenever selected change, update newVal.
-       */
+     * Whenever selected change, update newVal.
+     */
     selected (newVal) {
       this.$emit('input', newVal)
     },
 
     /**
-       * Whenever contentAvailable change, set sortableContent to content.
-       */
+     * Whenever contentAvailable change, set sortableContent to content.
+     */
     contentAvailable: function () {
       if (!this.sortableContent) {
         this.sortableContent = this.content
@@ -192,8 +192,8 @@ export default {
     },
 
     /**
-       * Whenever content change, set sortableContent to content.
-       */
+     * Whenever content change, set sortableContent to content.
+     */
     content () {
       this.sortableContent = this.content
     },
@@ -202,8 +202,8 @@ export default {
 
   methods: {
     /**
-       * Columns that not contain sorting.
-       */
+     * Columns that not contain sorting.
+     */
     hasSorting (col) {
       if (this.contentType === 'address') {
         return col.data === 'address_type'
@@ -231,8 +231,8 @@ export default {
     },
 
     /**
-       * Sort data in columns.
-       */
+     * Sort data in columns.
+     */
     sortData (colName, toggleIcon) {
       if (toggleIcon[colName] === undefined) {
         toggleIcon[colName] = true
@@ -251,8 +251,8 @@ export default {
     },
 
     /**
-       * Sort dates in columns.
-       */
+     * Sort dates in columns.
+     */
     sortDate (toggleIcon, date) {
       this.sortableContent.sort(function (a, b) {
         let dateA = new Date(a.validity[date])

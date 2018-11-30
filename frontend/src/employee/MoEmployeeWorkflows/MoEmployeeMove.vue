@@ -65,8 +65,8 @@
 
 <script>
 /**
-   * A employee move component.
-   */
+ * A employee move component.
+ */
 
 import MoDatePicker from '@/components/atoms/MoDatePicker'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -92,35 +92,35 @@ export default {
 
   props: {
     /**
-       * Defines a engagement type name.
-       */
+     * Defines a engagement type name.
+     */
     entryName: String,
 
     /**
-       * Defines a from date.
-       */
+     * Defines a from date.
+     */
     entryDate: Date,
 
     /**
-       * Defines a orgName.
-       */
+     * Defines a orgName.
+     */
     entryOrgName: String
   },
 
   data () {
     return {
       /**
-        * The isLoading component value.
-        * Used to detect changes and restore the value.
-        */
+       * The isLoading component value.
+       * Used to detect changes and restore the value.
+       */
       isLoading: false
     }
   },
 
   computed: {
     /**
-       * Get mapFields from vuex store.
-       */
+     * Get mapFields from vuex store.
+     */
     ...mapFields('employeeMove', [
       'move',
       'move.data.person',
@@ -131,8 +131,8 @@ export default {
     ]),
 
     /**
-       * Check if the dates are valid.
-       */
+     * Check if the dates are valid.
+     */
     dateConflict () {
       if (this.from && this.original) {
         if (this.original.validity.to == null) return true
@@ -144,8 +144,8 @@ export default {
     },
 
     /**
-       * Check if the organisation date are valid.
-       */
+     * Check if the organisation date are valid.
+     */
     validDates () {
       return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
     }
@@ -153,9 +153,9 @@ export default {
 
   methods: {
     /**
-       * Move a employee and check if the data fields are valid.
-       * Then throw a error if not.
-       */
+     * Move a employee and check if the data fields are valid.
+     * Then throw a error if not.
+     */
     moveEmployee (evt) {
       evt.preventDefault()
       if (this.formValid) {

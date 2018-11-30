@@ -15,31 +15,13 @@
       :placeholder="$t('common.search')"
       class="search-bar"
     />
-  <!-- <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm"> -->
 </div>
-  <!-- <div class="input-group">
-    <span class="input-group-prepend">
-      <icon name="search"/>
-    </span>
-
-    <v-autocomplete
-      :items="orderedListOptions"
-      v-model="item"
-      :get-label="getLabel"
-      :component-item="template"
-      @item-selected="selected"
-      @update-items="updateItems"
-      :auto-select-one-item="false"
-      :min-len="2"
-      :placeholder="$t('common.search')"
-    />
-  </div> -->
 </template>
 
 <script>
 /**
-   * A searchbar component.
-   */
+ * A searchbar component.
+ */
 
 import sortBy from 'lodash.sortby'
 import Search from '@/api/Search'
@@ -65,15 +47,15 @@ export default {
       routeName: '',
 
       /**
-         * The template component value.
-         * Used to add MoSearchBarTemplate to the v-autocomplete.
-         */
+       * The template component value.
+       * Used to add MoSearchBarTemplate to the v-autocomplete.
+       */
       template: MoSearchBarTemplate,
 
       /**
-         * The noItem component value.
-         * Used to give a default name.
-         */
+       * The noItem component value.
+       * Used to give a default name.
+       */
       noItem: [{ name: this.$t('alerts.no_search_results') }]
     }
   },
@@ -124,7 +106,7 @@ export default {
 
     /**
      * Update employee or organisation suggestions based on search query.
-    */
+     */
     updateItems (query) {
       let vm = this
       vm.items = []

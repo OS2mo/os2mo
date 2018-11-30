@@ -59,8 +59,8 @@
 
 <script>
 /**
-   * A Employee workflow component.
-   */
+ * A Employee workflow component.
+ */
 
 import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
 import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
@@ -87,8 +87,8 @@ export default {
 
   methods: {
     /**
-       * Trigger the popup workflows with the key shortcuts.
-       */
+     * Trigger the popup workflows with the key shortcuts.
+     */
     shortcuts (event) {
       this.$root.$emit('bv::show::modal', event.srcKey)
     }
