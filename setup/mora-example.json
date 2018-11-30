@@ -6,17 +6,4 @@
     "SP_SYSTEM_UUID": "00000000-0000-0000-0000-000000000000",
     "SP_CERTIFICATE_PATH": "/path/to/certificate.crt",
     "PROD_MODE": false,
-
-    "USER_SETTINGS": {
-        "orgunit": {
-             "show_location": true,
-             "show_roles": true,
-             "show_key": true,
-        "927dc4d5-fdca-4062-a0d8-a44e8a9e8685": {
-            "show_location": true,
-            "show_roles": false,
-            "show_user_key": false
-            }
-        }
-    }
 }

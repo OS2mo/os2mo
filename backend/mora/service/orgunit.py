@@ -17,6 +17,7 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
+import psycopg2
 import collections
 import copy
 import enum
@@ -352,14 +353,50 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.LOCATION] = ''
 
-            if unitid in settings.USER_SETTINGS['orgunit']:
-                org_settings = {'orgunit':
-                                settings.USER_SETTINGS['orgunit'][unitid]}
+            print('! Do not initialise on every request!')
+            conn = psycopg2.connect(settings.USER_SETTINGS_CONN_STRING)
+            cur = conn.cursor()
+
+            global_settings = {}
+            query = ("SELECT setting, value FROM " +
+                     "orgunit_settings WHERE object IS Null")
+            cur.execute(query)
+
+            rows = cur.fetchall()
+            for row in rows:
+                setting = row[0]
+                if row[1] == 'True':
+                    value = True
+                elif row[1] == 'False':
+                    value = False
+                else:
+                    value = row[1]
+                global_settings[setting] = value
+
+            query = ("SELECT setting, value FROM " +
+                     "orgunit_settings WHERE object = '{}'").format(unitid)
+            cur.execute(query)
+
+            orgunit = {}
+            if cur.rowcount > 0:
+                rows = cur.fetchall()
+                for row in rows:
+                    setting = row[0]
+                    if row[1] == 'True':
+                        value = True
+                    elif row[1] == 'False':
+                        value = False
+                    else:
+                        value = row[1]
+                    orgunit[setting] = value
+
+            if len(orgunit) > 0:
+                org_settings = {'orgunit': orgunit}
                 r[mapping.USER_SETTINGS] = org_settings
             elif parent and mapping.USER_SETTINGS in parent:
                 r[mapping.USER_SETTINGS] = parent[mapping.USER_SETTINGS]
             else:
-                r[mapping.USER_SETTINGS] = settings.USER_SETTINGS
+                r[mapping.USER_SETTINGS] = {'orgunit': global_settings}
 
         r[mapping.PARENT] = parent
 
