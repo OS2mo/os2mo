@@ -18,109 +18,109 @@
 </template>
 
 <script>
-  /**
-   * A link component.
-   */
+/**
+ * A link component.
+ */
 
-  export default {
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object,
+export default {
+  props: {
+    /**
+     * Create two-way data bindings with the component.
+     */
+    value: Object,
 
-      /**
-       * Defines a default field name.
-       */
-      field: {
-        type: String,
-        default: 'name'
-      },
-
-      /**
-       * Defines a default column.
-       */
-      column: {
-        type: String,
-        default: null
-      }
+    /**
+     * Defines a default field name.
+     */
+    field: {
+      type: String,
+      default: 'name'
     },
 
-    data () {
-      return {
+    /**
+     * Defines a default column.
+     */
+    column: {
+      type: String,
+      default: null
+    }
+  },
+
+  data () {
+    return {
       /**
        * The column_handlers component value.
        * Used to add OrganisationDetail, EmployeeDetail components.
        */
-        column_handlers: {
-          'org_unit': 'OrganisationDetail',
-          'parent': 'OrganisationDetail',
-          'person': 'EmployeeDetail'
-        }
+      column_handlers: {
+        'org_unit': 'OrganisationDetail',
+        'parent': 'OrganisationDetail',
+        'person': 'EmployeeDetail'
+      }
+    }
+  },
+
+  computed: {
+    /**
+     * Returns columns and fields.
+     */
+    classes () {
+      if (this.column && this.field) {
+        return [this.column + '-' + this.field]
+      } else if (this.column) {
+        return [this.column]
+      } else if (this.field) {
+        return [this.field]
+      } else {
+        return []
       }
     },
 
-    computed: {
-      /**
-       * Returns columns and fields.
-       */
-      classes () {
-        if (this.column && this.field) {
-          return [this.column + '-' + this.field]
-        } else if (this.column) {
-          return [this.column]
-        } else if (this.field) {
-          return [this.field]
+    /**
+     * Defines contents, columns and value.
+     */
+    parts () {
+      let contents = this.column ? this.value[this.column] : this.value
+
+      if (this.column === 'address_type' && this.value) {
+        let address = this.value['address']
+
+        if (address instanceof Array) {
+          contents = address.map(a => a['address_type'])
+        } else if (address && address[this.column]) {
+          contents = address[this.column]
         } else {
-          return []
+          contents = this.value['address_type']
         }
-      },
+      }
 
-      /**
-       * Defines contents, columns and value.
-       */
-      parts () {
-        let contents = this.column ? this.value[this.column] : this.value
+      if (!contents) {
+        contents = []
+      } else if (!(contents instanceof Array)) {
+        contents = [contents]
+      }
 
-        if (this.column === 'address_type' && this.value) {
-          let address = this.value['address']
-
-          if (address instanceof Array) {
-            contents = address.map(a => a['address_type'])
-          } else if (address && address[this.column]) {
-            contents = address[this.column]
-          } else {
-            contents = this.value['address_type']
-          }
-        }
-
-        if (!contents) {
-          contents = []
-        } else if (!(contents instanceof Array)) {
-          contents = [contents]
-        }
-
-        let handler = this.column_handlers[this.column]
-        const parts = []
-        for (let i = 0; i < contents.length; i++) {
-          let c = contents[i]
-          let p = {}
-          p.text = (this.field ? c[this.field] : c) || '\u2014'
-          p.href = c ? c.href : ''
-          if (handler && c && c.uuid) {
-            p.target = {
-              name: handler,
-              params: {
-                uuid: c.uuid
-              }
+      let handler = this.column_handlers[this.column]
+      const parts = []
+      for (let i = 0; i < contents.length; i++) {
+        let c = contents[i]
+        let p = {}
+        p.text = (this.field ? c[this.field] : c) || '\u2014'
+        p.href = c ? c.href : ''
+        if (handler && c && c.uuid) {
+          p.target = {
+            name: handler,
+            params: {
+              uuid: c.uuid
             }
           }
-          parts.push(p)
         }
-        return parts
+        parts.push(p)
       }
+      return parts
     }
   }
+}
 </script>
 
 <style scoped>

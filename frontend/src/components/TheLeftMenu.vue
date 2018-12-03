@@ -14,41 +14,41 @@
 </template>
 
 <script>
-  /**
-   * A the left menu component.
-   */
+/**
+ * A the left menu component.
+ */
 
-  import { mapGetters } from 'vuex'
-  import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import { mapGetters } from 'vuex'
+import MoTreeView from '@/components/MoTreeView/MoTreeView'
 
-  export default {
-    components: {
-      MoTreeView
-    },
-    data () {
-      return {
-        selected: undefined
-      }
-    },
-    computed: {
-      /**
-       * Get organisation uuid.
-       */
-      ...mapGetters({
-        currentUnit: 'organisationUnit/GET_ORG_UNIT'
-      })
-    },
-    watch: {
-      selected (newUnit) {
-        if (newUnit.uuid !== this.currentUnit.uuid) {
-          this.$router.push({
-            name: 'OrganisationDetail',
-            params: { uuid: newUnit.uuid }
-          })
-        }
+export default {
+  components: {
+    MoTreeView
+  },
+  data () {
+    return {
+      selected: undefined
+    }
+  },
+  computed: {
+    /**
+     * Get organisation uuid.
+     */
+    ...mapGetters({
+      currentUnit: 'organisationUnit/GET_ORG_UNIT'
+    })
+  },
+  watch: {
+    selected (newUnit) {
+      if (newUnit.uuid !== this.currentUnit.uuid) {
+        this.$router.push({
+          name: 'OrganisationDetail',
+          params: { uuid: newUnit.uuid }
+        })
       }
     }
   }
+}
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@ module.exports = {
   runtimeCompiler: true, // allows the template option in components
   chainWebpack: config => {
     // disable eslinting for now...
-    config.module.rules.delete('eslint');
+    config.module.rules.delete('eslint')
   },
   configureWebpack: {
     plugins: [

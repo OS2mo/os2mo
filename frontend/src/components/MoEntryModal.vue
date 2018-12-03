@@ -2,31 +2,26 @@
   <div v-if="hasEntryComponent">
     <button
       class="btn btn-outline-primary"
-      v-b-modal="nameId"
+      v-b-modal="idLabel"
     >
-      <icon name="edit" />
+      <icon :name="iconLabel" />
+      <span v-if="action === 'CREATE'">{{$t('buttons.create_new')}}</span>
     </button>
 
     <b-modal
-      :id="nameId"
+      :id="idLabel"
       size="lg"
       hide-footer
-      :title="$t('common.edit')"
-      :ref="nameId"
+      :title="modalTitle"
+      :ref="idLabel"
       lazy
     >
-    <form @submit.stop.prevent="edit">
+    <form @submit.stop.prevent="onClickAction">
       <component
         :is="entryComponent"
         v-model="entry"
         :disable-org-unit-picker="disableOrgUnitPicker"
-        :hide-org-picker="hideOrgPicker"
-        :hide-employee-picker="hideEmployeePicker"
       />
-
-      <div class="alert alert-danger" v-if="backendValidationMessage">
-        {{backendValidationMessage}}
-      </div>
 
       <div class="float-right">
         <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
@@ -38,23 +33,23 @@
 
 <script>
 /**
- * A entry edit modal component.
+ * A entry modal component.
  */
 
 import Employee from '@/api/Employee'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import ButtonSubmit from './ButtonSubmit'
-import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
-import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+
 export default {
-  mixins: [ValidateForm, ModalBase],
+  /**
+   * Requesting a new validator scope to its children.
+   */
+  $_veeValidate: {
+    validator: 'new'
+  },
 
   components: {
     ButtonSubmit
-  },
-  directives: {
-    'b-modal': bModalDirective
   },
 
   props: {
@@ -84,6 +79,19 @@ export default {
     entryComponent: Object,
 
     /**
+     * Defines a required action - employee or organisation unit.
+     */
+    action: {
+      type: String,
+      required: true,
+      validator (value) {
+        if (value === 'EDIT' || value === 'CREATE') return true
+        console.warn('Action must be either EDIT or CREATE')
+        return false
+      }
+    },
+
+    /**
      * Defines a required type - employee or organisation unit.
      */
     type: {
@@ -100,43 +108,66 @@ export default {
   data () {
     return {
       /**
-       * The entry, original, isLoading, backendValidationMessage component value.
+       * The entry, original, org, isLoading component value.
        * Used to detect changes and restore the value.
        */
       entry: {},
       original: {},
-      isLoading: false,
-      backendValidationMessage: null
+      org: {},
+      isLoading: false
     }
   },
 
   computed: {
     /**
-     * Get name `moEdit`.
+     * Get idLabel `moCreate`.
      */
-    nameId () {
-      return 'moEdit' + this._uid
+    idLabel () {
+      return 'moCreate' + this._uid
+    },
+
+    /**
+     * Loop over all contents of the fields object and check if they exist and valid.
+     */
+    formValid () {
+      return Object.keys(this.fields).every(field => {
+        return this.fields[field] && this.fields[field].valid
+      })
     },
 
     /**
      * Get disableOrgUnitPicker type.
      */
     disableOrgUnitPicker () {
-      return this.type === 'ORG_UNIT'
+      return this.type === 'ORG_UNIT' && this.action === 'EDIT'
     },
 
     /**
-     * Get hideOrgPicker type.
+     * Switch between create and edit iconLabel.
      */
-    hideOrgPicker () {
-      return this.type === 'ORG_UNIT'
+    iconLabel () {
+      switch (this.action) {
+        case 'CREATE':
+          return 'plus'
+        case 'EDIT':
+          return 'edit'
+        default:
+          return ''
+      }
     },
 
     /**
-     * Get hideEmployeePicker type.
+     * Switch between create and edit modalTitle.
      */
-    hideEmployeePicker () {
-      return this.type === 'EMPLOYEE'
+    modalTitle () {
+      switch (this.action) {
+        case 'CREATE':
+          return 'Opret'
+        case 'EDIT':
+          return 'Rediger'
+        default:
+          return ''
+      }
     },
 
     /**
@@ -163,9 +194,17 @@ export default {
     /**
      * Whenever content change preselected value.
      */
-    this.handleContent(this.content)
+    this.org = this.$store.state.organisation
 
-    this.backendValidationMessage = null
+    if (this.content) {
+      this.handleContent(this.content)
+    }
+
+    if (this.action === 'CREATE') {
+      this.$root.$on('bv::modal::hidden', () => {
+        Object.assign(this.$data, this.$options.data())
+      })
+    }
 
     this.$root.$on('bv::modal::shown', data => {
       if (this.content) {
@@ -178,6 +217,7 @@ export default {
     /**
      * Called right before a instance is destroyed.
      */
+    this.$root.$off(['bv::modal::hidden'])
     this.$root.$off(['bv::modal::shown'])
   },
 
@@ -191,7 +231,38 @@ export default {
     },
 
     /**
-     * Edit a employee or organisation entry.
+     * Switch between create and edit on click action.
+     */
+    onClickAction () {
+      switch (this.action) {
+        case 'CREATE':
+          this.create()
+          break
+        case 'EDIT':
+          this.edit()
+          break
+      }
+    },
+
+    /**
+     * Switch between employee and organisation create entry.
+     */
+    create () {
+      this.isLoading = true
+
+      switch (this.type) {
+        case 'EMPLOYEE':
+          this.createEmployee(this.entry)
+          break
+        case 'ORG_UNIT':
+          this.entry.type = 'address'
+          this.createOrganisationUnit([this.entry])
+          break
+      }
+    },
+
+    /**
+     * Switch between employee and organisation edit.
      */
     edit () {
       this.isLoading = true
@@ -216,23 +287,36 @@ export default {
     },
 
     /**
-     * Edit a employee and check if the data fields are valid.
-     * Then throw a error if not.
+     * Create a employee.
      */
-    editEmployee (data) {
-      return Employee.edit(data).then(this.handle.bind(this))
+    createEmployee (data) {
+      return Employee.create([data]).then(this.handle.bind(this))
     },
 
     /**
-     * Edit a organisation and check if the data fields are valid.
-     * Then throw a error if not.
+     * Edit a employee.
+     */
+    editEmployee (data) {
+      return Employee.edit([data]).then(this.handle.bind(this))
+    },
+
+    /**
+     * Create organisation unit entry.
+     */
+    createOrganisationUnit (data) {
+      return OrganisationUnit.createEntry(data).then(this.handle.bind(this))
+    },
+
+    /**
+     * Edit organisation unit entry.
      */
     editOrganisationUnit (data) {
-      return OrganisationUnit.edit(data).then(this.handle.bind(this))
+      return OrganisationUnit.edit([data]).then(this.handle.bind(this))
     },
 
     handle (response) {
       this.isLoading = false
+
       if (response.error) {
         let messages = this.$i18n.messages[this.$i18n.locale]
 
@@ -240,10 +324,11 @@ export default {
             messages.alerts.error[response.error_key]
 
         if (!this.backendValidationMessage) {
-          this.backendValidationMessage = this.$t('alerts.fallback', response)
+          this.backendValidationMessage = this.$t('alerts.fallback',
+            response)
         }
       } else {
-        this.$refs[this.nameId].hide()
+        this.$refs['moCreate' + this._uid].hide()
       }
     }
   }

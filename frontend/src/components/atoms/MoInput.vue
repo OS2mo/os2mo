@@ -1,16 +1,16 @@
 <template>
   <div class="form-group col">
     <label for="">{{label}}</label>
-    
-    <input 
-      v-model="selected" 
+
+    <input
+      v-model="selected"
       :name="nameId"
       :data-vv-as="label"
-      type="text" 
+      type="text"
       class="form-control"
       v-validate="{required: required}"
     >
-    
+
     <span v-show="errors.has(nameId)" class="text-danger">
       {{ errors.first(nameId) }}
     </span>
@@ -18,71 +18,71 @@
 </template>
 
 <script>
+/**
+ * A input component.
+ */
+
+export default {
+  name: 'MoInput',
+
   /**
-   * A input component.
+   * Validator scope, sharing all errors and validation state.
    */
+  inject: {
+    $validator: '$validator'
+  },
 
-  export default {
-    name: 'MoInput',
+  props: {
+    /**
+     * Create two-way data bindings with the component.
+     */
+    value: String,
 
-      /**
-       * Validator scope, sharing all errors and validation state.
-       */
-    inject: {
-      $validator: '$validator'
-    },
+    /**
+     * Defines the label.
+     */
+    label: String,
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: String,
+    /**
+     * This boolean property requries input data.
+     */
+    required: Boolean
+  },
 
-      /**
-       * Defines the label.
-       */
-      label: String,
-
-      /**
-       * This boolean property requries input data.
-       */
-      required: Boolean
-    },
-
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The selected component value.
        * Used to detect changes and restore the value.
        */
-        selected: null
-      }
-    },
-
-    computed: {
-      /**
-       * Get name `mo-input`.
-       */
-      nameId () {
-        return 'mo-input-' + this._uid
-      }
-    },
-
-    watch: {
-      /**
-       * Whenever selected change update val.
-       */
-      selected (val) {
-        this.$emit('input', val)
-      }
-    },
-
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Set selected to value.
-       */
-      this.selected = this.value
+      selected: null
     }
+  },
+
+  computed: {
+    /**
+     * Get name `mo-input`.
+     */
+    nameId () {
+      return 'mo-input-' + this._uid
+    }
+  },
+
+  watch: {
+    /**
+     * Whenever selected change update val.
+     */
+    selected (val) {
+      this.$emit('input', val)
+    }
+  },
+
+  created () {
+    /**
+     * Called synchronously after the instance is created.
+     * Set selected to value.
+     */
+    this.selected = this.value
   }
+}
 </script>

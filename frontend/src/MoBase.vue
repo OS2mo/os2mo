@@ -9,15 +9,15 @@
 </template>
 
 <script>
-  import MoNavbar from '@/components/MoNavbar'
+import MoNavbar from '@/components/MoNavbar'
 
-  export default {
-    components: {
-      MoNavbar
-    },
+export default {
+  components: {
+    MoNavbar
+  },
 
-    name: 'MoBase'
-  }
+  name: 'MoBase'
+}
 </script>
 
 <style>

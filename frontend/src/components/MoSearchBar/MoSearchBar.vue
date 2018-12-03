@@ -15,74 +15,22 @@
       :placeholder="$t('common.search')"
       class="search-bar"
     />
-  <!-- <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm"> -->
 </div>
-  <!-- <div class="input-group">
-    <span class="input-group-prepend">
-      <icon name="search"/>
-    </span>
-
-    <v-autocomplete
-      :items="orderedListOptions"
-      v-model="item"
-      :get-label="getLabel"
-      :component-item="template"
-      @item-selected="selected"
-      @update-items="updateItems"
-      :auto-select-one-item="false"
-      :min-len="2"
-      :placeholder="$t('common.search')"
-    />
-  </div> -->
 </template>
 
 <script>
-  /**
-   * A searchbar component.
-   */
+/**
+ * A searchbar component.
+ */
 
-  import sortBy from 'lodash.sortby'
-  import Search from '@/api/Search'
-  import VAutocomplete from 'v-autocomplete'
-  import 'v-autocomplete/dist/v-autocomplete.css'
-  import MoSearchBarTemplate from './MoSearchBarTemplate'
-  
-  export default {
-    name: 'MoSearchBar',
+import sortBy from 'lodash.sortby'
+import Search from '@/api/Search'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import MoSearchBarTemplate from './MoSearchBarTemplate'
 
-    components: {
-      VAutocomplete
-    },
-
-    data () {
-      return {
-      /**
-       * The item, items, routeName component value.
-       * Used to detect changes and restore the value.
-       */
-        item: null,
-        items: [],
-        routeName: '',
-
-        /**
-         * The template component value.
-         * Used to add MoSearchBarTemplate to the v-autocomplete.
-         */
-        template: MoSearchBarTemplate,
-
-        /**
-         * The noItem component value.
-         * Used to give a default name.
-         */
-        noItem: [{name: this.$t('alerts.no_search_results')}]
-      }
-    },
-
-    computed: {
-      orderedListOptions () {
-        return sortBy(this.items, 'name')
-      }
-    },
+export default {
+  name: 'MoSearchBar',
 
   components: {
     VAutocomplete
@@ -90,10 +38,10 @@
 
   data () {
     return {
-    /**
-     * The item, items, routeName component value.
-     * Used to detect changes and restore the value.
-     */
+      /**
+       * The item, items, routeName component value.
+       * Used to detect changes and restore the value.
+       */
       item: null,
       items: [],
       routeName: '',
@@ -108,21 +56,13 @@
        * The noItem component value.
        * Used to give a default name.
        */
-      noItem: [{ name: 'Ingen resultater matcher din søgning' }]
+      noItem: [{ name: this.$t('alerts.no_search_results') }]
     }
   },
 
   computed: {
     orderedListOptions () {
-      return this.items.slice().sort((a, b) => {
-        if (a.name < b.name) {
-          return -1
-        }
-        if (a.name > b.name) {
-          return 1
-        }
-        return 0
-      })
+      return sortBy(this.items, 'name')
     }
   },
 
@@ -166,7 +106,7 @@
 
     /**
      * Update employee or organisation suggestions based on search query.
-    */
+     */
     updateItems (query) {
       let vm = this
       vm.items = []

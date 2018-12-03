@@ -1,7 +1,7 @@
 <template>
-  <div 
-    class="input-group alert" 
-    :class="errors.has('cpr-result') ? 'alert-warning' : 'alert-success'" 
+  <div
+    class="input-group alert"
+    :class="errors.has('cpr-result') ? 'alert-warning' : 'alert-success'"
     v-show="showAlert"
   >
 
@@ -11,65 +11,65 @@
 </template>
 
 <script>
+/**
+ * A cpr result component.
+ */
+
+export default {
+  name: 'MoCprResult',
+
   /**
-   * A cpr result component.
+   * Validator scope, sharing all errors and validation state.
    */
+  inject: {
+    $validator: '$validator'
+  },
 
-  export default {
-    name: 'MoCprResult',
+  props: {
+    /**
+     * Create two-way data bindings with the component.
+     */
+    value: Object
+  },
 
+  data () {
+    return {
       /**
-       * Validator scope, sharing all errors and validation state.
+       * The cprApproved component value.
+       * Used to detect changes and restore the value.
        */
-    inject: {
-      $validator: '$validator'
+      cprApproved: false
+    }
+  },
+
+  mounted () {
+    this.$validator.validate(this.nameId)
+  },
+
+  computed: {
+    /**
+     * Get name `cpr-result`.
+     */
+    nameId () {
+      return 'cpr-result'
     },
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object
-    },
+    /**
+     * Show cpr alert.
+     */
+    showAlert () {
+      return Object.keys(this.value).length > 0
+    }
+  },
 
-    data () {
-      return {
-      /**
-        * The cprApproved component value.
-        * Used to detect changes and restore the value.
-        */
-        cprApproved: false
-      }
-    },
-
-    mounted () {
+  watch: {
+    /**
+     * Whenever value change, validate name and cpr alert.
+     */
+    value () {
+      this.cprApproved = false
       this.$validator.validate(this.nameId)
-    },
-
-    computed: {
-      /**
-       * Get name `cpr-result`.
-       */
-      nameId () {
-        return 'cpr-result'
-      },
-
-      /**
-       * Show cpr alert.
-       */
-      showAlert () {
-        return Object.keys(this.value).length > 0
-      }
-    },
-
-    watch: {
-      /**
-       * Whenever value change, validate name and cpr alert.
-       */
-      value () {
-        this.cprApproved = false
-        this.$validator.validate(this.nameId)
-      }
     }
   }
+}
 </script>

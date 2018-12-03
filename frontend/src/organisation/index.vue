@@ -26,40 +26,40 @@
 </template>
 
 <script>
-  /**
-   * A organisation component.
-   */
-  import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
-  import MoLog from '@/components/MoLog/MoLog'
-  import MoTreeView from '@/components/MoTreeView/MoTreeView'
-  import { mapGetters } from 'vuex'
+/**
+ * A organisation component.
+ */
+import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
+import MoLog from '@/components/MoLog/MoLog'
+import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import { mapGetters } from 'vuex'
 
-  export default {
-    components: {
-      MoOrganisationUnitWorkflows,
-      MoLog,
-      MoTreeView
-    },
-    data () {
-      return {
-        selected: undefined
-      }
-    },
+export default {
+  components: {
+    MoOrganisationUnitWorkflows,
+    MoLog,
+    MoTreeView
+  },
+  data () {
+    return {
+      selected: undefined
+    }
+  },
 
-    computed: {
-      /**
-       * Get organisation uuid.
-       */
-      ...mapGetters({
-        currentUnit: 'organisationUnit/GET_ORG_UNIT'
-      })
-    },
-    watch: {
-      selected (val) {
-        this.$router.push({ name: 'OrganisationDetail', params: { uuid: val.uuid } })
-      }
+  computed: {
+    /**
+     * Get organisation uuid.
+     */
+    ...mapGetters({
+      currentUnit: 'organisationUnit/GET_ORG_UNIT'
+    })
+  },
+  watch: {
+    selected (val) {
+      this.$router.push({ name: 'OrganisationDetail', params: { uuid: val.uuid } })
     }
   }
+}
 </script>
 
 <style scoped>
