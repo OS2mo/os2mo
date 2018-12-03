@@ -9,6 +9,7 @@ Dette er den fuldstændige dokumentation til OS2MO 2.0 — MedarbejderOrganisati
 
    README
    cookbook
+   model
    dev
    news
 
