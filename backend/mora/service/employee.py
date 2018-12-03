@@ -52,11 +52,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             valid_from = \
                 util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
         except ValueError as exc:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_CPR_NOT_VALID,
-                cpr=cpr,
-                cause=exc,
-            )
+            exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
 
         userids = c.bruger.fetch(
             tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
@@ -64,10 +60,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         )
 
         if userids and userid not in userids:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_EXISTING_CPR,
-                cpr=cpr,
-            )
+            exceptions.ErrorCodes.V_EXISTING_CPR(cpr=cpr)
 
         valid_to = util.POSITIVE_INFINITY
         bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
@@ -118,8 +111,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                                                   mapping.EMPLOYEE)
 
             if original_uuid and original_uuid != userid:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                exceptions.ErrorCodes.E_INVALID_INPUT(
                     'cannot change employee uuid!',
                 )
 
@@ -259,7 +251,7 @@ def list_employees(orgid):
     kwargs = dict(
         limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
-        tilhoerer=str(orgid),
+        tilhoerer=orgid,
         gyldighed='Aktiv',
     )
 
@@ -322,7 +314,7 @@ def get_employee(id):
     if r:
         return flask.jsonify(r)
     else:
-        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND)
+        exceptions.ErrorCodes.E_USER_NOT_FOUND()
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
@@ -430,8 +422,7 @@ def get_employee_history(employee_uuid):
                                       registrerettil='infinity')
 
     if not user_registrations:
-        raise exceptions.HTTPException(exceptions.ErrorCodes.E_USER_NOT_FOUND,
-                                       employee_uuid=employee_uuid)
+        exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
 
     history_entries = list(map(common.convert_reg_to_history,
                                user_registrations))

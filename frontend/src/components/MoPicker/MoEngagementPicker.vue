@@ -7,7 +7,7 @@
       :name="nameId"
       :id="nameId"
       :ref="nameId"
-      data-vv-as="Engagementer"
+      :data-vv-as="$tc('shared.engagement', 2)"
       v-show="!isLoading" 
       class="form-control col" 
       v-model="selected"
@@ -15,7 +15,7 @@
       :disabled="!employeeDefined"
       v-validate="{required: true}"
     >
-      <option disabled>{{label}}</option>
+      <option disabled>{{$tc('shared.engagement', 2)}}</option>
       <option v-for="e in orderedListOptions" :key="e.uuid" :value="e">
           {{e.engagement_type.name}}, {{e.org_unit.name}}
       </option>
@@ -72,13 +72,12 @@
     data () {
       return {
         /**
-         * The selected, engagements, isLoading, label component value.
+         * The selected, engagements, isLoading component value.
          * Used to detect changes and restore the value.
          */
         selected: null,
         engagements: [],
-        isLoading: false,
-        label: ''
+        isLoading: false
       }
     },
 

@@ -1,7 +1,4 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
-import BootstrapVue from 'bootstrap-vue'
 import App from './App'
 import router from './router'
 import VueI18n from 'vue-i18n'
@@ -12,15 +9,14 @@ import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
 import store from './store'
 
-import 'vue-awesome/icons'
+import './icons'
+
 import Icon from 'vue-awesome/components/Icon'
 
-require('../node_modules/bootstrap/dist/css/bootstrap.css')
-require('../node_modules/bootstrap-vue/dist/bootstrap-vue')
-require('./assets/css/global.css')
+import 'bootstrap/dist/css/bootstrap.css'
 
-const moment = require('moment')
-require('moment/locale/da')
+import './assets/css/global.css'
+import 'moment/locale/da'
 
 Vue.config.productionTip = false
 
@@ -35,12 +31,8 @@ Validator.localize('da', messagesDA)
 
 Validator.extend('date_in_range', DateInRange)
 
-Vue.use(BootstrapVue)
 Vue.use(VueI18n)
 Vue.use(VeeValidate, veeConfig)
-Vue.use(require('vue-moment'), {
-  moment
-})
 Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
 Vue.component('icon', Icon)
 
@@ -53,12 +45,9 @@ const i18n = new VueI18n({
   messages
 })
 
-/* eslint-disable no-new */
 new Vue({
-  el: '#app',
-  i18n,
   router,
   store,
-  template: '<App/>',
-  components: { App }
-})
+  i18n,
+  render: h => h(App)
+}).$mount('#app')

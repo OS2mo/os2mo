@@ -102,11 +102,15 @@
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
   import MoTableDetail from '@/components/MoTable/MoTableDetail'
+  import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
+  import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
   export default {
     components: {
       MoLoader,
-      MoTableDetail
+      MoTableDetail,
+      'b-tabs': bTabs,
+      'b-tab': bTab
     },
 
     props: {

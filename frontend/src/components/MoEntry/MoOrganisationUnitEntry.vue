@@ -16,6 +16,7 @@
 
       <mo-organisation-unit-picker
         v-model="orgUnit.parent"
+        :label="$t('input_fields.select_super_unit')"
         required
       />
 

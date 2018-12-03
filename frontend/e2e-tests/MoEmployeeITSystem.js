@@ -1,11 +1,8 @@
-let moment = require('moment')
-
-import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
 import { baseURL } from './support'
 
-fixture('Employee IT system test')
-  .page(`${baseURL}/medarbejder/1ce40e25-6238-4202-9e93-526b348ec745`)
+fixture('MoEmployeeITSystem')
+  .page(`${baseURL}/medarbejder/75878240-2999-4bb4-b9c0-665f1553ef25`)
 
 test('Read IT System', async t => {
   await t
@@ -13,5 +10,5 @@ test('Read IT System', async t => {
     .expect(VueSelector('mo-link').filter('.itsystem-name').innerText)
     .contains('Active Directory')
     .expect(VueSelector('mo-link').filter('.user_key').innerText)
-    .contains('chef@ballerup.dk')
+    .contains('LineC')
 })

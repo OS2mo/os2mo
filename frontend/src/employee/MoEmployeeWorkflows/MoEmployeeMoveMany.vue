@@ -72,16 +72,13 @@
   import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
   import MoTable from '@/components/MoTable/MoTable'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import { mapFields } from 'vuex-map-fields'
   import { mapGetters } from 'vuex'
 
   export default {
-    /**
-     * Requesting a new validator scope to its children.
-     */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoDatePicker,
@@ -112,15 +109,6 @@
       ...mapGetters('employeeMoveMany', [
         'employees'
       ]),
-
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      },
 
       /**
        * Set dateSelected to disable if moveDate is selected.

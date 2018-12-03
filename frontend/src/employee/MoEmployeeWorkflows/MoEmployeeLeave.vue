@@ -34,29 +34,16 @@
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
   import ButtonSubmit from '@/components/ButtonSubmit'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoEmployeePicker,
       MoLeaveEntry,
       ButtonSubmit
-    },
-
-    data () {
-      return {
-      /**
-        * The isLoading component value.
-        * Used to detect changes and restore the value.
-        */
-        isLoading: false
-      }
     },
 
     computed: {
@@ -66,17 +53,9 @@
       ...mapFields('employeeLeave', [
         'employee',
         'leave',
+        'isLoading',
         'backendValidationError'
-      ]),
-
-      /**
-       * Check validity of form. this.fields is a magic property created by vee-validate
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      }
+      ])
     },
 
     methods: {
@@ -85,17 +64,11 @@
        * Then throw a error if not.
        */
       createLeave () {
+        let vm = this
         if (this.formValid) {
-          let vm = this
-          vm.isLoading = true
-          this.$store.dispatch('employeeLeave/LEAVE_EMPLOYEE')
-            .then(response => {
-              vm.isLoading = false
-              if (response.error) {
-                vm.backendValidationError = response.error_key
-              } else {
-                vm.$refs.employeeLeave.hide()
-              }
+          this.$store.dispatch(`employeeLeave/leaveEmployee`)
+            .then(() => {
+              vm.$refs.employeeLeave.hide()
             })
         } else {
           this.$validator.validateAll()

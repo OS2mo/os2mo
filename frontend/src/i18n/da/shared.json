@@ -1,4 +1,6 @@
 {
+  "welcome_message": "Velkommen til MO",
+  "welcome_tagline": "Medarbejder | Organisation",
   "address": "Adresse | Adresser",
   "association": "Tilknytning | Tilknytninger",
   "date": {
@@ -15,8 +17,12 @@
   "unit": "Enhed | Enheder",
   "leave": "Orlov",
   "manager_function": "Lederfunktion | Lederfunktioner",
+  "overview": "Overblik",
+  "organisation_mapping": "Organisationssammenkobling",
+  "history": "Historik",
   "past": "Fortid",
   "present": "Nutid",
   "future": "Fremtid",
-  "query": "Forespørgsel | Forespørgsler"
+  "query": "Forespørgsel | Forespørgsler",
+  "manager_responsibility": "Lederansvar"
 }

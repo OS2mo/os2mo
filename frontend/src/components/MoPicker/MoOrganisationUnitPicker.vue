@@ -4,12 +4,12 @@
     <input 
       :name="nameId"
       :id="nameId"
-      data-vv-as="Enhed" 
+      :data-vv-as="label" 
       :ref="nameId"
       type="text" 
       class="form-control" 
       autocomplete="off"
-      :placeholder="$t('input_fields.choose_unit')"
+      :placeholder="label"
       v-model="orgName"
       @click.stop="toggleTree()"
       v-validate="{required: required}"
@@ -60,10 +60,7 @@
       /**
        * Defines a default label name.
        */
-      label: {
-        default: 'Angiv overenhed',
-        type: String
-      },
+      label: String,
 
       /**
        * This boolean property disable the value.

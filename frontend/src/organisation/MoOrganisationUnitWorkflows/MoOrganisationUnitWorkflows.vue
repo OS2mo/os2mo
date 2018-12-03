@@ -58,6 +58,7 @@
   import MoOrganisationUnitRename from './MoOrganisationUnitRename'
   import MoOrganisationUnitMove from './MoOrganisationUnitMove'
   import MoOrganisationUnitTerminate from './MoOrganisationUnitTerminate'
+  import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 
   export default {
     components: {
@@ -67,6 +68,9 @@
       MoOrganisationUnitRename,
       MoOrganisationUnitMove,
       MoOrganisationUnitTerminate
+    },
+    directives: {
+      'b-modal': bModalDirective
     },
 
     methods: {

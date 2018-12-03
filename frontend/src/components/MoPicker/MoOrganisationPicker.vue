@@ -6,7 +6,7 @@
       v-model="selectedOrganisation"
       @change="resetToBaseRoute"
     >
-      <option disabled>Vælg organisation</option>
+      <option disabled>{{$t('input_fields.choose_organisation')}}</option>
       <option 
         v-for="org in orderedListOptions" 
         :key="org.uuid"
@@ -23,8 +23,10 @@
    * A organisation picker component.
    */
 
+  import sortBy from 'lodash.sortby'
   import Organisation from '@/api/Organisation'
   import { EventBus } from '@/EventBus'
+  import { mapGetters } from 'vuex'
 
   export default {
     name: 'MoOrganisationPicker',
@@ -38,7 +40,7 @@
 
     props: {
       /**
-       * Create two-way data bindings with the component.
+       * @model
        */
       value: Object,
 
@@ -70,16 +72,13 @@
     },
 
     computed: {
+      ...mapGetters({
+        currentUnit: 'organisationUnit/GET_ORG_UNIT',
+        currentEmployee: 'employee/GET_EMPLOYEE'
+      }),
+
       orderedListOptions () {
-        return this.orgs.slice().sort((a, b) => {
-          if (a.name < b.name) {
-            return -1
-          }
-          if (a.name > b.name) {
-            return 1
-          }
-          return 0
-        })
+        return sortBy(this.orgs, name)
       }
     },
 
@@ -99,8 +98,31 @@
        */
       selectedOrganisation (newVal) {
         this.$store.commit(`organisation/setOrg`, newVal)
-        Organisation.setSelectedOrganisation(newVal)
         this.$emit('input', newVal)
+      },
+
+      currentEmployee: {
+        handler (val) {
+          if (val.org) {
+            if (!this.selectedOrganisation ||
+                val.org_uuid !== this.selectedOrganisation.uuid) {
+              this.selectedOrganisation = val.org
+            }
+          }
+        },
+        deep: true
+      },
+
+      currentUnit: {
+        handler (val) {
+          if (val.org) {
+            if (!this.selectedOrganisation ||
+                val.org_uuid !== this.selectedOrganisation.uuid) {
+              this.selectedOrganisation = val.org
+            }
+          }
+        },
+        deep: true
       },
 
       /**
@@ -120,9 +142,12 @@
         Organisation.getAll(this.atDate)
           .then(response => {
             vm.orgs = response
-            if (!vm.selectedOrganisation) {
-              vm.selectedOrganisation = response[0]
-            }
+
+            let org = ((vm.currentUnit && vm.currentUnit.org) ||
+                       (vm.currentEmployee && vm.currentEmployee.org) ||
+                       response[0])
+
+            vm.selectedOrganisation = org
           })
       },
 

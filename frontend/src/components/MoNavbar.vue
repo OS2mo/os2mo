@@ -2,13 +2,13 @@
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
     <router-link class="logo col-1" :to="{ name: 'Landing'}"></router-link>
 
-    <button 
-      class="navbar-toggler" 
-      type="button" 
-      data-toggle="collapse" 
-      data-target="#navbarSupportedContent" 
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent"
-      aria-expanded="false" 
+      aria-expanded="false"
       aria-label="Toggle navigation"
     >
       <span class="navbar-toggler-icon"></span>
@@ -42,11 +42,11 @@
       </router-link>
 
       <router-link :to="{ name: 'Help'}">
-        <button 
-          type="button" 
+        <button
+          type="button"
           :aria-label="$t('common.help')"
-          class="btn btn-link text-white" 
-          v-shortkey.once="['h']" 
+          class="btn btn-link text-white"
+          v-shortkey.once="['h']"
           @shortkey="$router.push({name: 'Help'})"
         >
           <icon name="question-circle"/>
@@ -67,15 +67,18 @@
 </template>
 
 <script>
-  import {AUTH_LOGOUT} from '@/store/actions/auth'
   import MoSearchBar from './MoSearchBar/MoSearchBar'
   import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
   import Service from '@/api/HttpCommon'
+  import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
+  import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
 
   export default {
     components: {
       MoSearchBar,
-      MoOrganisationPicker
+      MoOrganisationPicker,
+      'b-dropdown': bDropdown,
+      'b-dropdown-item': bDropdownItem
     },
 
     data () {
@@ -101,7 +104,7 @@
        */
       logout () {
         let vm = this
-        this.$store.dispatch(AUTH_LOGOUT, vm.user)
+        this.$store.dispatch('AUTH_LOGOUT', vm.user)
       }
     }
   }

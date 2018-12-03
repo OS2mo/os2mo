@@ -1,7 +1,4 @@
 import Service from './HttpCommon'
-import { EventBus } from '../EventBus'
-
-let selectedOrganisation = {}
 
 export default {
 
@@ -55,24 +52,5 @@ export default {
       .catch(error => {
         console.log(error.response)
       })
-  },
-
-  /**
-   * Set the selected organisation
-   * @param {Object} org - the organisation to set
-   */
-  setSelectedOrganisation (org) {
-    if (selectedOrganisation.uuid !== org.uuid) {
-      selectedOrganisation = org
-      EventBus.$emit('organisation-changed', selectedOrganisation)
-    }
-  },
-
-  /**
-   * Get the selected organisation
-   * @returns {Object} an organisation object
-   */
-  getSelectedOrganisation () {
-    return selectedOrganisation
   }
 }

@@ -3,7 +3,7 @@
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col unit-role" 
-        label="Vælg enhed" 
+        :label="$t('input_fields.select_unit')" 
         v-model="entry.org_unit"
         required
       />

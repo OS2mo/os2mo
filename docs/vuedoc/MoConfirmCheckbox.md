@@ -30,4 +30,8 @@ A confirm checkbox component.
 - `nameId` 
 
   Get default name. 
+- `alertData` 
+
+   **dependencies:** `entryName`, `entryOrgName`, `entryDate` 
+
 

@@ -74,15 +74,12 @@
   import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
   import ButtonSubmit from '@/components/ButtonSubmit'
   import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
+  import ValidateForm from '@/mixins/ValidateForm'
+  import ModalBase from '@/mixins/ModalBase'
   import { mapFields } from 'vuex-map-fields'
 
   export default {
-      /**
-       * Requesting a new validator scope to its children.
-       */
-    $_veeValidate: {
-      validator: 'new'
-    },
+    mixins: [ValidateForm, ModalBase],
 
     components: {
       MoDatePicker,
@@ -132,15 +129,6 @@
         'original',
         'backendValidationError'
       ]),
-
-      /**
-       * Loop over all contents of the fields object and check if they exist and valid.
-       */
-      formValid () {
-        return Object.keys(this.fields).every(field => {
-          return this.fields[field] && this.fields[field].valid
-        })
-      },
 
       /**
        * Check if the dates are valid.

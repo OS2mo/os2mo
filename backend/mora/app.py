@@ -36,6 +36,8 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
     app.config.from_object(settings)
 
+    app.url_map.converters['uuid'] = util.StrUUIDConverter
+
     if overrides is not None:
         app.config.update(overrides)
 
@@ -72,8 +74,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     @app.route('/<path:path>')
     def root(path=''):
         if path.split('/', 1)[0] == 'service':
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
+            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
         return flask.send_file('index.html')
 
