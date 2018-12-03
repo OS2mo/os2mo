@@ -49,6 +49,7 @@ blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
 conn = psycopg2.connect(settings.USER_SETTINGS_CONN_STRING)
 cur = conn.cursor()
 
+
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database
     :param query: The query
@@ -381,15 +382,20 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.LOCATION] = ''
 
-            orgunit = _read_local_settings(unitid)
-            if len(orgunit) > 0:
-                org_settings = {'orgunit': orgunit}
-                r[mapping.USER_SETTINGS] = org_settings
-            elif parent and mapping.USER_SETTINGS in parent:
-                r[mapping.USER_SETTINGS] = parent[mapping.USER_SETTINGS]
-            else:
-                global_settings = _read_local_settings()
-                r[mapping.USER_SETTINGS] = {'orgunit': global_settings}
+            settings = {}
+            local_settings = _read_local_settings(unitid)
+            for setting, value in local_settings.items():
+                settings[setting] = value
+            if parent:
+                parent_settings = parent[mapping.USER_SETTINGS]['orgunit']
+                for setting, value in parent_settings.items():
+                    if setting not in settings:
+                        settings[setting] = value
+            global_settings = _read_local_settings()
+            for setting, value in global_settings.items():
+                if setting not in settings:
+                    settings[setting] = value
+            r[mapping.USER_SETTINGS] = {'orgunit': settings}
 
         r[mapping.PARENT] = parent
 
