@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Tidsmaskinen</h1>
+    <h1>{{$tc('common.time_machine', 2)}}</h1>
 
     <div class="row">
       <div class="col">
@@ -15,17 +15,17 @@
 </template>
 
 <script>
-  /**
-   * A timemachine component.
-   */
+/**
+ * A timemachine component.
+ */
 
-  import MoTimeMachineColumn from './MoTimeMachineColumn'
+import MoTimeMachineColumn from './MoTimeMachineColumn'
 
-  export default {
-    name: 'MoTimeMachine',
+export default {
+  name: 'MoTimeMachine',
 
-    components: {
-      MoTimeMachineColumn
-    }
+  components: {
+    MoTimeMachineColumn
   }
+}
 </script>

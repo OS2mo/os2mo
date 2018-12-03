@@ -27,27 +27,22 @@ In addition, we have ``docs`` for building the documentation.
 
 '''
 
-import base64
 import doctest
 import json
 import os
 import random
-import ssl
+import socket
 import subprocess
 import sys
 import threading
 import traceback
 import unittest
-import warnings
 
 import click
 import flask
-import requests
-import urllib3
 import werkzeug.serving
 
 from .. import settings
-from ..auth import tokens
 
 basedir = os.path.dirname(os.path.dirname(__file__))
 backenddir = os.path.dirname(basedir)
@@ -247,65 +242,6 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
         raise Exit()
 
 
-@cli.command('auth')
-@click.option('--user', '-u',
-              help="account user name",
-              prompt='Enter user name')
-@click.option('--password', '-p',
-              help="account password")
-@click.option('--raw', '-r', is_flag=True,
-              help="don't pack and wrap the token")
-@click.option('--verbose', '-v', is_flag=True,
-              help="pretty-print the token")
-@click.option('--insecure', '-k', is_flag=True,
-              help="disable SSL/TLS security checks")
-@click.option('--cert-only', '-c', is_flag=True,
-              help="output embedded certificates in PEM form")
-def auth_(**options):
-    '''Test and extract authentication tokens from SAML IdP.'''
-    if options['insecure']:
-        warnings.simplefilter('ignore', urllib3.exceptions.HTTPWarning)
-    else:
-        warnings.simplefilter('error', urllib3.exceptions.HTTPWarning)
-
-    if options['user'] and not options['password']:
-        options['password'] = click.prompt(
-            'Enter password for {}'.format(
-                options['user'],
-            ),
-            hide_input=True,
-            err=True,
-        )
-
-    try:
-        # this is where the magic happens
-        token = tokens.get_token(
-            options['user'], options['password'],
-            raw=options['raw'] or options['cert_only'],
-            verbose=options['verbose'],
-            insecure=options['insecure'],
-        )
-    except requests.exceptions.SSLError as e:
-        msg = ('SSL request failed; you probably need to install the '
-               'appropriate certificate authority, or use the correct '
-               'host name.')
-        print(msg, file=sys.stderr)
-        print('error:', e, file=sys.stderr)
-
-        raise click.Abort
-
-    if not options['cert_only']:
-        sys.stdout.write(token.decode())
-
-    else:
-        from lxml import etree
-
-        for el in etree.fromstring(token).findall('.//{*}X509Certificate'):
-            data = base64.standard_b64decode(el.text)
-
-            sys.stdout.write(ssl.DER_cert_to_PEM_cert(data))
-
-
 @cli.command()
 def full_run(**kwargs):
     '''Runs a development server with a one-off LoRA.
@@ -318,85 +254,82 @@ def full_run(**kwargs):
 
     from oio_rest import app as lora_app
     from oio_rest.utils import test_support
+    from oio_rest import db
     import settings as lora_settings
 
     from mora import app
-    from mora.importing import spreadsheets
+
+    def make_server(app, startport=5000):
+        '''create a server at the first available port after startport'''
+        for port in range(startport, 65536):
+            try:
+                return (
+                    werkzeug.serving.make_server(
+                        'localhost', port, app,
+                        threaded=True,
+                    ),
+                    port,
+                )
+            except OSError as exc:
+                pass
+
+        raise exc
+
+    lora_server, lora_port = make_server(lora_app.app, 6000)
+    mora_server, mora_port = make_server(app.create_app(), 5000)
 
     with \
             test_support.psql() as psql, \
             mock.patch('settings.LOG_AMQP_SERVER', None), \
             mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
-            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True):
+            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True), \
+            mock.patch('oio_rest.db.pool',
+                       psycopg2.pool.PersistentConnectionPool(
+                           0, 100,
+                           **psql.dsn(database=lora_settings.DATABASE),
+                       )), \
+            mock.patch('mora.settings.LORA_URL',
+                       'http://localhost:{}/'.format(lora_port)):
         test_support._initdb()
 
-        lora_server = werkzeug.serving.make_server(
-            'localhost', 0, lora_app.app,
-            threaded=True,
-        )
-
-        lora_port = lora_server.socket.getsockname()[1]
-
-        lora_thread = threading.Thread(
+        threading.Thread(
             target=lora_server.serve_forever,
             args=(),
             daemon=True,
-        )
+        ).start()
 
-        lora_thread.start()
+        print(' * LoRA running at {}'.format(settings.LORA_URL))
 
-        with \
-                mock.patch('oio_rest.db.pool',
-                           psycopg2.pool.PersistentConnectionPool(
-                               1, 100,
-                               database=lora_settings.DATABASE,
-                               user=psql.dsn()['user'],
-                               password=psql.dsn().get('password'),
-                               host=psql.dsn()['host'],
-                               port=psql.dsn()['port'],
-                           )), \
-                mock.patch('mora.settings.LORA_URL',
-                           'http://localhost:{}/'.format(lora_port)):
-            print(' * LoRA running at {}'.format(settings.LORA_URL))
+        conn = db.get_connection()
 
-            spreadsheets.run(
-                target=settings.LORA_URL.rstrip('/'),
-                sheets=[
-                    os.path.join(
-                        backenddir,
-                        'tests/fixtures/importing/BALLERUP.csv',
-                    ),
-                ],
-                dry_run=False,
-                verbose=False,
-                jobs=1,
-                failfast=False,
-                include=None,
-                check=False,
-                exact=False,
-            )
+        try:
+            with \
+                    conn.cursor() as curs, \
+                    open(os.path.join(backenddir, 'tests', 'fixtures',
+                                      'dummy.sql')) as fp:
+                curs.execute(fp.read())
 
-            mora_server = werkzeug.serving.make_server(
-                'localhost', 0, app.create_app(),
-                threaded=True,
-            )
+        finally:
+            db.pool.putconn(conn)
 
-            mora_port = mora_server.socket.getsockname()[1]
+        print(' * Backend running at http://localhost:{}/'.format(mora_port))
 
-            mora_thread = threading.Thread(
-                target=mora_server.serve_forever,
-                args=(),
-                daemon=True,
-            )
+        threading.Thread(
+            target=mora_server.serve_forever,
+            args=(),
+            daemon=True,
+        ).start()
 
-            mora_thread.start()
-
-            with subprocess.Popen(
+        with subprocess.Popen(
                 get_yarn_cmd('dev'),
                 cwd=frontenddir,
                 env={
                     **os.environ,
                     'BASE_URL': 'http://localhost:{}'.format(mora_port),
                 },
-            ) as frontend:
+        ) as frontend:
                 pass
+
+        db.pool.closeall()
+        mora_server.shutdown()
+        lora_server.shutdown()

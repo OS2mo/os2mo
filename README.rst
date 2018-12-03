@@ -52,6 +52,7 @@ LoRa (Backend / Model)
 En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
+LoRa anvender OIO-standarderne for sag, dokument, organisation og klassifikation
 
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -203,7 +204,10 @@ Konfiguration
 Indstillinger gemmes i ``setup/mora.json``. Den vigtiste er
 ``LORA_URL``; denne kan også sættes som en miljøvariabel::
 
-  MORA_LORA_URL=http://localhost:5000 ./flask.sh run
+  OS2MO_LORA_URL=http://localhost:5000 ./flask.sh run
+
+Alternativt kan stien til konfigurationsfilen angives med miljøvariablen
+``OS2MO_CONFIG_FILE``.
 
 
 Testsuiten
@@ -246,3 +250,34 @@ Kør nedenstående kommando for at autogenerere dokumentationen::
 
 Dokumentation kan nu findes ved at åbne filen
 ``/sti/til/mora/docs/out/index.html``.
+
+Kodestandarder
+--------------
+
+Der anvendes overalt i python-koden styleguiden `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
+
+Licens og Copyright
+-------------------
+
+Copyright (c) 2017-2018, Magenta ApS.
+
+Dette værk er frigivet under `Mozilla Public License, version 2.0 <https://www.mozilla.org/en-US/MPL/>`_, som gengivet i ``LICENSE``. 
+Dette er et OS2 projekt. Ophavsretten tilhører de individuelle bidragydere.
+
+Der findes en version af core-koden, og den er placeret her: `https://github.com/OS2mo <https://github.com/OS2mo>`_
+
+Værket anvender følgende Open Source software-komponenter:
+
+* `Flask <https://www.palletsprojects.com/p/flask/>`_, BSD License
+* `Flask-Session <https://github.com/fengsp/flask-session>`_, BSD License
+* `gevent <http://www.gevent.org/>`_, MIT License
+* `grequests <https://github.com/kennethreitz/grequests>`_, BSD License
+* `lxml <http://lxml.de/>`_, BSD License
+* `pyexcel <https://github.com/pyexcel/pyexcel>`_, New BSD License
+* `pyexcel-io <https://github.com/pyexcel/pyexcel-io>`_, BSD License
+* `pyexcel-ods <https://github.com/pyexcel/pyexcel-ods>`_, New BSD License
+* `pyexcel-xlsx <https://github.com/pyexcel/pyexcel-xlsx>`_, New BSD License
+* `python-dateutil <https://dateutil.readthedocs.io>`_, BSD License, Apache Software License
+* `python3-saml <https://github.com/onelogin/python3-saml>`_, MIT License
+* `requests <http://python-requests.org>`_, Apache Software License
+* `vue.js <https://vuejs.org/>`_, MIT License

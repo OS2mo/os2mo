@@ -7,38 +7,38 @@
 </template>
 
 <script>
-  /**
-   * A cpr component.
-   */
+/**
+ * A cpr component.
+ */
 
-  import MoCprSearch from './MoCprSearch'
-  import MoCprResult from './MoCprResult'
+import MoCprSearch from './MoCprSearch'
+import MoCprResult from './MoCprResult'
 
-  export default {
-    name: 'MoCpr',
+export default {
+  name: 'MoCpr',
 
-    components: {
-      MoCprSearch,
-      MoCprResult
-    },
+  components: {
+    MoCprSearch,
+    MoCprResult
+  },
 
-    data () {
-      return {
+  data () {
+    return {
       /**
-        * The result component value.
-        * Used to detect changes and restore the value.
-        */
-        result: {}
-      }
-    },
-
-    watch: {
-      /**
-       * Whenever result change update val.
+       * The result component value.
+       * Used to detect changes and restore the value.
        */
-      result (val) {
-        this.$emit('input', val)
-      }
+      result: {}
+    }
+  },
+
+  watch: {
+    /**
+     * Whenever result change update val.
+     */
+    result (val) {
+      this.$emit('input', val)
     }
   }
+}
 </script>

@@ -42,7 +42,7 @@ class MockTests(util.TestCase):
         self.app.config['SAML_USERNAME_ATTR'] = 'whatever'
 
         with self.client.session_transaction() as sess:
-            sess['samlUserdata'] = {'whatever': ['USERNAME']}
+            sess['samlAttributes'] = {'whatever': ['USERNAME']}
 
         self.assertRequestResponse(
             '/service/user',

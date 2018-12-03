@@ -3,38 +3,52 @@
     <div class="card-body d-flex flex-column">
       <h4 class="card-title">
         <icon name="folder-open"/>
-        Overblik
+        {{$t('common.overview')}}
       </h4>
 
       <div id="tree-wrapper">
-        <mo-tree-view :org-uuid="orgUuid" linkable/>
+        <mo-tree-view v-model="selected" :unit-uuid="currentUnit.uuid"/>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-  /**
-   * A the left menu component.
-   */
+/**
+ * A the left menu component.
+ */
 
-  import { mapGetters } from 'vuex'
-  import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import { mapGetters } from 'vuex'
+import MoTreeView from '@/components/MoTreeView/MoTreeView'
 
-  export default {
-    components: {
-      MoTreeView
-    },
-
-    computed: {
-      /**
-       * Get organisation uuid.
-       */
-      ...mapGetters({
-        orgUuid: 'organisation/getUuid'
-      })
+export default {
+  components: {
+    MoTreeView
+  },
+  data () {
+    return {
+      selected: undefined
+    }
+  },
+  computed: {
+    /**
+     * Get organisation uuid.
+     */
+    ...mapGetters({
+      currentUnit: 'organisationUnit/GET_ORG_UNIT'
+    })
+  },
+  watch: {
+    selected (newUnit) {
+      if (newUnit.uuid !== this.currentUnit.uuid) {
+        this.$router.push({
+          name: 'OrganisationDetail',
+          params: { uuid: newUnit.uuid }
+        })
+      }
     }
   }
+}
 </script>
 
 <style scoped>

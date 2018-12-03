@@ -20,6 +20,7 @@ from unittest.mock import patch
 import flask
 import flask_testing
 import jinja2
+import psycopg2
 import requests
 import requests_mock
 import time
@@ -332,17 +333,13 @@ class TestCaseMixin(object):
 
     def create_app(self, overrides=None):
         os.makedirs(BUILD_DIR, exist_ok=True)
-        session_dir = tempfile.mkdtemp(prefix='session', dir=BUILD_DIR)
-
-        self.addCleanup(shutil.rmtree, session_dir)
 
         return app.create_app({
             'DEBUG': False,
             'TESTING': True,
             'LIVESERVER_PORT': 0,
             'PRESERVE_CONTEXT_ON_EXCEPTION': False,
-            'SESSION_TYPE': 'filesystem',
-            'SESSION_FILE_DIR': session_dir,
+            'SECRET_KEY': 'secret',
             **(overrides or {})
         })
 
@@ -509,6 +506,16 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
 
     def load_sample_structures(self, **kwargs):
         load_sample_structures(**kwargs)
+
+    def load_sql_fixture(self, fixture_name='dummy.sql'):
+        '''Load an SQL fixture'''
+        assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
+
+        with psycopg2.connect(self.db_url) as conn, conn.cursor() as curs:
+            conn.autocommit = True
+
+            with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
+                curs.execute(fp.read())
 
     def setUp(self):
         lora_server = werkzeug.serving.make_server(

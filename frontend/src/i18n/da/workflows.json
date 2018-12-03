@@ -22,6 +22,9 @@
     "create_unit": "Opret enhed",
     "rename_unit": "Omdøb enhed",
     "move_unit": "Flyt enhed",
-    "terminate_unit": "Afslut enhed"
+    "terminate_unit": "Afslut enhed",
+    "messages": {
+      "following_will_be_terminated": "Følgende vil blive afsluttet for enheden:"
+    }
   }
 }

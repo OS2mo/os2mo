@@ -1,10 +1,10 @@
 <template>
   <div class="wrapper">
     <div class="card" @click="open = !open">
-      <div 
-        class="card-header" 
-        v-b-toggle="nameId" 
-        aria-expanded="true" 
+      <div
+        class="card-header"
+        v-b-toggle="nameId"
+        aria-expanded="true"
         :aria-controls="nameId"
       >
         <icon :name="open ? 'caret-down' : 'caret-right'"/>
@@ -13,69 +13,76 @@
     </div>
 
     <b-collapse :id="nameId" :visible="open" @show="$emit('show')">
-      <slot>
-        Put some content here
-      </slot>
+      <slot></slot>
     </b-collapse>
   </div>
 </template>
 
 <script>
-  /**
-   * A collapse component.
-   */
+/**
+ * A collapse component.
+ */
 
-  export default {
-    props: {
-      /**
-       * Defines a title.
-       */
-      title: {
-        type: String,
-        required: true
-      },
+import bCollapse from 'bootstrap-vue/es/components/collapse/collapse'
+import bToggleDirective from 'bootstrap-vue/es/directives/toggle/toggle'
 
-      /**
-       * This Boolean property defines the visible.
-       */
-      visible: Boolean
+export default {
+  components: {
+    'b-collapse': bCollapse
+  },
+  directives: {
+    'b-toggle': bToggleDirective
+  },
+  props: {
+    /**
+     * Defines a title.
+     */
+    title: {
+      type: String,
+      required: true
     },
 
-    data () {
-      return {
-      /**
-        * The open component value.
-        * Used to detect changes and restore the value.
-        */
-        open: false
-      }
-    },
+    /**
+     * This Boolean property defines the visible.
+     */
+    visible: Boolean
+  },
 
-    computed: {
+  data () {
+    return {
       /**
-       * Get name `mo-collapse`.
+       * The open component value.
+       * Used to detect changes and restore the value.
        */
-      nameId () {
-        return 'mo-collapse-' + this._uid
-      }
-    },
-
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Set open to initiallyOpen.
-       */
-      this.open = this.visible
-      if (this.visible) this.$emit('show')
+      open: false
     }
+  },
+
+  computed: {
+    /**
+     * Get name `mo-collapse`.
+     */
+    nameId () {
+      return 'mo-collapse-' + this._uid
+    }
+  },
+
+  created () {
+    /**
+     * Called synchronously after the instance is created.
+     * Set open to initiallyOpen.
+     */
+    this.open = this.visible
+    if (this.visible) this.$emit('show')
   }
+}
 </script>
 
 <style scoped>
   .wrapper {
     margin-top: 1em;
   }
-  
+
   .card-header {
     border-bottom: none;
     padding: 0.25rem 1.25rem;

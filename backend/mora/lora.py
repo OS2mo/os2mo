@@ -15,14 +15,14 @@ import uuid
 
 import requests
 
-from .auth import base
+import flask_saml_sso
 from . import exceptions
 from . import settings
 from . import util
 
 session = requests.Session()
 session.verify = settings.CA_BUNDLE or True
-session.auth = base.SAMLAuth()
+session.auth = flask_saml_sso.SAMLAuth()
 session.headers = {
     'User-Agent': 'MORA/0.1',
 }
@@ -154,21 +154,13 @@ def _check_response(r):
             msg = r.text
 
         if r.status_code == 400:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
-                message=msg, cause=cause)
+            exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
         elif r.status_code == 401:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_UNAUTHORIZED,
-                message=msg, cause=cause)
+            exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
         elif r.status_code == 403:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_FORBIDDEN,
-                message=msg, cause=cause)
+            exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
         else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_UNKNOWN,
-                message=msg, cause=cause)
+            exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
     return r
 
@@ -270,10 +262,7 @@ class Connector:
                 self.end = self.start + util.MINIMAL_INTERVAL
 
         else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_INVALID_VALIDITY,
-                validity=self.__validity
-            )
+            exceptions.ErrorCodes.V_INVALID_VALIDITY(validity=self.__validity)
 
         defaults.update(
             virkningfra=util.to_lora_time(self.start),

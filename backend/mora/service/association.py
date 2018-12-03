@@ -42,8 +42,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         org_unit = c.organisationenhed.get(org_unit_uuid)
 
         if not org_unit:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND,
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
                 org_unit_uuid=org_unit_uuid,
             )
 

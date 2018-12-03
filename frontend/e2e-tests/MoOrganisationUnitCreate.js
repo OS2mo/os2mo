@@ -4,7 +4,7 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-fixture('Organisation test')
+fixture('MoOrganisationUnitCreate')
   .page(`${baseURL}/organisation/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4`)
 
 const dialog = Selector('#orgUnitCreate')
@@ -12,10 +12,10 @@ const dialog = Selector('#orgUnitCreate')
 const unitSelect = dialog.find('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
 
-const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
+const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
-const parentInput = dialog.find('input[data-vv-as="Enhed"]')
+const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
@@ -46,31 +46,32 @@ test('Workflow: create unit', async t => {
 
   await t
     .setTestSpeed(0.8)
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-unit-create')
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Ballerup VM 2018')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
 
     .click(unitSelect)
-    .click(unitOption.withText('Supportcenter'))
+    .click(unitOption.withText('Fagligt center'))
 
     .click(parentInput)
-    .click(dialog.find('li .item .link-color'))
+    .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(addressInput)
-    .typeText(addressInput.find('input'), 'Hold-An')
-    .expect(addressItem.withText('Hold-An Vej').visible).ok()
+    .typeText(addressInput.find('input'), 'hovedvejen 2')
+    .expect(addressItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(addressInput.find('input').value).contains('Hold-An Vej')
+    .expect(addressInput.find('input').value)
+    .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
 
     // .click(newDate)
     // .click(newDateInput)
@@ -80,14 +81,14 @@ test('Workflow: create unit', async t => {
     //        .withText(today.date().toString()))
     // .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
 
-    .typeText(dialog.find('input[data-vv-as="Telefonnummer"]'), '44772000')
+    .typeText(dialog.find('input[data-vv-as="Tlf"]'), '44772000')
 
     .click(dialog.find('.btn-primary'))
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden med UUID [-0-9a-f]* er blevet oprettet/
     )

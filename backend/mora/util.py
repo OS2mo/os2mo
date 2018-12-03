@@ -36,6 +36,7 @@ import uuid
 import flask
 import dateutil.parser
 import dateutil.tz
+import werkzeug.routing
 
 from . import exceptions
 from . import mapping
@@ -111,8 +112,7 @@ def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
         if default is not _sentinel:
             return default
         else:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_INVALID_INPUT,
+            exceptions.ErrorCodes.E_INVALID_INPUT(
                 'cannot parse {!r}'.format(s)
             )
 
@@ -269,46 +269,35 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
 
 
 def update_config(mapping, config_path, allow_environment=True):
-    '''load the JSON configuration at the given path
-
-    We disregard all entries in the configuration that lack a default
-    within the mapping.
-
-    '''
-
-    keys = {
-        k
-        for k, v in mapping.items()
-        if not k.startswith('_')
-    }
+    """load the JSON configuration at the given path """
 
     try:
         with open(config_path) as fp:
             overrides = json.load(fp)
 
-        for key in keys & overrides.keys():
+        for key in overrides.keys():
             mapping[key] = overrides[key]
 
     except IOError:
-        pass
+        print('Unable to read config {}'.format(config_path))
 
     if allow_environment:
         overrides = {
             k[5:]: v
             for k, v in os.environ.items()
-            if k.startswith('MORA_')
+            if k.startswith('OS2MO_')
         }
 
-        for key in keys & overrides.keys():
-            print(' * Using override MORA_{}={!r}'.format(key, overrides[key]),
-                  file=sys.stderr)
+        for key in overrides.keys():
+            print(
+                ' * Using override OS2MO_{}={!r}'.format(key, overrides[key]),
+                file=sys.stderr)
             mapping[key] = overrides[key]
 
 
 def splitlist(xs, size):
     if size <= 0:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE)
+        exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE()
 
     i = 0
     nxs = len(xs)
@@ -498,8 +487,7 @@ def checked_get(
 
         expected = type(default).__name__
         actual = v
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_TYPE,
+        exceptions.ErrorCodes.E_INVALID_TYPE(
             message='Invalid {!r}, expected {}, got: {}'.format(
                 key, expected, json.dumps(actual),
             ),
@@ -524,8 +512,7 @@ def get_uuid(
     if not v and not required:
         return None
     elif not is_uuid(v):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_UUID,
+        exceptions.ErrorCodes.E_INVALID_UUID(
             message='Invalid uuid for {!r}: {!r}'.format(key, v),
             obj=mapping
         )
@@ -563,8 +550,7 @@ def get_urn(
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
     if not is_urn(v):
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_INVALID_URN,
+        exceptions.ErrorCodes.E_INVALID_URN(
             message='invalid urn for {!r}: {!r}'.format(key, v),
             obj=mapping
         )
@@ -662,16 +648,12 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
     if validity and validity is not sentinel:
         valid_from = validity.get(mapping.FROM, sentinel)
         if valid_from is None:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.V_MISSING_START_DATE,
-                obj=obj
-            )
+            exceptions.ErrorCodes.V_MISSING_START_DATE(obj=obj)
         elif valid_from is not sentinel:
             dt = from_iso_time(valid_from)
 
             if dt.time() != datetime.time.min:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                exceptions.ErrorCodes.E_INVALID_INPUT(
                     '{!r} is not at midnight!'.format(dt.isoformat()),
                 )
 
@@ -680,10 +662,7 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
     if fallback is not None:
         return get_valid_from(fallback)
     else:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_MISSING_START_DATE,
-            obj=obj
-        )
+        exceptions.ErrorCodes.V_MISSING_START_DATE(obj=obj)
 
 
 def get_valid_to(obj, fallback=None) -> datetime.datetime:
@@ -730,8 +709,7 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
             dt = from_iso_time(valid_to)
 
             if dt.time() != datetime.time.min:
-                raise exceptions.HTTPException(
-                    exceptions.ErrorCodes.E_INVALID_INPUT,
+                exceptions.ErrorCodes.E_INVALID_INPUT(
                     '{!r} is not at midnight!'.format(dt.isoformat()),
                 )
 
@@ -750,10 +728,7 @@ def get_validities(obj, fallback=None):
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.V_END_BEFORE_START,
-            obj=obj
-        )
+        exceptions.ErrorCodes.V_END_BEFORE_START(obj=obj)
     return valid_from, valid_to
 
 
@@ -792,13 +767,19 @@ def get_args_flag(name: str):
     '''Get an argument from the Flask request as a boolean flag.
 
     A 'flag' argument is false either when not set or one of the
-    values '0', 'false' and 'False'. Anything else is true.
+    values '0', 'false', 'no' or 'n'. Anything else is true.
 
     '''
 
-    v = flask.request.args.get(name, False)
+    v = flask.request.args.get(name, '')
 
-    if v in ('0', 'false', 'False'):
+    if v.lower() in ('', '0', 'no', 'n', 'false'):
         return False
     else:
         return bool(v)
+
+
+class StrUUIDConverter(werkzeug.routing.UUIDConverter):
+    """Custom URL converter returning UUIDs as strings rather than UUIDs"""
+    def to_python(self, value):
+        return str(value)

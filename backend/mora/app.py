@@ -11,14 +11,14 @@ import os
 import typing
 
 import flask
+import flask_saml_sso
 import werkzeug
-import flask_session
 
 from . import exceptions
 from . import service
 from . import settings
 from . import util
-from .auth import base, sso
+from .auth import base
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -36,15 +36,19 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
     app.config.from_object(settings)
 
+    app.url_map.converters['uuid'] = util.StrUUIDConverter
+
     if overrides is not None:
         app.config.update(overrides)
 
-    flask_session.Session(app)
+    # Initialize SSO and Session
+    flask_saml_sso.init_app(app)
 
+    base.blueprint.before_request(flask_saml_sso.check_saml_authentication)
     app.register_blueprint(base.blueprint)
-    app.register_blueprint(sso.blueprint)
 
     for blueprint in service.blueprints:
+        blueprint.before_request(flask_saml_sso.check_saml_authentication)
         app.register_blueprint(blueprint)
 
     @app.errorhandler(Exception)
@@ -70,8 +74,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     @app.route('/<path:path>')
     def root(path=''):
         if path.split('/', 1)[0] == 'service':
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT)
+            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
         return flask.send_file('index.html')
 

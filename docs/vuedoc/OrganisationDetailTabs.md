@@ -8,6 +8,8 @@ A organisation detail tabs component.
 
   Defines a unique identifier which must be unique. 
 
+- `org-unit-info` ***Object*** (*optional*) 
+
 - `content` ***Object*** (*optional*) 
 
 - `timemachine-friendly` ***Boolean*** (*optional*) 
@@ -15,6 +17,12 @@ A organisation detail tabs component.
   This Boolean property indicates the timemachine output. 
 
 ## data 
+
+- `latestTab` 
+
+  keep track of the latest tap shown 
+
+**initial value:** `[object Object]` 
 
 - `org_unit` 
 
@@ -53,13 +61,6 @@ A organisation detail tabs component.
   Used to add edit and create for orgUnit and address. 
 
 **initial value:** `[object Object]` 
-
-## computed properties 
-
-- `orgUnitInfo` 
-
-   **dependencies:** `$store` 
-
 
 ## events 
 

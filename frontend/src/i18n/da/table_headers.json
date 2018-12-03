@@ -13,7 +13,7 @@
   "org_unit_type": "Enhedstype",
   "parent": "Overenhed",
   "person": "Navn",
-  "responsibility": "Lederansvar",
+  "responsibility": "@:shared.manager_responsibility",
   "role_type": "Rolletype",
   "start_date": "Startdato",
   "user_key": "Kontonavn",

@@ -10,7 +10,7 @@ export default {
     return currentUser
   },
 
-  login (user) {
+  async login (user) {
     return Service.post('/user/login', user)
       .then(response => {
         return response.data
@@ -20,10 +20,10 @@ export default {
       })
   },
 
-  logout (user) {
+  async logout (user) {
     return Service.post('/user/logout', user)
-    .then(response => {
-      return response.data
-    })
+      .then(response => {
+        return response.data
+      })
   }
 }

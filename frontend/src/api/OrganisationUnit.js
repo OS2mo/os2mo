@@ -38,6 +38,20 @@ export default {
   },
 
   /**
+   * Get an organisation unit
+   * @param {String} uuid - organisation unit uuid
+   * @returns {Array} organisation unit children
+   */
+  getAncestorTree (uuid, atDate) {
+    atDate = atDate || new Date()
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/ancestor-tree?at=${atDate}`)
+      .then(response => {
+        return response.data
+      })
+  },
+
+  /**
    * Get the history of all changes made to an organisation unit
    * @param {String} uuid - Uuid for the current organisation unit
    * @returns {Array} A list of historical events for the organisation unit

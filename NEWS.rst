@@ -1,30 +1,80 @@
-Version 0.12.0 (in development)
+Version 0.13.0 (in development)
 ===============================
 
 New features
 ------------
 
+* #24880: Switch to a new implementation of the tree view which allows
+  rendering the tree view properly on load, keeps the selection
+  updated when changing units, and eventually enables rendering
+  filtered trees for to make searching easier.
 
 Internal changes
 ----------------
 * #21966 Implemented use of vuex for employee workflows.
 
+* #23799: Added custom UUID url converter, stringifying UUID parameters in
+  order to standardise our use of UUIDs internally.
 
-* TBD
+Version 0.12.0, 2018-11-16
+==========================
 
-API changes
------------
+New features
+------------
+
+* #23928: We now use our `Flask SAML SSO
+  <https://github.com/magenta-aps/flask_saml_sso/>`_ module for
+  authentication.
+  Session is now shared between OS2MO and LoRa.
+* #22382: Manager hierarchy - the service returns all managers in a
+  hierarchical order
+* #24077: We now support access addresses in addition to regular 
+  addresses from Dansk Adresseregister, with combined autocompletion 
+  of the two.
 
 
-* TBD
+Internal changes
+----------------
+
+* #25193: Improved handling of external configuration files for OS2MO.
+  A warning is no longer triggered on unknown settings.
+* #24545: OS2MO 2.0 as an OS2 Level 3 Product
+* #24664: Meet the requirements of the standard or explain why you do not
+  https://mora.readthedocs.io/en/master/README.html?highlight=sag#lora-backend-model
+* #24656: Documentation of the requirements for operating the solution
+  https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
+* #24659: Only one version of the core code: https://github.com/OS2mo
+* #24662: Best practice for implementing the solution in your organization
+  https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
+* #24661: Presentation material
+  https://www.magenta.dk/?service=rammearkitektur &
+  https://os2.eu/projekt/os2mo
+* #24663: Codestandards
+  https://mora.readthedocs.io/en/master/README.html#kodestandarder
+* #24665: Process plan for the implementation of the solution
+  https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
+* #24655: Open Source license criteria are met 
+  https://mora.readthedocs.io/en/master/README.html#licens-og-copyright
+
 
 Bug fixes
 ---------
 * #24738: Removed sorting and icons for some columns.
 
-
 Known bugs
 ----------
+* #25405: Validation errors when creating org unit relations outside of the
+  parent org unit range are not properly shown in UI
+
+
+Version 0.11.1 2018-11-02
+==========================
+
+Bug fixes
+---------
+
+* #25028: Timemachine now shows and updates the organisation unit 
+  view when changing organisation unit
 
 
 Version 0.11.0, 2018-10-30

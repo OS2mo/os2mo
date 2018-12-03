@@ -2,13 +2,13 @@
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
     <router-link class="logo col-1" :to="{ name: 'Landing'}"></router-link>
 
-    <button 
-      class="navbar-toggler" 
-      type="button" 
-      data-toggle="collapse" 
-      data-target="#navbarSupportedContent" 
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent"
-      aria-expanded="false" 
+      aria-expanded="false"
       aria-label="Toggle navigation"
     >
       <span class="navbar-toggler-icon"></span>
@@ -35,9 +35,23 @@
         </button>
       </router-link>
 
-      <mo-time-machine-button/>
+      <router-link :to="{ name: 'Timemachine'}">
+        <button type="button" :aria-label="$tc('common.time_machine', 1)" class="btn btn-link text-white">
+          <icon name="history"/>
+        </button>
+      </router-link>
 
-      <help-button/>
+      <router-link :to="{ name: 'Help'}">
+        <button
+          type="button"
+          :aria-label="$t('common.help')"
+          class="btn btn-link text-white"
+          v-shortkey.once="['h']"
+          @shortkey="$router.push({name: 'Help'})"
+        >
+          <icon name="question-circle"/>
+        </button>
+      </router-link>
 
       <b-dropdown id="ddown1" variant="primary">
         <template slot="button-content">
@@ -45,7 +59,7 @@
         </template>
 
         <b-dropdown-item @click="logout()">
-          <icon name="sign-out-alt"/> Log ud
+          <icon name="sign-out-alt"/> {{$t('common.sign_out')}}
         </b-dropdown-item>
       </b-dropdown>
     </div>
@@ -53,48 +67,47 @@
 </template>
 
 <script>
-  import {AUTH_LOGOUT} from '@/store/actions/auth'
-  import HelpButton from '@/help/TheHelpButton'
-  import MoTimeMachineButton from '@/timeMachine/MoTimeMachineButton'
-  import MoSearchBar from './MoSearchBar/MoSearchBar'
-  import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
-  import Service from '@/api/HttpCommon'
+import MoSearchBar from './MoSearchBar/MoSearchBar'
+import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
+import Service from '@/api/HttpCommon'
+import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
+import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
 
-  export default {
-    components: {
-      HelpButton,
-      MoTimeMachineButton,
-      MoSearchBar,
-      MoOrganisationPicker
-    },
+export default {
+  components: {
+    MoSearchBar,
+    MoOrganisationPicker,
+    'b-dropdown': bDropdown,
+    'b-dropdown-item': bDropdownItem
+  },
 
-    data () {
-      return {
-        user: {},
-        username: 'N/A'
-      }
-    },
+  data () {
+    return {
+      user: {},
+      username: 'N/A'
+    }
+  },
 
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Get user and then response data.
-       */
-      Service.get('/user').then(response => {
-        this.username = response.data || 'N/A'
-      })
-    },
+  created () {
+    /**
+     * Called synchronously after the instance is created.
+     * Get user and then response data.
+     */
+    Service.get('/user').then(response => {
+      this.username = response.data || 'N/A'
+    })
+  },
 
-    methods: {
-      /**
-       * Get the logout and redirect.
-       */
-      logout () {
-        let vm = this
-        this.$store.dispatch(AUTH_LOGOUT, vm.user)
-      }
+  methods: {
+    /**
+     * Get the logout and redirect.
+     */
+    logout () {
+      let vm = this
+      this.$store.dispatch('AUTH_LOGOUT', vm.user)
     }
   }
+}
 </script>
 
 <style lang="scss" scoped>

@@ -2,8 +2,8 @@
   <div>
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
       <div class="col text-center">
-        <h1>Velkommen til MO</h1>
-        <h4>Medarbejder | Organisation</h4>
+        <h1>{{$t('common.welcome_message')}}</h1>
+        <h4>{{$t('common.welcome_tagline')}}</h4>
       </div>
     </nav>
 
@@ -11,14 +11,21 @@
       <div class="col">
         <button class="btn btn-primary btn-employee" @click="setDestination('Employee')">
           <icon name="user" scale="2"/>
-          <span class="btn-text">Medarbejder</span>
+          <span class="btn-text">{{$tc('shared.employee', 1)}}</span>
         </button>
       </div>
 
       <div class="col">
         <button class="btn btn-success btn-org mt-3" @click="setDestination('Organisation')">
           <icon name="share-alt" scale="2"/>
-          <span class="btn-text">Organisation</span>
+          <span class="btn-text">{{$tc('shared.organisation', 1)}}</span>
+        </button>
+      </div>
+
+      <div class="col">
+        <button class="btn btn-success btn-mapper mt-3" @click="setDestination('OrganisationMapper')">
+          <icon name="share-alt" scale="2"/>
+          <span class="btn-text">{{$t('shared.organisation_mapping')}}</span>
         </button>
       </div>
     </div>
@@ -26,22 +33,22 @@
 </template>
 
 <script>
-  /**
-   * A landing page component.
-   */
+/**
+ * A landing page component.
+ */
 
-  export default {
-    methods: {
-      /**
-       * Push route to destination.
-       */
-      setDestination (val) {
-        this.$router.push({
-          name: val
-        })
-      }
+export default {
+  methods: {
+    /**
+     * Push route to destination.
+     */
+    setDestination (val) {
+      this.$router.push({
+        name: val
+      })
     }
   }
+}
 </script>
 
 <style scoped>
@@ -64,6 +71,11 @@
   .btn-org {
     cursor: pointer;
     max-width: 12em;
+  }
+
+  .btn-mapper {
+    /* FIXME: temporary fix to hide the button in development */
+    display: none;
   }
 
   .btn-employee:hover{
