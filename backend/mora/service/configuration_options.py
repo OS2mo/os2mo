@@ -25,6 +25,7 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
 conn = psycopg2.connect(settings.USER_SETTINGS_CONN_STRING)
 cur = conn.cursor()
 
+
 @blueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
     """Set a configuration setting for an ou.
@@ -71,6 +72,7 @@ def set_org_unit_configuration(unitid):
 
     return flask.jsonify(True)
 
+
 @blueprint.route('/ou/<uuid:unitid>/get_configuration', methods=['GET'])
 def get_org_unit_configuration(unitid):
     """Read configuration settings for an ou.
@@ -85,9 +87,12 @@ def get_org_unit_configuration(unitid):
     :returns: Configuration settings for unit
     """
 
+    return_dict = {}
     query = ("SELECT setting, value FROM " +
              "orgunit_settings WHERE object = '{}'").format(unitid)
 
     cur.execute(query)
     rows = cur.fetchall()
-    return flask.jsonify(rows)
+    for row in rows:
+        return_dict[row[0]] = row[1]
+    return flask.jsonify(return_dict)
