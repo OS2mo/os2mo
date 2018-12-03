@@ -34,13 +34,10 @@ def set_org_unit_configuration(unitid):
 
     :statuscode 200: Setting created.
     :statuscode 404: No such unit found.
-    :statuscode 409: Validation failed, see below.
 
     :param unitid: The UUID of the organisational unit to be terminated.
 
     :<json object conf: Configuration option
-
-    **Example Request**:
 
     .. sourcecode:: json
 
@@ -90,6 +87,70 @@ def get_org_unit_configuration(unitid):
     return_dict = {}
     query = ("SELECT setting, value FROM " +
              "orgunit_settings WHERE object = '{}'").format(unitid)
+
+    cur.execute(query)
+    rows = cur.fetchall()
+    for row in rows:
+        return_dict[row[0]] = row[1]
+    return flask.jsonify(return_dict)
+
+
+@blueprint.route('/o/set_configuration', methods=['POST'])
+def set_global_configuration():
+    """Set or modify a gloal configuration setting.
+
+    .. :quickref: Set or modify a global configuration setting.
+
+    :statuscode 200: Setting created.
+
+    :<json object conf: Configuration option
+
+    .. sourcecode:: json
+
+      {
+        "configuration": {
+          "show_roles": "False"
+        }
+      }
+
+    :returns: True
+    """
+
+    configuration = flask.request.get_json()
+    for key, value in configuration.items():
+        query = ("SELECT id FROM orgunit_settings WHERE setting = '{}' " +
+                 "AND object is Null").format(key)
+        cur.execute(query)
+        rows = cur.fetchall()
+        if len(rows) == 0:
+            query = ("INSERT INTO orgunit_settings (object, setting, value) " +
+                     "values (Null, '{}', '{}')")
+            cur.execute(query.format(key, value))
+        elif len(rows) == 1:
+            query = "UPDATE orgunit_settings set value='{}' where id={}"
+            cur.execute(query.format(value, rows[0][0]))
+        else:
+            raise('Non-consistent global settings')
+        conn.commit()
+
+    return flask.jsonify(True)
+
+
+@blueprint.route('/o/get_configuration', methods=['GET'])
+def get_global_configuration():
+    """Read configuration settings for an ou.
+
+    .. :quickref: Unit; Read configuration setting.
+
+    :statuscode 200: Setting returned.
+    :statuscode 404: No such unit found.
+
+    :returns: Global configuration settings
+    """
+
+    return_dict = {}
+    query = ("SELECT setting, value FROM " +
+             "orgunit_settings WHERE object is Null")
 
     cur.execute(query)
     rows = cur.fetchall()
