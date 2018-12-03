@@ -1,20 +1,10 @@
 # mo-tree-view 
 
-A tree view component. 
-
 ## props 
 
-- `value` ***Object*** (*optional*) 
-
-  Create two-way data bindings with the component. 
-
-- `org-uuid` ***String*** (*optional*) 
+- `unit-uuid` ***String*** (*optional*) 
 
   Defines a orgUuid. 
-
-- `linkable` ***Boolean*** (*optional*) 
-
-  This boolean property defines a able link. 
 
 - `at-date` ***ArrayExpression*** (*optional*) 
 
@@ -22,24 +12,59 @@ A tree view component.
 
 ## data 
 
-- `children` 
-
-  The children, selectedOrgUnit, isLoading component value.
-  Used to detect changes and restore the value. 
+- `treeData` 
 
 **initial value:** `[object Object]` 
 
-- `selectedOrgUnit` 
+- `selected` 
+
+**initial value:** `undefined` 
+
+- `units` 
 
 **initial value:** `[object Object]` 
 
-- `isLoading` 
+- `treeOptions` 
 
-**initial value:** `false` 
+**initial value:** `[object Object]` 
+
+## computed properties 
+
+- `nameId` 
+
+   **dependencies:** `_uid` 
+
+- `tree` 
+
+   **dependencies:** `$refs`, `nameId` 
+
+- `contents` 
+
+   **dependencies:** `tree` 
+
+
+## events 
+
+- `input` 
 
 ## methods 
 
-- `getChildren()` 
+- `setSelection(unitid)` 
 
-  Get organisation children. 
+  Select the unit corresponding to the given ID, assuming it's present. 
+
+- `addNode(unit, parent)` 
+
+- `toNode(unit)` 
+
+  Convert a unit object into a node suitable for adding to the
+  tree.
+  
+  This method handles both eager and lazy loading of child nodes. 
+
+- `updateTree(force)` 
+
+  Reset and re-fetch the tree. 
+
+- `fetch(node)` 
 
