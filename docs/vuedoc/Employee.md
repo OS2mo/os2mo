@@ -1,4 +1,0 @@
-# employee 
-
-A employee component. 
-

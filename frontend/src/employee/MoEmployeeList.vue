@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-body d-flex flex-column">
       <div class="input-group justify-content-md-center">
-      <h3>Søg på medarbejderens navn eller CPR-nummer</h3>
+      <h3>{{$t('input_fields.search_for_name_or_cpr')}}</h3>
       </div>
 
       <div class="input-group input-group-lg justify-content-md-center">
@@ -13,21 +13,17 @@
 </template>
 
 <script>
-  /**
-   * A employee list component.
-   */
+/**
+ * A employee list component.
+ */
 
-  import MoLoader from '@/components/atoms/MoLoader'
-  import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-  import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
+import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
 
-  export default {
-    components: {
-      MoLoader,
-      MoEmployeePicker,
-      MoSearchBar
-    }
+export default {
+  components: {
+    MoSearchBar
   }
+}
 </script>
 
 <style scoped>

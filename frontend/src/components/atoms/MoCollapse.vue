@@ -13,9 +13,7 @@
     </div>
 
     <b-collapse :id="nameId" :visible="open" @show="$emit('show')">
-      <slot>
-        Put some content here
-      </slot>
+      <slot></slot>
     </b-collapse>
   </div>
 </template>
@@ -52,10 +50,10 @@ export default {
 
   data () {
     return {
-    /**
-      * The open component value.
-      * Used to detect changes and restore the value.
-      */
+      /**
+       * The open component value.
+       * Used to detect changes and restore the value.
+       */
       open: false
     }
   },

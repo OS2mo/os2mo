@@ -38,7 +38,7 @@ const actions = {
     return Service.post('/details/edit', moves)
       .then(response => {
         EventBus.$emit('employee-changed')
-        commit('updateIsLoading', false)
+        commit('resetFields')
         commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
         return response
       })

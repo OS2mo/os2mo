@@ -28,20 +28,20 @@
 </template>
 
 <script>
-  import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
-  import MoTreeView from '@/components/MoTreeView/MoTreeView'
-  export default {
-    name: 'OrganisationMapper',
+import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
+import MoTreeView from '@/components/MoTreeView/MoTreeView'
+export default {
+  name: 'OrganisationMapper',
 
-    components: {
-      MoOrganisationPicker,
-      MoTreeView
-    },
-    data () {
-      return {
-        org: {},
-        orgUnit: null
-      }
+  components: {
+    MoOrganisationPicker,
+    MoTreeView
+  },
+  data () {
+    return {
+      org: {},
+      orgUnit: null
     }
   }
+}
 </script>

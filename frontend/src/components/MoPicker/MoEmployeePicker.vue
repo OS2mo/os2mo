@@ -4,16 +4,16 @@
     <v-autocomplete
       name="employee-picker"
       :data-vv-as="$tc('input_fields.employee')"
-      :items="orderedListOptions" 
-      v-model="item" 
-      :get-label="getLabel" 
-      :component-item="template" 
+      :items="orderedListOptions"
+      v-model="item"
+      :get-label="getLabel"
+      :component-item="template"
       @item-selected="$emit('input', $event)"
       @update-items="updateItems"
       :auto-select-one-item="false"
       :min-len="2"
       :placeholder="$t('input_fields.search_for_employee')"
-      v-validate="{ required: required }"
+      v-validate="{ required: this.item !== null ? required : this.item }"
     />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">
@@ -23,76 +23,73 @@
 </template>
 
 <script>
+/**
+ * A employee picker component.
+ */
+
+import sortBy from 'lodash.sortby'
+import Search from '@/api/Search'
+import VAutocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
+
+export default {
+  name: 'MoEmployeePicker',
+
+  components: {
+    VAutocomplete
+  },
+
   /**
-   * A employee picker component.
+   * Validator scope, sharing all errors and validation state.
    */
+  inject: {
+    $validator: '$validator'
+  },
 
-  import Search from '@/api/Search'
-  import VAutocomplete from 'v-autocomplete'
-  import 'v-autocomplete/dist/v-autocomplete.css'
-  import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
+  props: {
+    value: Object,
+    noLabel: Boolean,
+    required: Boolean
+  },
 
-  export default {
-    name: 'MoEmployeePicker',
+  data () {
+    return {
+      item: null,
+      items: [],
+      template: MoSearchBarTemplate
+    }
+  },
 
-    components: {
-      VAutocomplete
+  computed: {
+    orderedListOptions () {
+      return sortBy(this.items, 'name')
+    }
+  },
+
+  created () {
+    this.item = this.value
+  },
+
+  methods: {
+    /**
+     * Get employee name.
+     */
+    getLabel (item) {
+      return item ? item.name : null
     },
 
-      /**
-       * Validator scope, sharing all errors and validation state.
-       */
-    inject: {
-      $validator: '$validator'
-    },
-
-    props: {
-      value: Object,
-      noLabel: Boolean,
-      required: Boolean
-    },
-
-    data () {
-      return {
-        item: null,
-        items: [],
-        template: MoSearchBarTemplate
-      }
-    },
-
-    computed: {
-      orderedListOptions () {
-        return this.items.slice().sort((a, b) => {
-          if (a.name < b.name) return -1
-          if (a.name > b.name) return 1
-          return 0
+    /**
+     * Update employees suggestions based on search query.
+     */
+    updateItems (query) {
+      let vm = this
+      let org = this.$store.state.organisation
+      Search.employees(org.uuid, query)
+        .then(response => {
+          vm.items = response
         })
-      }
-    },
-
-    created () {
-      this.item = this.value
-    },
-
-    methods: {
-      /**
-       * Get employee name.
-       */
-      getLabel (item) {
-        return item ? item.name : null
-      },
-
-      /**
-       * Update employees suggestions based on search query.
-       */
-      updateItems (query) {
-        let vm = this
-        let org = this.$store.state.organisation
-        Search.employees(org.uuid, query)
-          .then(response => {
-            vm.items = response
-          })
-      }
     }
   }
+}
 </script>

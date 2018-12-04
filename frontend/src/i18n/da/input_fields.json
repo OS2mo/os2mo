@@ -1,5 +1,4 @@
 {
-  "choose_unit": "Vælg enhed",
   "current_super_unit": "Nuværende overenhed",
   "account_name": "Kontonavn",
   "employee": "@:shared.employee",
@@ -11,8 +10,16 @@
   "name": "Navn",
   "new_name": "Nyt navn",
   "search_for_employee": "Søg efter medarbejder",
-  "select_new_super_unit": "Vælg ny overenhed",
+  "search_entire_country": "Søg i hele landet",
+  "no_addresses_associated_to_org_unit": "Ingen adresser er tilknyttet til enheden",
+  "select_new_super_unit": "Angiv ny overenhed",
   "start_date": "@:shared.date.start_date",
   "super_unit": "Overenhed",
-  "unit": "@:shared.unit"
+  "unit": "@:shared.unit",
+  "choose_organisation": "Vælg organisation",
+  "manager_address_type": "Lederadressetype",
+  "manager_responsibility": "@:shared.manager_responsibility",
+  "select_unit": "Angiv enhed",
+  "select_super_unit": "Angiv overenhed",
+  "search_for_name_or_cpr": "Søg på medarbejderens navn eller CPR-nummer"
 }

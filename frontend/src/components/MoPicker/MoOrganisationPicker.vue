@@ -1,14 +1,14 @@
 <template>
   <div>
-    <select 
-      class="form-control" 
+    <select
+      class="form-control"
       id="organisation-picker"
       v-model="selectedOrganisation"
       @change="resetToBaseRoute"
     >
-      <option disabled>Vælg organisation</option>
-      <option 
-        v-for="org in orderedListOptions" 
+      <option disabled>{{$t('input_fields.choose_organisation')}}</option>
+      <option
+        v-for="org in orderedListOptions"
         :key="org.uuid"
         :value="org"
       >
@@ -19,160 +19,152 @@
 </template>
 
 <script>
+/**
+ * A organisation picker component.
+ */
+
+import sortBy from 'lodash.sortby'
+import Organisation from '@/api/Organisation'
+import { EventBus } from '@/EventBus'
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'MoOrganisationPicker',
+
   /**
-   * A organisation picker component.
+   * Validator scope, sharing all errors and validation state.
    */
+  inject: {
+    $validator: '$validator'
+  },
 
-  import Organisation from '@/api/Organisation'
-  import { EventBus } from '@/EventBus'
-  import { mapGetters } from 'vuex'
+  props: {
+    /**
+     * @model
+     */
+    value: Object,
 
-  export default {
-    name: 'MoOrganisationPicker',
+    /**
+     * Defines a atDate.
+     */
+    atDate: [Date, String],
 
-      /**
-       * Validator scope, sharing all errors and validation state.
-       */
-    inject: {
-      $validator: '$validator'
-    },
+    /**
+     * This boolean property resets the route.
+     */
+    resetRoute: Boolean,
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object,
+    /**
+     * This boolean property igonores a event.
+     */
+    ignoreEvent: Boolean
+  },
 
-      /**
-       * Defines a atDate.
-       */
-      atDate: [Date, String],
-
-      /**
-       * This boolean property resets the route.
-       */
-      resetRoute: Boolean,
-
-      /**
-       * This boolean property igonores a event.
-       */
-      ignoreEvent: Boolean
-    },
-
-    data () {
-      return {
+  data () {
+    return {
       /**
        * The selectedOrganisation, orgs component value.
        * Used to detect changes and restore the value.
        */
-        selectedOrganisation: null,
-        orgs: []
-      }
+      selectedOrganisation: null,
+      orgs: []
+    }
+  },
+
+  computed: {
+    ...mapGetters({
+      currentUnit: 'organisationUnit/GET_ORG_UNIT',
+      currentEmployee: 'employee/GET_EMPLOYEE'
+    }),
+
+    orderedListOptions () {
+      return sortBy(this.orgs, name)
+    }
+  },
+
+  mounted () {
+    /**
+     * Whenever organisation change update.
+     */
+    this.getAll()
+    EventBus.$on('organisation-changed', newOrg => {
+      if (!this.ignoreEvent) this.selectedOrganisation = newOrg
+    })
+  },
+
+  watch: {
+    /**
+     * Whenever selected organisation change, update newVal.
+     */
+    selectedOrganisation (newVal) {
+      this.$store.commit(`organisation/setOrg`, newVal)
+      this.$emit('input', newVal)
     },
 
-    computed: {
-      ...mapGetters({
-        currentUnit: 'organisationUnit/GET_ORG_UNIT',
-        currentEmployee: 'employee/GET_EMPLOYEE'
-      }),
-
-      orderedListOptions () {
-        return this.orgs.slice().sort((a, b) => {
-          if (a.name < b.name) {
-            return -1
+    currentEmployee: {
+      handler (val) {
+        if (val.org) {
+          if (!this.selectedOrganisation ||
+                val.org_uuid !== this.selectedOrganisation.uuid) {
+            this.selectedOrganisation = val.org
           }
-          if (a.name > b.name) {
-            return 1
-          }
-          return 0
-        })
-      }
+        }
+      },
+      deep: true
     },
 
-    mounted () {
-      /**
-       * Whenever organisation change update.
-       */
+    currentUnit: {
+      handler (val) {
+        if (val.org) {
+          if (!this.selectedOrganisation ||
+                val.org_uuid !== this.selectedOrganisation.uuid) {
+            this.selectedOrganisation = val.org
+          }
+        }
+      },
+      deep: true
+    },
+
+    /**
+     * Whenever atDate change, update.
+     */
+    atDate () {
       this.getAll()
-      EventBus.$on('organisation-changed', newOrg => {
-        if (!this.ignoreEvent) this.selectedOrganisation = newOrg
-      })
-    },
+    }
+  },
 
-    watch: {
-      /**
-       * Whenever selected organisation change, update newVal.
-       */
-      selectedOrganisation (newVal) {
-        this.$store.commit(`organisation/setOrg`, newVal)
-        Organisation.setSelectedOrganisation(newVal)
-        this.$emit('input', newVal)
-      },
+  methods: {
+    /**
+     * Get all organisations for this atDate.
+     */
+    getAll () {
+      let vm = this
+      Organisation.getAll(this.atDate)
+        .then(response => {
+          vm.orgs = response
 
-      currentEmployee: {
-        handler (val) {
-          if (val.org) {
-            if (!this.selectedOrganisation ||
-                val.org_uuid !== this.selectedOrganisation.uuid) {
-              this.selectedOrganisation = val.org
-            }
-          }
-        },
-        deep: true
-      },
-
-      currentUnit: {
-        handler (val) {
-          if (val.org) {
-            if (!this.selectedOrganisation ||
-                val.org_uuid !== this.selectedOrganisation.uuid) {
-              this.selectedOrganisation = val.org
-            }
-          }
-        },
-        deep: true
-      },
-
-      /**
-       * Whenever atDate change, update.
-       */
-      atDate () {
-        this.getAll()
-      }
-    },
-
-    methods: {
-      /**
-       * Get all organisations for this atDate.
-       */
-      getAll () {
-        let vm = this
-        Organisation.getAll(this.atDate)
-          .then(response => {
-            vm.orgs = response
-
-            let org = ((vm.currentUnit && vm.currentUnit.org) ||
+          let org = ((vm.currentUnit && vm.currentUnit.org) ||
                        (vm.currentEmployee && vm.currentEmployee.org) ||
                        response[0])
 
-            vm.selectedOrganisation = org
-          })
-      },
+          vm.selectedOrganisation = org
+        })
+    },
 
-      /**
-       * Resets the route back to base.
-       * So if we're viewing an employee, it goes back to the employee list.
-       */
-      resetToBaseRoute () {
-        if (this.resetRoute) {
-          if (this.$route.name.indexOf('Organisation') > -1) {
-            this.$router.push({name: 'Organisation'})
-          }
-          if (this.$route.name.indexOf('Employee') > -1) {
-            this.$router.push({name: 'Employee'})
-          }
+    /**
+     * Resets the route back to base.
+     * So if we're viewing an employee, it goes back to the employee list.
+     */
+    resetToBaseRoute () {
+      if (this.resetRoute) {
+        if (this.$route.name.indexOf('Organisation') > -1) {
+          this.$router.push({ name: 'Organisation' })
+        }
+        if (this.$route.name.indexOf('Employee') > -1) {
+          this.$router.push({ name: 'Employee' })
         }
       }
     }
   }
+}
 </script>

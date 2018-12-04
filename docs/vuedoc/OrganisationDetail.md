@@ -8,13 +8,6 @@ A organisation detail component.
 
 **initial value:** `undefined` 
 
-## computed properties 
-
-- `orgUnit` 
-
-   **dependencies:** `$store` 
-
-
 ## methods 
 
 - `loadContent(event)` 

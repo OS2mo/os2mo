@@ -33,22 +33,22 @@
 </template>
 
 <script>
-  /**
-   * A landing page component.
-   */
+/**
+ * A landing page component.
+ */
 
-  export default {
-    methods: {
-      /**
-       * Push route to destination.
-       */
-      setDestination (val) {
-        this.$router.push({
-          name: val
-        })
-      }
+export default {
+  methods: {
+    /**
+     * Push route to destination.
+     */
+    setDestination (val) {
+      this.$router.push({
+        name: val
+      })
     }
   }
+}
 </script>
 
 <style scoped>

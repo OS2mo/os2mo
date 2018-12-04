@@ -10,7 +10,7 @@ const dialog = Selector('#employeeCreate')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 // Engagement
-const parentEngagementInput = dialog.find('input[data-vv-as="Enhed"]')
+const parentEngagementInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
 const jobFunctionEngagementOption = jobFunctionEngagementSelect.find('option')
@@ -28,7 +28,7 @@ const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
 // Association
-const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Enhed"]')
+const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
 
 const addressAssociationSelect = dialog.find('.address-association select[data-vv-as="Adresser"]')
 
@@ -39,7 +39,7 @@ const associationTypeSelect = dialog.find('.select-association select[data-vv-as
 const associationTypeOption = associationTypeSelect.find('option')
 
 // Role
-const parentRoleInput = dialog.find('.unit-role input[data-vv-as="Enhed"]')
+const parentRoleInput = dialog.find('.unit-role input[data-vv-as="Angiv enhed"]')
 
 const roleTypeSelect = dialog.find('.select-role select[data-vv-as="Rolletype"]')
 const roleTypeOption = roleTypeSelect.find('option')
@@ -50,7 +50,7 @@ const itSystemOption = itSystemSelect.find('option')
 const itSystemInput = dialog.find('.input-itSystem input[data-vv-as="Kontonavn"]')
 
 // Manager
-const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Enhed"]')
+const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Angiv enhed"]')
 
 const addressManagerTypeSelect = dialog.find('.address-manager select[data-vv-as="Lederadressetype"]')
 const addressManagerTypeOption = addressManagerTypeSelect.find('option')
@@ -78,7 +78,9 @@ test('Workflow: create employee', async t => {
   let today = moment()
 
   await t
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .setTestSpeed(0.8)
+
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-employee-create')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -101,9 +103,9 @@ test('Workflow: create employee', async t => {
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     // Address
@@ -188,19 +190,18 @@ test('Workflow: create employee', async t => {
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(0).innerText)
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )
 })
 
-
 test('Workflow: create employee with role only', async t => {
   let today = moment()
 
   await t
-    .hover('#mo-workflow', {offsetX: 10, offsetY: 10})
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-employee-create')
 
     .expect(dialog.exists).ok('Opened dialog')
@@ -223,9 +224,9 @@ test('Workflow: create employee with role only', async t => {
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
-           .withText(today.date().toString()))
+      .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     // Role
@@ -242,8 +243,8 @@ test('Workflow: create employee with role only', async t => {
 
     .expect(dialog.exists).notOk()
 
-    .expect(VueSelector('MoLog MoWorklog')
-            .find('.alert').nth(-1).innerText)
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )

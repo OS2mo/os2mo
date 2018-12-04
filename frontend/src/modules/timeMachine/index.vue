@@ -15,17 +15,17 @@
 </template>
 
 <script>
-  /**
-   * A timemachine component.
-   */
+/**
+ * A timemachine component.
+ */
 
-  import MoTimeMachineColumn from './_components/MoTimeMachineColumn'
+import MoTimeMachineColumn from './_components/MoTimeMachineColumn'
 
-  export default {
-    name: 'MoTimeMachine',
+export default {
+  name: 'MoTimeMachine',
 
-    components: {
-      MoTimeMachineColumn
-    }
+  components: {
+    MoTimeMachineColumn
   }
+}
 </script>

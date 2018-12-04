@@ -7,15 +7,15 @@
       :name="nameId"
       :id="nameId"
       :ref="nameId"
-      data-vv-as="Engagementer"
-      v-show="!isLoading" 
-      class="form-control col" 
+      :data-vv-as="$tc('shared.engagement', 2)"
+      v-show="!isLoading"
+      class="form-control col"
       v-model="selected"
       @change="updateSelectedEngagement()"
       :disabled="!employeeDefined"
       v-validate="{required: true}"
     >
-      <option disabled>{{label}}</option>
+      <option disabled>{{$tc('shared.engagement', 2)}}</option>
       <option v-for="e in orderedListOptions" :key="e.uuid" :value="e">
           {{e.engagement_type.name}}, {{e.org_unit.name}}
       </option>
@@ -28,132 +28,131 @@
 </template>
 
 <script>
+/**
+ * A engagement picker component.
+ */
+
+import Employee from '@/api/Employee'
+import MoLoader from '@/components/atoms/MoLoader'
+
+export default {
+  name: 'MoEngagementPicker',
+
+  components: {
+    MoLoader
+  },
+
   /**
-   * A engagement picker component.
+   * Validator scope, sharing all errors and validation state.
    */
+  inject: {
+    $validator: '$validator'
+  },
 
-  import Employee from '@/api/Employee'
-  import MoLoader from '@/components/atoms/MoLoader'
+  props: {
+    /**
+     * Create two-way data bindings with the component.
+     */
+    value: Object,
 
-  export default {
-    name: 'MoEngagementPicker',
-
-    components: {
-      MoLoader
+    /**
+     * Defines a required employee.
+     */
+    employee: {
+      type: Object,
+      required: true
     },
 
+    /**
+     * This boolean property requires a selected name.
+     */
+    required: Boolean
+  },
+
+  data () {
+    return {
       /**
-       * Validator scope, sharing all errors and validation state.
+       * The selected, engagements, isLoading component value.
+       * Used to detect changes and restore the value.
        */
-    inject: {
-      $validator: '$validator'
+      selected: null,
+      engagements: [],
+      isLoading: false
+    }
+  },
+
+  computed: {
+    /**
+     * Get name `engagement-picker`
+     */
+    nameId () {
+      return 'engagement-picker-' + this._uid
     },
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object,
-
-      /**
-       * Defines a required employee.
-       */
-      employee: {
-        type: Object,
-        required: true
-      },
-
-      /**
-       * This boolean property requires a selected name.
-       */
-      required: Boolean
+    /**
+     * Set employee as required.
+     */
+    isRequired () {
+      if (!this.employeeDefined) return false
+      return this.required
     },
 
-    data () {
-      return {
-        /**
-         * The selected, engagements, isLoading, label component value.
-         * Used to detect changes and restore the value.
-         */
-        selected: null,
-        engagements: [],
-        isLoading: false,
-        label: ''
-      }
-    },
-
-    computed: {
-      /**
-       * Get name `engagement-picker`
-       */
-      nameId () {
-        return 'engagement-picker-' + this._uid
-      },
-
-      /**
-       * Set employee as required.
-       */
-      isRequired () {
-        if (!this.employeeDefined) return false
-        return this.required
-      },
-
-      /**
-       * If employee is not defined, return false and disable.
-       */
-      employeeDefined () {
-        for (let key in this.employee) {
-          if (this.employee.hasOwnProperty(key)) {
-            return true
-          }
+    /**
+     * If employee is not defined, return false and disable.
+     */
+    employeeDefined () {
+      for (let key in this.employee) {
+        if (this.employee.hasOwnProperty(key)) {
+          return true
         }
-        return false
-      },
+      }
+      return false
+    },
 
-      orderedListOptions () {
-        return this.engagements.slice().sort((a, b) => {
-          if (a.engagement_type.name && a.org_unit.name < b.engagement_type.name && b.org_unit.name) {
-            return -1
-          }
-          if (a.engagement_type.name && a.org_unit.name > b.engagement_type.name && b.org_unit.name) {
-            return 1
-          }
-          return 0
-        })
+    orderedListOptions () {
+      return this.engagements.slice().sort((a, b) => {
+        if (a.engagement_type.name && a.org_unit.name < b.engagement_type.name && b.org_unit.name) {
+          return -1
+        }
+        if (a.engagement_type.name && a.org_unit.name > b.engagement_type.name && b.org_unit.name) {
+          return 1
+        }
+        return 0
+      })
+    }
+  },
+
+  /**
+   * Whenever employee change, get engagements.
+   */
+  watch: {
+    employee () {
+      this.getEngagements()
+    }
+  },
+
+  methods: {
+    /**
+     * Get engagement details.
+     */
+    getEngagements () {
+      if (this.employeeDefined) {
+        let vm = this
+        vm.isLoading = true
+        Employee.getEngagementDetails(this.employee.uuid)
+          .then(response => {
+            vm.isLoading = false
+            vm.engagements = response
+          })
       }
     },
 
     /**
-     * Whenever employee change, get engagements.
+     * Update selected engagement.
      */
-    watch: {
-      employee () {
-        this.getEngagements()
-      }
-    },
-
-    methods: {
-      /**
-       * Get engagement details.
-       */
-      getEngagements () {
-        if (this.employeeDefined) {
-          let vm = this
-          vm.isLoading = true
-          Employee.getEngagementDetails(this.employee.uuid)
-            .then(response => {
-              vm.isLoading = false
-              vm.engagements = response
-            })
-        }
-      },
-
-      /**
-       * Update selected engagement.
-       */
-      updateSelectedEngagement () {
-        this.$emit('input', this.selected)
-      }
+    updateSelectedEngagement () {
+      this.$emit('input', this.selected)
     }
   }
+}
 </script>

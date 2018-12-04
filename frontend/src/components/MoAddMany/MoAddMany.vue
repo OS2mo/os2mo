@@ -69,10 +69,10 @@ export default {
 
   data () {
     return {
-    /**
-      * The values component value.
-      * Used to detect changes and restore the value.
-      */
+      /**
+       * The values component value.
+       * Used to detect changes and restore the value.
+       */
       values: []
     }
   },

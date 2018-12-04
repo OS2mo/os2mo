@@ -1,4 +1,0 @@
-# organisation 
-
-A organisation component. 
-
