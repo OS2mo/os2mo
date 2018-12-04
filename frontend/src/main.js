@@ -8,6 +8,7 @@ import DateInRange from './validators/DateInRange'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
 import store from './store'
+import '@babel/polyfill'
 
 import './icons'
 

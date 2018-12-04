@@ -13,7 +13,7 @@
       :auto-select-one-item="false"
       :min-len="2"
       :placeholder="$t('input_fields.search_for_employee')"
-      v-validate="{ required: required }"
+      v-validate="{ required: this.item !== null ? required : this.item }"
     />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">

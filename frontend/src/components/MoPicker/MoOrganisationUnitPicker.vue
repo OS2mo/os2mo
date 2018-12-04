@@ -12,7 +12,7 @@
       :placeholder="label"
       v-model="orgName"
       @click.stop="toggleTree()"
-      v-validate="{required: required}"
+      v-validate="{ required: this.orgName !== null ? required : this.orgName }"
     >
 
     <div class="mo-input-group" v-show="showTree">

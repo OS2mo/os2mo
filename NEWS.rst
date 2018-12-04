@@ -13,6 +13,7 @@ New features
 
 Internal changes
 ----------------
+* #21966 Implemented use of vuex for employee workflows.
 
 * #23779: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
