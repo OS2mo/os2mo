@@ -616,10 +616,9 @@ class Writing(util.LoRATestCase):
                     'offset': 0, 'total': 4,
                     'items': [phone_class, address_class,
                               email_class, ean_class]},
-                    'name': 'address_type',
                  'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                          '/f/address_type/',
-                 'user_key': 'Adressetype',
+                 'user_key': 'address_type',
                  'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
             )
 
@@ -1424,10 +1423,9 @@ class Writing(util.LoRATestCase):
                             ean_class,
                         ],
                     },
-                    'name': 'address_type',
                     'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                     '/f/address_type/',
-                    'user_key': 'Adressetype',
+                    'user_key': 'address_type',
                     'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
             )
 
