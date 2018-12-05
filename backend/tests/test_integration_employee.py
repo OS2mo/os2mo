@@ -49,7 +49,8 @@ class Tests(util.LoRATestCase):
                             "from": "1950-01-01 00:00:00+01"
                         },
                         "brugervendtnoegle": mock_uuid,
-                        "brugernavn": "Torkild Testperson"
+                        "brugernavn": "Torkild Testperson",
+                        "integrationsdata": "{}"
                     }
                 ]
             },
@@ -691,7 +692,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/?integrationdata=1'.format(employee_uuid),
             {
-                'integration_data': '{"von-and-løn-id": "2468"}',
+                'integration_data': {"von-and-løn-id": "2468"},
                 'name': 'Andersine And',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
@@ -709,8 +710,10 @@ class Tests(util.LoRATestCase):
             "type": "employee",
             "data": {
                 "uuid": employee_uuid,
-                "integration_data": '{"von-and-løn-id": "2468", '
-                    '"bjørnebanden-hjælper-id": "sorte-slyngel"}',
+                "integration_data": {
+                    "von-and-løn-id": "2468",
+                    "bjørnebanden-hjælper-id": "sorte-slyngel"
+                },
                 "validity": {
                     "from": "2016-01-01",
                     "to": "2016-01-02",

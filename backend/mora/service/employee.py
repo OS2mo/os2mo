@@ -20,6 +20,7 @@ For more information regarding reading relations involving employees, refer to
 import copy
 import uuid
 import enum
+import json
 
 import flask
 
@@ -58,7 +59,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         integration_data = util.checked_get(
             req,
             mapping.INTEGRATION_DATA,
-            "",
+            {},
             required=False
         )
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
@@ -150,7 +151,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 attrs['brugernavn'] = data[mapping.NAME]
 
             if mapping.INTEGRATION_DATA in data:
-                attrs['integrationsdata'] = data[mapping.INTEGRATION_DATA]
+                attrs['integrationsdata'] = json.dumps(
+                    data[mapping.INTEGRATION_DATA]
+                )
 
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
@@ -306,8 +309,8 @@ def get_employee(id):
     :queryparam date at: Show the employee at this point in time,
         in ISO-8601 format.
 
-    :queryparam bool integrationdata: whether integrationdata should be
-        included in the output
+    :queryparam bool integrationdata: whether the integration data
+        should be included in the output
 
     :>json string name: Human-readable name.
     :>json string uuid: Machine-friendly UUID.

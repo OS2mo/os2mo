@@ -23,6 +23,7 @@ import functools
 import locale
 import operator
 import uuid
+import json
 
 import werkzeug
 import flask
@@ -117,7 +118,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         integration_data = util.checked_get(
             req,
             mapping.INTEGRATION_DATA,
-            "",
+            {},
             required=False
         )
 
@@ -227,7 +228,9 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 attrs['enhedsnavn'] = data[mapping.NAME]
 
             if mapping.INTEGRATION_DATA in data:
-                attrs['integrationsdata'] = data[mapping.INTEGRATION_DATA]
+                attrs['integrationsdata'] = json.dumps(
+                    data[mapping.INTEGRATION_DATA]
+                )
 
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
@@ -346,7 +349,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     elif details is UnitDetails.INTEGRATION:
-        r["integration_data"] = attrs.get("integrationsdata")
+        r["integration_data"] = json.loads(attrs.get("integrationsdata"))
     else:
         assert False, 'enum is {}!?'.format(details)
 
@@ -611,7 +614,7 @@ def get_orgunit(unitid):
     :queryparam date at: Show the unit at this point in time,
         in ISO-8601 format.
 
-    :queryparam date integrationdata: whether integrationdata
+    :queryparam bool integrationdata: whether integration data
         should be included in the output.
 
 

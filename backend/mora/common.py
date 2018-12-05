@@ -22,6 +22,7 @@ import datetime
 import functools
 import typing
 import uuid
+import json
 
 import flask
 import werkzeug
@@ -374,7 +375,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     adresser: typing.List[dict] = None,
-    integration_data: str = ""
+    integration_data: dict = {}
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -384,7 +385,8 @@ def create_organisationsenhed_payload(
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': enhedsnavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -417,15 +419,6 @@ def create_organisationsenhed_payload(
     if adresser:
         org_unit['relationer']['adresser'] = adresser
 
-    if integration_data:
-        org_unit[
-            'attributter'
-        ][
-            'organisationenhedegenskaber'
-        ][0][
-            'integrationsdata'
-        ] = integration_data
-
     org_unit = _set_virkning(org_unit, virkning)
 
     return org_unit
@@ -438,7 +431,7 @@ def create_bruger_payload(
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
-    integration_data: str,
+    integration_data: dict = {},
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -448,7 +441,8 @@ def create_bruger_payload(
             'brugeregenskaber': [
                 {
                     'brugernavn': brugernavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -474,15 +468,6 @@ def create_bruger_payload(
                 'urn': 'urn:dk:cpr:person:{}'.format(cpr),
             },
         ]
-
-    if integration_data:
-        user[
-            'attributter'
-        ][
-            'brugeregenskaber'
-        ][0][
-            'integrationsdata'
-        ] = integration_data
 
     user = _set_virkning(user, virkning)
 

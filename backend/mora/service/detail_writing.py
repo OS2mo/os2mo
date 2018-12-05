@@ -79,6 +79,7 @@ def create():
     :<json string name: The name of the employee
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
+    :<json dict integration_data: An **optional** dictionry of integration data
     :<json object org: The organisation with which the empl. is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.

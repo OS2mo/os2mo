@@ -253,7 +253,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "name": "Fake Corp",
-            "integration_data": '{"fakekey":42}',
+            "integration_data": {"fakekey": 42},
             "parent": {
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
             },
@@ -2814,7 +2814,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/?integrationdata=1'.format(org_unit_uuid),
             {
-                'integration_data': '{}',
+                'integration_data': {},
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -2834,7 +2834,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "uuid": org_unit_uuid,
-                "integration_data": '{"baywatchname": "Hasselhoff"}',
+                "integration_data": {"baywatchname": "Hasselhoff"},
                 "validity": {
                     "from": "2016-01-01",
                     "to": "2016-01-02",
