@@ -48,7 +48,7 @@
  * A login page component.
  */
 
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import Service from '@/api/HttpCommon'
 import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import bFormInput from 'bootstrap-vue/es/components/form-input/form-input'
@@ -86,6 +86,10 @@ export default {
      */
     ...mapGetters({
       status: 'status'
+    }),
+
+    ...mapState({
+      route: 'route'
     })
   },
 
@@ -96,7 +100,7 @@ export default {
     gotoMo () {
       Service.post('/user/login', this.user)
         .then(response => {
-          let redirect = this.$route.query.redirect || '/'
+          let redirect = this.route.query.redirect || '/'
           window.location.replace(redirect)
         })
     }

@@ -26,7 +26,7 @@
 import sortBy from 'lodash.sortby'
 import Organisation from '@/api/Organisation'
 import { EventBus } from '@/EventBus'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
   name: 'MoOrganisationPicker',
@@ -75,6 +75,10 @@ export default {
     ...mapGetters({
       currentUnit: 'organisationUnit/GET_ORG_UNIT',
       currentEmployee: 'employee/GET_EMPLOYEE'
+    }),
+
+    ...mapState({
+      route: 'route'
     }),
 
     orderedListOptions () {
@@ -157,10 +161,10 @@ export default {
      */
     resetToBaseRoute () {
       if (this.resetRoute) {
-        if (this.$route.name.indexOf('Organisation') > -1) {
+        if (this.route.name.indexOf('Organisation') > -1) {
           this.$router.push({ name: 'Organisation' })
         }
-        if (this.$route.name.indexOf('Employee') > -1) {
+        if (this.route.name.indexOf('Employee') > -1) {
           this.$router.push({ name: 'Employee' })
         }
       }
