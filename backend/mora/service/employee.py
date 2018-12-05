@@ -222,7 +222,9 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
-        r["integration_data"] = props.get("integrationsdata")
+        r["integration_data"] = json.loads(
+            props.get("integrationsdata")
+        )
     return r
 
 
