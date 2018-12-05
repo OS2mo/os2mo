@@ -219,7 +219,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
-        r["integration_data"] = props.get("integrationsdata", "")
+        r["integration_data"] = props.get("integrationsdata")
     return r
 
 
@@ -297,7 +297,7 @@ def list_employees(orgid):
 
 
 @blueprint.route('/e/<uuid:id>/')
-@util.restrictargs('at', 'employeedetails')
+@util.restrictargs('at', 'integrationdata')
 def get_employee(id):
     '''Retrieve an employee.
 
@@ -305,6 +305,9 @@ def get_employee(id):
 
     :queryparam date at: Show the employee at this point in time,
         in ISO-8601 format.
+
+    :queryparam bool integrationdata: whether integrationdata should be
+        included in the output
 
     :>json string name: Human-readable name.
     :>json string uuid: Machine-friendly UUID.
@@ -337,16 +340,10 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    details = flask.request.args.get("employeedetails", EmployeeDetails.FULL)
-
-    if isinstance(details, str):
-        enum_details = getattr(EmployeeDetails, details, False)
-        if not enum_details:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_DETAILS_SPEC_NOT_FOUND,
-                detail_spec=details,
-            )
-        details = enum_details
+    if util.get_args_flag("integrationdata"):
+        details = EmployeeDetails.INTEGRATION
+    else:
+        details = EmployeeDetails.FULL
 
     r = get_one_employee(c, id, user=None, details=details)
 

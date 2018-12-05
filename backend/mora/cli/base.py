@@ -150,6 +150,7 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
          keywords, xml_report, **kwargs):
     '''Test the application.'''
     sys.path.insert(0, backenddir)
+    import tests as _
 
     verbosity = 0 if quiet else verbose + 1
 

@@ -346,7 +346,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     elif details is UnitDetails.INTEGRATION:
-        r["integration_data"] = attrs.get("integrationsdata", "")
+        r["integration_data"] = attrs.get("integrationsdata")
     else:
         assert False, 'enum is {}!?'.format(details)
 
@@ -600,7 +600,7 @@ def get_unit_tree(c, orgid, unitids):
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at', 'unitdetails')
+@util.restrictargs('at', 'integrationdata')
 def get_orgunit(unitid):
     '''Get an organisational unit
 
@@ -610,6 +610,10 @@ def get_orgunit(unitid):
 
     :queryparam date at: Show the unit at this point in time,
         in ISO-8601 format.
+
+    :queryparam date integrationdata: whether integrationdata
+        should be included in the output.
+
 
     :>json string name: The name of the org unit
     :>json string user_key: A unique key for the org unit.
@@ -661,16 +665,10 @@ def get_orgunit(unitid):
     '''
     c = common.get_connector()
 
-    details = flask.request.args.get("unitdetails", UnitDetails.FULL)
-
-    if isinstance(details, str):
-        enum_details = getattr(UnitDetails, details, False)
-        if not enum_details:
-            raise exceptions.HTTPException(
-                exceptions.ErrorCodes.E_DETAILS_SPEC_NOT_FOUND,
-                detail_spec=details,
-            )
-        details = enum_details
+    if util.get_args_flag("integrationdata"):
+        details = UnitDetails.INTEGRATION
+    else:
+        details = UnitDetails.FULL
 
     r = get_one_orgunit(c, unitid, details=details)
 

@@ -2812,7 +2812,7 @@ class Tests(util.LoRATestCase):
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         self.assertRequestResponse(
-            '/service/ou/{}/?unitdetails=INTEGRATION'.format(org_unit_uuid),
+            '/service/ou/{}/?integrationdata=1'.format(org_unit_uuid),
             {
                 'integration_data': '{}',
                 'name': 'Humanistisk fakultet',
@@ -2823,23 +2823,6 @@ class Tests(util.LoRATestCase):
                     'to': None
                 }
             }
-        )
-
-    @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_illegal_detail_spec(self):
-        self.load_sample_structures()
-        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-
-        self.assertRequestResponse(
-            '/service/ou/{}/?unitdetails=HASSELHOFF'.format(org_unit_uuid),
-            {
-                'description': 'Details specification not found',
-                'detail_spec': 'HASSELHOFF',
-                'error': True,
-                'error_key': 'E_DETAILS_SPEC_NOT_FOUND',
-                'status': 404
-            },
-            status_code=404
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)

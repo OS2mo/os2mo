@@ -689,33 +689,12 @@ class Tests(util.LoRATestCase):
                           employee_uuid)
 
         self.assertRequestResponse(
-            '/service/e/{}/?employeedetails=INTEGRATION'.format(employee_uuid),
+            '/service/e/{}/?integrationdata=1'.format(employee_uuid),
             {
                 'integration_data': '{"von-and-løn-id": "2468"}',
                 'name': 'Andersine And',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
-        )
-
-    @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_illegal_detail_spec(self):
-        self.load_sample_structures()
-        employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
-        util.load_fixture('organisation/bruger',
-                          'create_bruger_andersine.json',
-                          employee_uuid)
-
-        self.assertRequestResponse(
-            '/service/e/{}/?employeedetails=HASSELHOFF'.format(employee_uuid),
-
-            {
-                'description': 'Details specification not found',
-                'detail_spec': 'HASSELHOFF',
-                'error': True,
-                'error_key': 'E_DETAILS_SPEC_NOT_FOUND',
-                'status': 404
-            },
-            status_code=404
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
