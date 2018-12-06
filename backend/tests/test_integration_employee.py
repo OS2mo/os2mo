@@ -727,46 +727,15 @@ class Tests(util.LoRATestCase):
             json=req,
         )
 
-        expected_brugeregenskaber = [{
-            'brugernavn': 'Andersine And',
-            'brugervendtnoegle': 'andersineand',
-            'integrationsdata': '{"von-and-løn-id": "2468"}',
-            'virkning': {
-                'from': '1937-01-09 00:00:00+01',
-                'from_included': True,
-                'to': '2016-01-01 00:00:00+01',
-                'to_included': False
+        self.assertRequestResponse(
+            '/service/e/' +
+            employee_uuid +
+            '/?at=2016-01-01&integrationdata=1', {
+                'integration_data': {
+                    'bjørnebanden-hjælper-id': 'sorte-slyngel',
+                    'von-and-løn-id': '2468'
+                },
+                'name': 'Andersine And',
+                'uuid': employee_uuid
             }
-        }, {
-            'brugernavn': 'Andersine And',
-            'brugervendtnoegle': 'andersineand',
-            'integrationsdata': '{"von-and-løn-id": "2468"}',
-            'virkning': {
-                'from': '2016-01-03 00:00:00+01',
-                'from_included': True,
-                'to': '2020-01-01 00:00:00+01',
-                'to_included': False}
-        }, {
-            'brugernavn': 'Andersine And',
-            'brugervendtnoegle': 'andersineand',
-            'integrationsdata': '{"von-and-løn-id": "2468", '
-                                '"bjørnebanden-hjælper-id": "sorte-slyngel"}',
-            'virkning': {
-                'from': '2016-01-01 00:00:00+01',
-                'from_included': True,
-                'to': '2016-01-03 00:00:00+01',
-                'to_included': False
-            }
-        }]
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.bruger.get(employee_uuid)
-
-        self.assertEqual(
-            len(expected_brugeregenskaber),
-            len(actual['attributter']['brugeregenskaber'])
         )
-        [
-            self.assertIn(x, expected_brugeregenskaber)
-            for x in actual['attributter']['brugeregenskaber']
-        ]

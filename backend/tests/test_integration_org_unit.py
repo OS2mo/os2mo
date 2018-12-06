@@ -306,7 +306,7 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle":
                             'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
                         "enhedsnavn": "Fake Corp",
-                        "integrationsdata": '{"fakekey":42}'
+                        "integrationsdata": '{"fakekey": 42}'
                     }
                 ]
             },
