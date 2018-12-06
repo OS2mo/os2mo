@@ -26,7 +26,6 @@ Known bugs
 
 * #25579: Quickly switching between org units in the tree causes a race condition.
 * #25671: Newly created employees can not be found using the search function.
->>>>>>> development
 
 Version 0.12.0, 2018-11-16
 ==========================
