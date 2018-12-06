@@ -80,9 +80,9 @@ import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
 import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
 import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
+import MoEmployeeAddressEntry from '@/components/MoEntry/MoEmployeeAddressEntry'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -108,7 +108,7 @@ export default {
        * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
        */
       entry: {
-        address: MoAddressEntry,
+        address: MoEmployeeAddressEntry,
         association: MoAssociationEntry,
         role: MoRoleEntry,
         it: MoItSystemEntry,

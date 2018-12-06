@@ -17,7 +17,7 @@
 
     <div class="form-row select-association">
       <mo-facet-picker
-        facet="job_function"
+        facet="association_job_function"
         v-model="entry.job_function"
         required
       />

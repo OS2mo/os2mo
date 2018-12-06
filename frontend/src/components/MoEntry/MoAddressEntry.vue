@@ -3,7 +3,7 @@
     <div class="form-row">
       <mo-facet-picker
         v-show="noPreselectedType"
-        facet="address_type"
+        :facet="facet"
         v-model="entry.address_type"
         :preselected-user-key="preselectedType"
         required
@@ -85,7 +85,12 @@ export default {
     /**
      * Defines a preselectedType.
      */
-    preselectedType: String
+    preselectedType: String,
+
+    /**
+     * Defines a preselectedType.
+     */
+    facet: String
   },
 
   data () {
