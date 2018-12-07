@@ -1,7 +1,7 @@
 Facets
 ======
 
-Facets serve as a grouping of different classes.
+Facets serve as a grouping of different classes, as defined in the OIO-specifications_.
 Within the data models used in OS2MO, model fields corresponding to a facet
 name is expected to contain a reference to a class contained in that facet.
 E.g. the field ``responsibility`` in the ``manager`` data model, contains a
@@ -19,22 +19,24 @@ class from the ``manager_address_type`` facet. The ``address_type`` classes
 relevant in multiple contexts should be related to multiple facets, as
 opposed to duplicating the classes for each facet.
 
+.. _OIO-specifications: https://digitaliser.dk/resource/1567856
+
 The system currently works with the following facets:
 
 +------------------------------+-----------------------------------------------------------+
 | Name                         | Description                                               |
 +==============================+===========================================================+
-| ``org_unit_address_type``    | Address types applicable for organisational units         |
+| ``org_unit_address_type``    | Address types applicable to organisational units          |
 +------------------------------+-----------------------------------------------------------+
-| ``employee_address_type``    | Address types applicable for employees                    |
+| ``employee_address_type``    | Address types applicable to employees                     |
 +------------------------------+-----------------------------------------------------------+
-| ``manager_address_type``     | Address types applicable for managers                     |
+| ``manager_address_type``     | Address types applicable to managers                      |
 +------------------------------+-----------------------------------------------------------+
 | ``address_property``         | Properties for addresses, e.g. public or secret addresses |
 +------------------------------+-----------------------------------------------------------+
-| ``engagement_job_function``  | Job functions applicable for engagements                  |
+| ``engagement_job_function``  | Job functions applicable to engagements                   |
 +------------------------------+-----------------------------------------------------------+
-| ``association_job_function`` | Job functions applicable for associations                 |
+| ``association_job_function`` | Job functions applicable to associations                  |
 +------------------------------+-----------------------------------------------------------+
 | ``org_unit_type``            | Types of organisational units                             |
 +------------------------------+-----------------------------------------------------------+
