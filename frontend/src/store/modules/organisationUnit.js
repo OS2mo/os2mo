@@ -57,7 +57,6 @@ const mutations = {
   SET_ORG_UNIT (state, payload) {
     state.uuid = payload.uuid
     state.name = payload.name
-    state.uuid = payload.uuid
     state.user_key = payload.user_key
     state.org = payload.org
     state.org_uuid = payload.org.uuid
