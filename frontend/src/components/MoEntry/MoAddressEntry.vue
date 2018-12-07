@@ -90,7 +90,10 @@ export default {
     /**
      * Defines a preselectedType.
      */
-    facet: String
+    facet: {
+      type: String,
+      required: true
+    }
   },
 
   data () {

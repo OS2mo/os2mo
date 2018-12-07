@@ -28,27 +28,10 @@ export default {
     /**
      * Create two-way data bindings with the component.
      */
-    value: [Object, Array],
-
-    /**
-     * This boolean property hides the validity dates.
-     */
-    validityHidden: Boolean,
-
-    /**
-     * This boolean property requires a selected address type.
-     */
-    required: Boolean,
-
-    /**
-     * Defines a label.
-     */
-    label: String,
-
-    /**
-     * Defines a preselectedType.
-     */
-    preselectedType: String
+    facet: {
+      type: String,
+      required: false
+    }
   }
 }
 </script>
