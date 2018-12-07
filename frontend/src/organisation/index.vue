@@ -16,7 +16,7 @@
     </div>
 
     <div class="col-sm-12 col-md-8 col-lg-8 col-xl-9 workflow-padding">
-      <router-view :key="$route.params.uuid"/>
+      <router-view :key="route.params.uuid"/>
 
       <mo-log/>
     </div>
@@ -32,7 +32,7 @@
 import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
 import MoLog from '@/components/MoLog/MoLog'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
   components: {
@@ -45,13 +45,16 @@ export default {
       selected: undefined
     }
   },
-
   computed: {
     /**
      * Get organisation uuid.
      */
     ...mapGetters({
       currentUnit: 'organisationUnit/GET_ORG_UNIT'
+    }),
+
+    ...mapState({
+      route: 'route'
     })
   },
   watch: {

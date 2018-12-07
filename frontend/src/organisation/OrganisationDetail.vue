@@ -19,12 +19,12 @@
         </div>
 
         <div class="mr-3">
-          <mo-history :uuid="$route.params.uuid" type="ORG_UNIT"/>
+          <mo-history :uuid="route.params.uuid" type="ORG_UNIT"/>
         </div>
       </div>
 
       <organisation-detail-tabs
-        :uuid="$route.params.uuid"
+        :uuid="route.params.uuid"
         :org-unit-info="orgUnit"
         :content="$store.getters['organisationUnit/GET_DETAILS']"
         @show="loadContent($event)"/>
@@ -37,7 +37,7 @@
  * A organisation detail component.
  */
 
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import { EventBus } from '@/EventBus'
 import MoHistory from '@/components/MoHistory'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
@@ -58,21 +58,27 @@ export default {
      */
     ...mapGetters({
       orgUnit: 'organisationUnit/GET_ORG_UNIT'
+    }),
+
+    ...mapState({
+      route: 'route'
     })
   },
   created () {
-    this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
+    this.loadContent('unit')
   },
   mounted () {
     EventBus.$on('organisation-unit-changed', () => {
-      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.$route.params.uuid)
       this.loadContent(this.latestEvent)
     })
   },
   methods: {
     loadContent (event) {
       this.latestEvent = event
-      this.$store.dispatch('organisationUnit/SET_DETAIL', event)
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.route.params.uuid)
+        .then(response => {
+          this.$store.dispatch('organisationUnit/SET_DETAIL', event)
+        })
     }
   },
   beforeRouteLeave (to, from, next) {
