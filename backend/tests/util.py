@@ -30,6 +30,7 @@ from oio_rest.utils import test_support
 
 from mora import app, lora, settings
 from mora.importing import spreadsheets
+from .lorapatch import ensure_lora_patched
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -503,6 +504,9 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
+
+    def setUpClass(cls=None):
+        ensure_lora_patched()
 
     def load_sample_structures(self, **kwargs):
         load_sample_structures(**kwargs)

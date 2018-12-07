@@ -998,13 +998,8 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
-    @unittest.expectedFailure
     def test_edit_org_unit_earlier_start(self):
         """ Test setting the start date to something earlier (#23182)
-
-            This test fails due to validity records being
-            fractioned in lora due to integration_data added
-            the results are not wrong, just fractioned (#25200)
         """
 
         self.load_sample_structures()
@@ -1083,101 +1078,20 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        expected = {
-            'attributter': {
-                'organisationenhedegenskaber': [
-                    {
-                        'brugervendtnoegle': 'samf',
-                        'enhedsnavn': 'Samfundsvidenskabelige fakultet',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-            },
-            'livscykluskode': 'Rettet',
-            'note': 'Rediger organisationsenhed',
-            'relationer': {
-                'adresser': [
-                    {
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                'enhedstype': [
-                    {
-                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                'overordnet': [
-                    {
-                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                'tilhoerer': [
-                    {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-            },
-            'tilstande': {
-                'organisationenhedgyldighed': [
-                    {
-                        'gyldighed': 'Aktiv',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-            },
-        }
+        self.assertRequest(
+            '/service/ou/' + org_unit_uuid +
+            '/?at=2016-06-01',
+            200,
+            "should exist on 2016-06-01"
+        )
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        self.assertRequest(
+            '/service/ou/' + org_unit_uuid +
+            '/?at=2016-05-31',
+            404,
+            "should not exist before start"
+        )
 
-        self.assertRegistrationsEqual(expected, actual)
-
-    @unittest.expectedFailure
     @util.mock('aabogade.json', allow_mox=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
         """ This test fails due to validity records being
@@ -1250,6 +1164,7 @@ class Tests(util.LoRATestCase):
                         'brugervendtnoegle': 'Fake Corp '
                         'f494ad89-039d-478e-91f2-a63566554bd6',
                         'enhedsnavn': 'Fake Corp',
+                        'integrationsdata': '{}',
                         'virkning': {
                             'from': '2016-06-01 00:00:00+02',
                             'from_included': True,
