@@ -17,7 +17,7 @@ Internal changes
 
 * #23779: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
-* #24797 Integration data added to employee and org.unit
+* #24797: Integration data added to employee and organisational unit.
 * #25136: Refactored front end code.
 * #24700: Backend ready for the Phonebook
 
@@ -26,7 +26,6 @@ Known bugs
 
 * #25579: Quickly switching between org units in the tree causes a race condition.
 * #25671: Newly created employees can not be found using the search function.
->>>>>>> development
 
 Version 0.12.0, 2018-11-16
 ==========================
