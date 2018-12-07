@@ -9,7 +9,7 @@
           </h4>
 
           <div id="tree-wrapper">
-            <mo-tree-view v-model="selected" :unit-uuid="currentUnit.uuid"/>
+            <mo-tree-view v-model="selected" :unit-uuid="currentUnit.uuid" :is-loading="organisationUnit.isLoading"/>
           </div>
         </div>
       </div>
@@ -54,7 +54,8 @@ export default {
     }),
 
     ...mapState({
-      route: 'route'
+      route: 'route',
+      organisationUnit: 'organisationUnit'
     })
   },
   watch: {

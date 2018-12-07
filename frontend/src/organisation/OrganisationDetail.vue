@@ -65,7 +65,7 @@ export default {
     })
   },
   created () {
-    this.loadContent('unit')
+    this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.route.params.uuid)
   },
   mounted () {
     EventBus.$on('organisation-unit-changed', () => {
@@ -75,9 +75,13 @@ export default {
   methods: {
     loadContent (event) {
       this.latestEvent = event
+      this.$store.state.organisationUnit.isLoading = true
       this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.route.params.uuid)
-        .then(response => {
+        .then(() => {
           this.$store.dispatch('organisationUnit/SET_DETAIL', event)
+            .then(() => {
+              this.$store.state.organisationUnit.isLoading = false
+            })
         })
     }
   },

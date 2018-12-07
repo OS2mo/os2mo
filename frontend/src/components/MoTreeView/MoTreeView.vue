@@ -2,9 +2,11 @@
   <div class="orgunit-tree">
     <liquor-tree
       :ref="nameId"
-      :v-model="selected"
       :data="treeData"
-      :options="treeOptions">
+      :options="treeOptions"
+      @node:selected="onNodeSelected"
+      @node:removed="onNodeRemoved"
+      >
 
       <div class="tree-scope" slot-scope="{ node }">
         <template>
@@ -33,14 +35,20 @@ export default {
 
   props: {
     /**
-     * Defines a orgUuid.
+     * @model
+     */
+    value: [Object, Array],
+    /**
+     * Defines a unitUuid.
      */
     unitUuid: String,
 
     /**
      * Defines a atDate.
      */
-    atDate: [Date, String]
+    atDate: [Date, String],
+
+    isLoading: Boolean
   },
 
   computed: {
@@ -70,9 +78,7 @@ export default {
 
         if (node.expanded()) {
           const r = {}
-
           r[text] = visitNode(node.children, level + 1)
-
           return r
         } else if (node.hasChildren()) {
           return '> ' + text
@@ -90,7 +96,6 @@ export default {
 
     return {
       treeData: [],
-      selected: undefined,
       units: {},
 
       treeOptions: {
@@ -107,27 +112,7 @@ export default {
   mounted () {
     const vm = this
 
-    this.tree.$on('node:added', node => {
-      console.log(`TREE: adding node ${node.id}`)
-    })
-
-    this.tree.$on('node:removed', node => {
-      console.log(`TREE: removing node ${node.id}`)
-      delete vm.units[node.id]
-    })
-
-    this.tree.$on('node:selected', node => {
-      console.log(`TREE: selected node ${node.id}`)
-
-      vm.$emit('input', vm.units[node.id])
-    })
-
-    this.tree.$on('node:expanded', node => {
-      console.log('TREE: expanded', node.text, node.id)
-    })
-
     EventBus.$on('update-tree-view', () => {
-      console.log(`TREE: update tree view!`)
       vm.updateTree(true)
     })
 
@@ -136,8 +121,6 @@ export default {
 
   watch: {
     unitUuid (newVal, oldVal) {
-      console.log(`TREE: changing unit from ${oldVal} to ${newVal} (org=${this.orgUuid})`)
-
       if (this.units && this.units[newVal]) {
         this.setSelection(newVal)
       } else if (newVal !== oldVal) {
@@ -145,24 +128,8 @@ export default {
       }
     },
 
-    selected: {
-      handler (newVal, oldVal) {
-        console.log(`TREE: selected changed to ${newVal}`)
-      },
-      deep: true
-    },
-
-    treeData: {
-      handler (newVal, oldVal) {
-        console.log(`TREE: treeData changed to ${newVal}`)
-      },
-      deep: true
-    },
-
     orgUuid (newVal, oldVal) {
       let vm = this
-
-      console.log(`TREE: changing organisation from ${oldVal} to ${newVal}`)
 
       // in order to avoid updating twice, only do so when no unit
       // is configured; otherwise, we'll update when the unit clears
@@ -185,22 +152,30 @@ export default {
   },
 
   methods: {
+
+    onNodeSelected (node) {
+      if (!this.isLoading) {
+        this.$emit('input', this.units[node.id])
+      }
+    },
+
+    onNodeRemoved (node) {
+      delete this.units[node.id]
+    },
+
     /**
      * Select the unit corresponding to the given ID, assuming it's present.
      */
     setSelection (unitid) {
-      if (!unitid) {
-        unitid = this.unitUuid
-      }
+      unitid = unitid || this.unitUuid
 
-      console.log(`TREE: selecting ${unitid}`)
       this.tree.tree.unselectAll()
 
-      let n = this.tree.tree.getNodeById(unitid)
+      let node = this.tree.tree.getNodeById(unitid)
 
-      if (n) {
-        n.expandTop()
-        n.select()
+      if (node) {
+        node.expandTop()
+        node.select()
       }
     },
 
@@ -257,18 +232,13 @@ export default {
       if (this.unitUuid) {
         OrganisationUnit.getAncestorTree(this.unitUuid, this.atDate)
           .then(response => {
-            console.log('TREE: injecting unit tree', response.uuid)
-
             vm.addNode(response, null)
             vm.tree.sort()
-
             vm.setSelection()
           })
       } else {
         Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
-            console.log('TREE: injecting org tree')
-
             vm.units = {}
 
             for (let unit of response) {
@@ -283,8 +253,6 @@ export default {
     fetch (node) {
       let vm = this
 
-      console.log(`TREE: fetching ${node.text}`)
-
       if (!this.orgUuid || node.fetching) {
         // nothing to do, so return something that does nothing
         return new Promise(() => [])
@@ -298,13 +266,9 @@ export default {
       return OrganisationUnit.getChildren(node.id, this.atDate)
         .then(response => {
           node.fetching = false
-
           return response.map(vm.toNode.bind(vm))
         }).catch(error => {
-          console.error('fetch failed', error)
-
           node.fetching = false
-
           throw error
         })
     }

@@ -1,7 +1,8 @@
 import Vue from 'vue'
+import router from '@/router'
 import Service from '@/api/HttpCommon'
 
-function state () {
+const defaultState = () => {
   return {
     name: undefined,
     user_key: undefined,
@@ -12,20 +13,24 @@ function state () {
     parents: [],
     location: undefined,
     user_settings: {},
-    details: {}
+    details: {},
+    isLoading: false
   }
 }
 
+const state = defaultState()
+
 const actions = {
-  SET_ORG_UNIT ({ commit }, payload) {
-    return Service.get(`/ou/${payload}/`)
-      .then(response => {
-        commit('SET_ORG_UNIT', response.data)
-        // EventBus.$emit('organisation-changed', response.data.org)
-      })
-      .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
-      })
+  async SET_ORG_UNIT ({ commit }, payload) {
+    const response = await Service.get(`/ou/${payload}/`)
+
+    if (response) {
+      router.push({ name: 'OrganisationDetail', params: { uuid: response.data.uuid } })
+      commit('SET_ORG_UNIT', response.data)
+    } else {
+      commit('log/newError', { type: 'ERROR', value: response }, { root: true })
+    }
+    return response.data
   },
 
   SET_DETAIL ({ state, commit }, payload) {
@@ -52,6 +57,7 @@ const mutations = {
   SET_ORG_UNIT (state, payload) {
     state.uuid = payload.uuid
     state.name = payload.name
+    state.uuid = payload.uuid
     state.user_key = payload.user_key
     state.org = payload.org
     state.org_uuid = payload.org.uuid
@@ -66,16 +72,7 @@ const mutations = {
   },
 
   RESET_ORG_UNIT (state) {
-    state.uuid = undefined
-    state.name = undefined
-    state.user_key = undefined
-    state.org = undefined
-    state.org_uuid = undefined
-    state.parent_uuid = undefined
-    state.parents = []
-    state.location = undefined
-    state.user_settings = {}
-    state.details = {}
+    Object.assign(state, defaultState())
   },
 
   SET_DETAIL (state, payload) {
