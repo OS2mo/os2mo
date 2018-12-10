@@ -1,0 +1,92 @@
+#
+# Copyright (c) 2017-2018, Magenta ApS
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+'''
+Integration data
+----------------
+
+This module handles reading of integration_data
+
+'''
+import flask
+import json
+from .. import common
+from .. import mapping
+from .. import util
+from .. import exceptions
+from . import orgunit
+from . import employee
+
+
+blueprint = flask.Blueprint('integration-data', __name__, static_url_path='',
+                            url_prefix='/service')
+
+
+@blueprint.route('/ou/<uuid:unitid>/integration-data', methods=['GET'])
+@util.restrictargs('at')
+def get_org_unit_integration_data(unitid):
+    """Get
+
+    .. :quickref: Unit; Get integration data
+
+    :param uuid unitid: UUID of the unit to retrieve.
+
+    :queryparam date at: Show the unit at this point in time,
+        in ISO-8601 format.
+
+    :statuscode 200: Integration data (json) retrieved
+    :statuscode 404: No such unit found.
+
+
+    :returns: organisational unit with integration data as json
+    """
+    c = common.get_connector()
+
+    r = orgunit.get_one_orgunit(c, unitid,
+                                details=orgunit.UnitDetails.INTEGRATION)
+
+    if not r:
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
+
+    if r[mapping.INTEGRATION_DATA]:
+        r[mapping.INTEGRATION_DATA] = json.loads(r[mapping.INTEGRATION_DATA])
+    else:
+        r[mapping.INTEGRATION_DATA] = {}
+
+    return flask.jsonify(r)
+
+
+@blueprint.route('/e/<uuid:employeeid>/integration-data', methods=['GET'])
+@util.restrictargs('at')
+def get_employee_integration_data(employeeid):
+    """Get
+
+    :param uuid employeeid: UUID of the employee to retrieve.
+
+    :queryparam date at: Show the employee at this point in time,
+        in ISO-8601 format.
+
+    :statuscode 200: Integration data (json) retrieved
+    :statuscode 404: No such employee found.
+
+    :returns: employee with integration data as json
+    """
+    c = common.get_connector()
+
+    r = employee.get_one_employee(c, employeeid,
+                                  details=employee.EmployeeDetails.INTEGRATION)
+
+    if not r:
+        exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employeeid)
+
+    if r[mapping.INTEGRATION_DATA]:
+        r[mapping.INTEGRATION_DATA] = json.loads(r[mapping.INTEGRATION_DATA])
+    else:
+        r[mapping.INTEGRATION_DATA] = {}
+
+    return flask.jsonify(r)

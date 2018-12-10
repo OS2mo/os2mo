@@ -690,7 +690,7 @@ class Tests(util.LoRATestCase):
                           employee_uuid)
 
         self.assertRequestResponse(
-            '/service/e/{}/?integrationdata=1'.format(employee_uuid),
+            '/service/e/{}/integration-data'.format(employee_uuid),
             {
                 'integration_data': {"von-and-løn-id": "2468"},
                 'name': 'Andersine And',
@@ -730,7 +730,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/' +
             employee_uuid +
-            '/?at=2016-01-01&integrationdata=1', {
+            '/integration-data?at=2016-01-01', {
                 'integration_data': {
                     'bjørnebanden-hjælper-id': 'sorte-slyngel',
                     'von-and-løn-id': '2468'

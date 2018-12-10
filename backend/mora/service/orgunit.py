@@ -349,7 +349,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     elif details is UnitDetails.INTEGRATION:
-        r["integration_data"] = json.loads(attrs.get("integrationsdata"))
+        r["integration_data"] = attrs.get("integrationsdata")
     else:
         assert False, 'enum is {}!?'.format(details)
 
@@ -603,7 +603,7 @@ def get_unit_tree(c, orgid, unitids):
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at', 'integrationdata')
+@util.restrictargs('at')
 def get_orgunit(unitid):
     '''Get an organisational unit
 
@@ -613,10 +613,6 @@ def get_orgunit(unitid):
 
     :queryparam date at: Show the unit at this point in time,
         in ISO-8601 format.
-
-    :queryparam bool integrationdata: whether integration data
-        should be included in the output.
-
 
     :>json string name: The name of the org unit
     :>json string user_key: A unique key for the org unit.
@@ -668,12 +664,7 @@ def get_orgunit(unitid):
     '''
     c = common.get_connector()
 
-    if util.get_args_flag("integrationdata"):
-        details = UnitDetails.INTEGRATION
-    else:
-        details = UnitDetails.FULL
-
-    r = get_one_orgunit(c, unitid, details=details)
+    r = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)

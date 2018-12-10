@@ -1094,10 +1094,6 @@ class Tests(util.LoRATestCase):
 
     @util.mock('aabogade.json', allow_mox=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
-        """ This test fails due to validity records being
-            fractioned in lora due to integration_data added
-            the results are not wrong, just fractioned (#25200)
-        """
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -2727,7 +2723,7 @@ class Tests(util.LoRATestCase):
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         self.assertRequestResponse(
-            '/service/ou/{}/?integrationdata=1'.format(org_unit_uuid),
+            '/service/ou/{}/integration-data'.format(org_unit_uuid),
             {
                 'integration_data': {},
                 'name': 'Humanistisk fakultet',

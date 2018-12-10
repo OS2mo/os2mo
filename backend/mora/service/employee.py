@@ -222,9 +222,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
-        r["integration_data"] = json.loads(
-            props.get("integrationsdata")
-        )
+        r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
     return r
 
 
@@ -302,7 +300,7 @@ def list_employees(orgid):
 
 
 @blueprint.route('/e/<uuid:id>/')
-@util.restrictargs('at', 'integrationdata')
+@util.restrictargs('at')
 def get_employee(id):
     '''Retrieve an employee.
 
@@ -310,9 +308,6 @@ def get_employee(id):
 
     :queryparam date at: Show the employee at this point in time,
         in ISO-8601 format.
-
-    :queryparam bool integrationdata: whether the integration data
-        should be included in the output
 
     :>json string name: Human-readable name.
     :>json string uuid: Machine-friendly UUID.
@@ -345,12 +340,7 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    if util.get_args_flag("integrationdata"):
-        details = EmployeeDetails.INTEGRATION
-    else:
-        details = EmployeeDetails.FULL
-
-    r = get_one_employee(c, id, user=None, details=details)
+    r = get_one_employee(c, id, user=None, details=EmployeeDetails.FULL)
 
     if r:
         return flask.jsonify(r)
