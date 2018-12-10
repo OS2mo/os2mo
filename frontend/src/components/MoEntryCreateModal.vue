@@ -29,7 +29,7 @@
       </div>
 
       <div class="float-right">
-        <button-submit :is-loading="isLoading" :is-disabled="!formValid"/>
+        <button-submit :is-loading="isLoading"/>
       </div>
     </form>
     </b-modal>
@@ -146,6 +146,11 @@ export default {
      * Create a employee or organisation entry.
      */
     create () {
+      if (!this.formValid) {
+        this.$validator.validateAll()
+        return
+      }
+
       this.isLoading = true
 
       switch (this.type) {
