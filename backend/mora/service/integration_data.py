@@ -10,7 +10,14 @@
 Integration data
 ----------------
 
-This module handles reading of integration_data
+This module handles reading of integration data
+
+Integration data is typically key-value pairs tieing an entity in OS2mo/LoRa to
+an entity in another IT-system. This way previously transferred data can be identified,
+be it an employee in a salary-system or an organisational unit in an ERP-system.
+
+Inserting/editing integration data is done using the endpoints for
+inserting/updating organisational units and employees
 
 '''
 import flask
@@ -30,9 +37,9 @@ blueprint = flask.Blueprint('integration-data', __name__, static_url_path='',
 @blueprint.route('/ou/<uuid:unitid>/integration-data', methods=['GET'])
 @util.restrictargs('at')
 def get_org_unit_integration_data(unitid):
-    """Get
+    """Get organisational unit with integration data
 
-    .. :quickref: Unit; Get integration data
+    .. :quickref: Unit ; integration data
 
     :param uuid unitid: UUID of the unit to retrieve.
 
@@ -64,7 +71,9 @@ def get_org_unit_integration_data(unitid):
 @blueprint.route('/e/<uuid:employeeid>/integration-data', methods=['GET'])
 @util.restrictargs('at')
 def get_employee_integration_data(employeeid):
-    """Get
+    """Get employee with integration data
+
+    .. :quickref: Employee; integration data
 
     :param uuid employeeid: UUID of the employee to retrieve.
 
