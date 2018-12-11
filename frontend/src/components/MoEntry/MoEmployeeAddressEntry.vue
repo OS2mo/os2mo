@@ -6,7 +6,7 @@
     :required="required"
     :label="label"
     :preselectedType="preselectedType"
-  ></mo-address-entry>
+  />
 </template>
 
 <script>
