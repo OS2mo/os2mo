@@ -1,23 +1,27 @@
-const state = {
-  from: {
-    org: undefined,
-    orgUnit: undefined
-  },
-  to: {
+// import Service from '@/api/HttpCommon'
 
-  },
-  name: undefined,
-  uuid: undefined
+const state = {
+  origin: undefined,
+  destination: []
 }
 
 const actions = {
-
+  MAP_ORGANISATIONS ({ state }) {
+    console.log(`Map ${state.origin} to ${state.destination}`)
+    // Service.post(`/map/${state.origin}`, state.destination)
+    //   .then(response => {
+    //     console.log('submitted, everything is great')
+    //   })
+  }
 }
 
 const mutations = {
-  change (state, employee) {
-    state.name = employee.name
-    state.uuid = employee.uuid
+  SET_ORIGIN (state, uuid) {
+    state.origin = uuid
+  },
+
+  SET_DESTINATION (state, uuidList) {
+    state.destination = uuidList
   }
 }
 

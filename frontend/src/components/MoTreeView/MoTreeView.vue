@@ -4,7 +4,8 @@
       :ref="nameId"
       :v-model="selected"
       :data="treeData"
-      :options="treeOptions">
+      :options="treeOptions"
+      :multiple="multiple">
 
       <div class="tree-scope" slot-scope="{ node }">
         <template>
@@ -40,7 +41,12 @@ export default {
     /**
      * Defines a atDate.
      */
-    atDate: [Date, String]
+    atDate: [Date, String],
+
+    /**
+     * Select more than one node
+     */
+    multiple: Boolean
   },
 
   computed: {
