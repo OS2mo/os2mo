@@ -1327,6 +1327,37 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    def test_edit_org_unit_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        req = [{
+            "type": "org_unit",
+            "data": {
+                "uuid": org_unit_uuid,
+                "org_unit_type": {
+                    'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
+
     def test_create_missing_parent(self):
         self.load_sample_structures()
 

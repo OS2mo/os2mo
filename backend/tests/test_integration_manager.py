@@ -2385,6 +2385,37 @@ class Tests(util.LoRATestCase):
             [],
         )
 
+    def test_edit_manager_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        req = {
+            "type": "manager",
+            "uuid": manager_uuid,
+            "data": {
+                "manager_type": {
+                    'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
+
     def test_read_manager_multiple_responsibilities(self):
         '''Test reading a manager with multiple responsibilities, all valid'''
         self.load_sample_structures()
