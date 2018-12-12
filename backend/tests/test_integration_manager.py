@@ -2322,11 +2322,11 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "uuid": manager_uuid,
                 "data": {
-                    "responsibility": [{
+                    "manager_type": {
                         'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
-                    }],
+                    },
                     "validity": {
-                        "from": "2016-04-01",
+                        "from": "2017-01-01",
                     },
                 },
             },
@@ -2336,8 +2336,8 @@ class Tests(util.LoRATestCase):
         expected_changed_lora = copy.deepcopy(expected_lora)
         expected_changed_lora['note'] = 'Rediger leder'
         expected_changed_lora['livscykluskode'] = 'Rettet'
-        expected_changed_lora['relationer']['opgaver'][0]['uuid'] = \
-            "ca76a441-6226-404f-88a9-31e02e420e52"
+        expected_changed_lora['relationer']['organisatoriskfunktionstype'][0][
+            'uuid'] = "ca76a441-6226-404f-88a9-31e02e420e52"
 
         for g, f in (
                 ('attributter', 'organisationfunktionegenskaber'),
@@ -2350,16 +2350,16 @@ class Tests(util.LoRATestCase):
                 ('tilstande', 'organisationfunktiongyldighed'),
         ):
             for m in expected_changed_lora[g][f]:
-                m['virkning']['from'] = '2016-04-01 00:00:00+02'
+                m['virkning']['from'] = '2017-01-01 00:00:00+01'
 
-        expected_mora[0]['validity']['from'] = '2016-04-01'
-        expected_mora[0]['responsibility'] = [{
+        expected_mora[0]['validity']['from'] = '2017-01-01'
+        expected_mora[0]['manager_type'] = {
             'example': None,
             'name': 'Institut',
             'scope': None,
             'user_key': 'inst',
             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-        }]
+        }
 
         # compare them!
         actual_lora = c.organisationfunktion.get(manager_uuid)

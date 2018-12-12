@@ -16,7 +16,7 @@ from tests import util
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 
 
-@freezegun.freeze_time('2017-01-01', tz_offset=1)
+@freezegun.freeze_time('2016-01-01', tz_offset=1)
 @patch('uuid.uuid4', new=lambda: mock_uuid)
 class Tests(util.LoRATestCase):
     maxDiff = None
@@ -644,8 +644,6 @@ class Tests(util.LoRATestCase):
     def test_edit_leave_fails_when_no_active_engagement(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
         req = [{
@@ -656,8 +654,8 @@ class Tests(util.LoRATestCase):
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "validity": {
-                    "from": "2000-04-01",
-                    "to": "2000-04-01",
+                    "from": "2016-04-01",
+                    "to": "2016-04-01",
                 },
             },
         }]

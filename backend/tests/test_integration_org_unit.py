@@ -996,6 +996,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2010-01-01')
     def test_edit_org_unit_earlier_start(self):
         '''Test setting the start date to something earlier (#23182)'''
 
@@ -1169,6 +1170,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2016-01-01')
     @util.mock('aabogade.json', allow_mox=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
         self.load_sample_structures()
@@ -1570,6 +1572,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2016-01-01')
     def test_rename_org_unit_early(self):
         # Test that we can rename a unit to a date *earlier* than its
         # creation date. We are expanding the validity times on the
@@ -1983,6 +1986,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
+    @freezegun.freeze_time('2010-01-01')
     def test_cannot_extend_beyond_parent(self):
         """Should fail validation since the new validity period extends beyond
         that of the parent. (#23155)"""
