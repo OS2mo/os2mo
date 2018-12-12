@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+
 import contextlib
 import json
 import os
@@ -26,11 +27,13 @@ import requests_mock
 import time
 import werkzeug.serving
 
+from .lorapatch import LORA_PATCHED
+
 from oio_rest.utils import test_support
 
 from mora import app, lora, settings
 from mora.importing import spreadsheets
-from .lorapatch import ensure_lora_patched
+
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -505,9 +508,6 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
     instance, and deletes all objects between runs.
     '''
 
-    def setUpClass(cls=None):
-        ensure_lora_patched()
-
     def load_sample_structures(self, **kwargs):
         load_sample_structures(**kwargs)
 
@@ -527,11 +527,16 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         )
         (_, self.lora_port) = lora_server.socket.getsockname()
 
+        sys.path.insert(0, os.path.join(TOP_DIR, 'setup'))
+        import db_structure as new_db_structure
+        sys.path.pop(0)
+
         patches = [
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
                 self.lora_port,
             )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
+            patch('oio_common.db_structure', new_db_structure),
             patch('mora.importing.processors._fetch.cache', {}),
             patch('mora.importing.processors._fetch.cache_file',
                   os.devnull),

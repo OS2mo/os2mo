@@ -22,32 +22,13 @@ def ensure_lora_patched():
 
         if orgfile.read_text() != patchfile.read_text():
             orgfile.write_text(patchfile.read_text())
-
             # reimport db_structure after patching
             import importlib
             importlib.reload(db_structure)
-
-            # regenerate 'generated-files' necessary first time
-            # apply-templates has that side effect when imported
-            oio_rest_top = orgfile.parent.parent
-            src = oio_rest_top / "apply-templates.py"
-            dst = oio_rest_top / "apply_templates.py"
-
-            # insert path for import of apply-templates
-            sys.path.insert(0, str(oio_rest_top))
-
-            # temporarily symlink to importable name
-            if not dst.exists():
-                os.symlink(str(src), str(dst))
-
-            # import for side effect
-            import apply_templates  # noqa 401
-
-            if src.exists():
-                os.unlink(str(dst))
-
-            # remove import path again
-            sys.path.remove(str(oio_rest_top))
-
+        return True
     except ImportError:
-        pass  # oio_common not yet present - nothing to patch
+        # oio_common not yet present - nothing to patch
+        return False
+
+
+LORA_PATCHED = ensure_lora_patched()

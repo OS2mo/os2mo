@@ -13,8 +13,9 @@ Integration data
 This module handles reading of integration data
 
 Integration data is typically key-value pairs tieing an entity in OS2mo/LoRa to
-an entity in another IT-system. This way previously transferred data can be identified,
-be it an employee in a salary-system or an organisational unit in an ERP-system.
+an entity in another IT-system. This way previously transferred data can be
+identified, be it an employee in a salary-system or an organisational unit in
+an ERP-system.
 
 Inserting/editing integration data is done using the endpoints for
 inserting/updating organisational units and employees
