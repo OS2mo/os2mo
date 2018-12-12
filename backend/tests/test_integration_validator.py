@@ -348,5 +348,3 @@ class TestIsContainedInEmployeeRange(TestHelper):
         # Should not raise an exception
         validator.is_contained_in_employee_range(empl_from, empl_to,
                                                  valid_from, valid_to)
-
-

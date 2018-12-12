@@ -175,6 +175,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         new_from, new_to = util.get_validities(data)
 
+        validator.is_edit_from_date_before_today(new_from)
+
         # Get org unit uuid for validation purposes
         parent = util.get_obj_value(
             original, mapping.PARENT_FIELD.path)[-1]
