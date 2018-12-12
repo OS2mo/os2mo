@@ -11,6 +11,7 @@
     <mo-date-picker-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden"
+      :disabled-dates="disabledDates"
     />
   </div>
 </template>
@@ -38,7 +39,12 @@ export default {
     /**
      * Defines the validity.
      */
-    validity: Object
+    validity: Object,
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {
