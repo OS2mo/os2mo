@@ -52,13 +52,13 @@ const itSystemInput = dialog.find('.input-itSystem input[data-vv-as="Kontonavn"]
 // Manager
 const parentManagerInput = dialog.find('.unit-manager input[data-vv-as="Angiv enhed"]')
 
-const addressManagerTypeSelect = dialog.find('.address-manager select[data-vv-as="Lederadressetype"]')
+const addressManagerTypeSelect = dialog.find('.address-manager select[data-vv-as="Adressetype"]')
 const addressManagerTypeOption = addressManagerTypeSelect.find('option')
 
 const addressManagerInput = dialog.find('.address-manager .v-autocomplete[data-vv-as="Adresse"]')
 const addressManagerItem = addressManagerInput.find('.v-autocomplete-list-item label')
 
-const managerTypeSelect = dialog.find('.select-manager select[data-vv-as="Ledertyper"]')
+const managerTypeSelect = dialog.find('.select-manager select[data-vv-as="Ledertype"]')
 const managerTypeOption = managerTypeSelect.find('option')
 
 const addressManagerMany = dialog.find('.address-manager button')
@@ -131,7 +131,7 @@ test('Workflow: create employee', async t => {
     .pressKey('down enter')
 
     .click(jobFunctionAssociationSelect)
-    .click(jobFunctionAssociationOption.withText('Jurist'))
+    .click(jobFunctionAssociationOption.withText('Konsulent'))
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))
