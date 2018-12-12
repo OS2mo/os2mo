@@ -94,7 +94,7 @@
  */
 
 import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import MoEmployeeAddressEntry from '@/components/MoEntry/MoEmployeeAddressEntry'
 import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
 import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
@@ -174,7 +174,7 @@ export default {
        */
       components: {
         engagement: MoEngagementEntry,
-        address: MoAddressEntry,
+        address: MoEmployeeAddressEntry,
         role: MoRoleEntry,
         it: MoItSystemEntry,
         association: MoAssociationEntry,

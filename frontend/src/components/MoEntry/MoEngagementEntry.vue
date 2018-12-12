@@ -9,7 +9,7 @@
       />
 
       <mo-facet-picker
-        facet="job_function"
+        facet="engagement_job_function"
         v-model="entry.job_function"
         required
       />

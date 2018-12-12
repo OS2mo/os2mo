@@ -92,7 +92,7 @@
  */
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import MoOrgUnitAddressEntry from '@/components/MoEntry/MoOrgUnitAddressEntry'
 import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
 import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
@@ -174,7 +174,7 @@ export default {
        */
       components: {
         orgUnit: MoOrganisationUnitEntry,
-        address: MoAddressEntry,
+        address: MoOrgUnitAddressEntry,
         itSystem: MoItSystemEntry,
         manager: MoManagerEntry
       }

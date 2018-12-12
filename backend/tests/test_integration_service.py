@@ -1212,9 +1212,9 @@ class Tests(util.LoRATestCase):
             [],
         )
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
-            [],
+            404,
         )
 
         self.assertRequestFails(
@@ -1224,14 +1224,14 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures()
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/service/o/00000000-0000-0000-0000-000000000000/f/org_unit_type/',
-            [],
+            404,
         )
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
-            [],
+            404,
         )
 
         self.assertRequestFails(
@@ -1241,20 +1241,17 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
-            [{'name': 'address_type',
-              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            [{'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                       '/f/address_type/',
-              'user_key': 'Adressetype',
+              'user_key': 'address_type',
               'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
-             {'name': 'association_type',
-              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
               '/f/association_type/',
-              'user_key': 'Tilknytningstype',
+              'user_key': 'association_type',
               'uuid': 'ef71fe9c-7901-48e2-86d8-84116e210202'},
-             {'name': 'org_unit_type',
-              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                       '/f/org_unit_type/',
-              'user_key': 'Enhedstype',
+              'user_key': 'org_unit_type',
               'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
         )
 
@@ -1279,10 +1276,9 @@ class Tests(util.LoRATestCase):
                      'scope': None,
                      'user_key': 'inst',
                      'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}]},
-                'name': 'org_unit_type',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/org_unit_type/',
-                'user_key': 'Enhedstype',
+                'user_key': 'org_unit_type',
                 'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}
         )
 
@@ -1313,10 +1309,9 @@ class Tests(util.LoRATestCase):
                      'user_key': 'EAN',
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
                 ]},
-                'name': 'address_type',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/address_type/',
-                'user_key': 'Adressetype',
+                'user_key': 'address_type',
                 'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
         )
 
