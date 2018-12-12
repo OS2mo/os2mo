@@ -5,7 +5,9 @@
       :v-model="selected"
       :data="treeData"
       :options="treeOptions"
-      :multiple="multiple">
+      @node:checked="onNodeChecked"
+      @node:unchecked="onNodeUnchecked"
+    >
 
       <div class="tree-scope" slot-scope="{ node }">
         <template>
@@ -49,6 +51,28 @@ export default {
     multiple: Boolean
   },
 
+  data () {
+    let vm = this
+
+    return {
+      treeData: [],
+      selected: undefined,
+      units: {},
+
+      treeOptions: {
+        parentSelect: true,
+        multiple: false,
+        checkbox: this.multiple,
+        checkOnSelect: this.multiple,
+        autoCheckChildren: false,
+        minFetchDelay: 1,
+        fetchData (node) {
+          return vm.fetch(node)
+        }
+      }
+    }
+  },
+
   computed: {
     ...mapGetters({
       orgUuid: 'organisation/getUuid'
@@ -88,25 +112,6 @@ export default {
       }
 
       return visitNode(this.tree.getRootNode(), 0)
-    }
-  },
-
-  data () {
-    let vm = this
-
-    return {
-      treeData: [],
-      selected: undefined,
-      units: {},
-
-      treeOptions: {
-        minFetchDelay: 1,
-        parentSelect: true,
-
-        fetchData (node) {
-          return vm.fetch(node)
-        }
-      }
     }
   },
 
@@ -191,6 +196,21 @@ export default {
   },
 
   methods: {
+
+    onNodeChecked (event) {
+      if (!(this.selected instanceof Array)) {
+        this.selected = []
+      }
+      this.selected.push(event.id)
+      this.$emit('input', this.selected)
+    },
+
+    onNodeUnchecked (event) {
+      const index = this.selected.indexOf(event.id)
+      if (index !== -1) this.selected.splice(index, 1)
+      this.$emit('input', this.selected)
+    },
+
     /**
      * Select the unit corresponding to the given ID, assuming it's present.
      */

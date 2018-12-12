@@ -48,7 +48,7 @@ export default {
     },
 
     destination (newVal) {
-      this.$emit('mapper:destination', [newVal.uuid])
+      this.$emit('mapper:destination', newVal)
     }
   }
 }
