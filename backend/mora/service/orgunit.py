@@ -650,7 +650,7 @@ def get_orgunit(unitid):
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
-@util.restrictargs('at', 'start', 'limit', 'query')
+@util.restrictargs('at', 'start', 'limit', 'query', 'tree')
 def list_orgunits(orgid):
     '''Query organisational units in an organisation.
 
@@ -664,6 +664,10 @@ def list_orgunits(orgid):
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
 
+    :queryparam bool tree: Return the results as a tree -- please note
+                           that this changes the output, and does not
+                           support paging.
+
     :>json string items: The returned items.
     :>json string offset: Pagination offset.
     :>json string total: Total number of items available on this query.
@@ -676,6 +680,8 @@ def list_orgunits(orgid):
     :status 200: Always.
 
     **Example Response**:
+
+    Regular formatting:
 
     .. sourcecode:: json
 
@@ -704,6 +710,42 @@ def list_orgunits(orgid):
         "total": 2
       }
 
+    Formatted as a tree:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "children": [
+            {
+              "name": "Humanistisk fakultet",
+              "user_key": "hum",
+              "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+              "validity": {
+                "from": "2016-01-01",
+                "to": null
+              }
+            },
+            {
+              "name": "Samfundsvidenskabelige fakultet",
+              "user_key": "samf",
+              "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+              "validity": {
+                "from": "2017-01-01",
+                "to": null
+              }
+            }
+          ],
+          "name": "Overordnet Enhed",
+          "user_key": "root",
+          "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+          "validity": {
+            "from": "2016-01-01",
+            "to": null
+          }
+        }
+      ]
+
     '''
     c = common.get_connector()
 
@@ -721,6 +763,19 @@ def list_orgunits(orgid):
 
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+
+    if util.get_args_flag('tree'):
+        unitids = c.organisationenhed(**kwargs)
+
+        if len(unitids) > settings.TREE_SEARCH_LIMIT:
+            raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
+                found=len(unitids),
+                limit=settings.TREE_SEARCH_LIMIT,
+            )
+
+        return flask.jsonify(
+            get_unit_tree(c, str(orgid), unitids),
+        )
 
     return flask.jsonify(
         c.organisationenhed.paged_get(
