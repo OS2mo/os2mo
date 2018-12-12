@@ -23,7 +23,9 @@
 
       <organisation-detail-tabs
         :uuid="orgUnit.uuid"
-        :at-date="date"
+        :org-unit-info="orgUnitInfo"
+        @show="loadContent($event)"
+        :content="$store.getters[storeId + '/GET_DETAILS']"
         timemachine-friendly
       />
     </div>
@@ -39,6 +41,7 @@ import MoDatePicker from '@/components/atoms/MoDatePicker'
 import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
+import orgUnitStore from '@/store/modules/organisationUnit'
 
 export default {
   components: {
@@ -46,6 +49,9 @@ export default {
     MoOrganisationPicker,
     MoTreeView,
     OrganisationDetailTabs
+  },
+  props: {
+    storeId: { type: String, required: true }
   },
 
   data () {
@@ -59,6 +65,11 @@ export default {
       orgUnit: null
     }
   },
+  computed: {
+    orgUnitInfo () {
+      return this.$store.getters[this.storeId + '/GET_ORG_UNIT']
+    }
+  },
 
   watch: {
     /**
@@ -66,6 +77,24 @@ export default {
      */
     org () {
       this.orgUnit = null
+    },
+    orgUnit (val) {
+      this.$store.dispatch(this.storeId + '/SET_ORG_UNIT', val.uuid)
+    }
+  },
+  created () {
+    // avoid reregistering the module if it already exists
+    if (!this.$store._modules.root._children[this.storeId]) {
+      this.$store.registerModule(this.storeId, orgUnitStore)
+    }
+  },
+  destroyed () {
+    this.$store.unregisterModule(this.storeId)
+  },
+  methods: {
+    loadContent (event) {
+      event.atDate = this.date
+      this.$store.dispatch(this.storeId + '/SET_DETAIL', event)
     }
   }
 }
