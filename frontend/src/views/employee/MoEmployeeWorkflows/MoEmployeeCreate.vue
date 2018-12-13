@@ -121,6 +121,7 @@ export default {
       'role',
       'itSystem',
       'manager',
+      'organisation',
       'backendValidationError'
     ])
   },
@@ -146,7 +147,11 @@ export default {
      * Create a employee and check if the data fields are valid.
      * Then throw a error if not.
      */
+    setOrganisation () {
+      this.organisation = this.$store.getters['organisation/get']
+    },
     createEmployee (evt) {
+      this.setOrganisation()
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
