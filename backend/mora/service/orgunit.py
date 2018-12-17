@@ -20,6 +20,7 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 import collections
 import enum
 import functools
+import itertools
 import locale
 import operator
 import uuid
@@ -413,22 +414,22 @@ def get_children(type, parentid):
     return flask.jsonify(children)
 
 
-@blueprint.route('/ou/<uuid:unitid>/ancestor-tree')
-@util.restrictargs('at')
-def get_unit_ancestor_tree(unitid):
-    '''Obtain the tree of ancestors for a given unit.
+@blueprint.route('/ou/ancestor-tree')
+@util.restrictargs('at', 'uuid')
+def get_unit_ancestor_tree():
+    '''Obtain the tree of ancestors for the given units.
 
     The tree includes siblings of ancestors, with their child counts:
 
-    * Every ancestor of the unit.
+    * Every ancestor of each unit.
     * Every sibling of every ancestor, with a child count.
 
     The intent of this routine is to enable easily showing the tree
-    _up to and including_ a given unit in a UI.
+    _up to and including_ the given units in the UI.
 
     .. :quickref: Unit; Ancestor tree
 
-    :param unitid: The UUID of the organisational unit.
+    :queryparam unitid: The UUID of the organisational unit.
 
     :see: http:get:`/service/ou/(uuid:unitid)/`.
 
@@ -436,7 +437,7 @@ def get_unit_ancestor_tree(unitid):
 
     .. sourcecode:: json
 
-     {
+     [{
         "children": [
           {
             "child_count": 2,
@@ -466,72 +467,17 @@ def get_unit_ancestor_tree(unitid):
           "from": "2016-01-01",
           "to": null
         }
-      }
+      }]
 
     '''
+
     c = common.get_connector()
+    unitids = flask.request.args.getlist('uuid')
 
-    def get_parent(objid):
-        return mapping.PARENT_FIELD(unitcache[objid])[0]['uuid']
-
-    unitcache = common.cache(c.organisationenhed.get)
-    id_path = collections.deque([unitid])
-
-    try:
-        orgid = mapping.BELONGS_TO_FIELD(unitcache[unitid])[0]['uuid']
-    except LookupError:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND.raise_with(
-            org_unit_uuid=unitid,
-        )
-
-    # first, get the path to the unit
-    while get_parent(id_path[0]) != orgid:
-        id_path.appendleft(get_parent(id_path[0]))
-
-    # bail if we're the root unit; that's simpler than handling it in
-    # the other logic
-    if len(id_path) == 1:
-        return flask.jsonify(get_one_orgunit(c, unitid, unitcache[unitid],
-                                             details=UnitDetails.NCHILDREN))
-
-    # then, fetch all the ancestors
-    ancestors = {
-        ancestorid: get_one_orgunit(c, ancestorid, unitcache[ancestorid],
-                                    details=UnitDetails.MINIMAL)
-        for ancestorid in id_path
-        if ancestorid != unitid
-    }
-
-    # now, inject the children, and link them up
-    for ancestor in ancestors.values():
-        if ancestor is None:
-            continue
-
-        # please note that the code below actually re-fetches the
-        # ancestor itself -- however, that's unlikely to be what makes
-        # this function slow
-        ancestor['children'] = sorted(
-            (
-                (
-                    get_one_orgunit(c, siblingid, sibling,
-                                    details=UnitDetails.NCHILDREN)
-                    if siblingid not in ancestors
-                    else
-                    ancestors[siblingid]
-                )
-                for siblingid, sibling in c.organisationenhed.get_all(
-                    overordnet=ancestor[mapping.UUID],
-                    gyldighed='Aktiv',
-                )
-            ),
-            key=lambda u: locale.strxfrm(u[mapping.NAME]),
-        )
-
-    # finally, return the root unit
-    return flask.jsonify(ancestors[id_path[0]])
+    return flask.jsonify(get_unit_tree(c, unitids, with_siblings=True))
 
 
-def get_unit_tree(c, orgid, unitids):
+def get_unit_tree(c, unitids, with_siblings=False):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
@@ -544,13 +490,24 @@ def get_unit_tree(c, orgid, unitids):
         except LookupError:
             return None
 
+    def get_org(unitid):
+        try:
+            return mapping.BELONGS_TO_FIELD(units[unitid])[0]['uuid']
+        except LookupError:
+            return None
+
     def get_unit(unitid):
         r = get_one_orgunit(
-            c, unitid, units[unitid], details=UnitDetails.MINIMAL,
+            c, unitid, units[unitid],
+            details=(
+                UnitDetails.NCHILDREN
+                if with_siblings and unitid not in children
+                else UnitDetails.MINIMAL
+            ),
         )
 
         if unitid in children:
-            r['children'] = get_units(children.getlist(unitid))
+            r['children'] = get_units(children[unitid])
 
         return r
 
@@ -562,21 +519,53 @@ def get_unit_tree(c, orgid, unitids):
 
         return r
 
+    orgs = set()
     units = {}
-    children = werkzeug.datastructures.MultiDict()
+    children = collections.defaultdict(set)
 
     leaves = set(unitids)
 
-    while any(leaves):
-        units.update(c.organisationenhed.get_all(uuid=leaves))
+    while leaves:
+        leafobjs = dict(c.organisationenhed.get_all(uuid=leaves))
 
-        parentids = {leaf: get_parent(leaf) for leaf in leaves}
+        units.update(leafobjs)
+        orgs.update(map(get_org, leafobjs.keys()))
 
-        children.update(zip(parentids.values(), parentids.keys()))
+        missing = leaves - orgs - leafobjs.keys()
 
-        leaves = set(parentids.values()) - units.keys()
+        if missing:
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
+                org_unit_uuid=sorted(missing),
+            )
 
-    return get_units(children.getlist(orgid))
+        for leafid in leaves:
+            parentid = get_parent(leafid)
+
+            if with_siblings:
+                siblings = dict(c.organisationenhed.get_all(
+                    overordnet=parentid,
+                    tilhoerer=get_org(leafid),
+                    gyldighed='Aktiv'
+                ))
+
+                units.update(siblings)
+                children[parentid].update(siblings.keys())
+            else:
+                children[parentid].add(leafid)
+
+        leaves = (
+            set(filter(None, map(get_parent, leaves))) -
+            units.keys() - orgs
+        )
+
+    if not orgs:
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitids)
+
+    return get_units(
+        child
+        for org in orgs
+        for child in children[org]
+    )
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
@@ -650,7 +639,7 @@ def get_orgunit(unitid):
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
-@util.restrictargs('at', 'start', 'limit', 'query', 'tree')
+@util.restrictargs('at', 'start', 'limit', 'query', 'tree', 'uuid')
 def list_orgunits(orgid):
     '''Query organisational units in an organisation.
 
@@ -663,6 +652,8 @@ def list_orgunits(orgid):
     :queryparam int start: Index of first unit for paging.
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
+    :queryparam uuid uuid: Yield the given units; please note that
+                           this overrides any query parameter.
 
     :queryparam bool tree: Return the results as a tree -- please note
                            that this changes the output, and does not
@@ -764,9 +755,15 @@ def list_orgunits(orgid):
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    if util.get_args_flag('tree'):
-        unitids = c.organisationenhed(**kwargs)
+    unitids = (
+        args.getlist('uuid')
+        if 'uuid' in args
+        else c.organisationenhed(**kwargs)
+    )
 
+    assert len(unitids) < 100
+
+    if util.get_args_flag('tree'):
         if len(unitids) > settings.TREE_SEARCH_LIMIT:
             raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
                 found=len(unitids),
@@ -774,14 +771,14 @@ def list_orgunits(orgid):
             )
 
         return flask.jsonify(
-            get_unit_tree(c, str(orgid), unitids),
+            get_unit_tree(c, unitids),
         )
 
     return flask.jsonify(
         c.organisationenhed.paged_get(
             functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
+            uuid=unitids,
             **limits,
-            **kwargs,
         )
     )
 

@@ -2788,7 +2788,7 @@ class Tests(util.LoRATestCase):
         )
 
     def test_tree(self):
-        self.load_sql_fixture()
+        self.load_sample_structures()
 
         for path, expected in util.get_fixture('test_trees.json').items():
             with self.subTest(path):

@@ -1,12 +1,34 @@
 {
-  "/service/o/293089ba-a1d7-4fff-a9d0-79bd8bab4e5b/ou/?query=skoler": {
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak&tree=1&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e": [
+    {
+      "children": [
+        {
+          "name": "Humanistisk fakultet",
+          "user_key": "hum",
+          "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+          "validity": {
+            "from": "2016-01-01",
+            "to": null
+          }
+        }
+      ],
+      "name": "Overordnet Enhed",
+      "user_key": "root",
+      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+      "validity": {
+        "from": "2016-01-01",
+        "to": null
+      }
+    }
+  ],
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=hum": {
     "items": [
       {
-        "name": "Skoler og b\u00f8rnehaver",
-        "user_key": "Skoler og b\u00f8rnehaver 9a1b54c0-f5d0-47be-a5d1-13289a1bb2fb",
-        "uuid": "3d3a73c3-7897-4bfb-bed4-fac6d6e19519",
+        "name": "Humanistisk fakultet",
+        "user_key": "hum",
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
         "validity": {
-          "from": "1960-01-01",
+          "from": "2016-01-01",
           "to": null
         }
       }
@@ -14,164 +36,237 @@
     "offset": 0,
     "total": 1
   },
-  "/service/o/293089ba-a1d7-4fff-a9d0-79bd8bab4e5b/ou/?tree=0&query=skoler": {
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=0&query=fak": {
     "items": [
       {
-        "name": "Skoler og b\u00f8rnehaver",
-        "user_key": "Skoler og b\u00f8rnehaver 9a1b54c0-f5d0-47be-a5d1-13289a1bb2fb",
-        "uuid": "3d3a73c3-7897-4bfb-bed4-fac6d6e19519",
+        "name": "Humanistisk fakultet",
+        "user_key": "hum",
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
         "validity": {
-          "from": "1960-01-01",
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Samfundsvidenskabelige fakultet",
+        "user_key": "samf",
+        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "validity": {
+          "from": "2017-01-01",
           "to": null
         }
       }
     ],
     "offset": 0,
-    "total": 1
+    "total": 2
   },
-  "/service/o/293089ba-a1d7-4fff-a9d0-79bd8bab4e5b/ou/?tree=1&query=skoler": [
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=1": [
     {
       "children": [
         {
           "children": [
             {
-              "name": "Skoler og b\u00f8rnehaver",
-              "user_key": "Skoler og b\u00f8rnehaver 9a1b54c0-f5d0-47be-a5d1-13289a1bb2fb",
-              "uuid": "3d3a73c3-7897-4bfb-bed4-fac6d6e19519",
+              "name": "Filosofisk Institut",
+              "user_key": "fil",
+              "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
               "validity": {
-                "from": "1960-01-01",
+                "from": "2016-01-01",
                 "to": null
+              }
+            },
+            {
+              "children": [
+                {
+                  "name": "Afdeling for Samtidshistorik",
+                  "user_key": "frem",
+                  "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                  "validity": {
+                    "from": "2016-01-01",
+                    "to": "2018-12-31"
+                  }
+                }
+              ],
+              "name": "Historisk Institut",
+              "user_key": "hist",
+              "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+              "validity": {
+                "from": "2016-01-01",
+                "to": "2018-12-31"
               }
             }
           ],
-          "name": "Skole og B\u00f8rn",
-          "user_key": "Skole og B\u00f8rn c142ebe1-ba69-413f-bfaf-352019af4902",
-          "uuid": "18e62646-aee3-4c9e-807c-60c160821c22",
+          "name": "Humanistisk fakultet",
+          "user_key": "hum",
+          "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
           "validity": {
-            "from": "1960-01-01",
+            "from": "2016-01-01",
+            "to": null
+          }
+        },
+        {
+          "name": "Samfundsvidenskabelige fakultet",
+          "user_key": "samf",
+          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+          "validity": {
+            "from": "2017-01-01",
             "to": null
           }
         }
       ],
-      "name": "Hj\u00f8rring",
-      "user_key": "Hj\u00f8rring 6305b76d-1b21-4cce-b9c4-4348b7c0c226",
-      "uuid": "97337de5-6096-41f9-921e-5bed7a140d85",
+      "name": "Overordnet Enhed",
+      "user_key": "root",
+      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
       "validity": {
-        "from": "1960-01-01",
+        "from": "2016-01-01",
         "to": null
       }
     }
   ],
-  "/service/ou/0aa9f102-e79b-499f-a1e5-51fbd00115a0/ancestor-tree": {
-    "children": [
-      {
-        "children": [
-          {
-            "child_count": 0,
-            "name": "Budget og Planl\u00e6gning",
-            "user_key": "Budget og Planl\u00e6gning c4670e25-2ae9-4deb-b2a4-5269967345eb",
-            "uuid": "d4f9af18-aacd-48de-aa78-5f29cb23d716",
-            "validity": {
-              "from": "1960-01-01",
-              "to": null
-            }
-          },
-          {
-            "child_count": 0,
-            "name": "Byudvikling",
-            "user_key": "Byudvikling a1bc270f-3553-4cc6-9267-857b0a700c82",
-            "uuid": "0f534634-c8a8-4870-9c6e-d37aa1853ec4",
-            "validity": {
-              "from": "1960-01-01",
-              "to": null
-            }
-          },
-          {
-            "child_count": 0,
-            "name": "Erhverv",
-            "user_key": "Erhverv afca9e94-f036-4cd9-8a01-7b20c9a402c4",
-            "uuid": "2e47a483-aa27-463e-b83f-da2cc406f75a",
-            "validity": {
-              "from": "1960-01-01",
-              "to": null
-            }
-          },
-          {
-            "child_count": 0,
-            "name": "HR og organisation",
-            "user_key": "HR og organisation c7376a84-3c27-4022-9b24-b9b135f1013e",
-            "uuid": "3eab32a2-f6b1-4fb9-a910-b5dda8c66df8",
-            "validity": {
-              "from": "1960-01-01",
-              "to": null
-            }
-          },
-          {
-            "child_count": 0,
-            "name": "IT-Support",
-            "user_key": "IT-Support f3e21a8a-9863-41d1-bd65-2b6e6a00973d",
-            "uuid": "0aa9f102-e79b-499f-a1e5-51fbd00115a0",
-            "validity": {
-              "from": "1960-01-01",
-              "to": null
-            }
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=1&query=fak": [
+    {
+      "children": [
+        {
+          "name": "Humanistisk fakultet",
+          "user_key": "hum",
+          "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+          "validity": {
+            "from": "2016-01-01",
+            "to": null
           }
-        ],
-        "name": "Borgmesterens Afdeling",
-        "user_key": "Borgmesterens Afdeling 6151869c-5665-48de-b48b-a580d1312391",
-        "uuid": "40644200-b3f1-42d4-8752-8dab581d5b23",
-        "validity": {
-          "from": "1960-01-01",
-          "to": null
+        },
+        {
+          "name": "Samfundsvidenskabelige fakultet",
+          "user_key": "samf",
+          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
         }
-      },
+      ],
+      "name": "Overordnet Enhed",
+      "user_key": "root",
+      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+      "validity": {
+        "from": "2016-01-01",
+        "to": null
+      }
+    }
+  ],
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e": {
+    "items": [
       {
-        "child_count": 3,
-        "name": "Skole og B\u00f8rn",
-        "user_key": "Skole og B\u00f8rn c142ebe1-ba69-413f-bfaf-352019af4902",
-        "uuid": "18e62646-aee3-4c9e-807c-60c160821c22",
+        "name": "Humanistisk fakultet",
+        "user_key": "hum",
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
         "validity": {
-          "from": "1960-01-01",
-          "to": null
-        }
-      },
-      {
-        "child_count": 0,
-        "name": "Social og sundhed",
-        "user_key": "Social og sundhed 8c48d3bb-1181-4ec5-8767-454d55f84d21",
-        "uuid": "fb816fdf-bef3-4d49-89cb-3d3bde3e5b54",
-        "validity": {
-          "from": "1960-01-01",
-          "to": null
-        }
-      },
-      {
-        "child_count": 5,
-        "name": "Teknik og Milj\u00f8",
-        "user_key": "Teknik og Milj\u00f8 9cf3176c-cd95-4662-a358-abb6cb1dcbbb",
-        "uuid": "be7bb9e5-b298-4019-b0fd-ce80c8f97934",
-        "validity": {
-          "from": "1960-01-01",
+          "from": "2016-01-01",
           "to": null
         }
       }
     ],
-    "name": "Hj\u00f8rring",
-    "user_key": "Hj\u00f8rring 6305b76d-1b21-4cce-b9c4-4348b7c0c226",
-    "uuid": "97337de5-6096-41f9-921e-5bed7a140d85",
-    "validity": {
-      "from": "1960-01-01",
-      "to": null
-    }
+    "offset": 0,
+    "total": 1
   },
-  "/service/ou/97337de5-6096-41f9-921e-5bed7a140d85/ancestor-tree": {
-    "child_count": 4,
-    "name": "Hj\u00f8rring",
-    "user_key": "Hj\u00f8rring 6305b76d-1b21-4cce-b9c4-4348b7c0c226",
-    "uuid": "97337de5-6096-41f9-921e-5bed7a140d85",
-    "validity": {
-      "from": "1960-01-01",
-      "to": null
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&uuid=2874e1dc-85e6-4269-823a-e1125484dfd3": {
+    "items": [
+      {
+        "name": "Overordnet Enhed",
+        "user_key": "root",
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Humanistisk fakultet",
+        "user_key": "hum",
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      }
+    ],
+    "offset": 0,
+    "total": 2
+  },
+  "/service/ou/ancestor-tree?uuid=04c78fc2-72d2-4d02-b55f-807af19eac48&uuid=04c78fc2-72d2-4d02-b55f-807af19eac48": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "child_count": 0,
+              "name": "Filosofisk Institut",
+              "user_key": "fil",
+              "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+              "validity": {
+                "from": "2016-01-01",
+                "to": null
+              }
+            },
+            {
+              "children": [
+                {
+                  "child_count": 0,
+                  "name": "Afdeling for Samtidshistorik",
+                  "user_key": "frem",
+                  "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                  "validity": {
+                    "from": "2016-01-01",
+                    "to": "2018-12-31"
+                  }
+                }
+              ],
+              "name": "Historisk Institut",
+              "user_key": "hist",
+              "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+              "validity": {
+                "from": "2016-01-01",
+                "to": "2018-12-31"
+              }
+            }
+          ],
+          "name": "Humanistisk fakultet",
+          "user_key": "hum",
+          "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+          "validity": {
+            "from": "2016-01-01",
+            "to": null
+          }
+        },
+        {
+          "child_count": 0,
+          "name": "Samfundsvidenskabelige fakultet",
+          "user_key": "samf",
+          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
+        }
+      ],
+      "name": "Overordnet Enhed",
+      "user_key": "root",
+      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+      "validity": {
+        "from": "2016-01-01",
+        "to": null
+      }
     }
-  }
+  ],
+  "/service/ou/ancestor-tree?uuid=2874e1dc-85e6-4269-823a-e1125484dfd3": [
+    {
+      "child_count": 2,
+      "name": "Overordnet Enhed",
+      "user_key": "root",
+      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+      "validity": {
+        "from": "2016-01-01",
+        "to": null
+      }
+    }
+  ]
 }
