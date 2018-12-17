@@ -338,13 +338,12 @@ class Scope:
     __call__ = fetch
 
     def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
-        params['maximalantalresultater'] = limit
-        params['foersteresultat'] = start
-
         if 'uuid' in params:
-            uuids = util.uniqueify(params.pop('uuid'))
+            uuids = util.uniqueify(params.pop('uuid'))[start:start + limit]
         else:
-            uuids = self.fetch(**params)
+            uuids = self.fetch(**params,
+                               maximalantalresultater=limit,
+                               foersteresultat=start)
 
         wantregs = params.keys() & {'registreretfra', 'registrerettil'}
 
@@ -370,7 +369,10 @@ class Scope:
                   start=0, limit=settings.DEFAULT_PAGE_SIZE,
                   **params):
 
-        uuids = self.fetch(**params)
+        if 'uuid' in params:
+            uuids = params.pop('uuid')
+        else:
+            uuids = self.fetch(**params)
 
         return {
             'total': len(uuids),
@@ -378,7 +380,8 @@ class Scope:
             'items': [
                 func(self.connector, obj_id, obj)
                 for obj_id, obj in self.get_all(
-                    start=start, limit=limit, **params)
+                    start=start, limit=limit, uuid=uuids,
+                )
             ],
         }
 
