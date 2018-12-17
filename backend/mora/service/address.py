@@ -537,7 +537,7 @@ def address_autocomplete(orgid):
     ])
 
 
-class ProperAddressRequestHandler(handlers.OrgFunkRequestHandler):
+class AddressRequestHandler(handlers.OrgFunkRequestHandler):
     __slots__ = ()
 
     role_type = 'address'
