@@ -1,3 +1,18 @@
+Version 0.14.0, in development
+=============================
+
+New features
+------------
+
+* #25405: Submit button for create new and edit modals for organisation 
+  units and employees is no longer disabled if the form is invalid
+
+Internal changes
+----------------
+
+* #25577: Implemented more facets for address types and job functions.
+  Updated handling of facets throughout.
+
 Version 0.13.0, 2018-11-30
 ==========================
 

@@ -45,9 +45,9 @@ export default {
   getAncestorTree (uuid, atDate) {
     atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    return Service.get(`/ou/${uuid}/ancestor-tree?at=${atDate}`)
+    return Service.get(`/ou/ancestor-tree?at=${atDate}&uuid=${uuid}`)
       .then(response => {
-        return response.data
+        return response.data[0]
       })
   },
 

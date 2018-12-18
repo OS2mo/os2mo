@@ -1,15 +1,14 @@
 <template>
   <div>
-    <mo-loader v-show="isLoading"/>
-
     <button
-      :disabled="isDisabled"
       type="submit"
       class="btn btn-primary"
-      v-show="!isLoading"
+      v-if="!isLoading"
     >
       <icon name="check"/>
     </button>
+
+    <mo-loader v-else/>
   </div>
 </template>
 
@@ -26,19 +25,9 @@ export default {
 
   props: {
     /**
-     * This boolean property disable the button.
-     */
-    isDisabled: Boolean,
-
-    /**
      * This boolean property defines the loading.
      */
-    isLoading: Boolean,
-
-    /**
-     * This Function defines a click action.
-     */
-    onClickAction: Function
+    isLoading: Boolean
   }
 }
 </script>

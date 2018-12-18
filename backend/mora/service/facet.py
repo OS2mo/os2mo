@@ -14,7 +14,6 @@ This sections describes how to interact with facets, i.e. the types of
 objects.
 
     .. http:>jsonarr string name:: Human-readable name.
-
     .. http:>jsonarr string uuid:: Machine-friendly UUID.
     .. http:>jsonarr string user_key:: Short, unique key.
     .. http:>jsonarr string example:: An example value for the address field.
@@ -26,40 +25,14 @@ import locale
 import uuid
 
 import flask
-import werkzeug
 
 from .. import common
 from .. import exceptions
-from .. import mapping
 from .. import settings
 from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
                             url_prefix='/service')
-
-# TODO: we should probably move this into the frontend - in
-# actualilty, the translation services little purpose other than to
-# make the application less flexible
-FACETS = {
-    mapping.ADDRESS_TYPE: 'Adressetype',
-    mapping.ASSOCIATION_TYPE: 'Tilknytningstype',
-    # mapping.AUTHORITY_TYPE: 'Myndighedstype',
-    mapping.ENGAGEMENT_TYPE: 'Engagementstype',
-    # mapping.FUNCTION_TYPE: 'Funktionstype',
-    mapping.JOB_FUNCTION: 'Stillingsbetegnelse',
-    mapping.MANAGER_TYPE: 'Ledertyper',
-    mapping.ORG_UNIT_TYPE: 'Enhedstype',
-    mapping.RESPONSIBILITY: 'Lederansvar',
-    mapping.MANAGER_LEVEL: 'Lederniveau',
-    mapping.ROLE_TYPE: 'Rolletype',
-    # mapping.USER_TYPE: 'Brugertype',
-    mapping.LEAVE_TYPE: 'Orlovstype',
-    mapping.MANAGER_ADDRESS_TYPE: 'Lederadressetype',
-}
-
-FACET_NAMES = {
-    v: k for k, v in FACETS.items()
-}
 
 
 @blueprint.route('/o/<uuid:orgid>/f/')
@@ -105,32 +78,25 @@ def list_facets(orgid):
 
     for facetid, facet in c.facet.get_all(ansvarlig=orgid,
                                           publiceret='Publiceret'):
-        facet_name = FACET_NAMES.get(
-            facet['attributter']['facetegenskaber'][0]['brugervendtnoegle'],
-        )
-
-        r.append(get_one_facet(c, facetid, facet_name, orgid, facet))
+        r.append(get_one_facet(c, facetid, orgid, facet))
 
     return flask.jsonify(sorted(
         r,
         # use locale-aware sorting
-        key=lambda f: locale.strxfrm(f['name']) if f['name'] else '',
+        key=lambda f: locale.strxfrm(f['name']) if f.get('name') else '',
     ))
 
 
-def get_one_facet(c, facetid, facet_name, orgid, facet=None, data=None):
+def get_one_facet(c, facetid, orgid, facet=None, data=None):
     if not facet:
         facet = c.facet.get(facetid)
 
+    bvn = facet['attributter']['facetegenskaber'][0]['brugervendtnoegle']
     r = {
         'uuid': facetid,
-        'name': facet_name,
-        'user_key':
-            facet['attributter']
-            ['facetegenskaber'][0]
-            ['brugervendtnoegle'],
-        'path': facet_name and flask.url_for('facet.get_classes', orgid=orgid,
-                                             facet=facet_name),
+        'user_key': bvn,
+        'path': bvn and flask.url_for('facet.get_classes', orgid=orgid,
+                                      facet=bvn),
     }
 
     if data:
@@ -225,25 +191,22 @@ def get_classes(orgid: uuid.UUID, facet: str):
 
     '''
 
-    try:
-        facet_name = FACETS[facet]
-    except KeyError:
-        raise werkzeug.exceptions.NotFound(
-            'No facet named {!r}! Possible values are: {}'.format(
-                facet,
-                ', '.join(sorted(FACETS)),
-            ),
-        )
-
     c = common.get_connector()
 
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or settings.DEFAULT_PAGE_SIZE)
 
     facetids = c.facet(
-        bvn=facet_name, ansvarlig=orgid,
+        bvn=facet,
+        ansvarlig=orgid,
         publiceret='Publiceret',
     )
+
+    if not facetids:
+        return exceptions.HTTPException(
+            exceptions.ErrorCodes.E_NOT_FOUND,
+            message="Facet {} not found.".format(facet)
+        )
 
     assert len(facetids) <= 1, 'Facet is not unique'
 
@@ -251,7 +214,6 @@ def get_classes(orgid: uuid.UUID, facet: str):
         facetids and get_one_facet(
             c,
             facetids[0],
-            facet,
             orgid,
             data=c.klasse.paged_get(get_one_class,
                                     facet=facetids,
