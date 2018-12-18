@@ -51,6 +51,9 @@ ENGAGEMENT_TYPE = 'engagement_type'
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
 
+# Related units
+RELATED_UNIT_KEY = 'Relateret Enhed'
+
 # Role type
 ROLE_KEY = 'Rolle'
 ROLE_TYPE = 'role_type'
