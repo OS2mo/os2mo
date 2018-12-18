@@ -29,6 +29,7 @@ export default {
   methods: {
     onOrigin (val) {
       this.$store.commit(`${STORE_KEY}/SET_ORIGIN`, val)
+      this.$store.dispatch(`${STORE_KEY}/GET_ORGANISATION_MAPPINGS`)
     },
 
     onDestination (val) {
