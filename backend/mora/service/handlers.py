@@ -21,6 +21,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from .. import validator
 
 
 @enum.unique
@@ -195,6 +196,8 @@ class OrgFunkRequestHandler(RequestHandler):
         original = request['original']
 
         validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+
+        validator.is_edit_from_date_before_today(date)
 
         self.payload = common.update_payload(
             max(date, util.get_effect_from(validity[0])),

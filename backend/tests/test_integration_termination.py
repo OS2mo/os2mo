@@ -5,15 +5,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import freezegun
 
 from mora import lora
-from mora import util as mora_util
 
 from . import util
 
 
 class Tests(util.LoRATestCase):
-    def test_terminate_employee_in_the_past(self):
+    @freezegun.freeze_time('2000-12-01')
+    def test_terminate_employee(self):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -85,3 +86,28 @@ class Tests(util.LoRATestCase):
         with self.subTest('manager'):
             self.assertRegistrationsEqual(expected_manager,
                                           actual_manager)
+
+    @freezegun.freeze_time('2018-01-01')
+    def test_terminate_employee_in_the_past_fails(self):
+        """Terminating employees in the past should fail"""
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        payload = {
+            "validity": {
+                "to": "2000-12-01"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            {
+                'date': '2000-12-02T00:00:00+01:00',
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'status': 400
+            },
+            status_code=400,
+            json=payload)

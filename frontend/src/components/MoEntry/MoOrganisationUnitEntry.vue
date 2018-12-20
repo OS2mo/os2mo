@@ -23,6 +23,7 @@
       <mo-date-picker-range
         v-model="orgUnit.validity"
         :disable-to-date="!creatingDate"
+        :disabled-dates="disabledDates"
       />
   </div>
 </template>
@@ -61,7 +62,12 @@ export default {
     /**
      * This boolean property able the date in create organisation component.
      */
-    creatingDate: Boolean
+    creatingDate: Boolean,
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {

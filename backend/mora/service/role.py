@@ -80,6 +80,8 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
 
+        validator.is_edit_from_date_before_today(new_from)
+
         payload = dict()
         payload['note'] = 'Rediger rolle'
 
