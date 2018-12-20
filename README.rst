@@ -61,7 +61,7 @@ MO-tilretninger af datamodellen i LoRa
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For at få datamodellen i LoRa til at afspejle datamodellen i MO skal man 
 inden systemet tages i brug kopiere ``os2mo/setup/db_structure.py`` til
-Loras: *oio_rest/oio_common/db_structure.py* og afvikle recreatedb.sh
+til ``mox/oio_rest/oio_common/db_structure.py`` og afvikle ``recreatedb.sh``
 
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
