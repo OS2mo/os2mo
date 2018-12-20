@@ -1,6 +1,14 @@
 Version 0.14.0, in development
 =============================
 
+New features
+------------
+
+* #25405: Submit button for create new and edit modals for organisation 
+  units and employees is no longer disabled if the form is invalid
+* #25394: It is now no longer possible to perform edits taking effect before
+  the current date.
+
 Internal changes
 ----------------
 

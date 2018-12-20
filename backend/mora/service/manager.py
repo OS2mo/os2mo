@@ -108,6 +108,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
 
+        validator.is_edit_from_date_before_today(new_from)
+
         # Get org unit uuid for validation purposes
         org_unit_uuid = util.get_obj_uuid(
             original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)

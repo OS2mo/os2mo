@@ -30,6 +30,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
@@ -97,6 +98,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         original = c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
+
+        validator.is_edit_from_date_before_today(new_from)
 
         payload = dict()
         if original_data:

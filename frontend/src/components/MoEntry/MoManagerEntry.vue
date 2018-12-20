@@ -51,7 +51,11 @@
       small-buttons
     />
 
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
+    <mo-date-picker-range
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="disabledDates"
+    />
   </div>
 </template>
 
@@ -95,7 +99,12 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {

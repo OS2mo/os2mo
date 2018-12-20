@@ -312,3 +312,15 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
 
     if not valid_effects:
         exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT(employee=employee_uuid)
+
+
+def is_edit_from_date_before_today(from_date: datetime.datetime):
+    """Check if a given edit date is before today. If so, raise exception"""
+    today = datetime.datetime.combine(
+        datetime.date.today(),
+        datetime.time(0, 0, 0, 0, from_date.tzinfo)
+    )
+    if from_date < today:
+        raise exceptions.ErrorCodes.V_CHANGING_THE_PAST(
+            date=util.to_iso_time(from_date)
+        )

@@ -996,6 +996,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2010-01-01')
     def test_edit_org_unit_earlier_start(self):
         '''Test setting the start date to something earlier (#23182)'''
 
@@ -1169,6 +1170,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2016-01-01')
     @util.mock('aabogade.json', allow_mox=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
         self.load_sample_structures()
@@ -1324,6 +1326,37 @@ class Tests(util.LoRATestCase):
         actual = c.organisationenhed.get(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
+
+    def test_edit_org_unit_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        req = [{
+            "type": "org_unit",
+            "data": {
+                "uuid": org_unit_uuid,
+                "org_unit_type": {
+                    'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
 
     def test_create_missing_parent(self):
         self.load_sample_structures()
@@ -1570,6 +1603,7 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2016-01-01')
     def test_rename_org_unit_early(self):
         # Test that we can rename a unit to a date *earlier* than its
         # creation date. We are expanding the validity times on the
@@ -1983,6 +2017,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
+    @freezegun.freeze_time('2010-01-01')
     def test_cannot_extend_beyond_parent(self):
         """Should fail validation since the new validity period extends beyond
         that of the parent. (#23155)"""
