@@ -52,6 +52,22 @@ def get_org_unit_integration_data(unitid):
 
 
     :returns: organisational unit with integration data as json
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+        {
+          "integration_data": {}, 
+          "name": "Ballerup Bibliotekasdfasdf", 
+          "user_key": "BIBLIOTEK", 
+          "uuid": "921e44d3-2ec0-4c16-9935-2ec7976566dc", 
+          "validity": {
+            "from": "1993-01-01", 
+            "to": null
+          }
+        }
+
     """
     c = common.get_connector()
 
@@ -85,6 +101,17 @@ def get_employee_integration_data(employeeid):
     :statuscode 404: No such employee found.
 
     :returns: employee with integration data as json
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+        {
+          "integration_data": {}, 
+          "name": "Sanne Sch\u00e4ff", 
+          "uuid": "1ce40e25-6238-4202-9e93-526b348ec745"
+        }
+
     """
     c = common.get_connector()
 
