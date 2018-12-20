@@ -4,6 +4,7 @@
             {
                 "brugernavn": "Andersine And",
                 "brugervendtnoegle": "andersineand",
+                "integrationsdata": "{\"von-and-løn-id\": \"2468\"}",
                 "virkning": {
                     "from": "1937-01-09T00:00:00+01:00",
                     "from_included": true,

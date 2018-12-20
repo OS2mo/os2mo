@@ -23,6 +23,7 @@ import functools
 import locale
 import operator
 import uuid
+import json
 
 import werkzeug
 import flask
@@ -56,6 +57,9 @@ class UnitDetails(enum.Enum):
 
     # same as above, but with all parents
     FULL = 3
+
+    # minimal and integration_data
+    INTEGRATION = 4
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
@@ -111,6 +115,13 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
+        integration_data = util.checked_get(
+            req,
+            mapping.INTEGRATION_DATA,
+            {},
+            required=False
+        )
+
         unitid = util.get_uuid(req, required=False)
         bvn = util.checked_get(req, mapping.USER_KEY,
                                "{} {}".format(name, uuid.uuid4()))
@@ -151,6 +162,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             enhedstype=org_unit_type_uuid,
             overordnet=parent_uuid,
             adresser=addresses,
+            integration_data=integration_data,
         )
 
         if org_uuid != parent_uuid:
@@ -211,9 +223,16 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data:
+        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
-            attrs['enhedsnavn'] = data[mapping.NAME]
+
+            if mapping.NAME in data:
+                attrs['enhedsnavn'] = data[mapping.NAME]
+
+            if mapping.INTEGRATION_DATA in data:
+                attrs['integrationsdata'] = json.dumps(
+                    data[mapping.INTEGRATION_DATA]
+                )
 
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
@@ -329,8 +348,12 @@ def get_one_orgunit(c, unitid, unit=None,
             facet.get_one_class(c, unittype) if unittype else None
         )
 
+    elif details is UnitDetails.MINIMAL:
+        pass  # already done
+    elif details is UnitDetails.INTEGRATION:
+        r["integration_data"] = attrs.get("integrationsdata")
     else:
-        assert details is UnitDetails.MINIMAL, 'enum is {}!?'.format(details)
+        assert False, 'enum is {}!?'.format(details)
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 

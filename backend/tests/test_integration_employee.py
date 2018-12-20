@@ -49,7 +49,8 @@ class Tests(util.LoRATestCase):
                             "from": "1950-01-01 00:00:00+01"
                         },
                         "brugervendtnoegle": mock_uuid,
-                        "brugernavn": "Torkild Testperson"
+                        "brugernavn": "Torkild Testperson",
+                        "integrationsdata": "{}"
                     }
                 ]
             },
@@ -678,6 +679,65 @@ class Tests(util.LoRATestCase):
         self.assertEqual(
             expected_tilknyttedepersoner,
             actual['relationer']['tilknyttedepersoner']
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_get_integration_data(self):
+        self.load_sample_structures()
+        employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersine.json',
+                          employee_uuid)
+
+        self.assertRequestResponse(
+            '/service/e/{}/integration-data'.format(employee_uuid),
+            {
+                'integration_data': {"von-and-løn-id": "2468"},
+                'name': 'Andersine And',
+                'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+            }
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_edit_integration_data(self):
+        self.load_sample_structures()
+        employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+        util.load_fixture('organisation/bruger',
+                          'create_bruger_andersine.json',
+                          employee_uuid)
+
+        req = {
+            "type": "employee",
+            "data": {
+                "uuid": employee_uuid,
+                "integration_data": {
+                    "von-and-løn-id": "2468",
+                    "bjørnebanden-hjælper-id": "sorte-slyngel"
+                },
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": "2016-01-02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            employee_uuid,
+            json=req,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/' +
+            employee_uuid +
+            '/integration-data?at=2016-01-01', {
+                'integration_data': {
+                    'bjørnebanden-hjælper-id': 'sorte-slyngel',
+                    'von-and-løn-id': '2468'
+                },
+                'name': 'Andersine And',
+                'uuid': employee_uuid
+            }
         )
 
     def test_edit_employee_in_the_past_fails(self):

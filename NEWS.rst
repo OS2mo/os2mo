@@ -40,6 +40,7 @@ Internal changes
 
 * #23779: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
+* #24797: Integration data added to employee and organisational unit.
 * #25136: Refactored front end code.
 * #24700: Backend ready for the Phonebook
 
