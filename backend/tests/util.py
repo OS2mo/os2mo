@@ -27,11 +27,9 @@ import requests_mock
 import time
 import werkzeug.serving
 
-from .lorapatch import LORA_PATCHED
-
 from oio_rest.utils import test_support
 
-from mora import app, lora, settings
+from mora import app, lora, settings, db_structure
 from mora.importing import spreadsheets
 
 
@@ -527,16 +525,15 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         )
         (_, self.lora_port) = lora_server.socket.getsockname()
 
-        sys.path.insert(0, os.path.join(TOP_DIR, 'setup'))
-        import db_structure as new_db_structure
-        sys.path.pop(0)
-
         patches = [
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
                 self.lora_port,
             )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
-            patch('oio_common.db_structure', new_db_structure),
+            patch('settings.DB_STRUCTURE', db_structure),
+            patch('settings.REAL_DB_STRUCTURE',
+                  db_structure.REAL_DB_STRUCTURE),
+            patch('oio_rest.validate.SCHEMA', None),
             patch('mora.importing.processors._fetch.cache', {}),
             patch('mora.importing.processors._fetch.cache_file',
                   os.devnull),

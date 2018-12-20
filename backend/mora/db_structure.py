@@ -1,3 +1,11 @@
+#
+# Copyright (c) 2017-2018, Magenta ApS
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
 from copy import deepcopy
 
 # This specifies the database structure
@@ -71,7 +79,8 @@ DATABASE_STRUCTURE = {
     "bruger": {
         "attributter": {
             "egenskaber": [
-                "brugervendtnoegle", "brugernavn", "brugertype", "integrationsdata"
+                "brugervendtnoegle", "brugernavn", "brugertype",
+                "integrationsdata"
             ],
         },
         "attributter_metadata": {
@@ -169,7 +178,9 @@ DATABASE_STRUCTURE = {
 
     "organisationenhed": {
         "attributter": {
-            "egenskaber": ["brugervendtnoegle", "enhedsnavn", "integrationsdata"],
+            "egenskaber": [
+                "brugervendtnoegle", "enhedsnavn", "integrationsdata",
+            ],
         },
         "attributter_metadata": {
             'egenskaber': {
