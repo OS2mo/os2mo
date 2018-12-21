@@ -4,8 +4,6 @@
             {
                 "itsystemnavn": "Lokal Rammearkitektur",
                 "brugervendtnoegle": "LoRa",
-                "itsystemtype": null,
-                "konfigurationreference": null,
                 "virkning": {
                     "from": "2010-01-01T00:00:00+01:00",
                     "from_included": true,
@@ -15,11 +13,9 @@
             }
         ]
     },
-    "note": null,
     "relationer": {
         "tilhoerer": [
             {
-                "objekttype": null,
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 "virkning": {
                     "from": "2010-01-01T00:00:00+01:00",
