@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    BROWSER = 'chromium:headless'
+    BROWSER = 'firefox:headless'
     PYTEST_ADDOPTS = '--color=yes'
   }
 
