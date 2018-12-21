@@ -7,7 +7,7 @@
         :preselected="entry.itsystem && entry.itsystem.uuid"
       />
 
-      <mo-input
+      <mo-input-text
         class="input-itSystem"
         v-model="entry.user_key"
         :label="$t('input_fields.account_name')"
@@ -29,11 +29,11 @@
 
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
-import MoInput from '@/components/atoms/MoInput'
+import { MoInputText } from '@/components/MoInput'
 
 export default {
   components: {
-    MoInput,
+    MoInputText,
     MoDatePickerRange,
     MoItSystemPicker
   },

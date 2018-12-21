@@ -1,7 +1,7 @@
 <template>
   <div>
       <div class="form-row">
-        <mo-input
+        <mo-input-text
           :label="$t('input_fields.name')"
           v-model="orgUnit.name"
           required
@@ -35,14 +35,14 @@
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoInput from '@/components/atoms/MoInput'
+import { MoInputText } from '@/components/MoInput'
 
 export default {
   components: {
     MoDatePickerRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
-    MoInput
+    MoInputText
   },
 
   /**

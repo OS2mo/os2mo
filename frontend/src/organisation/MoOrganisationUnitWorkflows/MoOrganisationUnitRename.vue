@@ -20,7 +20,7 @@
       </div>
 
       <div class="form-row">
-        <mo-input
+        <mo-input-text
           v-model="rename.data.name"
           :label="$t('input_fields.new_name')"
           required
@@ -53,7 +53,7 @@
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoInput from '@/components/atoms/MoInput'
+import { MoInputText } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
@@ -65,7 +65,7 @@ export default {
   components: {
     MoDatePickerRange,
     MoOrganisationUnitPicker,
-    MoInput,
+    MoInputText,
     ButtonSubmit
   },
 

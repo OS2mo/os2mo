@@ -5,11 +5,6 @@ export default {
   inject: {
     $validator: '$validator'
   },
-  data () {
-    return {
-      test: 'some value'
-    }
-  },
   computed: {
     /**
      * Loop over all contents of the fields object and check if they exist and valid.

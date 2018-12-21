@@ -1,5 +1,5 @@
 <template>
-  <mo-select
+  <mo-input-select
     v-model="selected"
     :label="$t('input_fields.'+facetData.user_key)"
     :options="sortedOptions"
@@ -14,13 +14,13 @@
  */
 
 import sortBy from 'lodash.sortby'
-import MoSelect from '@/components/atoms/MoSelect'
+import { MoInputSelect } from '@/components/MoInput'
 
 export default {
   name: 'MoFacetPicker',
 
   components: {
-    MoSelect
+    MoInputSelect
   },
 
   props: {
