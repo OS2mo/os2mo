@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+
 import contextlib
 import json
 import os
@@ -28,8 +29,9 @@ import werkzeug.serving
 
 from oio_rest.utils import test_support
 
-from mora import app, lora, settings
+from mora import app, lora, settings, db_structure
 from mora.importing import spreadsheets
+
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -529,6 +531,10 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
                 self.lora_port,
             )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
+            patch('settings.DB_STRUCTURE', db_structure),
+            patch('settings.REAL_DB_STRUCTURE',
+                  db_structure.REAL_DB_STRUCTURE),
+            patch('oio_rest.validate.SCHEMA', None),
             patch('mora.importing.processors._fetch.cache', {}),
             patch('mora.importing.processors._fetch.cache_file',
                   os.devnull),

@@ -724,7 +724,8 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
         return POSITIVE_INFINITY
 
 
-def get_validities(obj, fallback=None):
+def get_validities(obj, fallback=None) -> typing.Tuple[
+        datetime.datetime, datetime.datetime]:
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:

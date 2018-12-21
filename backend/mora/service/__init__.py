@@ -22,6 +22,7 @@ from . import org
 from . import orgunit
 from . import related  # noqa
 from . import role  # noqa
+from . import integration_data
 
 blueprints = (
     address.blueprint,
@@ -34,4 +35,5 @@ blueprints = (
     org.blueprint,
     orgunit.blueprint,
     exports.blueprint,
+    integration_data.blueprint,
 )

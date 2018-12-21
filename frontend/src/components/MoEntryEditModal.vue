@@ -22,6 +22,7 @@
         :disable-org-unit-picker="disableOrgUnitPicker"
         :hide-org-picker="hideOrgPicker"
         :hide-employee-picker="hideEmployeePicker"
+        :disabled-dates="disabledDates"
       />
 
       <div class="alert alert-danger" v-if="backendValidationMessage">
@@ -100,11 +101,10 @@ export default {
   data () {
     return {
       /**
-       * The entry, original, isLoading, backendValidationMessage component value.
+       * The entry, isLoading, backendValidationMessage component value.
        * Used to detect changes and restore the value.
        */
       entry: {},
-      original: {},
       isLoading: false,
       backendValidationMessage: null
     }
@@ -144,6 +144,15 @@ export default {
      */
     hasEntryComponent () {
       return this.entryComponent !== undefined
+    },
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates () {
+      return {
+        'from': new Date().toISOString().substring(0, 10)
+      }
     }
   },
 
@@ -183,11 +192,10 @@ export default {
 
   methods: {
     /**
-     * Handle the entry and original content.
+     * Handle the entry content.
      */
     handleContent (content) {
       this.entry = JSON.parse(JSON.stringify(content))
-      this.original = JSON.parse(JSON.stringify(content))
     },
 
     /**
@@ -204,7 +212,6 @@ export default {
       let data = {
         type: this.contentType,
         uuid: this.entry.uuid,
-        original: this.original,
         data: this.entry
       }
 

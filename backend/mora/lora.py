@@ -283,7 +283,7 @@ class Connector:
         if self.validity == 'present':
             return util.do_ranges_overlap(self.start, self.end, start, end)
         else:
-            return start >= self.start and end <= self.end
+            return start > self.start and end <= self.end
 
     def get_date_chunks(self, dates):
         a, b = itertools.tee(sorted(dates))
