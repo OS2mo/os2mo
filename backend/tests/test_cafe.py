@@ -72,7 +72,7 @@ class TestCafeTests(util.LiveLoRATestCase):
 
         browser = os.environ.get('BROWSER',
                                  'safari' if platform.system() == 'Darwin'
-                                 else 'chromium:headless --no-sandbox')
+                                 else 'firefox:headless --no-sandbox')
 
         xml_report_file = os.path.join(util.REPORTS_DIR,
                                        test_name + ".xml")
