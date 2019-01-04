@@ -5,7 +5,9 @@
       :data="treeData"
       :options="treeOptions"
       @node:selected="onNodeSelected"
-      >
+      @node:checked="onNodeChecked"
+      @node:unchecked="onNodeUnchecked"
+    >
 
       <div class="tree-scope" slot-scope="{ node }">
         <template>
@@ -48,6 +50,11 @@ export default {
      * Defines the date for rendering the tree; used for the time machine.
      */
     atDate: {type: [Date, String]},
+
+    /**
+     * Select more than one node
+     */
+    multiple: Boolean
   },
 
   computed: {
@@ -127,9 +134,12 @@ export default {
        * @private
        */
       treeOptions: {
-        minFetchDelay: 1,
         parentSelect: true,
-
+        multiple: false,
+        checkbox: this.multiple,
+        checkOnSelect: this.multiple,
+        autoCheckChildren: false,
+        minFetchDelay: 1,
         fetchData (node) {
           return vm.fetch(node)
         }
@@ -189,6 +199,19 @@ export default {
   },
 
   methods: {
+
+    onNodeChecked (event) {
+      if (!this.isLoading) {
+        return
+      }
+
+      if (!(this.selected instanceof Array)) {
+        this.selected = []
+      }
+      this.selected.push(event.id)
+      this.$emit('input', this.selected)
+    },
+
     /**
      * Propagate the selection to the model.
      *
@@ -199,6 +222,12 @@ export default {
        * Emitted whenever the selection changes.
        */
       this.$emit('input', node.id)
+    },
+
+    onNodeUnchecked (event) {
+      const index = this.selected.indexOf(event.id)
+      if (index !== -1) this.selected.splice(index, 1)
+      this.$emit('input', this.selected)
     },
 
     /**

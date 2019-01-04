@@ -15,6 +15,7 @@
     "it": "IT",
     "association": "@:shared.association",
     "roles": "Roller",
+    "related": "Relateret",
     "managers": "Ledere"
   },
   "log": {

@@ -20,6 +20,7 @@ from . import leave  # noqa
 from . import manager  # noqa
 from . import org
 from . import orgunit
+from . import related  # noqa
 from . import role  # noqa
 from . import integration_data
 

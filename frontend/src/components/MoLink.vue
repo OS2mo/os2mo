@@ -38,6 +38,14 @@ export default {
     },
 
     /**
+     * If set, restrict this entry to the given index in an array.
+     */
+    index: {
+      type: Number,
+      default: -1
+    },
+
+    /**
      * Defines a default column.
      */
     column: {
@@ -98,6 +106,8 @@ export default {
         contents = []
       } else if (!(contents instanceof Array)) {
         contents = [contents]
+      } else if (this.index > 0) {
+        contents = [contents[this.index]]
       }
 
       let handler = this.column_handlers[this.column]

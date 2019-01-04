@@ -82,6 +82,17 @@
           :entry-component="timemachineFriendly ? undefined : components.manager"
         />
       </b-tab>
+
+      <b-tab :title="$t('tabs.organisation.related')">
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['related_unit']"
+          content-type="related_unit"
+          :columns="related_unit"
+          @show="loadContent('related_unit', $event)"
+        />
+      </b-tab>
     </b-tabs>
   </div>
 </template>
@@ -166,6 +177,10 @@ export default {
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
         { label: 'address', data: 'address' }
+      ],
+      related_unit: [
+        { label: 'org_unit', data: 'org_unit', index: 0 },
+        { label: 'org_unit', data: 'org_unit', index: 1 },
       ],
 
       /**
