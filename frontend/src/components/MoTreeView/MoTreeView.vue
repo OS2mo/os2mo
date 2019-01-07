@@ -210,7 +210,11 @@ export default {
         text: unit.name,
         isBatch: unit.children ? false : unit.child_count > 0,
         id: unit.uuid,
-        children: unit.children ? unit.children.map(this.toNode.bind(this)) : null
+        children: unit.children ? unit.children.map(this.toNode.bind(this)) : null,
+        state: {
+          expanded: Boolean(unit.children),
+          selected: unit.uuid === this.value
+        }
       }
     },
 
@@ -234,7 +238,6 @@ export default {
           .then(response => {
             vm.addNode(response, null)
             vm.tree.sort()
-            vm.setSelection()
           })
       } else {
         Organisation.getChildren(this.orgUuid, this.atDate)
