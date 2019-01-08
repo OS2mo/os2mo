@@ -18,7 +18,7 @@ const defaultState = () => {
   }
 }
 
-const state = defaultState()
+const state = defaultState
 
 const actions = {
   async SET_ORG_UNIT ({ commit }, payload) {
