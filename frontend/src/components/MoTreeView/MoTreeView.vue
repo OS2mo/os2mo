@@ -205,7 +205,6 @@ export default {
         children: unit.children ? unit.children.map(this.toNode.bind(this)) : null,
         state: {
           expanded: Boolean(unit.children),
-          selected: unit.uuid === this.value
         }
       }
     },
@@ -226,6 +225,7 @@ export default {
           .then(response => {
             vm.addNode(response, null)
             vm.tree.sort()
+            vm.setSelection()
           })
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
@@ -237,6 +237,7 @@ export default {
             }
 
             vm.tree.sort()
+            vm.setSelection()
           })
       }
     },
