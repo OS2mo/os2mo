@@ -22,6 +22,7 @@ import datetime
 import functools
 import typing
 import uuid
+import json
 
 import flask
 import werkzeug
@@ -374,6 +375,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     adresser: typing.List[dict] = None,
+    integration_data: dict = {}
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -383,7 +385,8 @@ def create_organisationsenhed_payload(
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': enhedsnavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -427,7 +430,8 @@ def create_bruger_payload(
     brugernavn: str,
     brugervendtnoegle: str,
     tilhoerer: str,
-    cpr: str
+    cpr: str,
+    integration_data: dict = {},
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -437,7 +441,8 @@ def create_bruger_payload(
             'brugeregenskaber': [
                 {
                     'brugernavn': brugernavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },

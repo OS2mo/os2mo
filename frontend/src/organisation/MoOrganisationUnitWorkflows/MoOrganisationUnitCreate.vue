@@ -16,14 +16,14 @@
       />
 
       <h5 class="mt-3">{{$tc('workflows.employee.labels.address', 2)}}</h5>
-      <mo-address-entry
+      <mo-org-unit-address-entry
         class="mt-3"
         v-model="postAddress"
         preselected-type="AdressePost"
         validity-hidden required
       />
 
-      <mo-address-entry
+      <mo-org-unit-address-entry
         class="mt-3"
         v-model="phone"
         preselected-type="Telefon"
@@ -59,7 +59,7 @@ import OrganisationUnit from '@/api/OrganisationUnit'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import MoOrgUnitAddressEntry from '@/components/MoEntry/MoOrgUnitAddressEntry'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 
@@ -70,7 +70,7 @@ export default {
   components: {
     ButtonSubmit,
     MoOrganisationUnitEntry,
-    MoAddressEntry,
+    MoOrgUnitAddressEntry,
     MoAddMany
   },
 
@@ -93,7 +93,7 @@ export default {
        * The addressEntry component.
        * Used to add MoAddressEntry component in `<mo-add-many/>`.
        */
-      addressEntry: MoAddressEntry
+      addressEntry: MoOrgUnitAddressEntry
     }
   },
 

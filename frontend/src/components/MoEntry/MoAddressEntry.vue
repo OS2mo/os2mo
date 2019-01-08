@@ -3,7 +3,7 @@
     <div class="form-row">
       <mo-facet-picker
         v-show="noPreselectedType"
-        facet="address_type"
+        :facet="facet"
         v-model="entry.address_type"
         :preselected-user-key="preselectedType"
         required
@@ -32,6 +32,7 @@
       class="address-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
+      :disabled-dates="disabledDates"
     />
   </div>
 </template>
@@ -85,7 +86,20 @@ export default {
     /**
      * Defines a preselectedType.
      */
-    preselectedType: String
+    preselectedType: String,
+
+    /**
+     * Defines a preselectedType.
+     */
+    facet: {
+      type: String,
+      required: true
+    },
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {

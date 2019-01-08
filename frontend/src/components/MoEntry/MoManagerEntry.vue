@@ -21,8 +21,9 @@
       <mo-add-many
         class="address-manager"
         v-model="entry.address"
-        :entry-component="managerAddressPicker"
+        :entry-component="managerAddressEntry"
         :label="$t('input_fields.manager_address_type')"
+        validity-hidden
         has-initial-entry
         small-buttons
       />
@@ -50,7 +51,11 @@
       small-buttons
     />
 
-    <mo-date-picker-range v-model="entry.validity" :initially-hidden="validityHidden"/>
+    <mo-date-picker-range
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="disabledDates"
+    />
   </div>
 </template>
 
@@ -64,7 +69,7 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoManagerAddressPicker from '@/components/MoPicker/MoManagerAddressPicker'
+import MoManagerAddressEntry from '@/components/MoEntry/MoManagerAddressEntry'
 
 export default {
   components: {
@@ -94,7 +99,12 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {
@@ -145,12 +155,12 @@ export default {
     },
 
     /**
-     * Adds the managerAddressPicker template to the add many component.
+     * Adds the managerAddressEntry template to the add many component.
      */
-    managerAddressPicker () {
+    managerAddressEntry () {
       return {
         components: {
-          MoManagerAddressPicker
+          MoManagerAddressEntry
         },
 
         props: {
@@ -163,7 +173,7 @@ export default {
           }
         },
 
-        template: `<mo-manager-address-picker v-model="val" required/>`
+        template: `<mo-manager-address-entry v-model="val" validity-hidden required/>`
       }
     }
   },

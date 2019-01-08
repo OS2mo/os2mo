@@ -2,10 +2,13 @@ import Vue from 'vue'
 import Service from '@/api/HttpCommon'
 
 const state = {
-  address_type: undefined,
+  org_unit_address_type: undefined,
+  employee_address_type: undefined,
+  manager_address_type: undefined,
   association_type: undefined,
   engagement_type: undefined,
-  job_function: undefined,
+  engagement_job_function: undefined,
+  association_job_function: undefined,
   leave_type: undefined,
   manager_level: undefined,
   manager_type: undefined,
@@ -31,7 +34,7 @@ const actions = {
 
 const mutations = {
   SET_FACET (state, payload) {
-    Vue.set(state, payload.name, payload)
+    Vue.set(state, payload.user_key, payload)
   }
 }
 

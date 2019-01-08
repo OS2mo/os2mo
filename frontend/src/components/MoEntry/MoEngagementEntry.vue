@@ -9,7 +9,7 @@
       />
 
       <mo-facet-picker
-        facet="job_function"
+        facet="engagement_job_function"
         v-model="entry.job_function"
         required
       />
@@ -54,7 +54,12 @@ export default {
     /**
      * Defines the validity.
      */
-    validity: Object
+    validity: Object,
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {
@@ -80,9 +85,13 @@ export default {
      */
     orgUnitValidity () {
       if (this.entry.org_unit) {
-        return this.entry.org_unit.validity
+        let validityCopy = Object.assign({}, this.entry.org_unit.validity)
+        if (validityCopy.from < this.disabledDates.from) {
+          validityCopy.from = this.disabledDates.from
+        }
+        return validityCopy
       }
-      return {}
+      return this.disabledDates
     }
   },
 

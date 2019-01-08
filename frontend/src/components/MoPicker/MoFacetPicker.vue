@@ -1,7 +1,7 @@
 <template>
   <mo-select
     v-model="selected"
-    :label="facetData.user_key"
+    :label="$t('input_fields.'+facetData.user_key)"
     :options="sortedOptions"
     :required="required"
     :disabled="isDisabled"

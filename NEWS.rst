@@ -1,3 +1,26 @@
+Version 0.14.0, in development
+=============================
+
+New features
+------------
+
+* #25405: Submit button for create new and edit modals for organisation 
+  units and employees is no longer disabled if the form is invalid
+* #25394: It is now no longer possible to perform edits taking effect before
+  the current date.
+
+Internal changes
+----------------
+
+* #25577: Implemented more facets for address types and job functions.
+  Updated handling of facets throughout.
+
+Bug fixes
+---------
+* #25405: Submit button for create new and edit modals for organisation 
+  units and employees is no longer disabled if the form is invalid
+* #25028: Timeachine is working again.
+
 Version 0.13.0, 2018-11-30
 ==========================
 
@@ -17,6 +40,7 @@ Internal changes
 
 * #23779: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
+* #24797: Integration data added to employee and organisational unit.
 * #25136: Refactored front end code.
 * #24700: Backend ready for the Phonebook
 
