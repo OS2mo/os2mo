@@ -37,18 +37,12 @@ export default {
     /**
      * @model
      */
-    value: [Object, Array],
-    /**
-     * Defines a unitUuid.
-     */
-    unitUuid: String,
+    value: [Object, String],
 
     /**
      * Defines a atDate.
      */
     atDate: [Date, String],
-
-    isLoading: Boolean
   },
 
   computed: {
@@ -120,8 +114,8 @@ export default {
   },
 
   watch: {
-    unitUuid (newVal, oldVal) {
-      if (this.units && this.units[newVal]) {
+    value (newVal, oldVal) {
+      if (!newVal || this.units && this.units[newVal]) {
         this.setSelection(newVal)
       } else if (newVal !== oldVal) {
         this.updateTree()
@@ -140,7 +134,7 @@ export default {
       //
       // yes, this is a bit of a hack :(
       setTimeout(() => {
-        if (oldVal || !vm.unitUuid) {
+        if (oldVal || !vm.value) {
           vm.updateTree(true)
         }
       }, 100)
@@ -154,9 +148,7 @@ export default {
   methods: {
 
     onNodeSelected (node) {
-      if (!this.isLoading) {
-        this.$emit('input', this.units[node.id])
-      }
+      this.$emit('input', node.id)
     },
 
     onNodeRemoved (node) {
@@ -167,7 +159,7 @@ export default {
      * Select the unit corresponding to the given ID, assuming it's present.
      */
     setSelection (unitid) {
-      unitid = unitid || this.unitUuid
+      unitid = unitid || this.value
 
       this.tree.tree.unselectAll()
 
@@ -224,22 +216,18 @@ export default {
     updateTree (force) {
       let vm = this
 
-      if (!this.orgUuid || !this.tree) {
-        return
-      }
-
       if (force) {
         this.tree.remove({}, true)
         this.units = {}
       }
 
-      if (this.unitUuid) {
-        OrganisationUnit.getAncestorTree(this.unitUuid, this.atDate)
+      if (this.value) {
+        OrganisationUnit.getAncestorTree(this.value, this.atDate)
           .then(response => {
             vm.addNode(response, null)
             vm.tree.sort()
           })
-      } else {
+      } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
             vm.units = {}

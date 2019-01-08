@@ -1,6 +1,6 @@
 <template>
   <div class="card orgunit">
-    <div class="card-body">
+    <div class="card-body" v-if="orgUnit">
       <h4 class="card-title">
         <icon name="users" />
         <span class="orgunit-name">{{orgUnit.name}}</span>
@@ -29,6 +29,9 @@
         :content="$store.getters['organisationUnit/GET_DETAILS']"
         @show="loadContent($event)"/>
     </div>
+    <div class="card-body" v-show="!orgUnit">
+      <mo-loader/>
+    </div>
   </div>
 </template>
 
@@ -40,11 +43,13 @@
 import { mapGetters, mapState } from 'vuex'
 import { EventBus } from '@/EventBus'
 import MoHistory from '@/components/MoHistory'
+import MoLoader from '@/components/atoms/MoLoader'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
 
 export default {
   components: {
     MoHistory,
+    MoLoader,
     OrganisationDetailTabs
   },
   data () {
@@ -75,14 +80,10 @@ export default {
   methods: {
     loadContent (event) {
       this.latestEvent = event
-      this.$store.state.organisationUnit.isLoading = true
-      this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.route.params.uuid)
-        .then(() => {
-          this.$store.dispatch('organisationUnit/SET_DETAIL', event)
-            .then(() => {
-              this.$store.state.organisationUnit.isLoading = false
-            })
-        })
+
+      this.$store.dispatch('organisationUnit/SET_ORG_UNIT',
+                           this.route.params.uuid)
+      this.$store.dispatch('organisationUnit/SET_DETAIL', event)
     }
   },
   beforeRouteLeave (to, from, next) {
