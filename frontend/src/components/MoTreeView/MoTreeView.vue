@@ -268,22 +268,24 @@ export default {
 }
 </script>
 
-<!-- this particular styling is not scoped, otherwise liqour tree cannot detect the overwrites -->
+<!-- this particular styling is not scoped, otherwise liqour tree 
+     cannot detect the overwrites. to ensure that we _always_ win, we
+     increase the specificity of the selectors  -->
 <style>
-  .tree > .tree-root, .tree-content {
+  .orgunit-tree .tree > .tree-root, .tree-content {
      padding: 0;
    }
 
-   .tree-children {
+   .orgunit-tree .tree-children {
      transition-timing-function: ease-in-out;
      transition-duration: 150ms;
    }
 
-  .tree-node.selected > .tree-content {
-    background: #007bff;
+  .orgunit-tree .tree-node.selected > .tree-content {
+    background-color: #007bff;
   }
 
-  .tree-node.selected > .tree-content > .tree-anchor {
+  .orgunit-tree .tree-node.selected > .tree-content > .tree-anchor {
     color: #fff;
   }
 </style>
