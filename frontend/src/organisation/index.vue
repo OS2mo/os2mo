@@ -9,7 +9,7 @@
           </h4>
 
           <div id="tree-wrapper">
-            <mo-tree-view v-model="selected" :unit-uuid="currentUnit.uuid" :is-loading="organisationUnit.isLoading"/>
+            <mo-tree-view v-model="selected"/>
           </div>
         </div>
       </div>
@@ -40,28 +40,27 @@ export default {
     MoLog,
     MoTreeView
   },
-  data () {
-    return {
-      selected: undefined
-    }
-  },
   computed: {
     /**
      * Get organisation uuid.
      */
-    ...mapGetters({
-      currentUnit: 'organisationUnit/GET_ORG_UNIT'
-    }),
+    selected: {
+      set (val) {
+        if (val) {
+          this.$router.push({ name: 'OrganisationDetail', params: { uuid: val } })
+        } else {
+          this.$router.push({ name: 'OrganisationLandingPage' })
+        }
+      },
+
+      get () {
+        return this.route.params.uuid
+      }
+    },
 
     ...mapState({
       route: 'route',
-      organisationUnit: 'organisationUnit'
     })
-  },
-  watch: {
-    selected (val) {
-      this.$router.push({ name: 'OrganisationDetail', params: { uuid: val.uuid } })
-    }
   }
 }
 </script>

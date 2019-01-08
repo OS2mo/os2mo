@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import router from '@/router'
 import Service from '@/api/HttpCommon'
 
 const defaultState = () => {
@@ -9,7 +8,6 @@ const defaultState = () => {
     uuid: undefined,
     org: undefined,
     org_uuid: undefined,
-    parent_uuid: undefined,
     parents: [],
     location: undefined,
     user_settings: {},
@@ -25,7 +23,6 @@ const actions = {
     const response = await Service.get(`/ou/${payload}/`)
 
     if (response) {
-      router.push({ name: 'OrganisationDetail', params: { uuid: response.data.uuid } })
       commit('SET_ORG_UNIT', response.data)
     } else {
       commit('log/newError', { type: 'ERROR', value: response }, { root: true })
@@ -62,7 +59,6 @@ const mutations = {
     state.org_uuid = payload.org.uuid
     state.location = payload.location
     state.user_settings = payload.user_settings
-    state.parent_uuid = payload.parent.uuid
     state.parents = []
 
     for (let current = payload.parent; current; current = current.parent) {
@@ -84,6 +80,7 @@ const mutations = {
 
 const getters = {
   GET_ORG_UNIT: state => state,
+  GET_ORG_UNIT_UUID: state => state.uuid,
   GET_DETAIL: (state) => (id) => state.details[id] || {},
   GET_DETAILS: (state) => state.details || {}
 }
