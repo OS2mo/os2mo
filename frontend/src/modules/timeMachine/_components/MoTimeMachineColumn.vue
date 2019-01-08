@@ -5,12 +5,6 @@
         <mo-date-picker v-model="date"/>
       </div>
 
-      <mo-organisation-picker
-        v-model="org"
-        :at-date="date"
-        ignore-event
-      />
-
       <mo-tree-view
         v-model="orgUnit"
         :at-date="date"
