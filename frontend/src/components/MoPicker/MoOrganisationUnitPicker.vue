@@ -16,10 +16,7 @@
     >
 
     <div class="mo-input-group" v-show="showTree">
-      <mo-tree-view
-        v-model="selectedSuperUnit"
-        :org-uuid="orgUuid"
-      />
+      <mo-tree-view v-model="selectedSuperUnitUuid"/>
     </div>
 
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -76,10 +73,10 @@ export default {
   data () {
     return {
       /**
-       * The selectedSuperUnit, showTree, orgName component value.
+       * The selectedSuperUnitUuid, showTree, orgName component value.
        * Used to detect changes and restore the value.
        */
-      selectedSuperUnit: null,
+      selectedSuperUnitUuid: null,
       showTree: false,
       orgName: null
     }
@@ -113,22 +110,28 @@ export default {
     /**
      * Whenever selectedSuperUnit change, update newVal.
      */
-    selectedSuperUnit (newVal) {
-      this.orgName = newVal.name
+    async selectedSuperUnitUuid (newVal) {
+      if (!newVal) {
+        return
+      }
+
+      let unit = await OrganisationUnit.get(newVal)
+
+      this.orgName = unit.name
       this.$validator.validate(this.nameId)
       this.$refs[this.nameId].blur()
-
-      this.$emit('input', newVal)
       this.showTree = false
+
+      this.$emit('input', unit)
     }
   },
 
   mounted () {
     /**
      * Called after the instance has been mounted.
-     * Set selectedSuperUnit as value.
+     * Set selectedSuperUnitUuid as value.
      */
-    this.selectedSuperUnit = this.value || this.selectedSuperUnit
+    this.selectedSuperUnitUuid = this.value ? this.value.uuid : this.selectedSuperUnitUuid
   },
 
   methods: {
