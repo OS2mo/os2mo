@@ -162,8 +162,20 @@ export default {
      * Update the selection when the value changes.
      */
     value (newVal, oldVal) {
+      if (JSON.stringify(newVal) === JSON.stringify(oldVal)) {
+        return
+      }
+
       if (this.multiple) {
-        this.setChecked(newVal)
+        const missing = newVal.filter(
+          v => !this.tree.tree.getNodeById(v)
+        )
+
+        if (missing.length) {
+          this.updateTree()
+        } else {
+          this.setChecked(newVal)
+        }
       } else {
         if (!newVal || this.tree.tree.getNodeById(newVal)) {
           this.setSelection(newVal)
@@ -188,7 +200,7 @@ export default {
       //
       // yes, this is a bit of a hack :(
       setTimeout(() => {
-        if (oldVal || !vm.value) {
+        if (oldVal || !vm.value || vm.value.length === 0) {
           vm.updateTree(true)
         }
       }, 100)
@@ -234,8 +246,12 @@ export default {
      * Select the unit corresponding to the given ID, assuming it's present.
      */
     setSelection (unitid) {
+      if (this.multiple) {
+        return
+      }
+
       const oldVal = getSelection()
-      const newVal = unitid || this.value
+      const newVal = unitid
 
       if (oldVal === newVal) {
         return
@@ -261,21 +277,17 @@ export default {
      * Select the unit corresponding to the given ID, assuming it's present.
      */
     setChecked (unitids) {
-      const oldVal = this.getChecked()
-      const newVal = unitids || this.value
-
-      if (JSON.stringify(oldVal) === JSON.stringify(newVal)) {
+      if (!this.multiple) {
         return
       }
 
-      for (const uuid of oldVal) {
-        if (newVal.indexOf(uuid) < 0) {
-          this.tree.uncheck
+      for (const uuid of this.getChecked()) {
+        if (!unitids.includes(uuid)) {
+          this.tree.tree.getNodeById(uuid).uncheck()
         }
       }
-      this.tree.tree.uncheckAll()
 
-      for (const unitid of unitids) {
+      for (const unitid of unitids || this.value) {
         let node = this.tree.tree.getNodeById(unitid)
 
         if (node) {
@@ -302,7 +314,7 @@ export default {
         preexisting.text = unit.name
         preexisting.isBatch = unit.children ? false : unit.child_count > 0
       } else if (parent) {
-        this.tree.append(this.toNode(unit))
+        parent.append(this.toNode(unit))
       } else {
         this.tree.append(this.toNode(unit))
       }
@@ -336,12 +348,13 @@ export default {
         this.tree.remove({}, true)
       }
 
-      if (this.value) {
+      if (this.multiple ? this.value.length > 0 : this.value) {
         OrganisationUnit.getAncestorTree(this.value, this.atDate)
           .then(response => {
             vm.addNode(response, null)
             vm.tree.sort()
-            vm.setSelection()
+            vm.setSelection(this.value)
+            vm.setChecked(this.value)
           })
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
@@ -352,7 +365,8 @@ export default {
             }
 
             vm.tree.sort()
-            vm.setSelection()
+            vm.setSelection(this.value)
+            vm.setChecked(this.value)
           })
       }
     },

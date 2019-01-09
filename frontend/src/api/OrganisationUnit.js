@@ -61,7 +61,7 @@ export default {
       params.append('uuid', uuid)
     }
 
-    return Service.get('/ou/ancestor-tree', params)
+    return Service.get('/ou/ancestor-tree?' + params.toString())
       .then(response => {
         return response.data[0]
       })

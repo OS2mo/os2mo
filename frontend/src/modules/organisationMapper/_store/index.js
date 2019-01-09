@@ -1,4 +1,4 @@
-// import Service from '@/api/HttpCommon'
+import Service from '@/api/HttpCommon'
 
 const state = {
   origin: undefined,
@@ -15,13 +15,21 @@ const actions = {
   },
 
   GET_ORGANISATION_MAPPINGS ({ state, commit }) {
-    let dummy = ['762b30b0-d92d-4393-a126-884fe7845b9f', 'd3a9e589-5be0-4d28-95af-5d24ac42a2e9']
-    commit('SET_DESTINATION', dummy)
-    // Service.get(`map/${state.origin}`)
-    //   .then(response => {
-    //     console.log('got all related uuids')
-    //     commit('SET_DESTINATION', response)
-    // })
+    console.log('getting mappings')
+    Service.get(`/ou/${state.origin}/details/related_unit`)
+      .then(response => {
+        const unitids = []
+
+        for (const relation of response.data) {
+          for (const unit of relation.org_unit) {
+            if (unit.uuid !== state.origin) {
+              unitids.push(unit.uuid)
+            }
+          }
+        }
+
+        commit('SET_DESTINATION', unitids)
+      })
   }
 }
 
@@ -36,8 +44,8 @@ const mutations = {
 }
 
 const getters = {
-  getUuid: state => state.uuid,
-  get: state => state
+  origin: state => state.origin,
+  destination: state => state.destination
 }
 
 export default {
