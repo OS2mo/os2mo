@@ -1,6 +1,7 @@
 import Service from './HttpCommon'
 import { EventBus } from '@/EventBus'
 import store from '@/store'
+import URLSearchParams from '@ungap/url-search-params'
 
 export default {
 
@@ -39,13 +40,28 @@ export default {
 
   /**
    * Get an organisation unit
-   * @param {String} uuid - organisation unit uuid
+   * @param {Array|String} uuids - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getAncestorTree (uuid, atDate) {
+  getAncestorTree (uuids, atDate) {
     atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    return Service.get(`/ou/ancestor-tree?at=${atDate}&uuid=${uuid}`)
+
+    if (!(uuids instanceof Array)) {
+      uuids = [uuids]
+    }
+
+    const params = new URLSearchParams()
+
+    if (atDate) {
+      params.append('at', atDate)
+    }
+
+    for (const uuid of uuids) {
+      params.append('uuid', uuid)
+    }
+
+    return Service.get('/ou/ancestor-tree', params)
       .then(response => {
         return response.data[0]
       })

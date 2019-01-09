@@ -5,8 +5,8 @@
       :data="treeData"
       :options="treeOptions"
       @node:selected="onNodeSelected"
-      @node:checked="onNodeChecked"
-      @node:unchecked="onNodeUnchecked"
+      @node:checked="onNodeCheckedChanged"
+      @node:unchecked="onNodeCheckedChanged"
     >
 
       <div class="tree-scope" slot-scope="{ node }">
@@ -44,7 +44,7 @@ export default {
      *
      * @model
      */
-    value: {type: String},
+    value: {type: [String, Array]},
 
     /**
      * Defines the date for rendering the tree; used for the time machine.
@@ -162,10 +162,14 @@ export default {
      * Update the selection when the value changes.
      */
     value (newVal, oldVal) {
-      if (!newVal || this.tree.tree.getNodeById(newVal)) {
-        this.setSelection(newVal)
-      } else if (newVal !== oldVal) {
-        this.updateTree()
+      if (this.multiple) {
+        this.setChecked(newVal)
+      } else {
+        if (!newVal || this.tree.tree.getNodeById(newVal)) {
+          this.setSelection(newVal)
+        } else if (newVal !== oldVal) {
+          this.updateTree()
+        }
       }
     },
 
@@ -199,17 +203,13 @@ export default {
   },
 
   methods: {
+    onNodeCheckedChanged (node) {
+      if (this.multiple) {
+        let checked = this.getChecked()
+        console.log(`TREE: checked ${checked.join(', ')}`)
 
-    onNodeChecked (event) {
-      if (!this.isLoading) {
-        return
+        this.$emit('input', checked)
       }
-
-      if (!(this.selected instanceof Array)) {
-        this.selected = []
-      }
-      this.selected.push(event.id)
-      this.$emit('input', this.selected)
     },
 
     /**
@@ -218,31 +218,70 @@ export default {
      * @protected
      */
     onNodeSelected (node) {
-      /**
-       * Emitted whenever the selection changes.
-       */
-      this.$emit('input', node.id)
+      if (!this.multiple) {
+        console.log(`TREE: selected ${node.id}`)
+        this.$emit('input', node.id)
+      }
     },
 
-    onNodeUnchecked (event) {
-      const index = this.selected.indexOf(event.id)
-      if (index !== -1) this.selected.splice(index, 1)
-      this.$emit('input', this.selected)
+    getSelection () {
+      let current = this.tree.selected()
+
+      return current.length ? current[0].id : null
     },
 
     /**
      * Select the unit corresponding to the given ID, assuming it's present.
      */
     setSelection (unitid) {
-      unitid = unitid || this.value
+      const oldVal = getSelection()
+      const newVal = unitid || this.value
+
+      if (oldVal === newVal) {
+        return
+      }
 
       this.tree.tree.unselectAll()
 
-      let node = this.tree.tree.getNodeById(unitid)
+      let node = this.tree.tree.getNodeById(newVal)
 
       if (node) {
         node.expandTop()
         node.select()
+      }
+    },
+
+    getChecked () {
+      const ids = this.tree.checked().map(n => n.id)
+      ids.sort()
+      return ids
+    },
+
+    /**
+     * Select the unit corresponding to the given ID, assuming it's present.
+     */
+    setChecked (unitids) {
+      const oldVal = this.getChecked()
+      const newVal = unitids || this.value
+
+      if (JSON.stringify(oldVal) === JSON.stringify(newVal)) {
+        return
+      }
+
+      for (const uuid of oldVal) {
+        if (newVal.indexOf(uuid) < 0) {
+          this.tree.uncheck
+        }
+      }
+      this.tree.tree.uncheckAll()
+
+      for (const unitid of unitids) {
+        let node = this.tree.tree.getNodeById(unitid)
+
+        if (node) {
+          node.expandTop()
+          node.check(true)
+        }
       }
     },
 
