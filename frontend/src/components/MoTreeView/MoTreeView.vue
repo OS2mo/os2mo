@@ -5,7 +5,6 @@
       :data="treeData"
       :options="treeOptions"
       @node:selected="onNodeSelected"
-      @node:removed="onNodeRemoved"
       >
 
       <div class="tree-scope" slot-scope="{ node }">
@@ -90,8 +89,6 @@ export default {
 
     return {
       treeData: [],
-      units: {},
-
       treeOptions: {
         minFetchDelay: 1,
         parentSelect: true,
@@ -115,7 +112,7 @@ export default {
 
   watch: {
     value (newVal, oldVal) {
-      if (!newVal || this.units && this.units[newVal]) {
+      if (!newVal || this.tree.tree.getNodeById(newVal)) {
         this.setSelection(newVal)
       } else if (newVal !== oldVal) {
         this.updateTree()
@@ -151,10 +148,6 @@ export default {
       this.$emit('input', node.id)
     },
 
-    onNodeRemoved (node) {
-      delete this.units[node.id]
-    },
-
     /**
      * Select the unit corresponding to the given ID, assuming it's present.
      */
@@ -184,7 +177,7 @@ export default {
         preexisting.text = unit.name
         preexisting.isBatch = unit.children ? false : unit.child_count > 0
       } else if (parent) {
-        parent.append(this.toNode(unit))
+        this.tree.append(this.toNode(unit))
       } else {
         this.tree.append(this.toNode(unit))
       }
@@ -196,8 +189,6 @@ export default {
      * This method handles both eager and lazy loading of child nodes.
      */
     toNode (unit) {
-      this.units[unit.uuid] = unit
-
       return {
         text: unit.name,
         isBatch: unit.children ? false : unit.child_count > 0,
@@ -217,7 +208,6 @@ export default {
 
       if (force) {
         this.tree.remove({}, true)
-        this.units = {}
       }
 
       if (this.value) {
@@ -230,7 +220,6 @@ export default {
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
-            vm.units = {}
 
             for (let unit of response) {
               vm.addNode(unit, null)
