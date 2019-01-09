@@ -37,7 +37,7 @@ export default {
     /**
      * @model
      */
-    value: [Object, String],
+    value: {type: String},
 
     /**
      * Defines a atDate.
