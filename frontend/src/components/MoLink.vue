@@ -106,7 +106,7 @@ export default {
         contents = []
       } else if (!(contents instanceof Array)) {
         contents = [contents]
-      } else if (this.index > 0) {
+      } else if (this.index >= 0) {
         contents = [contents[this.index]]
       }
 
