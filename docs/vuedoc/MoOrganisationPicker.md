@@ -4,9 +4,7 @@ A organisation picker component.
 
 ## props 
 
-- `value` ***Object*** (*optional*) 
-
-  Create two-way data bindings with the component. 
+- `v-model` ***Object*** (*optional*) 
 
 - `at-date` ***ArrayExpression*** (*optional*) 
 

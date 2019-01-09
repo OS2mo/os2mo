@@ -1,6 +1,14 @@
 # index 
 
-A employee component. 
+A employee componen
 
-ort store from './_store' 
+import store from './_store' 
+
+
+- `selected` 
+
+  Get organisation uuid. 
+
+   **dependencies:** `route` 
+
 

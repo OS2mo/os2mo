@@ -1,7 +1,7 @@
 <template>
   <div class="orgunit-tree">
     <liquor-tree
-      :ref="nameId"
+      :ref="_nameId"
       :data="treeData"
       :options="treeOptions"
       @node:selected="onNodeSelected"
@@ -34,29 +34,54 @@ export default {
 
   props: {
     /**
+     * This control takes a string variable as its model, representing
+     * the UUID of the selected unit. Internally, the tree view does
+     * have access to reasonably full objects representing the unit,
+     * but they don't correspond _exactly_ to those used elsewhere, so
+     * we only pass the UUID.
+     *
      * @model
      */
     value: {type: String},
 
     /**
-     * Defines a atDate.
+     * Defines the date for rendering the tree; used for the time machine.
      */
-    atDate: [Date, String],
+    atDate: {type: [Date, String]},
   },
 
   computed: {
     ...mapGetters({
+      /**
+       * The tree view itself is dependent on the currently active
+       * organisation. Among other things, we should only show the units
+       * for that organisation, and also ensure that we reset the view
+       * whenever it changes.
+       */
       orgUuid: 'organisation/getUuid'
     }),
 
-    nameId () {
+    /**
+     * @private
+     */
+    _nameId () {
       return 'moTreeView' + this._uid
     },
 
+    /**
+     * Accessor for the LiquorTree instance.
+     *
+     * @protected
+     */
     tree () {
-      return this.$refs[this.nameId]
+      return this.$refs[this._nameId]
     },
 
+    /**
+     * A string representation of the currently rendered tree, useful
+     * for inspection and tests, with highlighting of expansion and
+     * selection states.
+     */
     contents () {
       function visitNode (node, level) {
         if (!node) {
@@ -88,7 +113,19 @@ export default {
     let vm = this
 
     return {
+      /**
+       * LiquorTree model; required for some reason or other, but not
+       * actually used?
+       *
+       * @private
+       */
       treeData: [],
+
+      /**
+       * LiquorTree options.
+       *
+       * @private
+       */
       treeOptions: {
         minFetchDelay: 1,
         parentSelect: true,
@@ -111,6 +148,9 @@ export default {
   },
 
   watch: {
+    /**
+     * Update the selection when the value changes.
+     */
     value (newVal, oldVal) {
       if (!newVal || this.tree.tree.getNodeById(newVal)) {
         this.setSelection(newVal)
@@ -119,6 +159,9 @@ export default {
       }
     },
 
+    /**
+     * Reset the selection when the organisation changes.
+     */
     orgUuid (newVal, oldVal) {
       let vm = this
 
@@ -137,14 +180,24 @@ export default {
       }, 100)
     },
 
+    /**
+     * Re-render the tree when the date changes.
+     */
     atDate () {
       this.updateTree()
     }
   },
 
   methods: {
-
+    /**
+     * Propagate the selection to the model.
+     *
+     * @protected
+     */
     onNodeSelected (node) {
+      /**
+       * Emitted whenever the selection changes.
+       */
       this.$emit('input', node.id)
     },
 
@@ -164,6 +217,10 @@ export default {
       }
     },
 
+    /**
+     * Add the given node to the tree, nested under the parent, specified, or
+     * root otherwise.
+     */
     addNode (unit, parent) {
       let preexisting = this.tree.tree.getNodeById(unit.uuid)
 
@@ -182,6 +239,7 @@ export default {
         this.tree.append(this.toNode(unit))
       }
     },
+
     /**
      * Convert a unit object into a node suitable for adding to the
      * tree.
@@ -231,6 +289,9 @@ export default {
       }
     },
 
+    /**
+     * LiquorTree lazy data fetcher.
+     */
     fetch (node) {
       let vm = this
 
@@ -257,7 +318,7 @@ export default {
 }
 </script>
 
-<!-- this particular styling is not scoped, otherwise liqour tree 
+<!-- this particular styling is not scoped, otherwise liqour tree
      cannot detect the overwrites. to ensure that we _always_ win, we
      increase the specificity of the selectors  -->
 <style>

@@ -24,6 +24,10 @@ A facet picker component.
 
    **dependencies:** `$store`, `facet` 
 
+- `sortedOptions` 
+
+   **dependencies:** `$store`, `facet` 
+
 - `isDisabled` 
 
    **dependencies:** `preselectedUserKey` 

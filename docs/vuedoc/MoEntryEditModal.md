@@ -32,12 +32,8 @@ A entry edit modal component.
 
 - `entry` 
 
-  The entry, original, isLoading, backendValidationMessage component value.
+  The entry, isLoading, backendValidationMessage component value.
   Used to detect changes and restore the value. 
-
-**initial value:** `[object Object]` 
-
-- `original` 
 
 **initial value:** `[object Object]` 
 
@@ -81,18 +77,15 @@ A entry edit modal component.
 
    **dependencies:** `entryComponent` 
 
-- `formValid` 
+- `disabledDates` 
 
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
+  The valid dates for the entry component date pickers 
 
 ## methods 
 
 - `handleContent(content)` 
 
-  Handle the entry and original content. 
+  Handle the entry content. 
 
 - `edit()` 
 

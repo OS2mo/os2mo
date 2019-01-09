@@ -2,21 +2,6 @@
 
 A employee terminate component. 
 
-## data 
-
-- `isLoading` 
-
-**initial value:** `false` 
-
-## computed properties 
-
-- `formValid` 
-
-  Check validity of form. this.fields is a magic property created by vee-validate 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
-
 ## methods 
 
 - `loadContent(event)` 

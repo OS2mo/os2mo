@@ -24,6 +24,14 @@ A address entry component.
 
   Defines a preselectedType. 
 
+- `facet` ***String*** (*required*) 
+
+  Defines a preselectedType. 
+
+- `disabled-dates` ***Object*** (*optional*) 
+
+  The valid dates for the entry component date pickers 
+
 ## data 
 
 - `contactInfo` 
@@ -75,6 +83,6 @@ A address entry component.
 
   Every scopes validity rules. 
 
-   **dependencies:** `entry`, `entry`, `entry`, `entry`, `entry`, `entry`, `entry` 
+   **dependencies:** `entry`, `entry`, `entry`, `entry`, `entry`, `entry` 
 
 

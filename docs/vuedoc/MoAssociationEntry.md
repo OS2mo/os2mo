@@ -12,6 +12,10 @@ A association entry component.
 
   This boolean property hides the validity. 
 
+- `disabled-dates` ***Object*** (*optional*) 
+
+  The valid dates for the entry component date pickers 
+
 ## data 
 
 - `entry` 
