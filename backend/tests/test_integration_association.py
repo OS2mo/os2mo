@@ -2159,6 +2159,39 @@ class Tests(util.LoRATestCase):
             expected,
         )
 
+    def test_edit_association_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        req = [{
+            "type": "association",
+            "uuid": association_uuid,
+            "data": {
+                "job_function": {
+                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
+                "association_type": {
+                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
+
     def test_terminate_association(self):
         self.load_sample_structures()
 

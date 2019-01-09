@@ -34,6 +34,7 @@
       class="address-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
+      :disabled-dates="disabledDates"
     />
   </div>
 </template>
@@ -100,7 +101,12 @@ export default {
     facet: {
       type: String,
       required: true
-    }
+    },
+
+    /**
+     * The valid dates for the entry component date pickers
+     */
+    disabledDates: Object
   },
 
   data () {
