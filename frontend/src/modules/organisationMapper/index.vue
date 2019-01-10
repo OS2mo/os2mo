@@ -5,21 +5,26 @@
     <div class="row">
       <div class="col">
         <div class="card">
-          <mo-tree-view v-model="origin"/>
+          <mo-tree-view class="card-body" v-model="origin"/>
         </div>
 
-      </div>
-
-      <div class="col-1">
-        <button @click="onSubmit" class="btn btn-primary">
-        <icon name="map-signs"/>
-        Sammenkobl
+        <button @click="onSubmit" class="btn btn-primary" :disabled="!origin">
+          <icon name="map-signs"/>
+          {{$t('buttons.save')}}
         </button>
       </div>
 
       <div class="col">
         <div class="card">
-          <mo-tree-view multiple v-model="destination"/>
+          <mo-tree-view multiple v-model="destination"
+                        class="card-body" v-if="origin"/>
+          <div class="card-body" v-else>
+            <p class="card-text">
+              Vælg en enhed til venstre for at vise og ændre hvilke
+              enheder der svarer til den andre steder i
+              organisationen.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -79,3 +84,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+  .mapper-column {
+    min-height: 10em;
+    margin-bottom: 1em;
+  }
+</style>
