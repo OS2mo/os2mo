@@ -16,7 +16,7 @@
 
       <div class="col">
         <div class="card">
-          <mo-tree-view multiple v-model="destination"
+          <mo-tree-view multiple v-model="destination" :disabled-unit="origin"
                         class="card-body" v-if="origin"/>
           <div class="card-body" v-else>
             <p class="card-text">

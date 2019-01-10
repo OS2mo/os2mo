@@ -52,6 +52,11 @@ export default {
     atDate: {type: [Date, String]},
 
     /**
+     * UUID of unselectable unit.
+     */
+    disabledUnit: String,
+
+    /**
      * Select more than one node
      */
     multiple: Boolean
@@ -138,6 +143,7 @@ export default {
         multiple: false,
         checkbox: this.multiple,
         checkOnSelect: this.multiple,
+        autoDisableChildren: false,
         autoCheckChildren: false,
         minFetchDelay: 1,
         fetchData (node) {
@@ -204,6 +210,22 @@ export default {
           vm.updateTree(true)
         }
       }, 100)
+    },
+
+    disabledUnit (newVal) {
+      for (const oldNode of this.tree.findAll({ disabled: true })) {
+        if (oldNode.id !== newVal) {
+          oldNode.enable()
+        }
+      }
+
+      let newNode = this.tree.tree.getNodeById(newVal)
+
+      if (newNode && newNode.enabled()) {
+        newNode.uncheck()
+        newNode.unselect()
+        newNode.disable()
+      }
     },
 
     /**
@@ -333,6 +355,7 @@ export default {
         id: unit.uuid,
         children: unit.children ? unit.children.map(this.toNode.bind(this)) : null,
         state: {
+          disabled: unit.uuid === this.disabledUnit,
           expanded: Boolean(unit.children),
         }
       }
