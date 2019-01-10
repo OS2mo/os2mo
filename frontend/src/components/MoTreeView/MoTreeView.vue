@@ -172,22 +172,14 @@ export default {
         return
       }
 
-      if (this.multiple) {
-        const missing = newVal.filter(
-          v => !this.tree.tree.getNodeById(v)
-        )
+      const missing = this.tree.tree ? this.toArray(newVal).filter(
+        v => !this.tree.tree.getNodeById(v)
+      ) : []
 
-        if (missing.length) {
-          this.updateTree()
-        } else {
-          this.setChecked(newVal)
-        }
+      if (missing.length) {
+        this.updateTree()
       } else {
-        if (!newVal || this.tree.tree.getNodeById(newVal)) {
-          this.setSelection(newVal)
-        } else if (newVal !== oldVal) {
-          this.updateTree()
-        }
+        this.setSelection(newVal)
       }
     },
 
@@ -239,7 +231,8 @@ export default {
   methods: {
     onNodeCheckedChanged (node) {
       if (this.multiple) {
-        let checked = this.getChecked()
+        let checked = this.getSelection()
+
         console.log(`TREE: checked ${checked.join(', ')}`)
 
         this.$emit('input', checked)
@@ -259,62 +252,51 @@ export default {
     },
 
     getSelection () {
-      let current = this.tree.selected()
+      let nodes = this.multiple ?
+          this.tree.checked() : this.tree.selected()
+      return this.toArray(nodes.map(n => n.id))
+    },
 
-      return current.length ? current[0].id : null
+    toArray(values) {
+      let vs = values ? values instanceof Array ? values : [values] : []
+
+      vs.sort()
+
+      return vs
     },
 
     /**
-     * Select the unit corresponding to the given ID, assuming it's present.
+     * Select the units corresponding to the given IDs, assuming
+     * they're present, and updating the tree otherwise.
      */
-    setSelection (unitid) {
-      if (this.multiple) {
-        return
-      }
+    setSelection (unitids) {
+      // wrap the values in a list, if necessary, handling absence
+      const newVal = this.toArray(unitids)
+      const oldVal = this.getSelection()
 
-      const oldVal = getSelection()
-      const newVal = unitid
+      console.log(`TREE: set selection from ${oldVal} to ${newVal}`)
 
-      if (oldVal === newVal) {
-        return
-      }
+      // handle removals
+      for (const uuid of oldVal.filter(v => !newVal.includes(v))) {
+        const node = this.tree.tree.getNodeById(uuid)
 
-      this.tree.tree.unselectAll()
-
-      let node = this.tree.tree.getNodeById(newVal)
-
-      if (node) {
-        node.expandTop()
-        node.select()
-      }
-    },
-
-    getChecked () {
-      const ids = this.tree.checked().map(n => n.id)
-      ids.sort()
-      return ids
-    },
-
-    /**
-     * Select the unit corresponding to the given ID, assuming it's present.
-     */
-    setChecked (unitids) {
-      if (!this.multiple) {
-        return
-      }
-
-      for (const uuid of this.getChecked()) {
-        if (!unitids.includes(uuid)) {
-          this.tree.tree.getNodeById(uuid).uncheck()
+        if (this.multiple) {
+          node.uncheck()
+        } else {
+          node.unselect()
         }
       }
 
-      for (const unitid of unitids || this.value) {
-        let node = this.tree.tree.getNodeById(unitid)
+      // handle additions
+      for (const uuid of newVal.filter(v => !oldVal.includes(v))) {
+        const node = this.tree.tree.getNodeById(uuid)
 
-        if (node) {
-          node.expandTop()
-          node.check(true)
+        node.expandTop()
+
+        if (this.multiple) {
+          node.check()
+        } else {
+          node.select()
         }
       }
     },
@@ -356,7 +338,7 @@ export default {
         children: unit.children ? unit.children.map(this.toNode.bind(this)) : null,
         state: {
           disabled: unit.uuid === this.disabledUnit,
-          expanded: Boolean(unit.children),
+          expanded: Boolean(unit.children)
         }
       }
     },
@@ -377,7 +359,6 @@ export default {
             vm.addNode(response, null)
             vm.tree.sort()
             vm.setSelection(this.value)
-            vm.setChecked(this.value)
           })
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
@@ -389,7 +370,6 @@ export default {
 
             vm.tree.sort()
             vm.setSelection(this.value)
-            vm.setChecked(this.value)
           })
       }
     },
