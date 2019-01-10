@@ -35,12 +35,10 @@
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import 'vue-awesome/icons/map-signs'
 import { mapGetters } from 'vuex'
-import OrganisationMapper from './_components/OrganisationMapper'
 import store from './_store'
 import main_store from '@/store'
-const STORE_KEY = '$_organisationMapper'
 
-main_store.registerModule(STORE_KEY, store)
+main_store.registerModule('organisationMapper', store)
 
 export default {
   name: 'OrganisationMapperModule',
@@ -50,27 +48,27 @@ export default {
   computed: {
     origin: {
       get () {
-        return this.$store.getters[`${STORE_KEY}/origin`]
+        return this.$store.getters['organisationMapper/origin']
       },
       set (val) {
-        this.$store.commit(`${STORE_KEY}/SET_ORIGIN`, val)
+        this.$store.commit('organisationMapper/SET_ORIGIN', val)
       }
     },
 
     destination: {
       get () {
-        return this.$store.getters[`${STORE_KEY}/destination`]
+        return this.$store.getters['organisationMapper/destination']
       },
       set (val) {
-        this.$store.commit(`${STORE_KEY}/SET_DESTINATION`, val)
-        return this.$store.getters[`${STORE_KEY}/destination`]
+        this.$store.commit('organisationMapper/SET_DESTINATION', val)
+        return this.$store.getters['organisationMapper/destination']
       }
     }
   },
 
   watch: {
     origin (newVal) {
-      this.$store.dispatch(`${STORE_KEY}/GET_ORGANISATION_MAPPINGS`)
+      this.$store.dispatch('organisationMapper/GET_ORGANISATION_MAPPINGS')
     },
     destination (newVal) {
       console.log('destination changed!')
@@ -79,7 +77,7 @@ export default {
 
   methods: {
     onSubmit () {
-      this.$store.dispatch(`${STORE_KEY}/MAP_ORGANISATIONS`)
+      this.$store.dispatch('organisationMapper/MAP_ORGANISATIONS')
     }
   }
 }
