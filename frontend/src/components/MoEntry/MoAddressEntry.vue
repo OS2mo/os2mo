@@ -47,9 +47,11 @@
 import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import MoEntryBase from './MoEntryBase'
 import { mapGetters } from 'vuex'
 
 export default {
+  extends: MoEntryBase,
   name: 'MoAddressEntry',
 
   /**
@@ -66,16 +68,6 @@ export default {
   },
 
   props: {
-    /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
-     * This boolean property hides the validity dates.
-     */
-    validityHidden: Boolean,
-
     /**
      * This boolean property requires a selected address type.
      * @type {Boolean}
@@ -101,12 +93,7 @@ export default {
     facet: {
       type: String,
       required: true
-    },
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
+    }
   },
 
   data () {
@@ -154,13 +141,6 @@ export default {
      */
     noPreselectedType () {
       return this.preselectedType == null
-    },
-
-    /**
-     * Get name `scope-type`.
-     */
-    identifier () {
-      return 'scope-type-' + this._uid
     },
 
     /**

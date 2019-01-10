@@ -37,8 +37,11 @@
 import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoEntryBase from './MoEntryBase'
 
 export default {
+  extends: MoEntryBase,
+  name: 'MoEngagementEntry',
   components: {
     MoDatePickerRange,
     MoOrganisationUnitPicker,
@@ -47,29 +50,9 @@ export default {
 
   props: {
     /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
      * Defines the validity.
      */
-    validity: Object,
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
-  },
-
-  data () {
-    return {
-      /**
-       * The entry component value.
-       * Used to detect changes and restore the value.
-       */
-      entry: {}
-    }
+    validity: Object
   },
 
   computed: {
@@ -113,14 +96,6 @@ export default {
     validity (newVal) {
       this.entry.validity = newVal
     }
-  },
-
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Set entry to value.
-     */
-    this.entry = this.value
   }
 }
 </script>
