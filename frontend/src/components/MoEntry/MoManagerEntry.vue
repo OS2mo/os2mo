@@ -69,7 +69,7 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoManagerAddressEntry from '@/components/MoEntry/MoManagerAddressEntry'
+import { MoManagerAddressEntry } from '@/components/MoEntry'
 
 export default {
   components: {

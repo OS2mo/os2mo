@@ -15,7 +15,7 @@
  * A manager address picker component.
  */
 
-import MoAddressEntry from '@/components/MoEntry/MoAddressEntry'
+import { MoAddressEntry } from '@/components/MoEntry'
 
 export default {
   name: 'MoEmployeeAddressEntry',

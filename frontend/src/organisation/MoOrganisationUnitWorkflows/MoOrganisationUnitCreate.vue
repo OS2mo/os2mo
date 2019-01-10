@@ -57,9 +57,8 @@
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import ButtonSubmit from '@/components/ButtonSubmit'
-import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry } from '@/components/MoEntry'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoOrgUnitAddressEntry from '@/components/MoEntry/MoOrgUnitAddressEntry'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 
