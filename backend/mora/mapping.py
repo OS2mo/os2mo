@@ -182,6 +182,11 @@ ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedeenheder'),
+    type=FieldTypes.ZERO_TO_MANY,
+)
+
 ASSOCIATED_ORG_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeorganisationer'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
