@@ -510,16 +510,12 @@ def get_unit_tree(c, unitids, with_siblings=False):
     '''
 
     def get_parent(unitid):
-        try:
-            return mapping.PARENT_FIELD(units[unitid])[0]['uuid']
-        except LookupError:
-            return None
+        for parentid in mapping.PARENT_FIELD.get_uuids(units[unitid]):
+            return parentid
 
     def get_org(unitid):
-        try:
-            return mapping.BELONGS_TO_FIELD(units[unitid])[0]['uuid']
-        except LookupError:
-            return None
+        for orgid in mapping.BELONGS_TO_FIELD.get_uuids(units[unitid]):
+            return orgid
 
     def get_unit(unitid):
         r = get_one_orgunit(

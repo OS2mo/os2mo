@@ -119,6 +119,13 @@ class FieldTuple(object):
 
     __call__ = get
 
+    def get_uuids(self, obj):
+        for item in self.get(obj):
+            try:
+                yield item['uuid']
+            except KeyError:
+                pass
+
     @property
     def path(self) -> typing.Tuple[str, str]:
         return self.__path
