@@ -15,7 +15,7 @@
         />
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="disabledDates"
@@ -27,10 +27,8 @@
 /**
  * A it system entry component.
  */
-
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
-import { MoInputText } from '@/components/MoInput'
+import { MoInputText, MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
 
 export default {
@@ -38,7 +36,7 @@ export default {
   name: 'MoItSystemEntry',
   components: {
     MoInputText,
-    MoDatePickerRange,
+    MoInputDateRange,
     MoItSystemPicker
   },
 

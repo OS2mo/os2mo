@@ -20,7 +20,7 @@
         required
       />
 
-      <mo-date-picker-range
+      <mo-input-date-range
         v-model="entry.validity"
         :disable-to-date="!creatingDate"
         :disabled-dates="disabledDates"
@@ -32,18 +32,16 @@
 /**
  * A organisation unit entry component.
  */
-
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import { MoInputText } from '@/components/MoInput'
+import { MoInputText, MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
 
 export default {
   extends: MoEntryBase,
   name: 'MoOrganisationUnitEntry',
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
     MoInputText

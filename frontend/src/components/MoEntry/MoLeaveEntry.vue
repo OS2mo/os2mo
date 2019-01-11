@@ -8,7 +8,7 @@
       />
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden"
       :disabled-dates="disabledDates"
@@ -21,7 +21,7 @@
  * A leave entry component.
  */
 
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
 
@@ -29,7 +29,7 @@ export default {
   extends: MoEntryBase,
   name: 'MoLeaveEntry',
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoFacetPicker
   },
 

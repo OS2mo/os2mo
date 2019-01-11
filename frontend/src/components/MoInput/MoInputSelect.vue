@@ -10,7 +10,6 @@
       :data-vv-as="label"
       v-model="internalValue"
       :disabled="disabled"
-      @change="$emit('input', internalValue)"
       v-validate="{ required: isRequired }"
     >
       <option disabled selected>{{label}}</option>
@@ -27,7 +26,7 @@
 
 <script>
 /**
- * A select component.
+ * Select component.
  */
 import MoInputBase from './MoInputBase'
 export default {
@@ -46,18 +45,12 @@ export default {
   },
 
   computed: {
+    /**
+     * Are there any options
+     * @type {Boolean}
+     */
     hasOptions () {
       return this.options.length > 0
-    }
-  },
-
-  watch: {
-    /**
-     * Whenever value change, set selected to the new val and validate the name.
-     */
-    value (val) {
-      this.internalValue = val
-      this.$validator.validate(this.identifier)
     }
   }
 }

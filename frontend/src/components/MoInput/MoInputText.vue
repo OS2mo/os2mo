@@ -10,9 +10,8 @@
       :id="identifier"
       :ref="identifier"
       :data-vv-as="label"
-      :value="value"
+      v-model="internalValue"
       :disabled="disabled"
-      @input="update"
       v-validate="{ required: isRequired }"
     >
 
@@ -23,6 +22,9 @@
 </template>
 
 <script>
+/**
+ * Text input component
+ */
 import MoInputBase from './MoInputBase'
 
 export default {

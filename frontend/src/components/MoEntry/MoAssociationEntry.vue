@@ -29,7 +29,7 @@
       />
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="disabledDates"
@@ -42,7 +42,7 @@
  * A association entry component.
  */
 
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -52,7 +52,7 @@ export default {
   extends: MoEntryBase,
   name: 'MoAssociationEntry',
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoOrganisationUnitPicker,
     MoAddressPicker,
     MoFacetPicker

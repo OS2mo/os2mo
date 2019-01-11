@@ -28,7 +28,7 @@
       </div>
 
       <div class="form-row">
-        <mo-date-picker-range
+        <mo-input-date-range
           class="col"
           v-model="rename.data.validity"
         />
@@ -51,9 +51,8 @@
  */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import { MoInputText } from '@/components/MoInput'
+import { MoInputText, MoInputDateRange } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
@@ -63,7 +62,7 @@ export default {
   mixins: [ValidateForm, ModalBase],
 
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoOrganisationUnitPicker,
     MoInputText,
     ButtonSubmit

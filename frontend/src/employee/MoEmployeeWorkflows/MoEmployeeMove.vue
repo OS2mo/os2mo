@@ -35,7 +35,7 @@
       </div>
 
       <div class="form-row">
-        <mo-date-picker
+        <mo-input-date
           class="col from-date"
           :label="$t('input_fields.move_date')"
           v-model="from"
@@ -68,7 +68,7 @@
  * A employee move component.
  */
 
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
@@ -82,7 +82,7 @@ export default {
   mixins: [ValidateForm, ModalBase],
 
   components: {
-    MoDatePicker,
+    MoInputDate,
     MoOrganisationUnitPicker,
     MoEngagementPicker,
     MoEmployeePicker,

@@ -13,7 +13,7 @@ export default Vue.extend({
   props: {
     /**
      * @model
-     * @type {String||Object||Array||Integer}
+     * @type {String||Object||Array||Integer||Date}}
      */
     value: null,
     /**
@@ -61,22 +61,48 @@ export default Vue.extend({
   },
 
   computed: {
+    /**
+     * Provide a uniqe identifier
+     * @type {String}
+     */
     identifier () {
       return this.id ? this.id : 'mo-input-' + this._uid
     },
 
+    /**
+     * Does it have a label
+     * @type {Boolean}
+     */
     hasLabel () {
       return this.label != null
     },
 
+    /**
+     * Is the field required
+     * @type {Boolean}
+     */
     isRequired () {
       return this.disabled ? false : this.required
     }
   },
+  watch: {
+    /**
+     * Emit internal value when it changes
+     * @emits value
+     */
+    internalValue (newVal) {
+      this.$emit('input', newVal)
+    },
 
-  methods: {
-    update (event) {
-      this.$emit('input', event.target.value)
+    /**
+     * Whenever value change, set selected to the new val and validate the name.
+     */
+    value (val) {
+      this.internalValue = val
+      this.$validator.validate(this.identifier)
     }
+  },
+  created () {
+    this.internalValue = this.value
   }
 })

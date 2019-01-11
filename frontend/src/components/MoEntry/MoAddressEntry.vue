@@ -11,7 +11,12 @@
 
       <div class="form-group col">
         <div v-if="entry.address_type">
-          <mo-address-search v-if="isDarAddress" :label="entry.address_type.name" v-model="address"/>
+          <mo-address-search
+            v-if="isDarAddress"
+            :label="entry.address_type.name"
+            v-model="address"
+            required
+          />
           <label :for="identifier" v-if="!isDarAddress">{{entry.address_type.name}}</label>
           <input
             :name="identifier"
@@ -30,7 +35,7 @@
       </div>
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       class="address-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
@@ -44,9 +49,9 @@
  * A address entry component.
  */
 
-import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
+import MoAddressSearch from '@/components/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
 import { mapGetters } from 'vuex'
 
@@ -64,7 +69,7 @@ export default {
   components: {
     MoAddressSearch,
     MoFacetPicker,
-    MoDatePickerRange
+    MoInputDateRange
   },
 
   props: {
