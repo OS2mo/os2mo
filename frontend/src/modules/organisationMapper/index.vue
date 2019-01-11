@@ -8,7 +8,8 @@
           <mo-tree-view class="card-body" v-model="origin"/>
         </div>
 
-        <button @click="onSubmit" class="btn btn-primary" :disabled="!origin">
+        <button @click="onSubmit" class="btn btn-primary"
+                :disabled="!valid">
           <icon name="map-signs"/>
           {{$t('buttons.save')}}
         </button>
@@ -32,6 +33,7 @@
 </template>
 
 <script>
+import isEqualTo from 'lodash.isequal'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import 'vue-awesome/icons/map-signs'
 import { mapGetters } from 'vuex'
@@ -63,7 +65,15 @@ export default {
         this.$store.commit('organisationMapper/SET_DESTINATION', val)
         return this.$store.getters['organisationMapper/destination']
       }
-    }
+    },
+
+    valid () {
+      return this.origin && !isEqualTo(this.original_destination, this.destination)
+    },
+
+    ...mapGetters({
+      original_destination: 'organisationMapper/original_destination',
+    })
   },
 
   watch: {
