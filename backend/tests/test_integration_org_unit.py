@@ -459,6 +459,7 @@ class Tests(util.LoRATestCase):
                 'leave': False,
                 'manager': False,
                 'org_unit': True,
+                'related_unit': False,
                 'role': False,
             },
         )
@@ -2331,7 +2332,7 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 0,
+                'role_count': 1,
                 'child_count': 1,
 
                 'child_units': [
@@ -2366,7 +2367,7 @@ class Tests(util.LoRATestCase):
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 2,
 
                 'child_units': [
@@ -2411,7 +2412,7 @@ class Tests(util.LoRATestCase):
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 1,
 
                 'child_units': [
@@ -2460,7 +2461,7 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 0,
 
                 'child_units': [],
