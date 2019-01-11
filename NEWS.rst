@@ -15,6 +15,9 @@ New features
   for disabling certain validations.
 * #25409: Added backend support for specifying visibility for phone number
   address objects.
+* #24130: The configuration module now has a public api, allowing for dynamic
+  changes of the configuration options.
+
 
 Internal changes
 ----------------
