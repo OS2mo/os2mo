@@ -73,5 +73,30 @@ Reply ....
 
 Global settings are global for all organisations.
 
-Reading configuration options
+
+Writing configuration options
 -----------------------------
+
+The payload for updating global or OU-specific settings are identical:
+  '''
+  {
+    org_units":{
+       "show_roles": "False"
+       }
+  }
+  '''
+
+Currently, only there are only settings for org units and thus the outer key
+will alwayys be ''org_units''. It is possible to update more than one key pr
+request.
+  
+Global settings
+^^^^^^^^^^^^^^^
+The update a global setting: ::
+
+  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_roles": "False"}}' http://localhost/service/o/set_configuration
+
+OU specific settings
+^^^^^^^^^^^^^^^
+To update or create a setting for a specific OU: ::
+  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_user_keys": "False"}}' http://localhost/service/ou/...../set_configuration
