@@ -43,10 +43,6 @@ export default {
     storeId: { type: String, required: true }
   },
 
-  props: {
-    storeId: { type: String, required: true }
-  },
-
   data () {
     return {
       /**
