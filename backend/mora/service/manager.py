@@ -24,11 +24,16 @@ from .. import validator
 
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
+    __slots__ = ('termination_field', 'termination_value')
+
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
 
-    termination_field = mapping.USER_FIELD
-    termination_value = {}
+    def __init__(self, request, request_type):
+        self.termination_field = mapping.USER_FIELD
+        self.termination_value = {}
+
+        super().__init__(request, request_type)
 
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
@@ -205,7 +210,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
     def prepare_terminate(self, request: dict):
         # If we want to terminate the managers as well
-        if request.get('request').get('full'):
+        if request.get('request').get('terminate_all'):
             self.termination_value = {
                 'gyldighed': 'Inaktiv',
             }

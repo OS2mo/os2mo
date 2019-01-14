@@ -8,7 +8,6 @@
 import freezegun
 
 from mora import lora
-from mora.service import manager
 
 from . import util
 
@@ -126,7 +125,7 @@ class Tests(util.LoRATestCase):
             "validity": {
                 "to": "2000-12-01"
             },
-            "full": True
+            "terminate_all": True
         }
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
