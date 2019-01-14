@@ -364,6 +364,8 @@ def terminate_employee(employee_uuid):
     :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
+    :<json boolean full: *Optional* - perform full termination, i.e. terminate
+                         the associated manager functions as well.
 
     **Example Request**:
 
