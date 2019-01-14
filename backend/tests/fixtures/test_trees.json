@@ -1,5 +1,5 @@
 {
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak&tree=1&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e": [
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak&tree=1&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
     {
       "children": [
         {
@@ -21,7 +21,7 @@
       }
     }
   ],
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=hum": {
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=hum&at=2017-06-01": {
     "items": [
       {
         "name": "Humanistisk fakultet",
@@ -36,7 +36,7 @@
     "offset": 0,
     "total": 1
   },
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=0&query=fak": {
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=0&query=fak&at=2017-06-01": {
     "items": [
       {
         "name": "Humanistisk fakultet",
@@ -60,7 +60,7 @@
     "offset": 0,
     "total": 2
   },
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=1": [
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=1&at=2017-06-01": [
     {
       "children": [
         {
@@ -122,7 +122,7 @@
       }
     }
   ],
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=1&query=fak": [
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?tree=1&query=fak&at=2017-06-01": [
     {
       "children": [
         {
@@ -153,27 +153,30 @@
       }
     }
   ],
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e": {
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": {
     "items": [
       {
-        "name": "Humanistisk fakultet",
-        "user_key": "hum",
-        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "name": "Afdeling for Samtidshistorik",
+        "user_key": "frem",
+        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
         "validity": {
           "from": "2016-01-01",
-          "to": null
+          "to": "2018-12-31"
         }
-      }
-    ],
-    "offset": 0,
-    "total": 1
-  },
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&uuid=2874e1dc-85e6-4269-823a-e1125484dfd3": {
-    "items": [
+      },
       {
         "name": "Overordnet Enhed",
         "user_key": "root",
         "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Filosofisk Institut",
+        "user_key": "fil",
+        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
         "validity": {
           "from": "2016-01-01",
           "to": null
@@ -187,48 +190,106 @@
           "from": "2016-01-01",
           "to": null
         }
+      },
+      {
+        "name": "Samfundsvidenskabelige fakultet",
+        "user_key": "samf",
+        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "validity": {
+          "from": "2017-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Historisk Institut",
+        "user_key": "hist",
+        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+        "validity": {
+          "from": "2016-01-01",
+          "to": "2018-12-31"
+        }
       }
     ],
     "offset": 0,
-    "total": 2
+    "total": 6
   },
-  "/service/ou/ancestor-tree?uuid=04c78fc2-72d2-4d02-b55f-807af19eac48&uuid=04c78fc2-72d2-4d02-b55f-807af19eac48": [
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&uuid=2874e1dc-85e6-4269-823a-e1125484dfd3&at=2017-06-01": {
+    "items": [
+      {
+        "name": "Afdeling for Samtidshistorik",
+        "user_key": "frem",
+        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+        "validity": {
+          "from": "2016-01-01",
+          "to": "2018-12-31"
+        }
+      },
+      {
+        "name": "Overordnet Enhed",
+        "user_key": "root",
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Filosofisk Institut",
+        "user_key": "fil",
+        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Humanistisk fakultet",
+        "user_key": "hum",
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Samfundsvidenskabelige fakultet",
+        "user_key": "samf",
+        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "validity": {
+          "from": "2017-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Historisk Institut",
+        "user_key": "hist",
+        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+        "validity": {
+          "from": "2016-01-01",
+          "to": "2018-12-31"
+        }
+      }
+    ],
+    "offset": 0,
+    "total": 6
+  },
+  "/service/ou/ancestor-tree?uuid=2874e1dc-85e6-4269-823a-e1125484dfd3&at=2017-06-01": [
+    {
+      "child_count": 2,
+      "name": "Overordnet Enhed",
+      "user_key": "root",
+      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+      "validity": {
+        "from": "2016-01-01",
+        "to": null
+      }
+    }
+  ],
+  "/service/ou/ancestor-tree?uuid=b688513d-11f7-4efc-b679-ab082a2055d0&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
     {
       "children": [
         {
-          "children": [
-            {
-              "child_count": 0,
-              "name": "Filosofisk Institut",
-              "user_key": "fil",
-              "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
-              "validity": {
-                "from": "2016-01-01",
-                "to": null
-              }
-            },
-            {
-              "children": [
-                {
-                  "child_count": 0,
-                  "name": "Afdeling for Samtidshistorik",
-                  "user_key": "frem",
-                  "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                  "validity": {
-                    "from": "2016-01-01",
-                    "to": "2018-12-31"
-                  }
-                }
-              ],
-              "name": "Historisk Institut",
-              "user_key": "hist",
-              "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-              "validity": {
-                "from": "2016-01-01",
-                "to": "2018-12-31"
-              }
-            }
-          ],
+          "child_count": 2,
           "name": "Humanistisk fakultet",
           "user_key": "hum",
           "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
@@ -248,18 +309,6 @@
           }
         }
       ],
-      "name": "Overordnet Enhed",
-      "user_key": "root",
-      "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-      "validity": {
-        "from": "2016-01-01",
-        "to": null
-      }
-    }
-  ],
-  "/service/ou/ancestor-tree?uuid=2874e1dc-85e6-4269-823a-e1125484dfd3": [
-    {
-      "child_count": 2,
       "name": "Overordnet Enhed",
       "user_key": "root",
       "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",

@@ -776,15 +776,13 @@ def list_orgunits(orgid):
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    unitids = (
-        args.getlist('uuid')
-        if 'uuid' in args
-        else c.organisationenhed(**kwargs)
-    )
-
-    assert len(unitids) < 100
-
     if util.get_args_flag('tree'):
+        unitids = (
+            args.getlist('uuid')
+            if 'uuid' in args
+            else c.organisationenhed(**kwargs)
+        )
+
         if len(unitids) > settings.TREE_SEARCH_LIMIT:
             raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
                 found=len(unitids),
@@ -798,8 +796,8 @@ def list_orgunits(orgid):
     return flask.jsonify(
         c.organisationenhed.paged_get(
             functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
-            uuid=unitids,
             **limits,
+            **kwargs,
         )
     )
 

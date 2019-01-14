@@ -2798,21 +2798,21 @@ class Tests(util.LoRATestCase):
         expected_organisationenhedegenskaber = [{
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '{}',
-            'virkning': {
-                'from': '2016-01-03 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }, {
-            'brugervendtnoegle': 'hum',
-            'enhedsnavn': 'Humanistisk fakultet',
             'integrationsdata': '{"baywatchname": "Hasselhoff"}',
             'virkning': {
                 'from': '2016-01-01 00:00:00+01',
                 'from_included': True,
                 'to': '2016-01-03 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'brugervendtnoegle': 'hum',
+            'enhedsnavn': 'Humanistisk fakultet',
+            'integrationsdata': '{}',
+            'virkning': {
+                'from': '2016-01-03 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
                 'to_included': False
             }
         }]
