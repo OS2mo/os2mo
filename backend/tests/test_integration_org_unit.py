@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import operator
 import unittest
 from unittest.mock import patch
 
@@ -2822,7 +2823,8 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(
             expected_organisationenhedegenskaber,
-            actual['attributter']['organisationenhedegenskaber']
+            sorted(actual['attributter']['organisationenhedegenskaber'],
+                   key=lambda attrs: attrs['virkning']['from']),
         )
 
     def test_tree(self):
