@@ -24,8 +24,6 @@ from .. import validator
 
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
 
@@ -204,3 +202,13 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = manager_uuid
+
+    def prepare_terminate(self, request: dict):
+        # If we want to terminate the managers as well
+        if request.get('request').get('full'):
+            self.termination_value = {
+                'gyldighed': 'Inaktiv',
+            }
+            self.termination_field = mapping.ORG_FUNK_GYLDIGHED_FIELD
+
+        super().prepare_terminate(request)
