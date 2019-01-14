@@ -2,6 +2,12 @@
 
 A timemachine column component. 
 
+## props 
+
+- `store-id` ***String*** (*required*) 
+
+- `store-id` ***String*** (*required*) 
+
 ## data 
 
 - `date` 
@@ -11,23 +17,13 @@ A timemachine column component.
 
 **initial value:** `[object Object]` 
 
-- `org` 
-
-**initial value:** `[object Object]` 
-
-- `orgUnit` 
-
-**initial value:** `null` 
-
-bject]` 
-
-- `orgUnit` 
-
-**initial value:** `null` 
-
 ## computed properties 
 
-- `orgUnitInfo` 
+- `unitUuid` 
+
+   **dependencies:** `orgUnit`, `orgUnit` 
+
+- `orgUnit` 
 
    **dependencies:** `$store`, `storeId` 
 

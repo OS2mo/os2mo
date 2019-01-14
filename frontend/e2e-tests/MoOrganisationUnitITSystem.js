@@ -2,7 +2,7 @@ import VueSelector from 'testcafe-vue-selectors'
 import { baseURL } from './support'
 
 fixture('MoOrganisationUnitITSystem')
-  .page(`${baseURL}/organisation/9f42976b-93be-4e0b-9a25-0dcb8af2f6b4`)
+  .page(`${baseURL}/organisation/97337de5-6096-41f9-921e-5bed7a140d85`)
 
 // skip: test data lacks units with IT systems
 test.skip('Read IT System', async t => {

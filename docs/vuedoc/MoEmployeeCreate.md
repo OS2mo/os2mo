@@ -19,15 +19,6 @@ A employee create component.
 
 **initial value:** `[object Object]` 
 
-## computed properties 
-
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
-
 ## methods 
 
 - `createEmployee(evt)` 

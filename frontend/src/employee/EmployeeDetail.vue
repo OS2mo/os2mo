@@ -12,12 +12,12 @@
         <div class="col"></div>
 
         <div class="mr-3">
-          <mo-history :uuid="$route.params.uuid" type="EMPLOYEE"/>
+          <mo-history :uuid="route.params.uuid" type="EMPLOYEE"/>
         </div>
       </div>
 
       <employee-detail-tabs
-        :uuid="$route.params.uuid"
+        :uuid="route.params.uuid"
         :content="$store.getters['employee/GET_DETAILS']"
         @show="loadContent($event)"
       />
@@ -35,6 +35,7 @@ import { EventBus } from '@/EventBus'
 import EmployeeDetailTabs from './EmployeeDetailTabs'
 import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
+import { mapState } from 'vuex'
 
 export default {
   components: {
@@ -55,6 +56,10 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      route: 'route'
+    }),
+
     employee () {
       return this.$store.getters['employee/GET_EMPLOYEE']
     }

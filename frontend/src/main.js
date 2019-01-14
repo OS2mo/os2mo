@@ -8,6 +8,7 @@ import DateInRange from './validators/DateInRange'
 import messagesDA from '../node_modules/vee-validate/dist/locale/da'
 import VueShortKey from 'vue-shortkey'
 import store from './store'
+import { sync } from 'vuex-router-sync'
 import '@babel/polyfill'
 
 import './icons'
@@ -18,6 +19,8 @@ import 'bootstrap/dist/css/bootstrap.css'
 
 import './assets/css/global.css'
 import 'moment/locale/da'
+
+sync(store, router)
 
 Vue.config.productionTip = false
 

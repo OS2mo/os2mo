@@ -1,10 +1,11 @@
 <template>
   <div class="orgunit-tree">
     <liquor-tree
-      :ref="nameId"
-      :v-model="selected"
+      :ref="_nameId"
       :data="treeData"
-      :options="treeOptions">
+      :options="treeOptions"
+      @node:selected="onNodeSelected"
+      >
 
       <div class="tree-scope" slot-scope="{ node }">
         <template>
@@ -33,29 +34,54 @@ export default {
 
   props: {
     /**
-     * Defines a orgUuid.
+     * This control takes a string variable as its model, representing
+     * the UUID of the selected unit. Internally, the tree view does
+     * have access to reasonably full objects representing the unit,
+     * but they don't correspond _exactly_ to those used elsewhere, so
+     * we only pass the UUID.
+     *
+     * @model
      */
-    unitUuid: String,
+    value: {type: String},
 
     /**
-     * Defines a atDate.
+     * Defines the date for rendering the tree; used for the time machine.
      */
-    atDate: [Date, String]
+    atDate: {type: [Date, String]},
   },
 
   computed: {
     ...mapGetters({
+      /**
+       * The tree view itself is dependent on the currently active
+       * organisation. Among other things, we should only show the units
+       * for that organisation, and also ensure that we reset the view
+       * whenever it changes.
+       */
       orgUuid: 'organisation/getUuid'
     }),
 
-    nameId () {
+    /**
+     * @private
+     */
+    _nameId () {
       return 'moTreeView' + this._uid
     },
 
+    /**
+     * Accessor for the LiquorTree instance.
+     *
+     * @protected
+     */
     tree () {
-      return this.$refs[this.nameId]
+      return this.$refs[this._nameId]
     },
 
+    /**
+     * A string representation of the currently rendered tree, useful
+     * for inspection and tests, with highlighting of expansion and
+     * selection states.
+     */
     contents () {
       function visitNode (node, level) {
         if (!node) {
@@ -70,9 +96,7 @@ export default {
 
         if (node.expanded()) {
           const r = {}
-
           r[text] = visitNode(node.children, level + 1)
-
           return r
         } else if (node.hasChildren()) {
           return '> ' + text
@@ -89,10 +113,19 @@ export default {
     let vm = this
 
     return {
+      /**
+       * LiquorTree model; required for some reason or other, but not
+       * actually used?
+       *
+       * @private
+       */
       treeData: [],
-      selected: undefined,
-      units: {},
 
+      /**
+       * LiquorTree options.
+       *
+       * @private
+       */
       treeOptions: {
         minFetchDelay: 1,
         parentSelect: true,
@@ -107,27 +140,7 @@ export default {
   mounted () {
     const vm = this
 
-    this.tree.$on('node:added', node => {
-      console.log(`TREE: adding node ${node.id}`)
-    })
-
-    this.tree.$on('node:removed', node => {
-      console.log(`TREE: removing node ${node.id}`)
-      delete vm.units[node.id]
-    })
-
-    this.tree.$on('node:selected', node => {
-      console.log(`TREE: selected node ${node.id}`)
-
-      vm.$emit('input', vm.units[node.id])
-    })
-
-    this.tree.$on('node:expanded', node => {
-      console.log('TREE: expanded', node.text, node.id)
-    })
-
     EventBus.$on('update-tree-view', () => {
-      console.log(`TREE: update tree view!`)
       vm.updateTree(true)
     })
 
@@ -135,34 +148,22 @@ export default {
   },
 
   watch: {
-    unitUuid (newVal, oldVal) {
-      console.log(`TREE: changing unit from ${oldVal} to ${newVal} (org=${this.orgUuid})`)
-
-      if (this.units && this.units[newVal]) {
+    /**
+     * Update the selection when the value changes.
+     */
+    value (newVal, oldVal) {
+      if (!newVal || this.tree.tree.getNodeById(newVal)) {
         this.setSelection(newVal)
       } else if (newVal !== oldVal) {
         this.updateTree()
       }
     },
 
-    selected: {
-      handler (newVal, oldVal) {
-        console.log(`TREE: selected changed to ${newVal}`)
-      },
-      deep: true
-    },
-
-    treeData: {
-      handler (newVal, oldVal) {
-        console.log(`TREE: treeData changed to ${newVal}`)
-      },
-      deep: true
-    },
-
+    /**
+     * Reset the selection when the organisation changes.
+     */
     orgUuid (newVal, oldVal) {
       let vm = this
-
-      console.log(`TREE: changing organisation from ${oldVal} to ${newVal}`)
 
       // in order to avoid updating twice, only do so when no unit
       // is configured; otherwise, we'll update when the unit clears
@@ -173,12 +174,15 @@ export default {
       //
       // yes, this is a bit of a hack :(
       setTimeout(() => {
-        if (oldVal || !vm.unitUuid) {
+        if (oldVal || !vm.value) {
           vm.updateTree(true)
         }
       }, 100)
     },
 
+    /**
+     * Re-render the tree when the date changes.
+     */
     atDate () {
       this.updateTree()
     }
@@ -186,24 +190,37 @@ export default {
 
   methods: {
     /**
+     * Propagate the selection to the model.
+     *
+     * @protected
+     */
+    onNodeSelected (node) {
+      /**
+       * Emitted whenever the selection changes.
+       */
+      this.$emit('input', node.id)
+    },
+
+    /**
      * Select the unit corresponding to the given ID, assuming it's present.
      */
     setSelection (unitid) {
-      if (!unitid) {
-        unitid = this.unitUuid
-      }
+      unitid = unitid || this.value
 
-      console.log(`TREE: selecting ${unitid}`)
       this.tree.tree.unselectAll()
 
-      let n = this.tree.tree.getNodeById(unitid)
+      let node = this.tree.tree.getNodeById(unitid)
 
-      if (n) {
-        n.expandTop()
-        n.select()
+      if (node) {
+        node.expandTop()
+        node.select()
       }
     },
 
+    /**
+     * Add the given node to the tree, nested under the parent, specified, or
+     * root otherwise.
+     */
     addNode (unit, parent) {
       let preexisting = this.tree.tree.getNodeById(unit.uuid)
 
@@ -217,11 +234,12 @@ export default {
         preexisting.text = unit.name
         preexisting.isBatch = unit.children ? false : unit.child_count > 0
       } else if (parent) {
-        parent.append(this.toNode(unit))
+        this.tree.append(this.toNode(unit))
       } else {
         this.tree.append(this.toNode(unit))
       }
     },
+
     /**
      * Convert a unit object into a node suitable for adding to the
      * tree.
@@ -229,13 +247,14 @@ export default {
      * This method handles both eager and lazy loading of child nodes.
      */
     toNode (unit) {
-      this.units[unit.uuid] = unit
-
       return {
         text: unit.name,
         isBatch: unit.children ? false : unit.child_count > 0,
         id: unit.uuid,
-        children: unit.children ? unit.children.map(this.toNode.bind(this)) : null
+        children: unit.children ? unit.children.map(this.toNode.bind(this)) : null,
+        state: {
+          expanded: Boolean(unit.children),
+        }
       }
     },
 
@@ -245,45 +264,36 @@ export default {
     updateTree (force) {
       let vm = this
 
-      if (!this.orgUuid || !this.tree) {
-        return
-      }
-
       if (force) {
         this.tree.remove({}, true)
-        this.units = {}
       }
 
-      if (this.unitUuid) {
-        OrganisationUnit.getAncestorTree(this.unitUuid, this.atDate)
+      if (this.value) {
+        OrganisationUnit.getAncestorTree(this.value, this.atDate)
           .then(response => {
-            console.log('TREE: injecting unit tree', response.uuid)
-
             vm.addNode(response, null)
             vm.tree.sort()
-
             vm.setSelection()
           })
-      } else {
+      } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
-            console.log('TREE: injecting org tree')
-
-            vm.units = {}
 
             for (let unit of response) {
               vm.addNode(unit, null)
             }
 
             vm.tree.sort()
+            vm.setSelection()
           })
       }
     },
 
+    /**
+     * LiquorTree lazy data fetcher.
+     */
     fetch (node) {
       let vm = this
-
-      console.log(`TREE: fetching ${node.text}`)
 
       if (!this.orgUuid || node.fetching) {
         // nothing to do, so return something that does nothing
@@ -298,13 +308,9 @@ export default {
       return OrganisationUnit.getChildren(node.id, this.atDate)
         .then(response => {
           node.fetching = false
-
           return response.map(vm.toNode.bind(vm))
         }).catch(error => {
-          console.error('fetch failed', error)
-
           node.fetching = false
-
           throw error
         })
     }
@@ -312,22 +318,24 @@ export default {
 }
 </script>
 
-<!-- this particular styling is not scoped, otherwise liqour tree cannot detect the overwrites -->
+<!-- this particular styling is not scoped, otherwise liqour tree
+     cannot detect the overwrites. to ensure that we _always_ win, we
+     increase the specificity of the selectors  -->
 <style>
-  .tree > .tree-root, .tree-content {
+  .orgunit-tree .tree > .tree-root, .tree-content {
      padding: 0;
    }
 
-   .tree-children {
+   .orgunit-tree .tree-children {
      transition-timing-function: ease-in-out;
      transition-duration: 150ms;
    }
 
-  .tree-node.selected > .tree-content {
-    background: #007bff;
+  .orgunit-tree .tree-node.selected > .tree-content {
+    background-color: #007bff;
   }
 
-  .tree-node.selected > .tree-content > .tree-anchor {
+  .orgunit-tree .tree-node.selected > .tree-content > .tree-anchor {
     color: #fff;
   }
 </style>
