@@ -8,6 +8,7 @@ New features
   units and employees is no longer disabled if the form is invalid
 * #25394: It is now no longer possible to perform edits taking effect before
   the current date.
+* #24702: Allow marking organisational units as related to each other.
 
 Internal changes
 ----------------
@@ -20,6 +21,8 @@ Bug fixes
 * #25405: Submit button for create new and edit modals for organisation 
   units and employees is no longer disabled if the form is invalid
 * #25028: Timeachine is working again.
+* #25579: Address race condition when quickly switching between units
+  in the tree view at the left.
 
 Version 0.13.0, 2018-11-30
 ==========================
