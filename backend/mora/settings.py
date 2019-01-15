@@ -52,8 +52,11 @@ SP_CERTIFICATE_PATH = ""
 
 PROD_MODE = False
 
-USER_SETTINGS_CONN_STRING = ("dbname='mora' user='mora' host='localhost' " +
-                             "password='mora'")
+USER_SETTINGS_DB_NAME = 'mora'
+USER_SETTINGS_DB_USER = 'mora'
+USER_SETTINGS_DB_PASSWORD = 'mora'
+USER_SETTINGS_DB_HOST = 'localhost'
+
 QUERY_EXPORT_DIR = ''
 
 

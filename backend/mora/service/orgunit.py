@@ -46,7 +46,10 @@ from .. import validator
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
-conn = psycopg2.connect(settings.USER_SETTINGS_CONN_STRING)
+conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                        dbname=settings.USER_SETTINGS_DB_NAME,
+                        host=settings.USER_SETTINGS_DB_HOST,
+                        password=settings.USER_SETTINGS_DB_PASSWORD)
 cur = conn.cursor()
 
 

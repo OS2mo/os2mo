@@ -6,4 +6,9 @@
     "SP_SYSTEM_UUID": "00000000-0000-0000-0000-000000000000",
     "SP_CERTIFICATE_PATH": "/path/to/certificate.crt",
     "PROD_MODE": false,
+
+    "USER_SETTINGS_DB_NAME": "mora",
+    "USER_SETTINGS_DB_USER": "mora",
+    "USER_SETTINGS_DB_PASSWORD": "mora",
+    "USER_SETTINGS_DB_HOST": "localhost"
 }
