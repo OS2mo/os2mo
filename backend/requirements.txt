@@ -1,3 +1,4 @@
+psycopg2
 Flask~=1.0.0
 requests~=2.19.1
 lxml~=4.2.3
