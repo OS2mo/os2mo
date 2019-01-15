@@ -24,6 +24,12 @@ from .. import validator
 
 
 class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
+    '''This is a dummy handler that exists to enable reading related units.
+
+    Eventually, we'll do that in the handlers, but for now we use
+    their _existence_ to allow reading.
+
+    '''
     __slots__ = ()
 
     role_type = 'related_unit'
