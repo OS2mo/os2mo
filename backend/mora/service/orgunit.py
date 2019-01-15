@@ -1035,16 +1035,14 @@ def map_org_units(origin):
     destinations = set(util.checked_get(req, 'destination', [],
                                         required=True))
 
-    units = dict(c.organisationenhed.get_all(uuid={origin} | destinations))
+    validator.is_edit_from_date_before_today(date)
 
-    if len(units) != len(destinations) + 1:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
-            org_unit_uuid=sorted(destinations - units.keys()),
-        )
+    wanted_units = {origin} | destinations
+    units = dict(c.organisationenhed.get_all(uuid=wanted_units))
 
-    if len(units) != len(destinations) + 1:
+    if len(units) != len(wanted_units):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
-            org_unit_uuid=sorted(destinations - units.keys()),
+            org_unit_uuid=sorted(wanted_units - units.keys()),
         )
 
     terminated = {
@@ -1052,6 +1050,7 @@ def map_org_units(origin):
         for unitid, unit in units.items()
         for state in unit['tilstande']['organisationenhedgyldighed']
         if util.get_effect_to(state) != util.POSITIVE_INFINITY
+        and state['gyldighed'] == 'Aktiv'
     }
 
     if terminated:
