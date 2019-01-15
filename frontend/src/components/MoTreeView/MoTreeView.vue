@@ -104,7 +104,19 @@ export default {
             .map(c => visitNode(c, level))
         }
 
-        let text = node.selected() ? `=+= ${node.text} =+=` : node.text
+        let text = node.text
+
+        if (node.checked()) {
+          text = `\u2713 ${text}`
+        }
+
+        if (node.selected()) {
+          text = `=+= ${text} =+=`
+        }
+
+        if (node.disabled()) {
+          text = `~~~ ${text} ~~~`
+        }
 
         if (node.expanded()) {
           const r = {}
@@ -291,12 +303,14 @@ export default {
       for (const uuid of newVal.filter(v => !oldVal.includes(v))) {
         const node = this.tree.tree.getNodeById(uuid)
 
-        node.expandTop()
+        if (node) {
+          node.expandTop()
 
-        if (this.multiple) {
-          node.check()
-        } else {
-          node.select()
+          if (this.multiple) {
+            node.check()
+          } else {
+            node.select()
+          }
         }
       }
     },

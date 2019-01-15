@@ -5,10 +5,10 @@
     <div class="row">
       <div class="col">
         <div class="card">
-          <mo-tree-view class="card-body" v-model="origin"/>
+          <mo-tree-view class="card-body origin" v-model="origin"/>
         </div>
 
-        <button @click="onSubmit" class="btn btn-primary"
+        <button @click="onSubmit" class="btn btn-primary btn-submit"
                 :disabled="!valid">
           <icon name="map-signs"/>
           {{$t('buttons.save')}}
@@ -18,7 +18,7 @@
       <div class="col">
         <div class="card">
           <mo-tree-view multiple v-model="destination" :disabled-unit="origin"
-                        class="card-body" v-if="origin"/>
+                        class="card-body destination" v-if="origin"/>
           <div class="card-body" v-else>
             <p class="card-text">
               Vælg en enhed til venstre for at vise og ændre hvilke
