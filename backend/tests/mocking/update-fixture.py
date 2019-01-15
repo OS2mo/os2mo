@@ -12,9 +12,7 @@ Update, i.e. re-fetch, a JSON fixture
 '''
 
 import json
-import operator
 import os
-import pathlib
 import sys
 
 import requests
