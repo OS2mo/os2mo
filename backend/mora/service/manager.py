@@ -211,9 +211,9 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     def prepare_terminate(self, request: dict):
         # If we want to terminate the managers as well
         if request.get('request').get('terminate_all'):
-            self.termination_value = {
-                'gyldighed': 'Inaktiv',
-            }
-            self.termination_field = mapping.ORG_FUNK_GYLDIGHED_FIELD
+            self.termination_value = \
+                handlers.OrgFunkRequestHandler.termination_value
+            self.termination_field = \
+                handlers.OrgFunkRequestHandler.termination_field
 
         super().prepare_terminate(request)
