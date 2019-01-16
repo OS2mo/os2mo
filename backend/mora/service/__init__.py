@@ -27,13 +27,14 @@ from . import integration_data
 blueprints = (
     address.blueprint,
     cpr.blueprint,
-    employee.blueprint,
     detail_reading.blueprint,
     detail_writing.blueprint,
+    employee.blueprint,
+    exports.blueprint,
     facet.blueprint,
+    integration_data.blueprint,
     itsystem.blueprint,
     org.blueprint,
     orgunit.blueprint,
-    exports.blueprint,
-    integration_data.blueprint,
+    related.blueprint,
 )
