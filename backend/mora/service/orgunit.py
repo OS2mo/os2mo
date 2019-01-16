@@ -1065,17 +1065,17 @@ def map_org_units(origin):
             org_unit_uuid=sorted(wanted_units - units.keys()),
         )
 
-    terminated = {
+    good = {
         unitid
         for unitid, unit in units.items()
-        for state in unit['tilstande']['organisationenhedgyldighed']
-        if util.get_effect_to(state) != util.POSITIVE_INFINITY and
+        for state in util.get_states(unit)
+        if util.get_effect_to(state) == util.POSITIVE_INFINITY and
         state['gyldighed'] == 'Aktiv'
     }
 
-    if terminated:
+    if wanted_units - good:
         exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
-            org_unit_uuid=sorted(terminated),
+            org_unit_uuid=sorted(wanted_units - good),
         )
 
     orgid, = mapping.BELONGS_TO_FIELD.get_uuids(units[origin])

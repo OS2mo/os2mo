@@ -117,26 +117,116 @@ class Tests(util.LoRATestCase):
     def test_validation(self):
         self.load_sample_structures()
 
-        self.assertRequestResponse(
-            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map',
-            {
-                'description':
-                'Date range exceeds validity range of associated org unit.',
-                'error': True,
-                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                'org_unit_uuid': ['da77153e-30f3-4dc2-a611-ee912a28d8aa'],
-                'status': 400,
-            },
-            json={
-                'destination': [
-                    'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                ],
-                'validity': {
-                    'from': '2017-03-01',
+        with self.subTest('past'):
+            self.assertRequestResponse(
+                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map',
+                {
+                    'description':
+                    'Cannot perform changes before current date',
+                    'error': True,
+                    'error_key': 'V_CHANGING_THE_PAST',
+                    'date': '2017-03-01T00:00:00+01:00',
+                    'status': 400,
                 },
-            },
-            status_code=400,
-        )
+                json={
+                    'destination': [
+                        'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    ],
+                    'validity': {
+                        'from': '2017-03-01',
+                    },
+                },
+                status_code=400,
+            )
+
+        with self.subTest('outside'):
+            self.assertRequestResponse(
+                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map',
+                {
+                    'description': 'Date range exceeds validity range of '
+                    'associated org unit.',
+                    'error': True,
+                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                    'org_unit_uuid': ['da77153e-30f3-4dc2-a611-ee912a28d8aa'],
+                    'status': 400,
+                },
+                json={
+                    'destination': [
+                        'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    ],
+                    'validity': {
+                        'from': '2019-01-01',
+                    },
+                },
+                status_code=400,
+            )
+
+        with self.subTest('across a change'):
+            with freezegun.freeze_time('2016-03-01'):
+                self.assertRequestResponse(
+                    '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map',
+                    {
+                        'description': 'Date range exceeds validity range of '
+                        'associated org unit.',
+                        'error': True,
+                        'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                        'org_unit_uuid': [
+                            '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        ],
+                        'status': 400,
+                    },
+                    json={
+                        'destination': [
+                            '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                        ],
+                        'validity': {
+                            'from': '2017-06-01',
+                        },
+                    },
+                    status_code=400,
+                )
+
+        with self.subTest('invalid origin'):
+            self.assertRequestResponse(
+                '/service/ou/00000000-0000-0000-0000-000000000000/map',
+                {
+                    'description': 'Org unit not found.',
+                    'error': True,
+                    'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                    'org_unit_uuid': ['00000000-0000-0000-0000-000000000000'],
+                    'status': 404,
+                },
+                json={
+                    'destination': [
+                        '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    ],
+                    'validity': {
+                        'from': '2017-06-01',
+                    },
+                },
+                status_code=404,
+            )
+
+        with self.subTest('invalid destination'):
+            self.assertRequestResponse(
+                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map',
+                {
+                    'description': 'Org unit not found.',
+                    'error': True,
+                    'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                    'org_unit_uuid': ['00000000-0000-0000-0000-000000000000'],
+                    'status': 404,
+                },
+                json={
+                    'destination': [
+                        '00000000-0000-0000-0000-000000000000',
+                    ],
+                    'validity': {
+                        'from': '2017-06-01',
+                    },
+                },
+                status_code=404,
+            )
 
     def test_writing(self):
         self.load_sample_structures()
@@ -149,7 +239,7 @@ class Tests(util.LoRATestCase):
                     'b688513d-11f7-4efc-b679-ab082a2055d0',
                 ],
                 'validity': {
-                    'from': '2017-03-01',
+                    'from': '2017-06-01',
                 },
             },
         )
@@ -185,7 +275,7 @@ class Tests(util.LoRATestCase):
             ],
             "uuid": functionid,
             "validity": {
-                "from": "2017-03-01",
+                "from": "2017-06-01",
                 "to": None,
             },
         }
@@ -224,9 +314,9 @@ class Tests(util.LoRATestCase):
 
         with self.subTest('past'):
             hist = mora_util.set_obj_value(HIST, ('validity', 'to'),
-                                           '2017-02-28')
+                                           '2017-05-31')
             hum = mora_util.set_obj_value(HUM, ('validity', 'to'),
-                                          '2017-02-28')
+                                          '2017-05-31')
 
             self.assertRequestResponse(
                 '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
