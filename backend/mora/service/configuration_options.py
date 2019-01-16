@@ -28,14 +28,14 @@ conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
                         password=settings.USER_SETTINGS_DB_PASSWORD)
 cur = conn.cursor()
 
-
-@blueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
+@
+httblueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
     """Set a configuration setting for an ou.
 
     .. :quickref: Unit; Create configuration setting.
 
-    :statuscode 200: Setting created.
+    :statuscode 201: Setting created.
     :statuscode 404: No such unit found.
 
     :param unitid: The UUID of the organisational unit to be terminated.
@@ -54,7 +54,8 @@ def set_org_unit_configuration(unitid):
     """
 
     configuration = flask.request.get_json()
-    for key, value in configuration.items():
+    orgunit_conf = configuration['org_units']
+    for key, value in orgunit_conf.items():
         query = ("SELECT id FROM orgunit_settings WHERE setting = '{}' " +
                  "AND object='{}'").format(key, unitid)
         cur.execute(query)
@@ -104,7 +105,7 @@ def set_global_configuration():
 
     .. :quickref: Set or modify a global configuration setting.
 
-    :statuscode 200: Setting created.
+    :statuscode 201: Setting created.
 
     :<json object conf: Configuration option
 
@@ -120,7 +121,8 @@ def set_global_configuration():
     """
 
     configuration = flask.request.get_json()
-    for key, value in configuration.items():
+    orgunit_conf = configuration['org_units']
+    for key, value in orgunit_conf.items():
         query = ("SELECT id FROM orgunit_settings WHERE setting = '{}' " +
                  "AND object is Null").format(key)
         cur.execute(query)
@@ -128,6 +130,7 @@ def set_global_configuration():
         if len(rows) == 0:
             query = ("INSERT INTO orgunit_settings (object, setting, value) " +
                      "values (Null, '{}', '{}')")
+            print(query.format(key, value))
             cur.execute(query.format(key, value))
         elif len(rows) == 1:
             query = "UPDATE orgunit_settings set value='{}' where id={}"
