@@ -48,7 +48,13 @@ for the particular OU: ::
 
 Included in the response will be the settings: ::
 
-  setting ... wait for data
+  user_settings: {
+      orgunit: {
+          show_location: true,
+          show_roles: true,
+          show_user_key: true
+      }
+  }
 
 From this response, it is not possible to distinguish if the setting is local,
 inherited or global.
@@ -58,10 +64,16 @@ OU specific settings
 The actual configuration options set directly on the OU, can be read from the
 dedicated configuration api: ::
 
-  curl http://localhost/service/ou/...../get_configuration
+  curl http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/get_configuration
 
-Reply ....
+The reply could be: ::
+  {
+      "show_user_key":"False"
+  }
 
+In this case the value for ''show_user_key'' will be read from this
+configuration value, and the rest of the configuration options will be
+inherited or read from global scope.
 
 Global settings
 ^^^^^^^^^^^^^^^
@@ -69,8 +81,13 @@ The current global settings can also be read from the configuration api: ::
 
   curl http://localhost/service/o/get_configuration
 
-Reply ....
-
+With the reply: ::
+  {
+     show_location: "True",
+     show_roles: "True",
+     show_user_key: "True"
+  }
+  
 Global settings are global for all organisations.
 
 
@@ -80,23 +97,23 @@ Writing configuration options
 The payload for updating global or OU-specific settings are identical:
   '''
   {
-    org_units":{
+    "org_units":{
        "show_roles": "False"
        }
   }
   '''
 
-Currently, only there are only settings for org units and thus the outer key
-will alwayys be ''org_units''. It is possible to update more than one key pr
+Currently, there are only settings for org units and thus the outer key
+will always be ''org_units''. It is possible to update more than one key pr
 request.
   
 Global settings
 ^^^^^^^^^^^^^^^
 The update a global setting: ::
 
-  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_roles": "False"}}' http://localhost/service/o/set_configuration
+  curl -X POST -H "Content-Type: application/json" --data '{"org_units": {"show_roles": "False"}}' http://localhost/service/o/set_configuration
 
 OU specific settings
 ^^^^^^^^^^^^^^^
 To update or create a setting for a specific OU: ::
-  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_user_keys": "False"}}' http://localhost/service/ou/...../set_configuration
+  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_user_keys": "False"}}' http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/set_configuration
