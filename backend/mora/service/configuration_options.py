@@ -28,6 +28,7 @@ conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
                         password=settings.USER_SETTINGS_DB_PASSWORD)
 cur = conn.cursor()
 
+
 @blueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
     """Set a configuration setting for an ou.
