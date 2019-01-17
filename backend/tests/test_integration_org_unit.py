@@ -2693,3 +2693,32 @@ class Tests(util.LoRATestCase):
         for path, expected in util.get_fixture('test_trees.json').items():
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
+
+    def test_global_user_settings_read(self):
+        user_settings = self.assertRequest('/service/o/get_configuration')
+        self.assertTrue('show_location' in user_settings)
+        self.assertTrue('show_user_key' in user_settings)
+        self.assertTrue('show_roles' in user_settings)
+
+    def test_global_user_settings_write(self):
+        payload = {"org_units": {"show_roles": "False"}}
+        self.assertRequest('/service/o/set_configuration', json=payload)
+        user_settings = self.assertRequest('/service/o/get_configuration')
+        self.assertTrue(user_settings['show_roles'] == 'False')
+
+        payload = {"org_units": {"show_roles": "True"}}
+        self.assertRequest('/service/o/set_configuration', json=payload)
+        user_settings = self.assertRequest('/service/o/get_configuration')
+        self.assertTrue(user_settings['show_roles'] == 'True')
+
+    def test_ou_user_settings(self):
+        self.load_sample_structures()
+        uuid = 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
+
+        payload = {"org_units": {"show_user_key": "False"}}
+        url = '/service/ou/{}/set_configuration'.format(uuid)
+        self.assertRequest(url, json=payload)
+
+        url = '/service/ou/{}/get_configuration'.format(uuid)
+        user_settings = self.assertRequest(url)
+        self.assertTrue(user_settings['show_user_key'] == 'False')
