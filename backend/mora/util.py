@@ -263,6 +263,8 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
 
             return f(*args, **kwargs)
 
+        wrapper.restricts_args = True
+
         return wrapper
 
     return wrap

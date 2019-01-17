@@ -352,6 +352,7 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
+@util.restrictargs()
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -410,6 +411,7 @@ def terminate_employee(employee_uuid):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
+@util.restrictargs()
 def get_employee_history(employee_uuid):
     """
     Get the history of an employee
@@ -469,6 +471,7 @@ def get_employee_history(employee_uuid):
 
 
 @blueprint.route('/e/create', methods=['POST'])
+@util.restrictargs()
 def create_employee():
     """Create a new employee
 

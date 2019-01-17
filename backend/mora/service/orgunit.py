@@ -823,6 +823,7 @@ def list_orgunit_tree(orgid):
 
 
 @blueprint.route('/ou/create', methods=['POST'])
+@util.restrictargs()
 def create_org_unit():
     """Creates new organisational unit
 
@@ -987,6 +988,7 @@ def terminate_org_unit(unitid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
+@util.restrictargs()
 def get_org_unit_history(unitid):
     """
     Get the history of an org unit

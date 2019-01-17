@@ -56,6 +56,7 @@ DETAIL_TYPES = {
 
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
+@util.restrictargs()
 def list_details(type, id):
     '''List the available 'detail' types under this entry.
 

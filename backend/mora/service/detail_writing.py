@@ -25,6 +25,7 @@ import flask
 
 from . import handlers
 from .. import exceptions
+from .. import util
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
@@ -51,6 +52,7 @@ def handle_requests(
 
 
 @blueprint.route('/details/create', methods=['POST'])
+@util.restrictargs()
 def create():
     """Creates new relations on employees and units
 
@@ -409,6 +411,7 @@ def create():
 
 
 @blueprint.route('/details/edit', methods=['POST'])
+@util.restrictargs()
 def edit():
     """Edits a relation or attribute on an employee or unit
 
