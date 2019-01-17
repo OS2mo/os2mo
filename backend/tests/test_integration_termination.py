@@ -111,3 +111,44 @@ class Tests(util.LoRATestCase):
             },
             status_code=400,
             json=payload)
+
+    @freezegun.freeze_time('2000-12-01')
+    def test_terminate_employee_manager_full(self):
+        """Ensure that managers are terminated as well, when run with 'full'"""
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        payload = {
+            "validity": {
+                "to": "2000-12-01"
+            },
+            "terminate_all": True
+        }
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        def get_expected(id, is_manager=False):
+            o = c.organisationfunktion.get(id)
+
+            o.update(
+                livscykluskode='Rettet',
+                note='Afslut medarbejder',
+            )
+
+            v = o['tilstande']['organisationfunktiongyldighed']
+            v[0]['gyldighed'] = 'Inaktiv'
+
+            return o
+
+        expected_manager = get_expected(manager_uuid, True)
+
+        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
+                                   userid, json=payload)
+
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager,
+                                      actual_manager)

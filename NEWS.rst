@@ -8,6 +8,8 @@ New features
   units and employees is no longer disabled if the form is invalid
 * #25394: It is now no longer possible to perform edits taking effect before
   the current date.
+* #25100: It is now possible to optionally also terminate associated manager
+  roles when terminating an employee.
 * #24702: Allow marking organisational units as related to each other.
 
 Internal changes
