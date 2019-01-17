@@ -481,6 +481,7 @@ class Tests(util.LoRATestCase):
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         payload = [
             {
@@ -516,11 +517,73 @@ class Tests(util.LoRATestCase):
                                'association with the given org unit.',
                 'error': True,
                 'error_key': 'V_MORE_THAN_ONE_ASSOCIATION',
-                'existing': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+                'existing': [
+                    association_uuid,
+                ],
                 'status': 400
             },
             json=payload,
             status_code=400)
+
+    def test_create_association_with_preexisting(self):
+        """An employee cannot have more than one active association per org
+        unit """
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        # These are the user/unit ids on the already existing association
+        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        # we can't do this using the API, yet
+        c.organisationfunktion.update(
+            {
+                'tilstande': {
+                    'organisationfunktiongyldighed': [
+                        {
+                            'gyldighed': 'Inaktiv',
+                            'virkning': {
+                                "from": '2018-01-01T00:00:00+01:00',
+                                'to': 'infinity',
+                            },
+                        },
+                    ],
+                },
+            },
+            association_uuid,
+        )
+
+        self.assertRequest(
+            '/service/details/create',
+            json=[
+                {
+                    "type": "association",
+                    "org_unit": {'uuid': unitid},
+                    "person": {'uuid': userid},
+                    "job_function": {
+                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    "association_type": {
+                        'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                    },
+                    "address": {
+                        'address_type': {
+                            'example': '20304060',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        },
+                        'value': '33369696',
+                    },
+                    "validity": {
+                        "from": "2018-01-01",
+                        "to": None,
+                    },
+                }
+            ],
+        )
 
     def test_create_association_no_job_function(self):
         self.load_sample_structures()
@@ -1402,7 +1465,7 @@ class Tests(util.LoRATestCase):
             }],
         )
 
-    def test_edit_association_fails_validation(self):
+    def test_edit_association_with_preexisting(self):
         """Only one active association is allowed for each employee in each
         org unit """
         self.load_sample_structures()
@@ -1448,13 +1511,44 @@ class Tests(util.LoRATestCase):
         self.assertEqual(len(associations), 1)
         existing_uuid = associations[0]
 
+        with self.subTest('validation'):
+            req = [{
+                "type": "association",
+                "uuid": association_uuid,
+                "data": {
+                    "validity": {
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
+                    },
+                    "org_unit": {
+                        "uuid": unitid
+                    }
+                },
+            }]
+
+            self.assertRequestResponse(
+                '/service/details/edit',
+                {
+                    'description': 'The employee already has an active '
+                    'association with the given org unit.',
+                    'error': True,
+                    'error_key': 'V_MORE_THAN_ONE_ASSOCIATION',
+                    'existing': [
+                        existing_uuid,
+                    ],
+                    'status': 400
+                },
+                json=req,
+                status_code=400,
+            )
+
         req = [{
             "type": "association",
             "uuid": association_uuid,
             "data": {
                 "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
+                    "from": "2017-12-02",
+                    "to": "2017-12-02",
                 },
                 "org_unit": {
                     "uuid": unitid
@@ -1464,16 +1558,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            {
-                'description': 'The employee already has an active '
-                               'association with the given org unit.',
-                'error': True,
-                'error_key': 'V_MORE_THAN_ONE_ASSOCIATION',
-                'existing': existing_uuid,
-                'status': 400
-            },
+            [
+                association_uuid,
+            ],
             json=req,
-            status_code=400,
         )
 
     def test_edit_association_overwrite(self):

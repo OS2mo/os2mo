@@ -293,13 +293,14 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
 
     r = c.organisationfunktion(tilknyttedeenheder=org_unit_uuid,
                                tilknyttedebrugere=employee_uuid,
+                               gyldighed='Aktiv',
                                funktionsnavn=mapping.ASSOCIATION_KEY)
-    if r:
-        existing = r[-1]
-        if association_uuid and existing == association_uuid:
-            return
 
-        exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION(existing=existing)
+    if association_uuid is not None and association_uuid in r:
+        return
+
+    if r:
+        exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION(existing=r)
 
 
 @optional
@@ -309,6 +310,7 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
         virkningtil=util.to_lora_time(valid_to)
     )
     r = c.organisationfunktion(tilknyttedebrugere=employee_uuid,
+                               gyldighed='Aktiv',
                                funktionsnavn=mapping.ENGAGEMENT_KEY)
 
     valid_effects = [
@@ -324,9 +326,7 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
             },
             {}
         )
-        if effect['tilstande']
-                 ['organisationfunktiongyldighed'][0]
-                 ['gyldighed'] == 'Aktiv' and
+        if util.is_reg_valid(effect) and
         start <= valid_from and
         valid_to <= end
     ]

@@ -29,6 +29,8 @@ Bug fixes
   in the tree view at the left.
 * #25186: Hidden person input for create employee manager.
 * #25690: Ignore spacing in address type input field.
+* #26368: Validation no longer prevents adding an association if it
+  duplicates another *inactive* association.
 
 Version 0.13.0, 2018-11-30
 ==========================
