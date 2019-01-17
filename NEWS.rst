@@ -11,6 +11,8 @@ New features
 * #25100: It is now possible to optionally also terminate associated manager
   roles when terminating an employee.
 * #24702: Allow marking organisational units as related to each other.
+* #26368: Add support for using ``?validate=0`` as a query parameter
+  for disabling certain validations.
 
 Internal changes
 ----------------

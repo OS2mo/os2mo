@@ -52,11 +52,14 @@ def handle_requests(
 
 
 @blueprint.route('/details/create', methods=['POST'])
-@util.restrictargs()
+@util.restrictargs('validate')
 def create():
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
+
+    :query boolean validate: Whether to apply validations to input;
+                             default is ``True``.
 
     :statuscode 200: Creation succeeded.
 
@@ -411,11 +414,14 @@ def create():
 
 
 @blueprint.route('/details/edit', methods=['POST'])
-@util.restrictargs()
+@util.restrictargs('validate')
 def edit():
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
+
+    :query boolean validate: Whether to apply validations to input;
+                             default is ``True``.
 
     :statuscode 200: The edit succeeded.
 

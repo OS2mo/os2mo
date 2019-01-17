@@ -766,15 +766,20 @@ def is_reg_valid(reg):
     )
 
 
-def get_args_flag(name: str):
+def get_args_flag(name: str, *, default: bool=False):
     '''Get an argument from the Flask request as a boolean flag.
 
-    A 'flag' argument is false either when not set or one of the
-    values '0', 'false', 'no' or 'n'. Anything else is true.
+    A 'flag' argument is false either when one of the values '0',
+    'false', 'no' or 'n'. Anything else is true.
+
+    :param default: What to assume in the absense of the argument.
 
     '''
 
-    v = flask.request.args.get(name, '')
+    try:
+        v = flask.request.args[name]
+    except KeyError:
+        return default
 
     if v.lower() in ('', '0', 'no', 'n', 'false'):
         return False
