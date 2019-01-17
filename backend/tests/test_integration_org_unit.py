@@ -521,10 +521,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse('/service/ou/create', expected,
                                    json=payload, status_code=400)
 
-        self.assertRequestResponse('/service/ou/create?validate=1', expected,
+        self.assertRequestResponse('/service/ou/create?force=0', expected,
                                    json=payload, status_code=400)
 
-        self.assertRequest('/service/ou/create?validate=0',
+        self.assertRequest('/service/ou/create?force=1',
                            json=payload)
 
     def test_edit_org_unit_overwrite(self):
@@ -1290,7 +1290,7 @@ class Tests(util.LoRATestCase):
             status_code=400)
 
         self.assertRequestResponse(
-            '/service/details/edit?validate=0',
+            '/service/details/edit?force=1',
             [
                 org_unit_uuid,
             ],

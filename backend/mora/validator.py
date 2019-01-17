@@ -17,14 +17,14 @@ from . import mapping
 from . import util
 
 
-def optional(fn):
+def forceable(fn):
     '''Decorator that allows optionally bypassing validation, using the
-    `validate` query argument.
+    ``force`` query argument.
 
     '''
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        if util.get_args_flag('validate', default=True):
+        if not util.get_args_flag('force'):
             return fn(*args, **kwargs)
 
     return wrapper
@@ -117,7 +117,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
     }
 
 
-@optional
+@forceable
 def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
     # query for the full range of effects; otherwise,
     # _get_active_validity() won't return any useful data for time
@@ -144,7 +144,7 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         )
 
 
-@optional
+@forceable
 def is_distinct_responsibility(
     fields: typing.List[typing.Tuple[mapping.FieldTuple, typing.Mapping]],
 ):
@@ -161,7 +161,7 @@ def is_distinct_responsibility(
         )
 
 
-@optional
+@forceable
 def is_date_range_in_employee_range(employee_obj: dict,
                                     valid_from, valid_to):
     scope = lora.Connector(
@@ -191,7 +191,7 @@ def is_date_range_in_employee_range(employee_obj: dict,
             )
 
 
-@optional
+@forceable
 def is_contained_in_employee_range(empl_from, empl_to, valid_from, valid_to):
     if valid_from < empl_from or empl_to < valid_to:
         exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
@@ -202,7 +202,7 @@ def is_contained_in_employee_range(empl_from, empl_to, valid_from, valid_to):
         )
 
 
-@optional
+@forceable
 def is_candidate_parent_valid(unitid: str, parent: str,
                               from_date: datetime.datetime) -> bool:
     """
@@ -275,7 +275,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
             break
 
 
-@optional
+@forceable
 def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
                                             valid_from, association_uuid=None):
     """
@@ -303,7 +303,7 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
         exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION(existing=r)
 
 
-@optional
+@forceable
 def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
     c = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
@@ -335,7 +335,7 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
         exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT(employee=employee_uuid)
 
 
-@optional
+@forceable
 def is_edit_from_date_before_today(from_date: datetime.datetime):
     """Check if a given edit date is before today. If so, raise exception"""
     today = datetime.datetime.combine(

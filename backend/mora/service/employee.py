@@ -352,7 +352,7 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
-@util.restrictargs('validate')
+@util.restrictargs('force')
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -360,8 +360,7 @@ def terminate_employee(employee_uuid):
 
     .. :quickref: Employee; Terminate
 
-    :query boolean validate: Whether to apply validations to input;
-                             default is ``True``.
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: The termination succeeded.
 
@@ -474,14 +473,13 @@ def get_employee_history(employee_uuid):
 
 
 @blueprint.route('/e/create', methods=['POST'])
-@util.restrictargs('validate')
+@util.restrictargs('force')
 def create_employee():
     """Create a new employee
 
     .. :quickref: Employee; Create
 
-    :query boolean validate: Whether to apply validations to input;
-                             default is ``True``.
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: Creation succeeded.
 
