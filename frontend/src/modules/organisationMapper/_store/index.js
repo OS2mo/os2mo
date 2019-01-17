@@ -9,8 +9,6 @@ const state = {
 
 const actions = {
   MAP_ORGANISATIONS ({ state }) {
-    console.log(`Map ${state.origin} to: ${state.destination.join(', ')}`)
-
     Service.post(`/ou/${state.origin}/map`,
                  {
                    destination: state.destination,
@@ -19,8 +17,8 @@ const actions = {
                    }
                  },
                 )
-      .then(response => {
-        console.log('submitted, everything is great')
+      .catch(error => {
+        console.log(error.response)
       })
   },
 

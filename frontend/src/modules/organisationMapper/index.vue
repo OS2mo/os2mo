@@ -80,9 +80,6 @@ export default {
     origin (newVal) {
       this.$store.dispatch('organisationMapper/GET_ORGANISATION_MAPPINGS')
     },
-    destination (newVal) {
-      console.log('destination changed!')
-    }
   },
 
   methods: {
