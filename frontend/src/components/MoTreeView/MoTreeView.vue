@@ -245,8 +245,6 @@ export default {
       if (this.multiple) {
         let checked = this.getSelection()
 
-        console.log(`TREE: checked ${checked.join(', ')}`)
-
         this.$emit('input', checked)
       }
     },
@@ -258,7 +256,6 @@ export default {
      */
     onNodeSelected (node) {
       if (!this.multiple) {
-        console.log(`TREE: selected ${node.id}`)
         this.$emit('input', node.id)
       }
     },
@@ -285,8 +282,6 @@ export default {
       // wrap the values in a list, if necessary, handling absence
       const newVal = this.toArray(unitids)
       const oldVal = this.getSelection()
-
-      console.log(`TREE: set selection from ${oldVal} to ${newVal}`)
 
       // handle removals
       for (const uuid of oldVal.filter(v => !newVal.includes(v))) {
