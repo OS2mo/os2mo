@@ -132,6 +132,11 @@ Herefter installeres følgende afhængighed::
 
   $ sudo apt-get update && sudo apt-get install yarn
 
+Der skal nu oprettes en database til MOs configurationsoplysninger::
+
+  cd setup
+  ./create_conf_db.sh
+
 
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
 skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
@@ -150,6 +155,8 @@ nødvendige Python-afhængigheder og starte applikationen (lyttende på
 port 5000). Applikationen kan således tilgås på *http://localhost:5000*.
 Bemærk dog, at der først skal uploades data til LoRa - til dette formål
 kan man med fordel anvende ``flask.sh``.
+
+
 
 Generel brug af kommandolinieværktøjet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
