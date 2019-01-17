@@ -660,7 +660,7 @@ def get_orgunit(unitid):
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
-@util.restrictargs('at', 'start', 'limit', 'query', 'tree', 'uuid')
+@util.restrictargs('at', 'start', 'limit', 'query')
 def list_orgunits(orgid):
     '''Query organisational units in an organisation.
 
@@ -673,12 +673,6 @@ def list_orgunits(orgid):
     :queryparam int start: Index of first unit for paging.
     :queryparam int limit: Maximum items
     :queryparam string query: Filter by units matching this string.
-    :queryparam uuid uuid: Yield the given units; please note that
-                           this overrides any query parameter.
-
-    :queryparam bool tree: Return the results as a tree -- please note
-                           that this changes the output, and does not
-                           support paging.
 
     :>json string items: The returned items.
     :>json string offset: Pagination offset.
@@ -692,8 +686,6 @@ def list_orgunits(orgid):
     :status 200: Always.
 
     **Example Response**:
-
-    Regular formatting:
 
     .. sourcecode:: json
 
@@ -722,7 +714,49 @@ def list_orgunits(orgid):
         "total": 2
       }
 
-    Formatted as a tree:
+    '''
+    c = common.get_connector()
+
+    args = flask.request.args
+
+    kwargs = dict(
+        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
+        start=int(args.get('start', 0)) or 0,
+        tilhoerer=orgid,
+        gyldighed='Aktiv',
+    )
+
+    if 'query' in args:
+        kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+
+    return flask.jsonify(
+        c.organisationenhed.paged_get(
+            functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
+            **kwargs,
+        )
+    )
+
+
+@blueprint.route('/o/<uuid:orgid>/ou/tree')
+@util.restrictargs('at', 'query', 'uuid')
+def list_orgunit_tree(orgid):
+    '''Query organisational units in an organisation.
+
+    .. :quickref: Unit; Tree
+
+    :param uuid orgid: UUID of the organisation to search.
+
+    :queryparam date at: Show the units valid at this point in time,
+        in ISO-8601 format.
+    :queryparam int start: Index of first unit for paging.
+    :queryparam int limit: Maximum items
+    :queryparam string query: Filter by units matching this string.
+    :queryparam uuid uuid: Yield the given units; please note that
+                           this overrides any query parameter.
+
+    :status 200: Always.
+
+    **Example Response**:
 
     .. sourcecode:: json
 
@@ -763,11 +797,6 @@ def list_orgunits(orgid):
 
     args = flask.request.args
 
-    limits = dict(
-        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
-        start=int(args.get('start', 0)) or 0,
-    )
-
     kwargs = dict(
         tilhoerer=orgid,
         gyldighed='Aktiv',
@@ -776,29 +805,20 @@ def list_orgunits(orgid):
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    if util.get_args_flag('tree'):
-        unitids = (
-            args.getlist('uuid')
-            if 'uuid' in args
-            else c.organisationenhed(**kwargs)
-        )
+    unitids = (
+        args.getlist('uuid')
+        if 'uuid' in args
+        else c.organisationenhed(**kwargs)
+    )
 
-        if len(unitids) > settings.TREE_SEARCH_LIMIT:
-            raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
-                found=len(unitids),
-                limit=settings.TREE_SEARCH_LIMIT,
-            )
-
-        return flask.jsonify(
-            get_unit_tree(c, unitids),
+    if len(unitids) > settings.TREE_SEARCH_LIMIT:
+        raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
+            found=len(unitids),
+            limit=settings.TREE_SEARCH_LIMIT,
         )
 
     return flask.jsonify(
-        c.organisationenhed.paged_get(
-            functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
-            **limits,
-            **kwargs,
-        )
+        get_unit_tree(c, unitids),
     )
 
 
@@ -1049,18 +1069,13 @@ def map_org_units(origin):
         unitid
         for unitid, unit in units.items()
         for state in unit['tilstande']['organisationenhedgyldighed']
-        if util.get_effect_to(state) != util.POSITIVE_INFINITY
-        and state['gyldighed'] == 'Aktiv'
+        if util.get_effect_to(state) != util.POSITIVE_INFINITY and
+        state['gyldighed'] == 'Aktiv'
     }
 
     if terminated:
         exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
             org_unit_uuid=sorted(terminated),
-        )
-
-    if len(units) != len(destinations) + 1:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
-            org_unit_uuid=sorted(destinations - units.keys()),
         )
 
     orgid, = mapping.BELONGS_TO_FIELD.get_uuids(units[origin])
