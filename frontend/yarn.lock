@@ -700,6 +700,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.10.tgz#4fa76e6598b7de3f0cb6ec3abacc4f59e5b3a2ce"
   integrity sha512-8xZEYckCbUVgK8Eg7lf5Iy4COKJ5uXlnIOnePN0WUwSQggy9tolM+tDJf7wMOnT/JT/W9xDYIaYggt3mRV2O5w==
 
+"@ungap/url-search-params@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@ungap/url-search-params/-/url-search-params-0.1.2.tgz#8ba8c0527543fe675d1c29ae0a2daca842e8ee4f"
+  integrity sha512-WVk5+lJ+AoNLh2sIDMhnEAgLsVQuI067hWLJCzirErH1GYiy1gs09q4+XZxYWSvdAsslKsaO4q1iXXMx2c72dA==
+
 "@vue/babel-preset-app@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@vue/babel-preset-app/-/babel-preset-app-3.2.0.tgz#a443acdbd34f66d7645db271d9ac58fbe4fe870d"
@@ -5991,10 +5996,10 @@ linux-platform-info@^0.0.3:
   dependencies:
     os-family "^1.0.0"
 
-liquor-tree@^0.2.39:
-  version "0.2.41"
-  resolved "https://registry.yarnpkg.com/liquor-tree/-/liquor-tree-0.2.41.tgz#f58002f69188e58dfb49903a6ac7c207201834e3"
-  integrity sha512-RbHGTXAVAgIsu1WFGGPCOMhWkO9103DADWEXmd08KnwYTE2IYQdP7M+fCkBt9FCkJZj5Gv+4rubVx0M5KlnJZA==
+liquor-tree@^0.2.41:
+  version "0.2.49"
+  resolved "https://registry.yarnpkg.com/liquor-tree/-/liquor-tree-0.2.49.tgz#06e5a9c7d2bd08220346889a6a93b6611d1726b2"
+  integrity sha512-LGZs+fo9IgnUccvkaO79X9510QDtZ96Awpa0qbPLdJIPISXxq1N2/W2RDFvrMLCcIb/K0rHQw5SUjeyoYv4x8w==
 
 load-json-file@^1.0.0:
   version "1.1.0"
@@ -6089,6 +6094,11 @@ lodash.get@^4.4.2:
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/lodash.get/-/lodash.get-4.4.2.tgz#2d177f652fa31e939b4438d5341499dfa3825e99"
   integrity sha1-LRd/ZS+jHpObRDjVNBSZ36OCXpk=
+
+lodash.isequal@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
+  integrity sha1-QVxEePK8wwEgwizhDtMib30+GOA=
 
 lodash.mapvalues@^4.6.0:
   version "4.6.0"

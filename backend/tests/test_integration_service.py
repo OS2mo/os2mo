@@ -1330,6 +1330,7 @@ class Tests(util.LoRATestCase):
                     'leave': False,
                     'manager': False,
                     'org_unit': False,
+                    'related_unit': False,
                     'role': False,
                 },
             )
@@ -1346,6 +1347,7 @@ class Tests(util.LoRATestCase):
                     'leave': True,
                     'manager': True,
                     'org_unit': False,
+                    'related_unit': False,
                     'role': True,
                 },
             )
@@ -1362,6 +1364,7 @@ class Tests(util.LoRATestCase):
                     'leave': False,
                     'manager': True,
                     'org_unit': True,
+                    'related_unit': True,
                     'role': True,
                 },
             )
@@ -1378,6 +1381,7 @@ class Tests(util.LoRATestCase):
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
+                    'related_unit': False,
                     'role': False,
                 },
             )
@@ -1394,6 +1398,7 @@ class Tests(util.LoRATestCase):
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
+                    'related_unit': False,
                     'role': False,
                 },
             )
@@ -1410,6 +1415,7 @@ class Tests(util.LoRATestCase):
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
+                    'related_unit': True,
                     'role': False,
                 },
             )
@@ -1426,6 +1432,7 @@ class Tests(util.LoRATestCase):
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
+                    'related_unit': False,
                     'role': False,
                 },
             )
