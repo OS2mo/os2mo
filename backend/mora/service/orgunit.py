@@ -46,17 +46,23 @@ from .. import validator
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
-conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                        dbname=settings.USER_SETTINGS_DB_NAME,
-                        host=settings.USER_SETTINGS_DB_HOST,
-                        password=settings.USER_SETTINGS_DB_PASSWORD)
-cur = conn.cursor()
+try:
+    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                            dbname=settings.USER_SETTINGS_DB_NAME,
+                            host=settings.USER_SETTINGS_DB_HOST,
+                            password=settings.USER_SETTINGS_DB_PASSWORD)
+    cur = conn.cursor()
+except OperationalError:
+    cur = None
 
 
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database
     :param query: The query
     """
+    if cur = None:
+        return {}
+
     query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
     if unitid is None:
         query = query_start + "is Null"
