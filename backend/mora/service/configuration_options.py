@@ -63,17 +63,17 @@ def set_org_unit_configuration(unitid):
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
     for key, value in orgunit_conf.items():
-        query = ("SELECT id FROM orgunit_settings WHERE setting = '{}' " +
-                 "AND object='{}'").format(key, unitid)
-        cur.execute(query)
+        query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
+                 "AND object=%s")
+        cur.execute(query, (key, unitid))
         rows = cur.fetchall()
         if len(rows) == 0:
             query = ("INSERT INTO orgunit_settings (object, setting, value) " +
-                     "values ('{}', '{}', '{}')")
-            cur.execute(query.format(unitid, key, value))
+                     "values (%s, %s, %s)")
+            cur.execute(query, (unitid, key, value))
         elif len(rows) == 1:
-            query = "UPDATE orgunit_settings set value='{}' where id={}"
-            cur.execute(query.format(value, rows[0][0]))
+            query = "UPDATE orgunit_settings set value=%s where id=%s"
+            cur.execute(query, (value, rows[0][0]))
         else:
             raise('Non-consistent settings for {}'.format(unitid))
         conn.commit()
@@ -98,10 +98,9 @@ def get_org_unit_configuration(unitid):
     cur = conn.cursor()
 
     return_dict = {}
-    query = ("SELECT setting, value FROM " +
-             "orgunit_settings WHERE object = '{}'").format(unitid)
+    query = "SELECT setting, value FROM orgunit_settings WHERE object = %s"
 
-    cur.execute(query)
+    cur.execute(query, (unitid,))
     rows = cur.fetchall()
     for row in rows:
         return_dict[row[0]] = row[1]
@@ -133,18 +132,17 @@ def set_global_configuration():
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
     for key, value in orgunit_conf.items():
-        query = ("SELECT id FROM orgunit_settings WHERE setting = '{}' " +
-                 "AND object is Null").format(key)
-        cur.execute(query)
+        query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
+                 "AND object is Null")
+        cur.execute(query, (key,))
         rows = cur.fetchall()
         if len(rows) == 0:
             query = ("INSERT INTO orgunit_settings (object, setting, value) " +
-                     "values (Null, '{}', '{}')")
-            print(query.format(key, value))
-            cur.execute(query.format(key, value))
+                     "values (Null, %s, %s)")
+            cur.execute(query, (key, value))
         elif len(rows) == 1:
-            query = "UPDATE orgunit_settings set value='{}' where id={}"
-            cur.execute(query.format(value, rows[0][0]))
+            query = "UPDATE orgunit_settings set value=%s where id=%s"
+            cur.execute(query, (value, rows[0][0]))
         else:
             raise('Non-consistent global settings')
         conn.commit()

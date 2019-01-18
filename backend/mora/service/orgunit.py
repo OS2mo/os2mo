@@ -66,11 +66,12 @@ def _read_local_settings(unitid=None):
     query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
     if unitid is None:
         query = query_start + "is Null"
+        cur.execute(query)
     else:
-        query = query_start + "= '{}'".format(unitid)
+        query = query_start + "= %s"
+        cur.execute(query, (unitid,))
 
     settings = {}
-    cur.execute(query)
 
     rows = cur.fetchall()
     for row in rows:
