@@ -2694,21 +2694,69 @@ class Tests(util.LoRATestCase):
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
 
+    def _create_conf_data(self):
+        import psycopg2
+        from oio_rest.utils import test_support
+
+        p_url = test_support.psql().url()
+        with psycopg2.connect(p_url) as conn:
+            conn.autocommit = True
+            with conn.cursor() as curs:
+                curs.execute(
+                    "CREATE USER {} WITH ENCRYPTED PASSWORD '{}'".format(
+                        'mora',  # settings.USER_SETTINGS_DB_NAME,
+                        'mora'  # settings.USER_SETTINGS_DB_PASSWORD
+                    ))
+
+                curs.execute(
+                    'CREATE DATABASE {} OWNER {};'.format(
+                        'mora',  # settings.USER_SETTINGS_DB_NAME,
+                        'mora'  # settings.USER_SETTINGS_DB_USER,
+                    ))
+
+                curs.execute(
+                    'GRANT ALL PRIVILEGES ON DATABASE {} TO {};'.format(
+                        'mora',  # settings.USER_SETTINGS_DB_NAME,
+                        'mora'  # settings.USER_SETTINGS_DB_USER
+                    ))
+
+                query = ("CREATE TABLE orgunit_settings(" +
+                         "id serial PRIMARY KEY, object UUID, " +
+                         "setting varchar(255) NOT NULL, " +
+                         "value varchar(255) NOT NULL);")
+                curs.execute(query)
+
+                query = ("INSERT INTO orgunit_settings (object, setting, " +
+                         "value) values (Null, '{}', '{}')")
+                curs.execute(query.format('show_roles', 'True'))
+                curs.execute(query.format('show_user_key', 'False'))
+                curs.execute(query.format('show_location', 'False'))
+        return p_url
+
     def test_global_user_settings_read(self):
-        user_settings = self.assertRequest('/service/o/get_configuration')
+        postgres_url = self._create_conf_data()
+        url = '/service/o/get_configuration?postgres_url={}'
+
+        user_settings = self.assertRequest(url.format(postgres_url))
         self.assertTrue('show_location' in user_settings)
         self.assertTrue('show_user_key' in user_settings)
         self.assertTrue('show_roles' in user_settings)
+        print(user_settings)
+        self.assertTrue(user_settings['show_location'] == 'False')
 
     def test_global_user_settings_write(self):
+        postgres_url = self._create_conf_data()
+        set_url = '/service/o/set_configuration?postgres_url={}'
+        get_url = '/service/o/get_configuration?postgres_url={}'
+
         payload = {"org_units": {"show_roles": "False"}}
-        self.assertRequest('/service/o/set_configuration', json=payload)
-        user_settings = self.assertRequest('/service/o/get_configuration')
+        self.assertRequest(set_url.format(postgres_url), json=payload)
+        user_settings = self.assertRequest(get_url.format(postgres_url))
         self.assertTrue(user_settings['show_roles'] == 'False')
 
         payload = {"org_units": {"show_roles": "True"}}
-        self.assertRequest('/service/o/set_configuration', json=payload)
-        user_settings = self.assertRequest('/service/o/get_configuration')
+        self.assertRequest(set_url.format(postgres_url), json=payload)
+        user_settings = self.assertRequest(get_url.format(postgres_url))
         self.assertTrue(user_settings['show_roles'] == 'True')
 
     def test_ou_user_settings(self):

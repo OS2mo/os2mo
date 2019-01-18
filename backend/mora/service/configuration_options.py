@@ -22,12 +22,17 @@ from .. import settings
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
-conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                        dbname=settings.USER_SETTINGS_DB_NAME,
-                        host=settings.USER_SETTINGS_DB_HOST,
-                        password=settings.USER_SETTINGS_DB_PASSWORD)
-cur = conn.cursor()
 
+def _get_connection():
+    postgres_url = flask.request.args.get('postgres_url')
+    if postgres_url is None:
+        conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                                dbname=settings.USER_SETTINGS_DB_NAME,
+                                host=settings.USER_SETTINGS_DB_HOST,
+                                password=settings.USER_SETTINGS_DB_PASSWORD)
+    else:
+        conn = psycopg2.connect(postgres_url)
+    return conn
 
 @blueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
@@ -52,6 +57,8 @@ def set_org_unit_configuration(unitid):
 
     :returns: True
     """
+    conn = _get_connection()
+    cur = conn.cursor()
 
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
@@ -87,6 +94,8 @@ def get_org_unit_configuration(unitid):
 
     :returns: Configuration settings for unit
     """
+    conn = _get_connection()
+    cur = conn.cursor()
 
     return_dict = {}
     query = ("SELECT setting, value FROM " +
@@ -119,7 +128,8 @@ def set_global_configuration():
 
     :returns: True
     """
-
+    conn = _get_connection()
+    cur = conn.cursor()
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
     for key, value in orgunit_conf.items():
@@ -153,6 +163,8 @@ def get_global_configuration():
 
     :returns: Global configuration settings
     """
+    conn = _get_connection()
+    cur = conn.cursor()
 
     return_dict = {}
     query = ("SELECT setting, value FROM " +
