@@ -16,23 +16,17 @@ For more information regarding reading relations involving organisational
 units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
-import psycopg2
+import sqlite3
 import flask
 from .. import settings
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
-def _get_connection():
-    postgres_url = flask.request.args.get('postgres_url')
-    if postgres_url is None:
-        conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                                dbname=settings.USER_SETTINGS_DB_NAME,
-                                host=settings.USER_SETTINGS_DB_HOST,
-                                password=settings.USER_SETTINGS_DB_PASSWORD)
-    else:
-        conn = psycopg2.connect(postgres_url)
-    return conn
+conn = sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
+                       isolation_level=None,
+                       check_same_thread=False)
+cur = conn.cursor()
 
 @blueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
@@ -57,22 +51,19 @@ def set_org_unit_configuration(unitid):
 
     :returns: True
     """
-    conn = _get_connection()
-    cur = conn.cursor()
-
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
     for key, value in orgunit_conf.items():
-        query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
-                 "AND object=%s")
+        query = ("SELECT id FROM orgunit_settings WHERE setting = ? " +
+                 "AND object=?")
         cur.execute(query, (key, unitid))
         rows = cur.fetchall()
         if len(rows) == 0:
             query = ("INSERT INTO orgunit_settings (object, setting, value) " +
-                     "values (%s, %s, %s)")
+                     "values (?, ?, ?)")
             cur.execute(query, (unitid, key, value))
         elif len(rows) == 1:
-            query = "UPDATE orgunit_settings set value=%s where id=%s"
+            query = "UPDATE orgunit_settings set value=? where id=?"
             cur.execute(query, (value, rows[0][0]))
         else:
             raise('Non-consistent settings for {}'.format(unitid))
@@ -94,11 +85,8 @@ def get_org_unit_configuration(unitid):
 
     :returns: Configuration settings for unit
     """
-    conn = _get_connection()
-    cur = conn.cursor()
-
     return_dict = {}
-    query = "SELECT setting, value FROM orgunit_settings WHERE object = %s"
+    query = "SELECT setting, value FROM orgunit_settings WHERE object = ?"
 
     cur.execute(query, (unitid,))
     rows = cur.fetchall()
@@ -127,21 +115,19 @@ def set_global_configuration():
 
     :returns: True
     """
-    conn = _get_connection()
-    cur = conn.cursor()
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
     for key, value in orgunit_conf.items():
-        query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
+        query = ("SELECT id FROM orgunit_settings WHERE setting = ? " +
                  "AND object is Null")
         cur.execute(query, (key,))
         rows = cur.fetchall()
         if len(rows) == 0:
             query = ("INSERT INTO orgunit_settings (object, setting, value) " +
-                     "values (Null, %s, %s)")
+                     "values (Null, '?', '?')")
             cur.execute(query, (key, value))
         elif len(rows) == 1:
-            query = "UPDATE orgunit_settings set value=%s where id=%s"
+            query = "UPDATE orgunit_settings set value=? where id=?"
             cur.execute(query, (value, rows[0][0]))
         else:
             raise('Non-consistent global settings')
@@ -161,9 +147,6 @@ def get_global_configuration():
 
     :returns: Global configuration settings
     """
-    conn = _get_connection()
-    cur = conn.cursor()
-
     return_dict = {}
     query = ("SELECT setting, value FROM " +
              "orgunit_settings WHERE object is Null")

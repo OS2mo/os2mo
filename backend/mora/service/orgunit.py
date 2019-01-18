@@ -17,7 +17,7 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
-import psycopg2
+import sqlite3
 import collections
 import copy
 import enum
@@ -46,16 +46,10 @@ from .. import validator
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
-try:
-    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                            dbname=settings.USER_SETTINGS_DB_NAME,
-                            host=settings.USER_SETTINGS_DB_HOST,
-                            password=settings.USER_SETTINGS_DB_PASSWORD)
-    cur = conn.cursor()
-except:
-    cur = None
+conn = sqlite3.connect(settings.USER_SETTINGS_DB_FILE, check_same_thread=False)
+cur = conn.cursor()
 
-
+    
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database
     :param query: The query
@@ -68,7 +62,7 @@ def _read_local_settings(unitid=None):
         query = query_start + "is Null"
         cur.execute(query)
     else:
-        query = query_start + "= %s"
+        query = query_start + "= ?"
         cur.execute(query, (unitid,))
 
     settings = {}
