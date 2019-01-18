@@ -60,7 +60,7 @@ def _read_local_settings(unitid=None):
     """ Read a set of settings from the database
     :param query: The query
     """
-    if cur = None:
+    if cur is None:
         return {}
 
     query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
