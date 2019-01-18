@@ -52,7 +52,7 @@ try:
                             host=settings.USER_SETTINGS_DB_HOST,
                             password=settings.USER_SETTINGS_DB_PASSWORD)
     cur = conn.cursor()
-except OperationalError:
+except:
     cur = None
 
 
