@@ -10,13 +10,13 @@ const state = {
 const actions = {
   MAP_ORGANISATIONS ({ state }) {
     Service.post(`/ou/${state.origin}/map`,
-                 {
-                   destination: state.destination,
-                   validity: {
-                     from: moment().format('YYYY-MM-DD')
-                   }
-                 },
-                )
+      {
+        destination: state.destination,
+        validity: {
+          from: moment().format('YYYY-MM-DD')
+        }
+      }
+    )
       .catch(error => {
         console.log(error.response)
       })

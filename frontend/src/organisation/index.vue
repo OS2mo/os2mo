@@ -59,7 +59,7 @@ export default {
     },
 
     ...mapState({
-      route: 'route',
+      route: 'route'
     })
   }
 }

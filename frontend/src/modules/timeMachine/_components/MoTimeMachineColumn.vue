@@ -49,7 +49,7 @@ export default {
        * The date, org, orgUnit component value.
        * Used to detect changes and restore the value.
        */
-      date: new Date(),
+      date: new Date()
     }
   },
 

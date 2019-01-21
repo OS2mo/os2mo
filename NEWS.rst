@@ -25,6 +25,8 @@ Bug fixes
 * #25028: Timeachine is working again.
 * #25579: Address race condition when quickly switching between units
   in the tree view at the left.
+* #25186: Hidden person input for create employee manager.
+* #25690: Ignore spacing in address type input field.
 
 Version 0.13.0, 2018-11-30
 ==========================

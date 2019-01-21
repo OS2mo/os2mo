@@ -44,12 +44,12 @@ export default {
      *
      * @model
      */
-    value: {type: [String, Array]},
+    value: { type: [String, Array] },
 
     /**
      * Defines the date for rendering the tree; used for the time machine.
      */
-    atDate: {type: [Date, String]},
+    atDate: { type: [Date, String] },
 
     /**
      * UUID of unselectable unit.
@@ -261,12 +261,12 @@ export default {
     },
 
     getSelection () {
-      let nodes = this.multiple ?
-          this.tree.checked() : this.tree.selected()
+      let nodes = this.multiple
+        ? this.tree.checked() : this.tree.selected()
       return this.toArray(nodes.map(n => n.id))
     },
 
-    toArray(values) {
+    toArray (values) {
       let vs = values ? values instanceof Array ? values : [values] : []
 
       vs.sort()
@@ -372,7 +372,6 @@ export default {
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
           .then(response => {
-
             for (let unit of response) {
               vm.addNode(unit, null)
             }
