@@ -46,15 +46,16 @@ from .. import validator
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
+
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database
     :param query: The query
     """
+    query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
     with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
                          check_same_thread=False) as conn:
         cur = conn.cursor()
 
-        query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
         if unitid is None:
             query = query_start + "is Null"
             cur.execute(query)

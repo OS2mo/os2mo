@@ -53,15 +53,15 @@ def set_org_unit_configuration(unitid):
     with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
                          check_same_thread=False) as conn:
         cur = conn.cursor()
-    
+
         for key, value in orgunit_conf.items():
             query = ("SELECT id FROM orgunit_settings WHERE setting = ? " +
                      "AND object=?")
             cur.execute(query, (key, unitid))
             rows = cur.fetchall()
             if len(rows) == 0:
-                query = ("INSERT INTO orgunit_settings (object, setting, value) " +
-                         "values (?, ?, ?)")
+                query = ("INSERT INTO orgunit_settings (object, setting, "  +
+                         "value) values (?, ?, ?)")
                 cur.execute(query, (unitid, key, value))
             elif len(rows) == 1:
                 query = "UPDATE orgunit_settings set value=? where id=?"
@@ -131,8 +131,8 @@ def set_global_configuration():
             rows = cur.fetchall()
 
             if len(rows) == 0:
-                query = ("INSERT INTO orgunit_settings (object, setting, value) " +
-                         "values (Null, '?', '?')")
+                query = ("INSERT INTO orgunit_settings (object, setting, " +
+                         "value) values (Null, '?', '?')")
                 cur.execute(query, (key, value))
             elif len(rows) == 1:
                 query = "UPDATE orgunit_settings set value=? where id=?"
