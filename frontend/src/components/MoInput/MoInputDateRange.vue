@@ -7,7 +7,7 @@
     </span>
 
     <mo-input-date
-      class="from-date"
+      class="from-date col"
       :label="$t('input_fields.start_date')"
       v-model="validFrom"
       v-if="!hidden"
@@ -17,7 +17,7 @@
     />
 
     <mo-input-date
-      class="to-date"
+      class="to-date col"
       :label="$t('input_fields.end_date')"
       v-model="validTo"
       v-if="!hidden"

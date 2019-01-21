@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group col">
+  <div class="form-group">
     <label v-if="hasLabel" :for="identifier">{{label}}</label>
 
     <date-time-picker

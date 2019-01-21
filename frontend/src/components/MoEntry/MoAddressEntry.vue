@@ -3,6 +3,7 @@
     <div class="form-row">
       <mo-facet-picker
         v-show="noPreselectedType"
+        class="col"
         :facet="facet"
         v-model="entry.address_type"
         :preselected-user-key="preselectedType"
@@ -53,7 +54,6 @@ import MoAddressSearch from '@/components/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import { MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
-import { mapGetters } from 'vuex'
 
 export default {
   extends: MoEntryBase,
@@ -108,21 +108,13 @@ export default {
        * Used to detect changes and restore the value.
        */
       contactInfo: '',
-      entry: {
-        validity: {},
-        address_type: {},
-        uuid: null,
-        value: null
-      },
+      entry: {},
       address: null,
       addressScope: null
     }
   },
 
   computed: {
-    ...mapGetters({
-      facets: 'facet/GET_FACET'
-    }),
     /**
      * If the address is a DAR.
      * @type {Boolean}
@@ -130,14 +122,6 @@ export default {
     isDarAddress () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
       return false
-    },
-
-    /**
-     * Disable address type.
-     * @type {Boolean}
-     */
-    isDisabled () {
-      return this.entry.address_type == null
     },
 
     /**
@@ -216,8 +200,6 @@ export default {
     }
     this.entry = this.value
     this.contactInfo = this.value.name
-
-    this.$store.dispatch('facet/SET_FACET', 'employee_address_type')
   }
 }
 </script>

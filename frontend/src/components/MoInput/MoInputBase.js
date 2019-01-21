@@ -99,7 +99,9 @@ export default Vue.extend({
      */
     value (val) {
       this.internalValue = val
-      this.$validator.validate(this.identifier)
+      if (document.getElementById(this.identifier)) {
+        this.$validator.validate(this.identifier)
+      }
     }
   },
   created () {
