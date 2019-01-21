@@ -50,6 +50,7 @@ topdir = os.path.dirname(backenddir)
 docsdir = os.path.join(topdir, 'docs')
 frontenddir = os.path.join(topdir, 'frontend')
 
+
 cli = flask.cli.FlaskGroup(help=__doc__)
 
 
@@ -245,7 +246,50 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 @cli.command()
 @click.option('--simple', is_flag=True, help='Run with the simple fixtures.')
 def full_run(simple):
-    '''Runs a development server with a one-off LoRA.
+    '''Command for running a one-off server for frontend development.
+
+    This server consists of a the following:
+
+        1. An embedded PostgreSQL server.
+
+        2. An embedded LoRA/OIO REST WSGI server, loaded with either
+           the somewhat expansive *“Hjørring”* fixture, or with
+           ``--simple``, the *“Aarhus Universitet”* dummy fixture.
+
+        3. An embedded MO REST WSGI server.
+
+        4. A node process serving the frontend code in development
+           mode using ``vue-cli-service``.
+
+    Please note that neither OIO REST nor the MO API are served with
+    reloading; as such, any changes to the Python code requires a
+    restart.
+
+    The command prints out how to access each server at load. The
+    ports are normally allocated as follows:
+
+        1. PostgreSQL uses a random available port.
+
+        2. OIO REST uses the first available port starting from port
+           6000.
+
+        3. MO uses the first available port starting
+           from port 5000.
+
+        4. ``vue-cli-service`` uses the first available port starting
+           from port 8080.
+
+    Normally, this server is run using the ``flask.sh`` script. If
+    something goes wrong, such as a missing or outdated dependency,
+    simply delete the Python virtual environment and re-run the
+    command::
+
+       $ pwd
+       /path/to/os2mo/backend
+       $ rm -rf ./venv
+       $ ./flask.sh full-run
+       Creating virtual environment!
+       [...]
 
     '''
 
@@ -294,6 +338,10 @@ def full_run(simple):
                        )), \
             mock.patch('mora.settings.LORA_URL',
                        'http://localhost:{}/'.format(lora_port)):
+
+        print(' * PostgreSQL running at {}'.format(psql.url(
+            database=lora_settings.DATABASE,
+        )))
 
         test_support._initdb()
 
