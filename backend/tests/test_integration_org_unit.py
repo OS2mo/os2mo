@@ -2699,25 +2699,25 @@ class Tests(util.LoRATestCase):
         import mora.settings as settings
         import os
         os.remove(settings.USER_SETTINGS_DB_FILE)
-        conn = sqlite3.connect(settings.USER_SETTINGS_DB_FILE)
-        cur = conn.cursor()
-        
+
         defaults = {'show_roles': 'True',
                     'show_user_key': 'True',
                     'show_location': 'True'}
-        
-        create_query = ('CREATE TABLE orgunit_settings ' +
-                        '(id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
-                        'object UUID, setting varchar(255) NOT NULL, '
-                        'value varchar(255) NOT NULL);')
-        cur.execute(create_query)
 
-        query = ('INSERT INTO orgunit_settings (object, setting, value) ' +
-                 'VALUES (Null, "{}", "{}");')
+        with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
+                             check_same_thread=False) as conn:
+            cur = conn.cursor()
 
-        for setting, value in defaults.items():
-            cur.execute(query.format(setting, value))
-            conn.commit()
+            create_query = ('CREATE TABLE orgunit_settings ' +
+                            '(id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+                            'object UUID, setting varchar(255) NOT NULL, '
+                            'value varchar(255) NOT NULL);')
+            cur.execute(create_query)
+
+            query = ('INSERT INTO orgunit_settings (object, setting, value) ' +
+                     'VALUES (Null, ?, ?);')
+            for setting, value in defaults.items():
+                cur.execute(query, (setting, value))
         return True
 
     def test_global_user_settings_read(self):
