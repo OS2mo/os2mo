@@ -46,37 +46,34 @@ from .. import validator
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
-conn = sqlite3.connect(settings.USER_SETTINGS_DB_FILE, check_same_thread=False)
-cur = conn.cursor()
-
-    
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database
     :param query: The query
     """
-    if cur is None:
-        return {}
+    with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
+                         check_same_thread=False) as conn:
+        cur = conn.cursor()
 
-    query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
-    if unitid is None:
-        query = query_start + "is Null"
-        cur.execute(query)
-    else:
-        query = query_start + "= ?"
-        cur.execute(query, (unitid,))
-
-    settings = {}
-
-    rows = cur.fetchall()
-    for row in rows:
-        setting = row[0]
-        if row[1] == 'True':
-            value = True
-        elif row[1] == 'False':
-            value = False
+        query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
+        if unitid is None:
+            query = query_start + "is Null"
+            cur.execute(query)
         else:
-            value = row[1]
-        settings[setting] = value
+            query = query_start + "= ?"
+            cur.execute(query, (unitid,))
+
+        settings = {}
+
+        rows = cur.fetchall()
+        for row in rows:
+            setting = row[0]
+            if row[1] == 'True':
+                value = True
+            elif row[1] == 'False':
+                value = False
+            else:
+                value = row[1]
+            settings[setting] = value
     return settings
 
 
