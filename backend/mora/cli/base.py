@@ -51,7 +51,9 @@ docsdir = os.path.join(topdir, 'docs')
 frontenddir = os.path.join(topdir, 'frontend')
 
 
-cli = flask.cli.FlaskGroup(help=__doc__)
+cli = flask.cli.FlaskGroup(help=__doc__, context_settings={
+    'help_option_names': ['-h', '--help'],
+})
 
 
 class Exit(click.ClickException):
