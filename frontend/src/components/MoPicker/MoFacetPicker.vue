@@ -1,12 +1,11 @@
 <template>
-  <div>
   <mo-input-select
+    class="col"
     v-model="internalValue"
     :label="labelText"
     :options="sortedOptions"
     :required="required"
   />
-  </div>
 </template>
 
 <script>
