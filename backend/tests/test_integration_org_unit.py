@@ -2701,7 +2701,7 @@ class Tests(util.LoRATestCase):
         os.remove(settings.USER_SETTINGS_DB_FILE)
 
         defaults = {'show_roles': 'True',
-                    'show_user_key': 'True',
+                    'show_user_key': 'False',
                     'show_location': 'True'}
 
         with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
