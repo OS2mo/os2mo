@@ -60,7 +60,7 @@ def set_org_unit_configuration(unitid):
             cur.execute(query, (key, unitid))
             rows = cur.fetchall()
             if len(rows) == 0:
-                query = ("INSERT INTO orgunit_settings (object, setting, "  +
+                query = ("INSERT INTO orgunit_settings (object, setting, " +
                          "value) values (?, ?, ?)")
                 cur.execute(query, (unitid, key, value))
             elif len(rows) == 1:
