@@ -10,11 +10,11 @@
       />
     </div>
 
-      <label v-if="!hideEmployeePicker">{{$tc('input_fields.employee_optional')}}</label>
+      <label v-if="!hideEmployeePicker && hideOrgPicker">{{$tc('input_fields.employee_optional')}}</label>
       <mo-employee-picker
         v-model="entry.person"
         class="search-employee mb-3"
-        v-if="!hideEmployeePicker"
+        v-if="!hideEmployeePicker && hideOrgPicker"
         noLabel
       />
 
