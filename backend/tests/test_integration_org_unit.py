@@ -2747,7 +2747,7 @@ class Tests(util.LoRATestCase):
         self.assertTrue(user_settings['show_roles'] == 'True')
 
     def test_ou_user_settings(self):
-        postgres_url = self._create_conf_data()
+        self._create_conf_data()
         self.load_sample_structures()
         uuid = 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
 
