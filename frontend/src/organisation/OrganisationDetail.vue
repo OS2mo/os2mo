@@ -82,7 +82,7 @@ export default {
       this.latestEvent = event
 
       this.$store.dispatch('organisationUnit/SET_ORG_UNIT',
-                           this.route.params.uuid)
+        this.route.params.uuid)
       this.$store.dispatch('organisationUnit/SET_DETAIL', event)
     }
   },

@@ -72,14 +72,14 @@ export default {
     },
 
     ...mapGetters({
-      original_destination: 'organisationMapper/original_destination',
+      original_destination: 'organisationMapper/original_destination'
     })
   },
 
   watch: {
     origin (newVal) {
       this.$store.dispatch('organisationMapper/GET_ORGANISATION_MAPPINGS')
-    },
+    }
   },
 
   methods: {
