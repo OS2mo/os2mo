@@ -226,10 +226,6 @@ feature kræver det følgende afhængigheder::
 
   $ sudo apt install libxmlsec1-dev libxmlsec1-openssl postgresql-contrib
 
-For at få datamodellen i LoRas testinstans til at afspejle datamodellen i MO 
-vil MOs ``os2mo/setup/db_structure.py`` overskrive oio_rests ``oio_common/db_structure.py``
-i det aktuelle pythonmiljø.
-
 Testsuiten kan køres med kommandoen::
 
   $ ./flask.sh test
