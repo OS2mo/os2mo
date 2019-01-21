@@ -109,7 +109,7 @@ intersphinx_mapping = {
 #    'LoRa': ('https://mox.readthedocs.org/', None),
 }
 
-primary_domain = 'http'
+# primary_domain = 'http'
 
 
 # The master toctree document.
