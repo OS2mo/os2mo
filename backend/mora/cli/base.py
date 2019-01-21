@@ -190,7 +190,12 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
             module_file = getattr(module, '__file__', None)
 
             if module_file and module_file.startswith(basedir):
-                suite.addTests(doctest.DocTestSuite(module))
+                suite.addTests(doctest.DocTestSuite(
+                    module,
+                    optionflags=(
+                        doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+                    ),
+                ))
 
     def expand_suite(suite):
         for member in suite:
