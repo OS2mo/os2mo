@@ -180,7 +180,7 @@ export default {
       ],
       related_unit: [
         { label: 'org_unit', data: 'org_unit', index: 0 },
-        { label: 'org_unit', data: 'org_unit', index: 1 },
+        { label: 'org_unit', data: 'org_unit', index: 1 }
       ],
 
       /**

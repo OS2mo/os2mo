@@ -17,7 +17,7 @@
             :name="nameId"
             v-if="entry.address_type.scope!='DAR'"
             :data-vv-as="entry.address_type.name"
-            v-model="contactInfo"
+            v-model.trim="contactInfo"
             type="text"
             class="form-control"
             v-validate="validityRules"
