@@ -141,12 +141,12 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 class ReadingRequestHandler(RequestHandler):
     @classmethod
     @abc.abstractmethod
-    def has(self, scope, registration):
+    def has(cls, scope, registration):
         pass
 
     @classmethod
     @abc.abstractmethod
-    def get(self, scope, objid):
+    def get(cls, scope, objid):
         pass
 
 

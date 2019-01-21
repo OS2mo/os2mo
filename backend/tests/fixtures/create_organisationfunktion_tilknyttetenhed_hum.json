@@ -1,0 +1,55 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "rod <-> hum",
+        "funktionsnavn": "Relateret Enhed",
+        "virkning": {
+          "from": "2016-06-01 00:00:00+02:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "tilknyttedeenheder": [
+      {
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "objekttype": "organisationenhed",
+        "virkning": {
+          "from": "2016-06-01 00:00:00+02:00",
+          "to": "infinity"
+        }
+      },
+      {
+        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "objekttype": "organisationenhed",
+        "virkning": {
+          "from": "2016-06-01 00:00:00+02:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2016-06-01 00:00:00+02:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2016-06-01 00:00:00+02:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}

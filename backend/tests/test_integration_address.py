@@ -1809,6 +1809,7 @@ class Writing(util.LoRATestCase):
                 'manager': False,
                 'org_unit': True,
                 'role': False,
+                'related_unit': False,
             },
         )
 

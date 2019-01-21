@@ -459,6 +459,7 @@ class Tests(util.LoRATestCase):
                 'leave': False,
                 'manager': False,
                 'org_unit': True,
+                'related_unit': False,
                 'role': False,
             },
         )
@@ -2331,7 +2332,7 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 0,
+                'role_count': 1,
                 'child_count': 1,
 
                 'child_units': [
@@ -2366,7 +2367,7 @@ class Tests(util.LoRATestCase):
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 2,
 
                 'child_units': [
@@ -2411,7 +2412,7 @@ class Tests(util.LoRATestCase):
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 1,
 
                 'child_units': [
@@ -2460,7 +2461,7 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 0,
 
                 'child_units': [],
@@ -2797,21 +2798,21 @@ class Tests(util.LoRATestCase):
         expected_organisationenhedegenskaber = [{
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '{}',
-            'virkning': {
-                'from': '2016-01-03 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }, {
-            'brugervendtnoegle': 'hum',
-            'enhedsnavn': 'Humanistisk fakultet',
             'integrationsdata': '{"baywatchname": "Hasselhoff"}',
             'virkning': {
                 'from': '2016-01-01 00:00:00+01',
                 'from_included': True,
                 'to': '2016-01-03 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'brugervendtnoegle': 'hum',
+            'enhedsnavn': 'Humanistisk fakultet',
+            'integrationsdata': '{}',
+            'virkning': {
+                'from': '2016-01-03 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
                 'to_included': False
             }
         }]
@@ -2821,11 +2822,12 @@ class Tests(util.LoRATestCase):
 
         self.assertEqual(
             expected_organisationenhedegenskaber,
-            actual['attributter']['organisationenhedegenskaber']
+            sorted(actual['attributter']['organisationenhedegenskaber'],
+                   key=lambda attrs: attrs['virkning']['from']),
         )
 
     def test_tree(self):
-        self.load_sql_fixture()
+        self.load_sample_structures()
 
         for path, expected in util.get_fixture('test_trees.json').items():
             with self.subTest(path):

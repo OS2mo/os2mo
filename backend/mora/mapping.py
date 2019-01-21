@@ -52,6 +52,9 @@ ENGAGEMENT_TYPE = 'engagement_type'
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
 
+# Related units
+RELATED_UNIT_KEY = 'Relateret Enhed'
+
 # Role type
 ROLE_KEY = 'Rolle'
 ROLE_TYPE = 'role_type'
@@ -116,6 +119,13 @@ class FieldTuple(object):
 
     __call__ = get
 
+    def get_uuids(self, obj):
+        for item in self.get(obj):
+            try:
+                yield item['uuid']
+            except KeyError:
+                pass
+
     @property
     def path(self) -> typing.Tuple[str, str]:
         return self.__path
@@ -170,6 +180,11 @@ ORG_FUNK_TYPE_FIELD = FieldTuple(
 ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
+ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedeenheder'),
+    type=FieldTypes.ZERO_TO_MANY,
 )
 
 ASSOCIATED_ORG_FIELD = FieldTuple(

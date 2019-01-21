@@ -342,7 +342,7 @@ class Scope:
         params['foersteresultat'] = start
 
         if 'uuid' in params:
-            uuids = util.uniqueify(params.pop('uuid'))
+            uuids = util.uniqueify(params.pop('uuid'))[start:start + limit]
         else:
             uuids = self.fetch(**params)
 

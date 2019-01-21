@@ -60,6 +60,7 @@
               :value="c"
               :column="col.data"
               :field="col.field"
+              :index="col.index"
             />
           </td>
           <td>{{c.validity.from | date}}</td>

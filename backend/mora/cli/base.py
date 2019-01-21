@@ -243,7 +243,8 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
 
 @cli.command()
-def full_run(**kwargs):
+@click.option('--simple', is_flag=True, help='Run with the simple fixtures.')
+def full_run(simple):
     '''Runs a development server with a one-off LoRA.
 
     '''
@@ -258,6 +259,8 @@ def full_run(**kwargs):
     import settings as lora_settings
 
     from mora import app
+    from mora import db_structure
+    from tests import util as test_util
 
     def make_server(app, startport=5000):
         '''create a server at the first available port after startport'''
@@ -280,6 +283,7 @@ def full_run(**kwargs):
 
     with \
             test_support.psql() as psql, \
+            test_support.patch_db_struct(db_structure), \
             mock.patch('settings.LOG_AMQP_SERVER', None), \
             mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
             mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True), \
@@ -290,6 +294,7 @@ def full_run(**kwargs):
                        )), \
             mock.patch('mora.settings.LORA_URL',
                        'http://localhost:{}/'.format(lora_port)):
+
         test_support._initdb()
 
         threading.Thread(
@@ -302,15 +307,18 @@ def full_run(**kwargs):
 
         conn = db.get_connection()
 
-        try:
-            with \
-                    conn.cursor() as curs, \
-                    open(os.path.join(backenddir, 'tests', 'fixtures',
-                                      'dummy.sql')) as fp:
-                curs.execute(fp.read())
+        if simple:
+            test_util.load_sample_structures()
+        else:
+            try:
+                with \
+                        conn.cursor() as curs, \
+                        open(os.path.join(backenddir, 'tests', 'fixtures',
+                                          'dummy.sql')) as fp:
+                    curs.execute(fp.read())
 
-        finally:
-            db.pool.putconn(conn)
+            finally:
+                db.pool.putconn(conn)
 
         print(' * Backend running at http://localhost:{}/'.format(mora_port))
 
