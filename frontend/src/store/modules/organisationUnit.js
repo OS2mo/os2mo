@@ -1,31 +1,33 @@
 import Vue from 'vue'
 import Service from '@/api/HttpCommon'
 
-function state () {
+const defaultState = () => {
   return {
     name: undefined,
     user_key: undefined,
     uuid: undefined,
     org: undefined,
     org_uuid: undefined,
-    parent_uuid: undefined,
     parents: [],
     location: undefined,
     user_settings: {},
-    details: {}
+    details: {},
+    isLoading: false
   }
 }
 
+const state = defaultState
+
 const actions = {
-  SET_ORG_UNIT ({ commit }, payload) {
-    return Service.get(`/ou/${payload}/`)
-      .then(response => {
-        commit('SET_ORG_UNIT', response.data)
-        // EventBus.$emit('organisation-changed', response.data.org)
-      })
-      .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
-      })
+  async SET_ORG_UNIT ({ commit }, payload) {
+    const response = await Service.get(`/ou/${payload}/`)
+
+    if (response) {
+      commit('SET_ORG_UNIT', response.data)
+    } else {
+      commit('log/newError', { type: 'ERROR', value: response }, { root: true })
+    }
+    return response.data
   },
 
   SET_DETAIL ({ state, commit }, payload) {
@@ -57,7 +59,6 @@ const mutations = {
     state.org_uuid = payload.org.uuid
     state.location = payload.location
     state.user_settings = payload.user_settings
-    state.parent_uuid = payload.parent.uuid
     state.parents = []
 
     for (let current = payload.parent; current; current = current.parent) {
@@ -66,16 +67,7 @@ const mutations = {
   },
 
   RESET_ORG_UNIT (state) {
-    state.uuid = undefined
-    state.name = undefined
-    state.user_key = undefined
-    state.org = undefined
-    state.org_uuid = undefined
-    state.parent_uuid = undefined
-    state.parents = []
-    state.location = undefined
-    state.user_settings = {}
-    state.details = {}
+    Object.assign(state, defaultState())
   },
 
   SET_DETAIL (state, payload) {
@@ -88,6 +80,7 @@ const mutations = {
 
 const getters = {
   GET_ORG_UNIT: state => state,
+  GET_ORG_UNIT_UUID: state => state.uuid,
   GET_DETAIL: (state) => (id) => state.details[id] || {},
   GET_DETAILS: (state) => state.details || {}
 }

@@ -20,7 +20,7 @@ A engagement picker component.
 
 - `selected` 
 
-  The selected, engagements, isLoading, label component value.
+  The selected, engagements, isLoading component value.
   Used to detect changes and restore the value. 
 
 **initial value:** `null` 
@@ -32,10 +32,6 @@ A engagement picker component.
 - `isLoading` 
 
 **initial value:** `false` 
-
-- `label` 
-
-**initial value:** `''` 
 
 ## computed properties 
 

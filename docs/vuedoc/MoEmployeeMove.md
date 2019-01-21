@@ -27,12 +27,6 @@ A employee move component.
 
 ## computed properties 
 
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
 - `dateConflict` 
 
   Check if the dates are valid. 

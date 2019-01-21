@@ -73,11 +73,6 @@ export default {
     max-width: 12em;
   }
 
-  .btn-mapper {
-    /* FIXME: temporary fix to hide the button in development */
-    display: none;
-  }
-
   .btn-employee:hover{
     background-color: #002f5d;
   }

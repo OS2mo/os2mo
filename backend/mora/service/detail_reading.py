@@ -513,6 +513,11 @@ def get_detail(type, id, function):
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
         },
+        'related_unit': {
+            mapping.ORG_UNIT: (
+                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, True,
+            ),
+        },
         'association': {
             mapping.PERSON: (
                 user_cache, mapping.USER_FIELD, None, False,

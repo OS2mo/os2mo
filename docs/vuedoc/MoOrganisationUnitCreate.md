@@ -36,16 +36,7 @@ A organisation unit create component
   The addressEntry component.
   Used to add MoAddressEntry component in `<mo-add-many/>`. 
 
-**initial value:** `'MoAddressEntry'` 
-
-## computed properties 
-
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
+**initial value:** `'MoOrgUnitAddressEntry'` 
 
 ## methods 
 

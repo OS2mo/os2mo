@@ -12,6 +12,10 @@ A organisation unit entry component.
 
   This boolean property able the date in create organisation component. 
 
+- `disabled-dates` ***Object*** (*optional*) 
+
+  The valid dates for the entry component date pickers 
+
 ## data 
 
 - `orgUnit` 

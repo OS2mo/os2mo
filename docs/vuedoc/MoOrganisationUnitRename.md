@@ -21,12 +21,6 @@ A organisation unit rename component.
 
 ## computed properties 
 
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
 - `compareName` 
 
   Compare if the unit names are identical.

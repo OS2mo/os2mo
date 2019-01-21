@@ -164,6 +164,8 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
         'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
         'itsystem_user': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
         'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
+        'tilknyttetenhed_hist': 'daa77a4d-6500-483d-b099-2c2eb7fa7a76',
+        'tilknyttetenhed_hum': '5c68402c-2a8d-4776-9237-16349fc72648',
     }
 
     users = {

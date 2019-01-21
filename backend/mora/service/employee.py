@@ -364,6 +364,8 @@ def terminate_employee(employee_uuid):
     :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
+    :<json boolean terminate_all: *Optional* - perform full termination, i.e.
+        terminate the associated manager functions as well.
 
     **Example Request**:
 
@@ -376,7 +378,8 @@ def terminate_employee(employee_uuid):
       }
 
     """
-    date = util.get_valid_to(flask.request.get_json())
+    request = flask.request.get_json()
+    date = util.get_valid_to(request)
 
     c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
@@ -386,6 +389,7 @@ def terminate_employee(employee_uuid):
                 'date': date,
                 'uuid': objid,
                 'original': obj,
+                'request': request
             },
             handlers.RequestType.TERMINATE,
         )

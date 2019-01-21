@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import employeeRouter from '@/employee/router'
 import organisationRouter from '@/organisation/router'
 import timeMachineRouter from '@/modules/timeMachine/router'
+import organisationMapperRouter from '@/modules/organisationMapper/router'
 
 const LoginPage = () => import(/* webpackChunkName: "login" */ '@/login/LoginPage')
 const Landing = () => import(/* webpackChunkName: "landingPage" */ '@/landing/LandingPage')
@@ -53,6 +54,7 @@ const PageNotFoundRouter = {
 BaseRouter.children.push(employeeRouter)
 BaseRouter.children.push(organisationRouter)
 BaseRouter.children.push(timeMachineRouter)
+BaseRouter.children.push(organisationMapperRouter)
 // important page not found is last otherwise it overwrites all other routes
 BaseRouter.children.push(PageNotFoundRouter)
 

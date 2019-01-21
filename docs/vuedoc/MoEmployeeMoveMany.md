@@ -10,12 +10,6 @@ A employee move many component.
 
 ## computed properties 
 
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
 - `dateSelected` 
 
   Set dateSelected to disable if moveDate is selected. 

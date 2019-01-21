@@ -5,27 +5,18 @@
         <mo-input-date v-model="date"/>
       </div>
 
-      <mo-organisation-picker
-        v-model="org"
-        :at-date="date"
-        ignore-event
-      />
-
-      <mo-tree-view
-        v-model="orgUnit"
-        :at-date="date"
-        :org-uuid="org.uuid"
+      <mo-tree-view v-model="unitUuid" :at-date="date"
       />
     </div>
 
-    <div class="card margin-top" v-if="orgUnit">
+    <div class="card margin-top" v-if="unitUuid">
       <h4>{{orgUnit.name}}</h4>
 
       <organisation-detail-tabs
         :uuid="orgUnit.uuid"
-        :org-unit-info="orgUnitInfo"
-        @show="loadContent($event)"
+        :org-unit-info="orgUnit"
         :content="$store.getters[storeId + '/GET_DETAILS']"
+        @show="loadContent($event)"
         timemachine-friendly
       />
     </div>
@@ -38,7 +29,6 @@
  */
 
 import { MoInputDate } from '@/components/MoInput'
-import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 import orgUnitStore from '@/store/modules/organisationUnit'
@@ -46,7 +36,6 @@ import orgUnitStore from '@/store/modules/organisationUnit'
 export default {
   components: {
     MoInputDate,
-    MoOrganisationPicker,
     MoTreeView,
     OrganisationDetailTabs
   },
@@ -60,26 +49,22 @@ export default {
        * The date, org, orgUnit component value.
        * Used to detect changes and restore the value.
        */
-      date: new Date(),
-      org: {},
-      orgUnit: null
-    }
-  },
-  computed: {
-    orgUnitInfo () {
-      return this.$store.getters[this.storeId + '/GET_ORG_UNIT']
+      date: new Date()
     }
   },
 
-  watch: {
-    /**
-     * Whenever org change, update.
-     */
-    org () {
-      this.orgUnit = null
+  computed: {
+    unitUuid: {
+      get () {
+        return this.orgUnit && this.orgUnit.uuid
+      },
+      set (val) {
+        this.$store.dispatch(this.storeId + '/SET_ORG_UNIT', val)
+      }
     },
-    orgUnit (val) {
-      this.$store.dispatch(this.storeId + '/SET_ORG_UNIT', val.uuid)
+
+    orgUnit () {
+      return this.$store.getters[this.storeId + '/GET_ORG_UNIT']
     }
   },
   created () {
@@ -93,8 +78,12 @@ export default {
   },
   methods: {
     loadContent (event) {
-      event.atDate = this.date
-      this.$store.dispatch(this.storeId + '/SET_DETAIL', event)
+      this.latestEvent = event
+
+      if (this.orgUnit) {
+        this.$store.dispatch(this.storeId + '/SET_ORG_UNIT', this.unitUuid)
+        this.$store.dispatch(this.storeId + '/SET_DETAIL', event)
+      }
     }
   }
 }

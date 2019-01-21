@@ -41,12 +41,6 @@ A entry create modal component.
 
    **dependencies:** `_uid` 
 
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
 - `hasEntryComponent` 
 
   If it has a entry component. 
