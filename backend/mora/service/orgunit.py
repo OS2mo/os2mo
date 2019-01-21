@@ -63,7 +63,7 @@ def _read_local_settings(unitid=None):
             query = query_start + "= ?"
             cur.execute(query, (unitid,))
 
-        settings = {}
+        user_settings = {}
 
         rows = cur.fetchall()
         for row in rows:
@@ -74,8 +74,8 @@ def _read_local_settings(unitid=None):
                 value = False
             else:
                 value = row[1]
-            settings[setting] = value
-    return settings
+            user_settings[setting] = value
+    return user_settings
 
 
 @enum.unique
