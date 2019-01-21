@@ -135,7 +135,7 @@ Herefter installeres følgende afhængighed::
 Der skal nu oprettes en database til MOs configurationsoplysninger::
 
   cd setup
-  ./create_conf_db.sh
+  python3 create_sqlite_db.py
 
 
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
