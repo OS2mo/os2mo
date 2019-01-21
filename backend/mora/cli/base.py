@@ -259,7 +259,6 @@ def full_run(simple):
     import settings as lora_settings
 
     from mora import app
-    from mora import db_structure
     from tests import util as test_util
 
     def make_server(app, startport=5000):
@@ -283,7 +282,6 @@ def full_run(simple):
 
     with \
             test_support.psql() as psql, \
-            test_support.patch_db_struct(db_structure), \
             mock.patch('settings.LOG_AMQP_SERVER', None), \
             mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
             mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True), \
