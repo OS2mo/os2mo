@@ -156,8 +156,6 @@ port 5000). Applikationen kan således tilgås på *http://localhost:5000*.
 Bemærk dog, at der først skal uploades data til LoRa - til dette formål
 kan man med fordel anvende ``flask.sh``.
 
-
-
 Generel brug af kommandolinieværktøjet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
