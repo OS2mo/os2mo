@@ -528,7 +528,7 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         '''Load an SQL fixture'''
         assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
 
-        with psycopg2.connect() as conn, conn.cursor() as curs:
+        with psycopg2.connect(self.db_url) as conn, conn.cursor() as curs:
             conn.autocommit = True
 
             with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
